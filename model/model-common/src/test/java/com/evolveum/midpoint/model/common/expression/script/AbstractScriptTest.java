@@ -124,7 +124,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     @Test
     public void testExpressionSimple() throws Exception {
         evaluateAndAssertStringScalarExpression("expression-simple.xml",
-                null, "foobar");
+                null, "foobar1");
     }
 
     @Test

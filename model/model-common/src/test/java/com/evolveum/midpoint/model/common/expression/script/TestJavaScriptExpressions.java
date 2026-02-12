@@ -11,6 +11,8 @@ import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptE
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
+import org.testng.annotations.Test;
+
 import java.io.File;
 
 /**
@@ -26,5 +28,10 @@ public class TestJavaScriptExpressions extends AbstractScriptTest {
     @Override
     protected File getTestDir() {
         return new File(BASE_TEST_DIR, "javascript");
+    }
+
+    @Test(enabled = false) // #11085
+    public void testExpressionListLiteral() throws Exception {
+
     }
 }

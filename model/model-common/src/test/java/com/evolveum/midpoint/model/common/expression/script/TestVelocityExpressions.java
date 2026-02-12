@@ -312,4 +312,17 @@ public class TestVelocityExpressions extends AbstractScriptTest {
                 Boolean.FALSE);
     }
 
+    @Test
+    public void testExpressionListLiteral() throws Exception {
+        // Nothing to do here, Velocity is not supposed to support list literals
+    }
+
+    @Test(enabled = false) // #11086
+    public void testUserAdministrativeStatus() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-administrative-status.xml",
+                createUserScriptVariables(),
+                "enabled");
+    }
+
 }

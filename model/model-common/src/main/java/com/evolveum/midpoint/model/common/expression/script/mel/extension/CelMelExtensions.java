@@ -61,6 +61,20 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
             // ascii
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
+                            Operator.ADD.getFunction(),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-string-plus-int",
+                                    "Concatenation of int into string.",
+                                    SimpleType.STRING,
+                                    SimpleType.STRING, SimpleType.INT)),
+                    CelFunctionBinding.from("mel-string-plus-int", String.class, Long.class,
+                            this::stringPlusInt)
+
+            ),
+
+            // ascii
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
                             "ascii",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-ascii",
@@ -387,6 +401,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
             )
 
         );
+    }
+
+    private String stringPlusInt(String s, Long aLong) {
+        return s + aLong.toString();
     }
 
     private static final class Library implements CelExtensionLibrary<CelMelExtensions> {
