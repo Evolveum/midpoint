@@ -911,6 +911,12 @@ Panel for wizard contains same configuration structure as xref:/midpoint/referen
 Very important attribute is _applicableForOperation_, that have to have value *_wizard_* for wizard panels.
 This value specifies that the panel will only be used in the wizard and this panel will not appear in the detail menu.
 
+Labels for individual items in the form can be overridden using the item `display/label` definition
+(for example, to provide a custom label or translation key for a specific `path`).
+
+NOTE: Currently, only `display/label` overrides are supported at the item level.
+Other display settings, such as `icon` or `cssClass`, are not supported for item-level configuration.
+
 Example of configuration for wizard panel, which display form with basic configuration of resource object type (visible only attributes _displayName_, _description_, _kind_, _intent_, _securityPolicyRef_ and _default_):
 
 .Example
@@ -929,6 +935,14 @@ Example of configuration for wizard panel, which display form with basic configu
                     </display>
                     <item>
                         <path>schemaHandling/objectType/displayName</path>
+                        <display>
+                            <label>
+                                <orig>Custom display name</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.objectType.custom.displayName</key>
+                                </translation>
+                            </label>
+                        </display>
                         <visibility>visible</visibility>
                     </item>
                     <item>
