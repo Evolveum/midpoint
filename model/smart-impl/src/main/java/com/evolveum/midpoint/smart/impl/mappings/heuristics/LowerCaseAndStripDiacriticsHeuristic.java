@@ -52,14 +52,14 @@ public class LowerCaseAndStripDiacriticsHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(input)?.toLowerCase()",
+                "basic.lc(basic.toAscii(input))",
                 "Convert to lowercase and strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(" + focusPropertyName + ")?.toLowerCase()",
+                "basic.lc(basic.toAscii(" + focusPropertyName + "))",
                 "Convert to lowercase and strip diacritical marks");
     }
 }

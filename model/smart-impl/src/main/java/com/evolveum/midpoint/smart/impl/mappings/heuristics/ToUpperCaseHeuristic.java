@@ -40,14 +40,14 @@ public class ToUpperCaseHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input?.toUpperCase()",
+                "basic.uc(input)",
                 "Convert to uppercase");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + "?.toUpperCase()",
+                "basic.uc(" + focusPropertyName + ")",
                 "Convert to uppercase");
     }
 }

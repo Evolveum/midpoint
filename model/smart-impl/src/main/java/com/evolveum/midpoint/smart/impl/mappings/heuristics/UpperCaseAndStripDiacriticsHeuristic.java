@@ -52,14 +52,14 @@ public class UpperCaseAndStripDiacriticsHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(input)?.toUpperCase()",
+                "basic.uc(basic.toAscii(input))",
                 "Convert to uppercase and strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(" + focusPropertyName + ")?.toUpperCase()",
+                "basic.uc(basic.toAscii(" + focusPropertyName + "))",
                 "Convert to uppercase and strip diacritical marks");
     }
 }
