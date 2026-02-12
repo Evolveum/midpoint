@@ -141,7 +141,7 @@ class MappingsSuggestionOperation {
             var excludedMappingPaths = mergeExcludedPaths(existingMappingPaths, targetPathsToIgnore);
             var mappingCandidates = new AttributeMappingCandidateSet(excludedMappingPaths);
 
-            collectSystemMappings(knownSchemaProvider, ownedList, result)
+            collectSystemMappings(knownSchemaProvider, shadowsForValidation, result)
                     .forEach(mappingCandidates::propose);
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
@@ -232,17 +232,15 @@ class MappingsSuggestionOperation {
 
     private List<AttributeMappingsSuggestionType> collectSystemMappings(
             WellKnownSchemaProvider knownSchemaProvider,
-            List<OwnedShadow> ownedList,
+            List<OwnedShadow> shadowsForValidation,
             OperationResult result) {
         if (knownSchemaProvider == null) {
             return List.of();
         }
-        var shadowsForValidation = ownedList.subList(
-                Math.max(0, ownedList.size() - Math.min(VALIDATION_EXAMPLES_COUNT, ownedList.size())),
-                ownedList.size());
-
-        var mappings = isInbound ? knownSchemaProvider.suggestInboundMappings() : knownSchemaProvider.suggestOutboundMappings();
-
+        var mappings = isInbound
+                ? knownSchemaProvider.suggestInboundMappings()
+                : knownSchemaProvider.suggestOutboundMappings(
+                        shadowsForValidation.stream().map(OwnedShadow::shadow).toList());
         return mappings.stream()
                 .map(systemMapping -> assessAndBuildSystemMapping(systemMapping, shadowsForValidation, result))
                 .flatMap(opt -> opt.stream())
