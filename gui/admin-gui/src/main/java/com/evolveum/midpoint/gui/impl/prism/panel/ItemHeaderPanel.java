@@ -8,6 +8,11 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
+import com.evolveum.midpoint.gui.impl.util.GuiConfigUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -31,7 +36,11 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serial;
+
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString;
 
 /**
  * @author katka
@@ -51,8 +60,11 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemHeaderPanel.class);
 
-    public ItemHeaderPanel(String id, IModel<IW> model) {
+    private final ItemPanelSettings itemPanelSettings;
+
+    public ItemHeaderPanel(String id, IModel<IW> model, ItemPanelSettings itemPanelSettings) {
         super(id, model);
+        this.itemPanelSettings = itemPanelSettings;
     }
 
     @Override
@@ -94,6 +106,11 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     public IModel<String> createLabelModel() {
+        String labelFromConfig = getLabelFromConfig();
+        if (StringUtils.isNotEmpty(labelFromConfig)) {
+            return () -> labelFromConfig;
+        }
+
         return new PropertyModel<>(getModel(), "displayName");
     }
 
@@ -247,6 +264,33 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     protected boolean isButtonEnabled() {
         return getModelObject() != null && !getModelObject().isReadOnly() && getModelObject().isMultiValue();
+    }
+
+    protected ItemPanelSettings getSettings() {
+        return itemPanelSettings;
+    }
+
+    /**
+     * Tries to find label for the item in the configuration.
+     */
+    private @Nullable String getLabelFromConfig() {
+        if (getSettings() == null || getSettings().getConfig() == null) {
+            return null;
+        }
+
+        IW wrapper = getModelObject();
+        if (wrapper == null || wrapper.getPath() == null) {
+            return null;
+        }
+        VirtualContainerItemSpecificationType spec =
+                GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), wrapper.getPath());
+
+        if (spec == null || spec.getLabel() == null) {
+            return null;
+        }
+
+        PolyStringType label = spec.getLabel();
+        return translatePolyString(label);
     }
 
     public Component getLabelComponent() {

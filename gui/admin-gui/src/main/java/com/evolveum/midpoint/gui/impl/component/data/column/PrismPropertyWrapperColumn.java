@@ -43,7 +43,6 @@ public class PrismPropertyWrapperColumn<C extends Containerable, T> extends Abst
         this.pageBase = pageBase;
     }
 
-
     @Override
     public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
         return PrismPropertyWrapperModel.fromContainerValueWrapper(rowModel, itemName);
@@ -51,7 +50,7 @@ public class PrismPropertyWrapperColumn<C extends Containerable, T> extends Abst
 
     @Override
     protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel) {
-        return new PrismPropertyHeaderPanel<T>(componentId, new PrismPropertyWrapperHeaderModel(mainModel, itemName, pageBase)) {
+        return new PrismPropertyHeaderPanel<T>(componentId, new PrismPropertyWrapperHeaderModel<>(mainModel, itemName, pageBase), null) {
 
             @Override
             protected boolean isAddButtonVisible() {

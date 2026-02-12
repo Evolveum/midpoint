@@ -165,7 +165,7 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
     private String findOuSuffix(LdapName ldapName) {
         for (int i = ldapName.size(); i > 0; i--) {
             String prefix = ldapName.getPrefix(i).toString();
-            if (prefix.toLowerCase().startsWith("ou=")) {
+            if (prefix.toLowerCase().startsWith("ou=") || prefix.toLowerCase().startsWith("o=")) {
                 return prefix;
             }
         }

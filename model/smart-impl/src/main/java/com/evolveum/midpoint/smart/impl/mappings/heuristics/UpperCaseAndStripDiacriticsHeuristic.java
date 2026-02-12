@@ -12,46 +12,54 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.springframework.stereotype.Component;
 
-/**
- * Heuristic that extracts the first word from the input.
- * Useful for extracting given names from full names or first part of compound identifiers.
- */
+import java.text.Normalizer;
+
 @Component
-public class FirstWordHeuristic implements HeuristicRule {
+public class UpperCaseAndStripDiacriticsHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
-        return "firstWord";
+        return "upperCaseAndStripDiacritics";
     }
 
     @Override
     public String getDescription() {
-        return "Extract first word from input";
+        return "Convert to uppercase and strip diacritical marks";
     }
 
-    /**
-     * Only applicable if source values contain spaces (multi-word strings).
-     */
+    @Override
+    public int getOrder() {
+        return 2;
+    }
+
     @Override
     public boolean isApplicable(ValuesPairSample<?, ?> sample) {
         return sample.pairs().stream()
                 .flatMap(pair -> pair.getSourceValues(sample.direction()).stream())
                 .filter(value -> value instanceof String)
                 .map(value -> (String) value)
-                .anyMatch(str -> str != null && str.trim().contains(" "));
+                .anyMatch(str -> str != null && (hasDiacritics(str) || !str.equals(str.toUpperCase())));
+    }
+
+    private boolean hasDiacritics(String str) {
+        String normalized = Normalizer.normalize(str, Normalizer.Form.NFD);
+        if (normalized.matches(".*\\p{InCombiningDiacriticalMarks}+.*")) {
+            return true;
+        }
+        return str.matches(".*[ŁłØøÅåÆæŒœĐđŦŧĦħŊŋĸŁłŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽž].*");
     }
 
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input?.split('\\\\s+')[0]",
-                "Extract first word");
+                "basic.uc(basic.toAscii(input))",
+                "Convert to uppercase and strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + "?.split('\\\\s+')[0]",
-                "Extract first word");
+                "basic.uc(basic.toAscii(" + focusPropertyName + "))",
+                "Convert to uppercase and strip diacritical marks");
     }
 }
