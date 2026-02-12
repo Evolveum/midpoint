@@ -9,9 +9,6 @@
 package com.evolveum.midpoint.smart.impl.wellknownschemas;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.Nullable;
@@ -44,5 +41,5 @@ public interface WellKnownSchemaProvider {
     /**
      * Returns all predefined outbound mappings with their paths for quality assessment.
      */
-    List<SystemMappingSuggestion> suggestOutboundMappings();
+    List<SystemMappingSuggestion> suggestOutboundMappings(@Nullable List<ShadowType> sampleShadows);
 }
