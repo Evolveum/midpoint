@@ -1845,22 +1845,26 @@
                         </item>
                         <item id="292">
                             <path>schemaHandling/objectType/delineation/baseContext/objectClass</path>
-                            <label>
-                                <orig>Object class (base context)</orig>
-                                <translation>
-                                    <key>PageResource.wizard.step.objectType.baseContext.objectClass</key>
-                                </translation>
-                            </label>
+                            <display>
+                                <label>
+                                    <orig>Object class (base context)</orig>
+                                    <translation>
+                                        <key>PageResource.wizard.step.objectType.baseContext.objectClass</key>
+                                    </translation>
+                                </label>
+                            </display>
                             <visibility>visible</visibility>
                         </item>
                         <item id="293">
                             <path>schemaHandling/objectType/delineation/baseContext/filter</path>
-                            <label>
-                                <orig>Filter (base context)</orig>
-                                <translation>
-                                    <key>PageResource.wizard.step.objectType.baseContext.filter</key>
-                                </translation>
-                            </label>
+                            <display>
+                                <label>
+                                    <orig>Filter (base context)</orig>
+                                    <translation>
+                                        <key>PageResource.wizard.step.objectType.baseContext.filter</key>
+                                    </translation>
+                                </label>
+                            </display>
                             <visibility>visible</visibility>
                         </item>
                     </container>
