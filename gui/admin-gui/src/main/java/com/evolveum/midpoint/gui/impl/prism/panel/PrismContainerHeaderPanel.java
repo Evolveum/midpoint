@@ -33,9 +33,8 @@ public class PrismContainerHeaderPanel<C extends Containerable, PCW extends Pris
 
     private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
 
-
-    public PrismContainerHeaderPanel(String id, IModel<PCW> model) {
-        super(id, model);
+    public PrismContainerHeaderPanel(String id, IModel<PCW> model, ItemPanelSettings itemPanelSettings) {
+        super(id, model, itemPanelSettings);
     }
 
     @Override

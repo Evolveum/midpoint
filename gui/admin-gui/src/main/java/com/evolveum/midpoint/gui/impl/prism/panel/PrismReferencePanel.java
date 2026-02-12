@@ -80,7 +80,7 @@ public class PrismReferencePanel<R extends Referencable>
 
     @Override
     protected ItemHeaderPanel createHeaderPanel() {
-        return new PrismReferenceHeaderPanel<R>(ID_HEADER, getModel()) {
+        return new PrismReferenceHeaderPanel<R>(ID_HEADER, getModel(), getSettings()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(PrismReferencePanel.this);

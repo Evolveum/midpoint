@@ -18,24 +18,27 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 
+import java.io.Serial;
+
 /**
  * @author katka
  *
  */
 public class PrismReferenceHeaderPanel<R extends Referencable> extends ItemHeaderPanel<PrismReferenceValue, PrismReference, PrismReferenceDefinition, PrismReferenceWrapper<R>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
-    public PrismReferenceHeaderPanel(String id, IModel<PrismReferenceWrapper<R>> model) {
-        super(id, model);
+    public PrismReferenceHeaderPanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemPanelSettings itemPanelSettings) {
+        super(id, model, itemPanelSettings);
     }
 
+    public PrismReferenceHeaderPanel(String id, IModel<PrismReferenceWrapper<R>> model) {
+        super(id, model, null);
+    }
 
     @Override
     protected Component createTitle(IModel<String> label) {
-        Label displayName = new Label(ID_LABEL, label);
-
-        return displayName;
+        return new Label(ID_LABEL, label);
     }
 
     @Override

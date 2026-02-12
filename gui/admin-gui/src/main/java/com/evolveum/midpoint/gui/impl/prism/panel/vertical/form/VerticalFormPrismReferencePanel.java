@@ -50,7 +50,7 @@ public class VerticalFormPrismReferencePanel<R extends Referencable>
 
     @Override
     protected ItemHeaderPanel createHeaderPanel() {
-        VerticalFormPrismReferenceHeaderPanel<R> header = new VerticalFormPrismReferenceHeaderPanel<R>(ID_HEADER, getModel()) {
+        VerticalFormPrismReferenceHeaderPanel<R> header = new VerticalFormPrismReferenceHeaderPanel<R>(ID_HEADER, getModel(), getSettings()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(VerticalFormPrismReferencePanel.this);
