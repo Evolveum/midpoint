@@ -18,6 +18,7 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
@@ -25,8 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinition
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -34,7 +35,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyObjectTypePermissionData;
 
-public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable> extends AbstractWizardPanel<P, ResourceDetailsModel> {
+public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
     private static final String CLASS_DOT = SmartObjectTypeSuggestionWizardPanel.class.getName() + ".";
     private static final String OP_DEFINE_TYPES = CLASS_DOT + "defineTypes";
@@ -43,7 +44,7 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
     private static final String OP_DELETE_SUGGESTIONS =
             SmartObjectTypeSuggestionWizardPanel.class.getName() + ".deleteSuggestions";
 
-    public SmartObjectTypeSuggestionWizardPanel(String id, WizardPanelHelper<P, ResourceDetailsModel> helper) {
+    public SmartObjectTypeSuggestionWizardPanel(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
     }
 
@@ -51,7 +52,7 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
         add(createChoiceFragment(createTablePanel(getIdOfChoicePanel())));
     }
 
-    protected ResourceObjectClassTableWizardPanel<ResourceObjectTypeDefinitionType, P> createTablePanel(String idOfChoicePanel) {
+    protected ResourceObjectClassTableWizardPanel<ResourceObjectTypeDefinitionType> createTablePanel(String idOfChoicePanel) {
         return new ResourceObjectClassTableWizardPanel<>(idOfChoicePanel, getHelper()) {
 
             @Override
@@ -60,6 +61,12 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
                     AjaxRequestTarget target) {
                 var complexTypeDef = model.getObject().getRealValue();
                 proceedToSuggestionConfirmationPanel(getPageBase(), target, complexTypeDef);
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                removeLastBreadcrumb();
+                SmartObjectTypeSuggestionWizardPanel.this.onExitPerformed(target);
             }
         };
     }
@@ -135,7 +142,7 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
                 && !suggestions.getResult().getObjectType().isEmpty();
     }
 
-    private @NotNull ResourceGeneratingSuggestionObjectClassWizardPanel<ResourceObjectTypeDefinitionType, P> buildGeneratingWizardPanel(
+    private @NotNull ResourceGeneratingSuggestionObjectClassWizardPanel<ResourceObjectTypeDefinitionType> buildGeneratingWizardPanel(
             @NotNull String idOfChoicePanel, QName objectClassName) {
         return new ResourceGeneratingSuggestionObjectClassWizardPanel<>(idOfChoicePanel, getHelper(), objectClassName) {
 
@@ -151,14 +158,18 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
             }
 
             @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                SmartObjectTypeSuggestionWizardPanel.this.onExitPerformed(target);
+            }
+
+            @Override
             protected void onContinueWithSelected(AjaxRequestTarget target) {
                 showChoiceFragment(target, buildSelectSuggestedObjectTypeWizardPanel(idOfChoicePanel, objectClassName));
             }
         };
     }
 
-    @Contract("_, _ -> new")
-    private @NotNull ResourceSuggestedObjectTypeTableWizardPanel<P> buildSelectSuggestedObjectTypeWizardPanel(
+    private @NotNull ResourceSuggestedObjectTypeTableWizardPanel<ResourceObjectTypeDefinitionType> buildSelectSuggestedObjectTypeWizardPanel(
             @NotNull String idOfChoicePanel, QName objectClassName) {
         return new ResourceSuggestedObjectTypeTableWizardPanel<>(idOfChoicePanel, getHelper(), objectClassName) {
 
@@ -173,13 +184,12 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
                 PageBase pageBase = getPageBase();
 
                 clearPageFeedback(target);
-                getAssignmentHolderModel().getPageResource()
-                        .showObjectTypeWizard(newValue, target, containerModel.getObject().getPath(),
-                                ajaxRequestTarget -> {
-                                    Task task = pageBase.createSimpleTask(OP_DELETE_SUGGESTIONS);
-                                    OperationResult result = task.getResult();
-                                    removeObjectTypeSuggestionNew(pageBase, statusInfo, suggestedObjectTypeDef, task, result);
-                                });
+
+                onReviewSelected(model, newValue, containerModel, target, ajaxRequestTarget -> {
+                    Task task = pageBase.createSimpleTask(OP_DELETE_SUGGESTIONS);
+                    OperationResult result = task.getResult();
+                    removeObjectTypeSuggestionNew(pageBase, statusInfo, suggestedObjectTypeDef, task, result);
+                });
             }
 
             @Override
@@ -195,4 +205,14 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
             }
         };
     }
+
+    protected void onReviewSelected(
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model,
+            PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
+            @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
+            AjaxRequestTarget target,
+            @Nullable SerializableConsumer<AjaxRequestTarget> afterSaveAction){
+        getAssignmentHolderModel().getPageResource()
+                .showObjectTypeWizard(newValue, target, containerModel.getObject().getPath(), afterSaveAction);
+    };
 }

@@ -453,7 +453,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 () -> getAssignmentHolderDetailsModel().getObjectType()) {
             @Override
             protected boolean isSamplingEnabled() {
-                return true;
+                return false;
             }
 
             @Override

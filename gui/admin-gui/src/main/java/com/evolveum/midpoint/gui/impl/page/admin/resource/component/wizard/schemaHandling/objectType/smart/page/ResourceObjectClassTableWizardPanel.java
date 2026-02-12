@@ -53,7 +53,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "ResourceObjectClassTableWizardPanel.headerLabel", icon = "fa fa-arrows-rotate"))
-public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
+public abstract class ResourceObjectClassTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
 
     private static final String ID_PANEL = "panel";
 

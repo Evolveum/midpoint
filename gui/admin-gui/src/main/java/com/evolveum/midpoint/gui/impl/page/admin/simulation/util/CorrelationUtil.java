@@ -444,7 +444,6 @@ public class CorrelationUtil {
                 @Nullable ObjectDelta<?> delta = processedObject.getDelta();
                 List<ResourceObjectOwnerOptionType> optionList = parseResourceObjectOwnerOptionsFromDelta(delta);
                 if (optionList != null) {return optionList;}
-
                 return Collections.emptyList();
             }
         };
