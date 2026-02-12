@@ -13,16 +13,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TrimAndLowerCaseHeuristic implements HeuristicRule {
+public class TrimAndUpperCaseHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
-        return "trimAndLowerCase";
+        return "trimAndUpperCase";
     }
 
     @Override
     public String getDescription() {
-        return "Trim whitespace and convert to lowercase";
+        return "Trim whitespace and convert to uppercase";
     }
 
     @Override
@@ -30,9 +30,6 @@ public class TrimAndLowerCaseHeuristic implements HeuristicRule {
         return 2;
     }
 
-    /**
-     * Only applicable if source values have whitespace or uppercase letters.
-     */
     @Override
     public boolean isApplicable(ValuesPairSample<?, ?> sample) {
         return sample.pairs().stream()
@@ -40,20 +37,20 @@ public class TrimAndLowerCaseHeuristic implements HeuristicRule {
                 .filter(value -> value instanceof String)
                 .map(value -> (String) value)
                 .anyMatch(str -> str != null &&
-                        (!str.equals(str.trim()) || !str.equals(str.toLowerCase())));
+                        (!str.equals(str.trim()) || !str.equals(str.toUpperCase())));
     }
 
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input?.trim()?.toLowerCase()",
-                "Trim and convert to lowercase");
+                "input?.trim()?.toUpperCase()",
+                "Trim and convert to uppercase");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + "?.trim()?.toLowerCase()",
-                "Trim and convert to lowercase");
+                focusPropertyName + "?.trim()?.toUpperCase()",
+                "Trim and convert to uppercase");
     }
 }
