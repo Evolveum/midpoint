@@ -12,46 +12,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.springframework.stereotype.Component;
 
-/**
- * Heuristic that extracts the last word from the input.
- * Useful for extracting family names from full names or last part of compound identifiers.
- */
 @Component
-public class LastWordHeuristic implements HeuristicRule {
+public class TrimAndUpperCaseHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
-        return "lastWord";
+        return "trimAndUpperCase";
     }
 
     @Override
     public String getDescription() {
-        return "Extract last word from input";
+        return "Trim whitespace and convert to uppercase";
     }
 
-    /**
-     * Only applicable if source values contain spaces (multi-word strings).
-     */
+    @Override
+    public int getOrder() {
+        return 2;
+    }
+
     @Override
     public boolean isApplicable(ValuesPairSample<?, ?> sample) {
         return sample.pairs().stream()
                 .flatMap(pair -> pair.getSourceValues(sample.direction()).stream())
                 .filter(value -> value instanceof String)
                 .map(value -> (String) value)
-                .anyMatch(str -> str != null && str.trim().contains(" "));
+                .anyMatch(str -> str != null &&
+                        (!str.equals(str.trim()) || !str.equals(str.toUpperCase())));
     }
 
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "def words = input?.split('\\\\s+'); words ? words[-1] : null",
-                "Extract last word");
+                "basic.uc(basic.trim(input))",
+                "Trim and convert to uppercase");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "def words = " + focusPropertyName + "?.split('\\\\s+'); words ? words[-1] : null",
-                "Extract last word");
+                "basic.uc(basic.trim(" + focusPropertyName + "))",
+                "Trim and convert to uppercase");
     }
 }

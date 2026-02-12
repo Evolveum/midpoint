@@ -25,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import javax.annotation.Nullable;
+
 /**
  * @author lazyman
  */
@@ -76,18 +78,15 @@ public class ImagePanel extends BasePanel<DisplayType> {
     private void initLayout() {
         Label image = new Label(ID_IMAGE);
         image.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), "icon.cssClass")));
-        DisplayType displayBean = getModelObject();
-        if (displayBean != null) {
-            String toolTip = LocalizationUtil.translatePolyString(displayBean.getTooltip());
-            image.add(AttributeModifier.replace("title", toolTip));
-            image.add(AttributeModifier.replace("aria-label", shouldBeDescribed() ? toolTip : null));
-        }
+        image.add(AttributeModifier.replace("title", this::getTooltip));
+        image.add(AttributeModifier.replace("aria-label", this::getTooltip));
         image.add(AttributeAppender.append("style", () -> StringUtils.isNotBlank(getColor()) ? "color: " + getColor() + ";" : ""));
         image.setOutputMarkupId(true);
         image.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getCssClass())));
 
-        image.add(AttributeAppender.append("role", shouldBeDescribed() ? iconRole.getValue() : null));
-        image.add(AttributeAppender.append("tabindex", shouldBeDescribed() ? 0 : null));
+        image.add(AttributeAppender.append("role", this::getRoleAttributeValue));
+        image.add(AttributeAppender.append("tabindex", shouldBeDescribed() && StringUtils.isNotEmpty(getTooltip()) ?
+                0 : null));
 
         add(image);
 
@@ -102,6 +101,22 @@ public class ImagePanel extends BasePanel<DisplayType> {
 
     public void setIconRole(IconRole role) {
         this.iconRole = role;
+    }
+
+    private @Nullable String getRoleAttributeValue() {
+        if (!shouldBeDescribed()) {
+            return null;
+        }
+        if (!IconRole.IMAGE.equals(iconRole) || StringUtils.isNotEmpty(getTooltip())) {
+            return iconRole.getValue();
+        }
+        return null;
+    }
+
+    private @Nullable String getTooltip() {
+        DisplayType displayBean = getModelObject();
+        String tooltip = LocalizationUtil.translatePolyString(displayBean.getTooltip());
+        return StringUtils.isEmpty(tooltip) ? null : tooltip;
     }
 
     private String getColor() {
