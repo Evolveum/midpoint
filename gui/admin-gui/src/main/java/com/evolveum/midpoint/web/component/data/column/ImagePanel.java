@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lazyman
