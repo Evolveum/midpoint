@@ -88,14 +88,11 @@ public class LocalizationServiceImpl implements LocalizationService {
         Object[] translated = translateParams(params, locale);
 
         for (MessageSource source : sources) {
-            try {
-                String value = source.getMessage(key, translated, locale);
-                if (StringUtils.isNotEmpty(value)) {
-                    LOG.trace("Resolved key {} to value {} using message source {}", key, value, source);
-                    return value;
-                }
-            } catch (NoSuchMessageException ex) {
-                // nothing to do
+            // Use getMessage with defaultMessage=null to avoid NoSuchMessageException
+            String value = source.getMessage(key, translated, null, locale);
+            if (StringUtils.isNotEmpty(value)) {
+                LOG.trace("Resolved key {} to value {} using message source {}", key, value, source);
+                return value;
             }
         }
 
