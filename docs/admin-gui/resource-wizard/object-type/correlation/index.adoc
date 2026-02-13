@@ -115,7 +115,7 @@ image::correlation-add-new-mapping.webp[title="Create a new correlation item. Th
 image::correlation-rules-multiple-correlator.webp[title="List of correlators for one correlation rule. In this configuration, all three values must match exactly for the rule to gain the maximum confidence."]
 
 [[ai-correlation]]
-=== Use AI to Generate Correlation Rules
+=== Use AI to generate correlation rules
 
 To boost productivity and to configure correlation faster and more efficiently, use the midPoint's AI assistant to generate correlation rules based on the actual data in your resource.
 This greatly simplifies the process of setting up correlation, especially for large and complex resources, by providing intelligent suggestions for correlation rules that are tailored to your specific resource data.
@@ -144,7 +144,7 @@ image::correlations-regenerate.webp[title="Regenerate correlation rules suggesti
 . For the suggestions you have accepted, click [.nowrap]#icon:eye[] btn:[Edit rule]# and continue modifying them as you would when <<create-correlation-rules,creating new correlation rules manually>>.
 
 [[simulation]]
-=== Simulate Correlation
+=== Simulate correlation
 
 After you set up your correlation rules, you can run a simulation to check how they work with the actual data in your resource.
 
