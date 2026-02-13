@@ -1946,6 +1946,72 @@
                     </container>
                     <panelType>rw-connectorConfiguration-partial</panelType>
                 </panel>
+
+                <panel id="299">
+                    <identifier>rw-type-delineation</identifier>
+                    <container id="300">
+                        <identifier>delineation</identifier>
+                        <display>
+                            <label>
+                                <orig>Resource data</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.objectType.delineation</key>
+                                </translation>
+                            </label>
+                        </display>
+                        <item id="301">
+                            <path>schemaHandling/objectType/delineation/objectClass</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="302">
+                            <path>schemaHandling/objectType/delineation/auxiliaryObjectClass</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="303">
+                            <path>schemaHandling/objectType/delineation/searchHierarchyScope</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="304">
+                            <path>schemaHandling/objectType/delineation/filter</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="305">
+                            <path>schemaHandling/objectType/delineation/classificationCondition</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="306">
+                            <path>schemaHandling/objectType/delineation/baseContext/objectClass</path>
+                            <display>
+                                <label>
+                                    <orig>Object class (base context)</orig>
+                                    <translation>
+                                        <key>PageResource.wizard.step.objectType.baseContext.objectClass</key>
+                                    </translation>
+                                </label>
+                            </display>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="307">
+                            <path>schemaHandling/objectType/delineation/baseContext/filter</path>
+                            <display>
+                                <label>
+                                    <orig>Filter (base context)</orig>
+                                    <translation>
+                                        <key>PageResource.wizard.step.objectType.baseContext.filter</key>
+                                    </translation>
+                                </label>
+                            </display>
+                            <visibility>visible</visibility>
+                        </item>
+                    </container>
+                    <container id="308">
+                        <identifier>delineation-hidden</identifier>
+                        <visibility>hidden</visibility>
+                        <path>schemaHandling/objectType/delineation</path>
+                    </container>
+                    <panelType>rw-type-delineation</panelType>
+                </panel>
+
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
                     <filter>
@@ -1990,6 +2056,70 @@
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>
                     <panelType>rw-connectorConfiguration-partial</panelType>
+                </panel>
+                <panel id="285">
+                    <identifier>rw-type-delineation</identifier>
+                    <container id="286">
+                        <identifier>delineation</identifier>
+                        <display>
+                            <label>
+                                <orig>Resource data</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.objectType.delineation</key>
+                                </translation>
+                            </label>
+                        </display>
+                        <item id="287">
+                            <path>schemaHandling/objectType/delineation/objectClass</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="288">
+                            <path>schemaHandling/objectType/delineation/auxiliaryObjectClass</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="289">
+                            <path>schemaHandling/objectType/delineation/searchHierarchyScope</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="290">
+                            <path>schemaHandling/objectType/delineation/filter</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="291">
+                            <path>schemaHandling/objectType/delineation/classificationCondition</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="292">
+                            <path>schemaHandling/objectType/delineation/baseContext/objectClass</path>
+                            <display>
+                                <label>
+                                    <orig>Object class (base context)</orig>
+                                    <translation>
+                                        <key>PageResource.wizard.step.objectType.baseContext.objectClass</key>
+                                    </translation>
+                                </label>
+                            </display>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="293">
+                            <path>schemaHandling/objectType/delineation/baseContext/filter</path>
+                            <display>
+                                <label>
+                                    <orig>Filter (base context)</orig>
+                                    <translation>
+                                        <key>PageResource.wizard.step.objectType.baseContext.filter</key>
+                                    </translation>
+                                </label>
+                            </display>
+                            <visibility>visible</visibility>
+                        </item>
+                    </container>
+                    <container id="294">
+                        <identifier>delineation-hidden</identifier>
+                        <visibility>hidden</visibility>
+                        <path>schemaHandling/objectType/delineation</path>
+                    </container>
+                    <panelType>rw-type-delineation</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
