@@ -148,6 +148,7 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
     }
 
     protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
+        removeLastBreadcrumb();
         showTypePreviewFragment(target);
     }
 
