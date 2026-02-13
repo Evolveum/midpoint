@@ -74,7 +74,12 @@
                     <container id="12">
                         <identifier>objects-to-recompute</identifier>
                         <display>
-                            <label>RecomputationTask.objectsToRecompute</label>
+                            <label>
+                                <orig>Objects to recompute</orig>
+                                <translation>
+                                    <key>RecomputationTask.objectsToRecompute</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="14">
                             <c:path>extension/mext:objectType</c:path>
@@ -92,7 +97,12 @@
                     <container id="13">
                         <identifier>recompute-options</identifier>
                         <display>
-                            <label>RecomputationTask.recomputationOptions</label>
+                            <label>
+                                <orig>Recomputation options</orig>
+                                <translation>
+                                    <key>RecomputationTask.recomputationOptions</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="18">
                             <c:path>extension/mext:workerThreads</c:path>

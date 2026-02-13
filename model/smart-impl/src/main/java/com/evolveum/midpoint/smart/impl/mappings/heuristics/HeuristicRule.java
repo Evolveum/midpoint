@@ -25,6 +25,16 @@ public interface HeuristicRule {
     String getName();
 
     /**
+     * Returns the order of this rule. Lower values = tried first
+     * Order 1: Simple single-operation transformations (trim, toLowerCase, stripDiacritics, etc.)
+     * Order 2: Combined two-operation transformations (trim+toLowerCase, trim+stripDiacritics, etc.)
+     * Order 3: Complex multi-operation transformations
+     */
+    default int getOrder() {
+        return 1;
+    }
+
+    /**
      * Returns a human-readable description of what this rule does.
      */
     String getDescription();

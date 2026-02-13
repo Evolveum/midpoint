@@ -24,8 +24,8 @@ public abstract class VerticalFormContainerHeaderPanel<C extends Containerable> 
 
     private static final String ID_ICON = "icon";
 
-    public VerticalFormContainerHeaderPanel(String id, IModel<PrismContainerWrapper<C>> model) {
-        super(id, model);
+    public VerticalFormContainerHeaderPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettings settings) {
+        super(id, model, settings);
     }
 
     @Override
