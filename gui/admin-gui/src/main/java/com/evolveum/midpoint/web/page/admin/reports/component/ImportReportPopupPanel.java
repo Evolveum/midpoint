@@ -35,6 +35,7 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.lang.Bytes;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.task.api.Task;
@@ -86,6 +87,15 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     protected void initLayout() {
 
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
+
+        // Set max file size for report import to prevent DoS attacks
+        long maxFileSize = getPageBase().getMidpointApplication()
+                .getWebApplicationConfiguration()
+                .getMaxReportImportFileSize();
+        if (maxFileSize >= 0) {
+            mainForm.setMaxSize(Bytes.bytes(maxFileSize));
+        }
+
         add(mainForm);
 
         FeedbackAlerts feedback = new FeedbackAlerts(ID_POPUP_FEEDBACK);
