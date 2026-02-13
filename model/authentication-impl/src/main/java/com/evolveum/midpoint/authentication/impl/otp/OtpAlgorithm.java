@@ -8,11 +8,11 @@ package com.evolveum.midpoint.authentication.impl.otp;
 
 public enum OtpAlgorithm {
 
-    SHA1("sha1", "HmacSHA1", 20),
+    SHA1("SHA1", "HmacSHA1", 20),
 
-    SHA256("sha256", "HmacSHA256", 32),
+    SHA256("SHA256", "HmacSHA256", 32),
 
-    SHA512("sha512", "HmacSHA512", 64);
+    SHA512("SHA512", "HmacSHA512", 64);
 
     public final String value;
 
