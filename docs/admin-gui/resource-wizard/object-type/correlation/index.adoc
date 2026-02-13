@@ -98,13 +98,13 @@ TIP: Select _Correlation_ in the *Use for* option if you are working with a reso
 image::correlation-add-new-mapping.webp[title="Create a new correlation item. This allows you to create a correlator from an attribute for which you have not defined an inbound mapping yet."]
 +
 . Configure the correlation item:
-	.. *Item* - Selects the attribute to correlate.
+	.. *Item* - Selects an item to correlate.
 	It refers to a midPoint property for which an inbound mapping exists.
 	This will be used for correlation.
 	For example, if you have an inbound mapping from AD's _sAMAccountName_ attribute to midPoint user's _name_ property, you would select _name_ here.
 	.. *Resource attribute* - Selects the attribute on the resource side that will be compared to the selected midPoint property.
 	.. *Search method*:
-	** _Exact match_: The attribute values need to match exactly for the objects to correlate (get linked, in other words).
+	** _Exact match_: Values need to match exactly for the objects to correlate (get linked, in other words).
 	** _Levenshtein distance_: Method of approximate matching with a threshold of the maximum permitted number of single-character edits. Refer to link:https://en.wikipedia.org/wiki/Levenshtein_distance[Levenshtein distance on Wikipedia] for more details about the method.
 	** _Trigram similarity_: Method of approximate matching using the ratio of common trigrams to all trigrams in compared strings.
 	+
