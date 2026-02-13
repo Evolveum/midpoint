@@ -16,29 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
-
-import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
-import com.evolveum.midpoint.model.common.MarkManager;
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
-
-import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
-import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-
-import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
-import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
-
-import com.evolveum.midpoint.smart.api.SmartIntegrationService;
-
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
-
-import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
+import com.evolveum.midpoint.web.security.BrowserTabIdRequestCycleListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -61,16 +39,21 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
@@ -86,14 +69,21 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
+import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -102,10 +92,12 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -114,13 +106,19 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Producer;
@@ -139,15 +137,12 @@ import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
-import org.owasp.html.Sanitizers;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -331,66 +326,66 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
         MidPointAuthWebSession.get().setClientCustomization();
 
-        add(new AbstractDefaultAjaxBehavior() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-                attributes.getDynamicExtraParameters().add(
-                        "return { tabId: sessionStorage.getItem('tabId') };"
-                );
-            }
-
-            @Override
-            public void renderHead(final Component component, final IHeaderResponse response) {
-                super.renderHead(component, response);
-
-                response.render(JavaScriptHeaderItem.forScript(
-                        "document.addEventListener('DOMContentLoaded', function() {\n" +
-                        "    // Initialize tabId in sessionStorage if not exists\n" +
-                        "    if (!sessionStorage.getItem('tabId')) {\n" +
-                        "        sessionStorage.setItem('tabId', crypto.randomUUID());\n" +
-                        "    }\n" +
-                        "\n" +
-                        "    var tabId = sessionStorage.getItem('tabId');\n" +
-                        "    console.log('tabId initialized:', tabId);\n" +
-                        "\n" +
-                        "    // Subscribe to all Wicket Ajax calls before they are sent\n" +
-                        "    Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attrs, jqXHR, settings) {\n" +
-                        "        console.log('entered subscribe');\n" +
-                        "        if (!attrs) {\n" +
-                        "            console.warn('attrs is undefined!');\n" +
-                        "            return;\n" +
-                        "        }\n" +
-                        "        attrs.ep = attrs.ep || {};\n" +
-                        "        attrs.ep.tabId = sessionStorage.getItem('tabId');\n" +
-                        "        console.log('tabId added to Ajax request:', sessionStorage.getItem('tabId'));\n" +
-                        "    });\n" +
-                        "\n" +
-                        "    // Send tabId once on page load\n" +
-                        "    Wicket.Ajax.ajax({\n" +
-                        "        u: '" + getCallbackUrl().toString() + "',\n" +
-                        "        ep: { tabId: tabId }\n" +
-                        "    });\n" +
-                        "});\n",
-                        "tab-id-init"
-                ));
-            }
-
-            @Override
-            protected void respond(AjaxRequestTarget target) {
-                String tabId = RequestCycle.get()
-                        .getRequest()
-                        .getRequestParameters()
-                        .getParameterValue("tabId")
-                        .toOptionalString();
-                if (tabId != null && !tabId.isEmpty()) {
-                    Session.get().setAttribute("tabId", tabId);
-                }
-            }
-
-        });
+//        add(new AbstractDefaultAjaxBehavior() {
+//            @Serial private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+//                super.updateAjaxAttributes(attributes);
+//                attributes.getDynamicExtraParameters().add(
+//                        "return { tabId: sessionStorage.getItem('tabId') };"
+//                );
+//            }
+//
+//            @Override
+//            public void renderHead(final Component component, final IHeaderResponse response) {
+//                super.renderHead(component, response);
+//
+//                response.render(JavaScriptHeaderItem.forScript(
+//                        "document.addEventListener('DOMContentLoaded', function() {\n" +
+//                        "    // Initialize tabId in sessionStorage if not exists\n" +
+//                        "    if (!sessionStorage.getItem('tabId')) {\n" +
+//                        "        sessionStorage.setItem('tabId', crypto.randomUUID());\n" +
+//                        "    }\n" +
+//                        "\n" +
+//                        "    var tabId = sessionStorage.getItem('tabId');\n" +
+//                        "    console.log('tabId initialized:', tabId);\n" +
+//                        "\n" +
+//                        "    // Subscribe to all Wicket Ajax calls before they are sent\n" +
+//                        "    Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attrs, jqXHR, settings) {\n" +
+//                        "        console.log('entered subscribe');\n" +
+//                        "        if (!attrs) {\n" +
+//                        "            console.warn('attrs is undefined!');\n" +
+//                        "            return;\n" +
+//                        "        }\n" +
+//                        "        attrs.ep = attrs.ep || {};\n" +
+//                        "        attrs.ep.tabId = sessionStorage.getItem('tabId');\n" +
+//                        "        console.log('tabId added to Ajax request:', sessionStorage.getItem('tabId'));\n" +
+//                        "    });\n" +
+//                        "\n" +
+//                        "    // Send tabId once on page load\n" +
+//                        "    Wicket.Ajax.ajax({\n" +
+//                        "        u: '" + getCallbackUrl().toString() + "',\n" +
+//                        "        ep: { tabId: tabId }\n" +
+//                        "    });\n" +
+//                        "});\n",
+//                        "tab-id-init"
+//                ));
+//            }
+//
+//            @Override
+//            protected void respond(AjaxRequestTarget target) {
+//                String tabId = RequestCycle.get()
+//                        .getRequest()
+//                        .getRequestParameters()
+//                        .getParameterValue("tabId")
+//                        .toOptionalString();
+//                if (tabId != null && !tabId.isEmpty()) {
+//                    Session.get().setAttribute("tabId", tabId);
+//                }
+//            }
+//
+//        });
     }
 
     @Override
@@ -495,7 +490,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
                         } else if (subscription.isInGracePeriod()) {
                             int daysToGracePeriodGone = subscription.getDaysToGracePeriodGone();
-                            if(daysToGracePeriodGone < 2) {
+                            if (daysToGracePeriodGone < 2) {
                                 return " " + createStringResource("PageBase.gracePeriodSubscriptionMessage.lastDay").getString();
                             }
                             return " " + createStringResource(
@@ -1272,13 +1267,15 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
      * e.g. object list page search data, specific details page navigation menu data etc.
      */
     public BrowserTabSessionStorage getBrowserTabSessionStorage() {
-        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
-        String browserTabId = Session.get().getAttribute("tabId") != null ?
-                Session.get().getAttribute("tabId").toString() : null;
-        if (browserTabId == null) {
+        String tabId =  RequestCycle.get().getMetaData(BrowserTabIdRequestCycleListener.BROWSER_TAB_ID_KEY);
+
+        LOGGER.info("Page Admin LTE: {}", tabId);
+
+        if (tabId == null) {
             return new BrowserTabSessionStorage();
         }
-        return session.getBrowserTabSessionStorage(browserTabId);
+
+        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(tabId);
     }
 
     public SecretsProviderManager getSecretsProviderManager() {

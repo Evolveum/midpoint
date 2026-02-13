@@ -19,11 +19,13 @@ import org.springframework.web.servlet.resource.ResourceUrlProvider;
 /**
  * Markup filter that uses Spring static content with content hash in URL
  *
- * @link https://docs.spring.io/spring-boot/docs/2.7.3/reference/html/web.html#web.servlet.spring-mvc.static-content
+ * @link https://docs.spring.io/spring-boot/reference/web/servlet.html#web.servlet.spring-mvc.static-content
  *
  * Created by Viliam Repan (lazyman).
  */
 public class StaticSpringResourcesMarkupFilter extends AbstractMarkupFilter {
+
+    private static final String FAVICON = "favicon.ico";
 
     private static final List<TagFilter> FILTERS = List.of(
             new TagFilter("script", "src"),
@@ -80,16 +82,16 @@ public class StaticSpringResourcesMarkupFilter extends AbstractMarkupFilter {
             }
 
             String url = tag.getAttribute(attributeName);
-            if (url.endsWith("favicon.ico")) {
+            if (url.endsWith(FAVICON)) {
                 // don't mess up with favicon
                 return;
             }
 
             String newUrl = resourceUrlProvider.getForLookupPath("/" + url);
 
-            if(newUrl == null){
+            if (newUrl == null) {
                 newUrl = url;
-            }else {
+            } else {
                 newUrl = newUrl.substring(1);
             }
 

@@ -42,6 +42,7 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
+import com.evolveum.midpoint.web.security.BrowserWindowIdentifierFilter;
 
 /**
  * @author katka
@@ -89,6 +90,17 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
         FilterRegistrationBean<MidPointProfilingServletFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new MidPointProfilingServletFilter());
         registration.addUrlPatterns("/*");
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<BrowserWindowIdentifierFilter> browserWindowIdentifierFilter() {
+        FilterRegistrationBean<BrowserWindowIdentifierFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new BrowserWindowIdentifierFilter());
+        registration.addUrlPatterns("/*");
+        // Ensure it runs before Wicket filter by giving it a higher precedence (lower order value)
+        registration.setOrder(-100);
+
         return registration;
     }
 

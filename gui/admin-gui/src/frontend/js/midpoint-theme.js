@@ -13,9 +13,39 @@ export default class MidPointTheme {
     constructor() {
         const self = this;
 
+        var tabId = sessionStorage.getItem('tabId');
+        if (!tabId) {
+            tabId = new URLSearchParams(window.location.search).get('w');
+
+            if (!tabId) {
+                console.info("No tabId found in sessionStorage or URL parameters. Generating a new one.");
+            } else {
+                sessionStorage.setItem('tabId', tabId);
+                console.info("Found tabId in URL parameters and stored in sessionStorage", tabId);
+            }
+        } else {
+            console.info("Found existing tabId in sessionStorage", tabId);
+        }
+
         $(window).on('load', function () {
             //dom not only ready, but everything is loaded MID-3668
             $("body").removeClass("custom-hold-transition");
+
+            // Subscribe to all Wicket Ajax calls before they are sent
+            Wicket.Event.subscribe('/ajax/call/init', function(jqEvent, attrs, jqXHR, settings) {
+                console.debug('Entered ajax call init');
+
+                if (!attrs) {
+                    console.warn('attrs is undefined!');
+                    return;
+                }
+
+                const tabId = sessionStorage.getItem('tabId');
+                console.log('tabId:', tabId);
+
+                attrs.ep = attrs.ep || {};
+                attrs.ep.tabId = tabId;
+            });
 
             self.initAjaxStatusSigns();
 
