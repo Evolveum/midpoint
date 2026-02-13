@@ -887,7 +887,7 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
-    public void testExpressionNull() throws Exception {
+    public void testExpressionNullString() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-null.xml",
                 createVariables(
@@ -897,11 +897,33 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
-    public void testExpressionNotNull() throws Exception {
+    public void testExpressionNullUser() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-null.xml",
+                createVariables(
+                        "foo", null, userJack.getDefinition()
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionNotNullString() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-null.xml",
                 createVariables(
                         "foo", "BAR", String.class
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionNotNullUser() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-null.xml",
+                createVariables(
+                        "foo", userJack, userJack.getDefinition()
                 ),
                 Boolean.FALSE);
     }

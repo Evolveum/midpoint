@@ -81,13 +81,25 @@ public class ExpressionUtil {
             return (O) inputVal;
         }
 
-        Object intermediateInputVal = treatGString(inputVal);
+        Object intermediateInputVal = treatOptionals(inputVal);
+        if (intermediateInputVal == null) {
+            return null;
+        }
+        intermediateInputVal = treatGString(intermediateInputVal);
         intermediateInputVal = treatEncryption(finalExpectedJavaType, intermediateInputVal, protector);
         intermediateInputVal = treatAdditionalConvertor(additionalConvertor, intermediateInputVal);
 
         O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateInputVal);
         PrismUtil.recomputeRealValue(convertedVal);
         return convertedVal;
+    }
+
+    private static Object treatOptionals(Object inputVal) {
+        if (inputVal instanceof Optional<?> optional) {
+            return optional.orElse(null);
+        } else {
+            return inputVal;
+        }
     }
 
     private static Object treatGString(Object inputVal) {

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.ListType;
+import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.runtime.CelFunctionBinding;
@@ -27,7 +28,6 @@ import dev.cel.runtime.CelFunctionBinding;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Extensions for CEL compiler and runtime implementing access to midPoint functionality.
@@ -64,8 +64,82 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                         ObjectCelValue.CEL_TYPE, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadow",
                                 ObjectCelValue.class, String.class,
-                                this::getLinkedShadow)
+                                this::getLinkedShadowRepo)
 
+                ),
+
+                // midpoint.getLinkedShadow(focus, resourceOid, repositoryObjectOnly)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getLinkedShadow",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowRepo",
+                                        "TODO.",
+                                        ObjectCelValue.CEL_TYPE,
+                                        ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowRepo",
+                                ImmutableList.of(ObjectCelValue.class, String.class, Boolean.class),
+                                this::getLinkedShadowRepo)
+
+                ),
+
+                // midpoint.getLinkedShadow(focus, resourceOid, kind, intent)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getLinkedShadow",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowKindIntent",
+                                        "TODO.",
+                                        ObjectCelValue.CEL_TYPE,
+                                        ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING, SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowKindIntent",
+                                ImmutableList.of(ObjectCelValue.class, String.class, String.class, String.class),
+                                this::getLinkedShadowKindIntent)
+
+                ),
+
+                // midpoint.getLinkedShadow(focus, resourceOid, kind, intent, repositoryObjectOnly)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getLinkedShadow",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowKindIntentRepo",
+                                        "TODO.",
+                                        ObjectCelValue.CEL_TYPE,
+                                        ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING, SimpleType.STRING, SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowKindIntentRepo",
+                                ImmutableList.of(ObjectCelValue.class, String.class, String.class, String.class, Boolean.class),
+                                this::getLinkedShadowKindIntentRepo)
+
+                ),
+
+                // midpoint.getLinkedShadows(focus, resourceOid)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getLinkedShadows",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getLinkedShadows",
+                                        "TODO.",
+                                        ListType.create(ObjectCelValue.CEL_TYPE),
+                                        ObjectCelValue.CEL_TYPE, SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadows",
+                                ObjectCelValue.class, String.class,
+                                this::getLinkedShadowsRepo)
+
+                ),
+
+                // midpoint.getLinkedShadows(focus, resourceOid, repositoryObjectOnly)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getLinkedShadows",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowsRepo",
+                                        "TODO.",
+                                        ListType.create(ObjectCelValue.CEL_TYPE),
+                                        ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowsRepo",
+                                ImmutableList.of(ObjectCelValue.class, String.class, Boolean.class),
+                                this::getLinkedShadowsRepo)
                 ),
 
                 // midpoint.getManagersOids(user)
@@ -104,7 +178,7 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                         FUNCTION_NAME_PREFIX_DASH + "getObject-qname",
                                         "TODO.",
                                         ObjectCelValue.CEL_TYPE,
-                                        QNameCelValue.CEL_TYPE, SimpleType.STRING)),
+                                        NullableType.create(QNameCelValue.CEL_TYPE), SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getObject-qname", QNameCelValue.class, String.class,
                                 this::getObject)
 
@@ -217,9 +291,64 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         );
     }
 
-    private ObjectCelValue<ShadowType> getLinkedShadow(ObjectCelValue<FocusType> celFocus, String oid) {
+    private ObjectCelValue<ShadowType> getLinkedShadowRepo(ObjectCelValue<FocusType> celFocus, String oid) {
         try {
             return toCelObject(midpointExpressionFunctions.getLinkedShadow(toJavaObjectable(celFocus), oid));
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
+    private ObjectCelValue<ShadowType> getLinkedShadowRepo(Object[] args) {
+        try {
+            return toCelObject(midpointExpressionFunctions.getLinkedShadow(
+                    toJavaObjectable((ObjectCelValue<FocusType>)args[0]),
+                    (String)args[1],
+                    (Boolean)args[2]));
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
+    private ObjectCelValue<ShadowType> getLinkedShadowKindIntent(Object[] args) {
+        try {
+            return toCelObject(midpointExpressionFunctions.getLinkedShadow(
+                    toJavaObjectable((ObjectCelValue<FocusType>)args[0]),
+                    (String)args[1],
+                    ShadowKindType.fromValue((String)args[2]),
+                    (String)args[3]));
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
+    private ObjectCelValue<ShadowType> getLinkedShadowKindIntentRepo(Object[] args) {
+        try {
+            return toCelObject(midpointExpressionFunctions.getLinkedShadow(
+                    toJavaObjectable((ObjectCelValue<FocusType>)args[0]),
+                    (String)args[1],
+                    ShadowKindType.fromValue((String)args[2]),
+                    (String)args[3],
+                    (Boolean)args[4]));
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
+    private List<ObjectCelValue<ShadowType>> getLinkedShadowsRepo(ObjectCelValue<FocusType> celFocus, String oid) {
+        try {
+            return toCelObjectList(midpointExpressionFunctions.getLinkedShadows(toJavaObjectable(celFocus), oid));
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
+    private List<ObjectCelValue<ShadowType>> getLinkedShadowsRepo(Object[] args) {
+        try {
+            return toCelObjectList(midpointExpressionFunctions.getLinkedShadows(
+                    toJavaObjectable((ObjectCelValue<FocusType>)args[0]),
+                    (String)args[1],
+                    (Boolean)args[2]));
         } catch (CommonException e) {
             throw createException(e);
         }

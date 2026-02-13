@@ -19,6 +19,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.common.types.ListType;
+import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
@@ -68,11 +69,8 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "Equality operator string = polystring",
                                         SimpleType.BOOL,
                                         SimpleType.STRING,
-                                        PolyStringCelValue.CEL_TYPE)),
-                        // The parameter has to be an Object instead of PolyStringCelValue.
-                        // When we define this overload, it starts to get all kinds of "null equality" checks,
-                        // not just those related to polystring.
-                        CelFunctionBinding.from("string-equals-polystring", Object.class, Object.class,
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from("string-equals-polystring", String.class, PolyStringCelValue.class,
                                 CelPolyStringExtensions::stringEqualsPolyString)
                 ),
 
@@ -84,12 +82,9 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring-equals-string",
                                         "Equality operator polystring = string",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE,
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE),
                                         SimpleType.STRING)),
-                        // The parameter has to be an Object instead of PolyStringCelValue.
-                        // When we define this overload, it starts to get all kinds of "null equality" checks,
-                        // not just those related to polystring.
-                        CelFunctionBinding.from("polystring-equals-string", Object.class, Object.class,
+                        CelFunctionBinding.from("polystring-equals-string", PolyStringCelValue.class, String.class,
                                 (polystring, string) -> stringEqualsPolyString(string,polystring))
                 ),
 
@@ -102,7 +97,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "String concatenation of string and polystring",
                                         SimpleType.STRING,
                                         SimpleType.STRING,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from("string-add-polystring", String.class, PolyStringCelValue.class,
                                 CelPolyStringExtensions::stringAddPolyString)
                 ),
@@ -115,7 +110,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring-add-string",
                                         "String concatenation of polystring and string",
                                         SimpleType.STRING,
-                                        PolyStringCelValue.CEL_TYPE,
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE),
                                         SimpleType.STRING)),
                         CelFunctionBinding.from("polystring-add-string", PolyStringCelValue.class, String.class,
                                 CelPolyStringExtensions::polystringAddString)
@@ -129,8 +124,8 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring-add-polystring",
                                         "String concatenation of polystring and polystring",
                                         SimpleType.STRING,
-                                        PolyStringCelValue.CEL_TYPE,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from("polystring-add-polystring", PolyStringCelValue.class, PolyStringCelValue.class,
                                 CelPolyStringExtensions::polystringAddPolystring)
                 ),
@@ -143,7 +138,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "mel-polystring-plus-int",
                                         "Concatenation of int into polystring.",
                                         SimpleType.STRING,
-                                        PolyStringCelValue.CEL_TYPE, SimpleType.INT)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT)),
                         CelFunctionBinding.from("mel-polystring-plus-int", PolyStringCelValue.class, Long.class,
                                 this::polystringPlusInt)
 
@@ -159,7 +154,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                                 + " If the position is negative, or"
                                                 + " greater than the length of the string, the function will produce an error.",
                                         SimpleType.STRING,
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.INT))),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT))),
                         CelFunctionBinding.from(
                                 "polystring_char_at_int", PolyStringCelValue.class, Long.class,
                                 CelPolyStringExtensions::charAt)),
@@ -172,7 +167,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring_contains",
                                         "Returns true if orig part of polystring contains specified string.",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                         CelFunctionBinding.from(
                                 "polystring_contains", PolyStringCelValue.class, String.class,
                                 (polystring, s) -> polystring.getOrig().contains(s))),
@@ -185,7 +180,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring_"+CelMelExtensions.FUNC_CONTAINS_IGNORE_CASE_NAME,
                                         "Returns true if string contains specified string without regard to case.",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                         CelFunctionBinding.from(
                                 "polystring_"+CelMelExtensions.FUNC_CONTAINS_IGNORE_CASE_NAME, PolyStringCelValue.class, String.class,
                                 (polystring, s) ->basicExpressionFunctions.containsIgnoreCase(polystring.getOrig(), s))
@@ -199,7 +194,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring_endswith",
                                         "Returns true if orig part of polystring ends with specified string.",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                         CelFunctionBinding.from(
                                 "polystring_endswith", PolyStringCelValue.class, String.class,
                                 (polystring, s) -> polystring.getOrig().endsWith(s))),
@@ -214,7 +209,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                                 + " If the"
                                                 + " search string is not found the function returns -1.",
                                         SimpleType.INT,
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                                 CelOverloadDecl.newMemberOverload(
                                         "polystring_index_of_string_int",
                                         "Returns the integer index of the first occurrence of the search string of orig value of polystring from the"
@@ -222,7 +217,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                                 + " -1. If the substring is the empty string, the index where the search starts"
                                                 + " is returned (zero or custom).",
                                         SimpleType.INT,
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.INT))),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, SimpleType.INT))),
                                 CelFunctionBinding.from(
                                         "polystring_index_of_string", PolyStringCelValue.class, String.class, CelPolyStringExtensions::indexOf),
                                 CelFunctionBinding.from(
@@ -238,7 +233,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring_"+CelMelExtensions.FUNC_IS_BLANK_NAME,
                                         "Returns true if string is blank (has zero length or contains only white characters).",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from(
                                 "polystring_"+CelMelExtensions.FUNC_IS_BLANK_NAME, PolyStringCelValue.class,
                                 CelPolyStringExtensions::polystringIsBlank)),
@@ -251,7 +246,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         CelMelExtensions.FUNC_IS_BLANK_NAME+"_polystring",
                                         "Returns true if string is blank (has zero length or contains only white characters) or it is null.",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from(
                                 CelMelExtensions.FUNC_IS_BLANK_NAME+"_polystring", PolyStringCelValue.class,
                                 CelPolyStringExtensions::polystringIsBlank)),
@@ -264,7 +259,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring_"+CelMelExtensions.FUNC_IS_EMPTY_NAME,
                                         "Returns true if string is empty (has zero length).",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from(
                                 "polystring_"+CelMelExtensions.FUNC_IS_EMPTY_NAME, PolyStringCelValue.class,
                                 CelPolyStringExtensions::polystringIsEmpty)),
@@ -277,7 +272,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         CelMelExtensions.FUNC_IS_EMPTY_NAME+"_polystring",
                                         "Returns true if string is empty (has zero length) or it is null.",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from(
                                 CelMelExtensions.FUNC_IS_EMPTY_NAME+"_polystring", PolyStringCelValue.class,
                                 CelPolyStringExtensions::polystringIsEmpty)),
@@ -295,7 +290,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                                 + "If the"
                                                 + " search string is not found the function returns -1.",
                                         SimpleType.INT,
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                                 CelOverloadDecl.newMemberOverload(
                                         "polystring_last_index_of_string_int",
                                         "Returns the integer index of the last occurrence of the search string in orig part of polystring from the"
@@ -303,7 +298,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                                 + " the substring is the empty string, the index where the search starts is"
                                                 + " returned (string length or custom).",
                                         SimpleType.INT,
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.INT))),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, SimpleType.INT))),
                                 CelFunctionBinding.from(
                                         "polystring_last_index_of_string",
                                         PolyStringCelValue.class,
@@ -324,7 +319,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                                 + " This function does not perform Unicode case-mapping for characters outside the ASCII"
                                                 + " range.",
                                         SimpleType.STRING,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from("polystring_lower_ascii", PolyStringCelValue.class,
                                 polystring -> Ascii.toLowerCase(polystring.getOrig()))
                 ),
@@ -337,12 +332,12 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring_matches",
                                         "Returns true if orig part of polystring matches the specified RE2 regular expression",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING),
                                 CelOverloadDecl.newGlobalOverload(
                                         "polystring_matches",
                                         "Returns size of the orig part of polystring.",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                         CelFunctionBinding.from(
                                 "polystring_matches", PolyStringCelValue.class, String.class,
                                 (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s, celOptions))
@@ -360,7 +355,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "Returns a new string based on the target, which replaces the occurrences of a"
                                                 + " search string with a replacement string in orig represantation of polystring if present.",
                                         SimpleType.STRING,
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING)),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, SimpleType.STRING)),
                                 CelOverloadDecl.newMemberOverload(
                                         "polystring_replace_string_string_int",
                                         "Returns a new string based on the target, which replaces the occurrences of a"
@@ -370,7 +365,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                                 + " is a negative number, the function behaves the same as replace all.",
                                         SimpleType.STRING,
                                         ImmutableList.of(
-                                                PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING, SimpleType.INT))),
+                                                NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, SimpleType.STRING, SimpleType.INT))),
                                 CelFunctionBinding.from(
                                         "polystring_replace_string_string",
                                         ImmutableList.of(PolyStringCelValue.class, String.class, String.class),
@@ -388,12 +383,12 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring_size",
                                         "Returns size of the orig part of polystring.",
                                         SimpleType.INT,
-                                        PolyStringCelValue.CEL_TYPE),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE)),
                                 CelOverloadDecl.newGlobalOverload(
                                         "polystring_size",
                                         "Returns size of the orig part of polystring.",
                                         SimpleType.INT,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from(
                                 "polystring_size",
                                 PolyStringCelValue.class,
@@ -407,13 +402,13 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring_split_string",
                                         "Returns a mutable list of strings split from the orig part of input by the given separator.",
                                         ListType.create(SimpleType.STRING),
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                                 CelOverloadDecl.newMemberOverload(
                                         "polystring_split_string_int",
                                         "Returns a mutable list of strings split from the orig part of input by the given separator with"
                                                 + " the specified limit on the number of substrings produced by the split.",
                                         ListType.create(SimpleType.STRING),
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.INT))),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, SimpleType.INT))),
                                 CelFunctionBinding.from(
                                         "polystring_split_string", PolyStringCelValue.class, String.class,
                                         CelPolyStringExtensions::split),
@@ -430,7 +425,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "polystring_startswith",
                                         "Returns true if orig part of polystring starts with specified string.",
                                         SimpleType.BOOL,
-                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                         CelFunctionBinding.from(
                                 "polystring_startswith", PolyStringCelValue.class, String.class,
                                 (polystring, s) -> polystring.getOrig().startsWith(s))),
@@ -444,14 +439,14 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         "returns a string that is a substring of orig part of this polystring. The substring begins with the"
                                                 + " character at the specified index and extends to the end of this string.",
                                         SimpleType.STRING,
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.INT)),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT)),
                                 CelOverloadDecl.newMemberOverload(
                                         "polystring_substring_int_int",
                                         "returns a string that is a substring of orig part of this polystring. The substring begins at the"
                                                 + " specified beginIndex and extends to the character at index endIndex - 1."
                                                 + " Thus the length of the substring is {@code endIndex-beginIndex}.",
                                         SimpleType.STRING,
-                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.INT, SimpleType.INT))),
+                                        ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT, SimpleType.INT))),
                                 CelFunctionBinding.from(
                                         "polystring_substring_int", PolyStringCelValue.class, Long.class,
                                         CelPolyStringExtensions::substring),
@@ -470,7 +465,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                                 + " orig part of target polystring. The trim function uses the Unicode definition of whitespace"
                                                 + " which does not include the zero-width spaces. ",
                                         SimpleType.STRING,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from("polystring_trim", PolyStringCelValue.class,
                                 CelPolyStringExtensions::trim)),
 
@@ -484,14 +479,13 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                                 + " This function does not perform Unicode case-mapping for characters outside the ASCII"
                                                 + " range.",
                                         SimpleType.STRING,
-                                        PolyStringCelValue.CEL_TYPE)),
+                                        NullableType.create(PolyStringCelValue.CEL_TYPE))),
                         CelFunctionBinding.from("polystring_upper_ascii", PolyStringCelValue.class,
                                 polystring -> Ascii.toUpperCase(polystring.getOrig()))
 
                 )
         );
     }
-
 
     private static final class Library implements CelExtensionLibrary<CelPolyStringExtensions> {
         private final CelPolyStringExtensions version0;
@@ -520,23 +514,14 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
         return 0;
     }
 
-    // The parameter has to be an Object instead of PolyStringCelValue.
-    // When we define this overload, it starts to get all kinds of "null equality" checks,
-    // not just those related to polystring.
-    public static boolean stringEqualsPolyString(Object s1, Object s2) {
+    public static boolean stringEqualsPolyString(String s1, PolyStringCelValue s2) {
         if (CelTypeMapper.isCellNull(s1) && CelTypeMapper.isCellNull(s2)) {
             return true;
         }
         if (CelTypeMapper.isCellNull(s1) || CelTypeMapper.isCellNull(s2)) {
             return false;
         }
-        if (s1 instanceof PolyStringCelValue x) {
-            s1 = x.getOrig();
-        }
-        if (s2 instanceof PolyStringCelValue x) {
-            s2 = x.getOrig();
-        }
-        return s1.equals(s2);
+        return s1.equals(s2.getOrig());
     }
 
     public static String stringAddPolyString(String s, PolyStringCelValue polystringValue) {

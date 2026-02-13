@@ -9,7 +9,7 @@
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
         cel.bind(x, functionLibrary.untyped({'container': var1, 'containerValue': var2}),
-            x == null ? 'null' : x.stringValue + '-' + stringify(x.intValue)
+            x == null ? 'null-null' : x.stringValue + '-' + stringify(x.intValue)
         )
     </code>
 </script>

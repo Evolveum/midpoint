@@ -30,10 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 import dev.cel.common.*;
-import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypeProvider;
-import dev.cel.common.types.ListType;
-import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.*;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
@@ -164,7 +161,7 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
     private void addCompilerVariables(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         Map<String, TypedValue<?>> variables = prepareScriptVariablesTypedValueMap(context);
         for (var varEntry : variables.entrySet()) {
-            builder.addVar(varEntry.getKey(), CelTypeMapper.toCelType(varEntry.getValue()));
+            builder.addVar(varEntry.getKey(), CelTypeMapper.toCelNullableType(varEntry.getValue()));
         }
         if (!variables.containsKey(ExpressionConstants.VAR_NOW)) {
             builder.addVar(ExpressionConstants.VAR_NOW, SimpleType.TIMESTAMP);

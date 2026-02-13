@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
 import dev.cel.common.values.CelValue;
@@ -145,6 +146,19 @@ public class PolyStringCelValue extends CelValue implements Map<String,String>, 
         return StructType.create(POLYSTRING_PACKAGE_NAME, fieldNames, fieldResolver);
     }
 
+//    @Override
+//    public boolean equals(Object other) {
+//        if (other == null) {
+//            return false;
+//        }
+//        if (other instanceof PolyStringCelValue celPs) {
+//            other = celPs.getOrig();
+//        }
+//        if (other instanceof String str) {
+//            return getOrig().equals(str);
+//        }
+//        return false;
+//    }
 
 }
 

@@ -7,5 +7,6 @@
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+    <trace>true</trace>
     <code>foo == null</code>
 </script>

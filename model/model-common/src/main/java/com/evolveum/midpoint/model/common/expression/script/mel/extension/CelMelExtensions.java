@@ -24,16 +24,19 @@ import com.google.protobuf.Timestamp;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.ListType;
+import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelRuntimeBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.*;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Extensions for CEL compiler and runtime implementing behavior of "MEL" language.
@@ -58,6 +61,20 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
 
+            // HACK
+//            new Function(
+//                    CelFunctionDecl.newFunctionDeclaration(
+//                            Operator.EQUALS.getFunction(),
+//                            CelOverloadDecl.newGlobalOverload(
+//                                    "mel-equals-x",
+//                                    "TODO.",
+//                                    SimpleType.BOOL,
+//                                    SimpleType.STRING, SimpleType.ANY)),
+//                    CelFunctionBinding.from("mel-equals-x", String.class, Object.class,
+//                            CelMelExtensions::equalsUniversal)
+//
+//            ),
+
             // string + int
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -68,7 +85,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     SimpleType.STRING, SimpleType.INT)),
                     CelFunctionBinding.from("mel-string-plus-int", String.class, Long.class,
-                            this::stringPlusInt)
+                            CelMelExtensions::stringPlusInt)
 
             ),
 
@@ -134,7 +151,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     "polystring_"+FUNC_ENCRYPT_NAME,
                                     "Encrypts a string value, creating protected string.",
                                     CelTypeMapper.PROTECTED_STRING_CEL_TYPE,
-                                    PolyStringCelValue.CEL_TYPE)),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from(
                             "polystring_"+FUNC_ENCRYPT_NAME, PolyStringCelValue.class, this::encrypt)),
 
@@ -403,7 +420,21 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         );
     }
 
-    private String stringPlusInt(String s, Long aLong) {
+//    @Override
+//    public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
+//        super.setRuntimeOptions(runtimeBuilder);
+//        runtimeBuilder.addFunctionBindings(
+//                CelFunctionBinding.from("mel-equals-null-null",
+//                        Object.class, Object.class,
+//                        CelMelExtensions::equalsNullNull)
+//        );
+//    }
+
+    private static boolean equalsUniversal(Object o1, Object o2) {
+        return Objects.equals(o1,o2);
+    }
+
+    private static String stringPlusInt(String s, Long aLong) {
         return s + aLong.toString();
     }
 

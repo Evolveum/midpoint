@@ -25,10 +25,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Timestamp;
-import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypeProvider;
-import dev.cel.common.types.OpaqueType;
-import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.*;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.NullValue;
 import dev.cel.common.values.OpaqueValue;
@@ -98,7 +95,7 @@ public class CelTypeMapper implements CelTypeProvider  {
         addXsdMapping(SimpleType.BYTES, DOMUtil.XSD_BASE64BINARY, true);
         addXsdMapping(SimpleType.TIMESTAMP, DOMUtil.XSD_DATETIME, true);
         addXsdMapping(SimpleType.DURATION, DOMUtil.XSD_DURATION, true);
-        addXsdMapping(SimpleType.ANY, DOMUtil.XSD_ANYTYPE, true);
+        addXsdMapping(SimpleType.DYN, DOMUtil.XSD_ANYTYPE, true);
 
 //        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
 //        addMapping(UniformItemPath.class, ItemPathType.COMPLEX_TYPE, false);
@@ -253,6 +250,15 @@ public class CelTypeMapper implements CelTypeProvider  {
         }
     }
 
+    @NotNull
+    public static CelType toCelNullableType(@NotNull TypedValue<?> typedValue) {
+        CelType celType = toCelType(typedValue);
+        if (celType instanceof NullableType) {
+            return celType;
+        } else {
+            return NullableType.create(celType);
+        }
+    }
 
     @Nullable
     public static CelType getCelType(@NotNull QName xsdType) {
@@ -406,6 +412,9 @@ public class CelTypeMapper implements CelTypeProvider  {
     }
 
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> Object toListMapValue(Item<IV, ID> item) {
+        if (item == null) {
+            return null;
+        }
         if (item.getDefinition().isMultiValue()) {
             return MultivalueCelValue.create(item);
         } else {
