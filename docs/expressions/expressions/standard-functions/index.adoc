@@ -1,10 +1,10 @@
 = MidPoint standard functions
 :page-nav-title: Standard functions
 
-The `MidpointFunctions` interface defines the built‑in functions that are automatically available to every MidPoint expression, script, and mapping.
+The `MidpointFunctions` interface defines the built‑in functions that are automatically available to every midPoint expression, script, and mapping.
 These functions expose the core model operations (object creation, retrieval, modification, search, workflow, cryptography, etc.) as a concise, script‑friendly API.
 All functions are public members of the interface;
-they can be invoked directly from expression language code (e.g., Groovy, JavaScript, or the native MidPoint expression syntax) without importing any additional classes.
+they can be invoked directly from an expression code (e.g., Groovy, JavaScript, etc.) without importing any additional classes.
 
 *The functions are available in link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/expr/MidpointFunctions.java[MidpointFunctions.java]*
 
@@ -13,7 +13,7 @@ they can be invoked directly from expression language code (e.g., Groovy, JavaSc
 *Notes on generic placeholders and overloads*
 
 * Generic type parameters (`<T>` and `<F>`)
-    ** `<T extends ObjectType>` is used for methods that operate on any concrete MidPoint object type (e.g., `UserType`, `RoleType`, `OrgType`).
+    ** `<T extends ObjectType>` is used for methods that operate on any concrete midPoint object type (e.g., `UserType`, `RoleType`, `OrgType`).
         The caller supplies the concrete class via a `Class<T>` argument, and the method returns a value of that same type, preserving compile‑time type safety.
     ** `<F extends FocusType>` is a specialization of `<T>` for focus objects (objects that can have assignments, projections, and a lifecycle), such as users, org units, and services.
         Methods that manipulate focus‑specific data (e.g., `recompute`, `isDirectlyAssigned`) use `<F>` to signal that the operation is only applicable to focus types.
@@ -22,14 +22,16 @@ they can be invoked directly from expression language code (e.g., Groovy, JavaSc
 * Var‑args (`...`) versus collection overloads
     ** Methods that accept a var‑args parameter (e.g., `executeChanges(ObjectDelta<? extends ObjectType>... deltas)`) allow callers to pass any number of arguments directly, without constructing a collection first.
         Internally the compiler creates an array, so the call is convenient for a small, known number of deltas.
-    ** The corresponding collection overload (`executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas)`) is intended for scenarios where the deltas are already assembled in a List, Set, or other Collection. It avoids the extra array allocation that the var‑args version would incur and is more appropriate for bulk or dynamically built delta sets.
+    ** The corresponding collection overload (`executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas)`) is intended for scenarios where the deltas are already assembled in a `List`, `Set`, or another `Collection`. It avoids the extra array allocation that the var‑args version would incur and is more appropriate for bulk or dynamically built delta sets.
     ** Both overloads perform the same operation; the choice is purely a matter of API ergonomics and performance considerations. The var‑args version is annotated with `@SuppressWarnings("unchecked")` because Java cannot create a generic array at runtime, while the collection version does not have that limitation.
 ====
 
 .A list of the availabel midPoint functions
 [cols="h,3,1,5", options="header"]
-|===
-|Function Name |Input arguments |Return Type |Documentation
+// The column widths make no difference here because some "words" in the columns are so long that the columns end up very wide anyway and the only "truly variable" column in terms of width is the Description one
+|====
+|Function name |Input arguments |Return type |Description
+
 |createEmptyObject
 |Class<T> type
 |T
@@ -565,7 +567,14 @@ they can be invoked directly from expression language code (e.g., Groovy, JavaSc
 |getFocusesByCorrelationRule
 |Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow
 |List<F>
-|Legacy name for `findCandidateOwners()`. There are some slight changes in semantics comparing to midPoint 4.5  . If `kind` is `null`, `ACCOUNT` is assumed. . If `intent` is `null`, `default` is assumed. . The use of `type` parameter is a bit different. . Instead of being limited to correlation/confirmation expressions, the method now invokes the standard correlation mechanism. See findCandidateOwners(Class, ShadowType, String, ShadowKindType, String) for more information. . The original method returns `null` e.g. if there's no synchronization policy, etc.  So, this method treats all exceptions (except for SchemaException) by returning `null`.
+a|Legacy name for `findCandidateOwners()`. There are some slight changes in semantics comparing to midPoint 4.5:
+
+* If `kind` is `null`, `ACCOUNT` is assumed.
+* If `intent` is `null`, `default` is assumed.
+* The use of `type` parameter is a bit different.
+* Instead of being limited to correlation/confirmation expressions, the method now invokes the standard correlation mechanism. See findCandidateOwners(Class, ShadowType, String, ShadowKindType, String) for more information.
+*
+* The original method returns `null` e.g. if there's no synchronization policy, etc.  So, this method treats all exceptions (except for SchemaException) by returning `null`.
 |findCandidateOwners
 |Class<F> focusType, ShadowType resourceObject, String resourceOid, ShadowKindType kind, String intent
 |List<F>
@@ -802,4 +811,4 @@ they can be invoked directly from expression language code (e.g., Groovy, JavaSc
 |
 |Collection<SelectorOptions<GetOperationOptions>>
 |Convenient selector that retrieves only the base object (no sub‑items).
-|===
+|====
