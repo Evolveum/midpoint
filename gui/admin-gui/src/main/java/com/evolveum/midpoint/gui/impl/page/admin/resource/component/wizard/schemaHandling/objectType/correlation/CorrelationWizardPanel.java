@@ -97,6 +97,11 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
             public void onBackPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTablePanel());
             }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("SimulationTaskWizardPanel.correlationWizardPanel.back");
+            }
         };
     }
 
