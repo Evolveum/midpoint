@@ -49,7 +49,12 @@
                     <container id="5">
                         <identifier>report-options</identifier>
                         <display>
-                            <label>ReportTask.reportOptions</label>
+                            <label>
+                                <orig>Report options</orig>
+                                <translation>
+                                    <key>ReportTask.reportOptions</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="6">
                             <c:path>extension/rext:reportParam</c:path>

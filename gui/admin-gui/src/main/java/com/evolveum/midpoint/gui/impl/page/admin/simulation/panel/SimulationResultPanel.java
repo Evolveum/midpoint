@@ -449,15 +449,15 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
 
     protected void navigateToSimulationResultObjects(
             @NotNull String resultOid,
-            @Nullable ObjectReferenceType ref,
+            @Nullable ObjectReferenceType markRef,
             @Nullable ObjectProcessingStateType state, AjaxRequestTarget target) {
         PageParameters params = new PageParameters();
         params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, resultOid);
         if (state != null) {
             params.set(PageSimulationResultObjects.PAGE_QUERY_PARAMETER, state.value());
         }
-        if (ref != null && !StringUtils.isEmpty(ref.getOid())) {
-            params.set(SimulationPage.PAGE_PARAMETER_MARK_OID, ref.getOid());
+        if (markRef != null && !StringUtils.isEmpty(markRef.getOid())) {
+            params.set(SimulationPage.PAGE_PARAMETER_MARK_OID, markRef.getOid());
         }
         getPageBase().navigateToNext(PageSimulationResultObjects.class, params);
     }

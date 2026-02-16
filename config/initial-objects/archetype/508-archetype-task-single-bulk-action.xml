@@ -54,7 +54,12 @@
                     <container id="7">
                         <identifier>bulk-action</identifier>
                         <display>
-                            <label>SingleActionTask.action</label>
+                            <label>
+                                <orig>Action</orig>
+                                <translation>
+                                    <key>SingleActionTask.action</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="8">
                             <c:path>extension/scext:executeScript</c:path>

@@ -1867,6 +1867,11 @@
                                 <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/compile
                                       but report can not detect this uses (and if you change scope, it can not compile target project -->
                                 <ignoredNonTestScopedDependency>com.evolveum.prism:prism-impl</ignoredNonTestScopedDependency>
+                                <!-- This is to avoid this compilation error (used to occur only in some specific setups):
+                                     Cannot attach type annotations @org.jetbrains.annotations.NotNull to
+                                     com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun.reportingCharacteristics:
+                                     class file for com.evolveum.axiom.concepts.Lazy not found -->
+                                <ignoredNonTestScopedDependency>com.evolveum.axiom:axiom</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>com.evolveum.commons:concepts</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
                                 <!-- Needed for oauth2 to mail servers in notifications-impl -->

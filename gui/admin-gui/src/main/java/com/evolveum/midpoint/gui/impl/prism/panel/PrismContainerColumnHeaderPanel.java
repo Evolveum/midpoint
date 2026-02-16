@@ -26,13 +26,12 @@ public class PrismContainerColumnHeaderPanel<C extends Containerable> extends It
     private static final long serialVersionUID = 1L;
 
     public PrismContainerColumnHeaderPanel(String id, IModel<PrismContainerWrapper<C>> model) {
-        super(id, model);
+        super(id, model, null);
     }
-
 
     @Override
     protected Component createTitle(IModel<String> label) {
-        Label labelComponent = new Label(ID_LABEL, label) ;
+        Label labelComponent = new Label(ID_LABEL, label);
         labelComponent.setOutputMarkupId(true);
         return labelComponent;
     }

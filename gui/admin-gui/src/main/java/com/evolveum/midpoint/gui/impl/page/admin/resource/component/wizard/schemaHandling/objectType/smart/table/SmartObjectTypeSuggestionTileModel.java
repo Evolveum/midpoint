@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+
 public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> extends TemplateTile<T> {
 
     private String icon;
@@ -59,32 +61,31 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
     }
 
     protected List<IModel<String>> buildChipsData(PageBase pageBase) {
-        ResourceObjectTypeDefinitionType value = getValue().getRealValue();
-        if (value == null) {
+        var wrapper = getValue();
+        if (wrapper == null || wrapper.getRealValue() == null) {
             return Collections.emptyList();
         }
 
+        ResourceObjectTypeDefinitionType value = wrapper.getRealValue();
+        String unknownText = translate("SmartObjectTypeSuggestionTileModel.unknown");
+
         var chips = new ArrayList<IModel<String>>();
 
-        ShadowKindType kind = value.getKind();
-        if (kind != null) {
-            addChip(pageBase, chips, Keys.KIND, kind.value());
-        }
-        addChip(pageBase, chips, Keys.INTENT, value.getIntent());
+        addChip(pageBase, chips, Keys.KIND,
+                value.getKind() != null ? value.getKind().value() : unknownText);
+
+        addChip(pageBase, chips, Keys.INTENT,
+                value.getIntent() != null ? value.getIntent() : unknownText);
 
         ResourceObjectTypeDelineationType del = value.getDelineation();
-        if (del != null && del.getObjectClass() != null) {
-            addChip(pageBase, chips, SmartObjectTypeSuggestionTileModel.Keys.OBJECT_CLASS, del.getObjectClass().getLocalPart());
-        }
+        addChip(pageBase, chips, SmartObjectTypeSuggestionTileModel.Keys.OBJECT_CLASS,
+                del != null && del.getObjectClass() != null ? del.getObjectClass().getLocalPart() : unknownText);
 
         addChip(pageBase, chips, SmartObjectTypeSuggestionTileModel.Keys.FOCUS_TYPE,
-                focusType.getLocalPart() != null
-                        ? focusType.getLocalPart()
-                        : "-");
+                focusType != null && focusType.getLocalPart() != null ? focusType.getLocalPart() : unknownText);
 
         return Collections.unmodifiableList(chips);
     }
-
     private static void addChip(
             PageBase pageBase,
             List<IModel<String>> chips,
@@ -173,8 +174,7 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
     public PrismPropertyWrapper<SearchFilterType> getBaseContexFilterPropertyValueWrapper() {
         try {
             PrismContainerWrapper<ResourceObjectReferenceType> containerWrapper = findBaseContextWrapper();
-            if (containerWrapper == null)
-                return null;
+            if (containerWrapper == null) {return null;}
             return containerWrapper.findProperty(ResourceObjectReferenceType.F_FILTER);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
@@ -184,8 +184,7 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
     public PrismPropertyWrapper<QName> getBaseContexObjectClassPropertyValueWrapper() {
         try {
             PrismContainerWrapper<ResourceObjectReferenceType> containerWrapper = findBaseContextWrapper();
-            if (containerWrapper == null)
-                return null;
+            if (containerWrapper == null) {return null;}
             return containerWrapper.findProperty(ResourceObjectReferenceType.F_OBJECT_CLASS);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
@@ -207,11 +206,11 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
         return containerWrapper;
     }
 
-    protected boolean hasFilterErrors(){
+    protected boolean hasFilterErrors() {
         return getFilterPropertyValueWrapper().getValues().stream()
-                        .anyMatch(v -> SmartMetadataUtil.isMarkedAsInvalid(v.getNewValue()))
-                        || getBaseContexFilterPropertyValueWrapper().getValues().stream()
-                        .anyMatch(v -> SmartMetadataUtil.isMarkedAsInvalid(v.getNewValue()));
+                .anyMatch(v -> SmartMetadataUtil.isMarkedAsInvalid(v.getNewValue()))
+                || getBaseContexFilterPropertyValueWrapper().getValues().stream()
+                .anyMatch(v -> SmartMetadataUtil.isMarkedAsInvalid(v.getNewValue()));
     }
 
     protected String getResourceOid() {

@@ -12,46 +12,54 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.springframework.stereotype.Component;
 
-/**
- * Heuristic that removes all whitespace characters from the input.
- * Useful for phone numbers, IDs, or when spaces need to be completely eliminated.
- */
+import java.text.Normalizer;
+
 @Component
-public class RemoveWhitespaceHeuristic implements HeuristicRule {
+public class TrimAndStripDiacriticsHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
-        return "removeWhitespace";
+        return "trimAndStripDiacritics";
     }
 
     @Override
     public String getDescription() {
-        return "Remove all whitespace characters";
+        return "Trim whitespace and strip diacritical marks";
     }
 
-    /**
-     * Only applicable if source values contain any whitespace characters.
-     */
+    @Override
+    public int getOrder() {
+        return 2;
+    }
+
     @Override
     public boolean isApplicable(ValuesPairSample<?, ?> sample) {
         return sample.pairs().stream()
                 .flatMap(pair -> pair.getSourceValues(sample.direction()).stream())
                 .filter(value -> value instanceof String)
                 .map(value -> (String) value)
-                .anyMatch(str -> str != null && str.matches(".*\\s+.*"));
+                .anyMatch(str -> str != null && (hasDiacritics(str) || !str.equals(str.trim())));
+    }
+
+    private boolean hasDiacritics(String str) {
+        String normalized = Normalizer.normalize(str, Normalizer.Form.NFD);
+        if (normalized.matches(".*\\p{InCombiningDiacriticalMarks}+.*")) {
+            return true;
+        }
+        return str.matches(".*[ŁłØøÅåÆæŒœĐđŦŧĦħŊŋĸŁłŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽž].*");
     }
 
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input?.replaceAll('\\\\s+', '')",
-                "Remove all whitespace");
+                "basic.toAscii(basic.trim(input))",
+                "Trim and strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + "?.replaceAll('\\\\s+', '')",
-                "Remove all whitespace");
+                "basic.toAscii(basic.trim(" + focusPropertyName + "))",
+                "Trim and strip diacritical marks");
     }
 }

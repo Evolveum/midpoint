@@ -29,6 +29,8 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+
 public abstract class ResourceObjectTypeWizardChoicePanel
         extends ResourceWizardChoicePanel<ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType> {
 
@@ -142,6 +144,13 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
+
+                if(getValueModel() == null
+                        || getValueModel().getObject() == null
+                        || getValueModel().getObject().getRealValue() == null) {
+                    return translate("ResourceObjectTypeWizardPreviewPanel.breadcrumb");
+                }
+
                 return GuiDisplayNameUtil.getDisplayName(getValueModel().getObject().getRealValue());
             }
         };

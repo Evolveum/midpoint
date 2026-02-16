@@ -128,7 +128,7 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
         if (!((PageAssignmentHolderDetails)getPageBase()).hasUnsavedChanges(target)) {
             getAssignmentHolderModel().reloadPrismObjectModel();
             getHelper().refreshValueModel();
-            showTypePreviewFragment(target);
+            showAfterCheckDeltasExitPerformed(target);
             return;
         }
         ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
@@ -140,11 +140,16 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
             public void yesPerformed(AjaxRequestTarget target) {
                 getAssignmentHolderModel().reloadPrismObjectModel();
                 getHelper().refreshValueModel();
-                showTypePreviewFragment(target);
+                showAfterCheckDeltasExitPerformed(target);
             }
         };
 
         getPageBase().showMainPopup(confirmationPanel, target);
+    }
+
+    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
+        removeLastBreadcrumb();
+        showTypePreviewFragment(target);
     }
 
     protected abstract void showTypePreviewFragment(AjaxRequestTarget target);

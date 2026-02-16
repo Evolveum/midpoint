@@ -36,6 +36,7 @@ public class DummyScenario extends AbstractDummyScenario {
     public final Account account = new Account();
     public final OrganizationalUnit organizationalUnit = new OrganizationalUnit();
     public final InetOrgPerson inetOrgPerson = new InetOrgPerson();
+    public final AdUser adUser = new AdUser();
 
     public static DummyScenario on(DummyResourceContoller controller) {
         return new DummyScenario(controller);
@@ -45,6 +46,11 @@ public class DummyScenario extends AbstractDummyScenario {
         account.initialize();
         organizationalUnit.initialize();
         inetOrgPerson.initialize();
+        return this;
+    }
+
+    public DummyScenario initializeAd() {
+        adUser.initialize();
         return this;
     }
 
@@ -173,6 +179,41 @@ public class DummyScenario extends AbstractDummyScenario {
             controller.addAttrDef(oc, AttributeNames.HOME_PHONE.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.FAX_NUMBER.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.MANAGER.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.DISTINGUISHED_NAME.local(), String.class, false, false);
+        }
+
+        @Override
+        public @NotNull ObjectClassName getObjectClassName() {
+            return OBJECT_CLASS_NAME;
+        }
+    }
+
+    public class AdUser extends ScenarioObjectClass {
+
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("user");
+
+        public static class AttributeNames {
+            public static final AttrName SAM_ACCOUNT_NAME = AttrName.ri("sAMAccountName");
+            public static final AttrName CN = AttrName.ri("cn");
+            public static final AttrName SN = AttrName.ri("sn");
+            public static final AttrName GIVEN_NAME = AttrName.ri("givenName");
+            public static final AttrName MAIL = AttrName.ri("mail");
+            public static final AttrName USER_PRINCIPAL_NAME = AttrName.ri("userPrincipalName");
+            public static final AttrName DISPLAY_NAME = AttrName.ri("displayName");
+            public static final AttrName DISTINGUISHED_NAME = AttrName.ri("distinguishedName");
+        }
+
+        void initialize() {
+            var oc = DummyObjectClass.standard();
+            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
+
+            controller.addAttrDef(oc, AttributeNames.SAM_ACCOUNT_NAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.CN.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.SN.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.GIVEN_NAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.MAIL.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.USER_PRINCIPAL_NAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.DISPLAY_NAME.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.DISTINGUISHED_NAME.local(), String.class, false, false);
         }
 
