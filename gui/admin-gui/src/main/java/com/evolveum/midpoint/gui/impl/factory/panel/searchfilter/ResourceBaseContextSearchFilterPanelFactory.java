@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -13,10 +13,12 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
+import com.evolveum.midpoint.gui.impl.validator.BaseContextConsistencyValidator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SearchFilterConfigurationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -30,34 +32,37 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 @Component
-public class ResourceAttributesSearchFilterPanelFactory extends SearchFilterPanelFactory implements Serializable {
+public class ResourceBaseContextSearchFilterPanelFactory
+        extends SearchFilterPanelFactory implements Serializable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributesSearchFilterPanelFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceBaseContextSearchFilterPanelFactory.class);
 
     @Override
-    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(
+            IW wrapper, VW valueWrapper) {
         return super.match(wrapper, valueWrapper)
-                && (ItemPath.create(
-                        ResourceType.F_SCHEMA_HANDLING,
-                        SchemaHandlingType.F_OBJECT_TYPE,
-                        ResourceObjectTypeDefinitionType.F_DELINEATION,
-                        ResourceObjectTypeDelineationType.F_FILTER)
-                .equivalent(wrapper.getPath().namedSegmentsOnly())
-                || ItemPath.create(
-                        ResourceType.F_SCHEMA_HANDLING,
-                        SchemaHandlingType.F_OBJECT_TYPE,
-                        ResourceObjectTypeDefinitionType.F_MARKING,
-                        ShadowMarkingConfigurationType.F_PATTERN,
-                        ResourceObjectPatternType.F_FILTER)
-                .equivalent(wrapper.getPath().namedSegmentsOnly()));
+                && ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_DELINEATION,
+                ResourceObjectTypeDelineationType.F_BASE_CONTEXT,
+                ResourceObjectReferenceType.F_FILTER
+        ).equivalent(wrapper.getPath().namedSegmentsOnly());
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    protected InputPanel getPanel(@NotNull PrismPropertyPanelContext<SearchFilterType> panelCtx) {
+    protected InputPanel getPanel(
+            @NotNull PrismPropertyPanelContext<SearchFilterType> panelCtx) {
         return new SearchFilterConfigurationPanel<>(
                 panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(), null) {
 
-            @SuppressWarnings({ "rawtypes", "unchecked" })
+            @Override
+            protected void initValidation(TextPanel textPanel, SearchFilterTypeForQueryModel queryModel) {
+                textPanel.getBaseFormComponent().add(new BaseContextConsistencyValidator((IModel) panelCtx.getItemWrapperModel()));
+                super.initValidation(textPanel, queryModel);
+            }
+
             @Override
             protected SearchFilterTypeForQueryModel<?> createQueryModel(IModel model, LoadableModel filterTypeModel, boolean useParsing) {
                 ItemRealValueModel<QName> objectClassModel = new ItemRealValueModel<>((IModel<? extends PrismValueWrapper<QName>>) () -> {
@@ -67,13 +72,14 @@ public class ResourceAttributesSearchFilterPanelFactory extends SearchFilterPane
                         if (parent != null) {
                             PrismPropertyWrapper<QName> objectClass = parent.findProperty(ItemPath.create(
                                     ResourceObjectTypeDefinitionType.F_DELINEATION,
-                                    ResourceObjectTypeDelineationType.F_OBJECT_CLASS));
+                                    ResourceObjectTypeDelineationType.F_BASE_CONTEXT,
+                                    ResourceObjectReferenceType.F_OBJECT_CLASS));
                             return objectClass != null ? objectClass.getValue() : null;
                         }
                         return null;
 
                     } catch (SchemaException e) {
-                        LOGGER.error("Couldn't find object class property.");
+                        LOGGER.error("Couldn't find base context object class property {}", e.getMessage());
                         return null;
                     }
                 });
@@ -89,6 +95,6 @@ public class ResourceAttributesSearchFilterPanelFactory extends SearchFilterPane
 
     @Override
     public Integer getOrder() {
-        return Integer.MAX_VALUE - 10;
+        return Integer.MAX_VALUE - 20;
     }
 }

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
@@ -35,7 +36,7 @@ public class DelineationResourceObjectTypeStepPanel
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDelineationType>> valueModel;
 
     public DelineationResourceObjectTypeStepPanel(ResourceDetailsModel model,
-                           IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
         super(model, null, null);
         this.valueModel = createNewValueModel(newValueModel, ResourceObjectTypeDefinitionType.F_DELINEATION);
     }
@@ -77,7 +78,10 @@ public class DelineationResourceObjectTypeStepPanel
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
-        if (itemWrapper.getItemName().equals(ResourceObjectTypeDelineationType.F_OBJECT_CLASS)) {
+        if (itemWrapper.getPath() != null && itemWrapper.getPath().endsWith(
+                ItemPath.create(
+                        ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_OBJECT_CLASS))) {
             return true;
         }
         return itemWrapper.isMandatory();
