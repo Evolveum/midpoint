@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+    <code>
+        cel.bind(owner, midpoint.searchShadowOwner(oid),
+            owner == null ? null : owner.name
+        )
+    </code>
+</script>

@@ -35,6 +35,11 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
         return new File(BASE_TEST_DIR, "mel");
     }
 
+    @Test
+    public void testGetUserByOid() throws Exception {
+        // MEL does not have getUserByOid() function (it is not secure).
+    }
+
 
     @Test
     public void testLibHello0Simple() throws Exception {
@@ -84,6 +89,26 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
                 ),
                 "get-object",
                 CHEF_NAME);
+    }
+
+    @Test
+    public void testSearchShadowOwnerNone() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "oid", "00000000-0b40-11f1-9c0d-cbf71939ee01", PrimitiveType.STRING
+                ),
+                "search-shadow-owner",
+                null);
+    }
+
+    @Test
+    public void testSearchShadowOwnerGuybrush() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "oid", ACCOUNT_SHADOW_GUYBRUSH_OID, PrimitiveType.STRING
+                ),
+                "search-shadow-owner",
+                USER_GUYBRUSH_USERNAME);
     }
 
 }

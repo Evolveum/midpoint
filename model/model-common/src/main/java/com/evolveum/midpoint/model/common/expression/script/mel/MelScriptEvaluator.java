@@ -205,17 +205,6 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         }
     }
 
-//    private GroovyClassLoader getGroovyLoader(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
-//        GroovyClassLoader existingLoader = getScriptCache().getInterpreter(context.getExpressionProfile());
-//        if (existingLoader != null) {
-//            return existingLoader;
-//        }
-//        var newLoader = createGroovyLoader(context);
-//        getScriptCache().putInterpreter(context.getExpressionProfile(), newLoader);
-//        return newLoader;
-//    }
-
-
 //    @Override
     protected Object evaluateScript(CelAbstractSyntaxTree compiledScript, ScriptExpressionEvaluationContext context) throws Exception {
 
