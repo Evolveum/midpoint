@@ -105,6 +105,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
 
             @Override
             protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
+                removeLastBreadcrumb();
                 showChoiceFragment(target, createObjectTypesTablePanel());
             }
         };
@@ -282,6 +283,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
     }
 
     protected void exitToPreview(AjaxRequestTarget target) {
+        getBreadcrumb().clear();
         SchemaHandlingWizardChoicePanel preview = new SchemaHandlingWizardChoicePanel(
                 getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override

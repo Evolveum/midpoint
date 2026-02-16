@@ -172,6 +172,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
 
     private @NotNull ResourceSuggestedObjectTypeTableWizardPanel<ResourceObjectTypeDefinitionType> buildSelectSuggestedObjectTypeWizardPanel(
             @NotNull String idOfChoicePanel, QName objectClassName) {
+        removeLastBreadcrumb();
         return new ResourceSuggestedObjectTypeTableWizardPanel<>(idOfChoicePanel, getHelper(), objectClassName) {
 
             @Override
