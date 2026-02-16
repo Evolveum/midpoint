@@ -55,7 +55,6 @@ public class PoliciesObjectTypeWizardPanel extends AbstractWizardWithChoicePanel
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                super.onExitPerformed(target);
                 PoliciesObjectTypeWizardPanel.this.onExitPerformed(target);
             }
         };

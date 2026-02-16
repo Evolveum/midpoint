@@ -74,7 +74,12 @@
                     <container id="12">
                         <identifier>objects-to-import</identifier>
                         <display>
-                            <label>ImportTask.objectsToImport</label>
+                            <label>
+                                <orig>Objects to import</orig>
+                                <translation>
+                                    <key>ImportTask.objectsToImport</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="14">
                             <c:path>objectRef</c:path>
@@ -95,7 +100,12 @@
                     <container id="13">
                         <identifier>import-options</identifier>
                         <display>
-                            <label>ImportTask.importOptions</label>
+                            <label>
+                                <orig>Import options</orig>
+                                <translation>
+                                    <key>ImportTask.importOptions</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="19">
                             <c:path>extension/mext:workerThreads</c:path>

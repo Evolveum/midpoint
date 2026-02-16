@@ -53,14 +53,14 @@ public class TrimUpperCaseAndStripDiacriticsHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(input?.trim())?.toUpperCase()",
+                "basic.uc(basic.toAscii(basic.trim(input)))",
                 "Trim, convert to uppercase, and strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(" + focusPropertyName + "?.trim())?.toUpperCase()",
+                "basic.uc(basic.toAscii(basic.trim(" + focusPropertyName + ")))",
                 "Trim, convert to uppercase, and strip diacritical marks");
     }
 }

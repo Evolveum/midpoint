@@ -1,12 +1,11 @@
 <!--
-  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="e5246605-73ee-4682-9efb-73a915427d18">
+    oid="e5246605-73ee-4682-9efb-73a915427d18">
     <name>Shadow owner not found</name>
     <description>Correlation of a shadow has not found its owner</description>
     <assignment id="1">
@@ -15,8 +14,18 @@
     </assignment>
     <displayOrder>530</displayOrder>
     <display>
-        <label>SimulationCorrelationPanel.notCorrelated.label</label>
-        <help>SimulationCorrelationPanel.notCorrelated.help</help>
+        <label>
+            <orig>Not correlated</orig>
+            <translation>
+                <key>SimulationCorrelationPanel.notCorrelated.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of objects that could not be correlated to any resource owner.</orig>
+            <translation>
+                <key>SimulationCorrelationPanel.uncertain.help</key>
+            </translation>
+        </help>
         <icon>
             <cssClass>fa fa-link-slash metric-icon secondary</cssClass>
         </icon>

@@ -40,14 +40,14 @@ public class ToLowerCaseHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input?.toLowerCase()",
+                "basic.lc(input)",
                 "Convert to lowercase");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + "?.toLowerCase()",
+                "basic.lc(" + focusPropertyName + ")",
                 "Convert to lowercase");
     }
 }

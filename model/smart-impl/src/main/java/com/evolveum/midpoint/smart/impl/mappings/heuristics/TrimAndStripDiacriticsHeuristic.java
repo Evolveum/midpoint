@@ -52,14 +52,14 @@ public class TrimAndStripDiacriticsHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(input?.trim())",
+                "basic.toAscii(basic.trim(input))",
                 "Trim and strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(" + focusPropertyName + "?.trim())",
+                "basic.toAscii(basic.trim(" + focusPropertyName + "))",
                 "Trim and strip diacritical marks");
     }
 }

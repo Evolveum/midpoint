@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serial;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString;
+import static com.evolveum.midpoint.gui.impl.util.GuiConfigUtil.extractLabelFromItemSpec;
 
 /**
  * @author katka
@@ -285,11 +286,11 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         VirtualContainerItemSpecificationType spec =
                 GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), wrapper.getPath());
 
-        if (spec == null || spec.getLabel() == null) {
+        PolyStringType label = extractLabelFromItemSpec(spec);
+        if (label == null) {
             return null;
         }
 
-        PolyStringType label = spec.getLabel();
         return translatePolyString(label);
     }
 

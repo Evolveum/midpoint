@@ -43,14 +43,14 @@ public class TrimAndUpperCaseHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input?.trim()?.toUpperCase()",
+                "basic.uc(basic.trim(input))",
                 "Trim and convert to uppercase");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + "?.trim()?.toUpperCase()",
+                "basic.uc(basic.trim(" + focusPropertyName + "))",
                 "Trim and convert to uppercase");
     }
 }

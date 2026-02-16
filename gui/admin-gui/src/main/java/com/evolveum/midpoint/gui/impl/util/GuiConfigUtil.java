@@ -2,10 +2,14 @@ package com.evolveum.midpoint.gui.impl.util;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -52,6 +56,14 @@ public class GuiConfigUtil {
         }
 
         return null;
+    }
+
+    public static @Nullable PolyStringType extractLabelFromItemSpec(VirtualContainerItemSpecificationType item) {
+        if (item == null || item.getDisplay() == null) {
+            return null;
+        }
+        DisplayType display = item.getDisplay();
+        return display.getLabel();
     }
 
     private static boolean isPathEquivalent(ItemPath path, @NotNull VirtualContainerItemSpecificationType item) {

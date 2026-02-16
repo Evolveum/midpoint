@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -18,8 +19,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page.SmartObjectTypeSuggestionWizardPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -36,6 +41,8 @@ import org.jetbrains.annotations.Nullable;
  * @author lskublik
  */
 public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, ResourceDetailsModel> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceWizardPanel.class);
 
     public ResourceWizardPanel(String id, WizardPanelHelper<ResourceType, ResourceDetailsModel> helper) {
         super(id, helper);
@@ -98,6 +105,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
 
             @Override
             protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
+                removeLastBreadcrumb();
                 showChoiceFragment(target, createObjectTypesTablePanel());
             }
         };
@@ -124,12 +132,33 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         SmartObjectTypeSuggestionWizardPanel wizard = new SmartObjectTypeSuggestionWizardPanel(getIdOfChoicePanel(), helper) {
             @Override
             protected void onReviewSelected(
-                    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model,
-                    PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
-                    @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
-                    AjaxRequestTarget target,
+                    @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
+                    @NotNull ItemPath pathToContainer,
+                    @NotNull AjaxRequestTarget target,
                     @Nullable SerializableConsumer<AjaxRequestTarget> afterSaveAction) {
-                showChoiceFragment(target, createObjectTypeWizard(model, afterSaveAction));
+                try {
+                    ResourceDetailsModel detailsModel = getHelper().getDetailsModel();
+                    PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = detailsModel.getObjectWrapper()
+                            .findContainer(pathToContainer);
+                    PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> newWrapper = WebPrismUtil.createNewValueWrapper(
+                            container,
+                            newValue,
+                            getPageBase(),
+                            detailsModel.createWrapperContext());
+                    container.getValues().add(newWrapper);
+
+                    if (!newValue.isEmpty()) {
+                        if (newValue.getParent() == null) {
+                            newValue.setParent(container.getItem());
+                        }
+                        container.getItem().add(newValue.clone());
+                    }
+
+                    showChoiceFragment(target, createObjectTypeWizard(() -> newWrapper, afterSaveAction));
+
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't resolve value for path: {}", pathToContainer, e);
+                }
             }
         };
         wizard.setOutputMarkupId(true);
@@ -254,6 +283,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
     }
 
     protected void exitToPreview(AjaxRequestTarget target) {
+        getBreadcrumb().clear();
         SchemaHandlingWizardChoicePanel preview = new SchemaHandlingWizardChoicePanel(
                 getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override

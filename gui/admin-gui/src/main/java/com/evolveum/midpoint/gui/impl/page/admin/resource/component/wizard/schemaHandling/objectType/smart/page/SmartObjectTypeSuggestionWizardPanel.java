@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -171,6 +172,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
 
     private @NotNull ResourceSuggestedObjectTypeTableWizardPanel<ResourceObjectTypeDefinitionType> buildSelectSuggestedObjectTypeWizardPanel(
             @NotNull String idOfChoicePanel, QName objectClassName) {
+        removeLastBreadcrumb();
         return new ResourceSuggestedObjectTypeTableWizardPanel<>(idOfChoicePanel, getHelper(), objectClassName) {
 
             @Override
@@ -184,8 +186,9 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                 PageBase pageBase = getPageBase();
 
                 clearPageFeedback(target);
-
-                onReviewSelected(model, newValue, containerModel, target, ajaxRequestTarget -> {
+                PrismContainerWrapper<ResourceObjectTypeDefinitionType> containerModelObject = containerModel.getObject();
+                newValue.setParent(containerModelObject.getItem());
+                onReviewSelected(newValue, containerModelObject.getPath(), target, ajaxRequestTarget -> {
                     Task task = pageBase.createSimpleTask(OP_DELETE_SUGGESTIONS);
                     OperationResult result = task.getResult();
                     removeObjectTypeSuggestionNew(pageBase, statusInfo, suggestedObjectTypeDef, task, result);
@@ -207,12 +210,11 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
     }
 
     protected void onReviewSelected(
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model,
-            PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
-            @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
-            AjaxRequestTarget target,
-            @Nullable SerializableConsumer<AjaxRequestTarget> afterSaveAction){
+            @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
+            @NotNull ItemPath pathToContainer,
+            @NotNull AjaxRequestTarget target,
+            @Nullable SerializableConsumer<AjaxRequestTarget> afterSaveAction) {
         getAssignmentHolderModel().getPageResource()
-                .showObjectTypeWizard(newValue, target, containerModel.getObject().getPath(), afterSaveAction);
-    };
+                .showObjectTypeWizard(newValue, target, pathToContainer, afterSaveAction);
+    }
 }

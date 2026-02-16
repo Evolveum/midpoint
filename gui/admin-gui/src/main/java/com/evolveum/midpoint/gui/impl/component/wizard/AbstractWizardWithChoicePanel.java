@@ -60,7 +60,7 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
         this.showChoicePanel = showChoicePanel;
     }
 
-    protected  <V extends Containerable> WizardPanelHelper<V, AHD> createHelper(ItemPath path, boolean isWizardFlow) {
+    protected <V extends Containerable> WizardPanelHelper<V, AHD> createHelper(ItemPath path, boolean isWizardFlow) {
         return new WizardPanelHelper<>(getAssignmentHolderModel()) {
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
@@ -121,34 +121,6 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
                 return result;
             }
         };
-    }
-
-    protected void checkDeltasExitPerformed(AjaxRequestTarget target) {
-
-        if (!((PageAssignmentHolderDetails)getPageBase()).hasUnsavedChanges(target)) {
-            getAssignmentHolderModel().reloadPrismObjectModel();
-            getHelper().refreshValueModel();
-            showAfterCheckDeltasExitPerformed(target);
-            return;
-        }
-        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                createStringResource("OperationalButtonsPanel.confirmBack")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                getAssignmentHolderModel().reloadPrismObjectModel();
-                getHelper().refreshValueModel();
-                showAfterCheckDeltasExitPerformed(target);
-            }
-        };
-
-        getPageBase().showMainPopup(confirmationPanel, target);
-    }
-
-    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
-        showTypePreviewFragment(target);
     }
 
     protected abstract void showTypePreviewFragment(AjaxRequestTarget target);

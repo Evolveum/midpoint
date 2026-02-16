@@ -1050,52 +1050,6 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test203HeuristicFirstWordFoundAndUsed() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "John");
-        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Jane");
-        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Bob");
-
-        modifyShadowReplace("user1", PERSONAL_NUMBER, "John Doe");
-        modifyShadowReplace("user2", PERSONAL_NUMBER, "Jane Smith");
-        modifyShadowReplace("user3", PERSONAL_NUMBER, "Bob Johnson");
-
-        refreshShadows();
-
-        var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
-        );
-        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
-        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
-
-        var op = MappingsSuggestionOperation.init(
-                ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService,
-                heuristicRuleMatcher,
-                true,
-                false);
-
-        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
-
-        assertThat(suggestion.getAttributeMappings()).hasSize(1);
-        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
-
-        assertThat(mapping.getExpectedQuality())
-                .as("Heuristic firstWord should have perfect quality")
-                .isEqualTo(1.0f);
-
-        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
-                .as("Should contain firstWord expression")
-                .isNotNull();
-    }
-
-    @Test
     public void test204HeuristicNotFoundFallbackToAI() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();

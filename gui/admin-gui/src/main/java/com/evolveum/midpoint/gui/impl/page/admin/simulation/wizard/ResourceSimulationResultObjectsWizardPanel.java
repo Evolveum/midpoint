@@ -66,6 +66,11 @@ public abstract class ResourceSimulationResultObjectsWizardPanel extends Abstrac
             protected @Nullable ObjectProcessingStateType getStateQueryParameter() {
                 return state;
             }
+
+            @Override
+            protected @Nullable String getPredefinedMarkOid() {
+                return ResourceSimulationResultObjectsWizardPanel.this.getPredefinedMarkOid();
+            }
         };
         panel.setOutputMarkupId(true);
         add(panel);
@@ -118,5 +123,7 @@ public abstract class ResourceSimulationResultObjectsWizardPanel extends Abstrac
     public boolean isEnabled() {
         return true;
     }
+
+    protected abstract String getPredefinedMarkOid();
 
 }

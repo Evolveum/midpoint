@@ -46,14 +46,14 @@ public class TrimAndLowerCaseHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input?.trim()?.toLowerCase()",
+                "basic.lc(basic.trim(input))",
                 "Trim and convert to lowercase");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + "?.trim()?.toLowerCase()",
+                "basic.lc(basic.trim(" + focusPropertyName + "))",
                 "Trim and convert to lowercase");
     }
 }
