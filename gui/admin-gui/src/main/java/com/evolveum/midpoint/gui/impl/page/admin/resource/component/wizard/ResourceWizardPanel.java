@@ -37,6 +37,8 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
+
 /**
  * @author lskublik
  */
@@ -138,24 +140,21 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
                     @Nullable SerializableConsumer<AjaxRequestTarget> afterSaveAction) {
                 try {
                     ResourceDetailsModel detailsModel = getHelper().getDetailsModel();
-                    PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = detailsModel.getObjectWrapper()
-                            .findContainer(pathToContainer);
-                    PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> newWrapper = WebPrismUtil.createNewValueWrapper(
-                            container,
-                            newValue,
-                            getPageBase(),
-                            detailsModel.createWrapperContext());
-                    container.getValues().add(newWrapper);
+                    PrismContainerWrapper<ResourceObjectTypeDefinitionType> container =
+                            detailsModel.getObjectWrapper().findContainer(pathToContainer);
+                    WebPrismUtil.cleanupEmptyContainerValue(newValue);
 
-                    if (!newValue.isEmpty()) {
-                        if (newValue.getParent() == null) {
-                            newValue.setParent(container.getItem());
-                        }
-                        container.getItem().add(newValue.clone());
-                    }
+                    PrismContainerValue<ResourceObjectTypeDefinitionType> stored =
+                            processSuggestedContainerValue(newValue);
+
+                    PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> newWrapper =
+                            WebPrismUtil.addNewValueToContainer(
+                                    container,
+                                    stored,
+                                    getPageBase(),
+                                    detailsModel.createWrapperContext());
 
                     showChoiceFragment(target, createObjectTypeWizard(() -> newWrapper, afterSaveAction));
-
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't resolve value for path: {}", pathToContainer, e);
                 }

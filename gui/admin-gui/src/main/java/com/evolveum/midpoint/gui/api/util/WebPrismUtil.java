@@ -10,6 +10,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.common.cleanup.ObjectCleaner;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
@@ -774,4 +775,39 @@ public class WebPrismUtil {
         }
     }
 
+    /**
+     * Add new container value to the given container wrapper and create a wrapper for it.
+     *
+     * @param containerWrapper the container wrapper to which the new value will be added
+     * @param newValue the new container value to be added
+     * @param pageBase the page base for creating the wrapper
+     * @param wrapperContext the wrapper context for creating the wrapper
+     * @return the created wrapper for the new container value
+     * @throws SchemaException if there is an error during schema processing
+     */
+    public static <C extends Containerable> PrismContainerValueWrapper<C> addNewValueToContainer(
+            @NotNull PrismContainerWrapper<C> containerWrapper,
+            @NotNull PrismContainerValue<C> newValue,
+            @NotNull PageBase pageBase,
+            @NotNull WrapperContext wrapperContext) throws SchemaException {
+        PrismContainerValue<C> stored = newValue.clone();
+        stored.setParent(null);
+
+        ObjectCleaner cleaner = new ObjectCleaner();
+        cleaner.setRemoveContainerIds(true);
+        cleaner.process(stored);
+
+        PrismContainer<C> parent = containerWrapper.getItem();
+        parent.add(stored);
+
+        PrismContainerValueWrapper<C> newWrapper =
+                WebPrismUtil.createNewValueWrapper(
+                        containerWrapper,
+                        stored,
+                        pageBase,
+                        wrapperContext);
+
+        containerWrapper.getValues().add(newWrapper);
+        return newWrapper;
+    }
 }
