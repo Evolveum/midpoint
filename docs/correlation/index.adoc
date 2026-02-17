@@ -16,6 +16,8 @@ It is typically used during the synchronization process to match newly discovere
 The goal of _correlation_ is to provide a configurable correlation mechanism that can provide approximate matching.
 Then the match can be resolved automatically if it meets a defined confidence threshold, or manually by a human operator.
 
+To see how to configure correlation in GUI, refer to xref:/midpoint/reference/admin-gui/resource-wizard/object-type/correlation[].
+
 == Configuration
 
 The correlation mechanism is based on _correlation rules_, technically called _correlators_.
