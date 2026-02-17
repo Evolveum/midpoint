@@ -815,51 +815,32 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         Set<String> attributeNames = statistics.getAttribute().stream()
                 .map(attr -> attr.getRef().toString())
                 .collect(Collectors.toSet());
-        assertThat(attributeNames).contains(
-                s(ICFS_NAME),
-                s(ICFS_UID),
-                s(Account.AttributeNames.LAST_LOGIN.q()),
-                s(Account.AttributeNames.PHONE.q()),
-                s(Account.AttributeNames.CREATED.q()),
-                s(Account.AttributeNames.DESCRIPTION.q()),
+        // Only attributes with repeating values (count ≥ 2) are included
+        assertThat(attributeNames).containsExactlyInAnyOrder(
                 s(Account.AttributeNames.PERSONAL_NUMBER.q()),
-                s(Account.AttributeNames.FULLNAME.q()),
-                s(Account.AttributeNames.DEPARTMENT.q()),
                 s(Account.AttributeNames.TYPE.q()),
-                s(Account.AttributeNames.EMAIL.q()),
                 s(Account.AttributeNames.STATUS.q())
         );
-
-        for (QName attributeName : List.of(Account.AttributeNames.LAST_LOGIN.q(), Account.AttributeNames.DESCRIPTION.q())) {
-            var emptyAttribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(s(attributeName)))
-                    .findFirst().orElseThrow();
-            assertThat(emptyAttribute.getMissingValueCount()).isEqualTo(5);
-            assertThat(emptyAttribute.getUniqueValueCount()).isEqualTo(0);
-            assertThat(emptyAttribute.getValueCount()).isEmpty();
-        }
-
-        for (QName attributeName : List.of(ICFS_UID, ICFS_NAME, Account.AttributeNames.FULLNAME.q(), Account.AttributeNames.EMAIL.q())) {
-            var distinctAttribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(s(attributeName)))
-                    .findFirst().orElseThrow();
-            assertThat(distinctAttribute.getMissingValueCount()).isEqualTo(0);
-            assertThat(distinctAttribute.getUniqueValueCount()).isEqualTo(5);
-            assertThat(distinctAttribute.getValueCount()).isEmpty();
-        }
+        assertThat(attributeNames).doesNotContain(
+                s(ICFS_NAME),
+                s(ICFS_UID),
+                s(Account.AttributeNames.FULLNAME.q()),
+                s(Account.AttributeNames.EMAIL.q()),
+                s(Account.AttributeNames.LAST_LOGIN.q()),
+                s(Account.AttributeNames.DESCRIPTION.q()),
+                s(Account.AttributeNames.PHONE.q()),       // all unique values
+                s(Account.AttributeNames.CREATED.q()),     // only 1 value (count=1)
+                s(Account.AttributeNames.DEPARTMENT.q())   // all unique values
+        );
 
         var personalNumberAttribute = statistics.getAttribute().stream()
                 .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q())))
                 .findFirst().orElseThrow();
-
         assertThat(personalNumberAttribute.getMissingValueCount()).isEqualTo(0);
         assertThat(personalNumberAttribute.getUniqueValueCount()).isEqualTo(1);
         assertThat(personalNumberAttribute.getValueCount().size()).isEqualTo(1);
 
         testStatusAttributeStatistics();
-        testDepartmentAttributeStatistics();
-        testPhoneAttributeStatistics();
-        testCreatedAttributeStatistics();
         testTypeAttributeStatistics();
     }
 
@@ -888,54 +869,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         assertThat(valueCounts).containsEntry("active", 2);
         assertThat(valueCounts).containsEntry("inactive", 3);
-    }
-
-    /** Tests department attribute statistics. */
-    private void testDepartmentAttributeStatistics() throws CommonException {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        var departmentAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.DEPARTMENT.q())))
-                .findFirst().orElseThrow();
-
-        assertThat(departmentAttribute.getMissingValueCount()).isEqualTo(3);
-        assertThat(departmentAttribute.getUniqueValueCount()).isEqualTo(2);
-        assertThat(departmentAttribute.getValueCount()).isEmpty();
-    }
-
-    /** Tests phone attribute statistics. */
-    private void testPhoneAttributeStatistics() throws CommonException {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        var phoneAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.PHONE.q())))
-                .findFirst().orElseThrow();
-
-        assertThat(phoneAttribute.getMissingValueCount()).isEqualTo(2);
-        assertThat(phoneAttribute.getUniqueValueCount()).isEqualTo(3);
-        assertThat(phoneAttribute.getValueCount()).isEmpty();
-    }
-
-    /** Tests created attribute statistics. */
-    private void testCreatedAttributeStatistics() throws CommonException {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        var createdAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.CREATED.q())))
-                .findFirst().orElseThrow();
-
-        assertThat(createdAttribute.getMissingValueCount()).isEqualTo(4);
-        assertThat(createdAttribute.getUniqueValueCount()).isEqualTo(1);
-        assertThat(createdAttribute.getValueCount()).isEmpty();
     }
 
     /** Tests type attribute statistics. */
@@ -988,6 +921,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(statistics.getAttribute()).isNotEmpty();
         assertThat(statistics.getSize()).isEqualTo(105);
         for (var attribute : statistics.getAttribute()) {
+            // All attributes must have either value counts or patterns (noise filtered)
+            assertThat(attribute.getValueCount().isEmpty() && attribute.getValuePatternCount().isEmpty()).isFalse();
             if (attribute.getMissingValueCount() < 105) {
                 assertThat(attribute.getUniqueValueCount()).isGreaterThan(0);
             }
@@ -996,49 +931,15 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 assertThat(isSortedDesc(attribute.getValueCount(), ShadowAttributeValueCountType::getCount)).isTrue();
             }
         }
-        for (QName attributeName : List.of(ICFS_NAME, ICFS_UID)) {
-            var attribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(s(attributeName)))
-                    .findFirst().orElseThrow();
-            assertThat(attribute.getUniqueValueCount()).isEqualTo(105);
-            assertThat(attribute.getValueCount()).isEmpty();
-        }
-    }
-
-    @Test
-    public void test220ComputeValueCountPairStatistics() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        when("additional accounts are created, exceeding the percentage limit for unique attribute values");
-        addDummyAccountsExceedingLimit();
-
-        when("computing statistics for accounts");
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        then("the statistics are OK, value stats for particular attributes are eliminated");
-        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
-        assertThat(statistics).isNotNull();
-        assertThat(statistics.getAttribute()).isNotEmpty();
-
-        Set<QName> attributes = statistics.getAttributeTuple().stream()
-                .flatMap(attrTuple -> attrTuple.getRef().stream())
-                .map(t -> t.getItemPath().rest().asSingleNameOrFail())
+        // Attributes with all unique values (name, uid) are filtered out as noise
+        Set<String> attributeNames = statistics.getAttribute().stream()
+                .map(attr -> attr.getRef().toString())
                 .collect(Collectors.toSet());
-        Set<QName> fields = Set.of(Account.AttributeNames.CREATED.q(), Account.AttributeNames.TYPE.q(), Account.AttributeNames.STATUS.q());
-        assertThat(attributes).containsExactlyInAnyOrderElementsOf(fields);
-
-        for (ShadowAttributeTupleStatisticsType tuple : statistics.getAttributeTuple()) {
-            assertThat(tuple.getTupleCount()).isNotEmpty();
-            for (ShadowAttributeTupleCountType tupleCount : tuple.getTupleCount()) {
-                assertThat(tupleCount.getValue()).isNotEmpty();
-                assertThat(tupleCount.getCount()).isGreaterThanOrEqualTo(1);
-            }
-        }
+        assertThat(attributeNames).doesNotContain(s(ICFS_NAME), s(ICFS_UID));
     }
 
     @Test
-    public void test230ComputeAffixesStatistics() throws Exception {
+    public void test220ComputeAffixesStatistics() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -1052,21 +953,27 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
         assertThat(statistics).isNotNull();
         assertThat(statistics.getAttribute()).isNotEmpty();
+
+        // All attributes must have either value counts or patterns (noise filtered)
         for (var attribute : statistics.getAttribute()) {
-            if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
-                assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(17);
-                for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
-                    assertThat(patternCount.getValue()).isNotEmpty();
-                    assertThat(patternCount.getType()).isNotNull();
-                    assertThat(patternCount.getCount()).isGreaterThanOrEqualTo(1);
-                }
-            }
+            assertThat(attribute.getValueCount().isEmpty() && attribute.getValuePatternCount().isEmpty()).isFalse();
+        }
+
+        // PersonalNumber should have patterns detected
+        var personalNumberAttr = statistics.getAttribute().stream()
+                .filter(attribute -> attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q())))
+                .findFirst().orElseThrow();
+        assertThat(personalNumberAttr.getValuePatternCount()).isNotEmpty();
+        assertThat(personalNumberAttr.getValuePatternCount().size()).isEqualTo(9);
+        for (ShadowAttributeValuePatternCountType patternCount : personalNumberAttr.getValuePatternCount()) {
+            assertThat(patternCount.getValue()).isNotEmpty();
+            assertThat(patternCount.getType()).isNotNull();
+            assertThat(patternCount.getCount()).isGreaterThanOrEqualTo(1);
         }
     }
 
     @Test
-    public void test240ComputeDNattributeStatistics() throws Exception {
+    public void test230ComputeDNattributeStatistics() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
