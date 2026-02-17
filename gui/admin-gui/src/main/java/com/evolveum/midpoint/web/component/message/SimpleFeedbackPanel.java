@@ -80,6 +80,16 @@ public class SimpleFeedbackPanel extends BasePanel<List<FeedbackMessage>> {
     }
 
     public static void addSimpleFeedbackAppender(FormComponent<?> component) {
-        component.add(AttributeAppender.append("class", () -> component.isValid() ? "is-valid" : "is-invalid"));
+        component.add(AttributeAppender.append("class", () -> {
+            if (!component.isValid()) {
+                return "is-invalid";
+            }
+
+            if (component.getModelObject() == null) {
+                return null;
+            }
+
+            return "is-valid";
+        }));
     }
 }

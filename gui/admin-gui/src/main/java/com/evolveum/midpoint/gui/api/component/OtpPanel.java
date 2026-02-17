@@ -18,6 +18,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -46,7 +49,6 @@ public class OtpPanel extends InputPanel {
     private static final String ID_CODE_GROUP = "codeGroup";
     private static final String ID_CODE = "code";
     private static final String ID_CODE_FEEDBACK = "codeFeedback";
-    private static final String ID_VERIFY = "verify";
 
     private final IModel<OtpCredentialType> model;
 
@@ -152,27 +154,44 @@ public class OtpPanel extends InputPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                // intentionally left empty, we just want to update the model on blur, but we don't need to do anything else
+                target.add(codeGroup);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                target.add(codeGroup);
             }
         });
         code.setType(Integer.class);
         code.setOutputMarkupId(true);
         code.setRequired(true);
+        code.add(new IValidator<>() {
+
+            @Override
+            public void validate(IValidatable<Integer> validatable) {
+                Integer code = validatable.getValue();
+                if (code == null) {
+                    ValidationError error = new ValidationError(this);
+                    error.addKey("OtpPanel.codeRequired");
+                    validatable.error(error);
+                    return;
+                }
+
+                OtpManager manager = MidPointApplication.get().getOtpManager();
+                boolean correct = manager.verifyOtpCredential(model.getObject(), code);
+                if (!correct) {
+                    ValidationError error = new ValidationError(this);
+                    error.addKey("OtpPanel.verifyFailed");
+                    validatable.error(error);
+                }
+            }
+        });
         SimpleFeedbackPanel.addSimpleFeedbackAppender(code);
         codeGroup.add(code);
 
         SimpleFeedbackPanel codeFeedback = new SimpleFeedbackPanel(ID_CODE_FEEDBACK, new ComponentFeedbackMessageFilter(code));
         codeFeedback.setRenderBodyOnly(true);
         codeGroup.add(codeFeedback);
-
-        AjaxButton verify = new AjaxButton(ID_VERIFY, createStringResource("OtpPanel.verify")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onVerifyClicked(target, code.getModelObject());
-            }
-        };
-        add(verify);
     }
 
     @Override
@@ -180,38 +199,12 @@ public class OtpPanel extends InputPanel {
         return (FormComponent<?>) get(ID_CODE);
     }
 
+    // todo show not only secret but also period, digits, algorithm, etc. if we ever support that in the future
     private void onSetupManuallyClicked(AjaxRequestTarget target, Component secret) {
         boolean showSecret = !showSecretModel.getObject();
         showSecretModel.setObject(showSecret);
 
         target.add(secret);
         target.add(get(ID_SETUP_MANUALLY));
-    }
-
-    private TextField<Integer> getCode() {
-        return (TextField<Integer>) get(createComponentPath(ID_CODE_GROUP, ID_CODE));
-    }
-
-    private WebMarkupContainer getCodeGroup() {
-        return (WebMarkupContainer) get(ID_CODE_GROUP);
-    }
-
-    private void onVerifyClicked(AjaxRequestTarget target, Integer code) {
-        if (code == null) {
-            error(getString("OtpPanel.codeRequired"));
-            return;
-        }
-
-        TextField<Integer> codeField = getCode();
-
-        OtpManager manager = MidPointApplication.get().getOtpManager();
-        boolean correct = manager.verifyOtpCredential(model.getObject(), code);
-        if (!correct) {
-            codeField.error(getString("OtpPanel.verifyFailed"));
-        } else {
-            codeField.success(getString("OtpPanel.verifySuccess"));
-        }
-
-        target.add(getCodeGroup());
     }
 }

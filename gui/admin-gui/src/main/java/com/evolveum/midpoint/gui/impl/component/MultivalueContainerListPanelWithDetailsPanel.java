@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +36,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Containerable>
         extends MultivalueContainerListPanel<C> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String ID_ITEMS_DETAILS = "itemsDetails";
     public static final String ID_ITEM_DETAILS = "itemDetails";
@@ -85,7 +86,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
         ListView<PrismContainerValueWrapper<C>> itemDetailsView = new ListView<>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
                 () -> detailsPanelItemsList) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<C>> item) {
@@ -104,27 +105,24 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
         AjaxButton doneButton = new AjaxButton(ID_DONE_BUTTON,
                 createStringResource("MultivalueContainerListPanel.doneButton")) {
-            private static final long serialVersionUID = 1L;
+
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                itemDetailsVisible = false;
-                refreshTable(ajaxRequestTarget);
-                ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
+                onDoneClicked(ajaxRequestTarget);
             }
         };
         buttonsContainer.add(doneButton);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
                 createStringResource("MultivalueContainerListPanel.cancelButton")) {
-            private static final long serialVersionUID = 1L;
+
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                itemDetailsVisible = false;
-                cancelItemDetailsPerformed(ajaxRequestTarget);
-                ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
-                ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
+                onCancelClicked(ajaxRequestTarget);
             }
         };
         cancelButton.add(new VisibleBehaviour(this::isCancelButtonVisible));
@@ -165,8 +163,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
             detailsPanelItemsList.clear();
             if (rowModel == null) {
                 detailsPanelItemsList.addAll(listItems);
-                listItems.forEach(itemConfigurationTypeContainerValueWrapper ->
-                        itemConfigurationTypeContainerValueWrapper.setSelected(false));
+                listItems.forEach(w -> w.setSelected(false));
             } else {
                 detailsPanelItemsList.add(rowModel.getObject());
                 rowModel.getObject().setSelected(false);
@@ -200,5 +197,18 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
         }
         PrismContainerValueWrapper<C> newObjectPolicyWrapper = createNewItemContainerValueWrapper(newValue, container, target);
         itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
+    }
+
+    protected void onDoneClicked(AjaxRequestTarget target) {
+        itemDetailsVisible = false;
+        refreshTable(target);
+        target.add(MultivalueContainerListPanelWithDetailsPanel.this);
+    }
+
+    protected void onCancelClicked(AjaxRequestTarget target) {
+        itemDetailsVisible = false;
+        cancelItemDetailsPerformed(target);
+        target.add(MultivalueContainerListPanelWithDetailsPanel.this);
+        target.add(getPageBase().getFeedbackPanel());
     }
 }
