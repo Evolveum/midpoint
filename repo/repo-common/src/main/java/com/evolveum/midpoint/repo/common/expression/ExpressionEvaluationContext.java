@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluator;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -131,6 +132,8 @@ public class ExpressionEvaluationContext {
      * Computes value metadata in given situation.
      */
     private TransformationValueMetadataComputer valueMetadataComputer;
+
+    private PrismNamespaceContext namespaceContext;
 
     public ExpressionEvaluationContext(
             Collection<Source<?,?>> sources, VariablesMap variables, String contextDescription, @NotNull Task task) {
@@ -283,6 +286,14 @@ public class ExpressionEvaluationContext {
         return false;
     }
 
+    public PrismNamespaceContext getNamespaceContext() {
+        return namespaceContext;
+    }
+
+    public void setNamespaceContext(PrismNamespaceContext namespaceContext) {
+        this.namespaceContext = namespaceContext;
+    }
+
     public ExpressionEvaluationContext shallowClone() {
         ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task);
         clone.skipEvaluationMinus = this.skipEvaluationMinus;
@@ -297,6 +308,7 @@ public class ExpressionEvaluationContext {
         clone.variableProducer = this.variableProducer;
         clone.valueMetadataComputer = this.valueMetadataComputer;
         clone.localContextDescription = this.localContextDescription;
+        clone.namespaceContext = this.namespaceContext;
         return clone;
     }
 

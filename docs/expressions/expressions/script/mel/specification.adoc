@@ -1082,6 +1082,23 @@ Returns an item to which the specified item path refers.
 focus.find('activation/administrativeStatus')
 ----
 
+==== isEffectivelyEnabled
+
+`object.isEffectivelyEnabled()` -> bool
+
+Returns true if the object is effectively enabled.
+
+If the object is not a `FocusType`, the method returns `true` (as there is no activation there).
+For `FocusType` objects, it assumes that the object underwent standard computation and
+`activation/effectiveStatus` is set.
+If the `activation/effectiveStatus` is not present, the return value of the method is undefined.
+
+.Example
+[source,mel]
+----
+focus.isEffectivelyEnabled()
+----
+
 ==== connectorConfiguration
 
 `resource.connectorConfiguration(propertyName)` -> list

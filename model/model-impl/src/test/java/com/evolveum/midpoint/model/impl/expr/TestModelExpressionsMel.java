@@ -92,6 +92,33 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
     }
 
     @Test
+    public void testSearchObjectsGuybrush() throws Exception {
+        assertExecuteScriptExpressionStringList(
+                createFocusProjectionResourceVariables(
+                        "type", UserType.COMPLEX_TYPE, PrimitiveType.QNAME,
+                        "filter", "name = '"+USER_GUYBRUSH_USERNAME+"'", PrimitiveType.STRING
+                ),
+                "search-objects",
+                USER_GUYBRUSH_USERNAME);
+    }
+
+    @Test
+    public void testSearchObjectsAllUsers() throws Exception {
+        assertExecuteScriptExpressionStringList(
+                createFocusProjectionResourceVariables(
+                        "type", UserType.COMPLEX_TYPE.getLocalPart(), PrimitiveType.STRING,
+                        "filter", null, PrimitiveType.STRING
+                ),
+                "search-objects",
+                USER_ADMINISTRATOR_USERNAME,
+                USER_JACK_USERNAME,
+                USER_BARBOSSA_USERNAME,
+                USER_GUYBRUSH_USERNAME,
+                USER_ELAINE_USERNAME,
+                "cheese", "cheese jr.", "chef", "barkeeper", "carla", "lechuck", "bob");
+    }
+
+    @Test
     public void testSearchShadowOwnerNone() throws Exception {
         assertExecuteScriptExpressionString(
                 createFocusProjectionResourceVariables(

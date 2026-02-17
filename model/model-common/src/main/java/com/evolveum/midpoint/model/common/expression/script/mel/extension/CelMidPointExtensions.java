@@ -6,6 +6,7 @@
 package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
@@ -46,10 +47,12 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
     private static final String FUNCTION_NAME_PREFIX_DOT = FUNCTION_NAME_PREFIX+".";
     private static final String FUNCTION_NAME_PREFIX_DASH = FUNCTION_NAME_PREFIX+"-";
 
+    private final PrismContext prismContext;
     private final MidpointFunctions midpointExpressionFunctions;
 
     public CelMidPointExtensions(MidpointFunctions midpointExpressionFunctions) {
         this.midpointExpressionFunctions = midpointExpressionFunctions;
+        this.prismContext = PrismContext.get();
         initialize();
     }
 
@@ -63,6 +66,9 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                 // The executeChanges() method is a side effect on steroids, as well as potential security issue.
                 // Therefore, we are not implementing it ... at least for now.
                 // Similarly for addObject(), modifyObject(), deleteObject(), recompute()
+
+                // describeResourceObjectSet, describeResourceObjectSetLong, describeResourceObjectSetShort: not implemented
+                // Are these even useful in CEL?
 
                 // midpoint.getLinkedShadow(focus, resourceOid)
                 new Function(
@@ -231,6 +237,16 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                 ),
 
                 // TODO:later: midpoint.getObject(type, oid, options)
+                // Need to figure out how to efficiently work with options in CEL
+
+                // TODO: to consider:
+                // getObjectRef(@Nullable ShadowAssociationValueType associationValueBean)
+                // getObjectName(@Nullable ShadowAssociationValueType associationValueBean)
+                // getMetadata(...): can we work with ValueMetadataType in CEL?
+
+                // TODO: to implement:
+                // get*Timestamp() TODO
+                // get*Refs(), get*Approver*(), etc.
 
                 // midpoint.getOrgByName(name)
                 new Function(
@@ -275,6 +291,47 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "hello", String.class,
                                 this::hello)
 
+                ),
+
+                // midpoint.isFocusActivated()
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "isFocusActivated",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "isFocusActivated",
+                                        "Does the current clockwork operation bring the focus into existence and being effectively enabled? "
+                                                + "(So, previously it was either non-existent or effectively disabled.)",
+                                        SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "isFocusActivated",
+                                ImmutableList.of(),
+                                this::isFocusActivated)
+                ),
+
+                // midpoint.isFocusDeactivated()
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "isFocusDeactivated",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "isFocusDeactivated",
+                                        "Does the current clockwork operation delete or effectively disable the focus? "
+                                                + "(So, previously it existed and was effectively enabled.)",
+                                        SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "isFocusDeactivated",
+                                ImmutableList.of(),
+                                this::isFocusDeactivated)
+                ),
+
+                // midpoint.isFocusDeleted()
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "isFocusDeleted",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "isFocusDeleted",
+                                        "Does the current clockwork operation delete the focus?",
+                                        SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "isFocusDeleted",
+                                ImmutableList.of(),
+                                this::isFocusDeleted)
                 ),
 
                 // midpoint.isUniquePropertyValue(object, propertyPathString, propertyValue)
@@ -335,6 +392,39 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 
                 ),
 
+                // midpoint.searchObjects(qname(type), filter)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "searchObjects",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "searchObjects-qname",
+                                        "Searches through all object of a specified type. Returns a list of objects that "
+                                                + "match search criteria.",
+                                        ListType.create(ObjectCelValue.CEL_TYPE),
+                                        NullableType.create(QNameCelValue.CEL_TYPE), SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "searchObjects-qname", QNameCelValue.class, Object.class,
+                                this::searchObjects)
+
+                ),
+
+                // midpoint.searchObjects(string(type), filter)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "searchObjects",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "searchObjects-string",
+                                        "Searches through all object of a specified type. Returns a list of objects that "
+                                                + "match search criteria.",
+                                        ListType.create(ObjectCelValue.CEL_TYPE),
+                                        SimpleType.STRING, SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "searchObjects-string", String.class, Object.class,
+                                this::searchObjects)
+
+                ),
+
+                // searchObjectsIterative: not implemented, at least not for now
+                // Could we even do that in CEL?
+
                 // midpoint.searchShadowOwner(oid)
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(
@@ -349,8 +439,22 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 
                 )
 
+                // selectIdentityItemValues: not implemented yet.
+                // This would probably require some rework, as FocusIdentitySourceTypeUtil is not available in CEL.
 
-                );
+        );
+    }
+
+    private boolean isFocusActivated(Object[] objects) {
+        return midpointExpressionFunctions.isFocusActivated();
+    }
+
+    private boolean isFocusDeactivated(Object[] objects) {
+        return midpointExpressionFunctions.isFocusDeactivated();
+    }
+
+    private boolean isFocusDeleted(Object[] objects) {
+        return midpointExpressionFunctions.isFocusDeleted();
     }
 
     private CelValue getLinkedShadowRepo(ObjectCelValue<FocusType> celFocus, String oid) {
@@ -465,7 +569,7 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
     }
 
     private <O extends ObjectType> CelValue getObject(QName type, String oid) {
-        Class<O> typeClass = PrismContext.get().getSchemaRegistry().determineClassForType(type);
+        Class<O> typeClass = prismContext.getSchemaRegistry().determineClassForType(type);
         try {
             return toCelObject(midpointExpressionFunctions.getObject(typeClass, oid));
         } catch (CommonException e) {
@@ -527,6 +631,30 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
             throw createException(e);
         }
     }
+
+    private <O extends ObjectType> List<CelValue> searchObjects(String typeLocalPart, Object filter) {
+        return searchObjects(new QName(ObjectFactory.NAMESPACE, typeLocalPart), filter);
+    }
+
+    private <O extends ObjectType> List<CelValue> searchObjects(QNameCelValue celTypeQname, Object filter) {
+        return searchObjects(celTypeQname.getQName(), filter);
+    }
+
+    private <O extends ObjectType> List<CelValue> searchObjects(QName type, Object filter) {
+        Class<O> typeClass = prismContext.getSchemaRegistry().determineClassForType(type);
+        String filterString;
+        if (CelTypeMapper.isCellNull(filter)) {
+            filterString = null;
+        } else {
+            filterString = (String) filter;
+        }
+        try {
+            return toCelObjectList(midpointExpressionFunctions.searchObjects(typeClass, filterString));
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
 
     @Nullable
     private <F extends FocusType> CelValue searchShadowOwner(String accountOid) {

@@ -1472,6 +1472,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         context.setVariableProducer(variableProducer);
         context.setValueMetadataComputer(valueMetadataComputer);
         context.setLocalContextDescription("expression");
+        context.setNamespaceContext(mappingBean.asPrismContainerValue().getContainer().getNamespaceContext());
 
         if (mappingPreExpression != null) {
             mappingPreExpression.mappingPreExpression(context, result);

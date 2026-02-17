@@ -503,7 +503,44 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         assertEquals("Unexpected script output", expectedOutput, output);
     }
 
+    protected void assertExecuteScriptExpressionStringList(
+            VariablesMap variables, String scriptTag, String... expectedOutputs)
+            throws ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
+            IOException, CommunicationException, SchemaException, SecurityViolationException {
+        List<String> output = executeScriptExpressionStringList(variables, scriptTag);
+        TestUtil.assertSetEquals("Expression " + scriptTag + " resulted in wrong values",
+                output, expectedOutputs);
+    }
+
+
     private String executeScriptExpressionString(VariablesMap variables, String scriptTag)
+            throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
+
+        List<PrismPropertyValue<String>> scriptOutputs = executeScriptExpressionString(variables, scriptTag, 1);
+
+        if (scriptOutputs.size() == 0) {
+            return null;
+        }
+
+        assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
+        PrismPropertyValue<String> scriptOutput = scriptOutputs.get(0);
+        if (scriptOutput == null) {
+            return null;
+        }
+        return scriptOutput.getValue();
+    }
+
+    private List<String> executeScriptExpressionStringList(VariablesMap variables, String scriptTag)
+            throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
+
+        List<PrismPropertyValue<String>> scriptOutputs = executeScriptExpressionString(variables, scriptTag, -1);
+
+        return scriptOutputs.stream().map(PrismPropertyValue::getValue).toList();
+    }
+
+    private List<PrismPropertyValue<String>> executeScriptExpressionString(VariablesMap variables, String scriptTag, int maxOccurs)
             throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
@@ -513,7 +550,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + scriptTag + ".xml");
         ItemDefinition<?> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(
-                        PROPERTY_NAME, DOMUtil.XSD_STRING);
+                        PROPERTY_NAME, DOMUtil.XSD_STRING, 0, maxOccurs);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                 scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
                 getTestNameShort(), result);
@@ -532,17 +569,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        if (scriptOutputs.size() == 0) {
-            return null;
-        }
-
-        assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
-        PrismPropertyValue<String> scriptOutput = scriptOutputs.get(0);
-        if (scriptOutput == null) {
-            return null;
-        }
-        return scriptOutput.getValue();
-
+        return scriptOutputs;
     }
 
     @SuppressWarnings("SameParameterValue")

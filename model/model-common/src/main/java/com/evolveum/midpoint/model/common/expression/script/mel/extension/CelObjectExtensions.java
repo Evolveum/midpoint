@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.AbstractContainerValueCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
@@ -18,7 +19,10 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -71,6 +75,17 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("prism-container-index_map-qname", ContainerValueCelValue.class, QNameCelValue.class,
                             CelObjectExtensions::prismIndexMap)),
 
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "isEffectivelyEnabled",
+                                CelOverloadDecl.newMemberOverload(
+                                        "prism-object-isEffectivelyEnabled",
+                                        "Returns true if the object is effectively enabled.",
+                                        SimpleType.ANY,
+                                        ObjectCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from("prism-object-isEffectivelyEnabled", ObjectCelValue.class,
+                                CelObjectExtensions::isEffectivelyEnabled)),
+
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "find",
@@ -120,6 +135,16 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("mp-shadow-secondaryIdentifiers", Object.class,
                             this::secondaryIdentifiers))
         );
+    }
+
+    private static boolean isEffectivelyEnabled(ObjectCelValue<?> objectCelValue) {
+        if (CelTypeMapper.isCellNull(objectCelValue)) {
+            return false;
+        } else {
+            PrismObject<?> object = objectCelValue.getObject();
+            return (!(object.isOfType(FocusType.class))
+                    || FocusTypeUtil.getEffectiveStatus((FocusType) object.asObjectable()) == ActivationStatusType.ENABLED);
+        }
     }
 
     public static Object prismFind(ObjectCelValue<?> objectCelValue, String stringPath) {

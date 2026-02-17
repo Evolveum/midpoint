@@ -354,6 +354,9 @@ public class CelTypeMapper implements CelTypeProvider  {
                 celValue = optional.get();
             }
         }
+        if (celValue instanceof Collection<?> col) {
+            return toJavaValues(col);
+        }
         if (celValue instanceof CelValue) {
             return toJavaValue((CelValue) celValue);
         } else if (celValue instanceof Timestamp ts) {
