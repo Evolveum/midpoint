@@ -178,6 +178,7 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_NONCE_VALUE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_NONCE,
             NonceType.F_VALUE);
 
+    public static final ItemPath PATH_OTPS = ItemPath.create(C_CREDENTIALS, CredentialsType.F_OTPS);
     public static final ItemPath PATH_SECURITY_QUESTIONS = ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS);
     public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER =
             ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
