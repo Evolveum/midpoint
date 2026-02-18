@@ -30,12 +30,10 @@ import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.setExtensionPropertyRealValues;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectClassStatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
@@ -414,6 +412,233 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         assertThat(retrieved.getOid()).isEqualTo(oidWithStats);
         var retrievedStats = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(retrieved.asPrismObject());
         assertThat(retrievedStats.getSize()).isEqualTo(200);
+    }
+
+    @Test
+    public void test200StatisticsComputer_ValueCountsWithRepeats() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var a = dummyScenario.account;
+        a.add("stat-user1").addAttributeValues("department", "IT");
+        a.add("stat-user2").addAttributeValues("department", "IT");
+        a.add("stat-user3").addAttributeValues("department", "IT");
+        a.add("stat-user4").addAttributeValues("department", "HR");
+        a.add("stat-user5").addAttributeValues("department", "HR");
+        a.add("stat-user6").addAttributeValues("department", "Sales");
+
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        assertThat(statistics.getSize()).isGreaterThanOrEqualTo(6);
+
+        var deptStats = statistics.getAttribute().stream()
+                .filter(attr -> attr.getRef().getItemPath().lastName().getLocalPart().equals("department"))
+                .findFirst();
+
+        assertThat(deptStats).isPresent();
+        var stats = deptStats.get();
+
+        assertThat(stats.getUniqueValueCount()).isEqualTo(3);
+
+        var valueCounts = stats.getValueCount();
+        assertThat(valueCounts).hasSize(3);
+        assertThat(valueCounts)
+                .anySatisfy(vc -> {
+                    assertThat(vc.getValue()).isEqualTo("IT");
+                    assertThat(vc.getCount()).isEqualTo(3);
+                })
+                .anySatisfy(vc -> {
+                    assertThat(vc.getValue()).isEqualTo("HR");
+                    assertThat(vc.getCount()).isEqualTo(2);
+                })
+                .anySatisfy(vc -> {
+                    assertThat(vc.getValue()).isEqualTo("Sales");
+                    assertThat(vc.getCount()).isEqualTo(1);
+                });
+    }
+
+    @Test
+    public void test201StatisticsComputer_ValueCountsMinRepeatFilter() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var a = dummyScenario.account;
+        a.add("stat-user10").addAttributeValues("cn", "A");
+        a.add("stat-user11").addAttributeValues("cn", "B");
+        a.add("stat-user12").addAttributeValues("cn", "C");
+        a.add("stat-user13").addAttributeValues("cn", "D");
+        a.add("stat-user14").addAttributeValues("cn", "E");
+
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        var cnStats = statistics.getAttribute().stream()
+                .filter(attr -> attr.getRef().getItemPath().lastName().getLocalPart().equals("cn"))
+                .findFirst();
+
+        cnStats.ifPresent(shadowAttributeStatisticsType -> assertThat(shadowAttributeStatisticsType.getValueCount()).isEmpty());
+    }
+
+    @Test
+    public void test202StatisticsComputer_ValueCountsTopNLimit() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var a = dummyScenario.account;
+        a.add("stat-user-topn-0").addAttributeValues("type", "A");
+        a.add("stat-user-topn-1").addAttributeValues("type", "A");
+        a.add("stat-user-topn-2").addAttributeValues("type", "A");
+        a.add("stat-user-topn-3").addAttributeValues("type", "B");
+        a.add("stat-user-topn-4").addAttributeValues("type", "B");
+        a.add("stat-user-topn-5").addAttributeValues("type", "C");
+        a.add("stat-user-topn-6").addAttributeValues("type", "C");
+        a.add("stat-user-topn-7").addAttributeValues("type", "unique1");
+        a.add("stat-user-topn-8").addAttributeValues("type", "unique2");
+        a.add("stat-user-topn-9").addAttributeValues("type", "unique3");
+        a.add("stat-user-topn-10").addAttributeValues("type", "unique4");
+        a.add("stat-user-topn-11").addAttributeValues("type", "unique5");
+        a.add("stat-user-topn-12").addAttributeValues("type", "unique6");
+        a.add("stat-user-topn-13").addAttributeValues("type", "unique7");
+        a.add("stat-user-topn-14").addAttributeValues("type", "unique8");
+        a.add("stat-user-topn-15").addAttributeValues("type", "unique9");
+
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        var typeStats = statistics.getAttribute().stream()
+                .filter(attr -> attr.getRef().getItemPath().lastName().getLocalPart().equals("type"))
+                .findFirst();
+
+        assertThat(typeStats).isPresent();
+        var stats = typeStats.get();
+
+        assertThat(stats.getUniqueValueCount()).isEqualTo(12);
+        assertThat(stats.getValueCount()).hasSize(3);
+        assertThat(stats.getValueCount()).allSatisfy(vc ->
+                assertThat(vc.getCount()).isGreaterThanOrEqualTo(2));
+    }
+
+    @Test
+    public void test203StatisticsComputer_FirstTokenPattern() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var a = dummyScenario.account;
+        a.add("stat-user-token1").addAttributeValues("cn", "prod-server01");
+        a.add("stat-user-token2").addAttributeValues("cn", "prod-server02");
+        a.add("stat-user-token3").addAttributeValues("cn", "prod-app01");
+        a.add("stat-user-token4").addAttributeValues("cn", "dev-server01");
+
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        var cnStats = statistics.getAttribute().stream()
+                .filter(attr -> attr.getRef().getItemPath().lastName().getLocalPart().equals("cn"))
+                .findFirst();
+
+        assertThat(cnStats).isPresent();
+        var stats = cnStats.get();
+
+        var firstTokenPatterns = stats.getValuePatternCount().stream()
+                .filter(vpc -> vpc.getType() == ShadowValuePatternType.FIRST_TOKEN)
+                .toList();
+
+        assertThat(firstTokenPatterns).isNotEmpty();
+        assertThat(firstTokenPatterns)
+                .anySatisfy(vpc -> {
+                    assertThat(vpc.getValue()).isEqualTo("prod-");
+                    assertThat(vpc.getCount()).isEqualTo(3);
+                })
+                .anySatisfy(vpc -> {
+                    assertThat(vpc.getValue()).isEqualTo("dev-");
+                    assertThat(vpc.getCount()).isEqualTo(1);
+                });
+    }
+
+    @Test
+    public void test204StatisticsComputer_LastTokenPattern() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var a = dummyScenario.account;
+        a.add("stat-user-last1").addAttributeValues("description", "user-admin");
+        a.add("stat-user-last2").addAttributeValues("description", "service-admin");
+        a.add("stat-user-last3").addAttributeValues("description", "app-admin");
+
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        var descStats = statistics.getAttribute().stream()
+                .filter(attr -> attr.getRef().getItemPath().lastName().getLocalPart().equals("description"))
+                .findFirst();
+
+        assertThat(descStats).isPresent();
+        var stats = descStats.get();
+
+        var lastTokenPatterns = stats.getValuePatternCount().stream()
+                .filter(vpc -> vpc.getType() == ShadowValuePatternType.LAST_TOKEN)
+                .toList();
+
+        assertThat(lastTokenPatterns).isNotEmpty();
+        assertThat(lastTokenPatterns)
+                .anySatisfy(vpc -> {
+                    assertThat(vpc.getValue()).isEqualTo("-admin");
+                    assertThat(vpc.getCount()).isEqualTo(3);
+                });
+    }
+
+    @Test
+    public void test205StatisticsComputer_SkipUrl() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var a = dummyScenario.account;
+        a.add("stat-user-skip1").addAttributeValues("fullname", "http://example.com");
+        a.add("stat-user-skip2").addAttributeValues("fullname", "http://example.com");
+        a.add("stat-user-skip3").addAttributeValues("fullname", "https://example.com/path");
+        a.add("stat-user-skip4").addAttributeValues("fullname", "https://example.com/path");
+
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        var fullnameStats = statistics.getAttribute().stream()
+                .filter(attr -> attr.getRef().getItemPath().lastName().getLocalPart().equals("fullname"))
+                .findFirst();
+
+        assertThat(fullnameStats).isPresent();
+        var stats = fullnameStats.get();
+
+        assertThat(stats.getValueCount()).hasSize(2);
+
+        var tokenPatterns = stats.getValuePatternCount().stream()
+                .filter(vpc -> vpc.getType() == ShadowValuePatternType.FIRST_TOKEN
+                        || vpc.getType() == ShadowValuePatternType.LAST_TOKEN)
+                .toList();
+
+        assertThat(tokenPatterns).isEmpty();
+    }
+
+    @Test
+    public void test206StatisticsComputer_DnSuffixPattern() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var a = dummyScenario.account;
+        a.add("stat-user-dn1").addAttributeValues("distinguishedName", "cn=user1,ou=users,dc=example,dc=com");
+        a.add("stat-user-dn2").addAttributeValues("distinguishedName", "cn=user2,ou=users,dc=example,dc=com");
+        a.add("stat-user-dn3").addAttributeValues("distinguishedName", "cn=user3,ou=users,dc=example,dc=com");
+
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        var dnStats = statistics.getAttribute().stream()
+                .filter(attr -> attr.getRef().getItemPath().lastName().getLocalPart().equals("distinguishedName"))
+                .findFirst();
+
+        assertThat(dnStats).isPresent();
+        var stats = dnStats.get();
+
+        var dnSuffixPatterns = stats.getValuePatternCount().stream()
+                .filter(vpc -> vpc.getType() == ShadowValuePatternType.DN_SUFFIX)
+                .toList();
+
+        assertThat(dnSuffixPatterns).hasSize(1);
+        assertThat(dnSuffixPatterns.get(0).getValue()).isEqualTo("ou=users,dc=example,dc=com");
+        assertThat(dnSuffixPatterns.get(0).getCount()).isEqualTo(3);
     }
 
 }

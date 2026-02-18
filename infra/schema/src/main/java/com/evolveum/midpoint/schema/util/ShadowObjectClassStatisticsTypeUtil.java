@@ -31,9 +31,12 @@ public class ShadowObjectClassStatisticsTypeUtil {
     }
 
     public static ShadowObjectClassStatisticsType getStatisticsRequired(PrismObject<GenericObjectType> holder) {
-        return MiscUtil.argNonNull(
+        ShadowObjectClassStatisticsType statistics = MiscUtil.argNonNull(
                 getExtensionItemRealValue(holder.asObjectable().getExtension(), SchemaConstants.MODEL_EXTENSION_STATISTICS),
                 "No statistics in %s", holder);
+        statistics.getAttribute();
+        statistics.getAttributeTuple();
+        return statistics;
     }
 
     public static GenericObjectType createStatisticsObject(
