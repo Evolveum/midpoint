@@ -356,6 +356,43 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return processedObject;
     }
 
+    static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForObject(@NotNull Class<T> objectClass,
+            @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction)
+            throws SchemaException {
+        T focusAfter = (T) objectBefore.clone();
+
+        final ObjectProcessingStateType processingState;
+        if (delta != null) {
+            delta.applyTo((PrismObject<T>) focusAfter.asPrismObject());
+            processingState = ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType());
+        } else {
+            processingState = ObjectProcessingStateType.UNMODIFIED;
+        }
+
+        var processedObject = new ProcessedObjectImpl<>(
+                simulationTransaction.getTransactionId(),
+                objectBefore.getOid(),
+                objectClass,
+                null,
+                null,
+                focusAfter.getName(),
+                processingState,
+                new ParsedMetricValues(Collections.emptyMap()),
+                objectClass.isAssignableFrom(FocusType.class),
+                null,
+                objectBefore,
+                focusAfter,
+                delta,
+                InternalState.CREATING);
+
+        processedObject.addComputedMetricValues(List.of()); // Ignoring custom metrics in this mode
+
+        // TODO we should somehow record errors during low-level shadow management (classification, correlation)
+        processedObject.setResultAndStatus(null, OperationResultStatusType.SUCCESS);
+
+        return processedObject;
+    }
+
     private static List<String> determineShadowEventMarks(ShadowType before, ShadowType after) {
         List<String> marks = new ArrayList<>();
         if (isClassificationChanged(before, after)) {

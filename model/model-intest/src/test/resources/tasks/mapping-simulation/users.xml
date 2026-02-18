@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:test="http://midpoint.evolveum.com/xml/ns/test/correlation"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <user xsi:type="UserType">
+        <name>smith1</name>
+        <givenName>John</givenName>
+        <familyName>Smith</familyName>
+    </user>
+    <user xsi:type="UserType">
+        <name>smith2</name>
+        <givenName>Mary</givenName>
+        <familyName>Smith</familyName>
+    </user>
+    <user xsi:type="UserType">
+        <name>mcclane</name>
+        <givenName>John</givenName>
+        <familyName>McClane</familyName>
+    </user>
+    <user xsi:type="UserType">
+        <name>bravo</name>
+        <givenName>Johnny</givenName>
+        <familyName>Bravo</familyName>
+    </user>
+</objects>
