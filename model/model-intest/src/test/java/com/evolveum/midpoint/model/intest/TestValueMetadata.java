@@ -42,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * TODO add asserts for single focus modification per clockwork run
  *
+ * Currently disabled, see MID-10514.
+ *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

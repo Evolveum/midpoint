@@ -563,8 +563,12 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     }
 
     private void assertAssignmentMetadata(
-            PrismObject<? extends FocusType> object, String targetOid, Set<String> createApproverOids,
-            Set<String> createApprovalComments, Set<String> modifyApproverOids, Set<String> modifyApprovalComments) {
+            PrismObject<? extends FocusType> object,
+            String targetOid,
+            Set<String> createApproverOids,
+            Set<String> createApprovalComments,
+            Set<String> modifyApproverOids,
+            Set<String> modifyApprovalComments) {
         AssignmentType assignment = findAssignmentByTargetRequired(object, targetOid);
         PrismAsserts.assertReferenceOids(
                 "Wrong create approvers", createApproverOids, ValueMetadataTypeUtil.getCreateApproverRefs(assignment));
@@ -1473,20 +1477,17 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
      *
      * MID-10979
      */
-    @Test (enabled = false)
-    public void test970metadataImmutabilityAfterDuplicateAssignmentRequest() throws Exception {
+    @Test
+    public void test970MetadataImmutabilityAfterDuplicateAssignmentRequest() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
         var userName = getTestNameShort();
 
         given("a user");
-        var userOid = UUID.randomUUID().toString();
         var user = new UserType()
-                .oid(userOid)
                 .name(userName);
-        ObjectDelta<UserType> addUserDelta = user.asPrismObject().createAddDelta();
-        executeChanges(addUserDelta, null, task, result);
+        var userOid = addObject(user.asPrismObject(), task, result);
 
         when("request for an assignment");
         ObjectDelta<UserType> delta = prismContext
@@ -1495,12 +1496,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .add(new AssignmentType()
                         .targetRef(ROLE_BEING_ENABLED.oid, RoleType.COMPLEX_TYPE, null))
                 .asObjectDelta(userOid);
-        executeChanges(delta, executeOptions().executeImmediatelyAfterApproval(), task, result);
+        executeChanges(delta.clone(), executeOptions().executeImmediatelyAfterApproval(), task, result);
 
         then("approval case is created");
-        String ref = result.findAsynchronousOperationReference();
-        assertNotNull("No async operation reference", ref);
-        String rootCaseOid = OperationResult.referenceToCaseOid(ref);
+        String rootCaseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        assertThat(rootCaseOid).isNotNull();
         List<CaseType> subcases = getSubcases(rootCaseOid, null, result);
         displayCollection("subcases", subcases);
 
@@ -1510,16 +1510,25 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         waitForCaseClose(openCase);
 
         then("createTimestamp is written down into metadata");
-        UserType userWithAssignment = getUserFromRepo(userOid).asObjectable();
+        UserType userWithAssignment = assertUserAfter(userOid)
+                .displayXml()
+                .getObjectable();
         AssignmentType assignment = findAssignmentByTargetRequired(userWithAssignment.asPrismObject(), ROLE_BEING_ENABLED.oid);
         XMLGregorianCalendar assignmentCreated1 = ValueMetadataTypeUtil.getCreateTimestamp(assignment);
 
-        assertAssignmentMetadata(userWithAssignment.asPrismObject(), ROLE_BEING_ENABLED.oid, singleton(USER_ADMINISTRATOR_OID),
-                emptySet(), emptySet(), emptySet());
+        assertAssignmentMetadata(
+                userWithAssignment.asPrismObject(),
+                ROLE_BEING_ENABLED.oid,
+                singleton(USER_ADMINISTRATOR_OID),
+                emptySet(),
+                emptySet(),
+                emptySet());
 
         when("the same role is requested again");
         executeChanges(delta, executeOptions().executeImmediatelyAfterApproval(), task, result);
-        userWithAssignment = getUserFromRepo(userOid).asObjectable();
+        userWithAssignment = assertUserAfter(userOid)
+                .displayXml()
+                .getObjectable();
         assignment = findAssignmentByTargetRequired(userWithAssignment.asPrismObject(), ROLE_BEING_ENABLED.oid);
         XMLGregorianCalendar assignmentCreated2 = ValueMetadataTypeUtil.getCreateTimestamp(assignment);
 
