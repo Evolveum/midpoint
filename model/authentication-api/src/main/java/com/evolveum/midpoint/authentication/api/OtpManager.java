@@ -6,89 +6,66 @@
 
 package com.evolveum.midpoint.authentication.api;
 
-import java.util.List;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtpCredentialType;
 
 public interface OtpManager {
 
     /**
-     * Check if OTP module is available in currently authenticated user. Can be used to determine if we
-     * need to show OTP input form, but also to determine if we can create new OTP credentials for the user.
-     */
-    static boolean isOtpAvailable() {
-        return getCurrentUserOtpAuthenticationModule() != null;
-    }
-
-    /**
-     * Check if OTP module is required in current authentication process. Can be used to determine if we need to show
-     * OTP input form.
+     * Check if OTP authentication module is available for the focus object. This method can be used to determine whether
+     * OTP credential can be created for the focus object and whether OTP authentication can be used for the focus object.
      *
-     * @return true if {@link AuthenticationSequenceModuleNecessityType} is
-     * {@link AuthenticationSequenceModuleNecessityType#REQUIRED} or {@link AuthenticationSequenceModuleNecessityType#REQUISITE}.
-     * False in case authentication is not defined or when OTP module is not present in sequence or necessity is
-     * {@link AuthenticationSequenceModuleNecessityType#SUFFICIENT}, {@link AuthenticationSequenceModuleNecessityType#OPTIONAL}
-     * or null.
+     * @param focus the focus object for which the credential is being created.
+     * It is expected that the focus object is already persisted and has OID.
+     * @param task task object for processing
+     * @param result operation result for processing
+     * @return true if OTP authentication module is available for the focus object, false otherwise.
      */
-    static boolean isOtpRequired() {
-        ModuleAuthentication ma = getCurrentUserOtpAuthenticationModule();
-        if (ma == null) {
-            return false;
-        }
-
-        AuthenticationSequenceModuleNecessityType necessity = ma.getNecessity();
-
-        return AuthenticationSequenceModuleNecessityType.REQUIRED.equals(necessity)
-                || AuthenticationSequenceModuleNecessityType.REQUISITE.equals(necessity);
-    }
-
-    static ModuleAuthentication getCurrentUserOtpAuthenticationModule() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (!(auth instanceof MidpointAuthentication ma)) {
-            throw new IllegalStateException("Authentication in security context is not MidpointAuthentication");
-        }
-
-        List<? extends ModuleAuthentication> authentications = ma.getAuthModules().stream()
-                .map(am -> am.getBaseModuleAuthentication())
-                .filter(m -> AuthenticationModuleNameConstants.OTP.equals(m.getModuleTypeName()))
-                .toList();
-
-        if (authentications.isEmpty()) {
-            return null;
-        }
-
-        if (authentications.size() > 1) {
-            throw new IllegalStateException("Multiple OTP authentication modules found for the current user");
-        }
-
-        return authentications.get(0);
-    }
+    <F extends FocusType> boolean isOtpAvailable(PrismObject<F> focus, Task task, OperationResult result);
 
     /**
-     * Create new OTP credential for the currently logged-in user. The credential is not persisted,
+     * Create new OTP credential for the focus object. The credential is not persisted,
      * it needs to be saved by the caller. The secret in the credential is not encrypted, it is
      * caller's responsibility to encrypt it before saving.
+     *
+     * @param focus the focus object for which the credential is being created.
+     * It is expected that the focus object is already persisted and has OID.
+     * @param task task object for processing
+     * @param result operation result for processing
+     * @return new OTP credential with generated secret. The credential is not persisted, it needs to be saved by the caller.
      */
-    OtpCredentialType createOtpCredential();
+    <F extends FocusType> OtpCredentialType createOtpCredential(PrismObject<F> focus, Task task, OperationResult result);
 
     /**
      * Create OTP auth URL for the given credential. The URL can be used to generate QR code that can
      * be scanned by authenticator app.
+     *
+     * @param focus the focus object for which auth url is being created.
+     * It is expected that the focus object is already persisted and has OID.
+     * @param credential the OTP credential for which auth url is being created.
+     * It is expected that the credential has secret generated.
+     * @param task task object for processing
+     * @param result operation result for processing
+     * @return true if the code is correct, false otherwise.
      */
-    String createOtpAuthUrl(OtpCredentialType credential);
+    <F extends FocusType> String createOtpAuthUrl(
+            PrismObject<F> focus, OtpCredentialType credential, Task task, OperationResult result);
 
     /**
      * Verify the provided OTP code against the secret in the credential.
      * If the code is correct, the credential is marked as verified.
      *
-     * return true if the code is correct, false otherwise.
+     * @param focus the focus object for which the code is being verified.
+     * It is expected that the focus object is already persisted and has OID.
+     * @param credential the OTP credential against which the code is being verified.
+     * @param code the OTP code to verify
+     * @param task task object for processing
+     * @param result operation result for processing
+     * @return true if the code is correct, false otherwise.
      */
-    boolean verifyOtpCredential(OtpCredentialType credential, int code);
+    <F extends FocusType> boolean verifyOtpCredential(
+            PrismObject<F> focus, OtpCredentialType credential, int code, Task task, OperationResult result);
 }

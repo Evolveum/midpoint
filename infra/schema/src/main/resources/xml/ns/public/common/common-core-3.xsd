@@ -2477,35 +2477,32 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractCredentialType">
-                <xsd:sequence>
-                    <xsd:element name="secret" type="t:ProtectedStringType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <!-- todo -->
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="createTimestamp" type="xsd:dateTime">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <!-- todo -->
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="verified" type="xsd:boolean">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <!-- todo -->
-                                Flag that marks completed user enrollment for this OTP credential.
-                                E.g. User supplied current TOTP code and server verified it.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="secret" type="t:ProtectedStringType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- todo -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createTimestamp" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- todo -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="verified" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- todo -->
+                        Flag that marks completed user enrollment for this OTP credential.
+                        E.g. User supplied current TOTP code and server verified it.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="OtpCredentialsType">

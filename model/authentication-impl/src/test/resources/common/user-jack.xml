@@ -41,5 +41,12 @@
                 </questionAnswer>
             </questionAnswer>
         </securityQuestions>
+        <otps>
+            <otp>
+                <secret>W6AC3U35DKOCCXQNUVF2RDKJ3QYFTSAR</secret>
+                <createTimestamp>2026-02-04T14:38:50.917+01:00</createTimestamp>
+                <verified>true</verified>
+            </otp>
+        </otps>
     </credentials>
 </user>

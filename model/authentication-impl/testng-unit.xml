@@ -13,6 +13,8 @@
             <class name="com.evolveum.midpoint.authentication.evaluator.TestPasswordAuthenticationEvaluator"/>
             <class name="com.evolveum.midpoint.authentication.evaluator.TestNonceAuthenticationEvaluator"/>
             <class name="com.evolveum.midpoint.authentication.evaluator.TestSecurityQuestionsAuthenticationEvaluator"/>
+            <class name="com.evolveum.midpoint.authentication.evaluator.TestOtpAuthenticationEvaluator"/>
+            <class name="com.evolveum.midpoint.authentication.TestOtpService"/>
         </classes>
     </test>
 </suite>

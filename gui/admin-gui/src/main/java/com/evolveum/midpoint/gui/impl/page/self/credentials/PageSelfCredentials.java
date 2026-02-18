@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
@@ -58,6 +59,7 @@ public class PageSelfCredentials extends PageSelf {
 
     private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
     private static final String OPERATION_LOAD_PRINCIPAL = DOT_CLASS + "loadPrincipalObject";
+    private static final String OPERATION_IS_OTP_AVAILABLE = DOT_CLASS + "isOtpAvailable";
 
     protected static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
@@ -181,6 +183,10 @@ public class PageSelfCredentials extends PageSelf {
         // check otp credentials policy existence and parameters if needed
         // via principal.getApplicableSecurityPolicy().getCredentials();
 
-        return OtpManager.isOtpAvailable();
+        OtpManager manager = MidPointApplication.get().getOtpManager();
+        Task task = createSimpleTask(OPERATION_IS_OTP_AVAILABLE);
+        OperationResult result = task.getResult();
+
+        return manager.isOtpAvailable(principal.getFocus().asPrismObject(), task, result);
     }
 }
