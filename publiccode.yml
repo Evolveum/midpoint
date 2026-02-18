@@ -3,7 +3,6 @@ name: MidPoint
 applicationSuite: Identity governance and administration
 url: https://github.com/Evolveum/midpoint
 landingURL: https://evolveum.com/midpoint/
-softwareVersion: "Check supported midPoint releases: https://evolveum.com/download/ "
 logo: https://evolveum.com/wp-content/uploads/midpoint-logo-blue.png
 platforms:
   - web
@@ -43,7 +42,8 @@ softwareType: standalone/web
 description:
   en:
     localisedName: MidPoint
-    shortDescription: "MidPoint is the leading open source IGA platform made in the
+    shortDescription:
+      "MidPoint is the leading open source IGA platform made in the
       EU that helps organizations be in control over their digital identities. "
     longDescription: MidPoint is the leading open source identity governance and
       administration platform recognized by Gartner and KuppingerCole. It is
