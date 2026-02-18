@@ -129,8 +129,18 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
     }
 
     @Override
-    protected boolean isExitButtonVisible() {
+    protected boolean isBackButtonVisible() {
         return isSuggestionApplied();
+    }
+
+    @Override
+    protected IModel<String> getBackLabel() {
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.back");
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return false;
     }
 
     protected String getPanelType() {
