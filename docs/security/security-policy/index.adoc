@@ -140,7 +140,7 @@ Following is the example of complex Security Policy.
 
 == Configuring credentials
 
-Midpoint supports different types of credentials - password, nonce, security questions.
+Midpoint supports different types of credentials - password, nonce, security questions, otp secrets (TOTP)
 Nonce and security questions are midPoint specific types of credentials which are mainly used for reset password, self-registration or similar use cases related to the midPoint.
 They are stored in the midPoint directory but they are not propagated to connected systems.
 Password (based on the configuration) is (usually) stored in midPoint local repository, but it is also propagated to the connected resources (based on the configuration again).

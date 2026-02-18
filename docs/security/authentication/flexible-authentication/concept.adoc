@@ -84,6 +84,9 @@ The following modules are supported:
 | xref:/midpoint/reference/security/authentication/flexible-authentication/modules/duo[duo]
 | Module is used for 2FA authentication. Module use duo server for authentication via hardware key of mobile, tablet and so on.
 
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/totp[totp]
+| Module is used for MFA authentication of a user by using Time-based One-Time Password (TOTP) algorithm.
+
 |===
 
 === Necessity Configuration
