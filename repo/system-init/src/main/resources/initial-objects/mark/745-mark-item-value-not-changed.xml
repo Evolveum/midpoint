@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="8f831987-f7d4-48fe-8dbf-662cec3bf81f">
+    <name>Item value not changed</name>
+    <description>Item value has not been changed</description>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <displayOrder>560</displayOrder>
+    <!-- No policy rule. This is set explicitly by the correlation simulation. -->
+</mark>

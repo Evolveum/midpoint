@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="c216b0c4-3381-432c-a67c-bcf6c3208266">
+    <name>Item value removed</name>
+    <description>Item value has been removed</description>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <displayOrder>580</displayOrder>
+    <!-- No policy rule. This is set explicitly by the correlation simulation. -->
+</mark>
