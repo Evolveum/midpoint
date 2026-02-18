@@ -56,7 +56,7 @@ class CertificationCampaignTest {
     @Test
     void testDeadlineReminder() {
         // Freeze time at 2025‑03‑01T10:00:00Z
-        clock.override(Duration.parse("2025-03-01T10:00:00Z").toInstant().toEpochMilli());
+        clock.override(Instant.parse("2025-03-01T10:00:00Z").toEpochMilli());
 
         // Execute the code that checks "now"
         campaignService.checkDeadlines();
