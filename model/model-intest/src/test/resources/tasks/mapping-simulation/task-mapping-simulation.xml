@@ -25,7 +25,6 @@
                     <resourceRef oid="f499e126-f235-4141-82eb-15df1d9c2adc" />
                     <kind>account</kind>
                     <intent>default</intent>
-                    <objectclass>ri:AccountObjectClass</objectclass>
                 </resourceObjects>
                 <inlineMappings>
                     <ref>ri:employeeNumber</ref>

@@ -40,6 +40,12 @@
             <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = ""</q:text>
+                </filter>
+            </delineation>
             <objectClass>ri:AccountObjectClass</objectClass>
             <focus>
                 <type>UserType</type>
@@ -67,6 +73,41 @@
             </attribute>
             <attribute>
                 <ref>ri:familyName</ref>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <abstract>true</abstract>
+            <kind>account</kind>
+            <intent>generic</intent>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <inbound>
+                    <name>givenName</name>
+                    <target>
+                        <path>nickName</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>exclusion-test</intent>
+            <super>
+                <kind>account</kind>
+                <intent>generic</intent>
+            </super>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = "exclusion-test"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>ri:employeeNumber</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:delineator</ref>
             </attribute>
         </objectType>
     </schemaHandling>

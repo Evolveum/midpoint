@@ -64,13 +64,13 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         this.resource.init(this, initTask, initResult);
         this.mappingTask = TestTask.fromFile(SIMULATION_TASK, SIMULATION_TASK_OID);
         this.users = repoAddObjectsFromFile(USERS, UserType.class, initResult);
-        assertUsers(4); // Including one admin.
+        assertUsers(5); // Including one admin.
 
         final Collection<PrismObject<ShadowType>> linkedAccounts = this.resource.getAccounts(this, this::listAccounts)
                 .linkWithUsers(this.users, delta -> this.executeChanges(delta, null, initTask, initResult), initTask,
                         initResult)
                 .onAttributes(ACCOUNT_CORRELATION_ATTRIBUE, UserType.F_NAME);
-        assertThat(linkedAccounts).as("Check test precondition: Only one account should be linked").hasSize(1);
+        assertThat(linkedAccounts).as("Check test precondition: Only two accounts should be linked").hasSize(2);
 
     }
 
@@ -121,6 +121,34 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         and("Mapping simulation task contains one explicitly defined mapping");
         and("Mapping simulation task is configured to exclude existing mappings");
         includeExistingMappings(excludeExistingMappingsOption);
+
+        when("Mapping simulation task is run on the resource.");
+        mappingTask.rerun(result);
+
+        then("Only delta from explicit mapping should be present. Existing mappings should not evaluate to any delta.");
+        assertSimulationResult(mappingTask.oid, "Assert mapping simulation result.")
+                .assertObjectsProcessed(2)
+                .assertObjectsModified(1);
+        final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
+                result).getProcessedObjects(result);
+        assertProcessedFocusesCount(processedObjects, 1);
+        assertProcessedShadowsCount(processedObjects, 1);
+        assertModifiedObjectsCount(processedObjects, 1)
+                .assertItemModificationsCount(1);
+    }
+
+    @Test
+    void linkedAccountHasObjectTypeWithInheritance_simulateMappingButExcludeExistingOnes_existingMappingsShouldNotBeEvaluated()
+            throws Exception {
+        final OperationResult result = getTestOperationResult();
+
+        given("Accounts are linked with a user");
+        and("Resource contains one inbound mapping for given object type");
+        and("Mapping simulation task contains one explicitly defined mapping");
+        and("Mapping simulation task is configured to exclude existing mappings");
+        includeExistingMappings(false);
+        and("Mapping simulation task is configured to use object type with specific intent");
+        setObjectTypeIntent("exclusion-test");
 
         when("Mapping simulation task is run on the resource.");
         mappingTask.rerun(result);
@@ -206,6 +234,18 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                         .item(ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK,
                                 WorkDefinitionsType.F_MAPPINGS, MappingWorkDefinitionType.F_INCLUDE_EXISTING_MAPPINGS))
                         .replace(include)
+                        .asObjectDelta(SIMULATION_TASK_OID),
+                null, getTestTask(), getTestOperationResult()
+        );
+    }
+
+    private void setObjectTypeIntent(String intent) throws Exception {
+        executeChanges(
+                deltaFor(TaskType.class)
+                        .item(ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK,
+                                WorkDefinitionsType.F_MAPPINGS, MappingWorkDefinitionType.F_RESOURCE_OBJECTS,
+                                ResourceObjectSetType.F_INTENT))
+                        .replace(intent)
                         .asObjectDelta(SIMULATION_TASK_OID),
                 null, getTestTask(), getTestOperationResult()
         );

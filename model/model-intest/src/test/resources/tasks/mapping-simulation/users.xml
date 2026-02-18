@@ -23,4 +23,9 @@
         <givenName>John</givenName>
         <familyName>McClane</familyName>
     </user>
+    <user xsi:type="UserType">
+        <name>bravo</name>
+        <givenName>Johnny</givenName>
+        <familyName>Bravo</familyName>
+    </user>
 </objects>
