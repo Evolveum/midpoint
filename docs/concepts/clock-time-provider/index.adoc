@@ -20,8 +20,8 @@ The class is deliberately placed in the common package so that any component (mo
 
 == The Clock class documentation
 
-* link:https://evolveum.com/downloads/midpoint/4.10/midpoint-4.10-javadoc/com/evolveum/midpoint/common/Clock.html[Javadoc for the Clock class]
-* link:https://github.com/Evolveum/midpoint/blob/master/infra/common/src/main/java/com/evolveum/midpoint/common/Clock.java[Clock.java source]
+* link:https://evolveum.com/downloads/midpoint/4.9/midpoint-4.9-javadoc/com/evolveum/midpoint/common/Clock.html[Javadoc for the Clock class]
+* link:https://github.com/Evolveum/midpoint/blob/support-4.9/infra/common/src/main/java/com/evolveum/midpoint/common/Clock.java[Clock.java source]
 
 == Typical use cases
 
