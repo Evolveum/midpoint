@@ -1,5 +1,6 @@
 = Clock – time provider for midPoint
 :page-nav-title: Clock
+:page-toc: top
 :page-experimental: true
 :page-description: Test time-based tasks using the Clock time provider
 
