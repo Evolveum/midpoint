@@ -61,11 +61,11 @@ public class OtpAuthenticationEvaluator
 
     @Override
     protected void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, OtpCredentialsType credentials) {
-        List<OtpCredentialType> securityQuestionsAnswers = credentials.getOtp();
+        List<OtpCredentialType> otps = credentials.getOtp();
 
-        if (securityQuestionsAnswers == null || securityQuestionsAnswers.isEmpty()) {
-            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no stored security questions");
-            throw new AuthenticationCredentialsNotFoundException("web.security.provider.securityQuestion.bad");
+        if (otps == null || otps.isEmpty()) {
+            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no otp stored for user");
+            throw new AuthenticationCredentialsNotFoundException("web.security.provider.otp.bad");
         }
     }
 
