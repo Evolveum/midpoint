@@ -226,7 +226,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
                     @Override
                     protected StringResourceModel getNewObjectButtonTitle() {
-                        if(getMappingType() != MappingDirection.INBOUND && getMappingType() != MappingDirection.OUTBOUND) {
+                        if (getMappingType() != MappingDirection.INBOUND && getMappingType() != MappingDirection.OUTBOUND) {
                             return super.getNewObjectButtonTitle();
                         }
 
@@ -314,15 +314,17 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         return getTable().getProvider().size() == 0 && !suggestionToggleModel.getObject();
     }
 
+    @SuppressWarnings("unchecked")
     protected @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getColumns() {
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
-        if (getMappingType() == MappingDirection.INBOUND) {
+        boolean isInbound = getMappingType() == MappingDirection.INBOUND;
+
+        if (isInbound) {
             columns.add(getMappingUsedIconColumn("tile-column-icon"));
         }
 
         columns.add(new IconColumn<>(Model.of()) {
-
             @Override
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
                 return GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(rowModel, "text-muted");
@@ -334,32 +336,35 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
             }
         });
 
-        columns.add(new PrismPropertyWrapperColumn<>(
-                getMappingTypeDefinition(),
-                MappingType.F_NAME,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()) {
-            @Override
-            public String getCssClass() {
-                return "col header-border-right";
-            }
+        IColumn<PrismContainerValueWrapper<MappingType>, String> nameCol =
+                new PrismPropertyWrapperColumn<>(
+                        getMappingTypeDefinition(),
+                        MappingType.F_NAME,
+                        AbstractItemWrapperColumn.ColumnType.VALUE,
+                        getPageBase()) {
+                    @Override
+                    public @NotNull String getCssClass() {
+                        return "col header-border-right";
+                    }
 
-            @Override
-            public String getSortProperty() {
-                return MappingType.F_NAME.getLocalPart();
-            }
-        });
+                    @Override
+                    public String getSortProperty() {
+                        return MappingType.F_NAME.getLocalPart();
+                    }
+                };
 
         Model<PrismContainerDefinition<ResourceAttributeDefinitionType>> resourceAttributeDef =
-                Model.of(PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(
-                        ResourceAttributeDefinitionType.class));
+                Model.of(PrismContext.get().getSchemaRegistry()
+                        .findContainerDefinitionByCompileTimeClass(ResourceAttributeDefinitionType.class));
 
-        //noinspection unchecked,rawtypes
-        columns.add(new PrismPropertyWrapperColumn(
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        IColumn refCol = new PrismPropertyWrapperColumn(
                 resourceAttributeDef,
                 ResourceAttributeDefinitionType.F_REF,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 getPageBase()) {
+
+            @SuppressWarnings("rawtypes")
             @Override
             protected Component createHeader(String componentId, IModel mainModel) {
                 return new PrismPropertyHeaderPanel<ItemPathType>(
@@ -385,24 +390,26 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
             }
 
             @Override
-            public String getCssClass() {
+            public @NotNull String getCssClass() {
                 return "col-2 header-border-right";
             }
-        });
+        };
 
-        columns.add(new PrismPropertyWrapperColumn<>(
-                getMappingTypeDefinition(),
-                MappingType.F_EXPRESSION,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()) {
-            @Override
-            public String getCssClass() {
-                return "col-2 header-border-right";
-            }
-        });
+        IColumn<PrismContainerValueWrapper<MappingType>, String> expressionCol =
+                new PrismPropertyWrapperColumn<>(
+                        getMappingTypeDefinition(),
+                        MappingType.F_EXPRESSION,
+                        AbstractItemWrapperColumn.ColumnType.VALUE,
+                        getPageBase()) {
+                    @Override
+                    public @NotNull String getCssClass() {
+                        return "col-2 header-border-right";
+                    }
+                };
 
+        IColumn<PrismContainerValueWrapper<MappingType>, String> sourceOrTargetCol;
         if (getMappingType() == MappingDirection.OUTBOUND) {
-            columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
+            sourceOrTargetCol = new PrismPropertyWrapperColumn<MappingType, String>(
                     getMappingTypeDefinition(),
                     MappingType.F_SOURCE,
                     AbstractItemWrapperColumn.ColumnType.VALUE,
@@ -415,8 +422,8 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         return super.createColumnPanel(componentId, rowModel);
                     }
 
-                    IModel<Collection<VariableBindingDefinitionType>> multiselectModel = createSourceMultiselectModel(rowModel,
-                            SmartMappingTable.this.getPageBase());
+                    IModel<Collection<VariableBindingDefinitionType>> multiselectModel =
+                            createSourceMultiselectModel(rowModel, SmartMappingTable.this.getPageBase());
                     var provider = new FocusDefinitionsMappingProvider(
                             (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
                     return new Select2MultiChoiceColumnPanel<>(componentId, multiselectModel, provider);
@@ -426,9 +433,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 public String getCssClass() {
                     return "col-2 header-border-right";
                 }
-            });
+            };
         } else {
-            columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
+            sourceOrTargetCol = new PrismPropertyWrapperColumn<MappingType, String>(
                     getMappingTypeDefinition(),
                     MappingType.F_TARGET,
                     AbstractItemWrapperColumn.ColumnType.VALUE,
@@ -437,12 +444,19 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 public String getCssClass() {
                     return "col-2 header-border-right";
                 }
+            };
+        }
 
-                @Override
-                protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-                    return super.createHeader(componentId, mainModel);
-                }
-            });
+        columns.add(nameCol);
+
+        if (getMappingType() == MappingDirection.OUTBOUND) {
+            columns.add(sourceOrTargetCol);
+            columns.add(expressionCol);
+            columns.add(refCol);
+        } else {
+            columns.add(refCol);
+            columns.add(expressionCol);
+            columns.add(sourceOrTargetCol);
         }
 
         columns.add(new LifecycleStateColumn<>(getMappingTypeDefinition(), getPageBase()) {
@@ -451,6 +465,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 return "col-auto";
             }
         });
+
         return columns;
     }
 
