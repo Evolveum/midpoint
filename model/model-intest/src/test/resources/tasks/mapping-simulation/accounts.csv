@@ -1,0 +1,5 @@
+id   | delineator     | correlator    | givenName | familyName | employeeNumber | _note
+1    |                | smith1        | John      | Smith      | 1234           | should be linked
+2    |                | McClane       | John      | McClane    |                | not linked but user exists; should be correlated in test
+3    |                | travolta      | John      | Travolta   |                | user does not exist
+4    | exclusion-test | bravo         | Johnny    | Bravo      | 4321           | should be linked

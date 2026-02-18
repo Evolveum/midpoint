@@ -13,6 +13,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceSetTaskWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -22,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class MappingWorkDefinition extends ResourceSetTaskWorkDefinition {
 
-    private final SimulatedMappingsType mappingsToUse;
+    private final MappingWorkDefinitionType workDefinition;
 
     public MappingWorkDefinition(WorkDefinitionFactory.WorkDefinitionInfo info) {
         super(info);
@@ -35,16 +37,32 @@ public class MappingWorkDefinition extends ResourceSetTaskWorkDefinition {
 
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(getResourceObjectSetSpecification(), APPEND);
 
-        this.mappingsToUse = workDef.getMappings();
+        this.workDefinition = workDef;
     }
 
     public List<InlineMappingDefinitionType> provideMappings() {
-        return this.mappingsToUse.getInlineMappings();
+        return this.workDefinition.getInlineMappings();
+    }
+
+    public boolean excludeExistingMappings() {
+        return !Boolean.TRUE.equals(this.workDefinition.isIncludeExistingMappings());
+    }
+
+    public String resourceOid() {
+        return this.workDefinition.getResourceObjects().getResourceRef().getOid();
+    }
+
+    public ResourceObjectTypeIdentification resolveObjectTypeId() {
+        final ResourceObjectSetType resourceObjects = workDefinition.getResourceObjects();
+        return ResourceObjectTypeIdentification.of(
+                ShadowUtil.resolveDefault(resourceObjects.getKind()),
+                ShadowUtil.resolveDefault(resourceObjects.getIntent()));
     }
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
         super.debugDumpContent(sb, indent);
-        DebugUtil.debugDumpWithLabel(sb, "mappings", this.mappingsToUse, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "mappings", provideMappings(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "excludeExistingMappings", excludeExistingMappings(), indent + 1);
     }
 }
