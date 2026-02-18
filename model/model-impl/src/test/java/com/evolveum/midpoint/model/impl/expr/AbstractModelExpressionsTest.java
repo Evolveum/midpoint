@@ -123,7 +123,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         PrismObject<UserType> chef = repositoryService.getObject(
                 UserType.class, CHEF_OID, null, getTestOperationResult());
 
-        VariablesMap variables = createVariables(ExpressionConstants.VAR_USER, chef, chef.getDefinition());
+        VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
 
         // WHEN, THEN
         assertExecuteScriptExpressionString(variables, chef.asObjectable().getName().getOrig());
@@ -146,7 +146,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
                 scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
                 shortTestName, result);
         VariablesMap variables =
-                createVariables(ExpressionConstants.VAR_USER, chef, chef.getDefinition());
+                createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
 
         // WHEN
         List<PrismPropertyValue<String>> scriptOutputs =
@@ -183,7 +183,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
                 MiscSchemaUtil.getExpressionProfile(), testName, result);
 
         VariablesMap variables = createVariables(
-                ExpressionConstants.VAR_USER, chef, chef.getDefinition(),
+                ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition(),
                 ExpressionConstants.VAR_VALUE, "Scumm Bar Chef", String.class);
 
         // WHEN
@@ -208,7 +208,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         VariablesMap variables = createVariables(
-                ExpressionConstants.VAR_USER, user, user.getDefinition());
+                ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -221,7 +221,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         VariablesMap variables = createVariables(
-                ExpressionConstants.VAR_USER, user, user.getDefinition());
+                ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -234,7 +234,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         VariablesMap variables = createVariables(
-                ExpressionConstants.VAR_USER, user, user.getDefinition());
+                ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(variables, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
 
@@ -247,7 +247,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         VariablesMap variables = createVariables(
-                ExpressionConstants.VAR_USER, user, user.getDefinition());
+                ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -260,7 +260,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         VariablesMap variables = createVariables(
-                ExpressionConstants.VAR_USER, user, user.getDefinition());
+                ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -273,7 +273,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         VariablesMap variables = createVariables(
-                ExpressionConstants.VAR_USER, user, user.getDefinition());
+                ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(variables,
                 InternalsConfig.isShadowCachingOnByDefault() ? "Guybrush Threepwood" : null);

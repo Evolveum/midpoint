@@ -8,6 +8,6 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
-        user.assignment[0].description
+        focus.assignment[0].description
     </code>
 </script>

@@ -61,20 +61,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
 
-            // HACK
-//            new Function(
-//                    CelFunctionDecl.newFunctionDeclaration(
-//                            Operator.EQUALS.getFunction(),
-//                            CelOverloadDecl.newGlobalOverload(
-//                                    "mel-equals-x",
-//                                    "TODO.",
-//                                    SimpleType.BOOL,
-//                                    SimpleType.STRING, SimpleType.ANY)),
-//                    CelFunctionBinding.from("mel-equals-x", String.class, Object.class,
-//                            CelMelExtensions::equalsUniversal)
-//
-//            ),
-
             // string + int
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -106,7 +92,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             ),
 
-            // containsIgnoreCase
+            // str.containsIgnoreCase(substring)
             new Function(
                 CelFunctionDecl.newFunctionDeclaration(
                         FUNC_CONTAINS_IGNORE_CASE_NAME,

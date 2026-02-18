@@ -196,6 +196,9 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
                     continue;
                 }
                 String variableName = variableEntry.getKey();
+                if (!supportsDeprecatedVariables() && ExpressionConstants.isDeprecated(variableName)) {
+                    continue;
+                }
                 ValueVariableModeType valueVariableMode = ObjectUtils.defaultIfNull(
                         context.getScriptBean().getValueVariableMode(), ValueVariableModeType.REAL_VALUE);
 
@@ -219,8 +222,18 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             }
         }
 
-        putIfMissing(map, converter, ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
-        putIfMissing(map, converter, ExpressionConstants.VAR_LOCALIZATION_SERVICE, localizationService);
+        if (needsServiceVariables()) {
+            putIfMissing(map, converter, ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
+            putIfMissing(map, converter, ExpressionConstants.VAR_LOCALIZATION_SERVICE, localizationService);
+        }
+    }
+
+    protected boolean supportsDeprecatedVariables() {
+        return true;
+    }
+
+    protected boolean needsServiceVariables() {
+        return true;
     }
 
     private <T> void putIfMissing(Map<String,T> map, Function<TypedValue<?>,T> converter, String key, Object value) {

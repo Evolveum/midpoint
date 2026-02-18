@@ -189,4 +189,10 @@ public class ExpressionConstants {
     public static final String VAR_CORRELATION_CONTEXT = "correlationContext";
     public static final String VAR_CORRELATOR_STATE = "correlatorState";
     public static final String VAR_PROCESSED_OBJECT = "processedObject";
+
+    public static boolean isDeprecated(String variableName) {
+        return VAR_USER.equals(variableName) ||
+                VAR_ACCOUNT.equals(variableName) ||
+                VAR_SHADOW.equals(variableName);
+    }
 }

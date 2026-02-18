@@ -102,6 +102,12 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         return true;
     }
 
+    @Override
+    protected boolean needsServiceVariables() { return false; }
+
+    @Override
+    protected boolean supportsDeprecatedVariables() { return false; }
+
     // TODO: Temporary
     @Override
     public @Nullable Object evaluateInternal(

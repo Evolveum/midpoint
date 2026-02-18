@@ -1,0 +1,178 @@
+---
+midpoint-feature: expression-mel
+doc-type: config
+---
+= MidPoint Expression Language Migration Guide
+:page-nav-title: Migation Guide
+:page-upkeep-status: green
+:page-toc: top
+
+This document provides guidance for migration of script expression from legacy scripting languages (Groovy, etc.) to midPoint expression language (MEL).
+
+== MEL and Java
+
+MEL is _expression_ language.
+Not Turing-complete - by purpose.
+Functional character. No sequences.
+
+Simple expressions should still be simple.
+May need some time and experience to adapt.
+Complex expressions may not be possible in MEL - and that is a good thing.
+
+TODO: MEL/CEL is not a Java world.
+Java classes and libraries are intentionally _not_ exposed to MEL expressions.
+
+== Security
+
+MEL is designed for security. Unlike Groovy, access to functionality is strictly controlled.
+Only very limited functionality is provided.
+
+== Flow Control
+
+if-then-else -> ?: operator
+
+Use list functions/macros instead of loops.
+
+Examples.
+
+== Variables
+
+The usual xref:/midpoint/reference/expressions/variables/[expression and mapping] variables are available for MEL expressions.
+However, there are few exceptions:
+
+* Deprecated variables `user`, `account` and `shadow` are not present in MEL expressions.
+Use correct variables names instead (`focus` and `projection`).
+
+* Variables that represent services for Java-like languages (`prismContext`, `localizationService`) do not make sense in MEL environment, therefore these are not present.
+
+* Some script expression environments expose built-in extension libraries in a form of variables (`basic`, `midpoint`, `log`).
+These variables are not present in MEL environment.
+Equivalent functionality is available to MEL expressions in a form of native MEL language extensions,
+e.g. as `norm`, `log.debug(...)` or `midpoint.getObject(...)` functions.
+See below for more details.
+
+There is a new variable available to MEL expressions:
+
+* Variable `now` contains current timestamp.
+It is a fixed timestamp of an approximate moment of the script execution.
+Value of the variable does not change during script execution.
+
+== Built-In Function Library Extensions
+
+The usual Java-like built-in function library extensions are not directly available in MEL.
+However, Equivalent functionality is available to MEL expressions in a form of native MEL language extensions.
+
+The traditional built-in libraries were migrated to MEL as follows:
+
+* `basic` library was completely re-worked, represented as native extensions of the MEL language.
+There is no `basic` variable or `basic.*` prefix for MEL functions.
+Some of the functions are available in MEL without a prefix:
++
+[source,mel]
+----
+norm('Semančík')    // Returns 'semancik'
+stringify(whatever)
+----
++
+Other functions were re-worked as a _member_ functions, which can be invoked on appropriate values (e.g. strings and polystrings) and variables:
++
+[source,mel]
+----
+'something'.isBlank()    // Returns false
+'changeme'.encrypt()     // Creates protected string
+projection.primaryIdentifiers()  // Returns list of primary identifiers
+ts.strftime('%d/%m/%Y %H:%M:%S') // Returns formatted time, e.g. '11/02/26 09:32:15'
+----
++
+Yet other functions formed their own little "libraries", using their own prefix:
++
+[source,mel]
+----
+format.concatName(['Radovan', 'Semančík'])           // Returns 'Radovan Semančík'
+format.parseGivenName('Ing. Radovan Semančík, PhD.') // Returns 'Radovan'
+ldap.composeDn(['cn','foo','ou','baz','o','bar'])    // Returns 'cn=foo,ou=baz,o=bar'
+----
++
+Original names of the functions from the `basic` library were maintained where appropriate.
+The form of the names might be slightly changed to suit conventions of the MEL environment,
+e.g. `basic.getPrimaryIdentifierValue(...)` was changed to `primaryIdentifiers()`.
+Some functions were completely replaced with their MEL equivalent, e.g.
+`basic.formatDateTime(...)` was replaced by `ts.strftime(...)`.
+The original functions (e.g. `basic.formatDateTime(...)`) were kept in MEL for easier migration
+(e.g. `ts.formatDateTime(...)`).
+Such functions are considered to be deprecated, migration to native CEL/MEL equivalents is recommended as soon as possible.
+Refer to xref:specification[MEL language specification] for details.
+Search for relevant parts of the original function name usually provides the MEL equivalent.
+
+* `log` library is available in MEL in almost the same form as in Groovy:
++
+[source,mel]
+----
+log.debug('The {} is broken', object)
+log.debug('The {} is broken due to a {}', [ object, reason ])
+----
++
+There are two significant differences.
+Firstly, the function expects a _list_ of values as its argument in case there is more than one value.
+Secondly, the function returns the value (or list of values), therefore it can be used inside expressions:
++
+[source,mel]
+----
+norm(log.debug('Original name: {}', input))
+----
+
+* `midpoint` library is reworked as MEL language extension.
+Most of the functions of the original `midpoint` library are available as MEL functions, using `midpoint` prefix:
++
+[source,mel]
+----
+midpoint.getObject('UserType', oid)
+midpoint.searchShadowOwner(oid)
+----
++
+The function arguments were adapted to MEL environment, e.g. using strings or QNames instead of Java classes to represent types.
+
+Some functions of the original built-in libraries are not available in MEL.
+There are several reasons for this:
+
+* MEL is heavily based on common expression language (CEL), which is an _expression_ language.
+Individual parts of the expressions are not supposed to cause side effects.
+Therefore, functions that cause significant side effects are not available in MEL.
+For example, `midpoint.modifyObject(...)` and similar functions are not available in MEL,
+and there are no plans to support them.
+
+* Some library functions were designed to support the Java-like programming in expressions.
+There is no need for such functions in MEL, and most of the functions are even conceptually incompatible with MEL.
+For example `midpoint.createEmptyObject(...)`.
+
+* There are few library functions that are not considered secure enough for the security level that MEL is supposed to provide.
+Therefore, such functions are not provided.
+For example `midpoint.getUserByOid(...)` function which is bypassing authorization layer.
+
+* Some of the functions require implementation of advanced approaches or data structures in MEL.
+Implementation of such functions is not provided for the time being.
+These functions are quite likely to be implemented in future midPoint versions.
+For example `midpoint.searchObjectsIterative(...)` or functions dealing with metadata.
+
+* Some original built-in library functions may require re-thinking and re-work to be effective in MEL environment.
+These functions are not implemented yet, as we are exploring the correct approach to their implementation.
+Such functions are likely to appear in the future versions of midPoint, albeit their form may be significantly different from their Groovy counterparts.
+
+== Custom Function Libraries
+
+== Combining MEL and Groovy
+
+TODO: "Semi-secure" configuration.
+
+== TODO
+
+TODO: use of single(), e.g.
+single(projection.primaryIdentifiers())
+
+TODO: binding
+
+TOOD: null values, optionals (e.g. `[? 'name']`)
+
+
+== See Also
+

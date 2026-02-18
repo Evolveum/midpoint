@@ -10,7 +10,7 @@
     <code>
         log.trace("Shadow {}",
             // resource dummy
-            midpoint.getLinkedShadow(user, '10000000-0000-0000-0000-000000000004', 'account', 'default', true)
+            midpoint.getLinkedShadow(focus, '10000000-0000-0000-0000-000000000004', 'account', 'default', true)
         ).name
     </code>
 </script>

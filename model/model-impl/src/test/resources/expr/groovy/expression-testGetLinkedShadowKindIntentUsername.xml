@@ -12,7 +12,7 @@
         import com.evolveum.midpoint.schema.constants.SchemaConstants
 
         // resource dummy
-        shadow = midpoint.getLinkedShadow(user, '10000000-0000-0000-0000-000000000004', ShadowKindType.ACCOUNT, 'default')
+        shadow = midpoint.getLinkedShadow(focus, '10000000-0000-0000-0000-000000000004', ShadowKindType.ACCOUNT, 'default')
         log.trace("Shadow {}", shadow)
         return basic.getAttributeValue(shadow, SchemaConstants.ICFS_NAME)
     </code>

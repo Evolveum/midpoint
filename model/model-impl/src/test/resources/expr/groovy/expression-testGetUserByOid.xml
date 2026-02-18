@@ -9,6 +9,6 @@
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
     <code>
         // we are not able to return complex objects yet, so we test by returning the name
-        midpoint.getUserByOid(user.getOid()).getName();
+        midpoint.getUserByOid(focus.getOid()).getName();
     </code>
 </script>

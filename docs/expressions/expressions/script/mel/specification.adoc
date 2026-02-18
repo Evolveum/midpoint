@@ -1,6 +1,6 @@
 ---
 midpoint-feature: expression-mel
-doc-type: intro
+doc-type: config
 ---
 = MidPoint Expression Language Specification
 :page-nav-title: Introduction
@@ -1590,6 +1590,28 @@ Item path (TODO: ref) can be used to locate an item in an object by using the `f
 ----
 focus.find('activation/administrativeStatus')
 ----
+
+== Variables
+
+The usual xref:/midpoint/reference/expressions/variables/[expression and mapping] variables are available for MEL expressions.
+However, there are few exceptions:
+
+* Deprecated variables `user`, `account` and `shadow` are not present in MEL expressions.
+Use correct variables names instead (`focus` and `projection`).
+
+* Variables that represent services for Java-like languages (`prismContext`, `localizationService`) do not make sense in MEL environment, therefore these are not present.
+
+* Some script expression environments expose built-in extension libraries in a form of variables (`basic`, `midpoint`, `log`).
+These variables are not present in MEL environment.
+Equivalent functionality is available to MEL expressions in a form of native MEL language extensions,
+e.g. as `norm`, `log.debug(...)` or `midpoint.getObject(...)` functions.
+See xref:migration[migration guide] for more details.
+
+There is additional variable available to all MEL expressions:
+
+* Variable `now` contains current timestamp.
+It is a fixed timestamp of an approximate moment of the script execution.
+Value of the variable does not change during script execution.
 
 == Custom Function Libraries
 

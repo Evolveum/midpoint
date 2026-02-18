@@ -8,6 +8,6 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
     <code>
-        midpoint.isUniquePropertyValue(user, 'fullName', value)
+        midpoint.isUniquePropertyValue(focus, 'fullName', value)
     </code>
 </script>
