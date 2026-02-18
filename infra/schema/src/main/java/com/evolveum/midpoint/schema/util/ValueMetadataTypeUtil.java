@@ -267,6 +267,16 @@ public class ValueMetadataTypeUtil {
         return metadata != null ? metadata.getModifyTimestamp() : null;
     }
 
+    public static @Nullable XMLGregorianCalendar getLastModifyTimestamp(@NotNull AssignmentType assignment) {
+        return getMetadataBeans(assignment).stream()
+                .map(ValueMetadataType::getStorage)
+                .filter(Objects::nonNull)
+                .map(StorageMetadataType::getModifyTimestamp)
+                .filter(Objects::nonNull)
+                .max(XMLGregorianCalendar::compare)
+                .orElse(null);
+    }
+
     public static @Nullable XMLGregorianCalendar getLastChangeTimestamp(@NotNull ObjectType object) {
         return getLastChangeTimestamp(
                 getMetadata(object));

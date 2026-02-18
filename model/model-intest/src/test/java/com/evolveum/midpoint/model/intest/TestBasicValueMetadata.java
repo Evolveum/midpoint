@@ -12,11 +12,15 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -44,6 +48,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests the value metadata handling for objects, assignments, and other items.
+ *
+ * Areas:
+ *
+ * - `test1xx` test creation and modification metadata for objects and assignments.
+ * - `test2xx` test the metadata for inbound processing.
+ * - `test3xx` test the metadata for inbound processing for associations.
+ * - `test4xx` test naming and renaming various configuration items: mappings, object types, and association types.
  *
  * Related tests:
  *
@@ -289,6 +300,106 @@ public class TestBasicValueMetadata extends AbstractEmptyModelIntegrationTest {
         assertUserAfter(user.getOid());
 
         // TODO modification
+    }
+
+    /** Phantom assignment add should not update create timestamp. MID-10979. */
+    @Test
+    public void test190CreationTimestampOnPhantomAssignmentAdd() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a user");
+        var user = new UserType()
+                .name(getTestNameShort());
+        addObject(user, task, result);
+
+        when("assignment is added to the user");
+        assignRole(user.getOid(), ROLE_SUPERUSER.oid, task, result);
+
+        then("creation timestamp is present");
+        var assignmentBefore = assertUser(user.getOid(), "after real 'assignment add' operation")
+                .assignments()
+                .single()
+                .getAssignment();
+        var createTimestampBefore = ValueMetadataTypeUtil.getCreateTimestamp(assignmentBefore);
+        assertThat(createTimestampBefore).isNotNull();
+
+        when("the same assignment is added again (phantom add)");
+        assignRole(user.getOid(), ROLE_SUPERUSER.oid, task, result);
+
+        then("creation timestamp is unchanged");
+        var assignmentAfter = assertUser(user.getOid(), "after phantom 'assignment add' operation")
+                .assignments()
+                .single()
+                .getAssignment();
+        var createTimestampAfter = ValueMetadataTypeUtil.getCreateTimestamp(assignmentAfter);
+        assertThat(createTimestampAfter)
+                .withFailMessage("The create timestamp of the assignment was changed from %s to %s",
+                        createTimestampBefore, createTimestampAfter)
+                .isEqualTo(createTimestampBefore);
+    }
+
+    /**
+     * Phantom assignment add that is accompanied by environment-induced change of operational state of the assignment
+     * (`effectiveStatus`) should not update the create timestamp of the assignment but should update the modify timestamp
+     * and the `effectiveStatus`.
+     *
+     * Related to MID-10979.
+     */
+    @Test
+    public void test195ModifyTimestampOnPhantomAssignmentAddWithChange() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a user");
+        var validFrom = XmlTypeConverter.createXMLGregorianCalendar("2100-01-01T00:00:00Z");
+        var user = new UserType()
+                .name(getTestNameShort())
+                .assignment(
+                        ROLE_SUPERUSER.assignmentTo()
+                                .activation(new ActivationType()
+                                        .validFrom(validFrom)));
+        addObject(user, task, result);
+
+        then("creation timestamp is present, modify timestamp is not, and effective status is 'disabled'");
+        var assignmentBefore = assertUser(user.getOid(), "after creation")
+                .assignments()
+                .single()
+                .getAssignment();
+        var createTimestampBefore = ValueMetadataTypeUtil.getCreateTimestamp(assignmentBefore);
+        assertThat(createTimestampBefore).isNotNull();
+        assertThat(ValueMetadataTypeUtil.getLastModifyTimestamp(assignmentBefore)).isNull();
+        assertThat(assignmentBefore.getActivation().getEffectiveStatus())
+                .as("effective status before phantom add")
+                .isEqualTo(ActivationStatusType.DISABLED);
+
+        when("the same assignment is added again (phantom add), but it should be valid now (time is after validFrom)");
+        clock.override(validFrom);
+        assignRole(
+                UserType.class,
+                user.getOid(),
+                ROLE_SUPERUSER.oid,
+                new ActivationType().validFrom(validFrom),
+                task,
+                result);
+
+        then("creation timestamp is unchanged, modify timestamp is updated, and effective status is 'enabled'");
+        var assignmentAfter = assertUser(user.getOid(), "after phantom 'assignment add' operation")
+                .displayXml()
+                .assignments()
+                .single()
+                .getAssignment();
+        var createTimestampAfter = ValueMetadataTypeUtil.getCreateTimestamp(assignmentAfter);
+        assertThat(createTimestampAfter)
+                .withFailMessage("The create timestamp of the assignment was changed from %s to %s",
+                        createTimestampBefore, createTimestampAfter)
+                .isEqualTo(createTimestampBefore);
+        assertThat(ValueMetadataTypeUtil.getLastModifyTimestamp(assignmentAfter)).as("modify timestamp").isNotNull();
+        assertThat(assignmentAfter.getActivation().getEffectiveStatus())
+                .as("effective status after phantom add")
+                .isEqualTo(ActivationStatusType.ENABLED);
+
+        clock.resetOverride();
     }
 
     /**
