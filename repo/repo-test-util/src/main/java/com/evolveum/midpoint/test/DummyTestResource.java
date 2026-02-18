@@ -8,15 +8,23 @@ package com.evolveum.midpoint.test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.ConnectException;
+import java.util.Collection;
+import java.util.Map;
 
-import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Representation of Dummy Resource in tests.
@@ -39,9 +47,7 @@ public class DummyTestResource extends TestResource {
      * TODO change to static factory method
      */
     public DummyTestResource(File dir, String fileName, String oid, String name, FailableProcessor<DummyResourceContoller> controllerInitLambda) {
-        super(new FileBasedTestObjectSource(dir, fileName), oid);
-        this.name = name;
-        this.controllerInitLambda = controllerInitLambda;
+        this(new FileBasedTestObjectSource(dir, fileName), oid, name, controllerInitLambda);
     }
 
     public DummyTestResource(
@@ -49,6 +55,19 @@ public class DummyTestResource extends TestResource {
         super(source, oid);
         this.name = name;
         this.controllerInitLambda = controllerInitLambda;
+    }
+
+    public static DummyTestResourceWithoutAccounts fromFile(File resourceDir, String resourceFileName, String oid,
+            String name) {
+        return (accountsFile) -> {
+            final AccountsCsvParser accountsParser = new AccountsCsvParser(accountsFile);
+            final FailableProcessor<DummyResourceContoller> resourceInitializer = controller -> {
+                addAttributesToSchema(controller, accountsParser.readAttributesNames());
+                addAccounts(controller, accountsParser.readAccounts());
+            };
+            return new DummyTestResource(new FileBasedTestObjectSource(resourceDir, resourceFileName), oid, name,
+                    resourceInitializer);
+        };
     }
 
     public static DummyTestResource fromTestObject(
@@ -106,4 +125,47 @@ public class DummyTestResource extends TestResource {
             ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
         return controller.addAccount(name, fullName);
     }
+
+    public TestResourceAccounts getAccounts(AbstractIntegrationTest test, ShadowReader shadowReader) {
+        return new TestResourceAccounts(shadowReader, this.get(), test.prismContext);
+    }
+
+    private static void addAccounts(DummyResourceContoller controller, Collection<AccountsCsvParser.Account> accounts)
+            throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException,
+            ConflictException, InterruptedException, ObjectDoesNotExistException {
+        for (AccountsCsvParser.Account csvAccount : accounts) {
+            final DummyAccount account = controller.addAccount(csvAccount.id());
+            for (Map.Entry<String, String> entry : csvAccount.attributes().entrySet()) {
+                account.addAttributeValue(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private static void addAttributesToSchema(DummyResourceContoller controller, Collection<String> attributes) {
+        attributes.forEach(
+                attr -> controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        attr, String.class, false, false));
+    }
+
+    /**
+     * DummyTestResource which you can populate with accounts from CSV.
+     */
+    @FunctionalInterface
+    public interface DummyTestResourceWithoutAccounts {
+
+        /**
+         * Adds accounts defined in the CSV file to the dummy resource.
+         *
+         * This method adds also all necessary attributes definitions, based on the header row in the CSV.
+         * All attributes will be however defined as strings.
+         *
+         * @see AccountsCsvParser for details about the CSV format.
+         *
+         * @param fileName The CSV file with the accounts.
+         * @return The new instance of the dummy test resource, which will be populated with accounts after its
+         * initialization.
+         */
+        DummyTestResource withAccountsFromCsv(File fileName) throws IOException;
+    }
+
 }

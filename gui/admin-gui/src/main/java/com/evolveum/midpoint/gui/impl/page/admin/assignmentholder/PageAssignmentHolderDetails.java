@@ -442,25 +442,15 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                     try {
                         PrismContainerWrapper<C> container =
                                 getObjectDetailsModels().getObjectWrapper().findContainer(pathToValue);
-                        PrismContainerValueWrapper<C> newWrapper = WebPrismUtil.createNewValueWrapper(
+                        return WebPrismUtil.addNewValueToContainer(
                                 container,
                                 newValue,
                                 PageAssignmentHolderDetails.this,
                                 getObjectDetailsModels().createWrapperContext());
-                        container.getValues().add(newWrapper);
-
-                        if (!newValue.isEmpty()) {
-                            if (newValue.getParent() == null) {
-                                newValue.setParent(container.getItem());
-                            }
-                            container.getItem().add(newValue.clone());
-                        }
-
-                        return newWrapper;
                     } catch (SchemaException e) {
-                        LOGGER.error("Couldn't resolve value for path: " + pathToValue);
+                        LOGGER.error("Couldn't resolve value for path: {}", pathToValue, e);
+                        return null;
                     }
-                    return null;
                 }
             };
         } else if (pathToValue != null) {

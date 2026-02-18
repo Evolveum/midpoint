@@ -76,13 +76,19 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
         description.add(getDescriptionBehaviour());
         add(description);
 
-        add(new AjaxEventBehavior("click") {
+        if(isClickBehaviorEnabled()) {
+            add(new AjaxEventBehavior("click") {
 
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                TilePanel.this.onClick(target);
-            }
-        });
+                @Override
+                protected void onEvent(AjaxRequestTarget target) {
+                    TilePanel.this.onClick(target);
+                }
+            });
+        }
+    }
+
+    protected boolean isClickBehaviorEnabled() {
+        return true;
     }
 
     protected VisibleEnableBehaviour getDescriptionBehaviour() {

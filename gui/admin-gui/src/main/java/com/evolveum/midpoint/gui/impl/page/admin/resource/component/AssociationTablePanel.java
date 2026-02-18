@@ -372,8 +372,9 @@ public abstract class AssociationTablePanel
 
             @Override
             protected void processReviewButtonClick(@NotNull AjaxRequestTarget target) {
+                PageBase pageBase = getPageBase();
                 onReviewValue(() -> value, target, getStatusInfoObject(value),
-                        ajaxRequestTarget -> performOnDeleteSuggestion(getPageBase(), ajaxRequestTarget,
+                        ajaxRequestTarget -> performOnDeleteSuggestion(pageBase, ajaxRequestTarget,
                                 value, getStatusInfoObject(value)));
             }
         };

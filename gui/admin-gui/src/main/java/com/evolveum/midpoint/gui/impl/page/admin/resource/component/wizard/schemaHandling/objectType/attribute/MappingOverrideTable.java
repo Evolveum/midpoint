@@ -16,9 +16,13 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,9 +44,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -59,7 +65,7 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
         super(id, valueModel, config, ResourceAttributeDefinitionType.class);
     }
 
-    protected PrismContainerValueWrapper createNewValue(PrismContainerValue<ResourceAttributeDefinitionType> value, AjaxRequestTarget target) {
+    protected PrismContainerValueWrapper<?> createNewValue(PrismContainerValue<ResourceAttributeDefinitionType> value, AjaxRequestTarget target) {
         try {
             PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
                     getValueModel().getObject().findContainer(getItemNameOfContainerWithMappings());
@@ -68,7 +74,7 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
                 newMapping = mappingAttributeContainer.getItem().createNewValue();
             }
 
-            AttributeMappingValueWrapper newAttributeMappingWrapper =
+            AttributeMappingValueWrapper<?> newAttributeMappingWrapper =
                     WebPrismUtil.createNewValueWrapper(mappingAttributeContainer, newMapping, getPageBase(), target);
             newAttributeMappingWrapper.addAttributeMappingType(MappingDirection.OVERRIDE);
 
@@ -95,7 +101,7 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
                 List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> list = super.searchThroughList();
                 return list.stream().filter(value -> {
                     if (value instanceof AttributeMappingValueWrapper) {
-                        return ((AttributeMappingValueWrapper) value).getAttributeMappingTypes()
+                        return ((AttributeMappingValueWrapper<?>) value).getAttributeMappingTypes()
                                 .contains(MappingDirection.OVERRIDE);
                     }
                     return true;
@@ -152,7 +158,7 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
                     IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel) {
 
                 IModel<Boolean> mandatoryModel =
-                        createModelForOccurs(rowModel, PropertyLimitationsType.F_MIN_OCCURS, "1", "0");
+                        createModelForOccurs(rowModel, PropertyLimitationsType.F_MIN_OCCURS, "1", "0", true);
                 TwoStateBooleanPanel panel = new TwoStateBooleanPanel(id, mandatoryModel);
                 item.add(panel);
             }
@@ -166,7 +172,7 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
                     IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel) {
 
                 IModel<Boolean> multivalueModel =
-                        createModelForOccurs(rowModel, PropertyLimitationsType.F_MAX_OCCURS, "unbounded", "1");
+                        createModelForOccurs(rowModel, PropertyLimitationsType.F_MAX_OCCURS, "unbounded", "1", false);
                 TwoStateBooleanPanel panel = new TwoStateBooleanPanel(id, multivalueModel);
                 item.add(panel);
             }
@@ -189,24 +195,101 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
         return columns;
     }
 
-    private IModel<Boolean> createModelForOccurs(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel, ItemName path, String trueValue, String falseValue) {
+    /**
+     * Creates a boolean model for limitation properties (minOccurs or maxOccurs) that are
+     * represented in the UI as checkboxes.
+     *
+     * <p>The model resolves the effective value of the limitation as follows:
+     * <ul>
+     *   <li>If a limitation override exists in the attribute definition, its value is used.</li>
+     *   <li>If no override exists, the default value from the referenced schema definition is used.</li>
+     * </ul>
+     *
+     * <p>The checkbox is considered {@code true} if the effective value equals {@code trueValue}.
+     *
+     * <p>When setting the value:
+     * <ul>
+     *   <li>If the limitations container or property does not exist, it is created.</li>
+     *   <li>The property value is set to {@code trueValue} or {@code falseValue}
+     *       according to the provided boolean.</li>
+     * </ul>
+     *
+     * <p><b>Important:</b> Limitation values are always explicitly written once modified,
+     * even if they match the schema default. They are not automatically removed when equal
+     * to the default value. This prevents accidental loss of user intent in case the
+     * referenced schema changes in the future and its default values differ.
+     *
+     * @param rowModel          model of the attribute definition row
+     * @param path              item name of the limitation property (e.g. minOccurs or maxOccurs)
+     * @param trueValue         string value representing {@code true} (e.g. "1" or "unbounded")
+     * @param falseValue        string value representing {@code false}
+     * @param isMandatoryCheck  {@code true} if the checkbox represents mandatory (minOccurs),
+     *                          {@code false} if it represents multi-value (maxOccurs)
+     * @return boolean model backing the checkbox component
+     */
+    private @NotNull IModel<Boolean> createModelForOccurs(
+            IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel,
+            ItemName path,
+            String trueValue,
+            String falseValue,
+            boolean isMandatoryCheck) {
         return new IModel<>() {
             @Override
             public Boolean getObject() {
                 Boolean isTrueOccurs = null;
+                PrismContainerValueWrapper<ResourceAttributeDefinitionType> attributeDefVW = rowModel.getObject();
+
                 try {
                     PrismContainerWrapper<PropertyLimitationsType> limitation =
-                            rowModel.getObject().findContainer(ResourceAttributeDefinitionType.F_LIMITATIONS);
-                    if (limitation != null && !limitation.getValues().isEmpty()){
+                            attributeDefVW.findContainer(ResourceAttributeDefinitionType.F_LIMITATIONS);
+                    if (limitation != null && !limitation.getValues().isEmpty()) {
                         PrismPropertyWrapper<String> occurs = limitation.getValues().iterator().next().findProperty(path);
                         if (occurs != null) {
                             isTrueOccurs = trueValue.equals(occurs.getValue().getRealValue());
                         }
                     }
-                } catch (SchemaException e) {
+                } catch (SchemaException | RuntimeException e) {
                     LOGGER.error("Couldn't create new value for limitation container", e);
                 }
-                return Boolean.TRUE.equals(isTrueOccurs);
+
+                if (isTrueOccurs == null) {
+                    isTrueOccurs = trueValue.equals(getSchemaRefAttributeDefaultValue(attributeDefVW, isMandatoryCheck));
+                }
+
+                return isTrueOccurs;
+            }
+
+            private String getSchemaRefAttributeDefaultValue(
+                    PrismContainerValueWrapper<ResourceAttributeDefinitionType> attributeDefVW,
+                    boolean isMandatoryCheck) {
+                try {
+                    ResourceAttributeDefinitionType attrDef = attributeDefVW.getRealValue();
+                    CompleteResourceSchema refinedSchema = getResourceDetailsModel().getRefinedSchema();
+                    ShadowKindType kind = getObjectTypeDefinition().getKind();
+                    String intent = getObjectTypeDefinition().getIntent();
+                    ResourceObjectTypeDefinition objDef = refinedSchema.getObjectTypeDefinition(kind, intent);
+
+                    if (objDef == null) {
+                        return falseValue;
+                    }
+
+                    PrismPropertyDefinition<?> propDef =
+                            objDef.findPropertyDefinition(attrDef.getRef().getItemPath());
+
+                    if (propDef == null) {
+                        return falseValue;
+                    }
+
+                    if (isMandatoryCheck) {
+                        return propDef.isMandatory() ? trueValue : falseValue;
+                    } else {
+                        return !propDef.isSingleValue() ? trueValue : falseValue;
+                    }
+
+                } catch (SchemaException | RuntimeException | ConfigurationException e) {
+                    LOGGER.error("Couldn't resolve refined schema attribute definition", e);
+                    return falseValue;
+                }
             }
 
             @Override
@@ -218,9 +301,6 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
                     PrismContainerWrapper<PropertyLimitationsType> limitation =
                             rowModel.getObject().findContainer(ResourceAttributeDefinitionType.F_LIMITATIONS);
                     if (limitation.getValues().isEmpty()) {
-                        if (!isTrueOccurs) {
-                            return;
-                        }
                         PrismContainerValue<PropertyLimitationsType> newItem = limitation.getItem().createNewValue();
                         PrismContainerValueWrapper<PropertyLimitationsType> newItemWrapper = WebPrismUtil.createNewValueWrapper(
                                 limitation, newItem, getPageBase());
@@ -228,17 +308,31 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
                     }
                     PrismContainerValueWrapper<PropertyLimitationsType> value = limitation.getValues().iterator().next();
                     PrismPropertyWrapper<Object> minOccurs = value.findProperty(path);
-                    String actualValue = (String) minOccurs.getValue().getRealValue();
-                    if (isTrueOccurs) {
-                        minOccurs.getValue().setRealValue(trueValue);
-                    } else if (actualValue != null){
-                        minOccurs.getValue().setRealValue(falseValue);
+                    Object rv = minOccurs.getValue().getRealValue();
+                    String actualValue = rv != null ? String.valueOf(rv) : null;
+                    String desired = isTrueOccurs ? trueValue : falseValue;
+
+                    if (!Objects.equals(actualValue, desired)) {
+                        minOccurs.getValue().setRealValue(desired);
                     }
+
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't create new value for limitation container", e);
                 }
             }
         };
+    }
+
+    /**
+     * Returns the parent {@link ResourceObjectTypeDefinitionType}
+     * of the current container value.
+     *
+     * @return the associated object type definition
+     */
+    protected @NotNull ResourceObjectTypeDefinitionType getObjectTypeDefinition() {
+        PrismContainerValueWrapper<C> value = getValueModel().getObject();
+        var parentContainerValue = value.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+        return parentContainerValue.getRealValue();
     }
 
     protected LoadableModel<PrismContainerDefinition<ResourceAttributeDefinitionType>> getAttributeDefinition() {
@@ -249,6 +343,8 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
             }
         };
     }
+
+    protected abstract ResourceDetailsModel getResourceDetailsModel();
 
     @Override
     protected UserProfileStorage.TableId getTableId() {

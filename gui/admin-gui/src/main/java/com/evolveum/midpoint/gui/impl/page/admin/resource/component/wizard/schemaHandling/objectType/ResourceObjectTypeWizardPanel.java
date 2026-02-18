@@ -33,6 +33,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWithSeparatedCreatePanel<ResourceObjectTypeDefinitionType> {
 
+    boolean isFromTypePreview = false;
+
     public ResourceObjectTypeWizardPanel(
             String id,
             WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
@@ -46,6 +48,14 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
             protected void postSubmitPerformed(AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel.this.showTypePreviewFragment(target);
             }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
+                if (isFromTypePreview) {
+                    showTypePreviewFragment(target);
+                }
+            }
         };
     }
 
@@ -54,6 +64,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
         return new ResourceObjectTypeWizardChoicePanel(getIdOfChoicePanel(), createHelper(false)) {
             @Override
             protected void onTileClickPerformed(ResourceObjectTypePreviewTileType value, AjaxRequestTarget target) {
+                isFromTypePreview = true;
                 switch (value) {
                     case BASIC:
                         showResourceObjectTypeBasic(target);
@@ -103,8 +114,18 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
     private void showPoliciesWizard(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new PoliciesObjectTypeWizardPanel(getIdOfChoicePanel(), createHelper(false))
-        );
+                new PoliciesObjectTypeWizardPanel(getIdOfChoicePanel(), createHelper(false)) {
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        removeLastBreadcrumb();
+                        checkDeltasExitPerformed(target);
+                    }
+
+                    @Override
+                    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
+                        showChoiceFragment(target, ResourceObjectTypeWizardPanel.this.createTypePreview());
+                    }
+                });
     }
 
     private void showResourceObjectTypeBasic(AjaxRequestTarget target) {
@@ -116,7 +137,18 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
     private void showCredentialsWizardPanel(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new CredentialsWizardPanel(getIdOfChoicePanel(), createHelper(ResourceObjectTypeDefinitionType.F_CREDENTIALS, false))
+                new CredentialsWizardPanel(getIdOfChoicePanel(), createHelper(ResourceObjectTypeDefinitionType.F_CREDENTIALS, false)) {
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        removeLastBreadcrumb();
+                        checkDeltasExitPerformed(target);
+                    }
+
+                    @Override
+                    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
+                        showTypePreviewFragment(target);
+                    }
+                }
         );
     }
 
@@ -152,7 +184,18 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
     private void showActivationsWizard(AjaxRequestTarget target) {
         showWizardFragment(
                 target,
-                new ActivationsWizardPanel(getIdOfWizardPanel(), createHelper(ResourceObjectTypeDefinitionType.F_ACTIVATION, false))
+                new ActivationsWizardPanel(getIdOfWizardPanel(), createHelper(ResourceObjectTypeDefinitionType.F_ACTIVATION, false)) {
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        removeLastBreadcrumb();
+                        checkDeltasExitPerformed(target);
+                    }
+
+                    @Override
+                    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
+                        showTypePreviewFragment(target);
+                    }
+                }
         );
     }
 

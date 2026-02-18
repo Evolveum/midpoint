@@ -205,6 +205,11 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             public void onBackPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTablePanel(direction));
             }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("SimulationTaskWizardPanel.attributeMappingWizardPanel.back");
+            }
         };
     }
 

@@ -2720,7 +2720,7 @@
                     </xsd:annotation>
                 </xsd:element>
 
-                <xsd:element name="mapping" type="tns:MappingWorkDefinitionType" minOccurs="0">
+                <xsd:element name="mappings" type="tns:MappingWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Simulates a mapping on a selected sample of shadows.
@@ -10692,6 +10692,9 @@
                 Work definition for mapping simulation activity. Selects shadows to be processed and
                 specifies the mappings to be simulated on them. Please note, that activity
                 implementing this work definition only supports PREVIEW execution mode.
+
+                Also note that if the `includeExistingCorrelators` is set to false (default), then at least one
+                mapping has to be specified in the `inlineMappings`.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -10701,10 +10704,22 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ResourceWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="mappings" type="tns:SimulatedMappingsType">
+                    <xsd:element name="includeExistingMappings" type="xsd:boolean" minOccurs="0" default="false">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specify what mappings should be simulated.
+                                Use mappings derived from the resource of given shadows.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <!-- If the value of `includeExistingMappings` is "false" then bellow element has to be present. -->
+
+                    <xsd:element name="inlineMappings" type="tns:InlineMappingDefinitionType" minOccurs="0"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Inline definition of correlators. It can be used to explicitly define the correlator, for
+                                example in case when we want to simulate suggested correlation (which is not stored yet).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -10713,41 +10728,6 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="mappingWorkDefinition" type="tns:MappingWorkDefinitionType"/>
-
-    <xsd:complexType name="SimulatedMappingsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specify what mappings to simulate. Note that if the `includeExistingCorrelators` is set
-                to false (default), then at least one mapping has to be specified in the `inlineMappings`.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-                <a:since>4.11</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="includeExistingMappings" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Use mappings derived from the resource of given shadows.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <!-- If the value of `includeExistingMappings` is "false" then bellow element has to be present. -->
-
-            <xsd:element name="inlineMappings" type="tns:InlineMappingDefinitionType" minOccurs="0"
-                         maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Inline definition of correlators. It can be used to explicitly define the correlator, for
-                        example in case when we want to simulate suggested correlation (which is not stored yet).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="simulatedMappings" type="tns:SimulatedMappingsType"/>
 
     <xsd:complexType name="InlineMappingDefinitionType">
         <xsd:annotation>

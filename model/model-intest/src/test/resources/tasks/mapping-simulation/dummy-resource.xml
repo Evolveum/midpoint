@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  ~
+  -->
+
+<resource oid="f499e126-f235-4141-82eb-15df1d9c2adc"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>resource-dummy-mapping</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>mapping-test</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = ""</q:text>
+                </filter>
+            </delineation>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <focus>
+                <type>UserType</type>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:correlator</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:employeeNumber</ref>
+                <inbound>
+                    <name>empNum</name>
+                    <target>
+                        <path>employeeNumber</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:familyName</ref>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <abstract>true</abstract>
+            <kind>account</kind>
+            <intent>generic</intent>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <inbound>
+                    <name>givenName</name>
+                    <target>
+                        <path>nickName</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>exclusion-test</intent>
+            <super>
+                <kind>account</kind>
+                <intent>generic</intent>
+            </super>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = "exclusion-test"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>ri:employeeNumber</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:delineator</ref>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+</resource>
