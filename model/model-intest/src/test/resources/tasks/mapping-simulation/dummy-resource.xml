@@ -6,14 +6,14 @@
   ~
   -->
 
-<resource oid="8582b8d8-7f29-4dbd-85f6-d674ca40df96"
+<resource oid="f499e126-f235-4141-82eb-15df1d9c2adc"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>resource-dummy-correlation</name>
+    <name>resource-dummy-mapping</name>
     <connectorRef type="c:ConnectorType">
         <filter>
             <q:and>
@@ -31,7 +31,7 @@
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>correlation-test</icfi:instanceId>
+            <icfi:instanceId>mapping-test</icfi:instanceId>
         </icfc:configurationProperties>
     </connectorConfiguration>
 
@@ -40,6 +40,12 @@
             <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = ""</q:text>
+                </filter>
+            </delineation>
             <objectClass>ri:AccountObjectClass</objectClass>
             <focus>
                 <type>UserType</type>
@@ -51,8 +57,12 @@
                 <ref>icfs:uid</ref>
             </attribute>
             <attribute>
+                <ref>ri:correlator</ref>
+            </attribute>
+            <attribute>
                 <ref>ri:employeeNumber</ref>
                 <inbound>
+                    <name>empNum</name>
                     <target>
                         <path>employeeNumber</path>
                     </target>
@@ -60,27 +70,45 @@
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
-                <inbound>
-                    <target>
-                        <path>givenName</path>
-                    </target>
-                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:familyName</ref>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <abstract>true</abstract>
+            <kind>account</kind>
+            <intent>generic</intent>
+            <attribute>
+                <ref>ri:givenName</ref>
                 <inbound>
+                    <name>givenName</name>
                     <target>
-                        <path>familyName</path>
+                        <path>nickName</path>
                     </target>
                 </inbound>
             </attribute>
-            <mappingsEvaluation>
-                <inbound>
-                    <defaultEvaluationPhases>
-                        <phase>beforeCorrelation</phase>
-                    </defaultEvaluationPhases>
-                </inbound>
-            </mappingsEvaluation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>exclusion-test</intent>
+            <super>
+                <kind>account</kind>
+                <intent>generic</intent>
+            </super>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = "exclusion-test"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>ri:employeeNumber</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:delineator</ref>
+            </attribute>
         </objectType>
     </schemaHandling>
 </resource>

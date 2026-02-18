@@ -180,6 +180,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
     @SuppressWarnings("unchecked")
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
+        removeLastBreadcrumb();
         var suggestionValueWrapper = selectedModel.getObject();
         if (suggestionValueWrapper == null || suggestionValueWrapper.getRealValue() == null) {
             getPageBase().warn(getPageBase().createStringResource("Smart.suggestion.noSelection")

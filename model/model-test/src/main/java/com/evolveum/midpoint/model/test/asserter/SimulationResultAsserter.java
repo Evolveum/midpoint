@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BuiltInSimulationMetricType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +20,6 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 import java.math.BigDecimal;
 
@@ -104,7 +103,7 @@ public class SimulationResultAsserter<RA> extends AbstractAsserter<RA> {
 
     public SimulationResultAsserter<RA> assertObjectsProcessed(int expected) {
         assertThat(SimulationResultTypeUtil.getObjectsProcessed(simulationResult))
-                .as("objects deleted")
+                .as("objects processed")
                 .isEqualTo(expected);
         return this;
     }

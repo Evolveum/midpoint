@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -34,6 +35,7 @@ import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyObjectTypePermissionData;
 
 public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
@@ -172,6 +174,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
 
     private @NotNull ResourceSuggestedObjectTypeTableWizardPanel<ResourceObjectTypeDefinitionType> buildSelectSuggestedObjectTypeWizardPanel(
             @NotNull String idOfChoicePanel, QName objectClassName) {
+        removeLastBreadcrumb();
         return new ResourceSuggestedObjectTypeTableWizardPanel<>(idOfChoicePanel, getHelper(), objectClassName) {
 
             @Override
@@ -180,14 +183,18 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                     @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
                     @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
                     @NotNull AjaxRequestTarget target) {
-                var suggestedValueContainer = model.getObject();
-                ResourceObjectTypeDefinitionType suggestedObjectTypeDef = suggestedValueContainer.getRealValue();
                 PageBase pageBase = getPageBase();
 
-                clearPageFeedback(target);
-                PrismContainerWrapper<ResourceObjectTypeDefinitionType> containerModelObject = containerModel.getObject();
-                newValue.setParent(containerModelObject.getItem());
-                onReviewSelected(newValue, containerModelObject.getPath(), target, ajaxRequestTarget -> {
+                ResourceObjectTypeDefinitionType suggestedObjectTypeDef =  model.getObject().getRealValue();
+
+                PrismContainerValue<ResourceObjectTypeDefinitionType> original =
+                        newValue.clone();
+                WebPrismUtil.cleanupEmptyContainerValue(original);
+
+                PrismContainerValue<ResourceObjectTypeDefinitionType> suggestion =
+                        processSuggestedContainerValue(original);
+
+                onReviewSelected(suggestion, containerModel.getObject().getPath(), target, ajaxRequestTarget -> {
                     Task task = pageBase.createSimpleTask(OP_DELETE_SUGGESTIONS);
                     OperationResult result = task.getResult();
                     removeObjectTypeSuggestionNew(pageBase, statusInfo, suggestedObjectTypeDef, task, result);

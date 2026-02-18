@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +30,15 @@ import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -376,7 +381,7 @@ public class CorrelationServiceImpl implements CorrelationService {
 
         stateCheck(ShadowUtil.isClassified(shadow), "Shadow %s is not classified: %s/%s", shadow, shadow.getKind(),
                 shadow.getIntent());
-        final ResourceType resource = getResource(shadow, task, result);
+        final ResourceType resource = beans.provisioningService.getShadowResource(shadow, task, result);
         final ResourceObjectTypeIdentification objectTypeId = getKindAndIntent(shadow);
         final SynchronizationPolicy policy =
                 MiscUtil.requireNonNull(
@@ -413,7 +418,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         stateCheck(ShadowUtil.isClassified(shadow), "Shadow %s is not classified: %s/%s", shadow, shadow.getKind(),
                 shadow.getIntent());
 
-        final ResourceType resource = getResource(shadow, task, result);
+        final ResourceType resource = beans.provisioningService.getShadowResource(shadow, task, result);
 
         final ResourceObjectTypeIdentification objectTypeId = getKindAndIntent(shadow);
         final ResourceObjectTypeDefinition objectTypeDefinition = getObjectTypeDefinition(resource, objectTypeId,
@@ -611,14 +616,39 @@ public class CorrelationServiceImpl implements CorrelationService {
         return ctx.getConfiguration().getCorrelationItemPaths();
     }
 
-    private @NotNull ResourceType getResource(@NotNull ShadowType shadow, @NotNull Task task,
-            @NotNull OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
-        final String resourceOid = ShadowUtil.getResourceOidRequired(shadow);
-        return beans.provisioningService
-                .getObject(ResourceType.class, resourceOid, null, task, result)
-                .asObjectable();
+    @Override
+    public Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, OperationResult result)
+            throws SchemaException {
+        final ObjectQuery query = PrismContext.get().queryFor(FocusType.class)
+                .item(FocusType.F_LINK_REF)
+                .ref(shadow.getOid())
+                .build();
+
+        final SearchResultList<PrismObject<FocusType>> linkedFocuses = this.repositoryService.searchObjects(
+                FocusType.class, query, null, result);
+        if (linkedFocuses.size() == 1) {
+            return Optional.of(linkedFocuses.get(0).asObjectable());
+        } else if (linkedFocuses.size() > 1) {
+            throw new IllegalStateException("Shadow " + shadow + " is linked with more than one focus: "
+                    + linkedFocuses);
+        }
+
+        final String ownerCandidateOid = Optional.ofNullable(shadow.getCorrelation())
+                .map(ShadowCorrelationStateType::getResultingOwner)
+                .map(AbstractReferencable::getOid)
+                .orElse(null);
+        if (ownerCandidateOid == null) {
+            return Optional.empty();
+        }
+
+        try {
+            final FocusType correlatedFocus = this.repositoryService.getObject(FocusType.class, ownerCandidateOid, null, result)
+                    .asObjectable();
+            return Optional.of(correlatedFocus);
+        } catch (ObjectNotFoundException e) {
+            throw new IllegalStateException("Shadow" + shadow + " is correlated with focus with oid "
+                    + ownerCandidateOid + ", which does not exist.");
+        }
     }
 
     private static @NotNull ResourceObjectTypeIdentification getKindAndIntent(@NotNull ShadowType shadow) {

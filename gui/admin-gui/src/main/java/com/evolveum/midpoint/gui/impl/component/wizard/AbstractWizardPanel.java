@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 
@@ -118,6 +120,36 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
 
     protected void onExitPerformed(AjaxRequestTarget target) {
         helper.onExitPerformed(target);
+    }
+
+    public void checkDeltasExitPerformed(AjaxRequestTarget target) {
+
+        if (!((PageAssignmentHolderDetails<?, ?>) getPageBase()).hasUnsavedChanges(target)) {
+            processDeltasExitPerform(target);
+            return;
+        }
+        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                createStringResource("OperationalButtonsPanel.confirmBack")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                processDeltasExitPerform(target);
+            }
+        };
+
+        getPageBase().showMainPopup(confirmationPanel, target);
+    }
+
+    private void processDeltasExitPerform(AjaxRequestTarget target) {
+        getAssignmentHolderModel().reloadPrismObjectModel();
+        getHelper().refreshValueModel();
+        showAfterCheckDeltasExitPerformed(target);
+    }
+
+    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
+
     }
 
     public AHD getAssignmentHolderModel() {

@@ -79,7 +79,7 @@ You can use _correlation-only_ xref:/midpoint/reference/admin-gui/resource-wizar
 
 To add correlation items to correlation rules:
 
-. Open the list of correlation rules in your resource via [.nowrap]#icon:male[] btn:[Accounts]# > [.nowrap]#icon:cog[] btn:[Configure]# > [.nowrap]#icon:code-branch[] btn:[Correlation]#.
+. Open the list of correlation rules in your resource via [.nowrap]#icon:male[] *Accounts*# > [.nowrap]#icon:cog[] btn:[Configure]# > [.nowrap]#icon:code-branch[] *Correlation*#.
 . In the list of correlation rules, click [.nowrap]#icon:eye[] btn:[Edit rule]# on a correlation rule for which you want to configure the correlation items.
 . Add a correlation item by clicking:
 ** [.nowrap]#icon:link[] btn:[Add existing]# if you have already defined an inbound mapping for the attribute you want to use for correlation.
@@ -174,7 +174,7 @@ image::correlations-regenerate.webp[title="Enable the AI assistant."]
 
 If you experience issues with AI not generating suggestions:
 
-* Check that your resource is connected by going to [.nowrap]#icon:database[] btn:[Resources]# > [.nowrap]#icon:database[] btn:[All Resources]# > resource, and clicking [.nowrap]#icon:question[] btn:[Test connection]#.
+* Check that your resource is connected by going to [.nowrap]#icon:database[] *Resources*# > [.nowrap]#icon:database[] *All Resources*# > resource, and clicking [.nowrap]#icon:question[] btn:[Test connection]#.
 * Check that xref:/midpoint/reference/resources/attribute-caching[shadow caching] is enabled on your resource.
 * Make sure object types are configured correctly on your resource.
 
