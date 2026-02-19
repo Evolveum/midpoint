@@ -364,7 +364,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
         final ObjectProcessingStateType processingState;
         final PrismObject<T> prismObjectAfter = (PrismObject<T>) objectAfter.asPrismObject();
-        if (delta != null) {
+        if (delta != null && !delta.isEmpty()) {
             delta.applyTo(prismObjectAfter);
             processingState = ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType());
         } else {
@@ -380,12 +380,13 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 objectAfter.getName(),
                 processingState,
                 ParsedMetricValues.fromEventMarks(
-                        determineItemValueChangesEventMarks(
+                        List.of(determineItemValueChangesEventMarks(
                                 (PrismObject<T>) objectBefore.asPrismObject(),
-                                prismObjectAfter),
+                                prismObjectAfter)),
                         List.of(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value(),
-                                SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value())),
+                                SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value(),
+                                SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value())),
                 objectClass.isAssignableFrom(FocusType.class),
                 null,
                 objectBefore,
@@ -401,22 +402,20 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return processedObject;
     }
 
-    private static <T extends ObjectType> List<String> determineItemValueChangesEventMarks(PrismObject<T> before,
+    private static <T extends ObjectType> String determineItemValueChangesEventMarks(PrismObject<T> before,
             PrismObject<T> after) {
         final List<? extends ItemDelta> modifications = before.diffModifications(after,
                 EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         if (modifications.isEmpty()) {
-            return Collections.emptyList();
+            return SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value();
         }
-        final List<String> marks = new ArrayList<>();
         if (modifications.stream().allMatch(ItemDelta::isAdd)) {
-            marks.add(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value());
-        } else if (modifications.stream().allMatch(ItemDelta::isDelete)) {
-            marks.add(SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value());
-        } else {
-            marks.add(SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value());
+            return SystemObjectsType.MARK_ITEM_VALUE_ADDED.value();
         }
-        return marks;
+        if (modifications.stream().allMatch(ItemDelta::isDelete)) {
+            return SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value();
+        }
+        return SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value();
     }
 
     private static List<String> determineShadowEventMarks(ShadowType before, ShadowType after) {
