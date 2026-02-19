@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -65,26 +66,26 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     protected abstract void initPanel(String panelId);
 
     protected final void onNewValue(
-            PrismContainerValue<C> value,
-            IModel<PrismContainerWrapper<C>> containerModel,
+            PrismContainerValue<C> newValue,
+            @NotNull IModel<PrismContainerWrapper<C>> containerModel,
             WrapperContext context,
             AjaxRequestTarget target,
             boolean isDeprecate,
             @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
         PageBase pageBase = getPageBase();
         PrismContainerWrapper<C> container = containerModel.getObject();
-        PrismContainerValue<C> newValue = value;
-        if (newValue == null) {
-            newValue = container.getItem().createNewValue();
-        }
+
         PrismContainerValueWrapper<C> newWrapper = null;
         try {
-            newWrapper = WebPrismUtil.createNewValueWrapper(
-                    container, newValue, pageBase, context);
-            container.getValues().add(newWrapper);
+            newWrapper = WebPrismUtil.addNewValueToContainer(
+                    container,
+                    newValue,
+                    pageBase,
+                    context);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't create new value for container " + container, e);
+            LOGGER.error("Couldn't create new value for container {}", container, e);
         }
+
         IModel<PrismContainerValueWrapper<C>> model = Model.of(newWrapper);
         onCreateValue(model, target, isDeprecate, postSaveHandler);
     }
