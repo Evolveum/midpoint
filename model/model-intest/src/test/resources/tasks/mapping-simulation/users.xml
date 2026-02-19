@@ -28,4 +28,21 @@
         <givenName>Johnny</givenName>
         <familyName>Bravo</familyName>
     </user>
+    <user xsi:type="UserType">
+        <name>cena</name>
+        <givenName>John</givenName>
+        <familyName>Cena</familyName>
+    </user>
+    <user xsi:type="UserType">
+        <name>snow</name>
+        <givenName>John</givenName>
+        <familyName>Snow</familyName>
+        <personalNumber>3456</personalNumber>
+    </user>
+    <user xsi:type="UserType">
+        <name>rambo</name>
+        <givenName>John</givenName>
+        <familyName>Rambo</familyName>
+        <personalNumber>8888</personalNumber>
+    </user>
 </objects>

@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
@@ -359,11 +360,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForObject(@NotNull Class<T> objectClass,
             @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction)
             throws SchemaException {
-        T focusAfter = (T) objectBefore.clone();
+        final T objectAfter = (T) objectBefore.clone();
 
         final ObjectProcessingStateType processingState;
+        final PrismObject<T> prismObjectAfter = (PrismObject<T>) objectAfter.asPrismObject();
         if (delta != null) {
-            delta.applyTo((PrismObject<T>) focusAfter.asPrismObject());
+            delta.applyTo(prismObjectAfter);
             processingState = ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType());
         } else {
             processingState = ObjectProcessingStateType.UNMODIFIED;
@@ -375,13 +377,19 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 objectClass,
                 null,
                 null,
-                focusAfter.getName(),
+                objectAfter.getName(),
                 processingState,
-                new ParsedMetricValues(Collections.emptyMap()),
+                ParsedMetricValues.fromEventMarks(
+                        determineItemValueChangesEventMarks(
+                                (PrismObject<T>) objectBefore.asPrismObject(),
+                                prismObjectAfter),
+                        List.of(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value(),
+                                SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value(),
+                                SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value())),
                 objectClass.isAssignableFrom(FocusType.class),
                 null,
                 objectBefore,
-                focusAfter,
+                objectAfter,
                 delta,
                 InternalState.CREATING);
 
@@ -391,6 +399,24 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         processedObject.setResultAndStatus(null, OperationResultStatusType.SUCCESS);
 
         return processedObject;
+    }
+
+    private static <T extends ObjectType> List<String> determineItemValueChangesEventMarks(PrismObject<T> before,
+            PrismObject<T> after) {
+        final List<? extends ItemDelta> modifications = before.diffModifications(after,
+                EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+        if (modifications.isEmpty()) {
+            return Collections.emptyList();
+        }
+        final List<String> marks = new ArrayList<>();
+        if (modifications.stream().allMatch(ItemDelta::isAdd)) {
+            marks.add(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value());
+        } else if (modifications.stream().allMatch(ItemDelta::isDelete)) {
+            marks.add(SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value());
+        } else {
+            marks.add(SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value());
+        }
+        return marks;
     }
 
     private static List<String> determineShadowEventMarks(ShadowType before, ShadowType after) {
