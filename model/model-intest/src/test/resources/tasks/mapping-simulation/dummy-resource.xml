@@ -77,6 +77,17 @@
         </objectType>
 
         <objectType>
+            <kind>account</kind>
+            <intent>marks-test</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = "marks-test"</q:text>
+                </filter>
+            </delineation>
+        </objectType>
+
+        <objectType>
             <abstract>true</abstract>
             <kind>account</kind>
             <intent>generic</intent>
@@ -103,12 +114,6 @@
                     <q:text>c:attributes/ri:delineator = "exclusion-test"</q:text>
                 </filter>
             </delineation>
-            <attribute>
-                <ref>ri:employeeNumber</ref>
-            </attribute>
-            <attribute>
-                <ref>ri:delineator</ref>
-            </attribute>
         </objectType>
     </schemaHandling>
 </resource>

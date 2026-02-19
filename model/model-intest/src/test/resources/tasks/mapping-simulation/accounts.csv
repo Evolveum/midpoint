@@ -3,3 +3,6 @@ id   | delineator     | correlator    | givenName | familyName | employeeNumber 
 2    |                | McClane       | John      | McClane    |                | not linked but user exists; should be correlated in test
 3    |                | travolta      | John      | Travolta   |                | user does not exist
 4    | exclusion-test | bravo         | Johnny    | Bravo      | 4321           | should be linked
+5    | marks-test     | cena          | John      | Cena       | 2345           | should be linked; emp number added to personal number
+6    | marks-test     | snow          | John      | Snow       |                | should be linked; personal number deleted
+7    | marks-test     | rambo         | John      | Rambo      | 4567           | should be linked; personal number replaced with emp number

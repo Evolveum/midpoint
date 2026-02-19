@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.impl.mappings.tasks;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
