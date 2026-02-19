@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
 import static com.evolveum.midpoint.prism.delta.ObjectDelta.isModify;
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.SUPERPATH;
 import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.*;
@@ -16,6 +17,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +26,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
@@ -64,7 +64,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
     /**
      * Sets object and assignment metadata on object ADD operation.
      * We assume that assignments already have the respective metadata values, see
-     * {@link #applyMetadataOnAssignmentAddOp(LensContext, AssignmentType, String, XMLGregorianCalendar, Task)}.
+     * {@link #applyMetadataOnAssignmentAddOp(LensContext, AssignmentType, String, Collection, XMLGregorianCalendar, Task)}.
      */
     public <T extends ObjectType> void applyMetadataOnObjectAddOp(
             LensContext<?> context, PrismObject<T> objectToAdd, XMLGregorianCalendar now, Task task)
@@ -80,7 +80,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
 
         if (objectBean instanceof AssignmentHolderType assignmentHolder) {
             for (var assignment : assignmentHolder.getAssignment()) {
-                applyMetadataOnAssignmentAddOp(context, assignment, "ADD", now, task);
+                applyMetadataOnAssignmentAddOp(context, assignment, "ADD", Set.of(), now, task);
             }
         }
     }
@@ -106,7 +106,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
     /**
      * Creates deltas for object and assignment metadata on object MODIFY operation.
      * We assume that assignments already have the respective metadata values, see
-     * {@link #applyMetadataOnAssignmentAddOp(LensContext, AssignmentType, String, XMLGregorianCalendar, Task)}.
+     * {@link #applyMetadataOnAssignmentAddOp(LensContext, AssignmentType, String, Collection, XMLGregorianCalendar, Task)}.
      */
     public <T extends ObjectType> void applyMetadataOnObjectModifyOp(
             @NotNull ObjectDelta<T> objectDelta,
@@ -276,10 +276,16 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
      * Applies metadata to an assignment that is being added (either as part of object ADD operation, or by object MODIFY
      * operation). We assume that there are already existing metadata, generated either by mapping(s), by model API caller,
      * or at the beginning of the clockwork operation. We only set the relevant metadata there.
+     *
+     * @see #addExternalAssignmentProvenance(LensContext, Task)
      */
     private void applyMetadataOnAssignmentAddOp(
-            LensContext<?> context, AssignmentType assignment, String desc,
-            XMLGregorianCalendar now, Task task) {
+            LensContext<?> context,
+            AssignmentType assignment,
+            String desc,
+            Collection<Long> modifiedAssignmentIds,
+            XMLGregorianCalendar now,
+            Task task) {
 
         var allMetadata = assignment.asPrismContainerValue().getValueMetadata();
         if (allMetadata.hasNoValues()) {
@@ -287,56 +293,127 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
             return;
         }
 
-        ActivationType activation = setAssignmentEffectiveStatus(assignment);
+        PrismContainerValue<?> currentAssignmentValue = findCurrentAssignmentValue(context, assignment);
+        if (currentAssignmentValue != null) {
+            LOGGER.trace("Assignment ({}) is not new, it already exists in the current object, having ID={}. "
+                    + "We will just transplant the original request and storage metadata.", desc, currentAssignmentValue.getId());
+            // We cannot simply skip the delta from being applied (by the repo) even if it's a phantom add.
+            // The reason is that we may need the repo to merge the value metadata from the delta with the current metadata.
+            //
+            // So, we will transplant the current metadata into the delta. That way, we won't neither lose them (which would
+            // happen if we simply proceded with no metadata in the delta, because the delta execution would delete the metadata),
+            // nor we won't update them by current date/time (which is incorrect as well, see MID-10979).
 
-        // TODO is it OK that we add the request/create metadata to all the values?
-        for (var metadata : allMetadata.getRealValues(ValueMetadataType.class)) {
-            setRequestMetadataOnAddOp(context, metadata);
-            setStorageMetadataOnAddOp(context, metadata, now, task);
-            // note that assignment approval metadata are handled by ApprovalMetadataHelper in workflow-impl (WHY?)
+            // However, we must consider the situation when the assignment is also modified. See TestBasicValueMetadata.test195.
+            ObjectModificationStorageMetadata modificationStorageMetadata;
+            if (modifiedAssignmentIds.contains(currentAssignmentValue.getId())) {
+                modificationStorageMetadata = ObjectModificationStorageMetadata.create(context, now, task);
+            } else {
+                modificationStorageMetadata = null;
+            }
+
+            // TODO is it OK that we add the request/create metadata to all the values?
+            for (var metadata : allMetadata.getRealValues(ValueMetadataType.class)) {
+                transplantRequestAndStorageMetadataOnPhantomAddOp(metadata, currentAssignmentValue);
+                if (modificationStorageMetadata != null) {
+                    modificationStorageMetadata.updateBean(metadata.getStorage());
+                }
+            }
+
+        } else {
+
+            // see applicability comments in the called method (setAssignmentEffectiveStatus)
+            ActivationType activation = setAssignmentEffectiveStatus(assignment);
+
+            // TODO is it OK that we add the request/create metadata to all the values?
+            for (var metadata : allMetadata.getRealValues(ValueMetadataType.class)) {
+                setRequestMetadataOnAddOp(context, metadata);
+                setStorageMetadataOnAddOp(context, metadata, now, task);
+                // note that assignment approval metadata are handled by ApprovalMetadataHelper in workflow-impl, delegated
+                // here to #addAssignmentCreationApprovalMetadata method
+            }
+            LOGGER.trace("Added operational data to assignment ({}):\nCurrent metadata:\n{}\nCurrent activation:\n{}",
+                    desc, allMetadata.debugDumpLazily(1), activation.debugDumpLazily(1));
         }
-
-        LOGGER.trace("Added operational data to assignment ({}):\nCurrent metadata:\n{}\nCurrent activation:\n{}",
-                desc, allMetadata.debugDumpLazily(1), activation.debugDumpLazily(1));
     }
 
+    private static @Nullable PrismContainerValue<?> findCurrentAssignmentValue(LensContext<?> context, AssignmentType assignment) {
+        var currentObject = context.getFocusContextRequired().getObjectCurrent();
+        if (currentObject != null) {
+            var currentAssignment = currentObject.findItem(FocusType.F_ASSIGNMENT);
+            if (currentAssignment != null) {
+                // We use the same equivalence strategy as is used when determining if the value is to be really added
+                // (in the repo).
+                return (PrismContainerValue<?>) currentAssignment.findValue(
+                        assignment.asPrismContainerValue(), REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Creates deltas for assignment metadata on "modify object" operation.
+     * Merges them right into the object delta.
+     *
+     * The logic is similar to the one of `ApprovalMetadataHelper.addAssignmentApprovalMetadataOnObjectModify` (`workflow-impl`)
+     */
     private void applyAssignmentMetadataOnObjectModifyOp(
-            LensContext<?> context, @NotNull AssignmentHolderType objectCurrent, ObjectDelta<?> objectDelta,
-            XMLGregorianCalendar now, Task task) throws SchemaException {
+            @NotNull LensContext<?> context,
+            @NotNull AssignmentHolderType objectCurrent,
+            @NotNull ObjectDelta<?> objectDelta,
+            @NotNull XMLGregorianCalendar now,
+            @NotNull Task task)
+            throws SchemaException {
 
         assert objectDelta.isModify();
 
-        // see also ApprovalMetadataHelper.addAssignmentApprovalMetadataOnObjectModify
-        Set<Long> processedAssignmentIds = new HashSet<>(); // an assignment can be mentioned by multiple item deltas
+        Set<Long> modifiedAssignmentIds = new HashSet<>();
         for (var itemDelta : List.copyOf(objectDelta.getModifications())) { // copying because of concurrent modifications
             ItemPath deltaPath = itemDelta.getPath();
             CompareResult comparison = deltaPath.compareComplex(FocusType.F_ASSIGNMENT);
-            if (comparison == EQUIVALENT) {
-                // whole assignment is being added/replaced (or deleted but we are not interested in that)
-                //noinspection unchecked
-                ContainerDelta<AssignmentType> assignmentDelta = (ContainerDelta<AssignmentType>)itemDelta;
-                for (var assignmentContainerValue : emptyIfNull(assignmentDelta.getValuesToAdd())) {
-                    applyMetadataOnAssignmentAddOp(
-                            context, assignmentContainerValue.asContainerable(), "MOD/add", now, task);
-                }
-                for (var assignmentContainerValue: emptyIfNull(assignmentDelta.getValuesToReplace())) {
-                    applyMetadataOnAssignmentAddOp(
-                            context, assignmentContainerValue.asContainerable(), "MOD/replace", now, task);
-                }
-            } else if (comparison == SUPERPATH) {
+            if (comparison == SUPERPATH) {
                 Object secondSegment = deltaPath.rest().first();
                 Long id = ItemPath.isId(secondSegment) ? ItemPath.toId(secondSegment) : null;
                 if (id == null) {
                     throw new IllegalStateException(
                             "Assignment modification contains no assignment ID. Offending path = " + deltaPath);
                 }
-                if (processedAssignmentIds.add(id)) {
+                if (modifiedAssignmentIds.add(id)) {
                     var assignment = ObjectTypeUtil.getAssignmentRequired(objectCurrent, id);
                     ItemDeltaCollectionsUtil.mergeAll(
                             objectDelta.getModifications(),
                             createAssignmentModificationRelatedMetadataDeltas(context, assignment, now, task));
                 } else {
                     // this assignment was already processed
+                }
+            }
+        }
+
+        // We process the additions of assignments after their modifications in order to have "modifiedAssignmentIds" ready.
+        for (var itemDelta : List.copyOf(objectDelta.getModifications())) { // copying because of concurrent modifications
+            ItemPath deltaPath = itemDelta.getPath();
+            CompareResult comparison = deltaPath.compareComplex(FocusType.F_ASSIGNMENT);
+            if (comparison == EQUIVALENT) {
+                // the whole assignment is being added/replaced (or deleted but we are not interested in that)
+                //noinspection unchecked
+                ContainerDelta<AssignmentType> assignmentDelta = (ContainerDelta<AssignmentType>) itemDelta;
+                for (var assignmentContainerValue : emptyIfNull(assignmentDelta.getValuesToAdd())) {
+                    applyMetadataOnAssignmentAddOp(
+                            context,
+                            assignmentContainerValue.asContainerable(),
+                            "MOD/add",
+                            modifiedAssignmentIds,
+                            now,
+                            task);
+                }
+                for (var assignmentContainerValue : emptyIfNull(assignmentDelta.getValuesToReplace())) {
+                    applyMetadataOnAssignmentAddOp(
+                            context,
+                            assignmentContainerValue.asContainerable(),
+                            "MOD/replace",
+                            modifiedAssignmentIds,
+                            now,
+                            task);
                 }
             }
         }
@@ -363,11 +440,13 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
                     storageMetadata.toItemDeltas(
                             ItemPath.create(metadataPath, metadata.getId(), ValueMetadataType.F_STORAGE),
                             context.getFocusClass()));
-            // note that assignment approval metadata are handled by ApprovalMetadataHelper in workflow-impl (WHY?)
+            // note that assignment approval metadata are handled by ApprovalMetadataHelper in workflow-impl, delegating
+            // here to #createAssignmentModificationApprovalMetadata method
         }
         return deltas;
     }
 
+    // We don't need to handle phantom assignment additions here, because they would not undergone approvals.
     public void addAssignmentCreationApprovalMetadata(
             AssignmentType assignment, Collection<ObjectReferenceType> approvedBy, Collection<String> comments)
             throws SchemaException {
@@ -388,9 +467,6 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
     /** This is the minimal information. Later, we can add more (actor, channel, timestamp). */
     private static ValueMetadataType minimalAssignmentMetadata() {
         return new ValueMetadataType();
-//                .provenance(new ProvenanceMetadataType()
-//                        .acquisition(new ProvenanceAcquisitionType()
-//                                .originRef(SystemObjectsType.ORIGIN_USER_ENTRY.value(), ServiceType.COMPLEX_TYPE)));
     }
 
     public Collection<ItemDelta<?, ?>> createAssignmentModificationApprovalMetadata(
@@ -478,8 +554,8 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
      * (We assume that if the task is a part of a task tree, it is always a {@link RunningTask}.)
      */
     private static @Nullable ObjectReferenceType createRootTaskRef(@NotNull Task task) {
-        if (task instanceof RunningTask) {
-            return ((RunningTask) task).getRootTask().getSelfReference();
+        if (task instanceof RunningTask runningTask) {
+            return runningTask.getRootTask().getSelfReference();
         } else if (task.isPersistent()) {
             // Actually this should not occur in real life. If a task is persistent, it should be a RunningTask.
             return task.getSelfReference();
@@ -500,6 +576,46 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
         if (businessContext != null) {
             var process = getOrCreateProcessMetadata(targetMetadata);
             process.setRequestorComment(businessContext.getComment());
+        }
+    }
+
+    /** "Transplants" previously stored request and storage metadata from existing value into target metadata container. */
+    private void transplantRequestAndStorageMetadataOnPhantomAddOp(
+            ValueMetadataType targetMetadata, PrismContainerValue<?> sourceValue) {
+        var sourceMetadataAny = getAnyValueMetadata(sourceValue);
+        if (sourceMetadataAny == null) {
+            return; // nothing to transplant
+        }
+        var sourceProcessMetadata = sourceMetadataAny.getProcess();
+        if (sourceProcessMetadata != null) {
+            targetMetadata.setProcess(sourceProcessMetadata.cloneWithoutId());
+        }
+        var sourceStorageMetadata = sourceMetadataAny.getStorage();
+        if (sourceStorageMetadata != null) {
+            if (targetMetadata.getStorage() == null) {
+                targetMetadata.setStorage(sourceStorageMetadata.cloneWithoutId());
+            } else {
+                // Just keep previously entered data manually. (As in #setStorageMetadataOnAddOp)
+            }
+        }
+    }
+
+    /**
+     * Returns any metadata value from the given prism value. We assume that all metadata values should have the same information
+     * (in sections we are interested in, i.e. process and storage), so we can just take the first one.
+     *
+     * This anomaly is related to "is it OK that we add the request/create metadata to all the values?" comments in other methods
+     * in this class. To be resolved.
+     */
+    private static @Nullable ValueMetadataType getAnyValueMetadata(PrismValue prismValue) {
+        // cannot do it in a type-safe way, but we assume that the source metadata is correct
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        PrismContainer<ValueMetadataType> metadata = (PrismContainer) prismValue.getValueMetadata();
+        var metadataValues = metadata.getValues();
+        if (!metadataValues.isEmpty()) {
+            return metadataValues.get(0).asContainerable(ValueMetadataType.class);
+        } else {
+            return null;
         }
     }
     //endregion
@@ -577,7 +693,11 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
         }
 
         private StorageMetadataType toBean() {
-            return new StorageMetadataType()
+            return updateBean(new StorageMetadataType());
+        }
+
+        private StorageMetadataType updateBean(StorageMetadataType bean) {
+            return bean
                     .modifyChannel(modifyChannel)
                     .modifyTimestamp(modifyTimestamp)
                     .modifierRef(modifierRef)
