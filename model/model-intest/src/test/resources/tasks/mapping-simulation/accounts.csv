@@ -6,3 +6,4 @@ id   | delineator     | correlator    | givenName | familyName | employeeNumber 
 5    | marks-test     | cena          | John      | Cena       | 2345           | should be linked; emp number added to personal number
 6    | marks-test     | snow          | John      | Snow       |                | should be linked; personal number deleted
 7    | marks-test     | rambo         | John      | Rambo      | 4567           | should be linked; personal number replaced with emp number
+8    | marks-test     | connor        | John      | Connor     | 5678           | should be linked; without change

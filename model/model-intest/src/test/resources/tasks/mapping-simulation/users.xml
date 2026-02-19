@@ -45,4 +45,10 @@
         <familyName>Rambo</familyName>
         <personalNumber>8888</personalNumber>
     </user>
+    <user xsi:type="UserType">
+        <name>connor</name>
+        <givenName>John</givenName>
+        <familyName>Connor</familyName>
+        <personalNumber>5678</personalNumber>
+    </user>
 </objects>

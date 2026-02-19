@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
@@ -67,13 +68,13 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         this.resource.init(this, initTask, initResult);
         this.mappingTask = TestTask.fromFile(SIMULATION_TASK, SIMULATION_TASK_OID);
         this.users = repoAddObjectsFromFile(USERS, UserType.class, initResult);
-        assertUsers(8); // Including one admin.
+        assertUsers(9); // Including one admin.
 
         final Collection<PrismObject<ShadowType>> linkedAccounts = this.resource.getAccounts(this, this::listAccounts)
                 .linkWithUsers(this.users, delta -> this.executeChanges(delta, null, initTask, initResult), initTask,
                         initResult)
                 .onAttributes(ACCOUNT_CORRELATION_ATTRIBUE, UserType.F_NAME);
-        assertThat(linkedAccounts).as("Check test precondition: Linked accounts count").hasSize(5);
+        assertThat(linkedAccounts).as("Check test precondition: Linked accounts count").hasSize(6);
 
     }
 
@@ -165,12 +166,17 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         final Map<String, String> usersNameToOidMap = this.users.stream()
                 .collect(Collectors.toMap(user -> user.getName().getOrig(), PrismObject::getOid));
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result.")
-                .assertObjectsProcessed(6)
+                .assertObjectsProcessed(8)
                 .assertObjectsModified(3);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
-        assertProcessedFocusesCount(processedObjects, 3);
-        assertModifiedObjectsCount(processedObjects, 3)
+        final ProcessedObjectsAsserter processedFocusesAsserter = assertProcessedFocusesCount(processedObjects, 4);
+        processedFocusesAsserter
+                .assertUnModifiedObjectsCount(1)
+                .assertContainsEventMark(usersNameToOidMap.get("connor"),
+                        SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value());
+        processedFocusesAsserter
+                .assertModifiedObjectsCount(3)
                 .assertItemModificationsCount(3) // Each focus should have one item changed
                 .assertContainsEventMark(usersNameToOidMap.get("cena"),
                         SystemObjectsType.MARK_ITEM_VALUE_ADDED.value())
@@ -302,7 +308,8 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                 assertThat(processedObjects)
                         .filteredOn(ProcessedObject::isFocus)
                         .as("Check number of processed focuses")
-                        .hasSize(expectedCount));
+                        .hasSize(expectedCount),
+                "processed focuses");
     }
 
     private static ProcessedObjectsAsserter assertProcessedShadowsCount(
@@ -311,7 +318,8 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                 assertThat(processedObjects)
                         .filteredOn(ProcessedObject::isShadow)
                         .as("Check number of processed shadows")
-                        .hasSize(expectedCount));
+                        .hasSize(expectedCount),
+                "processed shadows");
     }
 
     private static ProcessedObjectsAsserter assertModifiedObjectsCount(
@@ -320,14 +328,18 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                 assertThat(processedObjects)
                         .filteredOn(ProcessedObject::isModification)
                         .as("Check number of modified objects")
-                        .hasSize(expectedNumberOfModifiedObjects));
+                        .hasSize(expectedNumberOfModifiedObjects),
+                "modified objects");
     }
 
     private static final class ProcessedObjectsAsserter {
         private final ListAssert<? extends ProcessedObject<?>>  objectsAsserter;
+        private final String currentObjectsDescription;
 
-        private ProcessedObjectsAsserter(ListAssert<? extends ProcessedObject<?>> objectsAsserter) {
+        private ProcessedObjectsAsserter(ListAssert<? extends ProcessedObject<?>> objectsAsserter,
+                String currentObjectsDescription) {
             this.objectsAsserter = objectsAsserter;
+            this.currentObjectsDescription = currentObjectsDescription;
         }
 
         void assertContainsProjectionRecords(Integer... expectedCount) {
@@ -349,7 +361,7 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         ProcessedObjectsAsserter assertItemModificationsCount(int expectedNumberOfModifications) {
             this.objectsAsserter
                     .map(ProcessedObject::getDelta)
-                    .as("Check number of modified items in all objects")
+                    .as("Check number of modified items in all %s", this.currentObjectsDescription)
                     .doesNotContainNull()
                     .flatMap(delta -> delta.getModifications())
                     .hasSize(expectedNumberOfModifications);
@@ -360,9 +372,27 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
             this.objectsAsserter
                     .filteredOn(object -> object.getOid().equals(objectOid))
                     .flatMap(ProcessedObject::getMatchingEventMarksOids)
-                    .as("Check event marks")
+                    .as("Check event marks on %s with oid %s", this.currentObjectsDescription, objectOid)
                     .contains(markOid);
             return this;
+        }
+
+        ProcessedObjectsAsserter assertUnModifiedObjectsCount(int expectedNumberOfModifiedObjects) {
+            return new ProcessedObjectsAsserter(
+                    this.objectsAsserter
+                            .filteredOn(Predicate.not(ProcessedObject::isModification))
+                            .as("Check number of unmodified %s objects", this.currentObjectsDescription)
+                            .hasSize(expectedNumberOfModifiedObjects),
+                    "unmodified " + this.currentObjectsDescription);
+        }
+
+        ProcessedObjectsAsserter assertModifiedObjectsCount(int expectedNumberOfModifiedObjects) {
+            return new ProcessedObjectsAsserter(
+                    this.objectsAsserter
+                            .filteredOn(ProcessedObject::isModification)
+                            .as("Check number of modified %s objects", this.currentObjectsDescription)
+                            .hasSize(expectedNumberOfModifiedObjects),
+                    "modified " + this.currentObjectsDescription);
         }
 
     }
