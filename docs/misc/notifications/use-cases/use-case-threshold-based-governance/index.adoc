@@ -26,13 +26,17 @@ the message you send in the notification.
 
 == Solution outline
 
-. Create a role with a policy rule defining constraint and threshold on the operations you wish to limit, e.g., `modify`.
+. Create a xref:/midpoint/reference/roles-policies/roles/[role]
+    with a xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rule]
+    defining xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/[constraint]
+    and xref:/midpoint/reference/tasks/thresholds/[threshold]
+    on the operations you wish to limit, e.g., `modify`.
     Set the policy action to suspend the task when it is about to modify more than two users.
-. Assign the role to the task performing the operation in question.
-. Set up a task notifier that activates when the policy rule in the role gets violated in the course of a task run.
+. Assign the role to the xref:/midpoint/architecture/concepts/task/[task] performing the operation in question.
+. Set up a xref:/midpoint/reference/misc/notifications/#notifiers[task notifier] that activates when the policy rule in the role gets violated in the course of a task run.
 . Test the configuration by an intentional breach of the policy you set up.
 
-In concrete terms, if you use this solution on a recompute task, the notification is sent when the notifier is activated by the task attempting to modify more focal objects (e.
+In concrete terms, if you use this solution on a xref:/midpoint/reference/tasks/recompute-task/[recompute task], the notification is sent when the notifier is activated by the task attempting to modify more xref:/midpoint/reference/schema/focus-and-projections/[focal objects] (e.
 g., users) than allowed by the policy.
 Thanks to the policy action `suspend`, the policy acts as an automated kill switch stopping the task before it modifies more objects.
 
@@ -90,6 +94,8 @@ For the policy to take effect, you need to assign the role to the task which it 
     ...
 </task>
 ----
+
+See also xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[]
 
 == Configure the notification handling
 
@@ -202,7 +208,7 @@ Here comes the configuration of the notification handler that uses the e-mail tr
 To test the notifications configuration:
 
 . Make changes to a higher number of focal objects (e.g., users) than allowed by the threshold.
-    ** With the threshold set to two, make changes to at least three users.
+    ** With the threshold set to two, make changes to at least three objects.
 . Run the recompute task to which you have added the role assignment.
 
 The task will get into the _suspended_ state with the "Policy rule violation: …" result, triggering an e-mail notification with the content similar to the following:
