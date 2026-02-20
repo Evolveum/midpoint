@@ -66,7 +66,36 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     protected abstract void initPanel(String panelId);
 
     protected final void onNewValue(
-            PrismContainerValue<C> newValue,
+            PrismContainerValue<C> value,
+            @NotNull IModel<PrismContainerWrapper<C>> containerModel,
+            WrapperContext context,
+            AjaxRequestTarget target,
+            boolean isDeprecate,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
+
+        if(value != null){
+            useNewValue(value, containerModel, context, target, isDeprecate, postSaveHandler);
+            return;
+        }
+
+        PageBase pageBase = getPageBase();
+        PrismContainerWrapper<C> container = containerModel.getObject();
+        PrismContainerValue<C> newValue = container.getItem().createNewValue();
+        PrismContainerValueWrapper<C> newWrapper = null;
+        try {
+            newWrapper = WebPrismUtil.createNewValueWrapper(
+                    container, newValue, pageBase, context);
+            container.getValues().add(newWrapper);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't create new value for container {}", container, e);
+        }
+        IModel<PrismContainerValueWrapper<C>> model = Model.of(newWrapper);
+        onCreateValue(model, target, isDeprecate, postSaveHandler);
+    }
+
+
+    protected final void useNewValue(
+            @NotNull PrismContainerValue<C> newValue,
             @NotNull IModel<PrismContainerWrapper<C>> containerModel,
             WrapperContext context,
             AjaxRequestTarget target,
