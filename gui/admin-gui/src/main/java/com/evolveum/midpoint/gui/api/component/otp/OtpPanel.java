@@ -4,7 +4,7 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.gui.api.component;
+package com.evolveum.midpoint.gui.api.component.otp;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;

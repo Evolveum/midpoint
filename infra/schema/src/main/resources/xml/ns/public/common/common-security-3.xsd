@@ -296,7 +296,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="label" type="t:ItemPathType">
+                    <xsd:element name="label" type="t:ItemPathType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The parameter is a string value from focus item that is used to identify the account
@@ -344,6 +344,9 @@
                                 Default value is 1, which means that the TOTP code is valid for the current time step,
                                 the previous time step and the next time step.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental/>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

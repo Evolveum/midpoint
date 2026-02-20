@@ -95,10 +95,10 @@ public class PageOtpCode extends PageAbstractAuthenticationModule<ModuleAuthenti
             return false;
         }
 
-        int loginFormModulesCount = (int) ma.getAuthModules().stream()
+        int otpModulesCount = (int) ma.getAuthModules().stream()
                 .filter(module -> module != null && isModuleApplicable(module.getBaseModuleAuthentication()))
                 .count();
-        return loginFormModulesCount > 1;
+        return otpModulesCount > 1;
     }
 
     private String getProcessingModuleName() {

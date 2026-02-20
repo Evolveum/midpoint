@@ -8,6 +8,7 @@ package com.evolveum.midpoint.authentication.impl.otp;
 
 import java.util.List;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -88,7 +89,7 @@ public class OtpAuthenticationEvaluator
         OtpService service = otpServiceFactory.create(ctx.getOtpAuthenticationModule());
 
         for (OtpCredentialType otp : otpCredentials.getOtp()) {
-            if (!otp.isVerified()) {
+            if (BooleanUtils.isNotTrue(otp.isVerified())) {
                 // don't check unverified OTPs, they are not active yet
                 continue;
             }
