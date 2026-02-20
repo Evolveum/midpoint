@@ -235,6 +235,3 @@ Message:
    Message: Policy rule violation: PCV(null):[PP({.../common/common-3}name):[PPV(String:Modify user)], PC(policyConstraints):[PCV(null):[PC(modification):[PCV(3):[PP({.../common/common-3}operation):[PPV(ChangeTypeType:MODIFY, meta: provenance: 3)]]]]], PC(policyThreshold):[PCV(null):[PC(lowWaterMark):[PCV(null):[PP({.../common/common-3}count):[PPV(Integer:2)]]]]], PC(policyActions):[PCV(null):[PC(suspendTask):[PCV(null):[]]]]]
 ----
 
-== See also
-
-* xref:/midpoint/reference/tasks/activity-policies/[]
