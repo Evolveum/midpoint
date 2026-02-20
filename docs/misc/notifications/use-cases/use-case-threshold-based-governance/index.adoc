@@ -26,9 +26,9 @@ the message you send in the notification.
 
 == Solution outline
 
-. Create a xref:/midpoint/reference/roles-policies/roles/[role]
-    with a xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rule]
-    defining xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/[constraint]
+. Create a xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[role]
+    with a xref:/midpoint/reference/roles-policies/policy-rules/[policy rule]
+    defining constraint
     and xref:/midpoint/reference/tasks/thresholds/[threshold]
     on the operations you wish to limit, e.g., `modify`.
     Set the policy action to suspend the task when it is about to modify more than two users.
@@ -94,8 +94,6 @@ For the policy to take effect, you need to assign the role to the task which it 
     ...
 </task>
 ----
-
-See also xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[]
 
 == Configure the notification handling
 
@@ -234,7 +232,3 @@ Message:
    Items: 7
    Message: Policy rule violation: PCV(null):[PP({.../common/common-3}name):[PPV(String:Modify user)], PC(policyConstraints):[PCV(null):[PC(modification):[PCV(3):[PP({.../common/common-3}operation):[PPV(ChangeTypeType:MODIFY, meta: provenance: 3)]]]]], PC(policyThreshold):[PCV(null):[PC(lowWaterMark):[PCV(null):[PP({.../common/common-3}count):[PPV(Integer:2)]]]]], PC(policyActions):[PCV(null):[PC(suspendTask):[PCV(null):[]]]]]
 ----
-
-== See also
-
-* xref:/midpoint/reference/tasks/activity-policies/[]
