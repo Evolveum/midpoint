@@ -1,0 +1,9 @@
+= Notification use cases
+:page-nav-title: Use cases
+:page-description: WRITE ME
+
+Explore configuration examples inspired by real-life midPoint deployments.
+
+++++
+{% children style: table %}
+++++
