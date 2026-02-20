@@ -54,7 +54,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         add(createChoiceFragment(createBasicWizard()));
     }
 
-    private BasicResourceWizardPanel createBasicWizard() {
+    private @NotNull BasicResourceWizardPanel createBasicWizard() {
         BasicResourceWizardPanel basicWizard = new BasicResourceWizardPanel(
                 getIdOfChoicePanel(), getHelper()) {
 
@@ -70,30 +70,35 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
     private @NotNull ResourceObjectTypeWizardPanel createObjectTypeWizard(
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
             @Nullable SerializableConsumer<AjaxRequestTarget> afterSaveAction) {
-
-        WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper =
-                new WizardPanelHelper<>(getAssignmentHolderModel()) {
-
-                    @Override
-                    public void onExitPerformed(AjaxRequestTarget target) {
-                        showChoiceFragment(target, createObjectTypesTablePanel());
-                    }
-
-                    @Override
-                    public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                        if (afterSaveAction != null) {
-                            afterSaveAction.accept(target);
-                        }
-
-                        return getHelper().onSaveObjectPerformed(target);
-                    }
-
-                    @Override
-                    public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getDefaultValueModel() {
-                        return valueModel;
-                    }
-                };
+        var helper = createObjectTypeHelper(valueModel, afterSaveAction);
         return buildResourceObjectTypePanel(helper);
+    }
+
+    private @NotNull WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> createObjectTypeHelper(
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
+            @Nullable SerializableConsumer<AjaxRequestTarget> afterSaveAction) {
+        return new WizardPanelHelper<>(getAssignmentHolderModel()) {
+
+            @Override
+            public void onExitPerformed(AjaxRequestTarget target) {
+                checkDeltasExitPerformed(target, t ->
+                        showChoiceFragment(t, createObjectTypesTablePanel()));
+            }
+
+            @Override
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                if (afterSaveAction != null) {
+                    afterSaveAction.accept(target);
+                }
+
+                return getHelper().onSaveObjectPerformed(target);
+            }
+
+            @Override
+            public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getDefaultValueModel() {
+                return valueModel;
+            }
+        };
     }
 
     private @NotNull ResourceObjectTypeWizardPanel buildResourceObjectTypePanel(
@@ -102,34 +107,18 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                checkDeltasExitPerformed(target);
-            }
-
-            @Override
-            protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
                 removeLastBreadcrumb();
-                showChoiceFragment(target, createObjectTypesTablePanel());
+                super.onExitPerformed(target);
             }
         };
         wizard.setOutputMarkupId(true);
+        wizard.setFromNewResourceWizard();
         return wizard;
     }
 
     private @NotNull SmartObjectTypeSuggestionWizardPanel createSuggestionObjectTypeWizard() {
 
-        WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper =
-                new WizardPanelHelper<>(getAssignmentHolderModel()) {
-
-                    @Override
-                    public void onExitPerformed(AjaxRequestTarget target) {
-                        showChoiceFragment(target, createObjectTypesTablePanel());
-                    }
-
-                    @Override
-                    public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                        return getHelper().onSaveObjectPerformed(target);
-                    }
-                };
+        WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper = createObjectTypeHelper(null, null);
 
         SmartObjectTypeSuggestionWizardPanel wizard = new SmartObjectTypeSuggestionWizardPanel(getIdOfChoicePanel(), helper) {
             @Override
@@ -248,7 +237,8 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
 
                     @Override
                     public void onExitPerformed(AjaxRequestTarget target) {
-                        showChoiceFragment(target, createAssociationTypesTablePanel());
+                        checkDeltasExitPerformed(target,
+                                t -> showChoiceFragment(t, createAssociationTypesTablePanel()));
                     }
 
                     @Override

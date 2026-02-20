@@ -64,7 +64,7 @@ public class ResourceObjectTypeBasicWizardPanel extends AbstractWizardPanel<Reso
                     target.add(getFeedback());
                     refresh(target);
                 } else {
-                    postSubmitPerformed(target);
+                    onExitPerformed(target);
                 }
             }
 
@@ -75,10 +75,6 @@ public class ResourceObjectTypeBasicWizardPanel extends AbstractWizardPanel<Reso
         });
 
         return steps;
-    }
-
-    protected void postSubmitPerformed(AjaxRequestTarget target) {
-        onExitPerformed(target);
     }
 
 }

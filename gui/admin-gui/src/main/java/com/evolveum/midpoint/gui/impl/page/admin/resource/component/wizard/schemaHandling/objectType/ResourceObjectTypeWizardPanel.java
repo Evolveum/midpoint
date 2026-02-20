@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWithSeparatedCreatePanel<ResourceObjectTypeDefinitionType> {
 
-    boolean isFromTypePreview = false;
+    public boolean isFromNewResourceWizard = false;
 
     public ResourceObjectTypeWizardPanel(
             String id,
@@ -43,18 +43,10 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
 
     @Override
     protected ResourceObjectTypeBasicWizardPanel createNewTypeWizard(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
-        return new ResourceObjectTypeBasicWizardPanel(id, helper) {
-            @Override
-            protected void postSubmitPerformed(AjaxRequestTarget target) {
-                ResourceObjectTypeWizardPanel.this.showTypePreviewFragment(target);
-            }
-
+        return new ResourceObjectTypeBasicWizardPanel(id, helper){
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 super.onExitPerformed(target);
-                if (isFromTypePreview) {
-                    showTypePreviewFragment(target);
-                }
             }
         };
     }
@@ -118,13 +110,13 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                     @Override
                     protected void onExitPerformed(AjaxRequestTarget target) {
                         removeLastBreadcrumb();
-                        checkDeltasExitPerformed(target);
+                        super.onExitPerformed(target);
                     }
 
-                    @Override
-                    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
-                        showChoiceFragment(target, ResourceObjectTypeWizardPanel.this.createTypePreview());
-                    }
+//                    @Override
+//                    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
+//                        showChoiceFragment(target, ResourceObjectTypeWizardPanel.this.createTypePreview());
+//                    }
                 });
     }
 
@@ -141,12 +133,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                     @Override
                     protected void onExitPerformed(AjaxRequestTarget target) {
                         removeLastBreadcrumb();
-                        checkDeltasExitPerformed(target);
-                    }
-
-                    @Override
-                    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
-                        showTypePreviewFragment(target);
+                        super.onExitPerformed(target);
                     }
                 }
         );
@@ -188,12 +175,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                     @Override
                     protected void onExitPerformed(AjaxRequestTarget target) {
                         removeLastBreadcrumb();
-                        checkDeltasExitPerformed(target);
-                    }
-
-                    @Override
-                    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
-                        showTypePreviewFragment(target);
+                        super.onExitPerformed(target);
                     }
                 }
         );
@@ -226,5 +208,9 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                 showChoiceFragment(target, createTypePreview());
             }
         };
+    }
+
+    public void setFromNewResourceWizard() {
+        isFromNewResourceWizard = true;
     }
 }

@@ -44,7 +44,7 @@ public class ResourceAssociationTypeSubjectWizardPanel extends AbstractWizardWit
     }
 
     @Override
-    protected void showTypePreviewFragment(AjaxRequestTarget target) {
+    public void showTypePreviewFragment(AjaxRequestTarget target) {
         showChoiceFragment(target, createTypePreview());
     }
 
