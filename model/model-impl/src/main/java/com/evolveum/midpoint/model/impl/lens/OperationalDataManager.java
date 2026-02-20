@@ -316,7 +316,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
             for (var metadata : allMetadata.getRealValues(ValueMetadataType.class)) {
                 transplantRequestAndStorageMetadataOnPhantomAddOp(metadata, currentAssignmentValue);
                 if (modificationStorageMetadata != null) {
-                    modificationStorageMetadata.updateBean(metadata.getStorage());
+                    updateStorageMetadata(metadata, modificationStorageMetadata);
                 }
             }
 
@@ -334,6 +334,17 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
             }
             LOGGER.trace("Added operational data to assignment ({}):\nCurrent metadata:\n{}\nCurrent activation:\n{}",
                     desc, allMetadata.debugDumpLazily(1), activation.debugDumpLazily(1));
+        }
+    }
+
+    private static void updateStorageMetadata(ValueMetadataType metadata, ObjectModificationStorageMetadata modificationMetadata) {
+        var existingStorageMetadata = metadata.getStorage();
+        if (existingStorageMetadata != null) {
+            modificationMetadata.updateBean(existingStorageMetadata);
+        } else {
+            // Probably should not happen, but ... it could e.g. if the original data was added in raw mode
+            // (hence, it has no metadata at all)
+            metadata.setStorage(modificationMetadata.toBean());
         }
     }
 
@@ -696,7 +707,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
             return updateBean(new StorageMetadataType());
         }
 
-        private StorageMetadataType updateBean(StorageMetadataType bean) {
+        private StorageMetadataType updateBean(@NotNull StorageMetadataType bean) {
             return bean
                     .modifyChannel(modifyChannel)
                     .modifyTimestamp(modifyTimestamp)
