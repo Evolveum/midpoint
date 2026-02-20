@@ -220,7 +220,7 @@ public class OtpManagerImpl implements OtpManager {
 
         AuthenticationsPolicyType authentication = securityPolicy.getAuthentication();
         AuthenticationModulesType modules = authentication.getModules();
-        if (modules == null) {
+        if (modules == null || modules.getTotp().isEmpty()) {
             return null;
         }
 

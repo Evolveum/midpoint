@@ -22,7 +22,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class OtpPolicyEvaluator<F extends FocusType> extends
         CredentialPolicyEvaluator<OtpCredentialsType, OtpCredentialsPolicyType, F> {
 
-    // todo implement similar to SecurityQuestionsPolicyEvaluator
     private OtpPolicyEvaluator(Builder<F> builder) {
         super(builder);
     }

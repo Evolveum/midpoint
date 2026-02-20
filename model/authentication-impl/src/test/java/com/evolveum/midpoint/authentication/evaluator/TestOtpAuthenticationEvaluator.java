@@ -6,20 +6,17 @@
 
 package com.evolveum.midpoint.authentication.evaluator;
 
-import java.security.SecureRandom;
 import java.util.List;
-
-import com.evolveum.midpoint.prism.PrismObject;
 
 import dev.samstevens.totp.code.CodeGenerator;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import dev.samstevens.totp.code.HashingAlgorithm;
-import dev.samstevens.totp.time.SystemTimeProvider;
-import org.apache.commons.codec.binary.Base32;
+import dev.samstevens.totp.exceptions.CodeGenerationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.authentication.impl.otp.OtpAuthenticationContext;
 import com.evolveum.midpoint.authentication.impl.otp.OtpAuthenticationEvaluator;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -33,6 +30,8 @@ public class TestOtpAuthenticationEvaluator extends TestAbstractAuthenticationEv
 
     private static final String IDENTIFIER = "MyTestIdentifier";
     private static final String ISSUER = "MyTestIssuer";
+
+    private static final String GUYBRUSH_SECRET = "R2YTPJHLUUYEJ2BUUEXDRWTMWMAU73ZF";
 
     private static final TOtpAuthenticationModuleType TOTP_AUTHENTICATION_MODULE;
 
@@ -69,17 +68,20 @@ public class TestOtpAuthenticationEvaluator extends TestAbstractAuthenticationEv
         return createCorrectCode(USER_JACK.getObjectable());
     }
 
+    private Integer createCorrectCode(String secret) throws CodeGenerationException {
+        CodeGenerator generator = new DefaultCodeGenerator(HashingAlgorithm.SHA1, 6);
+        String code = generator.generate(secret, Clock.get().getEpochSecond() / 30);
+
+        return Integer.parseInt(code);
+    }
+
     private Integer createCorrectCode(UserType user) {
         OtpCredentialType otp = user.getCredentials().getOtps().getOtp().get(0);
-
-        CodeGenerator generator = new DefaultCodeGenerator(HashingAlgorithm.SHA1, 6);
 
         try {
             String secret = protector.decryptString(otp.getSecret());
 
-            String code = generator.generate(secret, new SystemTimeProvider().getTime() / 30);
-
-            return Integer.parseInt(code);
+            return createCorrectCode(secret);
         } catch (Exception e) {
             throw new RuntimeException("Couldn't decrypt OTP secret", e);
         }
@@ -93,8 +95,7 @@ public class TestOtpAuthenticationEvaluator extends TestAbstractAuthenticationEv
     @Override
     public Integer getGoodPasswordGuybrush() {
         try {
-            PrismObject<UserType> guybrush = getUser(USER_GUYBRUSH.oid);
-            return createCorrectCode(guybrush.asObjectable());
+            return createCorrectCode(GUYBRUSH_SECRET);
         } catch (Exception e) {
             throw new RuntimeException("Couldn't create correct OTP code for Guybrush", e);
         }
@@ -135,24 +136,18 @@ public class TestOtpAuthenticationEvaluator extends TestAbstractAuthenticationEv
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 
-        byte[] bytes = new byte[20];
-        new SecureRandom().nextBytes(bytes);
-        String base32 = new Base32().encodeToString(bytes);
-
-        ProtectedStringType protectedString = new ProtectedStringType()
-                .clearValue(base32);
-
-        // @formatter:off
-        OtpCredentialsType credentials = new OtpCredentialsType()
-                .beginOtp()
-                    .secret(protectedString)
-                    .verified(true)
-                    .createTimestamp(XmlTypeConverter.createXMLGregorianCalendar())
-                    .end();
-        // @formatter:on
+        OtpCredentialType credential = new OtpCredentialType()
+                .secret(new ProtectedStringType()
+                        .clearValue(GUYBRUSH_SECRET))
+                .verified(true)
+                .createTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
 
         modifyObjectReplaceContainer(
-                UserType.class, USER_GUYBRUSH_OID, ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_OTPS),
-                task, result, credentials);
+                UserType.class,
+                USER_GUYBRUSH_OID,
+                ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_OTP),
+                task,
+                result,
+                credential);
     }
 }

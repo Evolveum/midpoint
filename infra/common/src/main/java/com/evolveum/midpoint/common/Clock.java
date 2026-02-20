@@ -14,6 +14,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import java.time.Instant;
+
 /**
  * System-wide clock. This class provides current time. By default is only proxies the usual system
  * current time functions. But it may be explicitly manipulated to artificially shift the time. This
@@ -53,6 +55,10 @@ public class Clock {
             time = time + overrideOffset;
         }
         return time;
+    }
+
+    public long getEpochSecond() {
+        return Instant.ofEpochMilli(currentTimeMillis()).getEpochSecond();
     }
 
     public XMLGregorianCalendar currentTimeXMLGregorianCalendar() {
