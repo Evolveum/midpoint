@@ -1,0 +1,240 @@
+= Use case: Threshold-based governance with e‑mail notifications
+:page-nav-title: Send e-mail on policy violation
+:page-description: Use policy rules and thresholds to create automated alert configuration in midPoint to enhance operational visibility and provide a safety mechanism against unintended bulk modifications
+:page-keyword: e-mail, email, mail, notification, policy, policy violation, threshold
+
+Use policy rules and thresholds to create automated alert configuration in midPoint to enhance operational visibility and provide a safety mechanism against unintended bulk modifications.
+
+== Use case introduction
+
+Define a *threshold policy within a role* assigned to potentially destructive tasks, such as recompute, to set up an *early warning system* preventing mistakes affecting large amount of objects in midPoint.
+In the use case herein, you will find out how to set up midPoint for sending a notification when the policy is breached due to an attempt to recompute a suspiciously high number of users.
+
+From the *business perspective*, this configuration ensures system integrity and accountability.
+By implementing real-time notifications, stakeholders are immediately informed of critical background processes and potential harmful task runs.
+Setting up such an early warning system prevents large-scale accidental or malicious data changes before they can propagate across the midPoint ecosystem.
+
+From the *technical perspective*, the solution leverages midPoint's notification framework and policy rules.
+It utilizes custom script expressions to filter events based on task OIDs and specific policy violations, ensuring that alerts are precise and actionable.
+
+[NOTE]
+====
+When adopting this use case to your real-life scenario,
+it is expected you will need to adjust the policy threshold, operation type, and
+the message you send in the notification.
+====
+
+== Solution outline
+
+. Create a xref:/midpoint/reference/roles-policies/roles/[role]
+    with a xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rule]
+    defining xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/[constraint]
+    and xref:/midpoint/reference/tasks/thresholds/[threshold]
+    on the operations you wish to limit, e.g., `modify`.
+    Set the policy action to suspend the task when it is about to modify more than two users.
+. Assign the role to the xref:/midpoint/architecture/concepts/task/[task] performing the operation in question.
+. Set up a xref:/midpoint/reference/misc/notifications/#notifiers[task notifier] that activates when the policy rule in the role gets violated in the course of a task run.
+. Test the configuration by an intentional breach of the policy you set up.
+
+In concrete terms, if you use this solution on a xref:/midpoint/reference/tasks/recompute-task/[recompute task], the notification is sent when the notifier is activated by the task attempting to modify more xref:/midpoint/reference/schema/focus-and-projections/[focal objects] (e.
+g., users) than allowed by the policy.
+Thanks to the policy action `suspend`, the policy acts as an automated kill switch stopping the task before it modifies more objects.
+
+:sectnums:
+
+== Configure a role inducing the policy
+
+To induce the guardrails on a task, create a role with the policy rule in it, and assign the role to the task.
+
+.Role inducing a policy rule with the desired policy constraint, threshold, and action
+[source,xml]
+----
+<role oid="f45688cc-332c-409b-a67d-5332dc65768d">
+    <name>Stop after modify 2nd user</name>
+    <inducement>
+        <policyRule>
+            <name>Modify user</name>
+            <policyConstraints>
+                <modification>
+                    <operation>
+                        <value>modify</value> <1>
+                    </operation>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>2</count> <2>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/> <3>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
+</role>
+----
+<1> The operation which you want to monitor. You can use `add`, `modify`, and `delete`.
+<2> The maximum number of the operation executions permitted before the policy is violated.
+<3> What action to take on policy violation.
+
+== Assign the role to the task
+
+For the policy to take effect, you need to assign the role to the task which it is to guard.
+
+.Role assignment in a task, i.e., the policy inducement to the task
+[source,xml]
+----
+<task oid="3e8b389e-7cc4-11ef-9295-4f3d13b4c390">
+    ...
+    <assignment>
+      <targetRef oid="f45688cc-332c-409b-a67d-5332dc65768d" relation="org:default" type="c:RoleType">
+      </targetRef>
+    </assignment>
+    ...
+</task>
+----
+
+See also xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[]
+
+== Configure the notification handling
+
+Notification configurations define on which objects to act, under what conditions, and how.
+In the case here, the notification configuration needs to filter events produced by the task above and pass the configured message to the message transport configuration.
+The transport takes care of actually delivering the notification to the target destination (file, SMTP server, or SMS gateway).
+
+Both the transport and notification configurations belong to the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object].
+
+=== Transport configuration
+
+Here are two examples of transport configuration
+
+. Write notifications to a file
+. Send notifications by e-mail
+
+You can use both in the same `notificationConfiguration` if it makes sense for your use case.
+
+Refer to xref:/midpoint/reference/misc/notifications/configuration/#configuring-transports[] for more details on transports.
+
+.Transport configuration for writing to a file
+[source,xml]
+----
+<messageTransportConfiguration>
+    <file>
+        <name>task_log</name><1>
+        <file>/opt/midpoint/var/log/task_log.log</file>
+    </file>
+</messageTransportConfiguration>
+----
+<1> The name of the transport by which you identify it in the notification configuration
+
+.Transport configuration for sending e-mails
+[source,xml]
+----
+<messageTransportConfiguration> <1>
+    <email>
+        <name>by_mail</name>
+        <defaultFrom>midpoint@example.org</defaultFrom>
+        <defaultTo>admins@example.org</defaultTo>
+    </email>
+</messageTransportConfiguration>
+----
+
+=== Notification configuration
+
+Here comes the configuration of the notification handler that uses the e-mail transport configured above:
+
+.Notification configuration for simple task handler
+[source,xml]
+----
+<notificationConfiguration>
+    <handler>
+        <simpleTaskNotifier> <1>
+            <expressionFilter>
+                <script>
+                    <code>
+                        event.getMessage().startsWith("Policy rule violation") <2>
+                    </code>
+                </script>
+            </expressionFilter>
+            <expressionFilter>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.notifications.api.events.TaskEvent
+                        return event.getTask().getOid().equals('3e8b389e-7cc4-11ef-9295-4f3d13b4c390'); <3>
+                    </code>
+                </script>
+            </expressionFilter>
+            <subjectExpression> <4>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.notifications.api.events.TaskEvent;
+                        return "MidPoint task alert: " + event.getTask().getName().getOrig() + " – policy breach";
+                    </code>
+                </script>
+            </subjectExpression>
+            <bodyExpression> <5>
+                <script>
+                    <code>
+                    import com.evolveum.midpoint.notifications.api.events.TaskEvent;
+
+                   String body =
+                   "Task Execution Alert" +
+                   "\n\n The task " + event.getTask().getName().getOrig() + " breached a policy rule by attempting to modify more objects than allowed." +
+                   "\n\n Status: " + event.getStatusAsText() +
+                   "\n Items: " + event.getProgress() +
+                   "\n Message: " + event.getMessage();
+
+                   return body;
+              </code>
+                </script>
+            </bodyExpression>
+            <transport>by_mail</transport> <6>
+        </simpleTaskNotifier>
+    </handler>
+</notificationConfiguration>
+----
+<1> The `simpleTaskNotifier` generates notifications about tasks.
+    See xref:/midpoint/reference/misc/notifications/#notifiers[Notifiers] for other options.
+<2> Filter out events that are about policy rule violations.
+<3> Work only with events fired by the task specified by the OID.
+    You will use the events also in the notification message subject and body.
+<4> A subject of the e-mail. Leave this out if the transport is file or SMS as they have no subject.
+<5> A body of the notification.
+    In this scenario, the body is composed of the task attributes to pass on relevant information.
+<6> A reference to the transport configuration which actually sends the notification.
+
+== Test the configuration
+
+To test the notifications configuration:
+
+. Make changes to a higher number of focal objects (e.g., users) than allowed by the threshold.
+    ** With the threshold set to two, make changes to at least three objects.
+. Run the recompute task to which you have added the role assignment.
+
+The task will get into the _suspended_ state with the "Policy rule violation: …" result, triggering an e-mail notification with the content similar to the following:
+
+.Example of e-mail notification
+[source, text]
+----
+================ Fri Jan 09 10:18:27 UTC 2026 ======= [task_log]
+
+Message:
+  To: (1)
+      admins@example.org <null>
+  Cc: []
+  Bcc: []
+  Subject: MidPoint task alert: Recompute all users – policy breach
+  Content type: null
+  Body: Task Execution Alert
+
+   The task Recompute all users breached a policy rule by attempting to modify more objects than allowed.
+
+   Status: FAILURE
+   Items: 7
+   Message: Policy rule violation: PCV(null):[PP({.../common/common-3}name):[PPV(String:Modify user)], PC(policyConstraints):[PCV(null):[PC(modification):[PCV(3):[PP({.../common/common-3}operation):[PPV(ChangeTypeType:MODIFY, meta: provenance: 3)]]]]], PC(policyThreshold):[PCV(null):[PC(lowWaterMark):[PCV(null):[PP({.../common/common-3}count):[PPV(Integer:2)]]]]], PC(policyActions):[PCV(null):[PC(suspendTask):[PCV(null):[]]]]]
+----
+
+== See also
+
+* xref:/midpoint/reference/tasks/activity-policies/[]
