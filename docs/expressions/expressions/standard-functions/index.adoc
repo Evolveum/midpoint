@@ -1,0 +1,814 @@
+= MidPoint standard functions
+:page-nav-title: Standard functions
+
+The `MidpointFunctions` interface defines the built‑in functions that are automatically available to every midPoint expression, script, and mapping.
+These functions expose the core model operations (object creation, retrieval, modification, search, workflow, cryptography, etc.) as a concise, script‑friendly API.
+All functions are public members of the interface;
+they can be invoked directly from an expression code (e.g., Groovy, JavaScript, etc.) without importing any additional classes.
+
+*The functions are available in link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/expr/MidpointFunctions.java[MidpointFunctions.java]*
+
+[NOTE]
+====
+*Notes on generic placeholders and overloads*
+
+* Generic type parameters (`<T>` and `<F>`)
+    ** `<T extends ObjectType>` is used for methods that operate on any concrete midPoint object type (e.g., `UserType`, `RoleType`, `OrgType`).
+        The caller supplies the concrete class via a `Class<T>` argument, and the method returns a value of that same type, preserving compile‑time type safety.
+    ** `<F extends FocusType>` is a specialization of `<T>` for focus objects (objects that can have assignments, projections, and a lifecycle), such as users, org units, and services.
+        Methods that manipulate focus‑specific data (e.g., `recompute`, `isDirectlyAssigned`) use `<F>` to signal that the operation is only applicable to focus types.
+    ** The placeholder name (`T` or `F`) is irrelevant to the runtime;
+        it merely conveys the intended category of objects and enables the compiler to enforce correct usage.
+* Var‑args (`...`) versus collection overloads
+    ** Methods that accept a var‑args parameter (e.g., `executeChanges(ObjectDelta<? extends ObjectType>... deltas)`) allow callers to pass any number of arguments directly, without constructing a collection first.
+        Internally the compiler creates an array, so the call is convenient for a small, known number of deltas.
+    ** The corresponding collection overload (`executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas)`) is intended for scenarios where the deltas are already assembled in a `List`, `Set`, or another `Collection`. It avoids the extra array allocation that the var‑args version would incur and is more appropriate for bulk or dynamically built delta sets.
+    ** Both overloads perform the same operation; the choice is purely a matter of API ergonomics and performance considerations. The var‑args version is annotated with `@SuppressWarnings("unchecked")` because Java cannot create a generic array at runtime, while the collection version does not have that limitation.
+====
+
+.A list of the availabel midPoint functions
+[cols="h,3,1,5", options="header"]
+// The column widths make no difference here because some "words" in the columns are so long that the columns end up very wide anyway and the only "truly variable" column in terms of width is the Description one
+|====
+|Function name |Input arguments |Return type |Description
+
+|createEmptyObject
+|Class<T> type
+|T
+|Creates an empty prism object of the given type. The method constructs the object only in the memory. If you intend to create an object in repository or on the resource you need to populate this object with data and then invoke the `addObject` or `executeChanges` method.
+|createEmptyObjectWithName
+|Class<T> type, String name
+|T
+|Creates an empty prism object of the given type with a String name. Same limitations as to `createEmptyObject` apply.
+|createEmptyObjectWithName
+|Class<T> type, PolyString name
+|T
+|Creates an empty prism object of the given type with a PolyString name. Same limitations as to `createEmptyObject` apply.
+|createEmptyObjectWithName
+|Class<T> type, PolyStringType name
+|T
+|Creates an empty prism object of the given type with a PolyStringType name. Same limitations as to `createEmptyObject` apply.
+|resolveReference
+|ObjectReferenceType reference
+|T
+|Resolves a reference to an object. Throws an exception if the reference is not found.
+|resolveReferenceIfExists
+|ObjectReferenceType reference
+|T
+|Resolves a reference if it exists. Returns null when the reference is not found.
+|getObject
+|Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options
+|T
+|Returns object for provided OID. It retrieves the object from an appropriate source for an object type (e.g. internal repository, resource or both), merging data as necessary, processing any policies, caching mechanisms, etc. This can be influenced by using `options`.
+|getObject
+|Class<T> type, String oid
+|T
+|Returns object for provided OID. It retrieves the object from an appropriate source for an object type (e.g. internal repository, resource or both), merging data as necessary, processing any policies, caching mechanisms, etc.
+|executeChanges
+|Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options
+|void
+|Execute the provided object deltas with options influencing processing of the deltas. The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering. All deltas must relate to analogous objects (e.g. user and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation also implicitly links the objects (mark them to be analogous) if such a link is part of the data model. E.g. the implementation links all accounts to the user if they are passed in a single delta collection. This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked explicitly. Only one delta per object is accepted. The OID provided in ADD deltas should be empty under usual circumstances.
+|executeChanges
+|Collection<ObjectDelta<? extends ObjectType>> deltas
+|void
+|Execute the provided object deltas. The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering. All deltas must relate to analogous objects (e.g. user and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation also implicitly links the objects (mark them to be analogous) if such a link is part of the data model. E.g. the implementation links all accounts to the user if they are passed in a single delta collection. This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked explicitly. Only one delta per object is accepted. The OID provided in ADD deltas should be empty under usual circumstances.
+|executeChanges
+|ObjectDelta<? extends ObjectType>... deltas
+|void
+|Execute the provided object deltas. The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering. All deltas must relate to analogous objects (e.g. user and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation also implicitly links the objects (mark them to be analogous) if such a link is part of the data model. E.g. the implementation links all accounts to the user if they are passed in a single delta collection. This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked explicitly. Only one delta per object is accepted. The OID provided in ADD deltas should be empty under usual circumstances.
+|addObject
+|PrismObject<T> newObject, ModelExecuteOptions options
+|String
+|Adds a new object (prism) using the supplied options; returns the created object's OID.
+|addObject
+|PrismObject<T> newObject
+|String
+|Adds a new object (prism) with default options; returns the created object's OID.
+|addObject
+|T newObject, ModelExecuteOptions options
+|String
+|Adds a new object instance using the supplied options; returns the created object's OID.
+|addObject
+|T newObject
+|String
+|Adds a new object instance (non‑prism) with default options; returns the created object's OID.
+|modifyObject
+|ObjectDelta<T> modifyDelta, ModelExecuteOptions options
+|void
+|Modifies an existing object using the supplied execution options.
+|modifyObject
+|ObjectDelta<T> modifyDelta
+|void
+|Modifies an existing object using default execution options.
+|deleteObject
+|Class<T> type, String oid, ModelExecuteOptions options
+|void
+|Deletes the specified object using the supplied execution options.
+|deleteObject
+|Class<T> type, String oid
+|void
+|Deletes the specified object using default execution options.
+|recompute
+|Class<F> type, String oid
+|void
+|Recomputes a focal object (focus) identified by OID, applying all relevant policies and mappings.
+|searchShadowOwner
+|String accountOid
+|PrismObject<F>
+|Finds the focus that owns the given shadow (account) OID.
+|searchObjects
+|Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options
+|List<T>
+|Searches for objects of the given type using the supplied query. Use `options` to influence retrieval and processing of the objects. This method has a very limited scaling capability as all the results are stored in the memory. DO NOT USE on large datasets. Recommended usage is only when using queries that cannot return large number of results (e.g., queries for unique values) or when combined with paging capability. For other cases use `searchObjectsIterative` instead.
+|searchObjects
+|Class<T> type, ObjectQuery query
+|List<T>
+|Searches for objects of the given type using the supplied query. Same scaling limitation as above applies.
+|searchObjectsIterative
+|Class<T> type, ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options
+|void
+|Iteratively processes matching objects, invoking the handler for each. Use `options` to influence retrieval and processing of the objects.
+|searchObjectsIterative
+|Class<T> type, ObjectQuery query, ResultHandler<T> handler
+|void
+|Iteratively processes matching objects, invoking the handler for each.
+|searchObjectByName
+|Class<T> type, String name
+|T
+|Searches for a single object of the given type with the exact `String` name. Fails if more objects are found, therefore cannot be used on types with non-unique names (e.g., shadows).
+|searchObjectByName
+|Class<T> type, PolyString name
+|T
+|Searches for a single object of the given type with the given `PolyString` name. Fails if more objects are found, therefore cannot be used on types with non-unique names (e.g., shadows).
+|searchObjectByName
+|Class<T> type, PolyStringType name
+|T
+|Searches for a single object of the given type with the given `PolyStringType` name. Fails if more objects are found, therefore cannot be used on types with non-unique names (e.g., shadows).
+|countObjects
+|Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options
+|int
+|Counts objects of the given type that satisfy the query, using selector options.
+|countObjects
+|Class<T> type, ObjectQuery query
+|int
+|Counts objects of the given type that satisfy the query.
+|testResource
+|String resourceOid
+|OperationResult
+|Tests connectivity and basic functionality of the specified resource.
+|toList
+|String... s
+|List<String>
+|Converts a var‑args array of strings into a mutable `List`.
+|getSequenceCounter
+|String sequenceOid
+|long
+|Returns the current value of the specified sequence.
+|getManagersOids
+|UserType user
+|Collection<String>
+|Returns OIDs of users that manage the specified user.
+|getManagersOidsExceptUser
+|UserType user
+|Collection<String>
+|Returns OIDs of users that manage the specified user, excluding the user himself.
+|getManagersOidsExceptUser
+|Collection<ObjectReferenceType> userRefList
+|Collection<String>
+|Returns manager OIDs for the supplied user references, excluding the users themselves.
+|getManagers
+|UserType user
+|Collection<UserType>
+|Returns the collection of users with the manager relation to the given user.
+|getManagersByOrgType
+|UserType user, String orgType
+|Collection<UserType>
+|Returns managers of the specified user filtered by organization type.
+|getManagers
+|UserType user, String orgType, boolean allowSelf
+|Collection<UserType>
+|Returns managers of the specified user filtered by organization type. If `allowSelf` set to `true`, result may include the specified `user` if it satisfies the manager-role criterion in the given org.
+|getUserByOid
+|String oid
+|UserType
+|Fetches a user object by its OID. Uses repository service directly, bypassing authorization checking.
+|getOrgUnits
+|UserType user
+|Collection<String>
+|Returns OIDs of organizational units the user belongs to.
+|getOrgUnits
+|UserType user, QName relation
+|Collection<String>
+|Returns OIDs of org units for the user filtered by the given relation.
+|getOrgByOid
+|String oid
+|OrgType
+|Retrieves an organization object by its OID.
+|getOrgByName
+|String name
+|OrgType
+|Retrieves an organization object by its name.
+|getParentOrgs
+|ObjectType object, String relation, String orgType
+|Collection<OrgType>
+|Returns parent orgs of the specified object that have a specific relation and orgType.
+|getParentOrgs
+|ObjectType object, QName relation, String orgType
+|Collection<OrgType>
+|Returns parent orgs of the specified object that have a specific relation and orgType.
+|getParentOrgByOrgType
+|ObjectType object, String orgType
+|OrgType
+|Returns a single parent org of the object that matches the specified org type.
+|getParentOrgByArchetype
+|ObjectType object, String archetypeOid
+|OrgType
+|Returns a parent org of the object that has the specified archetype OID.
+|getParentOrgsByRelation
+|ObjectType object, QName relation
+|Collection<OrgType>
+|Returns parent orgs of the object filtered by the given relation (QName).
+|getParentOrgsByRelation
+|ObjectType object, String relation
+|Collection<OrgType>
+|Returns parent orgs of the object filtered by the given relation (String).
+|getParentOrgs
+|ObjectType object
+|Collection<OrgType>
+|Returns all parent orgs of the specified object.
+|getManagersOfOrg
+|String orgOid
+|Collection<UserType>
+|Returns a list of managers of the organization identified by OID.
+|isManagerOf
+|UserType user, String orgOid
+|boolean
+|Returns true if the given user is a manager of the specified organization unit.
+|isManager
+|UserType user
+|boolean
+|Returns true if the given user is a manager of any organizational unit.
+|isManagerOfOrgType
+|UserType user, String orgType
+|boolean
+|Returns true if the user is a manager of any organization of the given type.
+|isMemberOf
+|UserType user, String orgOid
+|boolean
+|Returns true if the user is a member of the organization identified by OID.
+|getPlaintextUserPassword
+|FocusType user
+|String
+|Decrypts and returns the plaintext password of the given user focus.
+|getPlaintext
+|ProtectedStringType user
+|String
+|Decrypts and returns the plaintext value of a protected string.
+|getPlaintextAccountPassword
+|ShadowType account
+|String
+|Decrypts and returns the plaintext password of the given account shadow.
+|getPlaintextAccountPasswordFromDelta
+|ObjectDelta<? extends ShadowType> delta
+|String
+|Decrypts and returns the plaintext password contained in the supplied account delta.
+|getPlaintextUserPasswordFromDeltas
+|List<ObjectDelta<? extends FocusType>> deltas
+|String
+|Decrypts and returns the plaintext password from a list of focus‑related deltas.
+|getCurrentTask
+|
+|Task
+|Returns a current task.
+|getCurrentResult
+|
+|OperationResult
+|Returns the current operation result.
+|getCurrentResult
+|String operationName
+|OperationResult
+|Returns the result of the specified operation.
+|unwrapModelContext
+|LensContextType lensContextType
+|ModelContext<?>
+|Converts a LensContext into a full ModelContext, applying necessary schema checks.
+|wrapModelContext
+|ModelContext<?> lensContext
+|LensContextType
+|Wraps a ModelContext back into a LensContextType representation.
+|hasLinkedAccount
+|String resourceOid
+|boolean
+|Returns true if the current focus has a linked account on the specified resource.
+|isCurrentProjectionBeingEnabled
+|
+|boolean
+|Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to enabled. Not always precise - the original value may not be known.
+|isCurrentProjectionActivated
+|
+|boolean
+|Returns `true` if the current operation brings the projection into existence and enables it (administrative state `null` or `ENABLED`). Loads the full shadow if necessary.
+|isCurrentProjectionBeingDisabled
+|
+|boolean
+|Returns `true` if the current clockwork operation will disable the administrative state of the current projection.
+|isCurrentProjectionDeactivated
+|
+|boolean
+|Returns `true` if the current clockwork operation deletes the projection or effectively disables it
+|isDirectlyAssigned
+|String targetOid
+|boolean
+|Returns `true` if object is directly assigned to the object identified by the given OID.
+|isDirectlyAssigned
+|ObjectType target
+|boolean
+|Returns `true` if objbect is directly assigned to the supplied target object.
+|isDirectlyAssigned
+|FocusType focus, String targetOid
+|boolean
+|Returns `true` if `focus` has a `assignment` with `targetRef.OID` being equal to `targetOid`. No other conditions are checked (e.g. validity, assignment condition, lifecycle states, etc.)
+|isDirectlyAssigned
+|FocusType focus, ObjectType target
+|boolean
+|Returns `true` if the specified focus is directly assigned to the supplied target object.
+|getLinkedShadow
+|FocusType focus, String resourceOid
+|ShadowType
+|Returns a shadow on the specified resource linked to the specified focus.
+|getLinkedShadows
+|FocusType focus, String resourceOid
+|List<ShadowType>
+|Returns shadows on the specified resource linked to the specified focus.
+|getLinkedShadow
+|FocusType focus, String resourceOid, boolean repositoryObjectOnly
+|ShadowType
+|Returns a shadow on the specified resource linked to the specified focus, optionally restricting the search to repository objects only.
+|getLinkedShadows
+|FocusType focus, String resourceOid, boolean repositoryObjectOnly
+|List<ShadowType>
+|Returns shadows on the specified resource linked to the specified focus, optionally restricting the search to repository objects only.
+|getLinkedShadow
+|FocusType focus, ResourceType resource
+|ShadowType
+|Convenience wrapper that obtains a linked shadow using a ResourceType instance.
+|getLinkedShadow
+|FocusType focus, ResourceType resource, boolean repositoryObjectOnly
+|ShadowType
+|Convenience wrapper that obtains a linked shadow using a ResourceType instance with repository‑only option.
+|getLinkedShadow
+|FocusType focus, String resourceOid, ShadowKindType kind, String intent
+|ShadowType
+|Returns a linked shadow matching the given kind and intent (both may be null to mean ‘any’).
+|getLinkedShadow
+|FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly
+|ShadowType
+|Returns a linked shadow matching the given kind and intent (both may be null to mean 'any') with the repository-only option.
+|getResourceDelta
+|ModelContext<?> context, String resourceOid
+|ObjectDeltaType
+|Returns the aggregated delta that would be applied to the specified resource within the given model context.
+|getProtector
+|
+|Protector
+|Returns the cryptographic protector used for encrypting/decrypting protected strings.
+|parseXmlToMap
+|String xml
+|Map<String,String>
+|Returns a map from the translated xml attribute - value pairs.
+|isFullShadow
+|
+|boolean
+|Indicates whether the current shadow object is fully loaded.
+|isAttributeLoaded
+|QName attrName
+|boolean
+|Checks if the specified attribute is available for processing (loaded or cached with computations on cache allowed).
+|isAttributeLoaded
+|String attrName
+|boolean
+|Checks if the specified attribute is available for processing (loaded or cached with computations on cache allowed).
+|isProjectionExists
+|
+|boolean
+|Returns true if a projection (shadow) exists for the current focus.
+|getMembers
+|String orgOid
+|List<UserType>
+|Retrieves the list of user members belonging to the organization identified by OID.
+|getMembersAsReferences
+|String orgOid
+|List<ObjectReferenceType>
+|Retrieves references to the members of the organization identified by OID.
+|getRoleMemberUsers
+|String roleOid, QName relation
+|List<UserType>
+|Lists user members of a specified role (e.g., owners, approvers) for the given relation.
+|getServiceMemberUsers
+|String serviceOid, QName relation
+|List<UserType>
+|Lists user members of a specified service (e.g., owners, approvers) for the given relation.
+|computeDefaultProjectionPurpose
+|F focus, ShadowType shadow, ResourceType resource
+|ShadowPurposeType
+|Default function used to compute projection purpose. It is provided here so it can be explicitly invoked from a custom expression and then the result can be changed for special cases.
+|getPrincipal
+|
+|MidPointPrincipal
+|Returns the principal representing the user executing the expression.
+|getPrincipalOid
+|
+|String
+|Returns OID of the current principal. After login is complete, the returned OID is the same as `getPrincipal().getOid()`. However, during login process, this method returns the OID of the user that is being authenticated/logged-in.
+|getChannel
+|
+|String
+|Returns the name of the used channel.
+|getWorkflowService
+|
+|CaseService
+|Returns to the workflow service.
+|getShadowsToActivate
+|Collection<? extends ModelProjectionContext> projectionContexts
+|List<ShadowType>
+|Used for account activation notifier to collect all shadows which are going to be activated. Currently it simply collects all accounts with the `ShadowPurpose` equal to `INCOMPLETE`.
+|createRegistrationConfirmationLink
+|UserType userType
+|String
+|Builds a registration‑confirmation URL for the given user.
+|createInvitationLink
+|UserType userType
+|String
+|Builds an invitation URL for the given user.
+|createPasswordResetLink
+|UserType userType
+|String
+|Builds a password‑reset URL for the given user.
+|createWorkItemCompletionLink
+|WorkItemId workItemId
+|String
+|Creates a link that lets the user complete the specified work item (may return null if such a link cannot be created).
+|createAccountActivationLink
+|UserType userType
+|String
+|Creates an account‑activation URL for the given user.
+|getConst
+|String name
+|String
+|Looks up a constant value by its name.
+|resolveEntitlement
+|ShadowAssociationValueType associationValue
+|ShadowType
+|Returns the cached entitlement (target shadow) for the given association value, if present in the lens‑context cache.
+|collectExtensions
+|AssignmentPathType path, int startAt
+|ExtensionType
+|Collects extensions from an assignment path starting at the given index.
+|submitTaskFromTemplate
+|String templateTaskOid, List<Item<?,?>> extensionItems
+|TaskType
+|(Deprecated) Submits a task from a template, adding the supplied extension items.
+|submitTaskFromTemplate
+|String templateTaskOid, Map<QName,Object> extensionValues
+|TaskType
+|(Deprecated) Submits a task from a template, adding the supplied extension values.
+|submitTaskFromTemplate
+|String templateOid, ActivityCustomization customization
+|String
+|Submits a task from a template with the given activity customization; returns the new task OID.
+|executeChangesAsynchronously
+|Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options, String templateTaskOid
+|TaskType
+|Executes the given deltas asynchronously using the specified task template.
+|executeChangesAsynchronously
+|Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options, String templateTaskOid, Task opTask, OperationResult result
+|TaskType
+|Executes the given deltas asynchronously with a specific operation task and result handling.
+|translate
+|String key, Objects... args
+|String
+|Translates a message key with optional arguments.
+|translate
+|LocalizableMessage message
+|String
+|Translates a LocalizableMessage using the current locale.
+|translate
+|LocalizableMessage message, boolean useDefaultLocale
+|String
+|Translates a LocalizableMessage, optionally forcing the default JVM locale.
+|translate
+|LocalizableMessageType message
+|String
+|Translates a LocalizableMessageType using the current locale.
+|translate
+|LocalizableMessageType message, boolean useDefaultLocale
+|String
+|Translates a LocalizableMessageType, optionally forcing the default JVM locale.
+|countAccounts
+|String resourceOid, QName attributeName, T attributeValue
+|Integer
+|Counts accounts on the supplied resource with the given attribute value.
+|countAccounts
+|ResourceType resourceType, QName attributeName, T attributeValue
+|Integer
+|Counts accounts on the supplied resource type with the given attribute value.
+|countAccounts
+|ResourceType resourceType, String attributeName, T attributeValue
+|Integer
+|Counts accounts on the supplied resource type with the given attribute value. Attribute name is assumed to be in the `ri:` namespace.
+|getObjectsInConflictOnPropertyValue
+|O objectType, String propertyPathString, T propertyValue, boolean getAllConflicting
+|List<O>
+|Finds objects that conflict on a specific property value.
+|isUniquePropertyValue
+|ObjectType objectType, String propertyPathString, T propertyValue
+|boolean
+|Checks whether a property value is unique across objects of the same type.
+|isUniqueAccountValue
+|ResourceType resourceType, ShadowType shadowType, String attributeName, T attributeValue
+|boolean
+|Checks if the value `attributeValue` of `attributeName` in given shadow is unique on given resource. A search on resource is invoked, and any occurrences (except the one in `shadowType`) are reported as violations.
+|getModelContext
+|
+|ModelContext<F>
+|Returns the current model context.
+|getFocusContext
+|
+|ModelElementContext<F>
+|Returns the current focus context.
+|getProjectionContext
+|
+|ModelProjectionContext
+|Returns the current projection context.
+|getMapping
+|
+|Mapping<V,D>
+|Provides the current mapping (generic over PrismValue and ItemDefinition).
+|executeAdHocProvisioningScript
+|ResourceType resource, String language, String code
+|Object
+|Executes an ad‑hoc provisioning script on the given resource.
+|executeAdHocProvisioningScript
+|String resourceOid, String language, String code
+|Object
+|Executes an ad‑hoc provisioning script on the given resource.
+|isEvaluateNew
+|
+|Boolean
+|A stateful flag that tells a script whether it is currently handling a new value—one that will be written to the target object (e.g., values from the add/replace sections of an `ObjectDelta` or recomputed values slated for persistence)—or an old value—one that is being removed or read from the existing object (e.g., values from the delete section). It returns `true` for new, `false` for old, and `null` when the framework cannot determine the distinction or the context does not apply. The method never throws; it reflects the evaluation mode of the active script execution, and can be used in mapping or provisioning scripts to branch logic based on whether the processed data will become part of the target or be discarded. A usage may be: `if (midpoint.isEvaluateNew()) { /* prepare new value */ } else { /* handle old value */ }`.
+|getEvaluateNew
+|
+|Boolean
+|A convenience method to allow writing `midpoint.evaluateNew` even after Groovy upgrade in 4.8.
+|collectAssignedFocusMappingsResults
+|ItemPath path
+|Collection<PrismValue>
+|Returns all non-negative values from all focus mappings (targeted to given path) from all non-negative evaluated assignments.
+|getFocusesByCorrelationRule
+|Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow
+|List<F>
+a|Legacy name for `findCandidateOwners()`. There are some slight changes in semantics comparing to midPoint 4.5:
+
+* If `kind` is `null`, `ACCOUNT` is assumed.
+* If `intent` is `null`, `default` is assumed.
+* The use of `type` parameter is a bit different.
+* Instead of being limited to correlation/confirmation expressions, the method now invokes the standard correlation mechanism. See findCandidateOwners(Class, ShadowType, String, ShadowKindType, String) for more information.
+*
+* The original method returns `null` e.g. if there's no synchronization policy, etc.  So, this method treats all exceptions (except for SchemaException) by returning `null`.
+|findCandidateOwners
+|Class<F> focusType, ShadowType resourceObject, String resourceOid, ShadowKindType kind, String intent
+|List<F>
+|Finds candidate owners using correlation rules for the given shadow.
+|previewChanges
+|Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options
+|ModelContext<F>
+|Previews changes without committing them (default options).
+|previewChanges
+|Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, OperationResult result
+|ModelContext<F>
+|Previews changes with a supplied operation result.
+|getPrismContext
+|
+|PrismContext
+|Returns the PrismContext.
+|getRelationRegistry
+|
+|RelationRegistry
+|Returns RelationRegistry.
+|applyDefinition
+|T object
+|void
+|Applies a schema definition to the given object.
+|deltaFor
+|Class<C> objectClass
+|S_ItemEntry
+|Creates a delta builder entry for the specified container class.
+|hasEffectiveMark
+|ObjectType object, String markOid
+|boolean
+|Returns true if the given object has an effective mark with the specified OID. Use only when you know the provided object has effective marks computed.
+|hasArchetype
+|ObjectType object, String archetypeOid
+|boolean
+|Checks whether the object is of the given archetype.
+|getArchetype
+|Object object
+|ArchetypeType
+|(Deprecated) Retrieves the archetype of the specified object; throws an exception if the object has multiple archetypes.
+|getStructuralArchetype
+|AssignmentHolderType object
+|ArchetypeType
+|Returns the structural archetype of the object, or null if none.
+|getArchetypes
+|Object object
+|List<ArchetypeType>
+|Returns all archetypes associated with the object.
+|getArchetypeOid
+|Object object
+|String
+|(Deprecated) Returns the OID of the single archetype; throws an exception if the object has multiple archetypes.
+|getArchetypeOids
+|ObjectType object
+|List<String>
+|Returns a list of archetype OIDs for the given object. Currently, those OIDs are taken from archetype assignments. ArchetypeRef values are ignored.
+|addRecomputeTrigger
+|Object object, Long timestamp
+|void
+|Adds a recompute trigger to the given object at the specified timestamp.
+|addRecomputeTrigger
+|Object object, Long timestamp, TriggerCustomizer triggerCustomizer
+|void
+|Adds a recompute trigger to the given object at the specified timestamp with a customizer for additional trigger configuration.
+|addRecomputeTrigger
+|PrismObject<O> object, Long timestamp
+|void
+|Adds a recompute trigger to the given PrismObject at the specified timestamp.
+|addRecomputeTrigger
+|PrismObject<O> object, Long timestamp, TriggerCustomizer triggerCustomizer
+|void
+|Adds a recompute trigger to the given PrismObject at the specified timestamp with customizer to the given PrismObject.
+|getRepositoryService
+|
+|RepositoryService
+|Returns RepositoryService.
+|getOptimizingTriggerCreator
+|long fireAfter, long safetyMargin
+|OptimizingTriggerCreator
+|Creates a `OptimizingTriggerCreator` if not already present; `fireAfter` and `safetyMargin` control timing.
+|getAttributeDefinition
+|PrismObject<ResourceType> resource, QName objectClassName, QName attributeName
+|ShadowSimpleAttributeDefinition<T>
+|Obtains the definition of a given simple attribute (generic) for a given resource and object class.
+|getAttributeDefinition
+|PrismObject<ResourceType> resource, String objectClassName, String attributeName
+|ShadowSimpleAttributeDefinition<T>
+|Obtains the definition of a given simple attribute (generic) for a given resource and object class.
+|createRecomputeTrigger
+|Class<? extends ObjectType> type, String oid
+|void
+|Creates a recompute trigger directly in the repository for the specified object OID.
+|getCorrelationCaseForShadow
+|ShadowType shadow
+|CaseType
+|Returns the correlation case (if any) associated with the given shadow.
+|queryFor
+|Class<T> type, String query
+|TypedQuery<T>
+|Creates a typed query object for the given JPQL‑like query string.
+|preparedQueryFor
+|Class<T> type, String query
+|PreparedQuery<T>
+|Creates a prepared query for the given query string.
+|searchObjects
+|TypedQuery<T> query
+|List<T>
+|Executes the typed query and returns matching objects.
+|searchObjects
+|TypedQuery<T> query, Collection<SelectorOptions<GetOperationOptions>> options
+|List<T>
+|Executes the typed query with additional selector options,  and returns matching objects.
+|searchObjectsIterative
+|TypedQuery<T> query, ResultHandler<T> handler
+|void
+|Iteratively processes query results, invoking the handler for each object.
+|searchObjectsIterative
+|TypedQuery<T> query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options
+|void
+|Iteratively processes query results with selector options, invoking the handler for each object.
+|customize
+|TriggerType trigger
+|void
+|Customize a trigger
+|describeResourceObjectSetLong
+|ResourceObjectSetType set
+|String
+|Produces a detailed, human‑readable description of a resource object set.
+|describeResourceObjectSetShort
+|ResourceObjectSetType set
+|String
+|Produces a concise description of a resource object set. Only one of object type display name and type ID is shown; object class is omitted when type is present.
+|describeResourceObjectSet
+|ResourceObjectSetType set
+|String
+|Synonym for `describeResourceObjectSetShort()`.
+|selectIdentityItemValues
+|Collection<FocusIdentityType> identities, FocusIdentitySourceType source, ItemPath itemPath
+|Collection<PrismValue>
+|Selects values of a specific item from a collection of identities, optionally filtered by source; `null` means all sources. The source is currently matched using resource OID, kind, intent, and tag.
+|isEffectivelyEnabled
+|ObjectType object
+|boolean
+|Returns true if the given object (or focus) is effectively enabled; false otherwise. If the object is not of the focus type, always returns `True` as there is no activation there.For focus types, the method expects it underwent standard computation and the effective status is set.
+|isFocusActivated
+|
+|boolean
+|Indicates whether the current clockwork operation brings the focus into existence and enables it.
+|isFocusDeactivated
+|
+|boolean
+|Indicates whether the current clockwork operation disables or deletes the focus.
+|isFocusDeleted
+|
+|boolean
+|Indicates whether the current clockwork operation deletes the focus.
+|getObjectRef
+|ShadowAssociationValueType associationValueBean
+|ObjectReferenceType
+|Returns the object reference for a given association value. Assumes that the association has no content and that it is exactly one object; otherwise returns `null`.)
+|getObjectOid
+|ShadowAssociationValueType associationValueBean
+|String
+|Returns the OID of the object reference extracted by getObjectRef.
+|getObjectName
+|ShadowAssociationValueType associationValueBean
+|PolyStringType
+|Returns the name of the object of given (no-content) association value (if present there).
+|getMetadata
+|ObjectType object
+|ValueMetadataType
+|Retrieves the metadata container from the given object, if present.
+|getMetadata
+|AbstractCredentialType credential
+|ValueMetadataType
+|Retrieves the metadata container from the given credential, if present.
+|getCreateTimestamp
+|ObjectType object
+|XMLGregorianCalendar
+|Returns the creation timestamp for the given object.
+|getCreateTimestamp
+|AssignmentType assignment
+|XMLGregorianCalendar
+|Returns the creation timestamp for the given assignment.
+|getModifyTimestamp
+|ObjectType object
+|XMLGregorianCalendar
+|Returns the modification timestamp for the given object.
+|getLastChangeTimestamp
+|ObjectType object
+|XMLGregorianCalendar
+|Returns the timestamp of the last change for the given object.
+|getCreateApproverRefs
+|ObjectType object
+|List<ObjectReferenceType>
+|Returns the list of object creation approver references recorded in the object's creation metadata.
+|getCreateApproverRefs
+|AssignmentType assignment
+|List<ObjectReferenceType>
+|Returns the list of assignment creation approver references recorded in the assignment's creation metadata.
+|getModifyApproverRefs
+|AssignmentType assignment
+|Collection<ObjectReferenceType>
+|Returns the list of assignment modification approver references recorded in the assignment's modification metadata.
+|getModifyApprovalComments
+|AssignmentType assignment
+|Collection<String>
+|Returns any approval comments stored in the assignment's modification metadata.
+|getRequestTimestamp
+|AssignmentType assignment
+|XMLGregorianCalendar
+|Returns the request timestamp from the assignment's request metadata.
+|getRequestorRefs
+|AssignmentType assignment
+|Collection<ObjectReferenceType>
+|Returns the list of requestor references from the assignment's request metadata.
+|getRequestorComments
+|AssignmentType assignment
+|Collection<String>
+|Returns any requestor comments from the assignment's request metadata.
+|getCertifierRefs
+|AssignmentType assignment
+|Collection<ObjectReferenceType>
+|Returns the list of certifier references from the assignment's certification metadata.
+|getCertifierComments
+|AssignmentType assignment
+|Collection<String>
+|Returns any certifier comments from the assignment's certification metadata.
+|getOperationOptionsBuilder
+|
+|GetOperationOptionsBuilder
+|Creates a new builder for constructing selector/options structures.
+|onlyBaseObject
+|
+|Collection<SelectorOptions<GetOperationOptions>>
+|Convenient selector that retrieves only the base object (no sub‑items).
+|====
