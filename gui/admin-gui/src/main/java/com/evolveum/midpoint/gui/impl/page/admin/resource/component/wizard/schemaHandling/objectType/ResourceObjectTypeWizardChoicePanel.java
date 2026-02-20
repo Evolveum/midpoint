@@ -111,6 +111,11 @@ public abstract class ResourceObjectTypeWizardChoicePanel
             protected @NotNull ResourceTaskFlavor<Void> getTaskFlavor() {
                 return ResourceTaskFlavors.IMPORT;
             }
+
+            @Override
+            protected ExecutionModeType getExecutionMode() {
+                return ExecutionModeType.PREVIEW;
+            }
         };
 
         simulationActionTaskButton.setRenderBodyOnly(true);
