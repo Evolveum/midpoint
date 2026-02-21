@@ -495,7 +495,15 @@ public class StatusInfoTableUtil {
         void accept(A a, B b, C c);
     }
 
-    public static StringResourceModel acceptConfirmationTitle(PageBase pageBase, int selectedCount, boolean empty) {
+    public static StringResourceModel createConfirmationTitle(PageBase pageBase, int selectedCount, boolean empty, boolean isAccept) {
+        if (isAccept) {
+            return acceptConfirmationTitle(pageBase, selectedCount, empty);
+        } else {
+            return dismissConfirmationTitle(pageBase, selectedCount, empty);
+        }
+    }
+
+    private static StringResourceModel acceptConfirmationTitle(PageBase pageBase, int selectedCount, boolean empty) {
         if (selectedCount == 0 && empty) {
             return pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.noItems");
         }
@@ -503,6 +511,16 @@ public class StatusInfoTableUtil {
         return selectedCount == 0
                 ? pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.empty")
                 : pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title", selectedCount);
+    }
+
+    private static StringResourceModel dismissConfirmationTitle(PageBase pageBase, int selectedCount, boolean empty) {
+        if (selectedCount == 0 && empty) {
+            return pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.dismissConfirmation.title.noItems");
+        }
+
+        return selectedCount == 0
+                ? pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.dismissConfirmation.title.empty")
+                : pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.dismissConfirmation.title", selectedCount);
     }
 
 }

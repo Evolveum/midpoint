@@ -18,6 +18,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.util.Collection;
@@ -122,36 +125,6 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
         helper.onExitPerformed(target);
     }
 
-    public void checkDeltasExitPerformed(AjaxRequestTarget target) {
-
-        if (!((PageAssignmentHolderDetails<?, ?>) getPageBase()).hasUnsavedChanges(target)) {
-            processDeltasExitPerform(target);
-            return;
-        }
-        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                createStringResource("OperationalButtonsPanel.confirmBack")) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                processDeltasExitPerform(target);
-            }
-        };
-
-        getPageBase().showMainPopup(confirmationPanel, target);
-    }
-
-    private void processDeltasExitPerform(AjaxRequestTarget target) {
-        getAssignmentHolderModel().reloadPrismObjectModel();
-        getHelper().refreshValueModel();
-        showAfterCheckDeltasExitPerformed(target);
-    }
-
-    protected void showAfterCheckDeltasExitPerformed(AjaxRequestTarget target) {
-
-    }
-
     public AHD getAssignmentHolderModel() {
         return helper.getDetailsModel();
     }
@@ -226,6 +199,38 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
         if (!getBreadcrumb().isEmpty()) {
             int index = getBreadcrumb().size() - 1;
             getBreadcrumb().remove(index);
+        }
+    }
+
+    public void checkDeltasExitPerformed(AjaxRequestTarget target,
+            @Nullable SerializableConsumer<AjaxRequestTarget> afterAction) {
+
+        if (!((PageAssignmentHolderDetails<?, ?>) getPageBase()).hasUnsavedChanges(target)) {
+            processDeltasExitPerform(target, afterAction);
+            return;
+        }
+
+        ConfirmationPanel confirmationPanel =
+                new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                        createStringResource("OperationalButtonsPanel.confirmBack")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        processDeltasExitPerform(target, afterAction);
+                    }
+                };
+
+        getPageBase().showMainPopup(confirmationPanel, target);
+    }
+
+    public void processDeltasExitPerform(AjaxRequestTarget target,
+            @Nullable SerializableConsumer<AjaxRequestTarget> afterAction) {
+        getAssignmentHolderModel().reloadPrismObjectModel();
+        getHelper().refreshValueModel();
+        if (afterAction != null) {
+            afterAction.accept(target);
         }
     }
 
