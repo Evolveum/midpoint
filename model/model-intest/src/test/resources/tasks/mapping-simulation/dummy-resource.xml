@@ -51,15 +51,6 @@
                 <type>UserType</type>
             </focus>
             <attribute>
-                <ref>icfs:name</ref>
-            </attribute>
-            <attribute>
-                <ref>icfs:uid</ref>
-            </attribute>
-            <attribute>
-                <ref>ri:correlator</ref>
-            </attribute>
-            <attribute>
                 <ref>ri:employeeNumber</ref>
                 <inbound>
                     <name>empNum</name>
@@ -68,12 +59,28 @@
                     </target>
                 </inbound>
             </attribute>
-            <attribute>
-                <ref>ri:givenName</ref>
-            </attribute>
-            <attribute>
-                <ref>ri:familyName</ref>
-            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>account</kind>
+            <intent>correlated-test</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = "correlated-test"</q:text>
+                </filter>
+            </delineation>
+        </objectType>
+
+        <objectType>
+            <kind>account</kind>
+            <intent>without-owner-test</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = "without-owner-test"</q:text>
+                </filter>
+            </delineation>
         </objectType>
 
         <objectType>
