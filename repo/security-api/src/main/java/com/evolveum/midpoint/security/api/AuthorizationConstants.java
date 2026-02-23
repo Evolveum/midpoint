@@ -256,6 +256,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_CONNECTOR_HOSTS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorHostsAll");
     public static final String AUTZ_UI_CONNECTOR_HOSTS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorHostsAll";
 
+    public static final QName AUTZ_UI_CONNECTORS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorsAll");
+    public static final String AUTZ_UI_CONNECTORS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorsAll";
+
     // Resource XML editor
     public static final QName AUTZ_UI_RESOURCE_QNAME = new QName(NS_AUTHORIZATION_UI, "resource");
     public static final String AUTZ_UI_RESOURCE_URL = NS_AUTHORIZATION_UI + "#resource";

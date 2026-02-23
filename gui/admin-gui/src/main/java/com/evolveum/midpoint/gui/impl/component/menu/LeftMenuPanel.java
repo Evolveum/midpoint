@@ -25,6 +25,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationR
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResults;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
+import com.evolveum.midpoint.web.page.admin.resources.PageConnectors;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -275,6 +277,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu = createMainNavigationMenu(experimentalFeaturesEnabled);
         addSidebarMenuItem(menus, menu);
 
+        menu = createIntegrationMenu(experimentalFeaturesEnabled);
+        addSidebarMenuItem(menus, menu);
+
         menu = createConfigurationMenu(experimentalFeaturesEnabled);
         addSidebarMenuItem(menus, menu);
 
@@ -315,12 +320,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.mainNavigation", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createHomeItems());
         menu.addMainMenuItem(createUsersItems());
-        menu.addMainMenuItem(createApplicationsItems());
+        //menu.addMainMenuItem(createApplicationsItems()); // this will be the IGA view of applications
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());
         menu.addMainMenuItem(createPoliciesItems());
-        menu.addMainMenuItem(createResourcesItems());
         if (getPageBase().getCaseManager().isEnabled()) {
             menu.addMainMenuItem(createWorkItemsItems());
         }
@@ -392,20 +396,47 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return userMenu;
     }
 
+    // TODO IGA view of applications
     private MainMenuItem createApplicationsItems() {
         MainMenuItem applicationMenu = createMainMenuItem("PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(applicationMenu, PageTypes.APPLICATION);
+        return applicationMenu;
+    }
 
-        applicationMenu.addMenuItem(createObjectListPageMenuItem(PageTypes.CONNECTOR_DEVELOPMENT));
+    // "Integration" view of applications
+    private MainMenuItem createApplicationsIntegrationItems() {
+        MainMenuItem menu = createMainMenuItem(
+                "PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
+        createBasicAssignmentHolderMenuItems(menu, PageTypes.APPLICATION);
+        menu.addMenuItem(
+                new MenuItem(
+                        "PageAdmin.menu.top.applications.connect",
+                        GuiStyleConstants.CLASS_PLUS_CIRCLE,
+                        getDetailsPage(PageTypes.APPLICATION),
+                        null));
+        return menu;
+    }
 
+    private MainMenuItem createResourcesItems() {
+        MainMenuItem menu = createMainMenuItem(
+                "PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
+        createBasicAssignmentHolderMenuItems(menu, PageTypes.RESOURCE);
+        menu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
+        return menu;
+    }
+
+    private MainMenuItem createConnectorsItems() {
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.connectors", GuiStyleConstants.CLASS_OBJECT_CONNECTOR_ICON);
+        menu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectors.list", PageConnectors.class));
+        menu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
+        menu.addMenuItem(createObjectListPageMenuItem(PageTypes.CONNECTOR_DEVELOPMENT));
         boolean connectorGeneratorActive = classMatches(PageConnectorDevelopment.class);
 //        if (connectorGeneratorActive) {
             MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
                     GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
-            applicationMenu.addMenuItem(connectorGenerator);
+            menu.addMenuItem(connectorGenerator);
 //        }
-
-        return applicationMenu;
+        return menu;
     }
 
     //TODO AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL
@@ -458,17 +489,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem serviceMenu = createMainMenuItem("PageAdmin.menu.top.policies", GuiStyleConstants.CLASS_OBJECT_POLICY_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(serviceMenu, PageTypes.POLICY);
         return serviceMenu;
-    }
-
-    private MainMenuItem createResourcesItems() {
-        MainMenuItem resourceMenu = createMainMenuItem(
-                "PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
-
-        createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
-
-        resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
-        resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
-        return resourceMenu;
     }
 
     private MainMenuItem createWorkItemsItems() {
@@ -614,6 +634,20 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return menu;
     }
 
+    private SideBarMenuItem createIntegrationMenu(boolean experimentalFeaturesEnabled) {
+        SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.top.integration", experimentalFeaturesEnabled) {
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        };
+
+        menu.addMainMenuItem(createApplicationsIntegrationItems());
+        menu.addMainMenuItem(createResourcesItems());
+        menu.addMainMenuItem(createConnectorsItems());
+        return menu;
+    }
+
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
         SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled) {
             @Override
@@ -700,7 +734,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         addCollectionsMenuItems(mainMenuItem, pageDesc.getTypeName(), pageDesc.getListClass());
 
-        if (PageTypes.CASE != pageDesc) {
+        if (pageDesc != PageTypes.CASE && pageDesc != PageTypes.APPLICATION) {
             createFocusPageNewEditMenu(mainMenuItem, "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".new",
                     "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".edit", getDetailsPage(pageDesc));
         }
