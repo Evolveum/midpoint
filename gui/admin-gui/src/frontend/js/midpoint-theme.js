@@ -673,6 +673,24 @@ export default class MidPointTheme {
             if (select.length) {
                 var attribute = select.attr("aria-label")
 
+                $('.select2-selection__clear').each(function () {
+                        const $clear = $(this);
+                        if (!$clear.attr('tabindex')) {
+                            $clear.attr({
+                                'tabindex': 0,
+                                'role': 'button',
+                                'aria-label': 'Clear selection'
+                            });
+
+                            $clear.on('keydown', function (e) {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    $(this).trigger('mousedown');
+                                }
+                            });
+                        }
+                    });
+
                 var combobox = container.find("span[role='combobox']");
                 var selectContainer = container.find(".select2-container");
 
