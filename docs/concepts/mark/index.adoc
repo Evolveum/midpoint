@@ -355,14 +355,6 @@ Used in the same way as "Protected" when you have different reasons than for the
 |Shadow object that has bad data and should be ignored by synchronization. Used in the same way as "Protected" but with a different semantic meaning.
 |===
 
-If reconciliation repeatedly fails on a subset of resource objects due to invalid or corrupted data, you can quarantine the failing shadows by applying a shadow policy mark such as _Invalid data_.
-Once applied, the mark disables synchronization (inbound/outbound) and provisioning operations for those shadows.
-Subsequent reconciliation runs can then skip the marked shadows (until unmarked) instead of repeatedly processing them.
-
-This can be automated using a composite task containing two activities.
-While the first activity runs a reconciliation, the second activity immediately processes only the failed objects (using `failedObjectsSelector`) and applies a mark.
-After you fix the source data, remove the mark from the shadows (in Accounts/Entitlements list of a resource in GUI), and then reconcile the objects manually.
-See a link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/recon-task-csv-mark-invalid.xml[composite task example].
 
 == Best practices
 
@@ -374,3 +366,4 @@ Too many marks can complicate management, while too few may not provide sufficie
 == See also
 
 * xref:/midpoint/reference/admin-gui/resource-wizard/object-type/policies[]
+* xref:/midpoint/reference/concepts/mark/use-marks-to-quarantine-objects[] - An example of using marks to quarantine objects that fail during reconciliation.
