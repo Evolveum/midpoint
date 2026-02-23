@@ -1,0 +1,111 @@
+= Example: Using Marks to Quarantine Failing Resource Objects
+:page-toc: top
+:experimental:
+:page-keywords: mark, shadow policy mark, failed objects selector, quarantine, reconciliation, synchronization, provisioning
+:page-description: This shows an example of utilizing marks to fix issues encountered when running tasks.
+
+
+This shows an example of utilizing marks to fix issues encountered when running tasks.
+
+== Failure scenario
+
+In this example, we are using marks in a reconciliation scenario so that we can automatically quarantine resource objects (shadows) that fail during reconciliation due to invalid or corrupted data in the source system.
+
+The presented scenario is used in situations that have the following typical symptoms:
+
+* Reconciliation repeatedly fails on a subset of resource objects due to invalid or corrupted data.
+* The data issue must be fixed in the source system before the objects can be successfully reconciled but you need a temporary workaround to keep the reconciliation process running for the rest of the objects.
+* The failing objects are not critical and can be safely quarantined until the source data is fixed.
+* You want to avoid repeatedly processing the failing objects during reconciliation as continuous retries provide no value and only cause unnecessary load on the system.
+
+== Mark-based quarantine
+
+The example solution below runs a reconciliation, immediately identifies failed objects, and applies a mark to them, so that a shadow policy can automatically quarantine them until you can identify the root issue, fix the source data, and remove the mark.
+
+The solution employs xref:/midpoint/reference/tasks/activities/error-handling/#_failed_objects_selector[failed objects selector] and xref:/midpoint/reference/concepts/mark/#shadow-policy-marks[shadow policy marks].
+
+. Create a composite task containing two xref:/midpoint/reference/tasks/activities[activities] chained using the `<composition>` element in the task definition:
+** The first activity runs a xref:/midpoint/reference/tasks/synchronization-tasks/import-and-reconciliation[reconciliation] on the resource.
++
+.Example of the first activity:
+[source,xml]
+----
+<activity>
+    <order>1</order>
+    <work>
+        <reconciliation>
+            <resourceObjects>
+                <resourceRef oid="b13181b7-627c-495a-af4a-148cb657effd" relation="org:default" type="c:ResourceType"/>
+                <kind>account</kind>
+                <intent>default</intent>
+            </resourceObjects>
+        </reconciliation>
+    </work>
+</activity>
+----
+** The second activity immediately processes only the failed objects (using xref:/midpoint/reference/tasks/activities/error-handling/#_failed_objects_selector[`failedObjectsSelector`]) and applies a mark to them.
+This mark makes sure that the system automatically quarantines the marked shadows, and that you can find the failed objects to review and fix the source data issues.
++
+[NOTE]
+====
+In this example, we are using the xref:/midpoint/reference/concepts/mark[_Invalid data_ mark] (with OID `00000000-0000-0000-0000-000000000804`) that is provided in midPoint by default for such purposes.
+The benefit of using a predefined mark is that the system will automatically quarantine the marked objects.
+
+If you use other than a system provided mark, you will need to define a shadow policy that will quarantine the marked objects.
+====
++
+.Example of the second activity:
+[source,xml]
+----
+<activity>
+    <order>2</order>
+    <work>
+        <iterativeScripting>
+            <objects>
+                <type>c:ShadowType</type>
+                <!-- This is the key: select objects that FAILED in the reconciliation activity run -->
+                <failedObjectsSelector>
+                    <selectionMethod>fetchFailedObjects</selectionMethod>
+                    <status>fatal_error</status>
+                    <taskRef oid="f327ec63-28bf-4765-9aac-48e0c17ae09c" type="c:TaskType"/>
+                </failedObjectsSelector>
+            </objects>
+            <scriptExecutionRequest>
+                <s:action>
+                    <s:type>modify</s:type>
+                    <s:parameter>
+                        <s:name>delta</s:name>
+                        <c:value xsi:type="t:ObjectDeltaType">
+                            <t:changeType>modify</t:changeType>
+                            <t:objectType>c:ShadowType</t:objectType>
+                            <!-- Add policyStatement = apply Invalid-data mark -->
+                            <t:itemDelta>
+                                <t:modificationType>add</t:modificationType>
+                                <t:path>c:policyStatement</t:path>
+                                <t:value>
+                                    <c:markRef oid="00000000-0000-0000-0000-000000000804" relation="org:default" type="c:MarkType"/>
+                                    <c:type>apply</c:type>
+                                </t:value>
+                            </t:itemDelta>
+                        </c:value>
+                    </s:parameter>
+                </s:action>
+            </scriptExecutionRequest>
+        </iterativeScripting>
+    </work>
+</activity>
+----
+
++
+See the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/recon-task-csv-mark-invalid.xml[full composite task example].
+. Once the mark is applied, the marked shadows are automatically quarantined, and subsequent reconciliation runs can skip the marked shadows (until unmarked) instead of repeatedly processing them.
+Applying the system pre-defined _Invalid data_ mark causes the default shadow policy to quarantine the affected shadows by disabling synchronization (inbound/outbound) and provisioning operations until the mark is removed.
+
+. Review the marked shadows to find out what data are incorrect.
+You can do this in [.nowrap]#icon:tachometer-all[] *Dashboards*# (see xref:/midpoint/reference/admin-gui/dashboards[]).
++
+Alternatively, depending on your context, you can also see [.nowrap]#icon:database[] *Resources*# > [.nowrap]#icon:database[] *All Resources*# > your resource > [.nowrap]#icon:male[] *Accounts*# (or [.nowrap]#icon:users[] *Entitlements*#) or other sections in the GUI.
++
+TIP: Set up xref:/midpoint/reference/misc/notifications/[notifications] to automatically notify the responsible administrator about the failed objects.
+. Fix the source data in the connected system.
+. Remove the mark from the shadows (in [.nowrap]#icon:database[] *Resources*# > [.nowrap]#icon:database[] *All Resources*# > your resource > [.nowrap]#icon:male[] *Accounts*# or other section, depending on your context), and then reconcile the objects manually, or wait for the next scheduled reconciliation run to process them.

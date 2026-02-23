@@ -9,8 +9,10 @@ package com.evolveum.midpoint.model.impl.mappings.tasks;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.Objects;
+import java.util.function.Supplier;
+
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSin
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundMappingContextSpecification;
 import com.evolveum.midpoint.model.impl.simulation.MappingSimulationData;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -48,6 +51,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -60,6 +64,7 @@ public class MappingActivityRun extends SearchBasedActivityRun<ShadowType, Mappi
     private final ProvisioningService provisioningService;
     private final CorrelationService correlationService;
     private final SystemObjectCache systemObjectCache;
+    private final PrismContext prismContext;
 
     private final List<InlineMappingDefinitionType> mappings;
     private final boolean excludeExistingMappings;
@@ -73,11 +78,12 @@ public class MappingActivityRun extends SearchBasedActivityRun<ShadowType, Mappi
     public MappingActivityRun(
             ActivityRunInstantiationContext<MappingWorkDefinition, MappingActivityHandler> ctx,
             ProvisioningService provisioningService, CorrelationService correlationService,
-            SystemObjectCache systemObjectCache) {
+            SystemObjectCache systemObjectCache, PrismContext prismContext) {
         super(ctx, "Mapping Simulation");
         this.provisioningService = provisioningService;
         this.correlationService = correlationService;
         this.systemObjectCache = systemObjectCache;
+        this.prismContext = prismContext;
 
         final MappingWorkDefinition workDefinition = ctx.getActivity().getWorkDefinition();
         this.mappings = workDefinition.provideMappings();
@@ -111,22 +117,19 @@ public class MappingActivityRun extends SearchBasedActivityRun<ShadowType, Mappi
     public boolean processItem(@NotNull ShadowType shadow, @NotNull ItemProcessingRequest<ShadowType> request,
             RunningTask task, OperationResult result) throws CommonException {
 
-        final Optional<FocusType> linkedOrCorrelatedFocuses = this.correlationService.findLinkedOrCorrelatedFocus(
-                shadow, result);
-
-        if (linkedOrCorrelatedFocuses.isEmpty()) {
-            LOGGER.debug("Mappings of shadow are {} skipped, because shadow is not linked, nor correlated with any "
-                    + "focus.", shadow);
-            return true;
+        final FocusType targetFocus;
+        try {
+            targetFocus = this.correlationService.findLinkedOrCorrelatedFocus(shadow, result)
+                    .orElseGet(emptyFocusSupplier(shadow));
+        } catch (TunnelException e) {
+            throw new SchemaException(e.getMessage(), e.getCause());
         }
-
-        final FocusType targetFocus = linkedOrCorrelatedFocuses.get();
 
         final OperationResult evaluationResult = result.createSubresult("Evaluation of inbound mappings on shadow "
                 + shadow);
         final ObjectDelta<FocusType> objectDelta;
         try {
-            final Collection<ItemDelta<?, ?>> deltas = evaluateMappings(shadow, task, evaluationResult, targetFocus);
+            final Collection<ItemDelta<?, ?>> deltas = evaluateMappings(shadow, targetFocus, evaluationResult, task);
             if (!deltas.isEmpty()) {
                 objectDelta = (ObjectDelta<FocusType>) targetFocus.asPrismObject().createModifyDelta();
                 objectDelta.addModifications(deltas);
@@ -137,17 +140,34 @@ public class MappingActivityRun extends SearchBasedActivityRun<ShadowType, Mappi
             evaluationResult.close();
         }
 
-        final SimulationTransaction simulationTransaction = getSimulationTransaction();
-        if (simulationTransaction != null) {
-            simulationTransaction.writeSimulationData(new MappingSimulationData(targetFocus, shadow, objectDelta,
-                    evaluationResult), task, result);
-        }
+        final SimulationTransaction simulationTransaction = Objects.requireNonNull(getSimulationTransaction(),
+                "Required simulation transaction does not exist.");
+        simulationTransaction.writeSimulationData(new MappingSimulationData(targetFocus, shadow, objectDelta,
+                evaluationResult), task, result);
 
         return true;
     }
 
-    private Collection<ItemDelta<?, ?>> evaluateMappings(ShadowType shadow, RunningTask task,
-            OperationResult result, FocusType targetFocus)
+    private @NotNull Supplier<FocusType> emptyFocusSupplier(@NotNull ShadowType shadow) {
+        return () -> {
+            LOGGER.debug("Shadow {} has no linked, nor correlated owner. Mapping will be simulated with an "
+                    + "empty focus.", shadow);
+            final QName focusType = this.objectTypeDefinition.getFocusTypeName() != null
+                    ? this.objectTypeDefinition.getFocusTypeName()
+                    : UserType.COMPLEX_TYPE;
+            final Class<FocusType> focusClass = this.prismContext.getSchemaRegistry().determineClassForType(
+                    focusType);
+            try {
+                return this.prismContext.createObjectable(focusClass);
+            } catch (SchemaException e) {
+                throw new TunnelException("Unable to create empty focus object for simulation of mapping of shadow: "
+                        + shadow, e);
+            }
+        };
+    }
+
+    private Collection<ItemDelta<?, ?>> evaluateMappings(ShadowType shadow, FocusType targetFocus,
+            OperationResult result, RunningTask task)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
         final MappingEvaluationEnvironment evaluationEnvironment = new MappingEvaluationEnvironment(
@@ -196,7 +216,7 @@ public class MappingActivityRun extends SearchBasedActivityRun<ShadowType, Mappi
      * Removes existing mappings from the resource, if the exclusion flag is set to true.
      *
      * This method intentionally removes mappings from **all** object types, to be sure we remove also mappings from
-     * whole possible object type inheritance hierarchy.
+     * whole object type inheritance hierarchy (if present).
      *
      * @param resource The resource from which you want to exclude existing mappings.
      * @return The clone of the provided resource with excluded mappings, or the same instance as was provided if the
