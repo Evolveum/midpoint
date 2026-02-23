@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
@@ -28,14 +29,16 @@ public class MappingActivityHandler implements ActivityHandler<MappingWorkDefini
     private final ProvisioningService provisioningService;
     private final CorrelationService correlationService;
     private final SystemObjectCache systemObjectCache;
+    private final PrismContext prismContext;
 
     public MappingActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
             ProvisioningService provisioningService, CorrelationService correlationService,
-            SystemObjectCache systemObjectCache) {
+            SystemObjectCache systemObjectCache, PrismContext prismContext) {
         this.activityHandlerRegistry = activityHandlerRegistry;
         this.provisioningService = provisioningService;
         this.correlationService = correlationService;
         this.systemObjectCache = systemObjectCache;
+        this.prismContext = prismContext;
     }
 
     @PostConstruct
@@ -53,7 +56,8 @@ public class MappingActivityHandler implements ActivityHandler<MappingWorkDefini
     public MappingActivityRun createActivityRun(
             @NotNull ActivityRunInstantiationContext<MappingWorkDefinition, MappingActivityHandler> ctx,
             @NotNull OperationResult result) {
-        return new MappingActivityRun(ctx, this.provisioningService, this.correlationService, this.systemObjectCache);
+        return new MappingActivityRun(ctx, this.provisioningService, this.correlationService, this.systemObjectCache,
+                this.prismContext);
     }
 
     private MappingWorkDefinition workDefFactory(WorkDefinitionFactory.WorkDefinitionInfo info) {

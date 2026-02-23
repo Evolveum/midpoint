@@ -37,7 +37,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
@@ -148,6 +147,33 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
     }
 
     @Test
+    void accountDoesNotHaveAnyOwner_simulateMappingAlsoMapping_mappingResultsShouldBeAppliedToEmptyFocus()
+            throws Exception {
+        final OperationResult result = getTestOperationResult();
+
+        given("One account is present but without any owner candidate");
+        and("Mapping simulation task contains one explicitly defined mapping");
+        final String intent = "without-owner-test";
+        and("Mapping simulation task is configured to use object type with \"" + intent + "\" intent");
+        setObjectTypeIntent(intent);
+
+        when("Mapping simulation task is run on the resource.");
+        mappingTask.rerun(result);
+
+        then("Shadows should be processed together with one empty focus object.");
+        and("Empty focus should be modified.");
+        assertSimulationResult(mappingTask.oid, "Assert mapping simulation result metrics.")
+                .assertObjectsProcessed(2)
+                .assertObjectsModified(1);
+        final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
+                result).getProcessedObjects(result);
+        assertProcessedFocusesCount(processedObjects, 1);
+        assertProcessedShadowsCount(processedObjects, 1);
+        assertModifiedObjectsCount(processedObjects, 1)
+                .assertItemModificationsCount(1);
+    }
+
+    @Test
     void accountsAreLinkedToUser_simulateMappingWithDifferentOutcomes_eventMarksShouldBeSetAccordinglyToMappingOutcome()
             throws Exception {
         final OperationResult result = getTestOperationResult();
@@ -186,7 +212,6 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                         SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value());
     }
 
-
     @Test
     void linkedAccountHasObjectTypeWithInheritance_simulateMappingButExcludeExistingOnes_existingMappingsShouldNotBeEvaluated()
             throws Exception {
@@ -217,12 +242,15 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
     }
 
     @Test
-    void oneAccountLinkedOneAccountCorrelated_simulateMapping_linkedAndCorrelatedAccountsAndFocusesShouldBeProcessed()
-            throws CommonException {
+    void noAccountLinkedOneAccountCorrelated_simulateMapping_linkedAndCorrelatedAccountsAndFocusesShouldBeProcessed()
+            throws Exception {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
-        given("One account is linked with a user");
+        given("No account is linked with a user");
+        final String intent = "correlated-test";
+        and("Mapping simulation task is configured to use object type with \"" + intent + "\" intent");
+        setObjectTypeIntent(intent);
         and("One account is correlated but not linked with a user");
         final Collection<PrismObject<ShadowType>> correlatedShadows = this.resource.getAccounts(this, this::listAccounts)
                 .correlateWithUsers(this.users, delta -> this.executeChanges(delta, null, task, result), task, result)
@@ -235,13 +263,13 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
 
         then("All shadows with their owners (linked or correlated) should be processed.");
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result metrics.")
-                .assertObjectsProcessed(4);
+                .assertObjectsProcessed(2);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
-        assertProcessedFocusesCount(processedObjects, 2)
+        assertProcessedFocusesCount(processedObjects, 1)
                 // There are two processed focuses, each should have one processed shadow.
-                .assertContainsProjectionRecords(1, 1);
-        assertProcessedShadowsCount(processedObjects, 2)
+                .assertContainsProjectionRecords(1);
+        assertProcessedShadowsCount(processedObjects, 1)
                 .assertContainsLinkedFocus();
     }
 
