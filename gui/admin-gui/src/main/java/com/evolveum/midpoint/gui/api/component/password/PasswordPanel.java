@@ -69,16 +69,21 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_VALIDATION_PROGRESS_BAR = "validationProgressBar";
+    private static final String ID_PASSWORD_STRENGTH_METER = "passwordStrengthMeterContainer";
     private static final String ID_PASSWORD_TWO = "password2";
     private static final String ID_REPEAT_PASSWORD_LABEL = "repeatPasswordLabel";
     private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
 
+    private static final String ID_INPUT_PREFIX = "password-input-";
+    private static final String ID_PROGRESS_BAR_PREFIX = "progress-bar-container-";
+    private static final int RANGE_FOR_RANDOM = 99999;
+
     protected boolean passwordInputVisible;
     private final PrismObject<? extends FocusType> prismObject;
     private final IModel<ProtectedStringType> passwordModel;
     protected boolean isReadOnly;
-    private boolean shouldTrimInput = false;
+    private final boolean shouldTrimInput = false;
     private final boolean showOneLinePasswordPanel;
     private final boolean addTabIndexForLimitationPanel;
 
@@ -131,7 +136,7 @@ public class PasswordPanel extends InputPanel {
         super.onInitialize();
     }
 
-    protected  <F extends FocusType> void initLayout() {
+    protected <F extends FocusType> void initLayout() {
         setOutputMarkupId(true);
 
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
@@ -169,8 +174,12 @@ public class PasswordPanel extends InputPanel {
 
 
         };
+        final Random random = new Random();
+        final String idInput = ID_INPUT_PREFIX + random.nextInt(RANGE_FOR_RANDOM);
+        final String idStrengthMeter = ID_PROGRESS_BAR_PREFIX + random.nextInt(RANGE_FOR_RANDOM);
+        password1.setMarkupId(idInput);
         if (isPasswordStrengthBarVisible()) {
-            password1.add(AttributeAppender.append("onfocus", initPasswordValidation()));
+            password1.add(AttributeAppender.append("onfocus", initPasswordValidation(idStrengthMeter, idInput)));
         }
         password1.setRequired(false);
         password1.add(new EnableBehaviour(this::canEditPassword));
@@ -184,6 +193,10 @@ public class PasswordPanel extends InputPanel {
         validationProgressBar.setOutputMarkupId(true);
         validationProgressBar.add(new VisibleBehaviour(() -> !showOneLinePasswordPanel));
         inputContainer.add(validationProgressBar);
+
+        final WebMarkupContainer passwordStrengthMeter = new WebMarkupContainer(ID_PASSWORD_STRENGTH_METER);
+        passwordStrengthMeter.setMarkupId(idStrengthMeter);
+        validationProgressBar.add(passwordStrengthMeter);
 
         Label repeatPasswordLabel = new Label(ID_REPEAT_PASSWORD_LABEL,
                 getString("PasswordPanel.repeatPasswordPlaceholder"));
@@ -277,9 +290,9 @@ public class PasswordPanel extends InputPanel {
         return passwordInputVisible || getParentPage().getPrincipalFocus() == null;
     }
 
-    private String initPasswordValidation() {
+    private String initPasswordValidation(final String idStrengthMeter, final String idInput) {
         return "initPasswordValidation({\n"
-                + "container: $('#progress-bar-container'),\n"
+                + "container: $('#" + idStrengthMeter + "'),\n"
                 + "hierarchy: {\n"
                 + "    '0': ['progress-bar-danger', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.veryWeak").getString() + "'],\n"
                 + "    '25': ['progress-bar-danger', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.weak").getString() + "'],\n"
@@ -287,7 +300,7 @@ public class PasswordPanel extends InputPanel {
                 + "    '75': ['progress-bar-success', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.strong").getString() + "'],\n"
                 + "    '100': ['progress-bar-success', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.veryStrong").getString() + "']\n"
                 + "}\n"
-                + "})";
+                + "}, '#" + idInput + "')";
     }
 
     private String getPasswordMatched(String password1, String password2) {
