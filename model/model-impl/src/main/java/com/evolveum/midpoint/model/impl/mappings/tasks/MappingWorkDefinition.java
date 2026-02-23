@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Work definition for mapping simulation activity.
  */
 public class MappingWorkDefinition extends ResourceSetTaskWorkDefinition {
-    private static final Trace LOGGER = TraceManager.getTrace(MappingActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappingSimulationActivityRun.class);
 
     private final MappingWorkDefinitionType workDefinition;
 
