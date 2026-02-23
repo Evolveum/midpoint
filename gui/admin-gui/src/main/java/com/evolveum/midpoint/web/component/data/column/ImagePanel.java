@@ -115,6 +115,9 @@ public class ImagePanel extends BasePanel<DisplayType> {
 
     private @Nullable String getTooltip() {
         DisplayType displayBean = getModelObject();
+        if (displayBean == null) {
+            return null;
+        }
         String tooltip = LocalizationUtil.translatePolyString(displayBean.getTooltip());
         return StringUtils.isEmpty(tooltip) ? null : tooltip;
     }
