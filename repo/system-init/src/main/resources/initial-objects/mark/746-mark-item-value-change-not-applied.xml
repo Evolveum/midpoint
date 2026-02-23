@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="65eedb14-5aba-4692-bd93-62f7f56671b4">
+    <name>Item value change not applied</name>
+    <description>Change of an item value has not been applied, e.g. because it was produced by a mapping with a
+        weak strength, but item already had a value</description>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <displayOrder>550</displayOrder>
+    <!-- No policy rule. This is set explicitly by the correlation simulation. -->
+</mark>

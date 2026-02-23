@@ -13,7 +13,11 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ListAssert;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,7 +37,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
@@ -64,13 +67,13 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         this.resource.init(this, initTask, initResult);
         this.mappingTask = TestTask.fromFile(SIMULATION_TASK, SIMULATION_TASK_OID);
         this.users = repoAddObjectsFromFile(USERS, UserType.class, initResult);
-        assertUsers(5); // Including one admin.
+        assertUsers(9); // Including one admin.
 
         final Collection<PrismObject<ShadowType>> linkedAccounts = this.resource.getAccounts(this, this::listAccounts)
                 .linkWithUsers(this.users, delta -> this.executeChanges(delta, null, initTask, initResult), initTask,
                         initResult)
                 .onAttributes(ACCOUNT_CORRELATION_ATTRIBUE, UserType.F_NAME);
-        assertThat(linkedAccounts).as("Check test precondition: Only two accounts should be linked").hasSize(2);
+        assertThat(linkedAccounts).as("Check test precondition: Linked accounts count").hasSize(6);
 
     }
 
@@ -85,7 +88,7 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         final OperationResult result = getTestOperationResult();
 
         given("One account is linked with a user");
-        and("Resource contains one inbound mapping");
+        and("Object type definition in resource contains one inbound mapping");
         and("Mapping simulation task contains one explicitly defined mapping");
         and("Mapping simulation task is configured to include existing mappings");
         includeExistingMappings(true);
@@ -117,7 +120,7 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         final OperationResult result = getTestOperationResult();
 
         given("Accounts are linked with a user");
-        and("Resource contains one inbound mapping");
+        and("Object type definition in resource contains one inbound mapping");
         and("Mapping simulation task contains one explicitly defined mapping");
         and("Mapping simulation task is configured to exclude existing mappings");
         includeExistingMappings(excludeExistingMappingsOption);
@@ -133,8 +136,80 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                 result).getProcessedObjects(result);
         assertProcessedFocusesCount(processedObjects, 1);
         assertProcessedShadowsCount(processedObjects, 1);
+        final String userWithExpectedChange = this.users.stream()
+                .filter(user -> user.getName().getOrig().equals("smith1"))
+                .findFirst()
+                .map(PrismObject::getOid)
+                .orElseGet(() -> Assertions.fail("Expected user does not exist."));
+        assertModifiedObjectsCount(processedObjects, 1)
+                .assertItemModificationsCount(1)
+                .assertContainsEventMark(userWithExpectedChange, SystemObjectsType.MARK_ITEM_VALUE_ADDED.value());
+    }
+
+    @Test
+    void accountDoesNotHaveAnyOwner_simulateMappingAlsoMapping_mappingResultsShouldBeAppliedToEmptyFocus()
+            throws Exception {
+        final OperationResult result = getTestOperationResult();
+
+        given("One account is present but without any owner candidate");
+        and("Mapping simulation task contains one explicitly defined mapping");
+        final String intent = "without-owner-test";
+        and("Mapping simulation task is configured to use object type with \"" + intent + "\" intent");
+        setObjectTypeIntent(intent);
+
+        when("Mapping simulation task is run on the resource.");
+        mappingTask.rerun(result);
+
+        then("Shadows should be processed together with one empty focus object.");
+        and("Empty focus should be modified.");
+        assertSimulationResult(mappingTask.oid, "Assert mapping simulation result metrics.")
+                .assertObjectsProcessed(2)
+                .assertObjectsModified(1);
+        final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
+                result).getProcessedObjects(result);
+        assertProcessedFocusesCount(processedObjects, 1);
+        assertProcessedShadowsCount(processedObjects, 1);
         assertModifiedObjectsCount(processedObjects, 1)
                 .assertItemModificationsCount(1);
+    }
+
+    @Test
+    void accountsAreLinkedToUser_simulateMappingWithDifferentOutcomes_eventMarksShouldBeSetAccordinglyToMappingOutcome()
+            throws Exception {
+        final OperationResult result = getTestOperationResult();
+
+        given("Accounts are linked with a user");
+        and("Object type definition in resource does not contain any inbound mapping");
+        and("Mapping simulation task contains one explicitly defined mapping");
+        final String intent = "marks-test";
+        and("Mapping simulation task is configured to use object type with \"" + intent + "\" intent");
+        setObjectTypeIntent(intent);
+
+        when("Mapping simulation task is run on the resource.");
+        mappingTask.rerun(result);
+
+        then("processed objects should contain event marks corresponding to the change");
+        final Map<String, String> usersNameToOidMap = this.users.stream()
+                .collect(Collectors.toMap(user -> user.getName().getOrig(), PrismObject::getOid));
+        assertSimulationResult(mappingTask.oid, "Assert mapping simulation result.")
+                .assertObjectsProcessed(8)
+                .assertObjectsModified(3);
+        final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
+                result).getProcessedObjects(result);
+        final ProcessedObjectsAsserter processedFocusesAsserter = assertProcessedFocusesCount(processedObjects, 4);
+        processedFocusesAsserter
+                .assertUnModifiedObjectsCount(1)
+                .assertContainsEventMark(usersNameToOidMap.get("connor"),
+                        SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value());
+        processedFocusesAsserter
+                .assertModifiedObjectsCount(3)
+                .assertItemModificationsCount(3) // Each focus should have one item changed
+                .assertContainsEventMark(usersNameToOidMap.get("cena"),
+                        SystemObjectsType.MARK_ITEM_VALUE_ADDED.value())
+                .assertContainsEventMark(usersNameToOidMap.get("snow"),
+                        SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value())
+                .assertContainsEventMark(usersNameToOidMap.get("rambo"),
+                        SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value());
     }
 
     @Test
@@ -143,12 +218,13 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         final OperationResult result = getTestOperationResult();
 
         given("Accounts are linked with a user");
-        and("Resource contains one inbound mapping for given object type");
+        and("Object type definition in resource contains one inbound mapping defined in its super type");
         and("Mapping simulation task contains one explicitly defined mapping");
         and("Mapping simulation task is configured to exclude existing mappings");
         includeExistingMappings(false);
-        and("Mapping simulation task is configured to use object type with specific intent");
-        setObjectTypeIntent("exclusion-test");
+        final String intent = "exclusion-test";
+        and("Mapping simulation task is configured to use object type with \"" + intent + "\" intent");
+        setObjectTypeIntent(intent);
 
         when("Mapping simulation task is run on the resource.");
         mappingTask.rerun(result);
@@ -166,17 +242,20 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
     }
 
     @Test
-    void oneAccountLinkedOneAccountCorrelated_simulateMapping_linkedAndCorrelatedAccountsAndFocusesShouldBeProcessed()
-            throws CommonException {
+    void noAccountLinkedOneAccountCorrelated_simulateMapping_linkedAndCorrelatedAccountsAndFocusesShouldBeProcessed()
+            throws Exception {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
-        given("One account is linked with a user");
+        given("No account is linked with a user");
+        final String intent = "correlated-test";
+        and("Mapping simulation task is configured to use object type with \"" + intent + "\" intent");
+        setObjectTypeIntent(intent);
         and("One account is correlated but not linked with a user");
         final Collection<PrismObject<ShadowType>> correlatedShadows = this.resource.getAccounts(this, this::listAccounts)
                 .correlateWithUsers(this.users, delta -> this.executeChanges(delta, null, task, result), task, result)
                 .onAttributes(ACCOUNT_CORRELATION_ATTRIBUE, UserType.F_FAMILY_NAME);
-        assertThat(correlatedShadows).as("Check test precondition: Only one account should be correlated").hasSize(1);
+        assertThat(correlatedShadows).as("Check test precondition: Correlated accounts count").hasSize(1);
         and("There is some mapping to simulate, either explicitly defined in work def or already present in resource.");
 
         when("Mapping simulation task is run on the resource.");
@@ -184,13 +263,13 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
 
         then("All shadows with their owners (linked or correlated) should be processed.");
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result metrics.")
-                .assertObjectsProcessed(4);
+                .assertObjectsProcessed(2);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
-        assertProcessedFocusesCount(processedObjects, 2)
+        assertProcessedFocusesCount(processedObjects, 1)
                 // There are two processed focuses, each should have one processed shadow.
-                .assertContainsProjectionRecords(1, 1);
-        assertProcessedShadowsCount(processedObjects, 2)
+                .assertContainsProjectionRecords(1);
+        assertProcessedShadowsCount(processedObjects, 1)
                 .assertContainsLinkedFocus();
     }
 
@@ -257,7 +336,8 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                 assertThat(processedObjects)
                         .filteredOn(ProcessedObject::isFocus)
                         .as("Check number of processed focuses")
-                        .hasSize(expectedCount));
+                        .hasSize(expectedCount),
+                "processed focuses");
     }
 
     private static ProcessedObjectsAsserter assertProcessedShadowsCount(
@@ -266,7 +346,8 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                 assertThat(processedObjects)
                         .filteredOn(ProcessedObject::isShadow)
                         .as("Check number of processed shadows")
-                        .hasSize(expectedCount));
+                        .hasSize(expectedCount),
+                "processed shadows");
     }
 
     private static ProcessedObjectsAsserter assertModifiedObjectsCount(
@@ -275,14 +356,18 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                 assertThat(processedObjects)
                         .filteredOn(ProcessedObject::isModification)
                         .as("Check number of modified objects")
-                        .hasSize(expectedNumberOfModifiedObjects));
+                        .hasSize(expectedNumberOfModifiedObjects),
+                "modified objects");
     }
 
     private static final class ProcessedObjectsAsserter {
         private final ListAssert<? extends ProcessedObject<?>>  objectsAsserter;
+        private final String currentObjectsDescription;
 
-        private ProcessedObjectsAsserter(ListAssert<? extends ProcessedObject<?>> objectsAsserter) {
+        private ProcessedObjectsAsserter(ListAssert<? extends ProcessedObject<?>> objectsAsserter,
+                String currentObjectsDescription) {
             this.objectsAsserter = objectsAsserter;
+            this.currentObjectsDescription = currentObjectsDescription;
         }
 
         void assertContainsProjectionRecords(Integer... expectedCount) {
@@ -301,13 +386,41 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                     .doesNotContainNull();
         }
 
-        void assertItemModificationsCount(int expectedNumberOfModifications) {
+        ProcessedObjectsAsserter assertItemModificationsCount(int expectedNumberOfModifications) {
             this.objectsAsserter
                     .map(ProcessedObject::getDelta)
-                    .as("Check number of modified items in all objects")
+                    .as("Check number of modified items in all %s", this.currentObjectsDescription)
                     .doesNotContainNull()
                     .flatMap(delta -> delta.getModifications())
                     .hasSize(expectedNumberOfModifications);
+            return this;
+        }
+
+        ProcessedObjectsAsserter assertContainsEventMark(String objectOid, String markOid) {
+            this.objectsAsserter
+                    .filteredOn(object -> object.getOid().equals(objectOid))
+                    .flatMap(ProcessedObject::getMatchingEventMarksOids)
+                    .as("Check event marks on %s with oid %s", this.currentObjectsDescription, objectOid)
+                    .contains(markOid);
+            return this;
+        }
+
+        ProcessedObjectsAsserter assertUnModifiedObjectsCount(int expectedNumberOfModifiedObjects) {
+            return new ProcessedObjectsAsserter(
+                    this.objectsAsserter
+                            .filteredOn(Predicate.not(ProcessedObject::isModification))
+                            .as("Check number of unmodified %s objects", this.currentObjectsDescription)
+                            .hasSize(expectedNumberOfModifiedObjects),
+                    "unmodified " + this.currentObjectsDescription);
+        }
+
+        ProcessedObjectsAsserter assertModifiedObjectsCount(int expectedNumberOfModifiedObjects) {
+            return new ProcessedObjectsAsserter(
+                    this.objectsAsserter
+                            .filteredOn(ProcessedObject::isModification)
+                            .as("Check number of modified %s objects", this.currentObjectsDescription)
+                            .hasSize(expectedNumberOfModifiedObjects),
+                    "modified " + this.currentObjectsDescription);
         }
 
     }
