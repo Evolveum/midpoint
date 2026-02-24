@@ -7,10 +7,9 @@
 package com.evolveum.midpoint.gui.impl.page.self;
 
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 import org.apache.wicket.model.IModel;
