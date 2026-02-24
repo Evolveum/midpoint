@@ -385,16 +385,21 @@ public class SimulationActionFlow<T> implements Serializable {
 
             @Override
             protected void onShowResults(AjaxRequestTarget target) {
-                ObjectReferenceType simulationResultReference = getSimulationResultReference(getModelObject());
-                PageParameters params = new PageParameters();
-                if (simulationResultReference != null) {
-                    params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, simulationResultReference.getOid());
-                    getPageBase().navigateToNext(PageSimulationResult.class, params);
-                }
+                getPageBase().hideMainPopup(target);
+                onShowResultProcess(target, getModelObject(), getPageBase());
             }
         };
 
         pageBase.replaceMainPopup(panel, target);
+    }
+
+    public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+        ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
+        PageParameters params = new PageParameters();
+        if (simulationResultReference != null) {
+            params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, simulationResultReference.getOid());
+            pageBase.navigateToNext(PageSimulationResult.class, params);
+        }
     }
 
     private @Nullable TaskType loadTask(@NotNull PageBase pageBase, String taskOid) {

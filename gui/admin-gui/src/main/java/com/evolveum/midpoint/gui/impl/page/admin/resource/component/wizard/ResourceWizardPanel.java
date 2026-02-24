@@ -280,6 +280,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
                     AjaxRequestTarget target) {
                 switch (value) {
                     case PREVIEW_DATA:
+                        manageResourceWizardStorage();
                         showChoiceFragment(target, createPreviewResourceDataWizardPanel());
                         break;
                     case CONFIGURE_OBJECT_TYPES:
@@ -290,6 +291,11 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
                         break;
 
                 }
+            }
+
+            private void manageResourceWizardStorage() {
+                String oid = getAssignmentHolderModel().getObjectType().getOid();
+                getPageBase().getSessionStorage().getResourceWizardStorage().markPreviewDataClicked(oid);
             }
 
             @Override

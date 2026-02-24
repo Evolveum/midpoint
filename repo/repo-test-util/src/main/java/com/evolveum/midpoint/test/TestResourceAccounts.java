@@ -98,6 +98,17 @@ public class TestResourceAccounts {
         return processUserShadowCorrelation(users, changesExecutor, this::correlateAccountDelta, task, result);
     }
 
+    /**
+     * Read shadows representing accounts from the resource.
+     *
+     * @return The collection of shadows representing all accounts on the resource.
+     */
+    public Collection<ShadowType> shadows(Task task, OperationResult result) throws CommonException {
+        return this.shadowReader.readShadows(this.resource, task, result).stream()
+                .map(shadow -> shadow.asObjectable())
+                .toList();
+    }
+
     private <T extends ObjectType> CorrelationPairSpecifier processUserShadowCorrelation(
             Collection<PrismObject<UserType>> users, ObjectChangesExecutor changesExecutor,
             DeltaProvider<T> deltaCreator, Task task, OperationResult result)
