@@ -6,12 +6,14 @@
 
 package com.evolveum.midpoint.smart.impl.activities;
 
-import static com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil.createStatisticsObject;
+import static com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil.createObjectTypeStatisticsObject;
 
-import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,12 +24,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
-import javax.xml.namespace.QName;
+import org.slf4j.Logger;
 
 /**
  * Base activity run for computing statistics for a specific object class on a resource.
@@ -45,26 +47,24 @@ import javax.xml.namespace.QName;
  * <p>This class provides the common execution flow; concrete subclasses define how the resulting
  * statistics object reference is stored and whether reuse is allowed.</p>
  */
-public abstract class AbstractStatisticsComputationActivityRun<
-        WD extends WorkDefinition,
-        H extends ModelActivityHandler<WD, H>,
-        WS extends AbstractActivityWorkStateType>
-        extends SearchBasedActivityRun<ShadowType, WD, H, WS> {
+public class ObjectTypeStatisticsComputationActivityRun
+        extends SearchBasedActivityRun<
+        ShadowType, ObjectTypeStatisticsComputationWorkDefinition,
+        ObjectTypeStatisticsComputationActivityHandler, ObjectTypesSuggestionWorkStateType> {
 
-    private final Trace logger;
+    Logger logger = TraceManager.getTrace(ObjectTypeStatisticsComputationActivityRun.class);
 
     /** (Resolved) resource for which the statistics are computed. */
     private ResourceType resource;
 
     /** Computes the statistics for the objects found. Null if statistics are not being computed. */
-    private ObjectClassStatisticsComputer computer;
+    private ObjectTypeStatisticsComputer computer;
 
-    protected AbstractStatisticsComputationActivityRun(
-            ActivityRunInstantiationContext<WD, H> context,
-            String shortNameCapitalized,
-            Trace logger) {
+    protected ObjectTypeStatisticsComputationActivityRun(
+            ActivityRunInstantiationContext<ObjectTypeStatisticsComputationWorkDefinition,
+                    ObjectTypeStatisticsComputationActivityHandler> context,
+            String shortNameCapitalized) {
         super(context, shortNameCapitalized);
-        this.logger = logger;
         setInstanceReady();
     }
 
@@ -106,17 +106,24 @@ public abstract class AbstractStatisticsComputationActivityRun<
             logger.debug("No suitable statistics data found, will compute one");
         }
 
-        var objectClassDef = Resource.of(resource)
-                .getCompleteSchemaRequired()
-                .findObjectClassDefinitionRequired(getObjectClassName());
+        var res = Resource.of(resource);
+        ResourceSchema completeSchemaRequired = res.getCompleteSchemaRequired();
+        ResourceObjectTypeDefinition objectTypeDefinition = completeSchemaRequired.getObjectTypeDefinition(getKind(), getIntent());
 
-        computer = new ObjectClassStatisticsComputer(objectClassDef);
+        if (objectTypeDefinition != null) {
+            computer = new ObjectTypeStatisticsComputer(objectTypeDefinition);
+        } else {
+            logger.warn("Resource {} does not have object type definition for kind {} and intent {}, statistics will be empty",
+                    resource.getName(), getKind(), getIntent());
+        }
+
         return true;
     }
 
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
-        var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestStatistics(
-                getResourceOid(), getObjectClassName(), result);
+
+        var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeStatistics(
+                getResourceOid(), getKind().value(), getIntent(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 
@@ -127,7 +134,7 @@ public abstract class AbstractStatisticsComputationActivityRun<
         return new SearchSpecification<>(
                 ShadowType.class,
                 Resource.of(resource)
-                        .queryFor(getObjectClassName())
+                        .queryFor(getKind(), getIntent())
                         .build(),
                 null,
                 false);
@@ -157,10 +164,11 @@ public abstract class AbstractStatisticsComputationActivityRun<
                 .coverage(1.0f) // TODO: compute coverage properly
                 .timestamp(beans.clock.currentTimeXMLGregorianCalendar());
 
-        var statisticsObject = createStatisticsObject(
+        var statisticsObject = createObjectTypeStatisticsObject(
                 resource.getOid(),
                 resource.getName().getOrig(),
-                getObjectClassName(),
+                getKind().value(),
+                getIntent(),
                 statistics);
 
         logger.debug("Adding statistics object:\n{}", statisticsObject.debugDump(1));
@@ -174,18 +182,33 @@ public abstract class AbstractStatisticsComputationActivityRun<
      * Embedded variant can override this to support workDef.getStatisticsObjectOid().
      */
     protected @Nullable String getPresetStatisticsObjectOid() {
-        return null;
+        return getWorkDefinition().getStatisticsObjectOid();
     }
 
     /** Resource OID for which to compute statistics. */
-    protected abstract @NotNull String getResourceOid();
-
-    /** Object class name for which to compute statistics. */
-    protected abstract @NotNull QName getObjectClassName();
+    protected @NotNull String getResourceOid() {
+        return getWorkDefinition().getResourceOid();
+    }
 
     /** Stores the produced (or reused) statistics object OID into appropriate work state. */
-    protected abstract void storeStatisticsObjectOid(String oid, OperationResult result)
-            throws SchemaException, ActivityRunException, ObjectNotFoundException;
+    protected void storeStatisticsObjectOid(String oid, OperationResult result)
+            throws SchemaException, ActivityRunException, ObjectNotFoundException {
+        var parentState = this.getActivityState();
+        parentState.setWorkStateItemRealValues(
+                ObjectTypeStatisticsComputationWorkStateType.F_STATISTICS_REF,
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+        parentState.flushPendingTaskModificationsChecked(result);
+    }
 
-    protected boolean reuseExistingStatisticsObject() { return true; }
+    protected boolean reuseExistingStatisticsObject() {
+        return false;
+    }
+
+    private @NotNull ShadowKindType getKind() {
+        return getWorkDefinition().getShadowTypeKind();
+    }
+
+    private @NotNull String getIntent() {
+        return getWorkDefinition().getIntent();
+    }
 }

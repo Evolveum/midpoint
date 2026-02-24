@@ -2767,6 +2767,17 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="objectTypeStatisticsComputation" type="tns:ObjectTypeStatisticsComputationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Computes statistics for object types on a resource.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="createConnector" type="tns:ConnDevCreateConnectorWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -10840,6 +10851,63 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="objectClassStatisticsComputationWorkDefinition" type="tns:ObjectClassStatisticsComputationWorkDefinitionType"/>
+
+    <xsd:complexType name="ObjectTypeStatisticsComputationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>Resource OID for which the statistics are computed.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Kind of the object type for which the statistics are computed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Intent of the object type for which the statistics are computed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, the particular statistics file should be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypeStatisticsComputationWorkDefinitionType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypeStatisticsComputationWorkDefinition" type="tns:ObjectTypeStatisticsComputationWorkDefinitionType"/>
+
+    <xsd:complexType name="ObjectTypeStatisticsComputationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the statistics object used or created by this activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypeStatisticsComputationWorkState" type="tns:ObjectTypeStatisticsComputationWorkStateType"/>
 
     <xsd:complexType name="ObjectClassStatisticsComputationWorkStateType">
         <xsd:complexContent>

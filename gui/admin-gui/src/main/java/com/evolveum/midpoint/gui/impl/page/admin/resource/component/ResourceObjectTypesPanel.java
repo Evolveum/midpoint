@@ -78,6 +78,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return "ResourceSchemaHandlingPanel.newObject";
     }
 
+
     @Override
     protected List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> createColumns() {
         List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> columns = new ArrayList<>();

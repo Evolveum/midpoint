@@ -16,8 +16,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.ObjectTypeStatisticsButton;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -145,6 +147,8 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         SimulationActionTaskButton<?> simulationActionTaskButton = createSimulationMenuButton(buttons);
         buttons.add(simulationActionTaskButton);
 
+        initObjectTypeStatisticsButton(buttons);
+
         AjaxIconButton previewData = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-magnifying-glass"),
@@ -157,6 +161,25 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         previewData.showTitleAsLabel(true);
         previewData.add(AttributeAppender.append("class", "btn btn-primary"));
         buttons.add(previewData);
+
+    }
+
+    private void initObjectTypeStatisticsButton(@NotNull RepeatingView buttons) {
+        IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel = getValueModel();
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = valueModel.getObject();
+        ResourceObjectTypeDefinitionType realValue = object.getRealValue();
+        ShadowKindType kind = realValue.getKind();
+        String intent = realValue.getIntent();
+
+        ResourceObjectTypeIdentification objectTypeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
+
+        ObjectTypeStatisticsButton statisticsButton = new ObjectTypeStatisticsButton(
+                buttons.newChildId(),
+                () -> objectTypeIdentification,
+                getAssignmentHolderDetailsModel().getObjectType().getOid());
+        statisticsButton.setOutputMarkupId(true);
+        statisticsButton.setRenderBodyOnly(true);
+        buttons.add(statisticsButton);
     }
 
     private @NotNull SimulationActionTaskButton<?> createSimulationMenuButton(@NotNull RepeatingView buttons) {

@@ -30,10 +30,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestio
  * The resulting statistics are then used exclusively for suggestion purposes.</p>
  */
 public class ObjectTypesStatisticsComputationActivityRun
-        extends AbstractStatisticsComputationActivityRun<
-        ObjectTypesSuggestionWorkDefinition,
-        ObjectTypesSuggestionActivityHandler,
-                ObjectTypesSuggestionWorkStateType> {
+        extends AbstractObjectClassStatisticsComputationActivityRun<
+                ObjectTypesSuggestionWorkDefinition,
+                ObjectTypesSuggestionActivityHandler,
+                        ObjectTypesSuggestionWorkStateType> {
 
     ObjectTypesStatisticsComputationActivityRun(
             ActivityRunInstantiationContext<ObjectTypesSuggestionWorkDefinition, ObjectTypesSuggestionActivityHandler> context,

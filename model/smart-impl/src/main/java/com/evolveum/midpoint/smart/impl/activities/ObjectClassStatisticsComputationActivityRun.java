@@ -27,10 +27,10 @@ import javax.xml.namespace.QName;
  * <p>This activity is responsible only for statistics computation and persistence.</p>
  */
 public class ObjectClassStatisticsComputationActivityRun
-        extends AbstractStatisticsComputationActivityRun<
-        ObjectClassStatisticsComputationActivityHandler.MyWorkDefinition,
-        ObjectClassStatisticsComputationActivityHandler,
-        ObjectClassStatisticsComputationWorkStateType> {
+        extends AbstractObjectClassStatisticsComputationActivityRun<
+                ObjectClassStatisticsComputationActivityHandler.MyWorkDefinition,
+                ObjectClassStatisticsComputationActivityHandler,
+                ObjectClassStatisticsComputationWorkStateType> {
 
     ObjectClassStatisticsComputationActivityRun(
             ActivityRunInstantiationContext<
