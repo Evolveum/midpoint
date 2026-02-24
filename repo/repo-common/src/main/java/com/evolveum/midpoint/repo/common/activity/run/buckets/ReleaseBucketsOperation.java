@@ -70,7 +70,7 @@ public class ReleaseBucketsOperation extends BucketOperation {
 
         if (sequentialNumber != null) {
             WorkBucketType bucket = BucketingUtil.findBucketByNumberRequired(currentBuckets, sequentialNumber);
-            checkBucketReadyOrDelegated(bucket);
+            checkBucketReadyOrDelegated(bucket, "marked as released");
             bucketsToRelease.add(bucket);
         } else {
             currentBuckets.stream()

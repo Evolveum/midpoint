@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.component.data.provider;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.SelectObjectClassesStepPanel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -17,12 +19,15 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 /**
+ * Provides a list of object classes e.g. for {@link SelectObjectClassesStepPanel}.
+ *
  * @author lskublik
  */
 public class ObjectClassDataProvider extends SelectableListDataProvider<SelectableBean<ObjectClassWrapper>, ObjectClassWrapper> {
 
     public final static String F_FILTER = "filter";
 
+    /** Substring to filter object classes by. */
     private String filter;
 
     public ObjectClassDataProvider(Component Component, IModel<List<ObjectClassWrapper>> model) {

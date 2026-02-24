@@ -40,48 +40,51 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
         matches.put(ItemPath.create("sAMAccountName"), UserType.F_NAME);
+        matches.put(ItemPath.create("userPrincipalName"), UserType.F_NAME);
         matches.put(ItemPath.create("cn"), UserType.F_FULL_NAME);
         matches.put(ItemPath.create("givenName"), UserType.F_GIVEN_NAME);
         matches.put(ItemPath.create("sn"), UserType.F_FAMILY_NAME);
+        matches.put(ItemPath.create("company"), UserType.F_ORGANIZATION);
+        matches.put(ItemPath.create("department"), UserType.F_ORGANIZATIONAL_UNIT);
+        matches.put(ItemPath.create("employeeNumber"), UserType.F_PERSONAL_NUMBER);
         matches.put(ItemPath.create("mail"), UserType.F_EMAIL_ADDRESS);
+        matches.put(ItemPath.create("l"), UserType.F_LOCALITY);
+        matches.put(ItemPath.create("telephoneNumber"), UserType.F_TELEPHONE_NUMBER);
+        matches.put(ItemPath.create("title"), UserType.F_TITLE);
         return matches;
     }
 
     @Override
     public List<SystemMappingSuggestion> suggestInboundMappings() {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", UserType.F_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sn", UserType.F_FAMILY_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("mail", UserType.F_EMAIL_ADDRESS));
         return mappings;
     }
 
     @Override
     public List<SystemMappingSuggestion> suggestOutboundMappings(@Nullable List<ShadowType> sampleShadows) {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
-        var dnMapping = createDnMapping(sampleShadows);
-        if (dnMapping != null) {
-            mappings.add(dnMapping);
-        }
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", UserType.F_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sn", UserType.F_FAMILY_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("mail", UserType.F_EMAIL_ADDRESS));
-        return mappings;
-    }
-
-    private SystemMappingSuggestion createDnMapping(@Nullable List<ShadowType> sampleShadows) {
         String ouSuffix = extractOuSuffixFromSamples(sampleShadows);
-        if (ouSuffix == null) {
-            return null;
+        if (ouSuffix != null) {
+            mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                    "distinguishedName",
+                    UserType.F_FULL_NAME,
+                    "basic.composeDnWithSuffix('cn', fullName, '%s')".formatted(ouSuffix),
+                    "Compose DN: cn=<fullName>,%s".formatted(ouSuffix),
+                    MappingStrengthType.STRONG));
+            mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME, MappingStrengthType.WEAK));
+        } else {
+            mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
         }
-
-        String script = "basic.composeDnWithSuffix('cn', fullName, '%s')".formatted(ouSuffix);
-        String description = "Compose DN: cn=<fullName>,%s".formatted(ouSuffix);
-        return SystemMappingSuggestion.createScriptSuggestion("distinguishedName", UserType.F_FULL_NAME, script, description);
+        String upnSuffix = extractUpnSuffixFromSamples(sampleShadows);
+        if (upnSuffix != null) {
+            mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                    "userPrincipalName",
+                    UserType.F_NAME,
+                    "name + '%s'".formatted(upnSuffix),
+                    "Compose UPN: <name>%s".formatted(upnSuffix),
+                    MappingStrengthType.STRONG));
+        }
+        return mappings;
     }
 
     private String extractOuSuffixFromSamples(List<ShadowType> sampleShadows) {
@@ -125,6 +128,38 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
             LOGGER.debug("Invalid DN format in AD shadow: ", e);
         }
         return null;
+    }
+
+    private String extractUpnSuffixFromSamples(List<ShadowType> sampleShadows) {
+        if (sampleShadows == null || sampleShadows.isEmpty()) {
+            return null;
+        }
+        for (ShadowType shadow : sampleShadows) {
+            String upnSuffix = extractUpnSuffixFromShadow(shadow);
+            if (upnSuffix != null) {
+                return upnSuffix;
+            }
+        }
+        return null;
+    }
+
+    private String extractUpnSuffixFromShadow(ShadowType shadow) {
+        if (shadow == null || shadow.getAttributes() == null) {
+            return null;
+        }
+        var upnItem = shadow.getAttributes().asPrismContainerValue().findItem(ItemPath.create("userPrincipalName"));
+        if (upnItem == null || upnItem.getRealValues().isEmpty()) {
+            return null;
+        }
+        String upnValue = String.valueOf(upnItem.getRealValues().iterator().next());
+        if (upnValue == null || upnValue.isEmpty()) {
+            return null;
+        }
+        int atIndex = upnValue.indexOf('@');
+        if (atIndex < 0) {
+            return null;
+        }
+        return upnValue.substring(atIndex);
     }
 
     private String extractDnValue(ShadowType shadow) {

@@ -18,6 +18,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAttri
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -732,24 +733,34 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected AjaxIconButton createDiscardAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-check"), "SmartMappingTable.dismiss.all",
+        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-check"),
+                createStringResource("SmartMappingTable.dismiss.all"),
                 "text-danger", false);
     }
 
     protected AjaxIconButton createAcceptAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-times"), "SmartMappingTable.apply.all",
+        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-times"),
+                createStringResource("SmartMappingTable.apply.all"),
                 "btn-outline-primary", true);
     }
 
+    private List<PrismContainerValueWrapper<MappingType>> getAllItemsWithStatus() {
+        return getTable().getAllItems().stream()
+                .filter(v -> getStatusInfo(v) != null)
+                .collect(Collectors.toList());
+    }
+
     protected AjaxIconButton createAcceptDiscardBulkActionButton(String id,
-            IModel<String> iconCss, String labelKey, String cssClass, boolean isAccept) {
-        AjaxIconButton button = new AjaxIconButton(id, iconCss, createStringResource(labelKey)) {
+            IModel<String> iconCss, IModel<String> label, String cssClass, boolean isAccept) {
+        AjaxIconButton button = new AjaxIconButton(id, iconCss, label) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<PrismContainerValueWrapper<MappingType>> allItems = getTable().getAllItems();
+                List<PrismContainerValueWrapper<MappingType>> allItems = getAllItemsWithStatus();
                 if (!allItems.isEmpty()) {
+
                     ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                            acceptConfirmationTitle(getPageBase(), allItems.size(), getTable().getCurrentPageItems().isEmpty())) {
+                            createConfirmationTitle(getPageBase(), allItems.size(),
+                                    getTable().getCurrentPageItems().isEmpty(), isAccept)) {
 
                         @Override
                         public void yesPerformed(AjaxRequestTarget target) {

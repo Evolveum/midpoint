@@ -1,0 +1,10 @@
+= Notification use cases
+:page-nav-title: Use cases
+:page-description: Explore configuration examples inspired by real-life midPoint deployments
+:page-display-order: 500
+
+Explore configuration examples inspired by real-life midPoint deployments.
+
+++++
+{% children style: table %}
+++++

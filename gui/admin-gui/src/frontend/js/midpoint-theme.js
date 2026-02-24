@@ -673,6 +673,24 @@ export default class MidPointTheme {
             if (select.length) {
                 var attribute = select.attr("aria-label")
 
+                $('.select2-selection__clear').each(function () {
+                        const $clear = $(this);
+                        if (!$clear.attr('tabindex')) {
+                            $clear.attr({
+                                'tabindex': 0,
+                                'role': 'button',
+                                'aria-label': 'Clear selection'
+                            });
+
+                            $clear.on('keydown', function (e) {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    $(this).trigger('mousedown');
+                                }
+                            });
+                        }
+                    });
+
                 var combobox = container.find("span[role='combobox']");
                 var selectContainer = container.find(".select2-container");
 
@@ -856,13 +874,30 @@ export default class MidPointTheme {
             });
         }
         picker.subscribe('show.td', () => {
+            var $dateContainer = $('.date-container');
+            if ($dateContainer.length > 0) {
+                $dateContainer.on('keydown', function (e) {
+                    if (e.key === 'Escape' || e.keyCode === 27) {
+                        if (picker && picker.display && picker.display.isVisible) {
+                            picker.hide(); // close only this picker
+                            // prevent parent popover from closing
+                            e.stopImmediatePropagation();
+                            e.preventDefault();
+                        }
+                    }
+                });
+            }
+
+            var $actionElements = $('.date-container [data-action]').filter(function () {
+              return $(this).attr('data-action')?.trim() !== '';
+            });
+
             const $switchEl = $('.calendar-header .picker-switch');
             $switchEl.attr("aria-live", "polite");
             const switchElId = 'pickerSwitch-' + Math.random().toString(16).substr(2, 6);
             $switchEl.attr('id', switchElId);
 
             // we add aria-live="polite" to every focused element so that it is announced
-            var $actionElements = $('.date-container [data-action]:not([data-action=""])');
             $actionElements.on('focus', function () {
                 $actionElements.removeAttr('aria-live');
                 if ($(this).closest('.calendar-header').length > 0) {
