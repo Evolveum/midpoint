@@ -6,8 +6,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.component.tile.WizardGuideTilePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
@@ -16,10 +19,14 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Resou
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -30,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceGuideObjectTypeTileState.computeState;
 
 public abstract class ResourceObjectTypeWizardChoicePanel
         extends ResourceWizardChoicePanel<ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType> {
@@ -38,7 +46,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
 
     public ResourceObjectTypeWizardChoicePanel(
             String id,
-            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
+            @NotNull WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper.getDetailsModel(), ResourceObjectTypePreviewTileType.class);
         this.helper = helper;
     }
@@ -52,12 +60,12 @@ public abstract class ResourceObjectTypeWizardChoicePanel
     public enum ResourceObjectTypePreviewTileType implements TileEnum {
 
         BASIC("fa fa-circle"),
-        ATTRIBUTE_MAPPING("fa fa-retweet"),
-        SYNCHRONIZATION("fa fa-arrows-rotate"),
         CORRELATION("fa fa-code-branch"),
+        SYNCHRONIZATION("fa fa-arrows-rotate"),
+        ATTRIBUTE_MAPPING("fa fa-retweet"),
         CAPABILITIES("fa fa-atom"),
-        ACTIVATION("fa fa-toggle-off"),
         CREDENTIALS("fa fa-key"),
+        ACTIVATION("fa fa-toggle-off"),
         POLICIES("fa fa-balance-scale");
 
         private final String icon;
@@ -70,6 +78,61 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         public String getIcon() {
             return icon;
         }
+
+    }
+
+    @Override
+    protected Component createTilePanel(String id, IModel<Tile<ResourceObjectTypePreviewTileType>> tileModel) {
+        return new WizardGuideTilePanel<>(id, tileModel) {
+
+            private @NotNull Boolean getDescription() {
+                return StringUtils.isNotEmpty(tileModel.getObject().getDescription());
+            }
+
+            @Override
+            protected void onClick(AjaxRequestTarget target) {
+                if (isLocked()) {
+                    return;
+                }
+
+                Tile<ResourceObjectTypePreviewTileType> tile = tileModel.getObject();
+                onTileClick(tile.getValue(), target);
+            }
+
+            @Override
+            protected IModel<Badge> getBadgeModel() {
+                ResourceObjectTypePreviewTileType tile = tileModel.getObject().getValue();
+                ResourceGuideObjectTypeTileState state = computeState(tile, getValueModel(),
+                        ResourceObjectTypeWizardChoicePanel.this);
+                return state.badgeModel(ResourceObjectTypeWizardChoicePanel.this);
+            }
+
+            @Override
+            protected IModel<String> getDescriptionTooltipModel() {
+                ResourceObjectTypePreviewTileType tile = tileModel.getObject().getValue();
+
+                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> wrapper = getValueModel().getObject();
+                ResourceObjectTypeDefinitionType real = wrapper != null ? wrapper.getRealValue() : null;
+                if (real == null) {
+                    return null;
+                }
+
+                String key = ResourceGuideObjectTypeTileState.getTooltipKey(tile, real);
+                return key != null ? ResourceObjectTypeWizardChoicePanel.this.getPageBase().createStringResource(key) : null;
+            }
+
+            @Override
+            protected boolean isLocked() {
+                ResourceObjectTypePreviewTileType tile = tileModel.getObject().getValue();
+                return computeState(tile, getValueModel(),
+                        ResourceObjectTypeWizardChoicePanel.this) == ResourceGuideObjectTypeTileState.TEMPORARY_LOCKED;
+            }
+
+            @Override
+            protected VisibleEnableBehaviour getDescriptionBehaviour() {
+                return new VisibleBehaviour(this::getDescription);
+            }
+        };
     }
 
     @Override
@@ -150,7 +213,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
             @Override
             protected String load() {
 
-                if(getValueModel() == null
+                if (getValueModel() == null
                         || getValueModel().getObject() == null
                         || getValueModel().getObject().getRealValue() == null) {
                     return translate("ResourceObjectTypeWizardPreviewPanel.breadcrumb");

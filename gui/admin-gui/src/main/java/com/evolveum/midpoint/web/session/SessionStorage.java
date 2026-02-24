@@ -87,6 +87,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
      */
     private UserProfileStorage userProfile;
     private SuggestionsStorage suggestions;
+    private ResourceWizardStorage resourceWizardStorage;
 
     /**
      * place to store information in session for various pages
@@ -381,6 +382,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
                     }
                 });
         keysToRemove.forEach(key -> pageStorageMap.remove(key));
+    }
+
+    public ResourceWizardStorage getResourceWizardStorage() {
+        if (resourceWizardStorage == null) {
+            resourceWizardStorage = new ResourceWizardStorage();
+        }
+        return resourceWizardStorage;
     }
 
     public GenericPageStorage getSimulation() {
