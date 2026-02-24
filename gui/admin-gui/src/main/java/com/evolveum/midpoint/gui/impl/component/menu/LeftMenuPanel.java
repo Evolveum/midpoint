@@ -14,18 +14,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining.PageRoleSuggestions;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResults;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.web.page.admin.services.PageDefaultServicesApplications;
 
-import com.evolveum.midpoint.web.page.admin.resources.PageConnectors;
+import com.evolveum.midpoint.web.page.admin.services.PageIntegrationServicesApplications;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -43,6 +34,7 @@ import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -50,10 +42,19 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining.PageRoleSuggestions;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResults;
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
@@ -61,6 +62,7 @@ import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -83,6 +85,7 @@ import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
+import com.evolveum.midpoint.web.page.admin.resources.PageConnectors;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
 import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
@@ -93,8 +96,6 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class LeftMenuPanel extends BasePanel<Void> {
 
@@ -220,7 +221,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //TODO may be this should lead to customerUrl ?
                 Class<? extends Page> page = MidPointApplication.get().getHomePage();
                 setResponsePage(page);
             }
@@ -320,10 +320,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.mainNavigation", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createHomeItems());
         menu.addMainMenuItem(createUsersItems());
-        //menu.addMainMenuItem(createApplicationsItems()); // this will be the IGA view of applications
+        menu.addMainMenuItem(createApplicationsItems());
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
-        menu.addMainMenuItem(createServicesItems());
+        menu.addMainMenuItem(createServicesItems());    // TODO get rid of applications (object collection view in sys config)
         menu.addMainMenuItem(createPoliciesItems());
         if (getPageBase().getCaseManager().isEnabled()) {
             menu.addMainMenuItem(createWorkItemsItems());
@@ -396,23 +396,33 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return userMenu;
     }
 
-    // TODO IGA view of applications
     private MainMenuItem createApplicationsItems() {
-        MainMenuItem applicationMenu = createMainMenuItem("PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
-        createBasicAssignmentHolderMenuItems(applicationMenu, PageTypes.APPLICATION);
-        return applicationMenu;
+        MainMenuItem menu = createMainMenuItem(
+                "PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
+        menu.addMenuItem(new MenuItem(
+                "PageAdmin.menu.top.applications.list", PageDefaultServicesApplications.class));
+        // todo new service with application archetype
+        menu.addMenuItem(
+                new MenuItem(
+                        "PageAdmin.menu.top.applications.connect",
+                        GuiStyleConstants.CLASS_PLUS_CIRCLE,
+                        getDetailsPage(PageTypes.SERVICE),
+                        null));
+        return menu;
     }
 
     // "Integration" view of applications
     private MainMenuItem createApplicationsIntegrationItems() {
         MainMenuItem menu = createMainMenuItem(
                 "PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
-        createBasicAssignmentHolderMenuItems(menu, PageTypes.APPLICATION);
+        menu.addMenuItem(new MenuItem(
+                "PageAdmin.menu.top.applications.list", PageIntegrationServicesApplications.class));
+        // todo new service with application archetype
         menu.addMenuItem(
                 new MenuItem(
                         "PageAdmin.menu.top.applications.connect",
                         GuiStyleConstants.CLASS_PLUS_CIRCLE,
-                        getDetailsPage(PageTypes.APPLICATION),
+                        getDetailsPage(PageTypes.SERVICE),
                         null));
         return menu;
     }
@@ -432,9 +442,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMenuItem(createObjectListPageMenuItem(PageTypes.CONNECTOR_DEVELOPMENT));
         boolean connectorGeneratorActive = classMatches(PageConnectorDevelopment.class);
 //        if (connectorGeneratorActive) {
-            MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
-                    GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
-            menu.addMenuItem(connectorGenerator);
+        MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
+                GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
+        menu.addMenuItem(connectorGenerator);
 //        }
         return menu;
     }
