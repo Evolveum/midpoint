@@ -23,7 +23,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
-public class MappingActivityHandler implements ActivityHandler<MappingWorkDefinition, MappingActivityHandler> {
+public class MappingSimulationActivityHandler
+        implements ActivityHandler<MappingWorkDefinition, MappingSimulationActivityHandler> {
 
     private final ActivityHandlerRegistry activityHandlerRegistry;
     private final ProvisioningService provisioningService;
@@ -31,7 +32,7 @@ public class MappingActivityHandler implements ActivityHandler<MappingWorkDefini
     private final SystemObjectCache systemObjectCache;
     private final PrismContext prismContext;
 
-    public MappingActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
+    public MappingSimulationActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
             ProvisioningService provisioningService, CorrelationService correlationService,
             SystemObjectCache systemObjectCache, PrismContext prismContext) {
         this.activityHandlerRegistry = activityHandlerRegistry;
@@ -53,10 +54,10 @@ public class MappingActivityHandler implements ActivityHandler<MappingWorkDefini
     }
 
     @Override
-    public MappingActivityRun createActivityRun(
-            @NotNull ActivityRunInstantiationContext<MappingWorkDefinition, MappingActivityHandler> ctx,
+    public MappingSimulationActivityRun createActivityRun(
+            @NotNull ActivityRunInstantiationContext<MappingWorkDefinition, MappingSimulationActivityHandler> ctx,
             @NotNull OperationResult result) {
-        return new MappingActivityRun(ctx, this.provisioningService, this.correlationService, this.systemObjectCache,
+        return new MappingSimulationActivityRun(ctx, this.provisioningService, this.correlationService, this.systemObjectCache,
                 this.prismContext);
     }
 

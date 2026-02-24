@@ -67,11 +67,11 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
             ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
 
             try {
-            PrismPropertyWrapper<Object> stateProperty = objectDetailsModel.getObjectWrapper().findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
-            stateProperty.getValue().setRealValue(AvailabilityStatusType.DOWN);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
+                PrismPropertyWrapper<Object> stateProperty = objectDetailsModel.getObjectWrapper().findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
+                stateProperty.getValue().setRealValue(AvailabilityStatusType.DOWN);
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+            }
 
             return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), path);
         } catch (SchemaException e) {

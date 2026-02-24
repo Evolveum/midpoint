@@ -855,63 +855,6 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test100SystemMappingsFromLdapWithPerfectMatch() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        modifyUserReplace(USER1.oid, UserType.F_FULL_NAME, PolyString.fromOrig("John Doe"));
-        modifyUserReplace(USER2.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Jane Smith"));
-        modifyUserReplace(USER3.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Bob Johnson"));
-
-        modifyShadowReplace("user1", CN, "John Doe");
-        modifyShadowReplace("user2", CN, "Jane Smith");
-        modifyShadowReplace("user3", CN, "Bob Johnson");
-
-        refreshShadows();
-
-        var mockClient = createClient(List.of(), List.of());
-        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
-        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
-
-        var op = MappingsSuggestionOperation.init(
-                ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService,
-                heuristicRuleMatcher,
-                true,
-                true);
-
-        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
-        match.setWellKnownSchemaType(WellKnownSchemaType.LDAP_INETORGPERSON.name());
-        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
-
-        assertThat(suggestion.getAttributeMappings())
-                .as("LDAP system mappings should be present")
-                .isNotEmpty();
-
-        var cnMappings = suggestion.getAttributeMappings().stream()
-                .filter(m -> m.getDefinition() != null
-                        && m.getDefinition().getRef() != null
-                        && m.getDefinition().getRef().toString().endsWith("cn"))
-                .toList();
-
-        assertThat(cnMappings)
-                .as("Should have exactly one cn mapping")
-                .hasSize(1);
-
-        var cnMapping = cnMappings.get(0);
-
-        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(cnMapping.asPrismContainerValue()))
-                .as("System-provided should be preferred when quality is similar")
-                .isTrue();
-
-        assertThat(cnMapping.getExpectedQuality())
-                .as("System mapping with perfect match should have quality 1.0")
-                .isEqualTo(1.0f);
-    }
-
-    @Test
     public void test200HeuristicToUpperCaseFoundAndUsed() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();

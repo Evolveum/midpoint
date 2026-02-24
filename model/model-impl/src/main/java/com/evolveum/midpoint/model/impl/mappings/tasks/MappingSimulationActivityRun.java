@@ -56,10 +56,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class MappingActivityRun extends SearchBasedActivityRun<ShadowType, MappingWorkDefinition, MappingActivityHandler,
+public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowType, MappingWorkDefinition, MappingSimulationActivityHandler,
                 AbstractActivityWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappingSimulationActivityRun.class);
 
     private final ProvisioningService provisioningService;
     private final CorrelationService correlationService;
@@ -75,8 +75,8 @@ public class MappingActivityRun extends SearchBasedActivityRun<ShadowType, Mappi
     private ResourceObjectTypeDefinition objectTypeDefinition;
     private @Nullable SystemConfigurationType systemConfigurationBean;
 
-    public MappingActivityRun(
-            ActivityRunInstantiationContext<MappingWorkDefinition, MappingActivityHandler> ctx,
+    public MappingSimulationActivityRun(
+            ActivityRunInstantiationContext<MappingWorkDefinition, MappingSimulationActivityHandler> ctx,
             ProvisioningService provisioningService, CorrelationService correlationService,
             SystemObjectCache systemObjectCache, PrismContext prismContext) {
         super(ctx, "Mapping Simulation");

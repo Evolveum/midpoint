@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2025 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
- *
  *
  */
 
@@ -27,36 +26,32 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvider {
+public class GroupActiveDirectoryMappingProvider implements WellKnownSchemaProvider {
 
-    private static final Trace LOGGER = TraceManager.getTrace(UserActiveDirectoryMappingProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(GroupActiveDirectoryMappingProvider.class);
 
     @Override
     public WellKnownSchemaType getSupportedSchemaType() {
-        return WellKnownSchemaType.AD_USER;
+        return WellKnownSchemaType.AD_GROUP;
     }
 
     @Override
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
-        matches.put(ItemPath.create("sAMAccountName"), UserType.F_NAME);
-        matches.put(ItemPath.create("userPrincipalName"), UserType.F_NAME);
-        matches.put(ItemPath.create("cn"), UserType.F_FULL_NAME);
-        matches.put(ItemPath.create("givenName"), UserType.F_GIVEN_NAME);
-        matches.put(ItemPath.create("sn"), UserType.F_FAMILY_NAME);
-        matches.put(ItemPath.create("company"), UserType.F_ORGANIZATION);
-        matches.put(ItemPath.create("department"), UserType.F_ORGANIZATIONAL_UNIT);
-        matches.put(ItemPath.create("employeeNumber"), UserType.F_PERSONAL_NUMBER);
-        matches.put(ItemPath.create("mail"), UserType.F_EMAIL_ADDRESS);
-        matches.put(ItemPath.create("l"), UserType.F_LOCALITY);
-        matches.put(ItemPath.create("telephoneNumber"), UserType.F_TELEPHONE_NUMBER);
-        matches.put(ItemPath.create("title"), UserType.F_TITLE);
+        matches.put(ItemPath.create("adminDescription"), RoleType.F_DESCRIPTION);
         return matches;
     }
 
     @Override
     public List<SystemMappingSuggestion> suggestInboundMappings() {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", AbstractRoleType.F_IDENTIFIER));
+        mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                "sAMAccountName",
+                RoleType.F_NAME,
+                "'ad:' + sAMAccountName",
+                "Inbound: group-sync-methodology name with prefix (ad:<sAMAccountName>)",
+                MappingStrengthType.STRONG));
         return mappings;
     }
 
@@ -67,23 +62,13 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
         if (ouSuffix != null) {
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "distinguishedName",
-                    UserType.F_FULL_NAME,
-                    "basic.composeDnWithSuffix('cn', fullName, '%s')".formatted(ouSuffix),
-                    "Compose DN: cn=<fullName>,%s".formatted(ouSuffix),
-                    MappingStrengthType.STRONG));
-            mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME, MappingStrengthType.WEAK));
-        } else {
-            mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
-        }
-        String upnSuffix = extractUpnSuffixFromSamples(sampleShadows);
-        if (upnSuffix != null) {
-            mappings.add(SystemMappingSuggestion.createScriptSuggestion(
-                    "userPrincipalName",
-                    UserType.F_NAME,
-                    "name + '%s'".formatted(upnSuffix),
-                    "Compose UPN: <name>%s".formatted(upnSuffix),
+                    AbstractRoleType.F_IDENTIFIER,
+                    "basic.composeDnWithSuffix('cn', identifier, '%s')".formatted(ouSuffix),
+                    "Compose DN: cn=<identifier>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
         }
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", AbstractRoleType.F_IDENTIFIER, MappingStrengthType.WEAK));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", AbstractRoleType.F_IDENTIFIER));
         return mappings;
     }
 
@@ -128,38 +113,6 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
             LOGGER.debug("Invalid DN format in AD shadow: ", e);
         }
         return null;
-    }
-
-    private String extractUpnSuffixFromSamples(List<ShadowType> sampleShadows) {
-        if (sampleShadows == null || sampleShadows.isEmpty()) {
-            return null;
-        }
-        for (ShadowType shadow : sampleShadows) {
-            String upnSuffix = extractUpnSuffixFromShadow(shadow);
-            if (upnSuffix != null) {
-                return upnSuffix;
-            }
-        }
-        return null;
-    }
-
-    private String extractUpnSuffixFromShadow(ShadowType shadow) {
-        if (shadow == null || shadow.getAttributes() == null) {
-            return null;
-        }
-        var upnItem = shadow.getAttributes().asPrismContainerValue().findItem(ItemPath.create("userPrincipalName"));
-        if (upnItem == null || upnItem.getRealValues().isEmpty()) {
-            return null;
-        }
-        String upnValue = String.valueOf(upnItem.getRealValues().iterator().next());
-        if (upnValue == null || upnValue.isEmpty()) {
-            return null;
-        }
-        int atIndex = upnValue.indexOf('@');
-        if (atIndex < 0) {
-            return null;
-        }
-        return upnValue.substring(atIndex);
     }
 
     private String extractDnValue(ShadowType shadow) {
