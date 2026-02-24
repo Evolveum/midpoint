@@ -42,19 +42,72 @@ focus.givenName.norm.substring(0,1) + focus.familyName.norm.substring(0,7) + ite
 == The Basics
 
 MEL is an _expression_ language which allows easy access to midPoint data structures (xref:/midpoint/reference/schema/common-data-model/[midPoint objects]), transforming or combining their values.
-
-TODO: MEL is _expression_ language. It is not a Turing-complete imperative programming language such Python or Groovy.
-MEL is much more constrained - by design.
-TODO: secure by design.
+MEL expressions are similar to single-line functions or lambda expressions.
 
 .MEL and CEL
-NOTE: MidPoint Expression Language (MEL) is based on link:https://cel.dev/[Common Expression Language (CEL)], which was extended with midPoint-specific features, functions and libraries.
+NOTE: MidPoint Expression Language (MEL) is heavily based on link:https://cel.dev/[Common Expression Language (CEL)], which was extended with midPoint-specific features, functions and libraries.
 CEL is used by many software platforms mostly focused in IT infrastructure, therefore it is likely that users may be already familiar with it.
 CEL was extended with features that are essential for its efficient use in midPoint environment, thus creating MEL, a midPoint expression language.
 
+Input to MEL expressions is provided by xref:/midpoint/reference/expressions/variables/[variables].
+The variables available to the expression differ with respect to the type of expression and context.
+E.g. the usual variables such as `focus` and `projection` are available in xref:/midpoint/reference/expressions/mappings/[mappings], whereas a different set of variables is available in expressions that deal with reports, dashboards and user interface customization.
+
+A relatively rich set of _operators_ and _functions_ is available in MEL expressions.
+There are the usual operators for algebra (`+`, `-`, etc.), comparison (`==`, `<`, `>`, etc.) and logic (`&&`, `||`, etc.)
+The functions deal with string operations (`substring`, `contains`, etc.), list processing (`filter`, `map`, etc.), parsing, formatting, pattern matching, timestamp manipulation and many other things.
+These are documented in xref:specification[MEL language specification].
+
+Expressions are supposed to return a value.
+There is no `return` statement in MEL.
+In fact, there are no statements in MEL at all, just functions and operators and other "functional" things.
+MEL is an _expression_ language, returning a value is the ultimate purpose of the expression.
+
+MEL has a distinct _functional_ character.
+There are no loops or other flow control constructs, but there is no _flow_ to control.
+There is even no way to specify a _sequence_.
+MEL functions and operators are invoked in a natural order, when all their inputs are computed.
+MEL functions are supposed to be free of side effects, therefore the exact order of execution is not important.
+
+.Migrating from Groovy
+TIP: xref:migration[Migration guide] is a valuable resource for engineers that are used to Groovy and/or need to migrate existing Groovy expression to MEL.
+
+This way of thinking may look a bit odd at the first sight if you are used to imperative programming language such as Groovy or Java.
+_Expressions_ are not like that.
+However, MEL expressions has numerous benefits, and the language will look very natural once you get used to it.
+Just write the expression to compute and return a value.
+Let midPoint do the rest: all the iterations, type conversions, delta computations, retries and all the other stuff, both mundane and smart.
+That is what midPoint was built for.
+
+== Security
+
+MEL is _designed to be secure_.
+MEL expressions can use only the safe operations that are provided to them and nothing else.
+In that respect, MEL is very unlike Groovy, which exposes almost the entire Java environment to the script.
+MEL is the exact opposite.
+All mel operators and functions are designed to be secure.
+In fact, the entire expression language environment is designed to contain the expression within secure constraints.
+
+This means that MEL is _not_ Turing-complete language - by its very design.
+There are no loops or similar flow control constructs, which means that an expression cannot even create an infinite loop to mount a _denial of service (DoS)_ attack.
+
+TIP: Even though there are no loops, this does not mean that you cannot deal with lists and multivalued data.
+Functions and macros such as `filter` and `map` provide very efficient and elegant means for list processing.
+In addition to that, there is the good old conditional operator (`?:`).
+
+MEL is designed in such a way that allows to expose the ability to write expressions even to users that cannot be fully trusted.
+Delegated administrators of roles and organizational units, owners of policies, designers of reports, maintainers of dashboards, customizers of the user interface - all such users can use MEL expressions without the risk of compromising system security.
+
+WARNING: The fact that MEL is a secure environment does not mean that you should grant ability to create expressions too liberally.
+MEL expressions are designed not to cause any harm by means of their execution.
+However, this does not mean that the return value provided by the expression cannot do any harm.
+Even a simple expression which always returns `true` can have serious consequences, e.g. in case that it is used as a xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[role autoassignment] expressions, assigning a dangerously powerful role to all users.
+Expressions are often implementing policies, and policies can be powerful.
+Always be mindful regarding the purpose of the expression and potential consequences it can have.
+
 == Structured Data
 
-Object structure can be accessed in mel using the dot (`.`) convention.
+Object structure can be accessed in MEL using the dot (`.`) convention.
 Following expression returns value of `name` property of the object stored in `focus` xref:/midpoint/reference/expressions/variables/[variable].
 
 [source,mel]
@@ -72,7 +125,7 @@ focus.activation.administrativeStatus
 
 Structure of the data is dictated by xref:/midpoint/reference/schema/common-data-model/[midPoint schema].
 
-== Operators and Functions
+== Creating Expressions
 
 Simple computations can be executed on the data provided to the expression.
 
@@ -85,60 +138,7 @@ matches(focus.telephoneNumber, '^[0-9]+$')               // true if number match
 focus.givenName + ' ' + focus.familyName                 // concatenation of values
 ----
 
-Following _operators_ can be used in MEL expressions:
-
-|====
-| Operator | Meaning
-
-|`==`
-| Equality
-
-|`!=`
-| Inequality
-
-|`>`
-| Greater than
-
-|`>=`
-| Greater than or equal
-
-|`<`
-| Less than
-
-|`\<=`
-| Less than or equal
-
-|`+`
-| Addition, concatenation
-
-|`-`
-| Negation, subtraction
-
-|`*`
-| Multiplication
-
-|`/`
-| Division
-
-|`%`
-| Remainder
-
-|`!`
-| Logical NOT
-
-|`&&`
-| Logical AND
-
-|`\|\|`
-| Logical OR
-
-|`in`
-| Inclusion test
-
-|`?:`
-| Conditional
-
-|====
+// TODO TODO TODO TODO
 
 _Functions_ can be used in addition to operators.
 
@@ -151,25 +151,61 @@ However, to the common users, macros are functionally almost indistinguishable f
 
 See xref:specification[full MEP specification] for list of all applicable functions.
 
-== Strings
+TODO: Return type
 
+== Strings and Polystrings
+
+TODO: string literals
 
 TODO: regexp (RE2 syntax)
 TODO: polystrings: work like strings, structured (orig,norm)
 
 == Conditions
 
+* No flow control, but we have conditional
 
-
-== TODO
-
-* Variables
+== Lists and Multivalue Data
 
 TODO: multivalued properties: size, [], map, filter
 
-TODO: has()
+== Language Extensions
 
-* Libraries (format, ldap, log, midpoint, etc.)
+Common expression language (CEL) which was a foundation for MidPoint Expression Language (MEL) is quite limited.
+Therefore, MEL provides additional language extensions that implement functions commonly used in midPoint environment.
+Many MEL language extensions fit naturally into the language and are usually not noticed at all (e.g. in case of _polystrings_).
+However, other extensions are explicitly distinguished, to make their purpose clear and to avoid conflicts with native functionality of the language.
+Most of the extensions have explicit _prefix_ in function names.
+Following extensions are available in MEL:
+
+|===
+|Prefix | Purpose | Description
+
+| `format`
+| Formating and parsing
+| Format extension is used to format, parse and otherwise process string-formatted data.
+It is used to format/parse timestamps and parse or format full name.
+
+| `log`
+| Logging and diagnostics
+| Log extension is used to record diagnostic information in system logs.
+Functions of the `log` extensions can be used to record errors, as well as troubleshoot the expressions.
+
+| `ldap`
+| LDAP-specific functions
+| LDAP extension is used to process LDAP-specific data formats, such _distinguished name_ (DN).
+
+| `secret`
+| Secret providers
+| Secret extension is used to interact with secret providers.
+
+
+| _object_ +
+(no prefix)
+| Object data
+| Object extensions provide convenience functions that allow easier processing of midPoint objects,
+such as resources or shadows.
+
+|===
 
 == See Also
 

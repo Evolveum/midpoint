@@ -16,6 +16,76 @@ MidPoint Expression Language (MEL) is a ...
 
 TODO: table of operators with precedence
 
+== Operators and Functions
+
+Simple computations can be executed on the data provided to the expression.
+
+[source,mel]
+----
+focus.activation.effectiveStatus == `enabled`            // true if focus is active
+has(focus.emailAddress) || has(focus.telephoneNumber)    // true if either one is set
+size(focus.assignment) > 0                               // true if there is at least one assignment
+matches(focus.telephoneNumber, '^[0-9]+$')               // true if number matches regexp
+focus.givenName + ' ' + focus.familyName                 // concatenation of values
+----
+
+Following _operators_ can be used in MEL expressions:
+
+|====
+| Operator | Meaning
+
+|`==`
+| Equality
+
+|`!=`
+| Inequality
+
+|`>`
+| Greater than
+
+|`>=`
+| Greater than or equal
+
+|`<`
+| Less than
+
+|`\<=`
+| Less than or equal
+
+|`+`
+| Addition, concatenation
+
+|`-`
+| Negation, subtraction
+
+|`*`
+| Multiplication
+
+|`/`
+| Division
+
+|`%`
+| Remainder
+
+|`!`
+| Logical NOT
+
+|`&&`
+| Logical AND
+
+|`\|\|`
+| Logical OR
+
+|`in`
+| Inclusion test
+
+|`?:`
+| Conditional
+
+|====
+
+
+
 TODO: include indexing ([]) and 'in'
 
 == Functions and Macros
@@ -1569,6 +1639,8 @@ E.g. extension attribute `ship` of the object stored in the `focus` variable can
 focus.extension.ship
 focus.extension['ship']
 ----
+
+// TODO: has()
 
 === Item QNames
 
