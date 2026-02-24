@@ -13,18 +13,17 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION
 
 import java.util.List;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
+import com.evolveum.midpoint.provisioning.api.CorrelationSimulationData;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
@@ -84,14 +83,15 @@ public class CorrelationSimulationActivityRun
 
         final SimulationTransaction simulationTransaction = getSimulationTransaction();
         if (simulationTransaction != null) {
-            final List<ItemDelta<?, ?>> correlationDelta = createDelta(correlationResult, shadow);
-            simulationTransaction.writeSimulationData(ShadowSimulationData.of(shadow, correlationDelta), task, result);
+            final ObjectDelta<ShadowType> correlationDelta = createDelta(correlationResult, shadow);
+            simulationTransaction.writeSimulationData(new CorrelationSimulationData(shadow, correlationDelta), task,
+                    result);
         }
 
         return true;
     }
 
-    private List<ItemDelta<?, ?>> createDelta(CompleteCorrelationResult correlationResult, ShadowType shadow)
+    private ObjectDelta<ShadowType> createDelta(CompleteCorrelationResult correlationResult, ShadowType shadow)
             throws SchemaException {
         S_ItemEntry builder = this.prismContext.deltaFor(ShadowType.class)
                 .oldObject(shadow)
@@ -109,7 +109,7 @@ public class CorrelationSimulationActivityRun
                     .item(CORRELATION_RESULTING_OWNER_PATH)
                     .replace(ObjectTypeUtil.createObjectRef(correlationResult.getOwner()));
         }
-        return builder.asItemDeltas();
+        return builder.asObjectDelta(shadow.getOid());
     }
 
     private boolean ownerOptionsChanged(ShadowType shadow, @Nullable ResourceObjectOwnerOptionsType newOwnerOptions) {

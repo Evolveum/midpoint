@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.provisioning.api.CorrelationSimulationData;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
@@ -337,6 +338,43 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()),
                 ParsedMetricValues.fromEventMarks(
                         marks,
+                        List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value())),
+                false,
+                null,
+                shadowBefore,
+                shadowAfter,
+                delta,
+                InternalState.CREATING);
+
+        processedObject.addComputedMetricValues(List.of()); // Ignoring custom metrics in this mode
+
+        // TODO we should somehow record errors during low-level shadow management (classification, correlation)
+        processedObject.setResultAndStatus(null, OperationResultStatusType.SUCCESS);
+
+        return processedObject;
+    }
+
+    static @NotNull ProcessedObjectImpl<ShadowType> createForCorrelation(
+            @NotNull CorrelationSimulationData data, @NotNull SimulationTransactionImpl simulationTransaction)
+            throws CommonException {
+
+        ShadowType shadowBefore = data.getShadowBefore();
+        ObjectDelta<ShadowType> delta = data.getDelta();
+        ShadowType shadowAfter = shadowBefore.clone();
+        delta.applyTo(shadowAfter.asPrismObject());
+
+        List<String> marks = determineShadowEventMarks(shadowBefore, shadowAfter);
+
+        var processedObject = new ProcessedObjectImpl<>(
+                simulationTransaction.getTransactionId(),
+                shadowBefore.getOid(),
+                ShadowType.class,
+                null,
+                determineShadowDiscriminator(shadowAfter), // or from "before" state?
+                shadowAfter.getName(),
+                ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()),
+                ParsedMetricValues.fromEventMarks(
+                        marks,
                         List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value(),
                                 SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value(),
                                 SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value(),
@@ -357,7 +395,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return processedObject;
     }
 
-    static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForObject(@NotNull Class<T> objectClass,
+    static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForMapping(@NotNull Class<T> objectClass,
             @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction)
             throws SchemaException {
         final T objectAfter = (T) objectBefore.clone();

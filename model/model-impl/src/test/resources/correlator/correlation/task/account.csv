@@ -1,7 +1,2 @@
-# Users: John Smith
-# Normalization: poly string norm
-# Search: given name
-# local confidences using default algorithms
-
-uid  | givenName | familyName | employeeNumber | expCandidates | expResult   | _note
-1    | John      | Smith      | 1234           | smith1:1.0    | smith1      | Exact match
+id  | givenName | familyName | employeeNumber | _note
+1   | John      | Smith      | 1234           | Exact match

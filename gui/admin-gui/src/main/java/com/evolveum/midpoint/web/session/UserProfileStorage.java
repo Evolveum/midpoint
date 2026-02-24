@@ -43,6 +43,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         TABLE_PARENT_CLUSTER,
         TABLE_ORGS,
         TABLE_SERVICES,
+        TABLE_SERVICES_APPLICATIONS,
+        TABLE_SERVICES_APPLICATIONS_INTEGRATION,
         TABLE_POLICIES,
         TABLE_APPLICATIONS,
         TABLE_ARCHETYPES,

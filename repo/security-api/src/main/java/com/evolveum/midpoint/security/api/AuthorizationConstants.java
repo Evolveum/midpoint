@@ -153,6 +153,18 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_SERVICES_QNAME = new QName(NS_AUTHORIZATION_UI, "services");
     public static final String AUTZ_UI_SERVICES_URL = NS_AUTHORIZATION_UI + "#services";
 
+    public static final QName AUTZ_UI_SERVICES_INTEGRATION_APPLICATIONS_URL_QNAME = new QName(NS_AUTHORIZATION_UI, "integrationApplicationServices");
+    public static final String AUTZ_UI_SERVICES_INTEGRATION_APPLICATIONS_URL = NS_AUTHORIZATION_UI + "#integrationApplicationServices";
+
+    public static final QName AUTZ_UI_SERVICES_INTEGRATION_APPLICATIONS_VIEW_URL_QNAME = new QName(NS_AUTHORIZATION_UI, "integrationApplicationServicesView");
+    public static final String AUTZ_UI_SERVICES_INTEGRATION_APPLICATIONS_VIEW_URL = NS_AUTHORIZATION_UI + "#integrationApplicationServicesView";
+
+    public static final QName AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_URL_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationServices");
+    public static final String AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_URL = NS_AUTHORIZATION_UI + "#applicationServices";
+
+    public static final QName AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_VIEW_URL_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationServicesView");
+    public static final String AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_VIEW_URL = NS_AUTHORIZATION_UI + "#applicationServicesView";
+
     public static final QName AUTZ_UI_SERVICE_QNAME = new QName(NS_AUTHORIZATION_UI, "service");
     public static final String AUTZ_UI_SERVICE_URL = NS_AUTHORIZATION_UI + "#service";
 
@@ -255,6 +267,9 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_CONNECTOR_HOSTS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorHostsAll");
     public static final String AUTZ_UI_CONNECTOR_HOSTS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorHostsAll";
+
+    public static final QName AUTZ_UI_CONNECTORS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorsAll");
+    public static final String AUTZ_UI_CONNECTORS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorsAll";
 
     // Resource XML editor
     public static final QName AUTZ_UI_RESOURCE_QNAME = new QName(NS_AUTHORIZATION_UI, "resource");

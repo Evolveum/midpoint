@@ -30,6 +30,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.services.PageServiceHistory;
+import com.evolveum.midpoint.web.page.admin.services.PageAllServices;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -59,8 +63,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
@@ -75,7 +77,6 @@ import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -126,7 +127,7 @@ public final class DetailsPageUtil {
         OBJECT_LIST_PAGE_MAP = new HashMap<>();
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(UserType.class, PageUsers.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(RoleType.class, PageRoles.class);
-        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageServices.class);
+        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageAllServices.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PolicyType.class, PagePolicies.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ApplicationType.class, PageApplications.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
