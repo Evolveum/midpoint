@@ -875,6 +875,32 @@ export default class MidPointTheme {
         }
         picker.subscribe('show.td', () => {
             var $dateContainer = $('.date-container');
+
+            var $dateContainerDecades = $('.date-container-decades');
+            var $dateContainerYears = $('.date-container-years');
+            var $dateContainerMonths = $('.date-container-months');
+            var $dateContainerDays = $('.date-container-days');
+            if ($dateContainerDecades.length > 0) {
+                $dateContainerDecades.attr({
+                    'role': 'grid'
+                });
+            }
+            if ($dateContainerYears.length > 0) {
+                $dateContainerYears.attr({
+                    'role': 'grid'
+                });
+            }
+            if ($dateContainerMonths.length > 0) {
+                $dateContainerMonths.attr({
+                    'role': 'grid'
+                });
+            }
+            if ($dateContainerDays.length > 0) {
+                $dateContainerDays.attr({
+                    'role': 'grid'
+                });
+            }
+
             if ($dateContainer.length > 0) {
                 $dateContainer.on('keydown', function (e) {
                     if (e.key === 'Escape' || e.keyCode === 27) {
@@ -890,6 +916,13 @@ export default class MidPointTheme {
 
             var $actionElements = $('.date-container [data-action]').filter(function () {
               return $(this).attr('data-action')?.trim() !== '';
+            });
+            $actionElements.each(function() {
+                const $el = $(this);
+                $el.attr({
+                    'tabindex': '0',
+                    'role': 'gridcell'
+                });
             });
 
             const $switchEl = $('.calendar-header .picker-switch');
