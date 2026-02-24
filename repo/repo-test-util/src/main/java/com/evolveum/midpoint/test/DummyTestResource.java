@@ -36,6 +36,8 @@ public class DummyTestResource extends TestResource {
     public final FailableProcessor<DummyResourceContoller> controllerInitLambda;
     public DummyResourceContoller controller;
 
+    private final FailableProcessor<DummyResourceContoller> resourceObjectsInitializer;
+
     /**
      * TODO change to static factory method
      */
@@ -47,32 +49,36 @@ public class DummyTestResource extends TestResource {
      * TODO change to static factory method
      */
     public DummyTestResource(File dir, String fileName, String oid, String name, FailableProcessor<DummyResourceContoller> controllerInitLambda) {
-        this(new FileBasedTestObjectSource(dir, fileName), oid, name, controllerInitLambda);
+        this(new FileBasedTestObjectSource(dir, fileName), oid, name, controllerInitLambda, ctrl -> {});
     }
 
-    public DummyTestResource(
-            TestObjectSource source, String oid, String name, FailableProcessor<DummyResourceContoller> controllerInitLambda) {
+    public DummyTestResource(TestObjectSource source, String oid, String name,
+            FailableProcessor<DummyResourceContoller> controllerInitLambda,
+            FailableProcessor<DummyResourceContoller> resourceObjectsInitializer) {
         super(source, oid);
         this.name = name;
         this.controllerInitLambda = controllerInitLambda;
+        this.resourceObjectsInitializer = resourceObjectsInitializer;
     }
 
     public static DummyTestResourceWithoutAccounts fromFile(File resourceDir, String resourceFileName, String oid,
             String name) {
         return (accountsFile) -> {
             final AccountsCsvParser accountsParser = new AccountsCsvParser(accountsFile);
+            final FailableProcessor<DummyResourceContoller> objectsInitializer =
+                    controller -> addAccounts(controller, accountsParser.readAccounts());
             final FailableProcessor<DummyResourceContoller> resourceInitializer = controller -> {
                 addAttributesToSchema(controller, accountsParser.readAttributesNames());
-                addAccounts(controller, accountsParser.readAccounts());
+                objectsInitializer.process(controller);
             };
             return new DummyTestResource(new FileBasedTestObjectSource(resourceDir, resourceFileName), oid, name,
-                    resourceInitializer);
+                    resourceInitializer, objectsInitializer);
         };
     }
 
     public static DummyTestResource fromTestObject(
             TestObject<?> object, String instanceName, FailableProcessor<DummyResourceContoller> controllerInitLambda) {
-        return new DummyTestResource(object.source, object.oid, instanceName, controllerInitLambda);
+        return new DummyTestResource(object.source, object.oid, instanceName, controllerInitLambda, ctrl -> {});
     }
 
     @Override
@@ -105,10 +111,21 @@ public class DummyTestResource extends TestResource {
         test.initDummyResource(this, task, result);
     }
 
+    /**
+     * Reinitialize the dummy test resource, overwriting all the changes made after the initialization.
+     *
+     * If the dummy resource was already initialized, this method overwrites and initialize it again. It is useful
+     * when you for example need to reset the resource before execution of the test to ensure changes from previous
+     * tests will not affect the next test.
+     */
     public void initWithOverwrite(AbstractIntegrationTest test, Task task, OperationResult result) throws Exception {
         test.deleteIfPresent(this, result);
         reset();
         test.initDummyResource(this, task, result);
+        this.controller.getDummyResource().reset();
+        // When the controller is already present, the initialization method above does not call the controller init
+        // lambda again. So we need to call it ourselves
+        this.controllerInitLambda.process(this.controller);
     }
 
     public String addAccount(DummyAccount account) throws ConflictException, FileNotFoundException, SchemaViolationException,
