@@ -2482,23 +2482,18 @@
             <xsd:element name="secret" type="t:ProtectedStringType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        <!-- todo -->
+                        Shared secret used for OTP code computation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="createTimestamp" type="xsd:dateTime">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <!-- todo -->
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="verified" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        <!-- todo -->
                         Flag that marks completed user enrollment for this OTP credential.
                         E.g. User supplied current TOTP code and server verified it.
+
+                        If OTP credential is not verified, it won't be tested during authentication.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
