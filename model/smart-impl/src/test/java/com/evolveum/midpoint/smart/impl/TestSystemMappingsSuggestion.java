@@ -281,7 +281,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER1.oid, UserType.F_FULL_NAME, PolyString.fromOrig("John Doe"));
-        modifyUserReplace(USER2.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Different"));
+        modifyUserReplace(USER2.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Different Value"));
         modifyUserReplace(USER3.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Another"));
 
         modifyShadowReplace("user1", CN, "John Doe");
@@ -506,7 +506,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
         modifyUserReplace(USER1.oid, UserType.F_FULL_NAME, PolyString.fromOrig("John Doe"));
 
         dummyScenarioAd.adUser.getByNameRequired("user1")
-                .replaceAttributeValues(DummyScenario.AdUser.AttributeNames.DISTINGUISHED_NAME.local(), 
+                .replaceAttributeValues(DummyScenario.AdUser.AttributeNames.DISTINGUISHED_NAME.local(),
                         "cn=John Doe,ou=Users,dc=example,dc=com");
 
         provisioningService.searchShadows(
@@ -612,5 +612,86 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
         assertThat(dnMapping)
                 .as("AD DN mapping should NOT be suggested when no DN found in samples")
                 .isEmpty();
+    }
+
+    @Test
+    public void test150OutboundAdUserPrincipalNameMappingSuggestion() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, UserType.F_NAME, PolyString.fromOrig("user1"));
+
+        dummyScenarioAd.adUser.getByNameRequired("user1")
+                .replaceAttributeValues(DummyScenario.AdUser.AttributeNames.USER_PRINCIPAL_NAME.local(),
+                        "user1@example.com");
+
+        provisioningService.searchShadows(
+                Resource.of(RESOURCE_AD.getObjectable())
+                        .queryFor(ACCOUNT_DEFAULT)
+                        .build(),
+                null, task, result);
+
+        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_AD.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                false, // outbound
+                true);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_AD.oid, ACCOUNT_DEFAULT, false, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        var upnMapping = suggestion.getAttributeMappings().stream()
+                .filter(m -> m.getDefinition() != null
+                        && m.getDefinition().getRef() != null
+                        && m.getDefinition().getRef().toString().endsWith("userPrincipalName"))
+                .findFirst();
+
+        assertThat(upnMapping)
+                .as("AD userPrincipalName outbound mapping should be present")
+                .isPresent();
+
+        var outboundMapping = upnMapping.get().getDefinition().getOutbound();
+        assertThat(outboundMapping)
+                .as("UPN mapping should have outbound configuration")
+                .isNotNull();
+
+        var expression = outboundMapping.getExpression();
+        assertThat(expression)
+                .as("UPN mapping should have expression")
+                .isNotNull();
+
+        assertThat(expression.getDescription())
+                .as("UPN mapping expression should have description")
+                .contains("Compose UPN");
+
+        var scriptEvaluator = expression.getExpressionEvaluator().stream()
+                .filter(e -> e.getValue() instanceof ScriptExpressionEvaluatorType)
+                .map(e -> (ScriptExpressionEvaluatorType) e.getValue())
+                .findFirst();
+
+        assertThat(scriptEvaluator)
+                .as("UPN mapping should have script expression evaluator")
+                .isPresent();
+
+        String script = scriptEvaluator.get().getCode();
+        assertThat(script)
+                .as("Script should concatenate name with domain suffix")
+                .contains("name + '@example.com'");
+
+        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(upnMapping.get().asPrismContainerValue()))
+                .as("UPN mapping should be marked as system-provided")
+                .isTrue();
+
+        assertThat(upnMapping.get().getExpectedQuality())
+                .as("UPN mapping should have quality assessed (script executed successfully)")
+                .isNotNull()
+                .isEqualTo(1.0f);
     }
 }

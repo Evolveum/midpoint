@@ -56,6 +56,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
             protected List<ObjectClassWrapper> load() {
                 List<ObjectClassWrapper> list = new ArrayList<>();
 
+                // First, we get the list of all object classes right from the connector (ignoring generation constraints).
                 ResourceType resourceType = new ResourceType().name("test");
                 PrismObject<ResourceType> currentResource;
                 try {
@@ -73,11 +74,14 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                     return list;
                 }
 
-                for(ResourceObjectClassDefinition definition: schemaForConnector.getObjectClassDefinitions()){
+                for (ResourceObjectClassDefinition definition : schemaForConnector.getObjectClassDefinitions()) {
                     list.add(new ObjectClassWrapper(definition));
                 }
 
                 Collections.sort(list);
+
+                // Now we mark all classes that are actually used in schemaHandling as selected and disabled (so they
+                // cannot be deselected).
 
                 ResourceSchema currentSchema = getResourceSchema(getObjectWrapper(), getPageBase());
 
