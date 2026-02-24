@@ -184,11 +184,10 @@ public class PasswordPanel extends InputPanel {
         final WebMarkupContainer passwordStrengthMeter = new WebMarkupContainer(ID_PASSWORD_STRENGTH_METER);
         validationProgressBar.add(passwordStrengthMeter);
 
-        String s = "window.MidPointTheme." + initPasswordValidation(passwordStrengthMeter.getMarkupId(), password1.getMarkupId());
         if (isPasswordStrengthBarVisible()) {
             password1.add(AttributeAppender.append(
                     "onfocus",
-                    s
+                    "window.MidPointTheme." + initPasswordValidation(passwordStrengthMeter.getMarkupId(), password1.getMarkupId())
             ));
         }
 
