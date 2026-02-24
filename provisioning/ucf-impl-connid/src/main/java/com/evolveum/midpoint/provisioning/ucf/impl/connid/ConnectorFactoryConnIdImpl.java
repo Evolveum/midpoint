@@ -718,9 +718,17 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             return false;
         }
 
-        if (skipTmp && file.getName().endsWith(".tmp")) {
-            LOGGER.debug("This {} is a temporary file", file.getAbsolutePath());
-            return false;
+        if (skipTmp) {
+            // We check the whole path for entries ending with ".tmp", because the scanner iterates over subdirectories as well.
+            // FIXME but we must stop crawling upwards at midPoint home level, because what if it's e.g. in /var/opt.tmp/midpoint?
+            var current = file;
+            do {
+                if (current.getName().endsWith(".tmp")) {
+                    LOGGER.debug("{} is a temporary file", current.getAbsolutePath());
+                    return false;
+                }
+                current = current.getParentFile();
+            } while (current != null);
         }
 
         Properties prop = new Properties();
