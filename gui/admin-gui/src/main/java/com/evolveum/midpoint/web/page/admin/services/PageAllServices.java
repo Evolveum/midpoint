@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
                 singularLabel = "ObjectType.service",
                 icon = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON))
 @SuppressWarnings("unused")
-public class PageServicesAll extends PageServices {
+public class PageAllServices extends PageServices {
 
     @Serial private static final long serialVersionUID = 1L;
 

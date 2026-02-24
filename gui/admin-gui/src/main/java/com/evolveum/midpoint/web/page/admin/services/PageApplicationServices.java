@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 /**
  * @author Viliam Repan
  */
-public abstract class PageServicesApplications extends PageServices {
+public abstract class PageApplicationServices extends PageServices {
 
     @Serial private static final long serialVersionUID = 1L;
 

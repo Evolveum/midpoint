@@ -6,11 +6,9 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import java.util.Arrays;
-
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
-import com.evolveum.midpoint.web.page.admin.services.PageServicesAll;
+import com.evolveum.midpoint.web.page.admin.services.PageAllServices;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.request.component.IRequestablePage;
@@ -90,7 +88,7 @@ public class PageDashboardInfo extends PageDashboard {
                 result, task));
 
         add(createFocusInfoBoxPanel(ID_INFO_BOX_SERVICES, ServiceType.class, "object-service-bg",
-                GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, "PageDashboard.infobox.services", PageServicesAll.class,
+                GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, "PageDashboard.infobox.services", PageAllServices.class,
                 result, task));
 
         add(createResourceInfoBoxPanel(result, task));

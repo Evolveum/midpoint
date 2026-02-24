@@ -16,7 +16,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.RefFilter;
 
-import com.evolveum.midpoint.web.page.admin.services.PageServicesAll;
+import com.evolveum.midpoint.web.page.admin.services.PageAllServices;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -109,7 +109,7 @@ public class PageDashboardConfigurable extends PageDashboard {
         map.put(UserType.COMPLEX_TYPE.getLocalPart(), PageUsers.class);
         map.put(RoleType.COMPLEX_TYPE.getLocalPart(), PageRoles.class);
         map.put(OrgType.COMPLEX_TYPE.getLocalPart(), PageOrgs.class);
-        map.put(ServiceType.COMPLEX_TYPE.getLocalPart(), PageServicesAll.class);
+        map.put(ServiceType.COMPLEX_TYPE.getLocalPart(), PageAllServices.class);
 
         LINKS_REF_COLLECTIONS = map;
     }

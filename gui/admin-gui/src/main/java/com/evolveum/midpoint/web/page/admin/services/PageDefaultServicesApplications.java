@@ -33,7 +33,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
                         label = "PageServices.auth.applicationServices.view.label",
                         description = "PageServices.auth.applicationServices.view.description") })
 @SuppressWarnings("unused")
-public class PageDefaultServicesApplications extends PageServicesApplications {
+public class PageDefaultServicesApplications extends PageApplicationServices {
 
     @Serial private static final long serialVersionUID = 1L;
 

@@ -14,9 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.services.PageDefaultServicesApplications;
-
-import com.evolveum.midpoint.web.page.admin.services.PageIntegrationServicesApplications;
+import com.evolveum.midpoint.web.page.admin.services.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -401,13 +399,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 "PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
         menu.addMenuItem(new MenuItem(
                 "PageAdmin.menu.top.applications.list", PageDefaultServicesApplications.class));
-        // todo new service with application archetype
         menu.addMenuItem(
                 new MenuItem(
                         "PageAdmin.menu.top.applications.connect",
                         GuiStyleConstants.CLASS_PLUS_CIRCLE,
-                        getDetailsPage(PageTypes.SERVICE),
-                        null));
+                        PageDefaultApplicationService.class));
         return menu;
     }
 
@@ -417,13 +413,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 "PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
         menu.addMenuItem(new MenuItem(
                 "PageAdmin.menu.top.applications.list", PageIntegrationServicesApplications.class));
-        // todo new service with application archetype
         menu.addMenuItem(
                 new MenuItem(
                         "PageAdmin.menu.top.applications.connect",
                         GuiStyleConstants.CLASS_PLUS_CIRCLE,
-                        getDetailsPage(PageTypes.SERVICE),
-                        null));
+                        PageIntegrationApplicationService.class));
         return menu;
     }
 

@@ -32,7 +32,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationR
 
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServiceHistory;
-import com.evolveum.midpoint.web.page.admin.services.PageServicesAll;
+import com.evolveum.midpoint.web.page.admin.services.PageAllServices;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -127,7 +127,7 @@ public final class DetailsPageUtil {
         OBJECT_LIST_PAGE_MAP = new HashMap<>();
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(UserType.class, PageUsers.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(RoleType.class, PageRoles.class);
-        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageServicesAll.class);
+        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageAllServices.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PolicyType.class, PagePolicies.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ApplicationType.class, PageApplications.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
