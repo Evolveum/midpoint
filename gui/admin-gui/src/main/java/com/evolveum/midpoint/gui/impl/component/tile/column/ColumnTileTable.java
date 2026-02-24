@@ -365,6 +365,11 @@ public abstract class ColumnTileTable<O extends Serializable>
                     }
 
                     @Override
+                    protected boolean isYesButtonVisible() {
+                        return !selected.isEmpty() || !getMultiTableModel().isEmpty();
+                    }
+
+                    @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         if (selected.isEmpty()) {
                             deleteItemPerformed(target, getMultiTableModel());
