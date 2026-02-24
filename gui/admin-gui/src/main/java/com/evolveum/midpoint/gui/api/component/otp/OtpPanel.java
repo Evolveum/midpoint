@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.gui.api.component.otp;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -23,16 +22,13 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.authentication.api.OtpManager;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.message.SimpleFeedbackPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.QRCodeUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -49,7 +45,6 @@ public class OtpPanel extends InputPanel {
 
     private static final String ID_NAME = "name";
     private static final String ID_QR = "qr";
-    private static final String ID_SETUP_MANUALLY = "setupManually";
     private static final String ID_SECRET = "secret";
     private static final String ID_CODE_GROUP = "codeGroup";
     private static final String ID_CODE = "code";
@@ -60,8 +55,6 @@ public class OtpPanel extends InputPanel {
     private final IModel<OtpCredentialType> model;
 
     private final IModel<Integer> codeModel = Model.of();
-
-    private final IModel<Boolean> showSecretModel = Model.of(false);
 
     public OtpPanel(String id, IModel<FocusType> focusModel, IModel<OtpCredentialType> model) {
         super(id);
@@ -108,7 +101,7 @@ public class OtpPanel extends InputPanel {
                     LOGGER.error("Error decrypting OTP secret", e);
                 }
 
-                return LocalizationUtil.translate("OtpPanel.setupManually.secret", secret);
+                return secret;
             }
         };
 
@@ -122,18 +115,11 @@ public class OtpPanel extends InputPanel {
                 OperationResult result = task.getResult();
 
                 String url = manager.createOtpAuthUrl(focusModel.getObject().asPrismObject(), model.getObject(), task, result);
-                if (url == null) {
-                    // this shouldn't happen, but just in case
-                    return "";
-                }
-
-                return QRCodeUtils.generateSvg(url);
+                return url != null ? QRCodeUtils.generateSvg(url) : "";
             }
         };
 
-        Label secret = new Label(ID_SECRET, secretModel);
-        secret.setOutputMarkupPlaceholderTag(true);
-        secret.add(new VisibleBehaviour(() -> secretModel.getObject() != null && showSecretModel.getObject()));
+        TextField<String> secret = new TextField<>(ID_SECRET, secretModel);
         add(secret);
 
         Label qr = new Label(ID_QR, qrModel);
@@ -141,28 +127,12 @@ public class OtpPanel extends InputPanel {
         qr.setEscapeModelStrings(false);
         add(qr);
 
-        IModel<String> setupManuallyLabelModel = () -> {
-
-            String key = showSecretModel.getObject() ? "OtpPanel.setupManually.hide" : "OtpPanel.setupManually.show";
-
-            return getString(key);
-        };
-
-        AjaxButton setupManually = new AjaxButton(ID_SETUP_MANUALLY, setupManuallyLabelModel) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onSetupManuallyClicked(target, secret);
-            }
-        };
-        add(setupManually);
-
         WebMarkupContainer codeGroup = new WebMarkupContainer(ID_CODE_GROUP);
         codeGroup.setOutputMarkupId(true);
         add(codeGroup);
 
         TextField<Integer> code = new TextField<>(ID_CODE, codeModel);
-        code.setLabel(createStringResource("OtpPanel.codeText.label"));
+        code.setLabel(createStringResource("OtpPanel.code.label"));
         code.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
             @Override
@@ -214,14 +184,5 @@ public class OtpPanel extends InputPanel {
     @Override
     public FormComponent<?> getBaseFormComponent() {
         return (FormComponent<?>) get(ID_CODE);
-    }
-
-    // todo show not only secret but also period, digits, algorithm, etc. if we ever support that in the future
-    private void onSetupManuallyClicked(AjaxRequestTarget target, Component secret) {
-        boolean showSecret = !showSecretModel.getObject();
-        showSecretModel.setObject(showSecret);
-
-        target.add(secret);
-        target.add(get(ID_SETUP_MANUALLY));
     }
 }

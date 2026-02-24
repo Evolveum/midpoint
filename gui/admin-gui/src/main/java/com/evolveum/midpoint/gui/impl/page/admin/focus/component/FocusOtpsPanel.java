@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -235,7 +236,10 @@ public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    return new OtpPanel(panelId, focusModel, () -> getModel().getObject().getRealValue());
+                    OtpPanel panel = new OtpPanel(panelId, focusModel, () -> getModel().getObject().getRealValue());
+                    panel.add(AttributeAppender.append("style", "max-width: 600px;"));
+
+                    return panel;
                 }
             };
         }
