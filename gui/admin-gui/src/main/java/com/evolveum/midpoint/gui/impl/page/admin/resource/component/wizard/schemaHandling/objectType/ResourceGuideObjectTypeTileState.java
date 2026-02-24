@@ -144,6 +144,13 @@ public enum ResourceGuideObjectTypeTileState {
     private static boolean isSkipCorrelationConfiguration(
             @NotNull ResourceObjectTypeDefinitionType real,
             @NotNull PageBase pageBase) {
+
+        boolean isSynchronizationConfigured = isSynchronizationConfigured(real);
+
+        if (isSynchronizationConfigured) {
+            return true;
+        }
+
         ResourceObjectFocusSpecificationType focus = real.getFocus();
         ObjectReferenceType archetypeRef = focus.getArchetypeRef();
 
@@ -166,6 +173,12 @@ public enum ResourceGuideObjectTypeTileState {
             if (counted == null) {
                 return true;
             }
+
+            // TODO this is temporary solution. We will design better one when we decide how to handle initial focus object.
+            if (archetypeRef == null && focus.getType() != null && focus.getType() == UserType.COMPLEX_TYPE) {
+                return counted <= 1;
+            }
+
             return counted == 0;
         } catch (Exception e) {
             LOGGER.error("Failed to count focus objects: {}", e.getMessage(), e);
