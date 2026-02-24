@@ -2486,7 +2486,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="createTimestamp" type="xsd:dateTime">
+            <xsd:element name="createTimestamp" type="xsd:dateTime"/>
             <xsd:element name="verified" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
