@@ -70,6 +70,8 @@ import java.util.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
 import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyCorrelationPermissionData;
 
@@ -437,7 +439,19 @@ public abstract class SmartCorrelationTable
                                 ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
                         );
 
-                        SimulationActionFlow<?> flow = new SimulationActionFlow<>(params);
+                        SimulationActionFlow<?> flow = new SimulationActionFlow(params) {
+                            @Override
+                            public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+                                ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
+                                if (simulationResultReference == null || simulationResultReference.getOid() == null) {
+                                    LOGGER.error("Simulation result reference or OID is null for task {}", task.getName());
+                                    return;
+                                }
+                                SimulationResultType simulationResultType = loadSimulationResult(pageBase, simulationResultReference.getOid());
+                                buildSimulationResultPanel(target, Model.of(simulationResultType));
+
+                            }
+                        };
                         flow.enableSampling();
                         flow.showProgressPopup();
                         flow.start(target);
@@ -635,6 +649,10 @@ public abstract class SmartCorrelationTable
         }
         return getResourceType().getOid();
     }
+
+    protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+    }
+
 }
 
 
