@@ -100,6 +100,10 @@
   background-color: #{$secondary-light} !important;
 }
 
+.bg.primary-light {
+  background-color: #{$primary-light} !important;
+}
+
 .alert.purple-light-alert {
   --label-color: #{$purple-light};
   background-color: var(--label-color);

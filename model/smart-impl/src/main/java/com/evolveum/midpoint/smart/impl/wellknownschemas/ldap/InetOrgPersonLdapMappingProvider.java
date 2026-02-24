@@ -45,57 +45,52 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
         matches.put(ItemPath.create("cn"), UserType.F_FULL_NAME);
         matches.put(ItemPath.create("givenName"), UserType.F_GIVEN_NAME);
         matches.put(ItemPath.create("sn"), UserType.F_FAMILY_NAME);
+        matches.put(ItemPath.create("description"), UserType.F_DESCRIPTION);
+        matches.put(ItemPath.create("employeeNumber"), UserType.F_PERSONAL_NUMBER);
+        matches.put(ItemPath.create("jpegPhoto"), UserType.F_JPEG_PHOTO);
         matches.put(ItemPath.create("mail"), UserType.F_EMAIL_ADDRESS);
+        matches.put(ItemPath.create("l"), UserType.F_LOCALITY);
         matches.put(ItemPath.create("telephoneNumber"), UserType.F_TELEPHONE_NUMBER);
+        matches.put(ItemPath.create("ou"), UserType.F_ORGANIZATIONAL_UNIT);
+        matches.put(ItemPath.create("o"), UserType.F_ORGANIZATION);
+        matches.put(ItemPath.create("preferredLanguage"), UserType.F_PREFERRED_LANGUAGE);
+        matches.put(ItemPath.create("title"), UserType.F_TITLE);
         return matches;
     }
 
     @Override
     public List<SystemMappingSuggestion> suggestInboundMappings() {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("uid", UserType.F_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sn", UserType.F_FAMILY_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("mail", UserType.F_EMAIL_ADDRESS));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("telephoneNumber", UserType.F_TELEPHONE_NUMBER));
         return mappings;
     }
 
     @Override
     public List<SystemMappingSuggestion> suggestOutboundMappings(@Nullable List<ShadowType> sampleShadows) {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
-        var dnMapping = createDnMapping(sampleShadows);
-        if (dnMapping != null) {
-            mappings.add(dnMapping);
-        }
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("uid", UserType.F_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sn", UserType.F_FAMILY_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("mail", UserType.F_EMAIL_ADDRESS));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("telephoneNumber", UserType.F_TELEPHONE_NUMBER));
-        return mappings;
-    }
 
-    private SystemMappingSuggestion createDnMapping(@Nullable List<ShadowType> sampleShadows) {
         DnStructure dnStructure = extractDnStructureFromSamples(sampleShadows);
-        if (dnStructure == null) {
-            return null;
+        String rdn = dnStructure != null ? dnStructure.rdnAttribute().toLowerCase() : null;
+
+        if ("uid".equals(rdn)) {
+            mappings.add(createDnScriptSuggestion("uid", "name", UserType.F_NAME, dnStructure.ouSuffix()));
+        } else if ("cn".equals(rdn)) {
+            mappings.add(createDnScriptSuggestion("cn", "fullName", UserType.F_FULL_NAME, dnStructure.ouSuffix()));
         }
 
-        return switch (dnStructure.rdnAttribute().toLowerCase()) {
-            case "uid" -> createDnScriptSuggestion("uid", "name", UserType.F_NAME, dnStructure.ouSuffix());
-            case "cn" -> createDnScriptSuggestion("cn", "fullName", UserType.F_FULL_NAME, dnStructure.ouSuffix());
-            default -> null;
-        };
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("uid", UserType.F_NAME,
+                "uid".equals(rdn) ? MappingStrengthType.WEAK : MappingStrengthType.STRONG));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME,
+                "cn".equals(rdn) ? MappingStrengthType.WEAK : MappingStrengthType.STRONG));
+
+        return mappings;
     }
 
     private SystemMappingSuggestion createDnScriptSuggestion(
             String rdnAttr, String sourceVar, ItemPath sourcePath, String ouSuffix) {
         String script = "basic.composeDnWithSuffix('%s', %s, '%s')".formatted(rdnAttr, sourceVar, ouSuffix);
         String description = "Compose DN: %s=<%s>,%s".formatted(rdnAttr, sourceVar, ouSuffix);
-        return SystemMappingSuggestion.createScriptSuggestion("dn", sourcePath, script, description);
+        return SystemMappingSuggestion.createScriptSuggestion("dn", sourcePath, script, description,
+                MappingStrengthType.STRONG);
     }
 
     private DnStructure extractDnStructureFromSamples(List<ShadowType> sampleShadows) {
@@ -153,7 +148,7 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
     }
 
     private String extractRdnAttribute(LdapName ldapName) {
-        String firstRdn = ldapName.getRdn(ldapName.size() - 1).toString();
+        String firstRdn = ldapName.getRdn(ldapName.size() - 1).toString().toLowerCase();
         if (firstRdn.startsWith("uid=")) {
             return "uid";
         } else if (firstRdn.startsWith("cn=")) {
