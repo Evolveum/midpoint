@@ -23,15 +23,15 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
                 @Url(mountUrl = "/admin/applicationServices")
         },
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
-                        label = "PageAdminServices.auth.servicesAll.label",
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_URL,
+                        label = "PageAdminServices.auth.applicationServices.label",
                         description = "PageAdminServices.auth.servicesAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_URL,
-                        label = "PageServices.auth.services.label",
-                        description = "PageServices.auth.services.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL,
-                        label = "PageServices.auth.services.view.label",
-                        description = "PageServices.auth.services.view.description") })
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_URL,
+                        label = "PageServices.auth.applicationServices.label",
+                        description = "PageServices.auth.applicationServices.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_VIEW_URL,
+                        label = "PageServices.auth.applicationServices.view.label",
+                        description = "PageServices.auth.applicationServices.view.description") })
 @SuppressWarnings("unused")
 public class PageDefaultServicesApplications extends PageServicesApplications {
 

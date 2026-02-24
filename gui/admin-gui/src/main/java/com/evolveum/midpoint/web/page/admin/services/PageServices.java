@@ -9,6 +9,9 @@ package com.evolveum.midpoint.web.page.admin.services;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
@@ -75,6 +78,10 @@ public abstract class PageServices extends PageAdmin {
                 return listInlineMenuHelper.createRowActions(getType());
             }
 
+            @Override
+            protected ISelectableDataProvider<SelectableBean<ServiceType>> createProvider() {
+                return createSelectableBeanObjectDataProvider(createObjectQuerySupplier(), null);
+            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
