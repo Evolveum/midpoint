@@ -17,12 +17,15 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Work definition for mapping simulation activity.
  */
 public class MappingWorkDefinition extends ResourceSetTaskWorkDefinition {
+    private static final Trace LOGGER = TraceManager.getTrace(MappingSimulationActivityRun.class);
 
     private final MappingWorkDefinitionType workDefinition;
 
@@ -33,6 +36,15 @@ public class MappingWorkDefinition extends ResourceSetTaskWorkDefinition {
         if (!(workDefBean instanceof MappingWorkDefinitionType workDef)) {
             throw new IllegalArgumentException("Expected " + MappingWorkDefinitionType.class.getSimpleName()
                     + " but got: " + workDefBean.getClass());
+        }
+
+        if (workDef.getResourceObjects().getObjectclass() != null) {
+            throw new IllegalArgumentException("Filtering by object class is not supported by this activity.");
+        }
+
+        final String intent = workDef.getResourceObjects().getIntent();
+        if (workDef.getResourceObjects().getKind() == null || intent == null || intent.isBlank()) {
+            LOGGER.debug("Kind and/or intent is not specified. Defaults will be used instead.");
         }
 
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(getResourceObjectSetSpecification(), APPEND);

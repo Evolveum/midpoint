@@ -87,6 +87,8 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
         add(AttributeAppender.append("class", () -> getModelObject().isOpen() ? "open" : null));
 
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER){
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void renderHead(IHeaderResponse response) {
                 super.renderHead(response);
@@ -99,6 +101,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
         add(container);
 
         MenuItemLinkPanel<?> link = new MenuItemLinkPanel<>(ID_LINK, getModel(), 0) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
@@ -117,8 +120,12 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
             minInput = AUTOCOMPLETE_MIN_INPUT_LENGTH;
         }
         select.getSettings()
-                .setMinimumInputLength(minInput);
+                .setMinimumInputLength(minInput)
+                .setPlaceholder("")
+                .setAllowClear(true);
+        select.setRequired(false);
         select.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -131,6 +138,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
         container.add(select);
 
         AjaxLink<?> manual = new AjaxLink<>(ID_MANUAL) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -187,7 +195,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
 
         @Serial private static final long serialVersionUID = 1L;
 
-        private Map<String, String> mapOidToName = new HashMap<>();
+        private final Map<String, String> mapOidToName = new HashMap<>();
 
         private final RoleOfTeammateMenuPanel<?> panel;
 
@@ -207,7 +215,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
                 if (obj != null) {
                     String name = getDisplayNameFromExpression(
                             "User display name (teammate)", config.getDisplayExpression(),
-                            o -> panel.getDefaultUserDisplayName(o), obj, panel);
+                            panel::getDefaultUserDisplayName, obj, panel);
                     if (StringUtils.isNotEmpty(name)) {
                         ref.setTargetName(new PolyStringType(name));
                     } else {
@@ -266,7 +274,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
                     .map(oid -> new ObjectReferenceType()
                             .oid(oid)
                             .type(UserType.COMPLEX_TYPE)
-                            .targetName(mapOidToName.containsKey(oid) ? mapOidToName.get(oid) : null))
+                            .targetName(mapOidToName.getOrDefault(oid, null)))
                     .collect(Collectors.toList());
         }
     }

@@ -266,7 +266,7 @@ class MappingsSuggestionOperation {
                 }
             }
 
-            var mappingSuggestion = buildAttributeMappingSuggestion(valuePairs, quality, systemMapping.expression());
+            var mappingSuggestion = buildAttributeMappingSuggestion(valuePairs, quality, systemMapping.expression(), systemMapping.strength());
             SmartMetadataUtil.markContainerProvenance(
                     mappingSuggestion.asPrismContainerValue(),
                     SmartMetadataUtil.ProvenanceKind.SYSTEM);
@@ -320,7 +320,8 @@ class MappingsSuggestionOperation {
         AttributeMappingsSuggestionType suggestion = buildAttributeMappingSuggestion(
                 valuePairsForValidation,
                 result.expectedQuality() != null ? result.expectedQuality() : null,
-                result.expression());
+                result.expression(),
+                MappingStrengthType.STRONG);
 
         // 4. Mark provenance
         SmartMetadataUtil.markContainerProvenance(
@@ -336,7 +337,8 @@ class MappingsSuggestionOperation {
     private static AttributeMappingsSuggestionType buildAttributeMappingSuggestion(
             ValuesPairSample<?, ?> pairSample,
             @Nullable Float expectedQuality,
-            @Nullable ExpressionType expression) {
+            @Nullable ExpressionType expression,
+            MappingStrengthType strength) {
         var sanitizedFocusPath = sanitizeFocusPathForTarget(pairSample.focusPropertyPath());
         var def = new ResourceAttributeDefinitionType()
                 .ref(pairSample.shadowAttributePath().rest().toBean()); // FIXME! what about activation, credentials, etc?
@@ -344,13 +346,13 @@ class MappingsSuggestionOperation {
         if (pairSample.direction() == MappingDirection.INBOUND) {
             def.inbound(new InboundMappingType()
                     .name(pairSample.shadowAttributePath().lastName().getLocalPart() + "-into-" + pairSample.focusPropertyPath())
-                    .strength(MappingStrengthType.STRONG)
+                    .strength(strength)
                     .target(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
                     .expression(expression));
         } else {
             def.outbound(new OutboundMappingType()
                     .name(pairSample.focusPropertyPath() + "-to-" + pairSample.shadowAttributePath().lastName().getLocalPart())
-                    .strength(MappingStrengthType.STRONG)
+                    .strength(strength)
                     .source(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
                     .expression(expression));
         }
