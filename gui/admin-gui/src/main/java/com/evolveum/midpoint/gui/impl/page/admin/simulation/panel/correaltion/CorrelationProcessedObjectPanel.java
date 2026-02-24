@@ -105,7 +105,8 @@ public abstract class CorrelationProcessedObjectPanel
     @SuppressWarnings("unchecked")
     protected <T extends Serializable> Search<T> loadSearch(PageStorage storage) {
         Search<T> search = null;
-        if (storage != null && markOidForSearch.equals(getMarkOidForSearch())) {
+
+        if (markOidForSearch != null && storage != null && markOidForSearch.equals(getMarkOidForSearch())) {
             search = storage.getSearch();
         }
 
