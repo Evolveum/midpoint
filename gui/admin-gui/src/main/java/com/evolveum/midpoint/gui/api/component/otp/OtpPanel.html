@@ -30,7 +30,7 @@
         <input class="form-control" wicket:message="placeholder:OtpPanel.code.placeholder" wicket:id="code"
                 autocomplete="off" type="text"/>
         <div wicket:id="codeFeedback"/>
-        <small class="form-text text-muted">
+        <small wicket:id="codeHelp" class="form-text text-muted">
             <wicket:message key="OtpPanel.code.help"/>
         </small>
     </div>
@@ -48,6 +48,17 @@
             </ul>
         </div>
     </div>
+
+    <wicket:fragment wicket:id="footerButtons">
+        <div class="d-flex justify-content-between w-100">
+            <a wicket:id="cancel" class="btn btn-link">
+                <wicket:message key="OtpPanel.cancel"/>
+            </a>
+            <a class="btn btn-primary" wicket:id="confirm">
+                <wicket:message key="OtpPanel.verifyAndEnable"/>
+            </a>
+        </div>
+    </wicket:fragment>
 </wicket:panel>
 </body>
 </html>

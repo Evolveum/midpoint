@@ -6,13 +6,18 @@
 
 package com.evolveum.midpoint.gui.api.component.otp;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -20,6 +25,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -27,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.message.SimpleFeedbackPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -35,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtpCredentialType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-public class OtpPanel extends InputPanel {
+public class OtpPanel<F extends FocusType> extends InputPanel implements Popupable {
 
     private static final Trace LOGGER = TraceManager.getTrace(OtpPanel.class);
 
@@ -49,14 +56,18 @@ public class OtpPanel extends InputPanel {
     private static final String ID_CODE_GROUP = "codeGroup";
     private static final String ID_CODE = "code";
     private static final String ID_CODE_FEEDBACK = "codeFeedback";
+    private static final String ID_CODE_HELP = "codeHelp";
+    private static final String ID_FOOTER_BUTTONS = "footerButtons";
+    private static final String ID_CANCEL = "cancel";
+    private static final String ID_CONFIRM = "confirm";
 
-    private final IModel<FocusType> focusModel;
+    private final IModel<F> focusModel;
 
     private final IModel<OtpCredentialType> model;
 
     private final IModel<Integer> codeModel = Model.of();
 
-    public OtpPanel(String id, IModel<FocusType> focusModel, IModel<OtpCredentialType> model) {
+    public OtpPanel(String id, IModel<F> focusModel, IModel<OtpCredentialType> model) {
         super(id);
 
         this.focusModel = focusModel;
@@ -179,10 +190,76 @@ public class OtpPanel extends InputPanel {
         SimpleFeedbackPanel codeFeedback = new SimpleFeedbackPanel(ID_CODE_FEEDBACK, new ComponentFeedbackMessageFilter(code));
         codeFeedback.setRenderBodyOnly(true);
         codeGroup.add(codeFeedback);
+
+        WebMarkupContainer codeHelp = new WebMarkupContainer(ID_CODE_HELP);
+        codeHelp.add(new VisibleBehaviour(() -> code.getFeedbackMessages().isEmpty()));
+        codeGroup.add(codeHelp);
     }
 
     @Override
     public FormComponent<?> getBaseFormComponent() {
         return (FormComponent<?>) get(ID_CODE);
+    }
+
+    @Override
+    public Component getContent() {
+        return this;
+    }
+
+    @Override
+    public @NotNull Component getFooter() {
+        Fragment footer = new Fragment(Popupable.ID_FOOTER, ID_FOOTER_BUTTONS, this);
+        AjaxLink<?> cancel = new AjaxLink<>(ID_CANCEL) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onCancelPerformed(target);
+            }
+        };
+        footer.add(cancel);
+
+        AjaxLink<?> confirm = new AjaxLink<>(ID_CONFIRM) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onCancelPerformed(target);
+            }
+        };
+        footer.add(confirm);
+
+        return footer;
+    }
+
+    @Override
+    public int getWidth() {
+        return 600;
+    }
+
+    @Override
+    public int getHeight() {
+        return 600;
+    }
+
+    @Override
+    public String getWidthUnit() {
+        return "px";
+    }
+
+    @Override
+    public String getHeightUnit() {
+        return "px";
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return createStringResource("OtpPanel.title");
+    }
+
+    protected void onCancelPerformed(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
+    }
+
+    protected  void onConfirmPerformed(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
     }
 }
