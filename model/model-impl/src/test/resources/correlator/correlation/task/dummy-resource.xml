@@ -10,7 +10,6 @@
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>resource-dummy-correlation</name>
@@ -46,15 +45,6 @@
             </focus>
             <!-- The list of attributes is here just for reference -->
             <attribute>
-                <ref>icfs:name</ref>
-            </attribute>
-            <attribute>
-                <ref>icfs:uid</ref>
-            </attribute>
-            <attribute>
-                <ref>ri:correlator</ref>
-            </attribute>
-            <attribute>
                 <ref>ri:employeeNumber</ref>
                 <inbound>
                     <target>
@@ -83,38 +73,6 @@
 <!--                    </target>-->
 <!--                </inbound>-->
 <!--            </attribute>-->
-            <attribute>
-                <ref>ri:honorificPrefix</ref>
-                <inbound>
-                    <target>
-                        <path>honorificPrefix</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:costCenter</ref>
-                <inbound>
-                    <target>
-                        <path>costCenter</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:dateOfBirth</ref>
-                <inbound>
-                    <target>
-                        <path>extension/dateOfBirth</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:nationalId</ref>
-                <inbound>
-                    <target>
-                        <path>extension/nationalId</path>
-                    </target>
-                </inbound>
-            </attribute>
         </objectType>
     </schemaHandling>
 </resource>
