@@ -9,19 +9,19 @@ package com.evolveum.midpoint.web.page.admin.services;
 import java.io.Serial;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -82,6 +82,16 @@ public abstract class PageServices extends PageAdmin {
             protected ISelectableDataProvider<SelectableBean<ServiceType>> createProvider() {
                 return createSelectableBeanObjectDataProvider(createObjectQuerySupplier(), null);
             }
+
+            @Override
+            protected List<IColumn<SelectableBean<ServiceType>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<ServiceType>, String>> columns = PageServices.this.createDefaultColumns();
+                if (columns != null) {
+                    return columns;
+                }
+
+                return super.createDefaultColumns();
+            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
@@ -104,6 +114,10 @@ public abstract class PageServices extends PageAdmin {
     protected abstract UserProfileStorage.TableId getTableId();
 
     protected SerializableSupplier<ObjectQuery> createObjectQuerySupplier() {
+        return null;
+    }
+
+    protected List<IColumn<SelectableBean<ServiceType>, String>> createDefaultColumns() {
         return null;
     }
 }
