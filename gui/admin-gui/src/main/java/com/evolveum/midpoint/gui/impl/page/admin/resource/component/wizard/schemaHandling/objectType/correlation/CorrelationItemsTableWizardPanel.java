@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createMappingsValueIfRequired;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestionNew;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
 import java.io.Serial;
@@ -179,10 +181,14 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             }
 
             @Override
+            protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+                CorrelationItemsTableWizardPanel.this.buildSimulationResultPanel(target, simulationResultTypeIModel);
+            }
+
+            @Override
             public boolean displayNoValuePanel() {
                 return super.displayNoValuePanel() && !switchToggleModel.getObject();
             }
-
 
             @Override
             protected @NotNull List<Component> createToolbarButtonsList(String idButton) {
@@ -498,6 +504,17 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     }
 
                     @Override
+                    protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+                        ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
+                        if (simulationResultReference == null || simulationResultReference.getOid() == null) {
+                            LOGGER.error("Simulation result reference or OID is null for task {}", task.getName());
+                            return;
+                        }
+                        SimulationResultType simulationResultType = loadSimulationResult(pageBase, simulationResultReference.getOid());
+                        buildSimulationResultPanel(target, Model.of(simulationResultType));
+                    }
+
+                    @Override
                     public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
                         CorrelationItemsTableWizardPanel.this.redirectToSimulationTasksWizard(target);
                     }
@@ -558,5 +575,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     protected String getPanelType() {
         return PANEL_TYPE;
+    }
+
+    protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+        // override in case of simulation result panel is needed
     }
 }

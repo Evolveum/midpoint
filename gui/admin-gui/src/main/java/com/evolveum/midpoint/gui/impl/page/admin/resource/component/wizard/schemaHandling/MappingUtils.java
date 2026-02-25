@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -131,8 +132,10 @@ public class MappingUtils {
                 }
             }
 
-            mappingVw.findProperty(MappingType.F_STRENGTH)
-                    .getValue().setRealValue(MappingStrengthType.STRONG);
+            PrismPropertyValueWrapper<Object> strengthProperty = mappingVw.findProperty(MappingType.F_STRENGTH).getValue();
+            if (strengthProperty != null && strengthProperty.getRealValue() == null) {
+                strengthProperty.setRealValue(MappingStrengthType.STRONG);
+            }
 
             initializeVirtualRef(value, valueModel, mappingDirection,
                     itemNameOfContainerWithMappings, itemNameOfRefAttribute,
