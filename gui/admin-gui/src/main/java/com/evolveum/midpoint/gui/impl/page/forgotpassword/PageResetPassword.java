@@ -141,6 +141,11 @@ public class PageResetPassword extends AbstractPageLogin {
             protected boolean arePasswordInputFieldsAssociatedWithLabels() {
                 return true;
             }
+
+            @Override
+            protected String getChannelUri() {
+                return SchemaConstants.CHANNEL_RESET_PASSWORD_URI;
+            }
         };
         changePasswordPanel.setOutputMarkupId(true);
         form.add(changePasswordPanel);
