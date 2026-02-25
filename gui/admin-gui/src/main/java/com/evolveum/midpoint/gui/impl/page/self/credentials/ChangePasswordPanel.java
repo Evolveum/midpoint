@@ -381,8 +381,12 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             collectDeltas(deltas, newPasswordValue, valuePath);
+            final String channelUri =
+                    target.getPage().getClass().getName().endsWith("ResetPassword") ?
+                            SchemaConstants.CHANNEL_RESET_PASSWORD_URI :
+                            SchemaConstants.CHANNEL_SELF_SERVICE_URI;
             getParentPage().getModelService().executeChanges(
-                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
+                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, channelUri),
                     Collections.singleton(reporter), result);
             result.computeStatus();
         } catch (Exception ex) {
