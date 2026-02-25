@@ -139,7 +139,7 @@ By accepting at this point, you are only accepting the correlation rule suggesti
 If you have discarded some suggestions by mistake, or have made changes you are not happy with, you can always remove the correlation rules and click [.nowrap]#icon:arrows-rotate[] btn:[Re-generate]# to get new suggestions.
 
 +
-image::correlations-regenerate.webp[title="Regenerate correlation rules suggestions if you are not happy with the current ones. This will not affect any of the rules you have already accepted."]
+image::correlations-regenerate.webp[title="Re-generate correlation rules suggestions if you are not happy with the current ones. This will not affect any of the rules you have already accepted."]
 +
 . For the suggestions you have accepted, click [.nowrap]#icon:eye[] btn:[Edit rule]# and continue modifying them as you would when <<create-correlation-rules,creating new correlation rules manually>>.
 
