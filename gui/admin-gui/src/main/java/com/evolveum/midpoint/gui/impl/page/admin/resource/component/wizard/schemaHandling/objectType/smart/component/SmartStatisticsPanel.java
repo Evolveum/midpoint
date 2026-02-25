@@ -152,6 +152,14 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             }
         };
 
+        ItemPathType defaultPath = getDefaultSelectedAttributePath();
+        if (defaultPath != null) {
+            ShadowAttributeStatisticsType def = findAttributeByPath(getModelObject(), defaultPath);
+            if (def != null) {
+                selectedAttribute.setObject(def);
+            }
+        }
+
         //temporary
         renderListViewRows(getModelObject(), true);
         renderListViewRows(getModelObject(), false);
@@ -162,8 +170,14 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                 ? statistics.getAttributeTuple().stream().map(this::toTupleRow)
                 : statistics.getAttribute().stream().map(item -> toAttributeRow(item, statistics));
 
+        Object selected = isAttributeTuple ? selectedTuple.getObject() : selectedAttribute.getObject();
+
         return rows
-                .sorted(Comparator.comparingInt((ListViewRow r) -> extractCount(r.subText.getObject())).reversed())
+                .sorted(Comparator
+                        // selected first (false < true)
+                        .comparing((ListViewRow r) -> !r.item.equals(selected))
+                        // then by count desc
+                        .thenComparing((ListViewRow r) -> extractCount(r.subText.getObject()), Comparator.reverseOrder()))
                 .peek(this::initInitialSelection)
                 .collect(Collectors.toList());
     }
@@ -673,5 +687,22 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                 selectedAttribute.setObject(attrStats);
             }
         }
+    }
+
+    @Nullable
+    private ShadowAttributeStatisticsType findAttributeByPath(
+            @NotNull ShadowObjectClassStatisticsType statistics,
+            @NotNull ItemPathType path) {
+
+        return statistics.getAttribute().stream()
+                .filter(a ->
+                        a.getRef() != null
+                                && a.getRef().getItemPath().endsWith(path.getItemPath()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    protected ItemPathType getDefaultSelectedAttributePath() {
+        return null;
     }
 }
