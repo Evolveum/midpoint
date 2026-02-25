@@ -50,7 +50,7 @@ public class OtpPolicyEvaluator<F extends FocusType> extends
     protected void validateCredentialContainerValues(PrismContainerValue<OtpCredentialsType> cVal)
             throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        List<OtpCredentialType> otps = cVal.asContainerable().getOtp();
+        List<OtpCredentialType> otps = cVal.asContainerable().getTotp();
         for (OtpCredentialType otp : otps) {
             ProtectedStringType secret = otp.getSecret();
             validateProtectedStringValue(secret);

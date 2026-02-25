@@ -76,7 +76,7 @@ public class TestOtpAuthenticationEvaluator extends TestAbstractAuthenticationEv
     }
 
     private Integer createCorrectCode(UserType user) {
-        OtpCredentialType otp = user.getCredentials().getOtps().getOtp().get(0);
+        OtpCredentialType otp = user.getCredentials().getOtps().getTotp().get(0);
 
         try {
             String secret = protector.decryptString(otp.getSecret());
@@ -145,7 +145,7 @@ public class TestOtpAuthenticationEvaluator extends TestAbstractAuthenticationEv
         modifyObjectReplaceContainer(
                 UserType.class,
                 USER_GUYBRUSH_OID,
-                ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_OTP),
+                ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_TOTP),
                 task,
                 result,
                 credential);

@@ -62,7 +62,7 @@ public class OtpAuthenticationEvaluator
 
     @Override
     protected void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, OtpCredentialsType credentials) {
-        List<OtpCredentialType> otps = credentials.getOtp();
+        List<OtpCredentialType> otps = credentials.getTotp();
 
         if (otps == null || otps.isEmpty()) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no otp stored for user");
@@ -88,7 +88,7 @@ public class OtpAuthenticationEvaluator
 
         OtpService service = otpServiceFactory.create(ctx.getOtpAuthenticationModule());
 
-        for (OtpCredentialType otp : otpCredentials.getOtp()) {
+        for (OtpCredentialType otp : otpCredentials.getTotp()) {
             if (BooleanUtils.isNotTrue(otp.isVerified())) {
                 // don't check unverified OTPs, they are not active yet
                 continue;

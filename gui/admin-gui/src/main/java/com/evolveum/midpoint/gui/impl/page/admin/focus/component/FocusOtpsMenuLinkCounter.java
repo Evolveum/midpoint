@@ -32,6 +32,6 @@ public class FocusOtpsMenuLinkCounter extends SimpleCounter<AssignmentHolderDeta
             return 0;
         }
 
-        return otpCredentials.getOtp().size();
+        return otpCredentials.getTotp().size();
     }
 }

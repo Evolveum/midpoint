@@ -90,7 +90,7 @@ public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel
 
         this.otpCredentialModel = PrismContainerWrapperModel.fromContainerWrapper(
                 objectModel.getObjectWrapperModel(),
-                ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_OTP),
+                ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_TOTP),
                 (SerializableSupplier<PageBase>) () -> getPageBase());
     }
 

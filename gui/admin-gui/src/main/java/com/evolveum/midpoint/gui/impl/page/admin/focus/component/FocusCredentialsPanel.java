@@ -92,7 +92,7 @@ public class FocusCredentialsPanel<F extends FocusType, FDM extends FocusDetails
                 PrismContainerWrapperModel<F, OtpCredentialType> model =
                         PrismContainerWrapperModel.fromContainerWrapper(
                                 getObjectWrapperModel(),
-                                ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_OTP),
+                                ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_TOTP),
                                 () ->
                                         getPageBase());
 
