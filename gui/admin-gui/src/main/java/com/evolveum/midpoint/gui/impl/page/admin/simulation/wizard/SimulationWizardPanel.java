@@ -151,6 +151,12 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
             }
 
             @Override
+            protected void navigateToSimulationResultObject(@NotNull String simulationResultOid, @Nullable String markOid, @NotNull SimulationResultProcessedObjectType object, @NotNull AjaxRequestTarget target) {
+                removeLastBreadcrumb();
+                showChoiceFragment(target, buildSimulationObjectResultPanel(idOfChoicePanel, model, object.getId(), markOid, null));
+            }
+
+            @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
                 if(SimulationWizardPanel.this.simulationResultModel != null && SimulationWizardPanel.this.simulationResultModel.getObject() != null) {
                     removeLastBreadcrumb();
@@ -265,6 +271,13 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
                 removeLastBreadcrumb();
+
+                if(SimulationWizardPanel.this.simulationResultModel != null && SimulationWizardPanel.this.simulationResultModel.getObject() != null) {
+                    removeLastBreadcrumb();
+                    showChoiceFragment(target, buildSimulationResultPanel(idOfChoicePanel, model));
+                    return;
+                }
+
                 showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, markOid, state));
             }
 
