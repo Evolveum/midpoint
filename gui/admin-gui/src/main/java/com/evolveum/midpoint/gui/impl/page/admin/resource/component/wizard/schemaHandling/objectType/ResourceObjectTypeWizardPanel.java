@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,7 +44,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
 
     @Override
     protected ResourceObjectTypeBasicWizardPanel createNewTypeWizard(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
-        return new ResourceObjectTypeBasicWizardPanel(id, helper){
+        return new ResourceObjectTypeBasicWizardPanel(id, helper) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 super.onExitPerformed(target);
@@ -87,13 +88,18 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
 
             @Override
             protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
-                showChoiceFragment(target, buildSimulationWizard());
+                showChoiceFragment(target, buildSimulationWizard(target, null));
             }
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 super.onExitPerformed(target);
                 ResourceObjectTypeWizardPanel.this.onExitPerformed(target);
+            }
+
+            @Override
+            protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+                showChoiceFragment(target, buildSimulationWizard(target, simulationResultTypeIModel));
             }
 
             @Override
@@ -201,8 +207,8 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
         });
     }
 
-    private @NotNull SimulationWizardPanel<?> buildSimulationWizard() {
-        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper()) {
+    private @NotNull SimulationWizardPanel<?> buildSimulationWizard(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper(), simulationResultTypeIModel) {
             @Override
             public void onBackPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTypePreview());

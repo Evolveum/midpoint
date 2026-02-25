@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.WizardGuideTilePanel;
@@ -18,6 +19,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Resou
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -38,9 +41,13 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceGuideObjectTypeTileState.computeState;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 
 public abstract class ResourceObjectTypeWizardChoicePanel
         extends ResourceWizardChoicePanel<ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectTypeWizardChoicePanel.class);
 
     private final WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper;
 
@@ -166,6 +173,17 @@ public abstract class ResourceObjectTypeWizardChoicePanel
                 () -> getAssignmentHolderDetailsModel().getObjectType()) {
 
             @Override
+            protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+                ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
+                if (simulationResultReference == null || simulationResultReference.getOid() == null) {
+                    LOGGER.error("Simulation result reference or OID is null for task {}", task.getName());
+                    return;
+                }
+                SimulationResultType simulationResultType = loadSimulationResult(pageBase, simulationResultReference.getOid());
+                buildSimulationResultPanel(target, Model.of(simulationResultType));
+            }
+
+            @Override
             public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
                 ResourceObjectTypeWizardChoicePanel.this.redirectToSimulationTasksWizard(target);
             }
@@ -183,6 +201,10 @@ public abstract class ResourceObjectTypeWizardChoicePanel
 
         simulationActionTaskButton.setRenderBodyOnly(true);
         return simulationActionTaskButton;
+    }
+
+    protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+
     }
 
     protected void showPreviewDataObjectType(AjaxRequestTarget target) {

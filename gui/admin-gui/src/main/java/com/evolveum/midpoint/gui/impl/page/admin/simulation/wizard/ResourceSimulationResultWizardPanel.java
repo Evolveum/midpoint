@@ -57,7 +57,12 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
 
     private void initLayout() {
         if (isCorrelationSimulation(getPageBase(), simulationResultModel)) {
-            var correlationPanel = new SimulationCorrelationPanel(ID_PANEL, simulationResultModel);
+            var correlationPanel = new SimulationCorrelationPanel(ID_PANEL, simulationResultModel){
+                @Override
+                protected void navigateToSimulationResultObject(@NotNull String simulationResultOid, @Nullable String markOid, @NotNull SimulationResultProcessedObjectType object, @NotNull AjaxRequestTarget target) {
+                    ResourceSimulationResultWizardPanel.this.navigateToSimulationResultObject(simulationResultOid, markOid, object, target);
+                }
+            };
             correlationPanel.setOutputMarkupId(true);
             add(correlationPanel);
             return;
@@ -81,6 +86,12 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
             @NotNull String resultOid,
             @Nullable ObjectReferenceType ref,
             @Nullable ObjectProcessingStateType state,
+            @NotNull AjaxRequestTarget target);
+
+    protected abstract void navigateToSimulationResultObject(
+            @NotNull String simulationResultOid,
+            @Nullable String markOid,
+            @NotNull SimulationResultProcessedObjectType object,
             @NotNull AjaxRequestTarget target);
 
     protected boolean isBackButtonVisible() {
