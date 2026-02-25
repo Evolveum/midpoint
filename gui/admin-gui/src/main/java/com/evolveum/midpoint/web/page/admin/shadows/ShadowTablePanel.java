@@ -10,10 +10,16 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObjects;
@@ -21,9 +27,7 @@ import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -66,9 +70,14 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.util.*;
+
+import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
+import static com.evolveum.midpoint.gui.impl.page.admin.focus.component.FocusProjectionsPanel.getBasicShadowPanelConfiguration;
 
 public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
@@ -82,7 +91,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
     private static final String OPERATION_IMPORT_PREVIEW_OBJECT = DOT_CLASS + "importPreviewObject";
-    private static final String OPERATION_MARK_SHADOW = DOT_CLASS + "markShadow";
+    private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
 
     public ShadowTablePanel(String id) {
         super(id, ShadowType.class);
@@ -117,6 +126,11 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     @Override
+    public String getAdditionalBoxCssClasses() {
+        return super.getAdditionalBoxCssClasses() + " table-td-middle";
+    }
+
+    @Override
     protected boolean isCreateNewObjectVisible() {
         return false;
     }
@@ -138,12 +152,12 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         List<InlineMenuItem> items = new ArrayList<>();
 
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBean<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -154,12 +168,12 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         });
 
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccount"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBean<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -170,12 +184,12 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         });
 
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccount"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBean<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -186,12 +200,12 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         });
 
         items.add(new InlineMenuItem(createStringResource("ShadowTablePanel.menu.importPreviewAccount"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBeanImpl<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -207,12 +221,12 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         });
 
         items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBeanImpl<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -234,12 +248,12 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         });
 
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBean<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -250,12 +264,12 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         });
 
         items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.changeOwner"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBean<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -289,12 +303,12 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         });
 
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.markProtected"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBean<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -339,11 +353,51 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
                     @Override
                     protected void onTitleClicked(AjaxRequestTarget target) {
-                        ShadowType object = rowModel.getObject().getValue();
-                        if (object == null) {
+                        ShadowType shadow = rowModel != null && rowModel.getObject() != null
+                                ? rowModel.getObject().getValue()
+                                : null;
+
+                        if (shadow == null) {
                             return;
                         }
-                        objectDetailsPerformed(object);
+
+                        if (!showPopupShadowDetailsOnClick()) {
+                            objectDetailsPerformed(shadow);
+                            return;
+                        }
+
+                        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_SHADOW);
+
+                        PrismObject<ShadowType> fullShadow = WebModelServiceUtils.loadObject(
+                                ShadowType.class, shadow.getOid(), getPageBase(), task, task.getResult());
+                        if (fullShadow == null) {
+                            showCannotShowDetails(target, shadow);
+                            return;
+                        }
+
+                        ShadowWrapper wrapper = loadShadowWrapper(fullShadow, task, task.getResult());
+                        if (wrapper == null) {
+                            showCannotShowDetails(target, shadow);
+                            return;
+                        }
+
+                        setReadOnlyRecursively(wrapper);
+
+                        ContainerPanelConfigurationType config =
+                                getBasicShadowPanelConfiguration(getPageBase(), shadow);
+
+                        ShadowBasicPanel popup = new ShadowBasicPanel(
+                                getPageBase().getMainPopupBodyId(),
+                                Model.of(wrapper),
+                                config);
+
+                        getPageBase().showMainPopup(popup, target);
+                    }
+
+                    private void showCannotShowDetails(@NotNull AjaxRequestTarget target, ShadowType shadow) {
+                        error(getString("pageContentAccounts.message.cantShowAccountDetails",
+                                WebComponentUtil.getName(shadow), shadow.getOid()));
+                        target.add(getPageBase().getFeedbackPanel());
                     }
 
                     @Override
@@ -355,9 +409,22 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         };
     }
 
-    private List<IColumn<SelectableBean<ShadowType>, String>> initColumns() {
+    @Nullable
+    public ShadowWrapper loadShadowWrapper(@NotNull PrismObject<ShadowType> projection, Task task, OperationResult result) {
+        PrismObjectWrapperFactory<ShadowType> factory = getPageBase().findObjectWrapperFactory(projection.getDefinition());
+        WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
+        try {
+            return (ShadowWrapper) factory.createObjectWrapper(projection, ItemStatus.NOT_CHANGED, context);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't create shadow wrapper for shadow {}, reason: {}", projection, e.getMessage(), e);
+        }
+        return null;
+    }
 
-        List<ColumnTypeDto<String>> columnDefs = Arrays.asList(
+    private @NotNull List<IColumn<SelectableBean<ShadowType>, String>> initColumns() {
+
+        List<ColumnTypeDto<String>> columnDefs = List.of(
                 new ColumnTypeDto<>("ShadowType.synchronizationSituation",
                         SelectableBeanImpl.F_VALUE + ".synchronizationSituation",
                         ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart()));
@@ -366,11 +433,11 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
         IColumn<SelectableBean<ShadowType>, String> identifiersColumn = new AbstractColumn<>(
                 createStringResource("pageContentAccounts.identifiers")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
-                    String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
+                    String componentId, @NotNull IModel<SelectableBean<ShadowType>> rowModel) {
 
                 SelectableBean<ShadowType> dto = rowModel.getObject();
                 RepeatingView repeater = new RepeatingView(componentId);
@@ -393,13 +460,13 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
         ObjectLinkColumn<SelectableBean<ShadowType>> ownerColumn = new ObjectLinkColumn<>(
                 createStringResource("pageContentAccounts.owner")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<FocusType> createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel) {
 
                 return new IModel<>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public FocusType getObject() {
@@ -529,7 +596,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     () -> {
                         page.getModelService().importFromResource(selected.getOid(), task, opResult);
 
-                        return task.getSimulationTransaction().getResultOid();
+                        return Objects.requireNonNull(task.getSimulationTransaction()).getResultOid();
                     });
 
             PageParameters params = new PageParameters();
@@ -776,7 +843,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         markObjects(model, Collections.singletonList(SystemObjectsType.MARK_PROTECTED.value()), target);
     }
 
-    private boolean isSatisfyConstraints(List selected) {
+    private boolean isSatisfyConstraints(List<?> selected) {
         if (selected.size() > 1) {
             error("Could not link to more than one owner");
             return false;
@@ -790,7 +857,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         return true;
     }
 
-    private void changeOwnerInternal(String ownerOid, Class<? extends FocusType> ownerType, Collection<? extends ItemDelta> modifications,
+    private void changeOwnerInternal(String ownerOid, Class<? extends FocusType> ownerType, Collection<? extends ItemDelta<?, ?>> modifications,
             AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
         Task task = getPageBase().createSimpleTask(OPERATION_CHANGE_OWNER);
@@ -834,4 +901,9 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     protected boolean isDuplicationSupported() {
         return false;
     }
+
+    protected boolean showPopupShadowDetailsOnClick() {
+        return false;
+    }
+
 }

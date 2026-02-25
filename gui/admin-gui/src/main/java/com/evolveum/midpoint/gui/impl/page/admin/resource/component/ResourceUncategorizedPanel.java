@@ -15,11 +15,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.ObjectClassStatisticsButton;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -145,6 +148,13 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     private void createStatisticsButton() {
+        //TODO add ObjectTypeStatisticsButton after merge from object-type-statistics branch
+        if(getResourceObjectTypeIdentification() != null){
+            EmptyPanel statisticsPanel = new EmptyPanel(ID_STATISTICS);
+            statisticsPanel.setOutputMarkupId(true);
+            add(statisticsPanel);
+            return;
+        }
         ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
         ResourceType resource = objectDetailsModels.getObjectType();
 
@@ -229,6 +239,11 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             @Override
             protected boolean isDeleteOnlyRepoShadowAllow() {
                 return false;
+            }
+
+            @Override
+            protected boolean showPopupShadowDetailsOnClick() {
+                return ResourceUncategorizedPanel.this.showPopupShadowDetailsOnClick();
             }
 
             @Override
@@ -351,6 +366,11 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     private ObjectQuery getResourceContentQuery() {
+        var objectTypeIdentification = getResourceObjectTypeIdentification();
+        if (objectTypeIdentification != null) {
+            return ObjectQueryUtil.createResourceAndKindIntent(
+                    getObjectWrapper().getOid(), objectTypeIdentification.getKind(), objectTypeIdentification.getIntent());
+        }
         return ObjectQueryUtil.createResourceAndObjectClassQuery(getObjectWrapper().getOid(), getSelectedObjectClass());
     }
 
@@ -361,9 +381,17 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     @Override
-    protected void customizeTaskCreator(ResourceTaskCreator creator, boolean isSimulation) {
+    protected void customizeTaskCreator(ResourceTaskCreator<?> creator, boolean isSimulation) {
         if (isSimulation) {
             creator.withExecutionMode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
         }
+    }
+
+    protected ResourceObjectTypeIdentification getResourceObjectTypeIdentification() {
+        return null;
+    }
+
+    protected boolean showPopupShadowDetailsOnClick(){
+        return false;
     }
 }
