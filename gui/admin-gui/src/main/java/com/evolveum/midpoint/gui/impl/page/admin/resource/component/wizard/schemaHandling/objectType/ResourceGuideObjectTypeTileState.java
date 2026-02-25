@@ -40,7 +40,7 @@ public enum ResourceGuideObjectTypeTileState {
             "",
             "ResourceObjectTypeWizardChoicePanel.configured")),
     RECOMMENDED(new BadgeSpec(
-            "badge bg-light text-dark border border-dark",
+            "badge bg-light text-primary border border-primary",
             "",
             "ResourceObjectTypeWizardChoicePanel.recommended")),
     TEMPORARY_LOCKED(null);

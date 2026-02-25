@@ -24,7 +24,7 @@ public enum ResourceGuideSchemaHandlingWizardTileState {
     NORMAL(null),
 
     RECOMMENDED(new BadgeSpec(
-            "badge bg-light text-dark border border-dark",
+            "badge bg-light text-primary border border-primary",
             "",
             "ResourceWizard.recommended")),
 

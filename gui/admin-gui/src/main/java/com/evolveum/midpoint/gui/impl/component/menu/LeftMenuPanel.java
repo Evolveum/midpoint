@@ -398,7 +398,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem menu = createMainMenuItem(
                 "PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
         menu.addMenuItem(new MenuItem(
-                "PageAdmin.menu.top.applications.list", PageDefaultServicesApplications.class));
+                "PageAdmin.menu.top.applications.list", PageDefaultApplicationServices.class));
         menu.addMenuItem(
                 new MenuItem(
                         "PageAdmin.menu.top.applications.connect",
@@ -412,7 +412,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem menu = createMainMenuItem(
                 "PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
         menu.addMenuItem(new MenuItem(
-                "PageAdmin.menu.top.applications.list", PageIntegrationServicesApplications.class));
+                "PageAdmin.menu.top.applications.list", PageIntegrationApplicationServices.class));
         menu.addMenuItem(
                 new MenuItem(
                         "PageAdmin.menu.top.applications.connect",

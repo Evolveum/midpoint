@@ -611,14 +611,41 @@ export default class MidPointTheme {
         if (!mainElement) {
             return null;
         }
-        const focusableElements = mainElement.querySelectorAll(
-            'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"]), details'
-        );
-        if (focusableElements.length > 0) {
-            return focusableElements[0];  // Return the first focusable element
-        } else {
-            return null;
+
+        const focusableSelectors = `
+            a[href],
+            button:not([disabled]),
+            input:not([disabled]),
+            select:not([disabled]),
+            textarea:not([disabled]),
+            [tabindex]:not([tabindex="-1"]),
+            details
+        `;
+
+        const focusableElements = mainElement.querySelectorAll(focusableSelectors);
+
+        for (const element of focusableElements) {
+            if (this.isElementVisible(element)) {
+                return element;
+            }
         }
+
+        return null;
+    }
+
+    isElementVisible(element) {
+        if (!element) return false;
+
+        const style = window.getComputedStyle(element);
+
+        return (
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            style.visibility !== 'collapse' &&
+            element.offsetWidth > 0 &&
+            element.offsetHeight > 0 &&
+            element.getClientRects().length > 0
+        );
     }
 
     clickOnMenuItem(link, menuItem, onlySubmenu, e) {
@@ -875,6 +902,32 @@ export default class MidPointTheme {
         }
         picker.subscribe('show.td', () => {
             var $dateContainer = $('.date-container');
+
+            var $dateContainerDecades = $('.date-container-decades');
+            var $dateContainerYears = $('.date-container-years');
+            var $dateContainerMonths = $('.date-container-months');
+            var $dateContainerDays = $('.date-container-days');
+            if ($dateContainerDecades.length > 0) {
+                $dateContainerDecades.attr({
+                    'role': 'grid'
+                });
+            }
+            if ($dateContainerYears.length > 0) {
+                $dateContainerYears.attr({
+                    'role': 'grid'
+                });
+            }
+            if ($dateContainerMonths.length > 0) {
+                $dateContainerMonths.attr({
+                    'role': 'grid'
+                });
+            }
+            if ($dateContainerDays.length > 0) {
+                $dateContainerDays.attr({
+                    'role': 'grid'
+                });
+            }
+
             if ($dateContainer.length > 0) {
                 $dateContainer.on('keydown', function (e) {
                     if (e.key === 'Escape' || e.keyCode === 27) {
@@ -890,6 +943,13 @@ export default class MidPointTheme {
 
             var $actionElements = $('.date-container [data-action]').filter(function () {
               return $(this).attr('data-action')?.trim() !== '';
+            });
+            $actionElements.each(function() {
+                const $el = $(this);
+                $el.attr({
+                    'tabindex': '0',
+                    'role': 'gridcell'
+                });
             });
 
             const $switchEl = $('.calendar-header .picker-switch');
