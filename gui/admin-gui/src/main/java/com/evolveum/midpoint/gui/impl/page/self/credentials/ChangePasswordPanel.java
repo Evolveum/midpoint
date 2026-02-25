@@ -381,12 +381,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             collectDeltas(deltas, newPasswordValue, valuePath);
-            final String channelUri =
-                    target.getPage().getClass().getName().endsWith("ResetPassword") ?
-                            SchemaConstants.CHANNEL_RESET_PASSWORD_URI :
-                            SchemaConstants.CHANNEL_SELF_SERVICE_URI;
             getParentPage().getModelService().executeChanges(
-                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, channelUri),
+                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, getChannelUri()),
                     Collections.singleton(reporter), result);
             result.computeStatus();
         } catch (Exception ex) {
@@ -498,5 +494,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     protected boolean arePasswordInputFieldsAssociatedWithLabels() {
         return false;
+    }
+
+    protected String getChannelUri() {
+        return SchemaConstants.CHANNEL_SELF_SERVICE_URI;
     }
 }
