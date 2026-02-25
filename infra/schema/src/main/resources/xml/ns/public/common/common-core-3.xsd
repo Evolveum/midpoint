@@ -2513,6 +2513,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractCredentialType">
                 <xsd:sequence>
+                    <!-- TODO rename name to "totp" and type to "TOTPCredentialType" -->
                     <xsd:element name="otp" type="tns:OtpCredentialType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>

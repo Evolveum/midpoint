@@ -39,6 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtpCredentialType;
 
+import org.checkerframework.checker.units.qual.C;
+
 public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPanel<OtpCredentialType> {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -200,18 +202,28 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
     }
 
     private void onDeletePerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<OtpCredentialType>> model) {
-        // todo implement
+        List<PrismContainerValueWrapper<OtpCredentialType>> toDelete = new ArrayList<>();
+        toDelete.add(model.getObject());
+        deleteItemPerformed(target, toDelete);
+    }
+
+    @Override
+    protected boolean isDuplicationSupported() {
+        return false;
     }
 
     private void onEditPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<OtpCredentialType>> model) {
         // todo implement
+        refreshTable(target);
     }
 
     private void onCancelPerformed(AjaxRequestTarget target) {
         // todo implement
+        refreshTable(target);
     }
 
     private void onConfirmPerformed(AjaxRequestTarget target) {
         // todo implement
+        refreshTable(target);
     }
 }

@@ -63,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         identifier = "otp",
         applicableForType = FocusType.class,
         display = @PanelDisplay(
-                label = "prismPropertyPanel.name.credentials.otp",
+                label = "OTP",
                 icon = GuiStyleConstants.CLASS_PASSWORD_ICON,
                 order = 55
         ),
