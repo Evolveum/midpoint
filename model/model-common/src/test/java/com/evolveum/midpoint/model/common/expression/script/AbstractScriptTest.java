@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -20,6 +20,8 @@ import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.expression.*;
 
+import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
@@ -102,7 +104,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
         localizationService = LocalizationTestUtil.getLocalizationService();
-        evaluator = createEvaluator(prismContext, protector, clock);
+        initializeScriptEvaluator();
         if (!evaluator.isInitialized()) {
             display("Script engine for " + evaluator.getLanguageName() + " missing, skipping the tests.");
             throw new SkipException("Script engine not available");
@@ -110,7 +112,11 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
         String languageUrl = evaluator.getLanguageUrl();
         display("Expression test for " + evaluator.getLanguageName() + ": registering " + evaluator + " with URL " + languageUrl);
-        scriptExpressionfactory.registerEvaluator(evaluator);
+    }
+
+    protected void initializeScriptEvaluator() {
+        evaluator = createEvaluator(prismContext, protector, clock);
+        scriptExpressionfactory.replaceEvaluator(evaluator);
     }
 
     protected abstract ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock);
@@ -531,5 +537,11 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected ProtectedStringType createProtectedStringType(@NotNull String clearContent) throws EncryptionException {
         return protector.encryptString(clearContent);
     }
+
+    protected void assertScriptMonitor(int expCompilations, int expExecutions, String desc) {
+        assertEquals("Unexpected number of script compilations after " + desc, expCompilations, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
+        assertEquals("Unexpected number of script executions after " + desc, expExecutions, InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT));
+    }
+
 
 }

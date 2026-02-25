@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
+import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.mel.extension.MidPointCelExtensionManager;
@@ -51,9 +52,7 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  * MidPoint Expression Language (MEL) is based on Common Expression Language (CEL),
  * extended with midPoint-specific functionality.
  */
-public class MelScriptEvaluator extends AbstractScriptEvaluator {
-// TODO: proper caching
-//    public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree> {
+public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree, CelScriptCacheKey> {
 
 
     private static final Trace LOGGER = TraceManager.getTrace(MelScriptEvaluator.class);
@@ -108,24 +107,12 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
     @Override
     protected boolean supportsDeprecatedVariables() { return false; }
 
-    // TODO: Temporary
     @Override
-    public @Nullable Object evaluateInternal(
-            @NotNull String codeString, @NotNull ScriptExpressionEvaluationContext context)
-            throws Exception {
-
-        CelAbstractSyntaxTree compiledScript = compileScript(codeString, context);
-
-        InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
-        return evaluateScript(compiledScript, context);
-    }
-
-//    @Override
     protected CelAbstractSyntaxTree compileScript(String codeString, ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, SecurityViolationException {
         CelValidationResult validationResult;
         try {
-            validationResult = getCompiler(context).compile(codeString, context.getContextDescription());
+            validationResult = createCompiler(context).compile(codeString, context.getContextDescription());
         } catch (Throwable e) {
             throw new ExpressionEvaluationException(
                     "Unexpected error during compilation of script in %s: %s".formatted(
@@ -145,10 +132,24 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         }
     }
 
-    private CelCompiler getCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
-        // TODO: caching
-        return createCompiler(context);
+    @Override
+    protected CelScriptCacheKey getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+
+        Map<String,CelType> celTypeMap = new HashMap<>();
+        Map<String, TypedValue<?>> variables = prepareScriptVariablesTypedValueMap(context);
+        for (var varEntry : variables.entrySet()) {
+            celTypeMap.put(varEntry.getKey(), CelTypeMapper.toCelNullableType(varEntry.getValue()));
+        }
+        if (!variables.containsKey(ExpressionConstants.VAR_NOW)) {
+            celTypeMap.put(ExpressionConstants.VAR_NOW, SimpleType.TIMESTAMP);
+        }
+
+        CelType resultType = determineResultType(context);
+
+        return new CelScriptCacheKey(codeString, celTypeMap, resultType);
     }
+
 
     private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         CelCompilerBuilder builder = CelCompilerFactory.standardCelCompilerBuilder();
@@ -156,8 +157,6 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         builder.setStandardMacros(CelStandardMacro.STANDARD_MACROS);
         builder.setTypeProvider(getTypeProvider());
         builder.addLibraries(midPointCelExtensionManager.allCompilerLibraries());
-        // TODO: Further compiler config
-//        new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
         addCompilerVariables(builder, context);
         addFunctionLibraryDeclarations(builder, context);
         builder.setResultType(determineResultType(context));
@@ -211,10 +210,10 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         }
     }
 
-//    @Override
+    @Override
     protected Object evaluateScript(CelAbstractSyntaxTree compiledScript, ScriptExpressionEvaluationContext context) throws Exception {
 
-        CelRuntime runtime = getRuntime(context);
+        CelRuntime runtime = getInterpreter(context);
         CelRuntime.Program program = runtime.createProgram(compiledScript);
 
         Map<String, ?> variables = prepareVariablesValueMap(context);
@@ -231,18 +230,13 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         return CelTypeMapper.toJavaValue(resultObject);
     }
 
-    private CelRuntime getRuntime(ScriptExpressionEvaluationContext context) throws ConfigurationException {
-        return createRuntime(context);
-    }
-
-    private CelRuntime createRuntime(ScriptExpressionEvaluationContext context) throws ConfigurationException {
+    @Override
+    protected CelRuntime createInterpreter(ScriptExpressionEvaluationContext context) throws ConfigurationException {
         // TODO: consider expression profiles?
-        // TODO: caching
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
         builder.setOptions(celOptions);
         builder.addLibraries(midPointCelExtensionManager.allRuntimeLibraries());
         addFunctionLibraryImplementations(builder, context);
-//        new CelFunctionLibraryMapper(context).runtimeAddFunctionLibraryDeclarations(builder);
         return builder.build();
     }
 

@@ -24,11 +24,13 @@ import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
@@ -43,7 +45,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -1594,6 +1595,76 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "[PolyString(Leaders,leaders)PolyString(Followers,followers)]",
                 expressionResult.replaceAll("[\\s]+", ""));
     }
+
+    @Test
+    public void testCaching() throws Exception {
+        // We need to start with a clean slate
+        initializeScriptEvaluator();
+        InternalMonitor.reset();
+
+        assertScriptMonitor(0, 0, "init");
+
+        executeCachingScript(
+                "expression-string-ascii.xml",
+                createVariables(
+                        "foo", "FoôBÁR", PrimitiveType.STRING
+                ),
+                "FooBAR",
+                1, 1, "1-string");
+
+        // Should be cached. Same code, same variables.
+        executeCachingScript(
+                "expression-string-ascii.xml",
+                createVariables(
+                        "foo", "FoôBÁR", PrimitiveType.STRING
+                ),
+                "FooBAR",
+                1, 2, "2-string");
+
+        // Should NOT be cached. Same code, but different variable type.
+        executeCachingScript(
+                "expression-string-ascii.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FoôBÁR"), PolyStringType.COMPLEX_TYPE
+                ),
+                "FooBAR",
+                2, 3, "3-polystring");
+
+        // Should be cached now.
+        executeCachingScript(
+                "expression-string-ascii.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FoôBÁR"), PolyStringType.COMPLEX_TYPE
+                ),
+                "FooBAR",
+                2, 4, "4-polystring");
+
+        // Should still be cached.
+        executeCachingScript(
+                "expression-string-ascii.xml",
+                createVariables(
+                        "foo", "FoôBÁR", PrimitiveType.STRING
+                ),
+                "FooBAR",
+                2, 5, "5-string");
+
+        // TODO: different return type
+        // TODO: different expression profile
+    }
+
+    private long executeCachingScript(String filename, VariablesMap variables, String expectedResult,
+            int expCompilations, int expExecutions, String desc)
+            throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
+        long startTime = System.nanoTime();
+        evaluateAndAssertStringScalarExpression(filename, variables, expectedResult);
+        long endTime = System.nanoTime();
+        long duration = endTime-startTime;
+        display("CACHE etime " + duration + "ns : " + desc);
+        assertScriptMonitor(expCompilations, expExecutions, desc);
+        return duration;
+    }
+
 
 
     @Test
