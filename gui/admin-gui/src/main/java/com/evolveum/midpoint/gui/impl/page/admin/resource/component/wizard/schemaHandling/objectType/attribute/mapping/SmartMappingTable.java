@@ -294,7 +294,6 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
             /* Check if the ref attribute contains the search text */
             private boolean matchRefAttribute(
                     @NotNull PrismContainerValueWrapper<MappingType> valueWrapper) {
-                ;
                 ItemPathType refAttributePath = getRefAttributePath(valueWrapper);
                 if (refAttributePath != null) {
                     return refAttributePath.toString().contains(getSearchTextModelObject());
