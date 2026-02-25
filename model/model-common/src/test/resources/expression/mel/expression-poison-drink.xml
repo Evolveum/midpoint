@@ -9,6 +9,5 @@
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
         poison.drink()
-        return "ALIVE"
     </code>
 </script>

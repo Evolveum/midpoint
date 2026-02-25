@@ -1666,113 +1666,11 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
 
-
-    @Test
-    public void testLookAtPoison() throws Exception {
-        Poison poison = new Poison();
-
-        // WHEN
-        evaluateAndAssertStringScalarExpression(
-                "expression-poison-look.xml",
-                createPoisonVariables(poison),
-                RESULT_POISON_OK);
-
-        // THEN
-        poison.assertLookedAt();
-    }
-
     /**
-     * This should pass here. There are no restrictions about script execution here.
-     */
-    @Test
-    public void testSmellPoison() throws Exception {
-        Poison poison = new Poison();
-
-        // WHEN
-        evaluateAndAssertStringScalarExpression(
-                "expression-poison-smell.xml",
-                createPoisonVariables(poison),
-                RESULT_POISON_OK);
-
-        // THEN
-        poison.assertSmelled();
-    }
-
-    /**
-     * Tricky way to smell poison. It should pass here.
-     */
-    @Test
-    public void testSmellPoisonTricky() throws Exception {
-        Poison poison = new Poison();
-
-        // WHEN
-        evaluateAndAssertStringScalarExpression(
-                "expression-poison-smell-tricky.xml",
-                createPoisonVariables(poison),
-                RESULT_POISON_OK);
-
-        // THEN
-        poison.assertSmelled();
-
-    }
-
-    /**
-     * Attempt to smell poison by using dynamic invocation.
-     */
-    @Test
-    public void testSmellPoisonDynamic() throws Exception {
-        Poison poison = new Poison();
-
-        // WHEN
-        evaluateAndAssertStringScalarExpression(
-                "expression-poison-smell-dynamic.xml",
-                createPoisonVariables(poison),
-                RESULT_POISON_OK);
-
-        // THEN
-        poison.assertSmelled();
-
-    }
-
-    /**
-     * Attempt to smell poison by using a very dynamic invocation.
-     */
-    @Test
-    public void testSmellPoisonVeryDynamic() throws Exception {
-        Poison poison = new Poison();
-
-        // WHEN
-        evaluateAndAssertStringScalarExpression(
-                "expression-poison-smell-very-dynamic.xml",
-                createPoisonVariables(poison),
-                RESULT_POISON_OK);
-
-        // THEN
-        poison.assertSmelled();
-
-    }
-
-    /**
-     * Attempt to smell poison by using reflection
-     */
-    @Test
-    public void testSmellPoisonReflection() throws Exception {
-        Poison poison = new Poison();
-
-        // WHEN
-        evaluateAndAssertStringScalarExpression(
-                "expression-poison-smell-reflection.xml",
-                createPoisonVariables(poison),
-                RESULT_POISON_OK);
-
-        // THEN
-        poison.assertSmelled();
-
-    }
-
-    /**
-     * This should pass here. There are no restrictions about script execution here.
-     * By passing we mean throwing an error ...
+     * This is mostly just a symbolic test.
+     * We are setting up a generic Java class (Poison) in a variable.
+     * We are checking here that the drink() method of that class cannot be executed.
+     * If it was executed, it throws a specific exception that we could detect in exception message.
      */
     @Test
     public void testDrinkPoison() throws Exception {
@@ -1789,10 +1687,8 @@ public class TestMelExpressions extends AbstractScriptTest {
 
         } catch (ExpressionEvaluationException ex) {
             // THEN
-            assertTrue("Expected that exception message will contain " + Poison.POISON_DRINK_ERROR_MESSAGE +
-                    ", but it did not. It was: " + ex.getMessage(), ex.getMessage().contains(Poison.POISON_DRINK_ERROR_MESSAGE));
-            Error error = (Error) ex.getCause();
-            assertEquals("Wrong error message", Poison.POISON_DRINK_ERROR_MESSAGE, error.getMessage());
+            assertFalse("Expected that exception message will NOT contain " + Poison.POISON_DRINK_ERROR_MESSAGE +
+                    ", but it did. It was: " + ex.getMessage(), ex.getMessage().contains(Poison.POISON_DRINK_ERROR_MESSAGE));
         }
 
     }

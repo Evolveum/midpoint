@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.mel.extension.MidPointCelExtensionManager;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -20,8 +19,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -39,7 +36,6 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +54,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     private static final Trace LOGGER = TraceManager.getTrace(MelScriptEvaluator.class);
 
     public static final String LANGUAGE_NAME = "mel";
-    private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
+    public static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final MidpointFunctions midpointExpressionFunctions;
@@ -156,7 +152,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         builder.setOptions(celOptions);
         builder.setStandardMacros(CelStandardMacro.STANDARD_MACROS);
         builder.setTypeProvider(getTypeProvider());
-        builder.addLibraries(midPointCelExtensionManager.allCompilerLibraries());
+        builder.addLibraries(midPointCelExtensionManager.getCompilerLibraries(context.getExpressionProfile()));
         addCompilerVariables(builder, context);
         addFunctionLibraryDeclarations(builder, context);
         builder.setResultType(determineResultType(context));
@@ -235,7 +231,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         // TODO: consider expression profiles?
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
         builder.setOptions(celOptions);
-        builder.addLibraries(midPointCelExtensionManager.allRuntimeLibraries());
+        builder.addLibraries(midPointCelExtensionManager.getRuntimeLibraries(context.getExpressionProfile()));
         addFunctionLibraryImplementations(builder, context);
         return builder.build();
     }

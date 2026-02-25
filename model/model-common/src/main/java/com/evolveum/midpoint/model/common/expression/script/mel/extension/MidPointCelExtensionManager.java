@@ -8,16 +8,27 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
+import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluator;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
+import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelOptions;
 import dev.cel.compiler.CelCompilerLibrary;
+import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.runtime.CelRuntimeLibrary;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class MidPointCelExtensionManager {
 
@@ -28,16 +39,7 @@ public class MidPointCelExtensionManager {
     private final MidpointFunctions midpointExpressionFunctions;
     private final CelOptions celOptions;
 
-    private CelMelExtensions extMel;
-    private CelPolyStringExtensions extPolyString;
-    private CelFormatExtensions extFormat;
-    private CelLdapExtensions extLdap;
-    private CelObjectExtensions extObject;
-    private CelLogExtensions extLog;
-    private CelMidPointExtensions extMidpoint;
-
-    private ImmutableList<? extends CelCompilerLibrary> allCompilerLibraries;
-    private ImmutableList<? extends CelRuntimeLibrary> allRuntimeLibraries;
+    private final Map<String,CelExtensionLibrary.FeatureSet> libraryMap = new HashMap<>();
 
     public MidPointCelExtensionManager(Protector protector, BasicExpressionFunctions basicExpressionFunctions, MidpointFunctions midpointExpressionFunctions, CelOptions celOptions) {
         this.protector = protector;
@@ -47,60 +49,97 @@ public class MidPointCelExtensionManager {
         initializeExtensions();
     }
 
-    @SuppressWarnings("DataFlowIssue")
     private void initializeExtensions() {
-        extMel = CelMelExtensions.library(protector, basicExpressionFunctions).latest();
-        extPolyString = CelPolyStringExtensions.library(celOptions, basicExpressionFunctions).latest();
-        extFormat = CelFormatExtensions.library(basicExpressionFunctions).latest();
-        extLdap = CelLdapExtensions.library(basicExpressionFunctions).latest();
-        extObject = CelObjectExtensions.library().latest();
-        extLog = CelLogExtensions.library().latest();
-        extMidpoint = CelMidPointExtensions.library(midpointExpressionFunctions).latest();
 
-        allCompilerLibraries = ImmutableList.of(
-                CelExtensions.strings(),
-                CelExtensions.bindings(),
-                CelExtensions.math(celOptions),
-                CelExtensions.encoders(celOptions),
-                CelExtensions.sets(celOptions),
-                CelExtensions.lists(),
-                CelExtensions.regex(),
-                CelExtensions.comprehensions(),
-                CelExtensions.optional(),
-                extMel,
-                extPolyString,
-                extFormat,
-                extLdap,
-                extObject,
-                extLog,
-                extMidpoint
-        );
+        registerLibrary("strings", CelExtensions.strings());
+        registerLibrary("bindings", CelExtensions.bindings());
+        registerLibrary("math", CelExtensions.math(celOptions));
+        registerLibrary("encoders", CelExtensions.encoders(celOptions));
+        registerLibrary("sets", CelExtensions.sets(celOptions));
+        registerLibrary("lists", CelExtensions.lists());
+        registerLibrary("regex", CelExtensions.regex());
+        registerLibrary("comprehensions", CelExtensions.comprehensions());
+        registerLibrary("optional", CelExtensions.optional());
 
-        allRuntimeLibraries = ImmutableList.of(
-                CelExtensions.strings(),
-                CelExtensions.math(celOptions),
-                CelExtensions.encoders(celOptions),
-                CelExtensions.sets(celOptions),
-                CelExtensions.lists(),
-                CelExtensions.regex(),
-                CelExtensions.comprehensions(),
-                CelExtensions.optional(),
-                extMel,
-                extPolyString,
-                extFormat,
-                extLdap,
-                extObject,
-                extLog,
-                extMidpoint
-        );
+        registerLibrary(CelMelExtensions.library(protector, basicExpressionFunctions));
+        registerLibrary(CelPolyStringExtensions.library(celOptions, basicExpressionFunctions));
+        registerLibrary(CelFormatExtensions.library(basicExpressionFunctions));
+        registerLibrary(CelLdapExtensions.library(basicExpressionFunctions));
+        registerLibrary(CelObjectExtensions.library());
+        registerLibrary(CelLogExtensions.library());
+        registerLibrary(CelMidPointExtensions.library(midpointExpressionFunctions));
     }
 
-    public Iterable<? extends CelCompilerLibrary> allCompilerLibraries() {
-        return allCompilerLibraries;
+    private void registerLibrary(String name, CelExtensionLibrary.FeatureSet featureSet) {
+        if (libraryMap.containsKey(name)) {
+            throw new IllegalStateException("Duplicate registration of CEL library "+name);
+        }
+        libraryMap.put(name, featureSet);
     }
 
-    public Iterable<? extends CelRuntimeLibrary> allRuntimeLibraries() {
-        return allRuntimeLibraries;
+    private void registerLibrary(CelExtensionLibrary<?> library) {
+        registerLibrary(library.name(), library.latest());
     }
+
+    public Iterable<? extends CelCompilerLibrary> getCompilerLibraries(ExpressionProfile expressionProfile) {
+        ScriptLanguageExpressionProfile profile = determineProfile(expressionProfile);
+        return libraryMap.entrySet().stream()
+                .map(e -> toCompilerLibrary(profile, e))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private CelCompilerLibrary toCompilerLibrary(ScriptLanguageExpressionProfile scriptExpressionProfile, Map.Entry<String, CelExtensionLibrary.FeatureSet> entry) {
+        if (!isAllowed(scriptExpressionProfile, entry.getKey())) {
+            return null;
+        }
+        CelExtensionLibrary.FeatureSet feature = entry.getValue();
+        if (feature instanceof CelCompilerLibrary lib) {
+            return lib;
+        } else {
+            return null;
+        }
+    }
+
+    public Iterable<? extends CelRuntimeLibrary> getRuntimeLibraries(ExpressionProfile expressionProfile) {
+        ScriptLanguageExpressionProfile profile = determineProfile(expressionProfile);
+        return libraryMap.entrySet().stream()
+                .map(e -> toRuntimeLibrary(profile, e))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private CelRuntimeLibrary toRuntimeLibrary(ScriptLanguageExpressionProfile scriptExpressionProfile, Map.Entry<String, CelExtensionLibrary.FeatureSet> entry) {
+        if (!isAllowed(scriptExpressionProfile, entry.getKey())) {
+            return null;
+        }
+        CelExtensionLibrary.FeatureSet feature = entry.getValue();
+        if (feature instanceof CelRuntimeLibrary lib) {
+            return lib;
+        } else {
+            return null;
+        }
+    }
+
+    private ScriptLanguageExpressionProfile determineProfile(ExpressionProfile expressionProfile) {
+        if (expressionProfile == null) {
+            return null;
+        }
+        ExpressionEvaluatorProfile evaluatorProfile = expressionProfile
+                .getEvaluatorsProfile()
+                .getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+        if (evaluatorProfile == null) {
+            return null;
+        }
+        return evaluatorProfile.getScriptExpressionProfile(MelScriptEvaluator.LANGUAGE_URL);
+    }
+
+    private boolean isAllowed(ScriptLanguageExpressionProfile scriptExpressionProfile, String name) {
+        if (scriptExpressionProfile == null) {
+            return true;
+        }
+        return scriptExpressionProfile.decidePackageAccess(name) == AccessDecision.ALLOW;
+    }
+
 
 }

@@ -40,6 +40,16 @@
                 <type>filter</type>
                 <decision>allow</decision>
             </evaluator>
+            <evaluator>
+                <type>script</type>
+                <decision>deny</decision>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <decision>allow</decision>
+                    <typeChecking>true</typeChecking>
+                    <permissionProfile>script-mel-restricted</permissionProfile>
+                </script>
+            </evaluator>
             <privilegeElevation>deny</privilegeElevation>
         </expressionProfile>
         <expressionProfile>
@@ -73,6 +83,12 @@
                     <decision>allow</decision>
                     <typeChecking>true</typeChecking>
                     <permissionProfile>script-restricted</permissionProfile>
+                </script>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <decision>allow</decision>
+                    <typeChecking>true</typeChecking>
+                    <permissionProfile>script-mel-restricted</permissionProfile>
                 </script>
             </evaluator>
         </expressionProfile>
@@ -248,6 +264,15 @@
                 <description>MidPoint logging functions library</description>
                 <decision>allow</decision>
             </class>
+        </permissionProfile>
+        <permissionProfile>
+            <identifier>script-mel-restricted</identifier>
+            <decision>allow</decision>
+            <package>
+                <name>midpoint</name>
+                <description>midpoint.* MEL language extension</description>
+                <decision>deny</decision>
+            </package>
         </permissionProfile>
         <bulkActionsProfile>
             <identifier>empty</identifier>

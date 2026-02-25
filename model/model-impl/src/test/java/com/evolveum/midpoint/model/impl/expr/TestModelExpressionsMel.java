@@ -11,8 +11,6 @@ import java.io.File;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;

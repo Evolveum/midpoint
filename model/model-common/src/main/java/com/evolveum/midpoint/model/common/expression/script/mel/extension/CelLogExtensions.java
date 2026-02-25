@@ -163,7 +163,7 @@ public class CelLogExtensions extends AbstractMidPointCelExtensions {
 
         @Override
         public String name() {
-            return "mpObject";
+            return "log";
         }
 
         @Override

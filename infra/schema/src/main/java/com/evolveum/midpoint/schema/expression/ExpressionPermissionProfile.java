@@ -111,6 +111,15 @@ public class ExpressionPermissionProfile extends AbstractFreezable implements Se
         }
     }
 
+    @NotNull AccessDecision decidePackageAccess(String packageName) {
+        ExpressionPermissionPackageProfileType packageProfile = getPackageProfile(packageName);
+        if (packageProfile == null) {
+            return defaultDecision;
+        } else {
+            return AccessDecision.translate(packageProfile.getDecision());
+        }
+    }
+
     private ExpressionPermissionPackageProfileType getPackageProfileByClassName(String className) {
         for (ExpressionPermissionPackageProfileType packageProfile : packageProfiles) {
             if (isMemberClass(packageProfile, className)) {
@@ -118,6 +127,13 @@ public class ExpressionPermissionProfile extends AbstractFreezable implements Se
             }
         }
         return null;
+    }
+
+    private ExpressionPermissionPackageProfileType getPackageProfile(String packageName) {
+        return packageProfiles.stream()
+                .filter(profile -> profile.getName().equals(packageName))
+                .findAny()
+                .orElse(null);
     }
 
     private boolean isMemberClass(ExpressionPermissionPackageProfileType packageProfile, String className) {
