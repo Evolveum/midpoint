@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2010-2026 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.objectTypeStatisticsComputation;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 

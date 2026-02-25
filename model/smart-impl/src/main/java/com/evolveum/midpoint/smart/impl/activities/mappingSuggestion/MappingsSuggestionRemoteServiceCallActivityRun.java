@@ -1,4 +1,12 @@
-package com.evolveum.midpoint.smart.impl.activities;
+/*
+ * Copyright (c) 2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
+ */
+
+package com.evolveum.midpoint.smart.impl.activities.mappingSuggestion;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
@@ -7,6 +15,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
+import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

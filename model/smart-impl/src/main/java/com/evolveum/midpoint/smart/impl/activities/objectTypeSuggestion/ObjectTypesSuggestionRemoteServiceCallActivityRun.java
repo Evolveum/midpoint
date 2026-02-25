@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (c) 2020-2026 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
 
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.objectTypeSuggestion;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
+import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;

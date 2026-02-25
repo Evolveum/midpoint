@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (c) 2020-2026 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.objectTypeSuggestion;
 
 import java.util.ArrayList;
 
@@ -68,7 +69,7 @@ public class ObjectTypesSuggestionActivityHandler
         var children = new ArrayList<Activity<?, ?>>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
-                (context, result) -> new ObjectTypesStatisticsComputationActivityRun(context, "Statistics computation"),
+                (context, result) -> new ObjectTypesSuggestionStatisticsComputationActivityRun(context, "Statistics computation"),
                 null,
                 (i) -> ID_STATISTICS_COMPUTATION,
                 ActivityStateDefinition.normal(),
@@ -82,7 +83,7 @@ public class ObjectTypesSuggestionActivityHandler
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
-                (context, result) -> new ObjectTypesSuggestFocusTypesActivityRun(context),
+                (context, result) -> new ObjectTypesSuggestionFocusTypesActivityRun(context),
                 null,
                 (i) -> ID_FOCUS_TYPE_SUGGESTION,
                 ActivityStateDefinition.normal(),

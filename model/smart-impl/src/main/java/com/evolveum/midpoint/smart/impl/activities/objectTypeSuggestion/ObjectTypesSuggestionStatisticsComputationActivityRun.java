@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2010-2026 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.objectTypeSuggestion;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +15,8 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.smart.impl.activities.AbstractObjectClassStatisticsComputationActivityRun;
+import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,16 +33,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestio
  *
  * The resulting statistics are then used exclusively for suggestion purposes.</p>
  */
-public class ObjectTypesStatisticsComputationActivityRun
+public class ObjectTypesSuggestionStatisticsComputationActivityRun
         extends AbstractObjectClassStatisticsComputationActivityRun<
-                ObjectTypesSuggestionWorkDefinition,
-                ObjectTypesSuggestionActivityHandler,
-                        ObjectTypesSuggestionWorkStateType> {
+                        ObjectTypesSuggestionWorkDefinition,
+                        ObjectTypesSuggestionActivityHandler,
+                                ObjectTypesSuggestionWorkStateType> {
 
-    ObjectTypesStatisticsComputationActivityRun(
+    ObjectTypesSuggestionStatisticsComputationActivityRun(
             ActivityRunInstantiationContext<ObjectTypesSuggestionWorkDefinition, ObjectTypesSuggestionActivityHandler> context,
             String shortNameCapitalized) {
-        super(context, shortNameCapitalized, TraceManager.getTrace(ObjectTypesStatisticsComputationActivityRun.class));
+        super(context, shortNameCapitalized, TraceManager.getTrace(ObjectTypesSuggestionStatisticsComputationActivityRun.class));
     }
 
     @Override

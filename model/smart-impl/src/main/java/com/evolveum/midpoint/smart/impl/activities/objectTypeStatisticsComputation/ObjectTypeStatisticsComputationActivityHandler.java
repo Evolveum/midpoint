@@ -1,13 +1,16 @@
 /*
- * Copyright (C) 2010-2026 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.objectTypeStatisticsComputation;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -18,30 +21,26 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassStatisticsComputationWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassStatisticsComputationWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
- * Activity handler for object class statistics computation.
+ * Activity handler for object type statistics computation.
  *
  * <p>Registers and manages execution of activities that compute statistics
- * for a specific object class on a resource.</p>
+ * for a specific object type on a resource.</p>
  */
 @Component
-public class ObjectClassStatisticsComputationActivityHandler
+public class ObjectTypeStatisticsComputationActivityHandler
         extends ModelActivityHandler<
-        ObjectClassStatisticsComputationActivityHandler.MyWorkDefinition,
-        ObjectClassStatisticsComputationActivityHandler> {
+        ObjectTypeStatisticsComputationWorkDefinition,
+        ObjectTypeStatisticsComputationActivityHandler> {
 
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
 
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ObjectClassStatisticsComputationWorkDefinitionType.COMPLEX_TYPE,
-                WorkDefinitionsType.F_OBJECT_CLASS_STATISTICS_COMPUTATION,
+                ObjectTypeStatisticsComputationWorkDefinitionType.COMPLEX_TYPE,
+                WorkDefinitionsType.F_OBJECT_TYPE_STATISTICS_COMPUTATION,
                 MyWorkDefinition.class,
                 MyWorkDefinition::new,
                 this);
@@ -50,25 +49,18 @@ public class ObjectClassStatisticsComputationActivityHandler
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                ObjectClassStatisticsComputationWorkDefinitionType.COMPLEX_TYPE,
+                ObjectTypeStatisticsComputationWorkDefinitionType.COMPLEX_TYPE,
                 MyWorkDefinition.class);
     }
 
     @Override
     public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
-        return ActivityStateDefinition.normal(ObjectClassStatisticsComputationWorkStateType.COMPLEX_TYPE);
-    }
-
-    @Override
-    public AbstractActivityRun<MyWorkDefinition, ObjectClassStatisticsComputationActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<MyWorkDefinition, ObjectClassStatisticsComputationActivityHandler> context,
-            @NotNull OperationResult result) {
-        return new ObjectClassStatisticsComputationActivityRun(context, "Statistics computation");
+        return ActivityStateDefinition.normal(ObjectTypeStatisticsComputationWorkStateType.COMPLEX_TYPE);
     }
 
     @Override
     public String getIdentifierPrefix() {
-        return "object-class-statistics-computation";
+        return "object-type-statistics-computation";
     }
 
     @Override
@@ -76,7 +68,12 @@ public class ObjectClassStatisticsComputationActivityHandler
         return ARCHETYPE_OID;
     }
 
-    public static class MyWorkDefinition extends ObjectClassStatisticsComputationWorkDefinition {
+    @Override
+    public AbstractActivityRun<ObjectTypeStatisticsComputationWorkDefinition, ObjectTypeStatisticsComputationActivityHandler, ?> createActivityRun(@NotNull ActivityRunInstantiationContext<ObjectTypeStatisticsComputationWorkDefinition, ObjectTypeStatisticsComputationActivityHandler> context, @NotNull OperationResult result) {
+        return new ObjectTypeStatisticsComputationActivityRun(context, "Object type statistics computation");
+    }
+
+    public static class MyWorkDefinition extends ObjectTypeStatisticsComputationWorkDefinition {
         public MyWorkDefinition(WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
         }

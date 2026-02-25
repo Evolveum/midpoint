@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (c) 2020-2026 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
 
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.objectTypeSuggestion;
 
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
+import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -25,15 +27,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
 
-class ObjectTypesSuggestFocusTypesActivityRun
+class ObjectTypesSuggestionFocusTypesActivityRun
         extends LocalActivityRun<
         ObjectTypesSuggestionWorkDefinition,
         ObjectTypesSuggestionActivityHandler,
         ObjectTypesSuggestionWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesSuggestFocusTypesActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesSuggestionFocusTypesActivityRun.class);
 
-    ObjectTypesSuggestFocusTypesActivityRun(
+    ObjectTypesSuggestionFocusTypesActivityRun(
             ActivityRunInstantiationContext<ObjectTypesSuggestionWorkDefinition, ObjectTypesSuggestionActivityHandler> context) {
         super(context);
         setInstanceReady();

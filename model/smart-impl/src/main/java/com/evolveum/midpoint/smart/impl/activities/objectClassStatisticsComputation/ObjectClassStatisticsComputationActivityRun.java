@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2010-2026 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.objectClassStatisticsComputation;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -12,6 +14,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.smart.impl.activities.AbstractObjectClassStatisticsComputationActivityRun;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassStatisticsComputationWorkStateType;
@@ -28,13 +31,13 @@ import javax.xml.namespace.QName;
  */
 public class ObjectClassStatisticsComputationActivityRun
         extends AbstractObjectClassStatisticsComputationActivityRun<
-                ObjectClassStatisticsComputationActivityHandler.MyWorkDefinition,
-                ObjectClassStatisticsComputationActivityHandler,
-                ObjectClassStatisticsComputationWorkStateType> {
+        ObjectClassStatisticsComputationWorkDefinition,
+                        ObjectClassStatisticsComputationActivityHandler,
+                        ObjectClassStatisticsComputationWorkStateType> {
 
     ObjectClassStatisticsComputationActivityRun(
             ActivityRunInstantiationContext<
-                    ObjectClassStatisticsComputationActivityHandler.MyWorkDefinition,
+                    ObjectClassStatisticsComputationWorkDefinition,
                     ObjectClassStatisticsComputationActivityHandler> context,
             String shortNameCapitalized) {
         super(context, shortNameCapitalized, TraceManager.getTrace(ObjectClassStatisticsComputationActivityRun.class));

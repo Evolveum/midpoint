@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2010-2026 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
 
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.objectTypeStatisticsComputation;
 
 import static com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil.createObjectTypeStatisticsObject;
 
@@ -12,6 +14,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -50,7 +53,7 @@ import org.slf4j.Logger;
 public class ObjectTypeStatisticsComputationActivityRun
         extends SearchBasedActivityRun<
         ShadowType, ObjectTypeStatisticsComputationWorkDefinition,
-        ObjectTypeStatisticsComputationActivityHandler, ObjectTypesSuggestionWorkStateType> {
+        ObjectTypeStatisticsComputationActivityHandler, ObjectTypeStatisticsComputationWorkStateType> {
 
     Logger logger = TraceManager.getTrace(ObjectTypeStatisticsComputationActivityRun.class);
 
@@ -109,13 +112,7 @@ public class ObjectTypeStatisticsComputationActivityRun
         var res = Resource.of(resource);
         ResourceSchema completeSchemaRequired = res.getCompleteSchemaRequired();
         ResourceObjectTypeDefinition objectTypeDefinition = completeSchemaRequired.getObjectTypeDefinition(getKind(), getIntent());
-
-        if (objectTypeDefinition != null) {
-            computer = new ObjectTypeStatisticsComputer(objectTypeDefinition);
-        } else {
-            logger.warn("Resource {} does not have object type definition for kind {} and intent {}, statistics will be empty",
-                    resource.getName(), getKind(), getIntent());
-        }
+        computer = new ObjectTypeStatisticsComputer(objectTypeDefinition);
 
         return true;
     }

@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2025 Evolveum and contributors
+ * Copyright (c) 2025-2026 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.associationsSuggestion;
 
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -32,10 +33,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 @Component
-public class AssociationsSuggestionActivityHandler
-        extends ModelActivityHandler<AssociationsSuggestionActivityHandler.MyWorkDefinition, AssociationsSuggestionActivityHandler> {
+public class AssociationSuggestionActivityHandler
+        extends ModelActivityHandler<AssociationSuggestionActivityHandler.MyWorkDefinition, AssociationSuggestionActivityHandler> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssociationsSuggestionActivityHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssociationSuggestionActivityHandler.class);
 
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
 
@@ -62,8 +63,8 @@ public class AssociationsSuggestionActivityHandler
     }
 
     @Override
-    public AbstractActivityRun<MyWorkDefinition, AssociationsSuggestionActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<MyWorkDefinition, AssociationsSuggestionActivityHandler> context,
+    public AbstractActivityRun<MyWorkDefinition, AssociationSuggestionActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<MyWorkDefinition, AssociationSuggestionActivityHandler> context,
             @NotNull OperationResult result) {
         return new MyActivityRun(context);
     }
@@ -87,11 +88,11 @@ public class AssociationsSuggestionActivityHandler
     static class MyActivityRun
             extends LocalActivityRun<
             MyWorkDefinition,
-            AssociationsSuggestionActivityHandler,
+            AssociationSuggestionActivityHandler,
             AssociationSuggestionWorkStateType> {
 
         MyActivityRun(
-                ActivityRunInstantiationContext<MyWorkDefinition, AssociationsSuggestionActivityHandler> context) {
+                ActivityRunInstantiationContext<MyWorkDefinition, AssociationSuggestionActivityHandler> context) {
             super(context);
             setInstanceReady();
         }

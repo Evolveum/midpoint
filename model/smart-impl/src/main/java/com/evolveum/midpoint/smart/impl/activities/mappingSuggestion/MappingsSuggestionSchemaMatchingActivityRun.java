@@ -1,7 +1,13 @@
-package com.evolveum.midpoint.smart.impl.activities;
+/*
+ * Copyright (c) 2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
+ */
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
+package com.evolveum.midpoint.smart.impl.activities.mappingSuggestion;
+
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -10,38 +16,30 @@ import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
-import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SiMatchSchemaResponseType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.PrismContext.get;
-
 /**
  * Computes schema match and stores it into the parent work state as XML string for reuse.
  */
-public class MappingsSchemaMatchingActivityRun extends LocalActivityRun<
+public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRun<
         MappingsSuggestionWorkDefinition,
         MappingsSuggestionActivityHandler,
         MappingsSuggestionWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingsSchemaMatchingActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionSchemaMatchingActivityRun.class);
 
-    public MappingsSchemaMatchingActivityRun(
+    public MappingsSuggestionSchemaMatchingActivityRun(
             @NotNull ActivityRunInstantiationContext<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> context) {
         super(context);
         setInstanceReady();

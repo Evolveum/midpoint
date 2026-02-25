@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2025 Evolveum and contributors
+ * Copyright (c) 2025-2026 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.associationsSuggestion;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 

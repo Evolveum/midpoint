@@ -1,4 +1,12 @@
-package com.evolveum.midpoint.smart.impl.activities;
+/*
+ * Copyright (c) 2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
+ */
+
+package com.evolveum.midpoint.smart.impl.activities.correlationSuggestion;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
@@ -8,8 +16,8 @@ import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
+import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -21,14 +29,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultTyp
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CorrelationSchemaMatchingActivityRun extends LocalActivityRun<
+public class CorrelationSuggestionSchemaMatchingActivityRun extends LocalActivityRun<
         CorrelationSuggestionWorkDefinition,
         CorrelationSuggestionActivityHandler,
         CorrelationSuggestionWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CorrelationSchemaMatchingActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationSuggestionSchemaMatchingActivityRun.class);
 
-    public CorrelationSchemaMatchingActivityRun(
+    public CorrelationSuggestionSchemaMatchingActivityRun(
             @NotNull ActivityRunInstantiationContext<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> context) {
         super(context);
         setInstanceReady();

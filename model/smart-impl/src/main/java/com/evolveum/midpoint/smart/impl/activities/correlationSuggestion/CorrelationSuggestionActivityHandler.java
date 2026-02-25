@@ -1,4 +1,12 @@
-package com.evolveum.midpoint.smart.impl.activities;
+/*
+ * Copyright (c) 2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
+ */
+
+package com.evolveum.midpoint.smart.impl.activities.correlationSuggestion;
 
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.Activity;
@@ -59,7 +67,7 @@ public class CorrelationSuggestionActivityHandler
         var children = new ArrayList<Activity<?, ?>>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
-                (context, result) -> new CorrelationSchemaMatchingActivityRun(context),
+                (context, result) -> new CorrelationSuggestionSchemaMatchingActivityRun(context),
                 null,
                 (i) -> ID_CORRELATION_SCHEMA_MATCHING,
                 ActivityStateDefinition.normal(),

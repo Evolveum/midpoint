@@ -1,13 +1,15 @@
 /*
- * Copyright (C) 2010-2025 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
  */
 
-package com.evolveum.midpoint.smart.impl.activities;
+package com.evolveum.midpoint.smart.impl.activities.correlationSuggestion;
 
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeRelatedSuggestionWorkDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import org.jetbrains.annotations.NotNull;
 

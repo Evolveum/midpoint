@@ -1,4 +1,12 @@
-package com.evolveum.midpoint.smart.impl.activities;
+/*
+ * Copyright (c) 2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
+ */
+
+package com.evolveum.midpoint.smart.impl.activities.focusTypeSuggestion;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 

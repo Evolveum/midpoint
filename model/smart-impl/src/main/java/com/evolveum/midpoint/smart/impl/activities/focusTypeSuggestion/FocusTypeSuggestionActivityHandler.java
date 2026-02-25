@@ -1,6 +1,12 @@
-package com.evolveum.midpoint.smart.impl.activities;
+/*
+ * Copyright (c) 2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
+ */
 
-import java.util.ArrayList;
+package com.evolveum.midpoint.smart.impl.activities.focusTypeSuggestion;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
@@ -15,12 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
-import javax.xml.namespace.QName;
 
 @Component
 public class FocusTypeSuggestionActivityHandler
