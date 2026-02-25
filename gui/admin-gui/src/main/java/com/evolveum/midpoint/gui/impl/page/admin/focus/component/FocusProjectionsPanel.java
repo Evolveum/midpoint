@@ -95,6 +95,8 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author semancik
  * @author skublik
@@ -441,7 +443,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                 tabs.add(new PanelTab(createStringResource("ShadowType.basic")) {
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        ContainerPanelConfigurationType config = getBasicShadowPanelConfiguration(getModelObject().getRealValue());
+                        ContainerPanelConfigurationType config = getBasicShadowPanelConfiguration(getPageBase(), getModelObject().getRealValue());
                         return new ShadowBasicPanel(panelId, getParentModel(getModel()), config);
                     }
                 });
@@ -469,13 +471,14 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
     }
 
-    private ContainerPanelConfigurationType getBasicShadowPanelConfiguration(ShadowType shadowType) {
-        List<ContainerPanelConfigurationType> panelConfigs = findShadowDetailsPageConfiguration(shadowType);
+    public static @Nullable ContainerPanelConfigurationType getBasicShadowPanelConfiguration(PageBase pageBase, ShadowType shadowType) {
+        List<ContainerPanelConfigurationType> panelConfigs = findShadowDetailsPageConfiguration(pageBase, shadowType);
         if (panelConfigs.isEmpty()) {
             return null;
         }
 
-        List<ContainerPanelConfigurationType> basicPanelConfig = panelConfigs.stream().filter(p -> p.getIdentifier().equals("shadowBasic")).toList();
+        List<ContainerPanelConfigurationType> basicPanelConfig = panelConfigs.stream()
+                .filter(p -> p.getIdentifier().equals("shadowBasic")).toList();
         if (basicPanelConfig.size() == 1) {
             return basicPanelConfig.get(0);
         }
@@ -484,15 +487,16 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return null;
     }
 
-    private List<ContainerPanelConfigurationType> findShadowDetailsPageConfiguration(ShadowType shadowType) {
-        GuiShadowDetailsPageType shadowDetailsPage = getPageBase().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowCoordinates(shadowType));
+    public static List<ContainerPanelConfigurationType> findShadowDetailsPageConfiguration(@NotNull PageBase pageBase, ShadowType shadowType) {
+        GuiShadowDetailsPageType shadowDetailsPage = pageBase.getCompiledGuiProfile()
+                .findShadowDetailsConfiguration(createResourceShadowCoordinates(shadowType));
         if (shadowDetailsPage == null) {
             return Collections.emptyList();
         }
         return shadowDetailsPage.getPanel();
     }
 
-    private ResourceShadowCoordinates createResourceShadowCoordinates(ShadowType shadow) {
+    public static ResourceShadowCoordinates createResourceShadowCoordinates(ShadowType shadow) {
         return new ResourceShadowCoordinates(shadow.getResourceRef().getOid(), shadow.getKind(), shadow.getIntent(), null);
     }
 
@@ -1060,7 +1064,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         PrismObjectWrapperFactory<ShadowType> factory = getPageBase().findObjectWrapperFactory(projection.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
         context.setCreateIfEmpty(true);
-        context.setDetailsPageTypeConfiguration(findShadowDetailsPageConfiguration(projection.asObjectable()));
+        context.setDetailsPageTypeConfiguration(findShadowDetailsPageConfiguration(getPageBase(), projection.asObjectable()));
         ShadowWrapper wrapper = (ShadowWrapper) factory.createObjectWrapper(projection, ItemStatus.NOT_CHANGED, context);
         wrapper.setProjectionStatus(UserDtoStatus.MODIFY);
         return wrapper;
