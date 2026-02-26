@@ -10,6 +10,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -17,8 +19,10 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -27,27 +31,71 @@ import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.component.FocusOtpsMenuLinkCounter;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.Counter;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtpCredentialType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.checkerframework.checker.units.qual.C;
-
+@PanelType(name = "otp")
+@PanelInstance(
+        identifier = "otp",
+        applicableForType = FocusType.class,
+        display = @PanelDisplay(
+                label = "FocusOtpsPanel.title",
+                icon = GuiStyleConstants.CLASS_PASSWORD_ICON,
+                order = 55
+        ),
+        containerPath = "credentials/otp",
+        type = "OtpCredentialsType",
+        expanded = true
+)
+@Counter(provider = FocusOtpsMenuLinkCounter.class)
 public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPanel<OtpCredentialType> {
 
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(OtpListPanel.class);
+
     private final IModel<F> focusModel;
 
     private final PrismContainerWrapperModel<F, OtpCredentialType> model;
+
+    @SuppressWarnings("unused")
+    public OtpListPanel(
+            String id,
+            AssignmentHolderDetailsModel<F> objectModel,
+            ContainerPanelConfigurationType configuration) {
+        this(
+                id,
+                () -> {
+                    var wrapper = objectModel.getObjectWrapper();
+                    try {
+                        return wrapper.getObjectApplyDelta().asObjectable();
+                    } catch (CommonException e) {
+                        LOGGER.debug("Cannot apply changes for report, returning original state");
+                        return wrapper.getObjectOld().asObjectable();
+                    }
+                },
+                PrismContainerWrapperModel.fromContainerWrapper(
+                        objectModel.getObjectWrapperModel(),
+                        ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_TOTP)),
+                configuration);
+    }
 
     public OtpListPanel(
             String id, IModel<F> focusModel, PrismContainerWrapperModel<F, OtpCredentialType> model, ContainerPanelConfigurationType configuration) {
@@ -163,25 +211,28 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
             AssignmentObjectRelation relationSpec,
             boolean isDuplicate) {
 
-        PrismContainerWrapper<OtpCredentialType> wrapper = model.getObject();
+        IModel<OtpCredentialType> credentialModel = new LoadableModel<>(false) {
 
-        PrismContainerValue<OtpCredentialType> newValue = value;
-        if (newValue == null) {
-            Task task = getPageBase().createSimpleTask("createOtpCredential");
-            OperationResult result = task.getResult();
+            @Serial private static final long serialVersionUID = 1L;
 
-            PrismObject<? extends FocusType> obj = focusModel.getObject().asPrismObject();
-            OtpCredentialType credentialType = MidPointApplication.get().getOtpManager().createOtpCredential(obj, task, result);
-            // noinspection unchecked
-            newValue = credentialType.asPrismContainerValue();
-        }
+            @Override
+            protected OtpCredentialType load() {
+                PrismContainerValue<OtpCredentialType> newValue = value;
+                if (newValue == null) {
+                    Task task = getPageBase().createSimpleTask("createOtpCredential");
+                    OperationResult result = task.getResult();
 
-        PrismContainerValueWrapper<OtpCredentialType> newValueWrapper =
-                createNewItemContainerValueWrapper(newValue, wrapper, target);
+                    PrismObject<? extends FocusType> obj = focusModel.getObject().asPrismObject();
+                    OtpCredentialType credentialType = MidPointApplication.get().getOtpManager().createOtpCredential(obj, task, result);
+                    // noinspection unchecked
+                    newValue = credentialType.asPrismContainerValue();
+                }
 
-        IModel<OtpCredentialType> credentialModel = () -> newValueWrapper.getRealValue();
+                return newValue.asContainerable();
+            }
+        };
 
-        OtpPanel<F> panel = new OtpPanel<>(getPageBase().getMainPopupBodyId(), focusModel, credentialModel) {
+        OtpPopupPanel<F> panel = new OtpPopupPanel<>(getPageBase().getMainPopupBodyId(), focusModel, credentialModel) {
 
             @Override
             protected void onCancelPerformed(AjaxRequestTarget target) {
@@ -192,7 +243,7 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
 
             @Override
             protected void onConfirmPerformed(AjaxRequestTarget target) {
-                OtpListPanel.this.onConfirmPerformed(target);
+                OtpListPanel.this.onConfirmPerformed(target, credentialModel.getObject());
 
                 super.onConfirmPerformed(target);
             }
@@ -218,12 +269,15 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
     }
 
     private void onCancelPerformed(AjaxRequestTarget target) {
-        // todo implement
         refreshTable(target);
     }
 
-    private void onConfirmPerformed(AjaxRequestTarget target) {
-        // todo implement
+    private void onConfirmPerformed(AjaxRequestTarget target, OtpCredentialType credential) {
+        PrismContainerWrapper<OtpCredentialType> wrapper = model.getObject();
+
+        PrismContainerValueWrapper<OtpCredentialType> newValueWrapper =
+                createNewItemContainerValueWrapper(credential.asPrismContainerValue(), wrapper, target);
+
         refreshTable(target);
     }
 }

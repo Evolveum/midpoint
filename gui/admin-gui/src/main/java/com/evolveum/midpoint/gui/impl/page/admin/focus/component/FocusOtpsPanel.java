@@ -58,20 +58,20 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @SuppressWarnings("unused")
-@PanelType(name = "otp")
-@PanelInstance(
-        identifier = "otp",
-        applicableForType = FocusType.class,
-        display = @PanelDisplay(
-                label = "OTP",
-                icon = GuiStyleConstants.CLASS_PASSWORD_ICON,
-                order = 55
-        ),
-        containerPath = "credentials/otp",
-        type = "OtpCredentialsType",
-        expanded = true
-)
-@Counter(provider = FocusOtpsMenuLinkCounter.class)
+//@PanelType(name = "otp")
+//@PanelInstance(
+//        identifier = "otp",
+//        applicableForType = FocusType.class,
+//        display = @PanelDisplay(
+//                label = "FocusOtpsPanel.title",
+//                icon = GuiStyleConstants.CLASS_PASSWORD_ICON,
+//                order = 55
+//        ),
+//        containerPath = "credentials/otp",
+//        type = "OtpCredentialsType",
+//        expanded = true
+//)
+//@Counter(provider = FocusOtpsMenuLinkCounter.class)
 public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel<OtpCredentialType> {
 
     @Serial private static final long serialVersionUID = 1L;
