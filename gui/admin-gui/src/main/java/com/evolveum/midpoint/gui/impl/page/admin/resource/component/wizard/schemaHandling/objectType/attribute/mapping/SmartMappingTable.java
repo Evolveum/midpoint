@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
 import static com.evolveum.midpoint.prism.PrismConstants.VARIABLE_BINDING_DEF_MATCHING_RULE_NAME;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_MAPPINGS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAttributeMappingsDefinitionType.F_REF;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -38,11 +37,14 @@ import com.evolveum.midpoint.gui.impl.component.tile.column.ColumnTileTable;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.FocusStatisticsActions;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectTypeStatisticsActions;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -80,6 +82,8 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.namespace.QName;
 
 /**
  * Multi-select tile table for mappings items.
@@ -170,6 +174,12 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         inlineMenuItems.add(createDuplicateInlineMenu());
                         inlineMenuItems.add(createChangeMappingNameInlineMenu());
                         inlineMenuItems.add(createChangeLifecycleButtonInlineMenu());
+
+                        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceObjectTypeDefinition = findResourceObjectTypeDefinition();
+                        if (resourceObjectTypeDefinition != null && resourceObjectTypeDefinition.getRealValue() != null) {
+                            inlineMenuItems.add(createResourceAttributeStatisticsMenu(resourceObjectTypeDefinition.getRealValue()));
+                            inlineMenuItems.add(createFocusAttributeStatisticsMenu(resourceObjectTypeDefinition.getRealValue()));
+                        }
                         return inlineMenuItems;
                     }
 
@@ -286,12 +296,10 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
             /* Check if the ref attribute contains the search text */
             private boolean matchRefAttribute(
-                    @NotNull PrismContainerValueWrapper<MappingType> valueWrapper)
-                    throws SchemaException {
-                PrismPropertyWrapper<ItemPathType> refProperty = valueWrapper.findProperty(F_REF);
-                if (refProperty != null && refProperty.getValue() != null) {
-                    ItemPathType refPath = refProperty.getValue().getRealValue();
-                    return refPath.toString().contains(getSearchTextModelObject());
+                    @NotNull PrismContainerValueWrapper<MappingType> valueWrapper) {
+                ItemPathType refAttributePath = getRefAttributePath(valueWrapper);
+                if (refAttributePath != null) {
+                    return refAttributePath.toString().contains(getSearchTextModelObject());
                 }
                 return false;
             }
@@ -309,6 +317,19 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         .build();
             }
         };
+    }
+
+    private @Nullable ItemPathType getRefAttributePath(@NotNull PrismContainerValueWrapper<MappingType> valueWrapper) {
+        PrismPropertyWrapper<ItemPathType> refProperty;
+        try {
+            refProperty = valueWrapper.findProperty(AbstractAttributeMappingsDefinitionType.F_REF);
+            if (refProperty != null && refProperty.getValue() != null) {
+                return refProperty.getValue().getRealValue();
+            }
+        } catch (SchemaException e) {
+            getPageBase().error("Couldn't get ref attribute path: " + e.getMessage());
+        }
+        return null;
     }
 
     protected boolean displayNoValuePanel() {
@@ -701,6 +722,88 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 }
             }
         };
+    }
+
+    private @NotNull InlineMenuItem createResourceAttributeStatisticsMenu(ResourceObjectTypeDefinitionType objectTypeDefinitionType) {
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("SmartMappingTable.objectTypeStatistics.resourceAttribute"))
+                .icon("fa-solid fa-chart-bar")
+                .action(new ColumnMenuAction<>() {
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+
+                        ItemPathType ref = null;
+                        if (getRowModel() != null) {
+                            PrismContainerValueWrapper<MappingType> valueWrapper = (PrismContainerValueWrapper<MappingType>) getRowModel().getObject();
+                            ref = getRefAttributePath(valueWrapper);
+                        }
+
+                        ResourceObjectTypeIdentification id = ResourceObjectTypeIdentification.of(objectTypeDefinitionType);
+                        ObjectTypeStatisticsActions.handleClick(
+                                target,
+                                getPageBase(),
+                                getPageBase().getSmartIntegrationService(),
+                                resourceOid,
+                                id,
+                                ref,
+                                false
+                        );
+                    }
+                })
+                .headerMenuItem(true)
+                .buildInlineMenu();
+    }
+
+    private @NotNull InlineMenuItem createFocusAttributeStatisticsMenu(ResourceObjectTypeDefinitionType objectTypeDef) {
+        boolean isOutbound = getMappingType() == MappingDirection.OUTBOUND;
+
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("SmartMappingTable.objectTypeStatistics.focusAttribute.outbound." + isOutbound))
+                .icon("fa-solid fa-chart-bar")
+                .action(new ColumnMenuAction<>() {
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+
+                        QName focusTypeName = objectTypeDef.getFocus().getType();
+
+                        if (focusTypeName == null) {
+                            getPageBase().warn("Focus type is not specified for the object type. Cannot show statistics.");
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        ItemPathType targetPath = null;
+                        if (getRowModel() != null) {
+                            PrismContainerValueWrapper<MappingType> valueWrapper =
+                                    (PrismContainerValueWrapper<MappingType>) getRowModel().getObject();
+                            MappingType mapping = valueWrapper.getRealValue();
+                            if (getMappingType() == MappingDirection.INBOUND) {
+                                if (mapping != null && mapping.getTarget() != null && mapping.getTarget().getPath() != null) {
+                                    targetPath = mapping.getTarget().getPath();
+                                }
+                            } else {
+                                if (mapping != null && mapping.getSource() != null && !mapping.getSource().isEmpty()) {
+                                    //TODO handle multiple sources
+                                    if (mapping.getSource().get(0) != null && mapping.getSource().get(0).getPath() != null) {
+                                        targetPath = mapping.getSource().get(0).getPath();
+                                    }
+                                }
+                            }
+                        }
+
+                        FocusStatisticsActions.handleClick(
+                                target,
+                                getPageBase(),
+                                getPageBase().getSmartIntegrationService(),
+                                focusTypeName,
+                                targetPath,
+                                false);
+                    }
+                })
+                .headerMenuItem(true)
+                .buildInlineMenu();
     }
 
     protected boolean isSuggestionInlineMenuVisible() {

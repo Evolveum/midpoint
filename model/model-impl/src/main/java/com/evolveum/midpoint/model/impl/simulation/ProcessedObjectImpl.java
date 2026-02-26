@@ -338,7 +338,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()),
                 ParsedMetricValues.fromEventMarks(
                         marks,
-                        List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value())),
+                        List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value())),
                 false,
                 null,
                 shadowBefore,
