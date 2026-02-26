@@ -2778,6 +2778,17 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="focusObjectStatisticsComputation" type="tns:FocusObjectStatisticsComputationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Computes statistics for focus objects of a given type (e.g. UserType, RoleType).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="createConnector" type="tns:ConnDevCreateConnectorWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -10924,6 +10935,51 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:complexType name="FocusObjectStatisticsComputationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                QName of the focus object type for which the statistics are computed (e.g. UserType, RoleType).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, the particular statistics object should be reused for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>FocusObjectStatisticsComputationWorkDefinitionType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusObjectStatisticsComputationWorkDefinition" type="tns:FocusObjectStatisticsComputationWorkDefinitionType"/>
+
+    <xsd:complexType name="FocusObjectStatisticsComputationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the statistics object used or created by this activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusObjectStatisticsComputationWorkState" type="tns:FocusObjectStatisticsComputationWorkStateType"/>
 
     <xsd:complexType name="MappingsSuggestionWorkDefinitionType">
         <xsd:annotation>
