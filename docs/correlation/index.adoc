@@ -2,22 +2,22 @@
 midpoint-feature: correlation
 doc-type: intro
 ---
-= Smart Correlation
+= Correlation
 :page-toc: top
 :page-upkeep-status: green
 
 == Introduction
 
-The "smart correlation" is a mechanism to correlate identity data to existing focus objects in the repository.
+Correlation (also known as _smart correlation_) is a mechanism to correlate identity data to existing focus objects in the repository.
 Typical use is e.g. the _resource objects correlation_ during the synchronization process, where (newly discovered) accounts on a resource are synchronized to midPoint.
 Another use will be the correlation during manual or automated registration of new users, including self-registration.
 
-The goal for _smart correlation_ is to provide a configurable correlation mechanism that can provide approximate matching.
+The goal for _correlation_ is to provide a configurable correlation mechanism that can provide approximate matching.
 Then the match can be resolved automatically based on passing defined threshold on level of confidence or it can be resolved manually by a human operator.
 
 == Configuration
 
-The smart correlation mechanism is based on _correlation rules_, technically called _correlators_.
+The correlation mechanism is based on _correlation rules_, technically called _correlators_.
 For example, a rule can state that "if the family name, date of birth, and the national-wide ID all match, then the identity is the same".
 Another rule can state that "if (only) the national-wide ID matches, then the identity is the same with the confidence level of 0.7" (whatever the number means).
 
@@ -34,7 +34,7 @@ There are the following types of correlation rules:
 [%autowidth]
 |===
 | Type | Meaning
-| `items` | Smart xref:/midpoint/reference/correlation/items-correlator/[item-based] correlation rule. The suggested one.
+| `items` | xref:/midpoint/reference/correlation/items-correlator/[Item-based] correlation rule. The suggested one.
 | `filter` | Legacy filter-based correlation rule.
 | `expression` | Experimental rule, based on an evaluation of a custom expression.
 | `idmatch` | Rule that uses an external link:https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API[ID Match] service. Please see xref:/midpoint/projects/idmatch/implementation/implementation/[this document] for more information.
@@ -193,7 +193,7 @@ An example:
 
 ==== Example 4: Correlation for Outbound Resources
 
-Smart correlation relies on inbound mapping converting resource's attribute to a property of midPoint object.
+Correlation relies on inbound mapping converting resource's attribute to a property of midPoint object.
 Such approach is perfect for inbound resources because it simplifies the configuration.
 Nevertheless, there are use cases with strictly outbound resource with existing accounts that need to be correlator.
 In such cases having an inbound mapping is not desired.
@@ -539,7 +539,7 @@ Please see xref:/midpoint/reference/correlation/multiple-identity-data-sources/[
 
 == Limitations
 
-As a general rule, when referencing a configuration related to smart correlation (including custom indexing or multi-source processing) in an object template, it must be bound to the resource object type in question via statically-defined archetype (see Listing 3 and 4 in <<Example 3: Object Template Based Correlation Definition>>).
+As a general rule, when referencing a configuration related to correlation (including custom indexing or multi-source processing) in an object template, it must be bound to the resource object type in question via statically-defined archetype (see Listing 3 and 4 in <<Example 3: Object Template Based Correlation Definition>>).
 
 Other limitations are mentioned on pages for individual sub-features:
 
