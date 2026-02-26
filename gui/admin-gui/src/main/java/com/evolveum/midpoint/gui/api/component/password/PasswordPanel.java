@@ -72,6 +72,7 @@ public class PasswordPanel extends InputPanel {
 
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
+    private static final String ID_PASSWORD_STRENGTH_METER = "passwordStrengthMeterContainer";
     private static final String ID_PASSWORD_TWO = "password2";
     private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
@@ -80,7 +81,7 @@ public class PasswordPanel extends InputPanel {
     private final PrismObject<? extends FocusType> prismObject;
     private final IModel<ProtectedStringType> passwordModel;
     protected boolean isReadOnly;
-    private boolean shouldTrimInput = false;
+    private final boolean shouldTrimInput = false;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel) {
         this(id, passwordModel, false, passwordModel == null || passwordModel.getObject() == null);
@@ -111,7 +112,7 @@ public class PasswordPanel extends InputPanel {
         super.onInitialize();
     }
 
-    protected  <F extends FocusType> void initLayout() {
+    protected <F extends FocusType> void initLayout() {
         setOutputMarkupId(true);
 
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
@@ -146,16 +147,21 @@ public class PasswordPanel extends InputPanel {
             protected boolean shouldTrimInput() {
                 return shouldTrimInput;
             }
-
-
         };
-        if (isPasswordStrengthBarVisible()) {
-            password1.add(AttributeAppender.append("onfocus", initPasswordValidation()));
-        }
         password1.setRequired(false);
         password1.add(new EnableBehaviour(this::canEditPassword));
         password1.setOutputMarkupId(true);
         inputContainer.add(password1);
+
+        final WebMarkupContainer passwordStrengthMeter = new WebMarkupContainer(ID_PASSWORD_STRENGTH_METER);
+        inputContainer.add(passwordStrengthMeter);
+
+        if (isPasswordStrengthBarVisible()) {
+            password1.add(AttributeAppender.append(
+                    "onfocus",
+                    "window.MidPointTheme." + initPasswordValidation(passwordStrengthMeter.getMarkupId(), password1.getMarkupId())
+            ));
+        }
 
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
                 new ProtectedStringModel(Model.of(new ProtectedStringType()))) {
@@ -235,9 +241,9 @@ public class PasswordPanel extends InputPanel {
         return passwordInputVisible || getParentPage().getPrincipalFocus() == null;
     }
 
-    private String initPasswordValidation() {
+    private String initPasswordValidation(final String idStrengthMeter, final String idInput) {
         return "initPasswordValidation({\n"
-                + "container: $('#progress-bar-container'),\n"
+                + "container: $('#" + idStrengthMeter + "'),\n"
                 + "hierarchy: {\n"
                 + "    '0': ['progress-bar-danger', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.veryWeak").getString() + "'],\n"
                 + "    '25': ['progress-bar-danger', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.weak").getString() + "'],\n"
@@ -245,7 +251,7 @@ public class PasswordPanel extends InputPanel {
                 + "    '75': ['progress-bar-success', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.strong").getString() + "'],\n"
                 + "    '100': ['progress-bar-success', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.veryStrong").getString() + "']\n"
                 + "}\n"
-                + "})";
+                + "}, '#" + idInput + "');";
     }
 
     private String getPasswordMatched(String password1, String password2) {

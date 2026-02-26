@@ -641,4 +641,28 @@ breakLongerTextInTableCell(cellId) {
         }
     }
 
+    /**
+     * Used for rendering strengthMeter and passwordFieldValidatorPopover for each new PasswordPanel component on page
+     *
+     * @param options contains information for strengthMeter in following format:
+     *          {
+     *          container: $('#idStrengthMeter'),
+     *          hierarchy: {
+     *                  '0': ['progress-bar-danger', 'Very weak'],
+     *                  ...
+     *                  }
+     *           }
+     * @param idInput id of the first input field for password in the PasswordPanel
+     */
+    initPasswordValidation(options, idInput) {
+        $(idInput).removeAttr("onfocus");
+
+        $(document).ready(function () {
+            $(idInput).strengthMeter('progressBar', options);
+        });
+
+        $(document).ready(function () {
+            $(idInput).passwordFieldValidatorPopover(idInput, ".password-validator-popover");
+        });
+    };
 }
