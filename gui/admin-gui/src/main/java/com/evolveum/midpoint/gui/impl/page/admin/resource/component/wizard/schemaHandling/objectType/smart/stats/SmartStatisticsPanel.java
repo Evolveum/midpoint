@@ -3,7 +3,7 @@
  *
  * Licensed under the EUPL-1.2 or later.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
@@ -12,8 +12,6 @@ import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.ObjectClassStatisticsButton;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.ObjectTypeStatisticsButton;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -107,17 +105,26 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     private final String resourceOid;
     private final QName objectClassName;
     private final ResourceObjectTypeIdentification objectTypeIdentification;
+    QName focusType;
 
     private boolean isAttributeTuple = false;
 
     private IModel<ShadowAttributeTupleStatisticsType> selectedTuple;
     private IModel<ShadowAttributeStatisticsType> selectedAttribute;
 
+    PanelType panelType;
+
+    enum PanelType {
+        OBJECT_CLASS, FOCUS, OBJECT_TYPE
+    }
+
     public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, String resourceOid, QName objectClassName) {
         super(id, model);
         this.resourceOid = resourceOid;
         this.objectClassName = objectClassName;
         this.objectTypeIdentification = null;
+        this.focusType = null;
+        this.panelType = PanelType.OBJECT_CLASS;
     }
 
     public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, String resourceOid, ResourceObjectTypeIdentification objectTypeIdentification) {
@@ -125,6 +132,17 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         this.resourceOid = resourceOid;
         this.objectClassName = null;
         this.objectTypeIdentification = objectTypeIdentification;
+        this.focusType = null;
+        this.panelType = PanelType.OBJECT_TYPE;
+    }
+
+    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, QName focusType) {
+        super(id, model);
+        this.objectClassName = null;
+        this.resourceOid = null;
+        this.objectTypeIdentification = null;
+        this.focusType = focusType;
+        this.panelType = PanelType.FOCUS;
     }
 
     @Override
@@ -579,10 +597,18 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     @Override
     public IModel<String> getTitle() {
-        String display = objectTypeIdentification != null
-                ? objectTypeIdentification.getKind() + "/" + objectTypeIdentification.getIntent()
-                : objectClassName.getLocalPart();
-        return createStringResource("SmartStatisticsPanel.title", display);
+        if (panelType == PanelType.FOCUS) {
+            return createStringResource("SmartStatisticsPanel.title.focus", focusType.getLocalPart());
+        } else if (panelType == PanelType.OBJECT_TYPE) {
+            return createStringResource("SmartStatisticsPanel.title.objectType",
+                    objectTypeIdentification != null
+                            ? objectTypeIdentification.getKind() + "/" + objectTypeIdentification.getIntent()
+                            : "");
+        } else if (panelType == PanelType.OBJECT_CLASS) {
+            return createStringResource("SmartStatisticsPanel.title.objectClass", objectClassName.getLocalPart());
+        }
+
+        return createStringResource("SmartStatisticsPanel.title");
     }
 
     @Override
@@ -607,7 +633,10 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         header.add(new Label(ID_HEADER_PRIMARY_TITLE, getTitle()));
         header.add(new Label(ID_HEADER_SECONDARY_TITLE, secondaryTitle).setVisible(secondaryTitle != null));
 
-        if (objectTypeIdentification == null && objectClassName != null) {
+        if (panelType == PanelType.FOCUS) {
+            FocusStatisticsButton statisticsButton = buildFocusStatisticsButton();
+            header.add(statisticsButton);
+        } else if (panelType == PanelType.OBJECT_CLASS) {
             ObjectClassStatisticsButton statisticsButton = buildObjectClassStatisticsButton();
             header.add(statisticsButton);
         } else {
@@ -647,6 +676,28 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             @Override
             protected IModel<String> getMainButtonLabel() {
                 return createStringResource("SmartStatisticsPanel.regenerateStatistics");
+            }
+        };
+        statisticsButton.setOutputMarkupId(true);
+        return statisticsButton;
+    }
+
+    protected FocusStatisticsButton buildFocusStatisticsButton() {
+        FocusStatisticsButton statisticsButton = new FocusStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
+                () -> focusType) {
+            @Override
+            protected boolean forceRegeneration() {
+                return true;
+            }
+
+            @Override
+            protected IModel<String> getMainButtonLabel() {
+                return createStringResource("SmartStatisticsPanel.regenerateStatistics");
+            }
+
+            @Override
+            protected ItemPathType getPreselectedAttribute() {
+                return getDefaultSelectedAttributePath();
             }
         };
         statisticsButton.setOutputMarkupId(true);

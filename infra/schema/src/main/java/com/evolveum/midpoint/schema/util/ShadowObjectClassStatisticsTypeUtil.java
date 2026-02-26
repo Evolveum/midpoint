@@ -39,6 +39,16 @@ public class ShadowObjectClassStatisticsTypeUtil {
         return statistics;
     }
 
+    public static ShadowObjectClassStatisticsType getFocusStatisticsRequired(GenericObjectType holder) {
+        ShadowObjectClassStatisticsType statistics = MiscUtil.argNonNull(
+                getExtensionItemRealValue(holder.asPrismObject().asObjectable().getExtension(),
+                        MODEL_EXTENSION_FOCUS_OBJECT_STATISTICS),
+                "No statistics in %s", holder);
+        statistics.getAttribute();
+        statistics.getAttributeTuple();
+        return statistics;
+    }
+
     public static ShadowObjectClassStatisticsType getStatisticsRequired(GenericObjectType holder) {
         return getStatisticsRequired(holder.asPrismObject());
     }
