@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgres
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 
 import com.evolveum.midpoint.task.api.Task;
@@ -101,7 +102,7 @@ public final class ObjectTypeStatisticsActions {
             ItemPathType preSelectedRefAttribute) throws SchemaException {
 
         ShadowObjectClassStatisticsType statistics =
-                ShadowObjectClassStatisticsTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
+                ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
 
         SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
                 pageBase.getMainPopupBodyId(),

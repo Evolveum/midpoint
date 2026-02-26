@@ -160,7 +160,7 @@ In your correlation rules list, at the bottom of the page:
 . Click [.nowrap]#icon:play[] btn:[Run simulation]#.
 . Wait for the simulation to finish, and check the results. You can see how many resource objects were matched by each correlation rule, and which focal objects they were matched to.
 +
-TIP: You can always review the simulation results in your correlation rules by clicking the dropdown menu for [.nowrap]#icon:eye[] btn:[Simulate]#.
+TIP: You can always review the simulation results in your correlation rules by clicking the dropdown menu for [.nowrap]#icon:flask[] btn:[Simulate]#.
 
 == Troubleshooting
 

@@ -22,9 +22,11 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -435,44 +437,39 @@ public class CorrelationUtil {
                 .orElse(null);
     }
 
-    public static @NotNull IModel<List<ResourceObjectOwnerOptionType>> getCorrelationCandidateModel(
-            @NotNull ProcessedObject<?> processedObject) {
+    public static ShadowType getShadowAfterChanges(ProcessedObject<ShadowType> processedObject) {
+        return Optional.ofNullable(processedObject.getAfter())
+                .orElseGet(() -> Optional.ofNullable(processedObject.getDelta())
+                        .filter(delta -> !delta.isEmpty())
+                        .map(delta -> {
+                            try {
+                                final PrismObject<ShadowType> prismShadowAfter = processedObject.getBefore()
+                                        .asPrismObject().mutableCopy();
+                                delta.applyTo(prismShadowAfter);
+                                return prismShadowAfter.asObjectable();
+                            } catch (SchemaException e) {
+                                throw SystemException.unexpected(e, "Unable to apply delta from simulation to \"before\" "
+                                        + "object ");
+                            }
+                        })
+                        .orElseGet(processedObject::getBefore));
+    }
+
+    public static @NotNull IModel<List<ResourceObjectOwnerOptionType>> getCorrelationCandidateModel(ShadowType shadow) {
         return new LoadableDetachableModel<>() {
 
             @Override
             protected List<ResourceObjectOwnerOptionType> load() {
-                @Nullable ObjectDelta<?> delta = processedObject.getDelta();
-                List<ResourceObjectOwnerOptionType> optionList = parseResourceObjectOwnerOptionsFromDelta(delta);
-                if (optionList != null) {return optionList;}
-                return Collections.emptyList();
+                return Optional.ofNullable(shadow.getCorrelation().getOwnerOptions())
+                        .map(ResourceObjectOwnerOptionsType::getOption)
+                        .orElseGet(Collections::emptyList);
             }
         };
     }
 
-    public static @NotNull List<String> findCorrelatedOwners(@Nullable ObjectDelta<?> delta) {
-        List<String> correlatedOwnersOid = new ArrayList<>();
-        try {
-            if (delta != null) {
-                ItemPath path = ShadowType.F_CORRELATION
-                        .append(ShadowCorrelationStateType.F_RESULTING_OWNER);
-
-                ItemDelta<?, ?> itemDelta = delta.findItemDelta(path);
-                if (itemDelta == null) {
-                    return correlatedOwnersOid;
-                }
-                if (itemDelta instanceof ReferenceDelta referenceDelta) {
-                    Collection<PrismReferenceValue> valuesToReplace = referenceDelta.getValuesToReplace();
-                    if (valuesToReplace != null) {
-                        for (PrismReferenceValue value : valuesToReplace) {
-                            correlatedOwnersOid.add(value.getOid());
-                        }
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            LOGGER.error("Error retrieving correlated owners from delta: {}", ex.getMessage(), ex);
-        }
-        return correlatedOwnersOid;
+    public static Optional<String> getCorrelatedOwner(ShadowType shadow) {
+        return Optional.ofNullable(shadow.getCorrelation().getResultingOwner())
+                .map(AbstractReferencable::getOid);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -544,7 +541,7 @@ public class CorrelationUtil {
     public static @NotNull CandidateDisplayData createCandidateDisplay(
             @NotNull PageBase pageBase,
             @NotNull List<ResourceObjectOwnerOptionType> candidates,
-            @NotNull List<String> correlatedOwnersOid) {
+            @Nullable String correlatedOwnersOid) {
         int count = candidates.size();
         CorrelationStatus state = CorrelationStatus.fromCount(count);
 
@@ -556,13 +553,13 @@ public class CorrelationUtil {
             return new CandidateDisplayData(name, GuiStyleConstants.CLASS_OBJECT_USER_ICON);
 
         } else if (state.equals(UNCERTAIN)) {
-            if (!correlatedOwnersOid.isEmpty()) {
+            if (correlatedOwnersOid != null) {
                 StringBuilder ownerNames = new StringBuilder();
                 ownerNames.append(pageBase.getString("CandidateDisplayData.matched.owner"));
                 ownerNames.append(" ");
                 for (ResourceObjectOwnerOptionType candidate : candidates) {
                     String candidateOid = candidate.getCandidateOwnerRef().getOid();
-                    if (correlatedOwnersOid.contains(candidateOid)) {
+                    if (correlatedOwnersOid.equals(candidateOid)) {
                         String name = WebModelServiceUtils.resolveReferenceName(
                                 candidate.getCandidateOwnerRef(), pageBase);
                         ownerNames.append(name);

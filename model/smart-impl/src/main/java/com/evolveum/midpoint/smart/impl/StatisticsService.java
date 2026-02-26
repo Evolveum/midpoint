@@ -21,8 +21,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -455,13 +457,21 @@ public class StatisticsService {
     }
 
     /**
-     * Returns the object holding last known statistics for the given focus object type.
+     * Returns the object holding last known statistics for the given focus object type and resource/kind/intent.
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
-    public GenericObjectType getLatestFocusObjectStatistics(QName objectTypeName, OperationResult parentResult)
+    public GenericObjectType getLatestFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_FOCUS_OBJECT_STATISTICS)
                 .addParam("objectTypeName", objectTypeName)
+                .addParam("resourceOid", resourceOid)
+                .addParam("kind", kind.value())
+                .addParam("intent", intent)
                 .build();
         try {
             var objects = repositoryService.searchObjects(
@@ -469,6 +479,12 @@ public class StatisticsService {
                     PrismContext.get().queryFor(GenericObjectType.class)
                             .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_FOCUS_OBJECT_TYPE_NAME)
                             .eq(objectTypeName.getLocalPart())
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
+                            .eq(resourceOid)
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
+                            .eq(kind.value())
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
+                            .eq(intent)
                             .build(),
                     null,
                     result);
@@ -499,9 +515,17 @@ public class StatisticsService {
         }
     }
 
-    public void deleteFocusObjectStatistics(QName objectTypeName, OperationResult parentResult) throws SchemaException {
+    public void deleteFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult parentResult) throws SchemaException {
         var result = parentResult.subresult("deleteFocusObjectStatistics")
                 .addParam("objectTypeName", objectTypeName)
+                .addParam("resourceOid", resourceOid)
+                .addParam("kind", kind.value())
+                .addParam("intent", intent)
                 .build();
         try {
             var objects = repositoryService.searchObjects(
@@ -509,6 +533,12 @@ public class StatisticsService {
                     PrismContext.get().queryFor(GenericObjectType.class)
                             .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_FOCUS_OBJECT_TYPE_NAME)
                             .eq(objectTypeName.getLocalPart())
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
+                            .eq(resourceOid)
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
+                            .eq(kind.value())
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
+                            .eq(intent)
                             .build(),
                     null,
                     result);
@@ -531,16 +561,22 @@ public class StatisticsService {
     /**
      * Starts regeneration of statistics for the given focus object type.
      *
-     * <p>If a statistics computation task for the same object type
+     * <p>If a statistics computation task for the same object type and resource/kind/intent
      * is already running, its task OID is returned and no new task is started.
      * Otherwise, existing statistics are deleted and a new computation task
      * is submitted.</p>
      *
      * @return OID of the running or newly created statistics computation task
      */
-    public @NotNull String regenerateFocusObjectStatistics(QName objectTypeName,
-            Task task, OperationResult parentResult) throws CommonException {
-        String runningTaskOid = findRunningFocusObjectStatisticsComputationTaskOid(objectTypeName, parentResult, task);
+    public @NotNull String regenerateFocusObjectStatistics(
+            @NotNull QName objectTypeName,
+            @NotNull String resourceOid,
+            @NotNull ShadowKindType kind,
+            @NotNull String intent,
+            Task task,
+            OperationResult parentResult) throws CommonException {
+        String runningTaskOid = findRunningFocusObjectStatisticsComputationTaskOid(
+                objectTypeName, resourceOid, kind, intent, parentResult, task);
         if (runningTaskOid != null) {
             LOGGER.debug("There is already a running focus object statistics computation task (OID {}) for type {};"
                             + " will not start another one",
@@ -550,16 +586,22 @@ public class StatisticsService {
 
         var result = parentResult.subresult(OP_SUBMIT_FOCUS_OBJECT_STATISTICS_COMPUTATION)
                 .addParam("objectTypeName", objectTypeName)
+                .addParam("resourceOid", resourceOid)
+                .addParam("kind", kind.value())
+                .addParam("intent", intent)
                 .build();
 
         try {
-            deleteFocusObjectStatistics(objectTypeName, parentResult);
+            deleteFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, parentResult);
 
             var oid = modelInteractionService.submit(
                     new ActivityDefinitionType()
                             .work(new WorkDefinitionsType()
                                     .focusObjectStatisticsComputation(new FocusObjectStatisticsComputationWorkDefinitionType()
-                                            .type(objectTypeName))),
+                                            .type(objectTypeName)
+                                            .resourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE))
+                                            .kind(kind)
+                                            .intent(intent))),
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
                             .name("Regenerate focus object statistics for " + objectTypeName.getLocalPart())
                             .cleanupAfterCompletion(DEFAULT_STATISTICS_TTL)),
@@ -576,9 +618,14 @@ public class StatisticsService {
         }
     }
 
-    /** Returns OID of running focus object statistics computation task for given type, or null if there is none. */
-    private @Nullable String findRunningFocusObjectStatisticsComputationTaskOid(QName objectTypeName,
-            OperationResult result, Task task) throws CommonException {
+    /** Returns OID of running focus object statistics computation task for given type and resource/kind/intent, or null if there is none. */
+    private @Nullable String findRunningFocusObjectStatisticsComputationTaskOid(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult result,
+            Task task) throws CommonException {
 
         var query = PrismContext.get().queryFor(TaskType.class)
                 .item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.RUNNING)
@@ -603,7 +650,10 @@ public class StatisticsService {
                 return true;
             }
 
-            if (objectTypeName.equals(def.getType())) {
+            if (objectTypeName.equals(def.getType())
+                    && resourceOid.equals(Referencable.getOid(def.getResourceRef()))
+                    && kind.equals(def.getKind())
+                    && intent.equals(def.getIntent())) {
                 foundOidRef.set(taskBean.getOid());
                 return false;
             }

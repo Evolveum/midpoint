@@ -31,6 +31,9 @@ import javax.xml.namespace.QName;
 public class FocusObjectStatisticsComputationWorkDefinition extends AbstractWorkDefinition {
 
     private final @NotNull QName objectType;
+    private final @NotNull String resourceOid;
+    private final @NotNull ShadowKindType kind;
+    private final @NotNull String intent;
     @Nullable private final String statisticsObjectOid;
 
     public FocusObjectStatisticsComputationWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
@@ -41,11 +44,32 @@ public class FocusObjectStatisticsComputationWorkDefinition extends AbstractWork
                 typed.getType(),
                 "No object type specified");
 
+        resourceOid = configNonNull(
+                Referencable.getOid(typed.getResourceRef()),
+                "No resource OID specified");
+        kind = configNonNull(
+                typed.getKind(),
+                "No shadow kind specified");
+        intent = configNonNull(
+                typed.getIntent(),
+                "No shadow intent specified");
         statisticsObjectOid = Referencable.getOid(typed.getStatisticsRef());
     }
 
     public @NotNull QName getObjectType() {
         return objectType;
+    }
+
+    public @NotNull String getResourceOid() {
+        return resourceOid;
+    }
+
+    public @NotNull ShadowKindType getKind() {
+        return kind;
+    }
+
+    public @NotNull String getIntent() {
+        return intent;
     }
 
     public @Nullable String getStatisticsObjectOid() {
@@ -63,6 +87,9 @@ public class FocusObjectStatisticsComputationWorkDefinition extends AbstractWork
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "objectType", objectType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", resourceOid, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "kind", kind, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "intent", intent, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "statisticsObjectOid", statisticsObjectOid, indent + 1);
     }
 }

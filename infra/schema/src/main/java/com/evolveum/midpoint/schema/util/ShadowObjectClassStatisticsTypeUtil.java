@@ -29,26 +29,6 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.setExtensionPrope
  */
 public class ShadowObjectClassStatisticsTypeUtil {
 
-    public static ShadowObjectClassStatisticsType getObjectTypeStatisticsRequired(GenericObjectType holder) {
-        ShadowObjectClassStatisticsType statistics = MiscUtil.argNonNull(
-                getExtensionItemRealValue(holder.asPrismObject().asObjectable().getExtension(),
-                        MODEL_EXTENSION_OBJECT_TYPE_STATISTICS),
-                "No statistics in %s", holder);
-        statistics.getAttribute();
-        statistics.getAttributeTuple();
-        return statistics;
-    }
-
-    public static ShadowObjectClassStatisticsType getFocusStatisticsRequired(GenericObjectType holder) {
-        ShadowObjectClassStatisticsType statistics = MiscUtil.argNonNull(
-                getExtensionItemRealValue(holder.asPrismObject().asObjectable().getExtension(),
-                        MODEL_EXTENSION_FOCUS_OBJECT_STATISTICS),
-                "No statistics in %s", holder);
-        statistics.getAttribute();
-        statistics.getAttributeTuple();
-        return statistics;
-    }
-
     public static ShadowObjectClassStatisticsType getStatisticsRequired(GenericObjectType holder) {
         return getStatisticsRequired(holder.asPrismObject());
     }
@@ -71,24 +51,6 @@ public class ShadowObjectClassStatisticsTypeUtil {
         var holderPcv = object.asPrismContainerValue();
         setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, resourceOid);
         setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, objectClassName.getLocalPart());
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
-        return object;
-    }
-
-    public static @NotNull GenericObjectType createObjectTypeStatisticsObject(
-            String resourceOid,
-            String resourceName,
-            @NotNull ShadowKindType kind,
-            String intent,
-            @NotNull ShadowObjectClassStatisticsType statistics)
-            throws SchemaException {
-        var object = new GenericObjectType()
-                .name("Statistics for %s:%s (%s)".formatted(
-                        resourceName, kind.value() + ":" + intent, statistics.getTimestamp()));
-        var holderPcv = object.asPrismContainerValue();
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, resourceOid);
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_KIND_NAME, kind.value());
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_INTENT_NAME, intent);
         setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
         return object;
     }
