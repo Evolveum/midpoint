@@ -302,21 +302,37 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public GenericObjectType getLatestFocusObjectStatistics(QName objectTypeName, OperationResult parentResult)
+    public GenericObjectType getLatestFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult parentResult)
             throws SchemaException {
-        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, parentResult);
+        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, parentResult);
     }
 
     @Override
-    public void deleteFocusObjectStatistics(QName objectTypeName, OperationResult result)
+    public void deleteFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult result)
             throws SchemaException {
-        statisticsService.deleteFocusObjectStatistics(objectTypeName, result);
+        statisticsService.deleteFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, result);
     }
 
     @Override
-    public String regenerateFocusObjectStatistics(QName objectTypeName, Task task, OperationResult result)
+    public String regenerateFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            Task task,
+            OperationResult result)
             throws CommonException {
-        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, task, result);
+        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, task, result);
     }
 
     public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)

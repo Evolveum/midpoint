@@ -10947,6 +10947,32 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource reference to filter focuses. Only focuses that have shadows
+                                on this resource will be processed.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>FocusObjectStatisticsComputationWorkDefinitionType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="kind" type="tns:ShadowKindType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Shadow kind to filter focuses. Only focuses that have shadows of this kind will be processed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="intent" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Shadow intent to filter focuses. Only focuses that have shadows with this intent will be processed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

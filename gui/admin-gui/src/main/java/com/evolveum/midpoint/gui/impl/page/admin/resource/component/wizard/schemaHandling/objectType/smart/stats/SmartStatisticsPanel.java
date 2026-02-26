@@ -106,6 +106,8 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     private final QName objectClassName;
     private final ResourceObjectTypeIdentification objectTypeIdentification;
     QName focusType;
+    private final ShadowKindType kind;
+    private final String intent;
 
     private boolean isAttributeTuple = false;
 
@@ -124,6 +126,8 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         this.objectClassName = objectClassName;
         this.objectTypeIdentification = null;
         this.focusType = null;
+        this.kind = null;
+        this.intent = null;
         this.panelType = PanelType.OBJECT_CLASS;
     }
 
@@ -133,15 +137,19 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         this.objectClassName = null;
         this.objectTypeIdentification = objectTypeIdentification;
         this.focusType = null;
+        this.kind = null;
+        this.intent = null;
         this.panelType = PanelType.OBJECT_TYPE;
     }
 
-    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, QName focusType) {
+    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, String resourceOid, ShadowKindType kind, String intent, QName focusType) {
         super(id, model);
         this.objectClassName = null;
-        this.resourceOid = null;
+        this.resourceOid = resourceOid;
         this.objectTypeIdentification = null;
         this.focusType = focusType;
+        this.kind = kind;
+        this.intent = intent;
         this.panelType = PanelType.FOCUS;
     }
 
@@ -684,7 +692,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     protected FocusStatisticsButton buildFocusStatisticsButton() {
         FocusStatisticsButton statisticsButton = new FocusStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
-                () -> focusType) {
+                () -> focusType, () -> resourceOid, () -> kind, () -> intent) {
             @Override
             protected boolean forceRegeneration() {
                 return true;

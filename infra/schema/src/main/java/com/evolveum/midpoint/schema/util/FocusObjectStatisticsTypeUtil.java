@@ -35,13 +35,20 @@ public class FocusObjectStatisticsTypeUtil {
     }
 
     public static @NotNull GenericObjectType createFocusObjectStatisticsObject(
-            String objectTypeName, ShadowObjectClassStatisticsType statistics)
+            String objectTypeName, 
+            String resourceOid,
+            String kind,
+            String intent,
+            ShadowObjectClassStatisticsType statistics)
             throws SchemaException {
         var object = new GenericObjectType()
-                .name("Focus object statistics for %s (%s)".formatted(
-                        objectTypeName, statistics.getTimestamp()));
+                .name("Focus object statistics for %s on %s/%s/%s (%s)".formatted(
+                        objectTypeName, resourceOid, kind, intent, statistics.getTimestamp()));
         var holderPcv = object.asPrismContainerValue();
         setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_FOCUS_OBJECT_TYPE_NAME, objectTypeName);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, resourceOid);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_KIND_NAME, kind);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_INTENT_NAME, intent);
         setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_FOCUS_OBJECT_STATISTICS, statistics);
         return object;
     }
