@@ -57,7 +57,7 @@ public class ConnDevBeans {
             trustAllContext = SSLContexts.custom()
                     .loadTrustMaterial(null, new TrustAllStrategy())
                     .build();
-            var timeout = 5000;
+            var timeout = 120_000;
             var defaultConfig = ConnectionConfig.custom()
                     .setConnectTimeout(timeout, TimeUnit.MILLISECONDS)
                     .setSocketTimeout(timeout, TimeUnit.MILLISECONDS)

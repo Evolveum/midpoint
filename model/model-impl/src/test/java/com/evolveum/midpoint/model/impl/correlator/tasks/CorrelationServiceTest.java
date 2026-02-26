@@ -11,6 +11,7 @@ import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,15 +22,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
-import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.impl.AbstractEmptyInternalModelTest;
-import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
-import com.evolveum.midpoint.model.impl.correlator.TestingAccount;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,17 +45,15 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
 
     private static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR,
             "correlator/correlation/task");
-    private static final DummyTestResource DUMMY_RESOURCE = new DummyTestResource(
-            TEST_DIR, "dummy-resource.xml", "4a7f6b3e-64cc-4cd9-b5ba-64ecc47d7d10", "correlation",
-            CorrelatorTestUtil::createAttributeDefinitions);
-    private static final File USERS = new File(TEST_DIR, "users.xml");
     private static final File ACCOUNT = new File(TEST_DIR, "account.csv");
+    private static final File USERS = new File(TEST_DIR, "users.xml");
     private static final File CORRELATOR = new File(TEST_DIR, "item-correlator.xml");
     private static final File FAMILY_NAME_CORRELATOR = new File(TEST_DIR, "family-name-correlator.xml");
     private static final File PERSONAL_NUMBER_CORRELATOR = new File(TEST_DIR, "personal-number-correlator.xml");
 
     @Autowired
     private CorrelationService correlationService;
+    private DummyTestResource resource;
 
     @DataProvider
     public static Object[] mappingPhases() {
@@ -83,28 +76,26 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        this.resource = DummyTestResource.fromFile(TEST_DIR, "dummy-resource.xml",
+                        "4a7f6b3e-64cc-4cd9-b5ba-64ecc47d7d10", "correlation").withAccountsFromCsv(ACCOUNT);
     }
 
     @BeforeMethod
     public void initDummyResource() throws Exception {
-        DUMMY_RESOURCE.initWithOverwrite(this, getTestTask(), getTestOperationResult());
+        this.resource.initWithOverwrite(this, getTestTask(), getTestOperationResult());
     }
 
     @Test(dataProvider = "defaultEvalPhases")
     void ShadowHasOneFocusCounterpart_correlateShadow_focusShouldBeInCandidateOwners(
-            ResourceMappingsEvaluationConfigurationType defaultEvalPhaseConfig)
-            throws ConflictException, ObjectDoesNotExistException, IOException, SchemaViolationException,
-            InterruptedException, ObjectAlreadyExistsException, CommonException {
+            ResourceMappingsEvaluationConfigurationType defaultEvalPhaseConfig) throws IOException, CommonException {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
         given("Default mappings evaluation phase is %s".formatted(describePhase(defaultEvalPhaseConfig)));
         configureDefaultEvalPhase(defaultEvalPhaseConfig, task, result);
         and("Resource contains account.");
-        DUMMY_RESOURCE.controller.getDummyResource().clear();
-        CorrelatorTestUtil.addAccountsFromCsvFile(this, ACCOUNT, DUMMY_RESOURCE);
-        final List<TestingAccount> allAccounts = CorrelatorTestUtil.getAllAccounts(this, DUMMY_RESOURCE,
-                TestingAccount::new, task, result);
+        final Collection<ShadowType> allAccounts = this.resource.getAccounts(this, this::listAccounts)
+                .shadows(task, result);
 
         and("Users matching correlation rule exists.");
         importObjectsFromFileNotRaw(USERS, task, result);
@@ -113,7 +104,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
         final CorrelationDefinitionType correlationDefinition = createCorrelationDefinition(CORRELATOR);
 
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(
-                allAccounts.get(0).getShadow(), correlationDefinition, Collections.emptyList(), task, result);
+                allAccounts.iterator().next(), correlationDefinition, Collections.emptyList(), task, result);
 
         then("User should be correlated as shadow's candidate owner.");
         final List<UserType> candidates = correlationResult.getAllCandidates(UserType.class);
@@ -128,17 +119,13 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
      */
     @Test(dataProvider = "mappingPhases")
     void attributeMappedByCorrelationMappingIsUndefined_correlateShadowWithAdditionalMapping_candidateOwnersShouldBeFound(
-            InboundMappingEvaluationPhaseType mappingPhase)
-            throws ConflictException, ObjectDoesNotExistException, IOException, SchemaViolationException,
-            InterruptedException, ObjectAlreadyExistsException, CommonException {
+            InboundMappingEvaluationPhaseType mappingPhase) throws IOException, CommonException {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
         given("Resource contains account.");
-        DUMMY_RESOURCE.controller.getDummyResource().clear();
-        CorrelatorTestUtil.addAccountsFromCsvFile(this, ACCOUNT, DUMMY_RESOURCE);
-        final List<TestingAccount> allAccounts = CorrelatorTestUtil.getAllAccounts(this, DUMMY_RESOURCE,
-                TestingAccount::new, task, result);
+        final Collection<ShadowType> allAccounts = this.resource.getAccounts(this, this::listAccounts)
+                .shadows(task, result);
 
         and("Users matching correlation rule exists.");
         importObjectsFromFileNotRaw(USERS, task, result);
@@ -153,7 +140,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
                 .toItem("familyName");
 
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(
-                allAccounts.get(0).getShadow(), correlationDefinition, List.of(additionalMapping), task, result);
+                allAccounts.iterator().next(), correlationDefinition, List.of(additionalMapping), task, result);
 
         then("User should be correlated as shadow's candidate owner.");
         final List<UserType> candidates = correlationResult.getAllCandidates(UserType.class);
@@ -168,16 +155,13 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
      */
     @Test
     void itemMappingUsedByCorrelationIsMissing_correlateShadowWithAdditionalMapping_candidateOwnersShouldBeFound()
-            throws ConflictException, ObjectDoesNotExistException, IOException, SchemaViolationException,
-            InterruptedException, ObjectAlreadyExistsException, CommonException {
+            throws IOException, CommonException {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
         given("Resource contains account.");
-        DUMMY_RESOURCE.controller.getDummyResource().clear();
-        CorrelatorTestUtil.addAccountsFromCsvFile(this, ACCOUNT, DUMMY_RESOURCE);
-        final List<TestingAccount> allAccounts = CorrelatorTestUtil.getAllAccounts(this, DUMMY_RESOURCE,
-                TestingAccount::new, task, result);
+        final Collection<ShadowType> allAccounts = this.resource.getAccounts(this, this::listAccounts)
+                .shadows(task, result);
 
         and("Users matching correlation rule exists.");
         importObjectsFromFileNotRaw(USERS, task, result);
@@ -189,7 +173,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
                 .toItem("personalNumber");
 
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(
-                allAccounts.get(0).getShadow(), correlationDefinition, List.of(additionalMapping), task, result);
+                allAccounts.iterator().next(), correlationDefinition, List.of(additionalMapping), task, result);
 
         then("User should be correlated as shadow's candidate owner.");
         final List<UserType> candidates = correlationResult.getAllCandidates(UserType.class);
@@ -210,13 +194,13 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
             throws com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException, ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
-        final Long id = DUMMY_RESOURCE.get().asObjectable().getSchemaHandling().getObjectType().get(0).getId();
+        final Long id = this.resource.get().asObjectable().getSchemaHandling().getObjectType().get(0).getId();
         executeChanges(this.prismContext.deltaFor(ResourceType.class)
                 .item(ItemPath.create(ResourceType.F_SCHEMA_HANDLING,
                         SchemaHandlingType.F_OBJECT_TYPE, id,
                         ResourceObjectTypeDefinitionType.F_MAPPINGS_EVALUATION))
                 .add(defaultEvalPhase)
-                .asObjectDelta(DUMMY_RESOURCE.oid), null, task, result);
+                .asObjectDelta(this.resource.oid), null, task, result);
     }
 
     private static AdditionalMappingInPhase mappingWithoutPhase() {

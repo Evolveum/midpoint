@@ -266,6 +266,18 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
+    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
+            throws SchemaException {
+        return statisticsService.getLatestObjectTypeStatistics(resourceOid, kind, intent, parentResult);
+    }
+
+    @Override
+    public void deleteObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult result)
+            throws SchemaException {
+        statisticsService.deleteObjectTypeStatistics(resourceOid, kind, intent, result);
+    }
+
+    @Override
     public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
             throws SchemaException {
         return statisticsService.getLatestStatistics(resourceOid, objectClassName, parentResult);
@@ -276,6 +288,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
             throws CommonException {
         return statisticsService.regenerateObjectClassStatistics(resourceOid, objectClassName, task, parentResult);
+    }
+
+    @Override
+    public String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Task task, OperationResult result) throws CommonException {
+        return statisticsService.regenerateObjectTypeStatistics(resourceOid, resourceObjectTypeIdentification, task, result);
     }
 
     @Override

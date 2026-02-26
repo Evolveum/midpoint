@@ -13,8 +13,10 @@ import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.ObjectTypeStatisticsButton;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -104,6 +106,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     private final String resourceOid;
     private final QName objectClassName;
+    private final ResourceObjectTypeIdentification objectTypeIdentification;
 
     private boolean isAttributeTuple = false;
 
@@ -114,6 +117,14 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         super(id, model);
         this.resourceOid = resourceOid;
         this.objectClassName = objectClassName;
+        this.objectTypeIdentification = null;
+    }
+
+    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, String resourceOid, ResourceObjectTypeIdentification objectTypeIdentification) {
+        super(id, model);
+        this.resourceOid = resourceOid;
+        this.objectClassName = null;
+        this.objectTypeIdentification = objectTypeIdentification;
     }
 
     @Override
@@ -141,6 +152,14 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             }
         };
 
+        ItemPathType defaultPath = getDefaultSelectedAttributePath();
+        if (defaultPath != null) {
+            ShadowAttributeStatisticsType def = findAttributeByPath(getModelObject(), defaultPath);
+            if (def != null) {
+                selectedAttribute.setObject(def);
+            }
+        }
+
         //temporary
         renderListViewRows(getModelObject(), true);
         renderListViewRows(getModelObject(), false);
@@ -151,8 +170,14 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                 ? statistics.getAttributeTuple().stream().map(this::toTupleRow)
                 : statistics.getAttribute().stream().map(item -> toAttributeRow(item, statistics));
 
+        Object selected = isAttributeTuple ? selectedTuple.getObject() : selectedAttribute.getObject();
+
         return rows
-                .sorted(Comparator.comparingInt((ListViewRow r) -> extractCount(r.subText.getObject())).reversed())
+                .sorted(Comparator
+                        // selected first (false < true)
+                        .comparing((ListViewRow r) -> !r.item.equals(selected))
+                        // then by count desc
+                        .thenComparing((ListViewRow r) -> extractCount(r.subText.getObject()), Comparator.reverseOrder()))
                 .peek(this::initInitialSelection)
                 .collect(Collectors.toList());
     }
@@ -444,7 +469,6 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                 return provider.size() == 0;
             }
 
-
             @Override
             protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
                 return createStringResource("SmartStatisticsPanel.noValuePanel.customSubTitle");
@@ -555,7 +579,10 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("SmartStatisticsPanel.title", objectClassName.getLocalPart());
+        String display = objectTypeIdentification != null
+                ? objectTypeIdentification.getKind() + "/" + objectTypeIdentification.getIntent()
+                : objectClassName.getLocalPart();
+        return createStringResource("SmartStatisticsPanel.title", display);
     }
 
     @Override
@@ -579,6 +606,37 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         Fragment header = new Fragment(SmartStatisticsPanel.ID_HEADER_FRAGMENT, ID_HEADER_FRAGMENT, this);
         header.add(new Label(ID_HEADER_PRIMARY_TITLE, getTitle()));
         header.add(new Label(ID_HEADER_SECONDARY_TITLE, secondaryTitle).setVisible(secondaryTitle != null));
+
+        if (objectTypeIdentification == null && objectClassName != null) {
+            ObjectClassStatisticsButton statisticsButton = buildObjectClassStatisticsButton();
+            header.add(statisticsButton);
+        } else {
+            ObjectTypeStatisticsButton statisticsButton = buildObjectTypeStatisticsButton();
+            header.add(statisticsButton);
+        }
+
+        header.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1 mt-1"));
+        return header;
+    }
+
+    private @NotNull ObjectTypeStatisticsButton buildObjectTypeStatisticsButton() {
+        ObjectTypeStatisticsButton statisticsButton = new ObjectTypeStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
+                () -> objectTypeIdentification, resourceOid) {
+            @Override
+            protected boolean forceRegeneration() {
+                return true;
+            }
+
+            @Override
+            protected IModel<String> getMainButtonLabel() {
+                return createStringResource("SmartStatisticsPanel.regenerateStatistics");
+            }
+        };
+        statisticsButton.setOutputMarkupId(true);
+        return statisticsButton;
+    }
+
+    private @NotNull ObjectClassStatisticsButton buildObjectClassStatisticsButton() {
         ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
                 () -> objectClassName, resourceOid) {
             @Override
@@ -591,12 +649,8 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                 return createStringResource("SmartStatisticsPanel.regenerateStatistics");
             }
         };
-        header.add(statisticsButton);
-
         statisticsButton.setOutputMarkupId(true);
-
-        header.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1 mt-1"));
-        return header;
+        return statisticsButton;
     }
 
     protected WebMarkupContainer getListViewContainer() {
@@ -633,5 +687,22 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                 selectedAttribute.setObject(attrStats);
             }
         }
+    }
+
+    @Nullable
+    private ShadowAttributeStatisticsType findAttributeByPath(
+            @NotNull ShadowObjectClassStatisticsType statistics,
+            @NotNull ItemPathType path) {
+
+        return statistics.getAttribute().stream()
+                .filter(a ->
+                        a.getRef() != null
+                                && a.getRef().getItemPath().endsWith(path.getItemPath()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    protected ItemPathType getDefaultSelectedAttributePath() {
+        return null;
     }
 }

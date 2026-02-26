@@ -42,15 +42,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public abstract class SimulationWizardPanel<C extends Containerable> extends AbstractWizardPanel<C, ResourceDetailsModel> {
 
+    IModel<SimulationResultType> simulationResultModel;
+
     public SimulationWizardPanel(String id, WizardPanelHelper<C, ResourceDetailsModel> helper) {
         super(id, helper);
+    }
+
+    public SimulationWizardPanel(String id, WizardPanelHelper<C, ResourceDetailsModel> helper, IModel<SimulationResultType> simulationResultModel) {
+        super(id, helper);
+        this.simulationResultModel = simulationResultModel;
     }
 
     /**
      * Initializes the layout by showing the initial simulation tasks panel.
      */
     protected void initLayout() {
-        add(createChoiceFragment(buildSimulationTasksPanel(getIdOfChoicePanel())));
+        if (simulationResultModel == null || simulationResultModel.getObject() == null) {
+            add(createChoiceFragment(buildSimulationTasksPanel(getIdOfChoicePanel())));
+        } else {
+            add(createChoiceFragment(buildSimulationResultPanel(getIdOfChoicePanel(), simulationResultModel)));
+        }
     }
 
     /**
@@ -140,7 +151,18 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
             }
 
             @Override
+            protected void navigateToSimulationResultObject(@NotNull String simulationResultOid, @Nullable String markOid, @NotNull SimulationResultProcessedObjectType object, @NotNull AjaxRequestTarget target) {
+                removeLastBreadcrumb();
+                showChoiceFragment(target, buildSimulationObjectResultPanel(idOfChoicePanel, model, object.getId(), markOid, null));
+            }
+
+            @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
+                if(SimulationWizardPanel.this.simulationResultModel != null && SimulationWizardPanel.this.simulationResultModel.getObject() != null) {
+                    removeLastBreadcrumb();
+                    SimulationWizardPanel.this.onBackPerformed(target);
+                    return;
+                }
                 removeLastBreadcrumb();
                 showChoiceFragment(target, buildSimulationTasksPanel(idOfChoicePanel));
             }
@@ -249,6 +271,13 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
                 removeLastBreadcrumb();
+
+                if(SimulationWizardPanel.this.simulationResultModel != null && SimulationWizardPanel.this.simulationResultModel.getObject() != null) {
+                    removeLastBreadcrumb();
+                    showChoiceFragment(target, buildSimulationResultPanel(idOfChoicePanel, model));
+                    return;
+                }
+
                 showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, markOid, state));
             }
 
