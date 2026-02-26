@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -94,7 +94,7 @@ public final class FocusStatisticsActions {
             @NotNull String intent) throws SchemaException {
 
         ShadowObjectClassStatisticsType statistics =
-                ShadowObjectClassStatisticsTypeUtil.getFocusStatisticsRequired(statisticsObject);
+                FocusObjectStatisticsTypeUtil.getFocusObjectStatisticsRequired(statisticsObject);
 
         SmartStatisticsPanel panel = new SmartStatisticsPanel(
                 pageBase.getMainPopupBodyId(),

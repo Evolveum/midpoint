@@ -29,13 +29,16 @@ public class FocusObjectStatisticsTypeUtil {
     }
 
     public static ShadowObjectClassStatisticsType getFocusObjectStatisticsRequired(PrismObject<GenericObjectType> holder) {
-        return MiscUtil.argNonNull(
+        ShadowObjectClassStatisticsType statistics = MiscUtil.argNonNull(
                 getExtensionItemRealValue(holder.asObjectable().getExtension(), MODEL_EXTENSION_FOCUS_OBJECT_STATISTICS),
                 "No focus object statistics in %s", holder);
+        statistics.getAttribute();
+        statistics.getAttributeTuple();
+        return statistics;
     }
 
     public static @NotNull GenericObjectType createFocusObjectStatisticsObject(
-            String objectTypeName, 
+            String objectTypeName,
             String resourceOid,
             String kind,
             String intent,
