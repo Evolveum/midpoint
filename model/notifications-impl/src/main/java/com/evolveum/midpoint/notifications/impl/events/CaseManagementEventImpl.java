@@ -76,7 +76,7 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
                 return "";
             } else {
                 OwnerOptionIdentifier identifier = OwnerOptionIdentifier.fromStringValueForgiving(outcome);
-                if (identifier.isNewOwner()) {
+                if (identifier.isNoOwner()) {
                     return "No existing owner";
                 } else {
                     return identifier.getExistingOwnerId();
