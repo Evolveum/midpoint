@@ -13,8 +13,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.ObjectClassStatisticsButton;
-
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectClassStatisticsButton;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import org.apache.commons.lang3.StringUtils;

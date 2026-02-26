@@ -73,6 +73,8 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getCorrelation());
         addTypedParameters(values, definitions.getMappings());
         addTypedParameters(values, definitions.getObjectClassStatisticsComputation());
+        addTypedParameters(values, definitions.getObjectTypeStatisticsComputation());
+        addTypedParameters(values, definitions.getFocusObjectStatisticsComputation());
 
         addTypedParameters(values, definitions.getCreateConnector());
         addTypedParameters(values, definitions.getInstallConnector());

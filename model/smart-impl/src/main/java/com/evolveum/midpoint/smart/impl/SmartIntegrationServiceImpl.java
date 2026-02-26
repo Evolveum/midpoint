@@ -266,6 +266,18 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
+    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
+            throws SchemaException {
+        return statisticsService.getLatestObjectTypeStatistics(resourceOid, kind, intent, parentResult);
+    }
+
+    @Override
+    public void deleteObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult result)
+            throws SchemaException {
+        statisticsService.deleteObjectTypeStatistics(resourceOid, kind, intent, result);
+    }
+
+    @Override
     public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
             throws SchemaException {
         return statisticsService.getLatestStatistics(resourceOid, objectClassName, parentResult);
@@ -279,9 +291,48 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
+    public String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Task task, OperationResult result) throws CommonException {
+        return statisticsService.regenerateObjectTypeStatistics(resourceOid, resourceObjectTypeIdentification, task, result);
+    }
+
+    @Override
     public void deleteStatisticsForResource(String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException {
         statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, result);
+    }
+
+    @Override
+    public GenericObjectType getLatestFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult parentResult)
+            throws SchemaException {
+        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, parentResult);
+    }
+
+    @Override
+    public void deleteFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult result)
+            throws SchemaException {
+        statisticsService.deleteFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, result);
+    }
+
+    @Override
+    public String regenerateFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            Task task,
+            OperationResult result)
+            throws CommonException {
+        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, task, result);
     }
 
     public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)

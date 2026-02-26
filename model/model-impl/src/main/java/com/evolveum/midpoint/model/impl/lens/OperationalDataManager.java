@@ -314,7 +314,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
 
             // TODO is it OK that we add the request/create metadata to all the values?
             for (var metadata : allMetadata.getRealValues(ValueMetadataType.class)) {
-                transplantRequestAndStorageMetadataOnPhantomAddOp(metadata, currentAssignmentValue);
+                transplantRequestStorageAndProvenanceMetadataOnPhantomAddOp(metadata, currentAssignmentValue);
                 if (modificationStorageMetadata != null) {
                     updateStorageMetadata(metadata, modificationStorageMetadata);
                 }
@@ -590,8 +590,8 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
         }
     }
 
-    /** "Transplants" previously stored request and storage metadata from existing value into target metadata container. */
-    private void transplantRequestAndStorageMetadataOnPhantomAddOp(
+    /** "Transplants" previously stored request, storage and provenance metadata from existing value into target metadata container. */
+    private void transplantRequestStorageAndProvenanceMetadataOnPhantomAddOp(
             ValueMetadataType targetMetadata, PrismContainerValue<?> sourceValue) {
         var sourceMetadataAny = getAnyValueMetadata(sourceValue);
         if (sourceMetadataAny == null) {
@@ -608,6 +608,10 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
             } else {
                 // Just keep previously entered data manually. (As in #setStorageMetadataOnAddOp)
             }
+        }
+        var sourceProvenanceMetadata = sourceMetadataAny.getProvenance();
+        if (sourceProvenanceMetadata != null) {
+            targetMetadata.setProvenance(sourceProvenanceMetadata.cloneWithoutId());
         }
     }
 

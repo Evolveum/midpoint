@@ -1,5 +1,6 @@
 = Use case: Threshold-based governance with e‑mail notifications
 :page-nav-title: Send e-mail on policy violation
+:page-toc: top
 :page-description: Use policy rules and thresholds to create automated alert configuration in midPoint to enhance operational visibility and provide a safety mechanism against unintended bulk modifications
 :page-keyword: e-mail, email, mail, notification, policy, policy violation, threshold
 
@@ -234,6 +235,8 @@ Message:
    Items: 7
    Message: Policy rule violation: PCV(null):[PP({.../common/common-3}name):[PPV(String:Modify user)], PC(policyConstraints):[PCV(null):[PC(modification):[PCV(3):[PP({.../common/common-3}operation):[PPV(ChangeTypeType:MODIFY, meta: provenance: 3)]]]]], PC(policyThreshold):[PCV(null):[PC(lowWaterMark):[PCV(null):[PP({.../common/common-3}count):[PPV(Integer:2)]]]]], PC(policyActions):[PCV(null):[PC(suspendTask):[PCV(null):[]]]]]
 ----
+
+:sectnums!:
 
 == See also
 

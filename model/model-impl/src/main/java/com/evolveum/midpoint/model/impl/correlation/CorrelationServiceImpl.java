@@ -211,11 +211,6 @@ public class CorrelationServiceImpl implements CorrelationService {
                             .confidence(
                                     eligibleCandidate.getConfidence()));
         }
-        if (owners.size() != 1) {
-            optionsBean.getOption().add(
-                    new ResourceObjectOwnerOptionType()
-                            .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue()));
-        }
 
         CandidateOwners finalCandidates = CandidateOwners.from(eligibleCandidates);
         if (owners.size() == 1) {
@@ -224,6 +219,12 @@ public class CorrelationServiceImpl implements CorrelationService {
         } else if (eligibleCandidates.isEmpty()) {
             return CompleteCorrelationResult.noOwner();
         } else {
+            // Here we want to explicitly add also the option for no owner, because we are not sure that the
+            // candidates are good enough. There is still a possibility, that the owner simply does not exist, and we
+            // want the user to know about it.
+            optionsBean.getOption().add(
+                    new ResourceObjectOwnerOptionType()
+                            .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue()));
             return CompleteCorrelationResult.uncertain(finalCandidates, optionsBean);
         }
     }

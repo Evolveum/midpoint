@@ -38,7 +38,7 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
     private final ResourceObjectTypeIdentification typeIdentification;
     @Nullable private final String schemaMatchObjectOid;
 
-    ObjectTypeRelatedSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
+    protected ObjectTypeRelatedSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
         var typedDefinition = (ObjectTypeRelatedSuggestionWorkDefinitionType) info.getBean();
 

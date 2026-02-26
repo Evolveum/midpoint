@@ -382,7 +382,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             collectDeltas(deltas, newPasswordValue, valuePath);
             getParentPage().getModelService().executeChanges(
-                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
+                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, getChannelUri()),
                     Collections.singleton(reporter), result);
             result.computeStatus();
         } catch (Exception ex) {
@@ -494,5 +494,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     protected boolean arePasswordInputFieldsAssociatedWithLabels() {
         return false;
+    }
+
+    protected String getChannelUri() {
+        return SchemaConstants.CHANNEL_SELF_SERVICE_URI;
     }
 }
