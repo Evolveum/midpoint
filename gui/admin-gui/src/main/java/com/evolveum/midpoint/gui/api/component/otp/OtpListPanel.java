@@ -275,8 +275,7 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
     private void onConfirmPerformed(AjaxRequestTarget target, OtpCredentialType credential) {
         PrismContainerWrapper<OtpCredentialType> wrapper = model.getObject();
 
-        PrismContainerValueWrapper<OtpCredentialType> newValueWrapper =
-                createNewItemContainerValueWrapper(credential.asPrismContainerValue(), wrapper, target);
+        createNewItemContainerValueWrapper(credential.asPrismContainerValue(), wrapper, target);
 
         refreshTable(target);
     }
