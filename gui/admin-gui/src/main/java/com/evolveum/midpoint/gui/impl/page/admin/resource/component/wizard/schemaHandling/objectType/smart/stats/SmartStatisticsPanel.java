@@ -136,11 +136,11 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         this.panelType = PanelType.OBJECT_TYPE;
     }
 
-    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, QName focusType) {
+    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, String resourceOid, ResourceObjectTypeIdentification objectTypeIdentification, QName focusType) {
         super(id, model);
         this.objectClassName = null;
-        this.resourceOid = null;
-        this.objectTypeIdentification = null;
+        this.resourceOid = resourceOid;
+        this.objectTypeIdentification = objectTypeIdentification;
         this.focusType = focusType;
         this.panelType = PanelType.FOCUS;
     }
@@ -684,7 +684,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     protected FocusStatisticsButton buildFocusStatisticsButton() {
         FocusStatisticsButton statisticsButton = new FocusStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
-                () -> focusType) {
+                () -> focusType, () -> resourceOid, objectTypeIdentification::getKind, objectTypeIdentification::getIntent) {
             @Override
             protected boolean forceRegeneration() {
                 return true;

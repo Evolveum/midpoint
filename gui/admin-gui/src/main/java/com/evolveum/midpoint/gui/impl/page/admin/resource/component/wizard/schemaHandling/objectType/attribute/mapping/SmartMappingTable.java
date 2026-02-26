@@ -774,6 +774,16 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                             return;
                         }
 
+                        String resourceOid = SmartMappingTable.this.resourceOid;
+                        ShadowKindType kind = objectTypeDef.getKind();
+                        String intent = objectTypeDef.getIntent();
+
+                        if (resourceOid == null || kind == null || intent == null) {
+                            getPageBase().warn("Resource, kind, and intent must be specified for focus statistics.");
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
                         ItemPathType targetPath = null;
                         if (getRowModel() != null) {
                             PrismContainerValueWrapper<MappingType> valueWrapper =
@@ -798,6 +808,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                 getPageBase(),
                                 getPageBase().getSmartIntegrationService(),
                                 focusTypeName,
+                                resourceOid,
+                                kind,
+                                intent,
                                 targetPath,
                                 false);
                     }
