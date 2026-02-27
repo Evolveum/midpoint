@@ -1802,7 +1802,6 @@ export default class MidPointTheme {
     }
 
     updateStatusMessageForMenu(elementId, isSelected) {
-    console.log("updateStatusMessageForMenu");
             var current = document.getElementById(elementId);
             if (!current) return;
 
@@ -1819,7 +1818,10 @@ export default class MidPointTheme {
 
             // Select the clicked one
             current.setAttribute('aria-checked', isSelected);
-            current. classList.toggle('active', isSelected);
+            const isSelectedBool = isSelected === 'true';
+            if (isSelectedBool) {
+                current. classList.toggle('active', isSelected);
+            }
 
             // Set focus back to it
             current.focus();
