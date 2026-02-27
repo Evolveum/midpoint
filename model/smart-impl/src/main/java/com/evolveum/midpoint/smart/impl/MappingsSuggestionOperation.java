@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -144,6 +145,8 @@ class MappingsSuggestionOperation {
             collectSystemMappings(knownSchemaProvider, shadowsForValidation, result)
                     .forEach(mappingCandidates::propose);
 
+            var mappingFutures = new ArrayList<MappingFuture>();
+
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
                 mappingsSuggestionState.flush(result);
@@ -153,25 +156,32 @@ class MappingsSuggestionOperation {
                         .from(shadowsForLLM);
                 var valuePairsForValidation = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                         .from(shadowsForValidation);
-                try {
-                    var aiMapping = suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, result);
-                    mappingCandidates.propose(aiMapping);
-                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
-                } catch (LowQualityMappingException e) {
-                    LOGGER.debug("Skipping mapping due to low quality: {}", e.getMessage());
-                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
-                } catch (MissingSourceDataException e) {
-                    LOGGER.debug("Skipping mapping due to missing source data: {}", e.getMessage());
-                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
-                } catch (Exception e) {
-                    // TODO Shouldn't we create an unfinished mapping with just error info?
-                    LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", e, matchPair.getShadowAttributePath());
-                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.FAILURE);
 
-                    // Normally, the activity framework makes sure that the activity result status is computed properly at the end.
-                    // But this is a special case where we must do that ourselves.
-                    // FIXME temporarily disabled, as GUI cannot deal with it anyway
-                    //mappingsSuggestionState.setResultStatus(OperationResultStatus.PARTIAL_ERROR);
+                var future = suggestMappingAsync(matchPair, valuePairsForLLM, valuePairsForValidation, result);
+                mappingFutures.add(new MappingFuture(future, matchPair, op));
+            }
+
+            for (MappingFuture mappingFuture : mappingFutures) {
+                try {
+                    var aiMapping = mappingFuture.future.join();
+                    if (aiMapping != null) {
+                        mappingCandidates.propose(aiMapping);
+                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.SUCCESS);
+                    } else {
+                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.SKIP);
+                    }
+                } catch (Exception e) {
+                    Throwable cause = e.getCause() != null ? e.getCause() : e;
+                    if (cause instanceof LowQualityMappingException) {
+                        LOGGER.debug("Skipping mapping due to low quality: {}", cause.getMessage());
+                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.SKIP);
+                    } else if (cause instanceof MissingSourceDataException) {
+                        LOGGER.debug("Skipping mapping due to missing source data: {}", cause.getMessage());
+                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.SKIP);
+                    } else {
+                        LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", cause, mappingFuture.matchPair.getShadowAttributePath());
+                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.FAILURE);
+                    }
                 }
                 ctx.checkIfCanRun();
             }
@@ -293,6 +303,20 @@ class MappingsSuggestionOperation {
         }
     }
 
+    private CompletableFuture<AttributeMappingsSuggestionType> suggestMappingAsync(
+            SchemaMatchOneResultType matchPair,
+            ValuesPairSample<?, ?> valuePairsForLLM,
+            ValuesPairSample<?, ?> valuePairsForValidation,
+            OperationResult parentResult) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, parentResult);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuePairsForLLM,
@@ -389,11 +413,11 @@ class MappingsSuggestionOperation {
                                 new ScriptExpressionEvaluatorType().code(script)));
     }
 
-    private SiSuggestMappingResponseType askMicroservice(
+    private SiSuggestMappingResponseType askMicroserviceAsync(
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuesPairs,
             @Nullable String errorLog,
-            @Nullable String retryScript) throws SchemaException {
+            @Nullable String retryScript) {
         var siRequest = new SiSuggestMappingRequestType()
                 .applicationAttribute(matchPair.getShadowAttribute())
                 .midPointAttribute(matchPair.getFocusProperty())
@@ -406,7 +430,8 @@ class MappingsSuggestionOperation {
                                 matchPair.getShadowAttribute().getName(),
                                 matchPair.getFocusProperty().getName())));
         return ctx.serviceClient
-                .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
+                .invokeAsync(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class)
+                .join();
     }
 
     private MappingEvaluationResult evaluateMappingStrategy(
@@ -503,7 +528,7 @@ class MappingsSuggestionOperation {
         String retryScript = null;
 
         for (int attempt = 1; attempt <= 2; attempt++) {
-            var mappingResponse = askMicroservice(matchPair, valuePairsForLLM, errorLog, retryScript);
+            var mappingResponse = askMicroserviceAsync(matchPair, valuePairsForLLM, errorLog, retryScript);
             retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
             var aiExpression = buildScriptExpression(mappingResponse);
             try {
@@ -553,5 +578,14 @@ class MappingsSuggestionOperation {
             return new MappingEvaluationResult(expression, expectedQuality, isSystemProvided);
         }
     }
+
+    /**
+     * Helper record to track async mapping suggestions with their associated metadata.
+     */
+    private record MappingFuture(
+            CompletableFuture<AttributeMappingsSuggestionType> future,
+            SchemaMatchOneResultType matchPair,
+            com.evolveum.midpoint.schema.statistics.Operation operation
+    ) {}
 
 }
