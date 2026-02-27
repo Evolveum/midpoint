@@ -9,6 +9,7 @@ package com.evolveum.midpoint.smart.impl.activities.midpointStatisticsComputatio
 
 import static com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil.createFocusObjectStatisticsObject;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -36,8 +37,10 @@ import javax.xml.namespace.QName;
 /**
  * Activity run for computing statistics for focus objects of a specific type.
  *
- * <p>The activity processes all objects of the given type (e.g. {@link UserType})
- * and computes aggregated statistics that are persisted as a {@link GenericObjectType}.</p>
+ * <p>The activity processes objects of the given type (e.g. {@link UserType}).
+ * If resource/kind/intent filters are specified, only focuses that have shadows
+ * matching these criteria will be processed.
+ * Computed statistics are persisted as a {@link GenericObjectType}.</p>
  */
 public class FocusObjectStatisticsComputationActivityRun
         extends SearchBasedActivityRun<
@@ -100,10 +103,14 @@ public class FocusObjectStatisticsComputationActivityRun
 
     @Override
     public @Nullable SearchSpecification<ObjectType> createCustomSearchSpecification(OperationResult result) {
+        var queryBuilder = PrismContext.get().queryFor(objectTypeClass)
+                .item(FocusType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE, ShadowType.F_RESOURCE_REF).ref(getWorkDefinition().getResourceOid())
+                .and().item(FocusType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE, ShadowType.F_KIND).eq(getWorkDefinition().getKind())
+                .and().item(FocusType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE, ShadowType.F_INTENT).eq(getWorkDefinition().getIntent());
+
         return new SearchSpecification<>(
                 (Class<ObjectType>) objectTypeClass,
-                PrismContext.get().queryFor(objectTypeClass)
-                        .build(),
+                queryBuilder.build(),
                 null,
                 false);
     }
@@ -133,7 +140,11 @@ public class FocusObjectStatisticsComputationActivityRun
                 .timestamp(beans.clock.currentTimeXMLGregorianCalendar());
 
         var objectTypeName = getWorkDefinition().getObjectType().getLocalPart();
-        var statisticsObject = createFocusObjectStatisticsObject(objectTypeName, statistics);
+        var resourceOid = getWorkDefinition().getResourceOid();
+        var kind = getWorkDefinition().getKind().value();
+        var intent = getWorkDefinition().getIntent();
+        var statisticsObject = createFocusObjectStatisticsObject(
+                objectTypeName, resourceOid, kind, intent, statistics);
 
         LOGGER.debug("Adding focus object statistics object:\n{}", statisticsObject.debugDump(1));
 

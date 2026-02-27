@@ -136,11 +136,11 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         this.panelType = PanelType.OBJECT_TYPE;
     }
 
-    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, QName focusType) {
+    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, String resourceOid, ResourceObjectTypeIdentification objectTypeIdentification, QName focusType) {
         super(id, model);
         this.objectClassName = null;
-        this.resourceOid = null;
-        this.objectTypeIdentification = null;
+        this.resourceOid = resourceOid;
+        this.objectTypeIdentification = objectTypeIdentification;
         this.focusType = focusType;
         this.panelType = PanelType.FOCUS;
     }
@@ -188,14 +188,32 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                 ? statistics.getAttributeTuple().stream().map(this::toTupleRow)
                 : statistics.getAttribute().stream().map(item -> toAttributeRow(item, statistics));
 
-        Object selected = isAttributeTuple ? selectedTuple.getObject() : selectedAttribute.getObject();
+        ItemPathType defaultSelected = getDefaultSelectedAttributePath();
+
+        Comparator<ListViewRow> byCountDesc = Comparator.comparing(
+                (ListViewRow r) -> extractCount(r.subText != null ? r.subText.getObject() : null),
+                Comparator.reverseOrder()
+        );
+
+        if (isAttributeTuple || defaultSelected == null) {
+            return rows
+                    .sorted(byCountDesc)
+                    .peek(this::initInitialSelection)
+                    .collect(Collectors.toList());
+        }
+
+        Comparator<ListViewRow> defaultFirst = Comparator.comparing((ListViewRow r) -> {
+            if (!(r.item instanceof ShadowAttributeStatisticsType attr)) {
+                return true; // non-attributes go after
+            }
+            if (attr.getRef() == null) {
+                return true; // missing ref goes after
+            }
+            return !attr.getRef().getItemPath().endsWith(defaultSelected.getItemPath());
+        });
 
         return rows
-                .sorted(Comparator
-                        // selected first (false < true)
-                        .comparing((ListViewRow r) -> !r.item.equals(selected))
-                        // then by count desc
-                        .thenComparing((ListViewRow r) -> extractCount(r.subText.getObject()), Comparator.reverseOrder()))
+                .sorted(defaultFirst.thenComparing(byCountDesc))
                 .peek(this::initInitialSelection)
                 .collect(Collectors.toList());
     }
@@ -684,7 +702,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     protected FocusStatisticsButton buildFocusStatisticsButton() {
         FocusStatisticsButton statisticsButton = new FocusStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
-                () -> focusType) {
+                () -> focusType, () -> resourceOid, objectTypeIdentification::getKind, objectTypeIdentification::getIntent) {
             @Override
             protected boolean forceRegeneration() {
                 return true;

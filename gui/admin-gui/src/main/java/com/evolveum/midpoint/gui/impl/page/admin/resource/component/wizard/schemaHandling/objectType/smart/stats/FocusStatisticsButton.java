@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -33,8 +34,18 @@ public class FocusStatisticsButton extends BasePanel<QName> {
 
     private static final String ID_PROCESS_STATISTICS_BUTTON = "processStatisticsButton";
 
-    public FocusStatisticsButton(String id, IModel<QName> focusObjectTypeNameModel) {
+    private final IModel<String> resourceOidModel;
+    private final IModel<ShadowKindType> kindModel;
+    private final IModel<String> intentModel;
+
+    public FocusStatisticsButton(String id, IModel<QName> focusObjectTypeNameModel,
+                                 IModel<String> resourceOidModel,
+                                 IModel<ShadowKindType> kindModel,
+                                 IModel<String> intentModel) {
         super(id, focusObjectTypeNameModel);
+        this.resourceOidModel = resourceOidModel;
+        this.kindModel = kindModel;
+        this.intentModel = intentModel;
     }
 
     @Override
@@ -83,11 +94,24 @@ public class FocusStatisticsButton extends BasePanel<QName> {
             return;
         }
 
+        String resourceOid = resourceOidModel != null ? resourceOidModel.getObject() : null;
+        ShadowKindType kind = kindModel != null ? kindModel.getObject() : null;
+        String intent = intentModel != null ? intentModel.getObject() : null;
+
+        if (resourceOid == null || kind == null || intent == null) {
+            page.warn("Resource, kind, and intent must be specified for focus statistics.");
+            target.add(page.getFeedbackPanel());
+            return;
+        }
+
         FocusStatisticsActions.handleClick(
                 target,
                 page,
                 sis,
                 focusType,
+                resourceOid,
+                kind,
+                intent,
                 getPreselectedAttribute(),
                 forceRegeneration());
     }

@@ -123,7 +123,7 @@ class CorrelationContextDto implements Serializable {
             OwnerOptionIdentifier identifier = OwnerOptionIdentifier.of(potentialOwner);
             String optionIdentifierRaw = potentialOwner.getIdentifier(); // the same as identifier.getStringValue()
             assert optionIdentifierRaw != null;
-            if (identifier.isNewOwner()) {
+            if (identifier.isNoOwner()) {
                 correlationOptions.add(
                         new CorrelationOptionDto.NewOwner(context.getPreFocusRef(), optionIdentifierRaw));
             } else {
