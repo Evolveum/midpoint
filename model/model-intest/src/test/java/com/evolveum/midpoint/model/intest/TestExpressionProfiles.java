@@ -573,7 +573,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     public void test213SafeRoleMel() throws Exception {
         runNegativeRoleAssignmentTest(
                 ROLE_SAFE_BAD_MEL, null,
-                "undeclared reference to 'midpoint'",
+                "undeclared reference to 'secret'",
                 "");
     }
 

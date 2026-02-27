@@ -266,51 +266,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             ),
 
-            // secret.resolveBinary(provider, key)
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            "secret.resolveBinary",
-                            CelOverloadDecl.newGlobalOverload(
-                                    "mel-secret-resolveBinary",
-                                    "Resolves a secret specified by the key, using a provider specified by its name. "
-                                            + "Returns the secret in binary form (bytes).",
-                                    SimpleType.BYTES,
-                                    SimpleType.STRING, SimpleType.STRING)),
-                    CelFunctionBinding.from("mel-secret-resolveBinary", String.class, String.class,
-                            this::secretResolveBinary)
-
-            ),
-
-            // secret.resolveString(provider, key)
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            "secret.resolveString",
-                            CelOverloadDecl.newGlobalOverload(
-                                    "mel-secret-resolveString",
-                                    "Resolves a secret specified by the key, using a provider specified by its name. "
-                                            + "Returns the secret in string form.",
-                                    SimpleType.STRING,
-                                    SimpleType.STRING, SimpleType.STRING)),
-                    CelFunctionBinding.from("mel-secret-resolveString", String.class, String.class,
-                            this::secretResolveString)
-
-            ),
-
-            // secret.resolveProtectedString(provider, key)
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            "secret.resolveProtectedString",
-                            CelOverloadDecl.newGlobalOverload(
-                                    "mel-secret-resolveProtectedString",
-                                    "Resolves a secret specified by the key, using a provider specified by its name. "
-                                            + "Returns the secret in protected string form.",
-                                    CelTypeMapper.PROTECTED_STRING_CEL_TYPE,
-                                    SimpleType.STRING, SimpleType.STRING)),
-                    CelFunctionBinding.from("mel-secret-resolveProtectedString", String.class, String.class,
-                            this::secretResolveProtectedString)
-
-            ),
-
             // single
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -406,16 +361,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         );
     }
 
-//    @Override
-//    public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
-//        super.setRuntimeOptions(runtimeBuilder);
-//        runtimeBuilder.addFunctionBindings(
-//                CelFunctionBinding.from("mel-equals-null-null",
-//                        Object.class, Object.class,
-//                        CelMelExtensions::equalsNullNull)
-//        );
-//    }
-
     private static boolean equalsUniversal(Object o1, Object o2) {
         return Objects.equals(o1,o2);
     }
@@ -487,18 +432,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private QNameCelValue qname(String localPart) {
         return QNameCelValue.create(localPart);
-    }
-
-    private byte[] secretResolveBinary(String providerName, String key) {
-        return basicExpressionFunctions.resolveSecretBinary(providerName, key).array();
-    }
-
-    private String secretResolveString(String providerName, String key) {
-        return basicExpressionFunctions.resolveSecretString(providerName, key);
-    }
-
-    private ProtectedStringType secretResolveProtectedString(String providerName, String key) {
-        return basicExpressionFunctions.resolveSecretProtectedString(providerName, key);
     }
 
     private static Timestamp longAgo(Object[] args) {

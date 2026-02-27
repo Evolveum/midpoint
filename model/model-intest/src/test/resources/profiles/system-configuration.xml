@@ -273,6 +273,11 @@
                 <description>midpoint.* MEL language extension</description>
                 <decision>deny</decision>
             </package>
+            <package>
+                <name>secret</name>
+                <description>secret.* MEL language extension</description>
+                <decision>deny</decision>
+            </package>
         </permissionProfile>
         <bulkActionsProfile>
             <identifier>empty</identifier>

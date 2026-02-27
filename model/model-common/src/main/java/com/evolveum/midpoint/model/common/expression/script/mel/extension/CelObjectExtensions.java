@@ -252,7 +252,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
         @Override
         public String name() {
-            return "mpObject";
+            return "object";
         }
 
         @Override

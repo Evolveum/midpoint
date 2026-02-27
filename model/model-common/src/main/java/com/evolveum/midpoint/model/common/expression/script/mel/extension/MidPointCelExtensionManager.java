@@ -67,6 +67,7 @@ public class MidPointCelExtensionManager {
         registerLibrary(CelLdapExtensions.library(basicExpressionFunctions));
         registerLibrary(CelObjectExtensions.library());
         registerLibrary(CelLogExtensions.library());
+        registerLibrary(CelSecretExtensions.library(protector, basicExpressionFunctions));
         registerLibrary(CelMidPointExtensions.library(midpointExpressionFunctions));
     }
 
