@@ -36,9 +36,11 @@
                         </span>
                     </div>
                 </li>
-                <wicket:container wicket:id="items">
-                    <wicket:container wicket:id="item" role="menuitem"/>
-                </wicket:container>
+                <div wicket:id="menuItemsGroup" role="group">
+                    <wicket:container wicket:id="items">
+                        <wicket:container wicket:id="item" role="menuitem"/>
+                    </wicket:container>
+                </div>
             </wicket:container>
         </ul>
     </nav>

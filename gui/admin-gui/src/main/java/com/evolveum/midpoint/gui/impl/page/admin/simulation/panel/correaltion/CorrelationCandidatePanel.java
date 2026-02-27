@@ -281,20 +281,12 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                         final ResourceObjectOwnerOptionType option = item.getModelObject();
                         final OwnerOptionIdentifier ownerIdentifier = OwnerOptionIdentifier.fromStringValueForgiving(
                                 option.getIdentifier());
-                        final WebMarkupContainer candidateRow;
-                        if (ownerIdentifier.isNoOwner()) {
-                            // There is a possibility, that no candidate is the correct one. This is represented by this
-                            // "no owner" option added to the candidates list. This way we make sure that user is
-                            // aware of such possibility.
-                            candidateRow = noOwnerRow();
-                        } else {
-                            final ObjectReferenceType ref = option.getCandidateOwnerRef();
-                            if (ref == null || ref.getOid() == null || ref.getOid().isBlank()) {
-                                throw new SystemException("Owner candidate reference is unknown.");
-                            }
-                            candidateRow = candidateRow(correlatedOwnerOid.equals(ref.getOid()),
-                                    ownerIdentifier.getExistingOwnerId(), ref, option.getConfidence());
+                        final ObjectReferenceType ref = option.getCandidateOwnerRef();
+                        if (ref == null || ref.getOid() == null || ref.getOid().isBlank()) {
+                            throw new SystemException("Owner candidate reference is unknown.");
                         }
+                        final WebMarkupContainer candidateRow = candidateRow(correlatedOwnerOid.equals(ref.getOid()),
+                                ownerIdentifier.getExistingOwnerId(), ref, option.getConfidence());
 
                         final AjaxIconButton link = candidateViewLink(option.getCandidateOwnerRef(),
                                 !ownerIdentifier.isNoOwner());
@@ -305,16 +297,6 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                 };
 
         container.add(listView);
-    }
-
-    private WebMarkupContainer noOwnerRow() {
-        final WebMarkupContainer candidateRow = new WebMarkupContainer("candidateRow");
-        candidateRow.setOutputMarkupId(true);
-        candidateRow.add(new Label(ID_CANDIDATE_NAME, Model.of(translate("CorrelationCandidatePanel.noOwner"))));
-        candidateRow.add(new Label(ID_CANDIDATE_IDENTIFIER, Model.of(
-                translate("CorrelationCandidatePanel.identifier.none"))));
-        candidateRow.add(AttributeModifier.append("class", "bg-warning-light"));
-        return candidateRow;
     }
 
     private WebMarkupContainer candidateRow(boolean isOwner, String identifier, ObjectReferenceType ref,

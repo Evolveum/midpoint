@@ -6,6 +6,27 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.util;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.CorrelationStatus.UNCERTAIN;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.*;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -17,35 +38,28 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.jetbrains.annotations.NotNull;
-
-import org.jetbrains.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.CorrelationStatus.UNCERTAIN;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.*;
 
 public class CorrelationUtil {
 
@@ -462,6 +476,13 @@ public class CorrelationUtil {
             protected List<ResourceObjectOwnerOptionType> load() {
                 return Optional.ofNullable(shadow.getCorrelation().getOwnerOptions())
                         .map(ResourceObjectOwnerOptionsType::getOption)
+                        .map(options -> options.stream()
+                                // candidates may contain one "extra" candidate with meaning that maybe no owner
+                                // exist. We however do not want to show that on the correlation simulation UI,
+                                // because it is confusing.
+                                .filter(Predicate.not(option -> OwnerOptionIdentifier.fromStringValueForgiving(
+                                        option.getIdentifier()).isNoOwner()))
+                                .toList())
                         .orElseGet(Collections::emptyList);
             }
         };
