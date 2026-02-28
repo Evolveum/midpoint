@@ -8,9 +8,12 @@ package com.evolveum.midpoint.gui.impl.validation;
 
 import java.util.List;
 
+import org.apache.wicket.markup.html.form.AbstractTextComponent;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -18,21 +21,26 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 @Component
-public class UniqueObjectNameValidatorFactory extends ItemValidatorFactory<String> {
+public class UniqueObjectNameValidatorFactory extends ItemValidatorFactory {
 
     public UniqueObjectNameValidatorFactory() {
         super("UniqueObjectName");
     }
 
     @Override
-    public IValidator<String> createValidatorInstance(ItemValidationContext context) {
-        return new UniqueObjectNameValidator<>(context.type(), context.page());
+    public void attachValidator(InputPanel panel, ItemValidationContext context) {
+        FormComponent<?> formComponent = panel.getBaseFormComponent();
+        if (formComponent instanceof AbstractTextComponent<?> text) {
+            UniqueObjectNameValidator<?> validator = new UniqueObjectNameValidator<>(context.type(), context.page());
+            text.add(validator);
+        }
     }
 
-    private static class UniqueObjectNameValidator<O extends ObjectType> implements IValidator<String> {
+    private static class UniqueObjectNameValidator<O extends ObjectType> implements IValidator<Object> {
 
         private final Class<O> type;
 
@@ -44,11 +52,12 @@ public class UniqueObjectNameValidatorFactory extends ItemValidatorFactory<Strin
         }
 
         @Override
-        public void validate(IValidatable<String> validatable) {
-            String value = validatable.getValue();
+        public void validate(@NotNull IValidatable validatable) {
+            Object value = validatable.getValue();
+            String strValue = value != null ? value.toString() : null;
 
             ObjectQuery query = PrismContext.get().queryFor(type)
-                    .item(ObjectType.F_NAME).eqPoly(value)
+                    .item(ObjectType.F_NAME).eqPoly(strValue)
                     .maxSize(1)
                     .build();
 

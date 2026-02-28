@@ -196,6 +196,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         panelCtx.setFeedback(feedback);
         panelCtx.setAttributeValuesMap(getAttributeValuesMap());
 
+        VirtualContainerItemSpecificationType spec =
+                GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), getModelObject().getParent().getPath());
+
         Component component;
         try {
             component = factory.createPanel(panelCtx);
@@ -204,8 +207,16 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             factory.configure(panelCtx, component);
             valueContainer.add(feedback);
 
-            if (component instanceof InputPanel ip) {
-                System.out.println(ip);
+            List<String> validators = spec != null ? spec.getValidator() : List.of();
+
+            if (!validators.isEmpty() && component instanceof InputPanel ip) {
+                ValidatorFactoryRegistry registry = MidPointApplication.get().getValidatorRegistry();
+
+                ItemValidationContext context = new ItemValidationContext()
+                        .page(getPageBase())
+                        .type(getModelObject().getParent().findObjectWrapper().getTypeClass());
+
+                registry.attachValidators(validators, ip, context);
             }
 
         } catch (Throwable e) {

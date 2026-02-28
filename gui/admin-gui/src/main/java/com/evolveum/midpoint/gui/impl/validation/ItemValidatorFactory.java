@@ -6,9 +6,9 @@
 
 package com.evolveum.midpoint.gui.impl.validation;
 
-import org.apache.wicket.validation.IValidator;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 
-public abstract class ItemValidatorFactory<T> {
+public abstract class ItemValidatorFactory {
 
     private final String identifier;
 
@@ -20,5 +20,5 @@ public abstract class ItemValidatorFactory<T> {
         return identifier;
     }
 
-    public abstract IValidator<T> createValidatorInstance(ItemValidationContext context);
+    public abstract void attachValidator(InputPanel panel, ItemValidationContext context);
 }
