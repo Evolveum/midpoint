@@ -328,6 +328,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             projectionContext.setReloadNotNeeded();
             updateFullShadowFlag(options);
             updateExistsAndGoneFlags();
+            projectionContext.refreshAuxiliaryObjectClassDefinitions();
 
         } catch (ObjectNotFoundException ex) {
 

@@ -474,6 +474,11 @@ public class ActivationProcessor implements ProjectorProcessor {
     private void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now)
             throws SchemaException {
 
+        if (projCtx.isGone()) {
+            LOGGER.trace("Object is gone, skipping activation metadata processing for {}", projCtx);
+            return;
+        }
+
         // We can take either current or old object. Note that if the object is loaded on demand, it is put into "current".
         ActivationStatusType oldStatus = ActivationUtil.getAdministrativeStatus(projCtx.getObjectCurrentOrOld());
         ActivationStatusType newStatus = ActivationUtil.getAdministrativeStatus(projCtx.getObjectNew());
