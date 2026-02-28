@@ -8,12 +8,16 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import java.io.Serial;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 public class HelpTextPanel extends BasePanel<String> {
 
@@ -24,7 +28,9 @@ public class HelpTextPanel extends BasePanel<String> {
 
     private boolean alwaysShowAll = false;
 
-    private IModel<Boolean> showAll;
+    private int shortHelpLength = 100;
+
+    private final IModel<Boolean> showAll = Model.of(false);
 
     public HelpTextPanel(String id, IModel<String> model) {
         super(id, model);
@@ -37,8 +43,29 @@ public class HelpTextPanel extends BasePanel<String> {
         initLayout();
     }
 
+    public boolean isAlwaysShowAll() {
+        return alwaysShowAll;
+    }
+
+    public void setAlwaysShowAll(boolean alwaysShowAll) {
+        this.alwaysShowAll = alwaysShowAll;
+    }
+
+    public int getShortHelpLength() {
+        return shortHelpLength;
+    }
+
+    public void setShortHelpLength(int shortHelpLength) {
+        this.shortHelpLength = shortHelpLength;
+    }
+
     private void initLayout() {
-        Label content = new Label(ID_CONTENT, getModel());
+        setOutputMarkupId(true);
+
+        add(AttributeAppender.append("class", "form-text text-muted"));
+        add(new VisibleBehaviour(() -> StringUtils.isNotBlank(getModelObject())));
+
+        Label content = new Label(ID_CONTENT, getContentModel());
         content.setRenderBodyOnly(true);
         add(content);
 
@@ -49,16 +76,25 @@ public class HelpTextPanel extends BasePanel<String> {
                 onMoreClicked(target);
             }
         };
+        more.add(new VisibleBehaviour(() -> !alwaysShowAll || hasLongHelp()));
         add(more);
     }
 
+    private boolean hasLongHelp() {
+        String content = getModelObject();
+        return content != null && content.length() > shortHelpLength;
+    }
+
     private void onMoreClicked(AjaxRequestTarget target) {
-        // todo implement
+        showAll.setObject(!showAll.getObject());
+
+        target.add(this);
     }
 
     private IModel<String> createMoreModel() {
         return () -> {
-            return "";
+            String key = showAll.getObject() ? "HelpTextPanel.less" : "HelpTextPanel.more";
+            return getString(key);
         };
     }
 
@@ -69,7 +105,11 @@ public class HelpTextPanel extends BasePanel<String> {
                 return null;
             }
 
-            return null;
+            if (alwaysShowAll || showAll.getObject()) {
+                return content;
+            }
+
+            return StringUtils.abbreviate(content, "...", shortHelpLength);
         };
     }
 }
