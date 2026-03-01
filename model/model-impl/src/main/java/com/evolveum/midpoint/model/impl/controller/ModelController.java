@@ -541,22 +541,29 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     /** Generally useful convenience method. */
-    public <F extends ObjectType> void executeRecompute(
-            @NotNull PrismObject<F> focus,
+    public <O extends ObjectType> void executeRecompute(
+            @NotNull PrismObject<O> object,
             @Nullable ModelExecuteOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
-        LOGGER.debug("Recomputing {}", focus);
-        LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result);
+        LOGGER.debug("Recomputing {}", object);
+
+        if (object.asObjectable() instanceof ShadowType shadow) {
+            // We probably should not do this here, but deeper in the clockwork. TODO move it there!
+            // This is a quick way how to fix MID-11115 without risking breaking more things.
+            provisioning.determineShadowState(shadow.asPrismObject(), task, result);
+        }
+
+        LensContext<O> lensContext = contextFactory.createRecomputeContext(object, options, task, result);
 
         securityEnforcer.authorize(
                 ModelAuthorizationAction.RECOMPUTE.getUrl(), AuthorizationPhaseType.REQUEST,
-                AuthorizationParameters.forObject(focus.asObjectable()),
+                AuthorizationParameters.forObject(object.asObjectable()),
                 SecurityEnforcer.Options.create(), task, result);
 
-        LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDumpLazily());
+        LOGGER.trace("Recomputing {}, context:\n{}", object, lensContext.debugDumpLazily());
         clockwork.run(lensContext, task, result);
     }
 
