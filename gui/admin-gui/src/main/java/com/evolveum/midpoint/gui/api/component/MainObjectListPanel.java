@@ -226,7 +226,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         buttonsList.add(createNewObjectButton(buttonId));
         buttonsList.add(createImportObjectButton(buttonId));
-        buttonsList.add(createDownloadButton(buttonId));
+        buttonsList.add(createCsvDownloadButton(buttonId));
+        buttonsList.add(createOdsDownloadButton(buttonId));
         buttonsList.add(createCreateReportButton(buttonId));
         buttonsList.add(createRefreshButton(buttonId));
         buttonsList.add(createPlayPauseButton(buttonId));

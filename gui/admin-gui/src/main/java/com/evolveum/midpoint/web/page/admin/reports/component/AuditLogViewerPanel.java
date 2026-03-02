@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.component.button.OdsDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -188,7 +189,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(idButton) {
+        CsvDownloadButtonPanel exportCSVDataLink = new CsvDownloadButtonPanel(idButton) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -202,8 +203,25 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                 return getTable().getDataTable();
             }
         };
-        exportDataLink.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI)));
-        buttonsList.add(exportDataLink);
+        exportCSVDataLink.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI)));
+        buttonsList.add(exportCSVDataLink);
+
+        OdsDownloadButtonPanel exportODSDataLink = new OdsDownloadButtonPanel(idButton) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getFilename() {
+                return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+            }
+
+            @Override
+            protected DataTable<?, ?> getDataTable() {
+                return getTable().getDataTable();
+            }
+        };
+        exportODSDataLink.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ODS_EXPORT_ACTION_URI)));
+        buttonsList.add(exportODSDataLink);
 
         AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(idButton, WebComponentUtil.createCreateReportIcon(),
                 getPageBase().createStringResource("MainObjectListPanel.createReport")) {

@@ -10,10 +10,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -27,18 +23,21 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.resource.IResourceStream;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
 
-public abstract class CsvDownloadButtonPanel extends BasePanel {
+public abstract class OdsDownloadButtonPanel extends BasePanel {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CsvDownloadButtonPanel.class);
-    private static final String ID_EXPORT_DATA = "exportCsvData";
+    private static final Trace LOGGER = TraceManager.getTrace(OdsDownloadButtonPanel.class);
+    private static final String ID_EXPORT_DATA = "exportOdsData";
     List<Integer> exportableColumnsIndex = new ArrayList<>();
 
     @Override
@@ -47,7 +46,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
         initLayout();
     }
 
-    public CsvDownloadButtonPanel(String id) {
+    public OdsDownloadButtonPanel(String id) {
         super(id);
     }
 
@@ -65,7 +64,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                 }
                 try {
                     ((BaseSortableDataProvider) dataProvider).setExportSize(true);
-                    super.exportData(dataProvider, getExportableColumns(), outputStream);
+                    super.exportData(dataProvider, getExportableColumns(), outputStream);//TODO download file by CSVDataExporter make ODS
                     ((BaseSortableDataProvider) dataProvider).setExportSize(false);
                 } catch (Exception ex) {
                     LOGGER.error("Unable to export data,", ex);
@@ -107,7 +106,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
             public String getFileName() {
                 if (StringUtils.isEmpty(name.getObject())) {
-                    return CsvDownloadButtonPanel.this.getFilename();
+                    return OdsDownloadButtonPanel.this.getFilename();
                 }
                 return name.getObject();
             }
@@ -116,7 +115,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
         add(ajaxDownloadBehavior);
 
         AjaxIconButton exportDataLink = new AjaxIconButton(ID_EXPORT_DATA, new Model<>("fa fa-download"),
-                createStringResource("CsvDownloadButtonPanel.export")) {
+                createStringResource("OdsDownloadButtonPanel.export")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -129,7 +128,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                         exportSizeLimit = adminGuiConfig.getDefaultExportSettings().getSizeLimit();
                     }
                 } catch (Exception ex) {
-                    LOGGER.error("Unable to get csv export size limit,", ex);
+                    LOGGER.error("Unable to get ods export size limit,", ex);
                 }
                 boolean askForSizeLimitConfirmation;
                 if (exportSizeLimit < 0) {
@@ -151,6 +150,11 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
                         ajaxDownloadBehavior.initiate(target);
+                    }
+
+                    @Override
+                    protected IModel<String> getConfirmationMessage(final Long exportSizeLimit) {
+                        return getPageBase().createStringResource("OdsDownloadButtonPanel.confirmationMessage", exportSizeLimit);
                     }
                 };
                 getPageBase().showMainPopup(exportingPanel, target);

@@ -47,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.component.button.OdsDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -1265,13 +1266,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        buttonsList.add(createDownloadButton(idButton));
+        buttonsList.add(createCsvDownloadButton(idButton));
+        buttonsList.add(createOdsDownloadButton(idButton));
         return buttonsList;
     }
 
-    protected CsvDownloadButtonPanel createDownloadButton(String buttonId) {
+    protected CsvDownloadButtonPanel createCsvDownloadButton(String buttonId) {
 
-        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId) {
+        CsvDownloadButtonPanel exportCSVDataLink = new CsvDownloadButtonPanel(buttonId) {
             @Override
             protected DataTable<?, ?> getDataTable() {
                 return getTable().getDataTable();
@@ -1284,13 +1286,37 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
         };
-        exportDataLink.add(new VisibleBehaviour(this::isExportDataLinkVisible));
-        return exportDataLink;
+        exportCSVDataLink.add(new VisibleBehaviour(this::isExportCSVDataLinkVisible));
+        return exportCSVDataLink;
     }
 
-    private boolean isExportDataLinkVisible() {
+    protected OdsDownloadButtonPanel createOdsDownloadButton(String buttonId) {
+
+        OdsDownloadButtonPanel exportODSDataLink = new OdsDownloadButtonPanel(buttonId) {
+            @Override
+            protected DataTable<?, ?> getDataTable() {
+                return getTable().getDataTable();
+            }
+
+            @Override
+            protected String getFilename() {
+                return getType().getSimpleName() +
+                        "_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+            }
+
+        };
+        exportODSDataLink.add(new VisibleBehaviour(this::isExportODSDataLinkVisible));
+        return exportODSDataLink;
+    }
+
+    private boolean isExportCSVDataLinkVisible() {
         return !WebComponentUtil.hasPopupableParent(ContainerableListPanel.this)
                 && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
+    }
+
+    private boolean isExportODSDataLinkVisible() {
+        return !WebComponentUtil.hasPopupableParent(ContainerableListPanel.this)
+                && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ODS_EXPORT_ACTION_URI);
     }
 
     protected String getStorageKey() {

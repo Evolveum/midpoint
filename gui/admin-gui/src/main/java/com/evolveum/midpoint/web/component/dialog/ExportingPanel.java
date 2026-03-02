@@ -146,9 +146,13 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
 
     private IModel<String> getWarningMessageModel() {
         if (exportSizeLimit != null) {
-            return getPageBase().createStringResource("CsvDownloadButtonPanel.confirmationMessage", exportSizeLimit);
+            return getConfirmationMessage(exportSizeLimit);
         }
         return null;
+    }
+
+    protected IModel<String> getConfirmationMessage(final Long exportSizeLimit) {
+        return getPageBase().createStringResource("CsvDownloadButtonPanel.confirmationMessage", exportSizeLimit);
     }
 
     public void exportPerformed(AjaxRequestTarget target) {
