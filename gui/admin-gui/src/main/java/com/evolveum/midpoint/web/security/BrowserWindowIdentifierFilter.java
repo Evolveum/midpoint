@@ -69,6 +69,8 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
         StringBuilder newUrl = new StringBuilder(requestURL);
         if (StringUtils.isNotEmpty(query)) {
             newUrl.append("?").append(query).append("&");
+        } else {
+            newUrl.append("?");
         }
 
         newUrl.append(PARAM_WI).append("=").append(wi);
