@@ -212,7 +212,7 @@ class MappingsSuggestionOperation {
                 }
             } else {
                 if (attrDef.hasOutboundMapping()) {
-                    existingPaths.add(attrDef.getStandardPath());
+                    existingPaths.add(attrDef.getStandardPath().rest());
                 }
             }
         }
