@@ -142,13 +142,20 @@ class MappingsSuggestionOperation {
             var mappingCandidates = new AttributeMappingCandidateSet(excludedMappingPaths);
 
             collectSystemMappings(knownSchemaProvider, shadowsForValidation, result)
-                    .forEach(mappingCandidates::propose);
+                    .forEach(mappingCandidates::proposeSystemMapping);
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
                 mappingsSuggestionState.flush(result);
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
+
+                if (shouldSkipReadOnlyAttribute(shadowAttrPath)) {
+                    LOGGER.debug("Skipping read-only attribute for {} mapping: {}", direction, shadowAttrPath);
+                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
+                    continue;
+                }
+
                 var valuePairsForLLM = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                         .from(shadowsForLLM);
                 var valuePairsForValidation = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
@@ -205,7 +212,7 @@ class MappingsSuggestionOperation {
                 }
             } else {
                 if (attrDef.hasOutboundMapping()) {
-                    existingPaths.add(attrDef.getStandardPath());
+                    existingPaths.add(attrDef.getStandardPath().rest());
                 }
             }
         }
@@ -536,6 +543,27 @@ class MappingsSuggestionOperation {
                     matchPair.getShadowAttributePath(),
                     matchPair.getFocusPropertyPath());
         }
+    }
+
+    /**
+     * Checks if the attribute should be skipped due to read-only status.
+     * For outbound mappings, skip read-only attributes (canModify = false).
+     * For inbound mappings, never skip (reading from resource is always allowed).
+     */
+    private boolean shouldSkipReadOnlyAttribute(ItemPath shadowAttrPath) {
+        if (isInbound) {
+            return false;
+        }
+
+        var attrName = shadowAttrPath.rest().asSingleNameOrFail();
+        var attrDef = ctx.typeDefinition.findSimpleAttributeDefinition(attrName);
+
+        if (attrDef == null) {
+            LOGGER.warn("Attribute definition not found for {}, will not skip", shadowAttrPath);
+            return false;
+        }
+
+        return !attrDef.canModify();
     }
 
     /**
