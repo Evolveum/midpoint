@@ -142,7 +142,7 @@ class MappingsSuggestionOperation {
             var mappingCandidates = new AttributeMappingCandidateSet(excludedMappingPaths);
 
             collectSystemMappings(knownSchemaProvider, shadowsForValidation, result)
-                    .forEach(mappingCandidates::propose);
+                    .forEach(mappingCandidates::proposeSystemMapping);
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
