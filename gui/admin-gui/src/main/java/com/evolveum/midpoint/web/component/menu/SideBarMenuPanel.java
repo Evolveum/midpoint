@@ -56,7 +56,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_HEADER = "header";
     private static final String ID_NAME = "name";
-    private static final String ID_MENU_ITEMS_GROUP = "menuItemsGroup";
+    private static final String ID_HEADER_STATE_DESC = "headerStateDesc";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
 
@@ -101,12 +101,6 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
                 Component menuItems = createMenuItems(header, item.getModel());
                 item.add(menuItems);
-
-                // needed to help assistive technologies to associate menu items with their header
-                // In this case header (e.g. "Self service") is not a parent of it's menu containers in DOM tree,
-                // "home", "credentials" are on the same level. Aria-owns establishes this relationship.
-                // See https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-owns for more
-                header.add(AttributeAppender.append("aria-owns", menuItems.getMarkupId()));
             }
         };
         menuItems.setOutputMarkupId(true);
@@ -171,18 +165,25 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
     private Component createHeader(IModel<SideBarMenuItem> model) {
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
-        header.add(new AjaxEventBehavior("click") {
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                onMenuClick(model);
-            }
-        });
         header.add(AttributeAppender.append("class", () -> isMenuExpanded(model.getObject()) ? "" : "closed"));
-        header.add(AttributeAppender.append("aria-expanded", () -> isMenuExpanded(model.getObject())));
+        header.add(AttributeAppender.append("aria-label", getHeaderMenuItemName(model)));
 
         Label name = new Label(ID_NAME, () -> getHeaderMenuItemName(model));
         header.add(name);
         header.add(new VisibleBehaviour(() -> model.getObject().isVisible()));
+
+        Label headerStateDescr = new Label(ID_HEADER_STATE_DESC, getHeaderMenuItemAriaDesc(isMenuExpanded(model.getObject())));
+        headerStateDescr.setOutputMarkupId(true);
+        header.add(headerStateDescr);
+        header.add(AttributeAppender.append("aria-describedby", headerStateDescr.getMarkupId()));
+
+        header.add(new AjaxEventBehavior("click") {
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                onMenuClick(model, headerStateDescr, target);
+            }
+        });
+
         return header;
     }
 
@@ -191,10 +192,13 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         return getString(key, null, key);
     }
 
-    private Component createMenuItems(Component header, IModel<SideBarMenuItem> model) {
-        WebMarkupContainer menuItemsGroup = new WebMarkupContainer(ID_MENU_ITEMS_GROUP);
-        menuItemsGroup.setOutputMarkupId(true);
+    private String getHeaderMenuItemAriaDesc(boolean isExpanded) {
+        String expandedState = getString(isExpanded ?
+                "SideBarMenuPanel.headerAriaLabel.shown" : "SideBarMenuPanel.headerAriaLabel.hidden");
+        return createStringResource("SideBarMenuPanel.headerAriaLabel.withState", expandedState).getString();
+    }
 
+    private Component createMenuItems(Component header, IModel<SideBarMenuItem> model) {
         ListView<MainMenuItem> items = new ListView<>(ID_ITEMS, new PropertyModel<>(model, SideBarMenuItem.F_ITEMS)) {
 
             @Override
@@ -209,15 +213,20 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
                 item.setOutputMarkupId(true);
                 item.add(new VisibleBehaviour(() -> listItem.getModelObject().isVisible()));
                 listItem.add(item);
+
+                // needed to help assistive technologies to associate menu items with their header
+                // In this case header (e.g. "Self service") is not a parent of it's menu containers in DOM tree,
+                // "home", "credentials" are on the same level. Aria-owns establishes this relationship.
+                // See https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-owns for more
+                header.add(AttributeAppender.append("aria-owns", item.getItem().getMarkupId()));
             }
         };
 
         items.setReuseItems(true);
-        menuItemsGroup.add(items);
-        return menuItemsGroup;
+        return items;
     }
 
-    private void onMenuClick(IModel<SideBarMenuItem> model) {
+    private void onMenuClick(IModel<SideBarMenuItem> model, Component headerStateDescr, AjaxRequestTarget target) {
         SideBarMenuItem mainMenu = model.getObject();
 
         SessionStorage storage = getPageBase().getSessionStorage();
@@ -231,6 +240,10 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
             expanded = true;
         }
         menuState.put(menuLabel, !expanded);
+
+        target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                headerStateDescr.getMarkupId(), getHeaderMenuItemAriaDesc(!expanded), 150));
+
     }
 
     private boolean isMenuExpanded(SideBarMenuItem mainMenu) {
