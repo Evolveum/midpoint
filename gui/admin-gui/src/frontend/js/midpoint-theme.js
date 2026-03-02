@@ -1801,6 +1801,34 @@ export default class MidPointTheme {
         }, menuTimeout);
     }
 
+    updateStatusMessageForMenu(elementId, isSelected) {
+            var current = document.getElementById(elementId);
+            if (!current) return;
+
+            // Find the radio group (parent container)
+            var group = current.closest('[role="radiogroup"]');
+            if (!group) return;
+
+            // Deselect all radios in this group
+            var radios = group.querySelectorAll('[role="radio"]');
+            radios.forEach(function(radio) {
+                radio.setAttribute('aria-checked', 'false');
+                radio.classList.remove('active');
+            });
+
+            // Select the clicked one
+            current.setAttribute('aria-checked', isSelected);
+            const isSelectedBool = isSelected === 'true';
+            if (isSelectedBool) {
+                current. classList.toggle('active', isSelected);
+            }
+
+            // Set focus back to it
+            current.focus();
+    }
+
+
+
     setToastAriaAttributes(toastId) {
       const toastEl = document.getElementById(toastId);
 
