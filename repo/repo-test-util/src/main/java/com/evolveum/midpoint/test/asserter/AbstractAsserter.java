@@ -15,6 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
+import org.assertj.core.annotation.CanIgnoreReturnValue;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.common.Clock;
@@ -136,6 +137,7 @@ public abstract class AbstractAsserter<RA> {
         }
     }
 
+    @CanIgnoreReturnValue
     public RA end() {
         return returnAsserter;
     }

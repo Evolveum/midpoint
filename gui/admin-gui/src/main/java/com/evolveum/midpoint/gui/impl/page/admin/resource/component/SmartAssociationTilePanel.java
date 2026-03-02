@@ -95,6 +95,11 @@ public abstract class SmartAssociationTilePanel
         add(new WebMarkupContainer(ID_DETAILS_PANEL).add(new VisibleBehaviour(() -> isDetailedView)));
     }
 
+    @Override
+    protected boolean isClickBehaviorEnabled() {
+        return false;
+    }
+
     private void initArrowText(@NotNull WebMarkupContainer tile) {
         String associationObjectObjectClass = getModelObject().getAssociationObjectObjectClass();
 

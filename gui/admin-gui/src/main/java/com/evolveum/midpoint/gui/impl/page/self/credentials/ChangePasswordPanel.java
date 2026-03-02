@@ -55,7 +55,6 @@ import com.evolveum.midpoint.web.component.progress.ProgressDto;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -76,6 +75,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private static final String ID_CURRENT_PASSWORD_CONTAINER_FIELD = "currentPasswordContainer";
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
     private static final String ID_PASSWORD_HINT_PANEL = "passwordHintPanel";
+    private static final String ID_PASSWORD_HINT_LABEL_ID = "passwordHintLabelId";
     private static final String ID_CHANGE_PASSWORD = "changePassword";
     private static final String ID_PASSWORD_VALIDATION_PANEL = "passwordValidationPanel";
     private static final String CHANGE_PASSWORD_BUTTON_STYLE = "btn btn-success";
@@ -208,6 +208,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             @Override
             protected boolean hideHintValue() {
                 return true;
+            }
+
+            @Override
+            protected String getLabeledByComponentId() {
+                return ID_PASSWORD_HINT_LABEL_ID;
             }
         };
         hint.setOutputMarkupId(true);
@@ -377,7 +382,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             collectDeltas(deltas, newPasswordValue, valuePath);
             getParentPage().getModelService().executeChanges(
-                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
+                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, getChannelUri()),
                     Collections.singleton(reporter), result);
             result.computeStatus();
         } catch (Exception ex) {
@@ -489,5 +494,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     protected boolean arePasswordInputFieldsAssociatedWithLabels() {
         return false;
+    }
+
+    protected String getChannelUri() {
+        return SchemaConstants.CHANNEL_SELF_SERVICE_URI;
     }
 }

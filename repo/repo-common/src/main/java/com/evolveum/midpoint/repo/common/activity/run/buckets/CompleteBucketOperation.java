@@ -71,7 +71,7 @@ public class CompleteBucketOperation extends BucketOperation {
         List<WorkBucketType> buckets = CloneUtil.cloneCollectionMembers(bucketing.getBucket());
 
         WorkBucketType bucket = BucketingUtil.findBucketByNumberRequired(buckets, sequentialNumber);
-        checkBucketReadyOrDelegated(bucket);
+        checkBucketReadyOrDelegated(bucket, "marked as completed");
 
         bucketProgressHolder.accept(
                 new BucketProgressOverviewType()

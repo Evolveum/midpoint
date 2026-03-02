@@ -12,7 +12,9 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -45,6 +48,8 @@ import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.web.session.SuggestionsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -62,9 +67,12 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createVirtualMappingContainerModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 
 /**
  * @author lskublik
@@ -273,6 +281,43 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         return columnTileTable;
     }
 
+    private @NotNull @Unmodifiable List<ItemPathType> getTargetPathsToIgnore() {
+        boolean isInbound = getSelectedMappingType() == MappingDirection.INBOUND;
+        Set<PrismContainerValueWrapper<MappingType>> accepted = getTable().getAcceptedSuggestionsCache();
+
+        if (isInbound) {
+            return accepted.stream()
+                    .map(PrismContainerValueWrapper::getRealValue)
+                    .filter(Objects::nonNull)
+                    .map(MappingType::getTarget)
+                    .filter(Objects::nonNull)
+                    .map(VariableBindingDefinitionType::getPath)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+        }
+
+        List<ItemPathType> targetPathsToIgnore = new ArrayList<>();
+        for (PrismContainerValueWrapper<MappingType> wrapper : accepted) {
+            try {
+                PrismPropertyWrapper<ItemPathType> refProperty =
+                        wrapper.findProperty(AbstractAttributeMappingsDefinitionType.F_REF);
+
+                ItemPathType refPath = refProperty != null && refProperty.getValue() != null
+                        ? refProperty.getValue().getRealValue()
+                        : null;
+
+                if (refPath != null) {
+                    targetPathsToIgnore.add(refPath);
+                }
+            } catch (SchemaException e) {
+                throw new RuntimeException("Error retrieving ref property from mapping", e);
+            }
+        }
+
+        return targetPathsToIgnore.stream().distinct().toList();
+    }
+
     private IModel<Boolean> getSwitchToggleModel() {
         return getSelectedMappingType() == MappingDirection.INBOUND
                 ? inboundSuggestionToggleModel
@@ -352,7 +397,13 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                         .withHideInProgress(true))
                 .runVoid((task, result) -> {
                     boolean inbound = getSelectedMappingType() == MappingDirection.INBOUND;
-                    service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, inbound, task, result);
+                    service.submitSuggestMappingsOperation(
+                            resourceOid,
+                            objectTypeIdentification,
+                            inbound,
+                            getTargetPathsToIgnore(),
+                            task,
+                            result);
                 });
 
         getSwitchToggleModel().setObject(Boolean.TRUE);
@@ -403,9 +454,16 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 buttons.newChildId(),
                 objectTypeDefModel,
                 () -> getAssignmentHolderDetailsModel().getObjectType()) {
+
             @Override
-            protected boolean isSamplingEnabled() {
-                return true;
+            protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+                ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
+                if (simulationResultReference == null || simulationResultReference.getOid() == null) {
+                    LOGGER.error("Simulation result reference or OID is null for task {}", task.getName());
+                    return;
+                }
+                SimulationResultType simulationResultType = loadSimulationResult(pageBase, simulationResultReference.getOid());
+                buildSimulationResultPanel(target, Model.of(simulationResultType));
             }
 
             @Override
@@ -507,5 +565,9 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+    }
+
+    protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+
     }
 }

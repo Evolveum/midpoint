@@ -25,11 +25,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
-class MagicAssignment {
+class MagicAssignment implements Serializable {
+
+    @Serial private static final long serialVersionUID = 1L;
 
     @NotNull private final AssignmentPathImpl assignmentPath;
 

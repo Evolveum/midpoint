@@ -14,11 +14,13 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serial;
+
 /**
  * @author lazyman
  */
 public abstract class IconColumn<T> extends AbstractIconColumn<T, String> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public IconColumn(IModel<String> displayModel) {
         super(displayModel);

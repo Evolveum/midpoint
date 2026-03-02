@@ -10,7 +10,12 @@
     <name>Certification-campaign-close-current-stage task</name>
     <archetypePolicy>
         <display>
-            <label>Certification campaign close current stage related task</label>
+            <label>
+                <orig>Certification campaign close current stage related task</orig>
+                <translation>
+                    <key>CertificationCampaignCloseCurrentStageRelatedTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Certification-campaign-close-current-stage-related tasks</orig>
                 <translation>

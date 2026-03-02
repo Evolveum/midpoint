@@ -131,6 +131,9 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         if (isCollectionViewPanelForCompiledView()) {
             StringValue collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
             collectionNameValue = collectionName != null ? collectionName.toString() : "";
+        } else if (isCollectionViewPanelForWidget()) {
+            String widgetName = getWidgetNameOfCollection();
+            return WebComponentUtil.getObjectListPageStorageKey(widgetName);
         }
         return getAuditStorageKey(collectionNameValue);
     }

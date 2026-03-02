@@ -30,6 +30,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
             <icfi:instanceId>shadow-marks</icfi:instanceId>
+            <icfi:supportValidity>true</icfi:supportValidity>
         </icfc:configurationProperties>
     </connectorConfiguration>
 
@@ -207,6 +208,16 @@
                     </target>
                 </inbound>
             </attribute>
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                    </outbound>
+                    <inbound>
+                        <strength>weak</strength>
+                    </inbound>
+                </administrativeStatus>
+            </activation>
             <marking>
                 <markRef oid="00000000-0000-0000-0000-000000000805"/>
                 <applicationTime>classification</applicationTime>

@@ -22,11 +22,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -64,26 +67,56 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
     protected final void onNewValue(
             PrismContainerValue<C> value,
-            IModel<PrismContainerWrapper<C>> containerModel,
+            @NotNull IModel<PrismContainerWrapper<C>> containerModel,
             WrapperContext context,
             AjaxRequestTarget target,
-            boolean isDeprecate) {
+            boolean isDeprecate,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
+
+        if(value != null){
+            useNewValue(value, containerModel, context, target, isDeprecate, postSaveHandler);
+            return;
+        }
+
         PageBase pageBase = getPageBase();
         PrismContainerWrapper<C> container = containerModel.getObject();
-        PrismContainerValue<C> newValue = value;
-        if (newValue == null) {
-            newValue = container.getItem().createNewValue();
-        }
+        PrismContainerValue<C> newValue = container.getItem().createNewValue();
         PrismContainerValueWrapper<C> newWrapper = null;
         try {
             newWrapper = WebPrismUtil.createNewValueWrapper(
                     container, newValue, pageBase, context);
             container.getValues().add(newWrapper);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't create new value for container " + container, e);
+            LOGGER.error("Couldn't create new value for container {}", container, e);
         }
         IModel<PrismContainerValueWrapper<C>> model = Model.of(newWrapper);
-        onCreateValue(model, target, isDeprecate);
+        onCreateValue(model, target, isDeprecate, postSaveHandler);
+    }
+
+
+    protected final void useNewValue(
+            @NotNull PrismContainerValue<C> newValue,
+            @NotNull IModel<PrismContainerWrapper<C>> containerModel,
+            WrapperContext context,
+            AjaxRequestTarget target,
+            boolean isDeprecate,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
+        PageBase pageBase = getPageBase();
+        PrismContainerWrapper<C> container = containerModel.getObject();
+
+        PrismContainerValueWrapper<C> newWrapper = null;
+        try {
+            newWrapper = WebPrismUtil.addNewValueToContainer(
+                    container,
+                    newValue,
+                    pageBase,
+                    context);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't create new value for container {}", container, e);
+        }
+
+        IModel<PrismContainerValueWrapper<C>> model = Model.of(newWrapper);
+        onCreateValue(model, target, isDeprecate, postSaveHandler);
     }
 
     @SuppressWarnings("rawtypes")
@@ -101,7 +134,8 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target);
 
-    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target, boolean isDuplicate);
+    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target,
+            boolean isDuplicate, @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler);
 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {

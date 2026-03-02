@@ -167,12 +167,21 @@ class BucketOperation implements DebugDumpable {
         }
     }
 
-    void checkBucketReadyOrDelegated(@NotNull WorkBucketType bucket) {
+    void checkBucketReadyOrDelegated(@NotNull WorkBucketType bucket, String operationDesc) {
+        var bucketState = bucket.getState();
         if (workerTaskOid != null) {
-            stateCheck(bucket.getState() == DELEGATED, "Bucket %s is not delegated", bucket);
+            stateCheck(
+                    bucketState == DELEGATED,
+                    "Bucket %s is going to be %s, but it was not delegated to a worker (state: %s). "
+                            + "Isn't the worker task running in multiple instances?",
+                    bucket, operationDesc, bucketState);
             checkWorkerRefOnDelegatedBuckets(bucket);
         } else {
-            stateCheck(bucket.getState() == null || bucket.getState() == READY, "Bucket %s is not ready", bucket);
+            stateCheck(
+                    bucketState == null || bucketState == READY,
+                    "Bucket %s is going to be %s, but it is not in the READY state (state: %s). "
+                            + "Isn't the task running in multiple instances?",
+                    bucket, operationDesc, bucketState);
         }
     }
 

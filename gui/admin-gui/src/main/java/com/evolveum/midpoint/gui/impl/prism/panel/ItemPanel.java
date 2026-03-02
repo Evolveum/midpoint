@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismValue;
 
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;

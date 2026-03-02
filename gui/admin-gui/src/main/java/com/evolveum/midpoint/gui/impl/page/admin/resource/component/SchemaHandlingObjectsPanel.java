@@ -132,6 +132,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
+            protected void onSuggestButtonClick(AjaxRequestTarget target) {
+                performSuggestOperation(target);
+            }
+
+            @Override
             protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
                 return () -> new RequestDetailsRecordDto(null, initDummyObjectTypePermissionData());
             }

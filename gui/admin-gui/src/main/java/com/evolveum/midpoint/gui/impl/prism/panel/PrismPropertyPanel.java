@@ -25,14 +25,13 @@ import org.apache.wicket.util.visit.IVisitor;
 /**
  * @author katkav
  */
-public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T>, PrismPropertyWrapper<T>> {
+public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T>, PrismPropertyWrapper<T>> {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
 
     protected static final String ID_HEADER = "header";
     protected static final String ID_VALUE = "value";
-
 
     /**
      * @param id
@@ -63,7 +62,7 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
 
     @Override
     protected ItemHeaderPanel createHeaderPanel() {
-        return new PrismPropertyHeaderPanel<T>(ID_HEADER, getModel()) {
+        return new PrismPropertyHeaderPanel<T>(ID_HEADER, getModel(), getSettings()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(PrismPropertyPanel.this);
@@ -80,7 +79,6 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
             }
         };
     }
-
 
     @Override
     protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item) {
@@ -100,7 +98,6 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
         item.add(panel);
         return panel;
     }
-
 
     @Override
     protected <PV extends PrismValue> PV createNewValue(PrismPropertyWrapper<T> itemWrapper) {

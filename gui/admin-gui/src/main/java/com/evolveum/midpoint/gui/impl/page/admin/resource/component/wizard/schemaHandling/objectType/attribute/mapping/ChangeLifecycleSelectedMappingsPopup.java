@@ -70,7 +70,7 @@ public class ChangeLifecycleSelectedMappingsPopup extends SimplePopupable {
     }
 
     private void initLayout() {
-        add(new VerticalFormPrismPropertyHeaderPanel<>(ID_HEADER, firstWrapper));
+        add(new VerticalFormPrismPropertyHeaderPanel<>(ID_HEADER, firstWrapper, null));
 
         add(new LifecycleStateFormPanel(ID_INPUT, firstWrapper));
     }

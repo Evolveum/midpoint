@@ -641,14 +641,41 @@ export default class MidPointTheme {
         if (!mainElement) {
             return null;
         }
-        const focusableElements = mainElement.querySelectorAll(
-            'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"]), details'
-        );
-        if (focusableElements.length > 0) {
-            return focusableElements[0];  // Return the first focusable element
-        } else {
-            return null;
+
+        const focusableSelectors = `
+            a[href],
+            button:not([disabled]),
+            input:not([disabled]),
+            select:not([disabled]),
+            textarea:not([disabled]),
+            [tabindex]:not([tabindex="-1"]),
+            details
+        `;
+
+        const focusableElements = mainElement.querySelectorAll(focusableSelectors);
+
+        for (const element of focusableElements) {
+            if (this.isElementVisible(element)) {
+                return element;
+            }
         }
+
+        return null;
+    }
+
+    isElementVisible(element) {
+        if (!element) return false;
+
+        const style = window.getComputedStyle(element);
+
+        return (
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            style.visibility !== 'collapse' &&
+            element.offsetWidth > 0 &&
+            element.offsetHeight > 0 &&
+            element.getClientRects().length > 0
+        );
     }
 
     clickOnMenuItem(link, menuItem, onlySubmenu, e) {
@@ -702,6 +729,24 @@ export default class MidPointTheme {
             var select = container.find("select");
             if (select.length) {
                 var attribute = select.attr("aria-label")
+
+                $('.select2-selection__clear').each(function () {
+                        const $clear = $(this);
+                        if (!$clear.attr('tabindex')) {
+                            $clear.attr({
+                                'tabindex': 0,
+                                'role': 'button',
+                                'aria-label': 'Clear selection'
+                            });
+
+                            $clear.on('keydown', function (e) {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    $(this).trigger('mousedown');
+                                }
+                            });
+                        }
+                    });
 
                 var combobox = container.find("span[role='combobox']");
                 var selectContainer = container.find(".select2-container");
@@ -886,13 +931,63 @@ export default class MidPointTheme {
             });
         }
         picker.subscribe('show.td', () => {
+            var $dateContainer = $('.date-container');
+
+            var $dateContainerDecades = $('.date-container-decades');
+            var $dateContainerYears = $('.date-container-years');
+            var $dateContainerMonths = $('.date-container-months');
+            var $dateContainerDays = $('.date-container-days');
+            if ($dateContainerDecades.length > 0) {
+                $dateContainerDecades.attr({
+                    'role': 'grid'
+                });
+            }
+            if ($dateContainerYears.length > 0) {
+                $dateContainerYears.attr({
+                    'role': 'grid'
+                });
+            }
+            if ($dateContainerMonths.length > 0) {
+                $dateContainerMonths.attr({
+                    'role': 'grid'
+                });
+            }
+            if ($dateContainerDays.length > 0) {
+                $dateContainerDays.attr({
+                    'role': 'grid'
+                });
+            }
+
+            if ($dateContainer.length > 0) {
+                $dateContainer.on('keydown', function (e) {
+                    if (e.key === 'Escape' || e.keyCode === 27) {
+                        if (picker && picker.display && picker.display.isVisible) {
+                            picker.hide(); // close only this picker
+                            // prevent parent popover from closing
+                            e.stopImmediatePropagation();
+                            e.preventDefault();
+                        }
+                    }
+                });
+            }
+
+            var $actionElements = $('.date-container [data-action]').filter(function () {
+              return $(this).attr('data-action')?.trim() !== '';
+            });
+            $actionElements.each(function() {
+                const $el = $(this);
+                $el.attr({
+                    'tabindex': '0',
+                    'role': 'gridcell'
+                });
+            });
+
             const $switchEl = $('.calendar-header .picker-switch');
             $switchEl.attr("aria-live", "polite");
             const switchElId = 'pickerSwitch-' + Math.random().toString(16).substr(2, 6);
             $switchEl.attr('id', switchElId);
 
             // we add aria-live="polite" to every focused element so that it is announced
-            var $actionElements = $('.date-container [data-action]:not([data-action=""])');
             $actionElements.on('focus', function () {
                 $actionElements.removeAttr('aria-live');
                 if ($(this).closest('.calendar-header').length > 0) {
@@ -1736,6 +1831,34 @@ export default class MidPointTheme {
         }, menuTimeout);
     }
 
+    updateStatusMessageForMenu(elementId, isSelected) {
+            var current = document.getElementById(elementId);
+            if (!current) return;
+
+            // Find the radio group (parent container)
+            var group = current.closest('[role="radiogroup"]');
+            if (!group) return;
+
+            // Deselect all radios in this group
+            var radios = group.querySelectorAll('[role="radio"]');
+            radios.forEach(function(radio) {
+                radio.setAttribute('aria-checked', 'false');
+                radio.classList.remove('active');
+            });
+
+            // Select the clicked one
+            current.setAttribute('aria-checked', isSelected);
+            const isSelectedBool = isSelected === 'true';
+            if (isSelectedBool) {
+                current. classList.toggle('active', isSelected);
+            }
+
+            // Set focus back to it
+            current.focus();
+    }
+
+
+
     setToastAriaAttributes(toastId) {
       const toastEl = document.getElementById(toastId);
 
@@ -1777,4 +1900,29 @@ export default class MidPointTheme {
             }, 200);
         }
     }
+
+    /**
+     * Used for rendering strengthMeter and passwordFieldValidatorPopover for each new PasswordPanel component on page
+     *
+     * @param options contains information for strengthMeter in following format:
+     *          {
+     *          container: $('#idStrengthMeter'),
+     *          hierarchy: {
+     *                  '0': ['progress-bar-danger', 'Very weak'],
+     *                  ...
+     *                  }
+     *           }
+     * @param idInput id of the first input field for password in the PasswordPanel
+     */
+    initPasswordValidation(options, idInput) {
+        $(idInput).removeAttr("onfocus");
+
+        $(document).ready(function () {
+            $(idInput).strengthMeter('progressBar', options);
+        });
+
+        $(document).ready(function () {
+            $(idInput).passwordFieldValidatorPopover(idInput, ".password-validator-popover");
+        });
+    };
 }

@@ -72,8 +72,8 @@ class SchemaMatchingOperation {
                 .orElse(null);
 
         SiMatchSchemaResponseType aiSchemaMatch = useAiService ? invokeAiService(resource) : null;
-
-        return mergeSchemaMatches(systemSchemaMatch, aiSchemaMatch);
+        SiMatchSchemaResponseType schemaMatch = mergeSchemaMatches(systemSchemaMatch, aiSchemaMatch);
+        return removeHallucinations(schemaMatch);
     }
 
     private SiMatchSchemaResponseType invokeAiService(ResourceType resource) throws SchemaException {
@@ -134,6 +134,59 @@ class SchemaMatchingOperation {
                 heuristicMatches.getAttributeMatch().size(), addedAiMatches, mergedResponse.getAttributeMatch().size(), skippedDuplicates);
 
         return mergedResponse;
+    }
+
+    private SiMatchSchemaResponseType removeHallucinations(SiMatchSchemaResponseType response) {
+        if (response == null || response.getAttributeMatch().isEmpty()) {
+            return response;
+        }
+
+        var validMatches = new java.util.ArrayList<SiAttributeMatchSuggestionType>();
+        int hallucinationCount = 0;
+
+        for (SiAttributeMatchSuggestionType match : response.getAttributeMatch()) {
+            boolean isValid = true;
+
+            try {
+                ItemPath appPath = getApplicationItemPath(match.getApplicationAttribute());
+                if (appPath == null) {
+                    LOGGER.warn("Hallucination detected: application attribute '{}' does not exist in resource schema",
+                            match.getApplicationAttribute());
+                    isValid = false;
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Hallucination detected: invalid application attribute '{}': {}",
+                        match.getApplicationAttribute(), e.getMessage());
+                isValid = false;
+            }
+
+            try {
+                ItemPath focusPath = getFocusItemPath(match.getMidPointAttribute());
+                if (focusPath == null) {
+                    LOGGER.warn("Hallucination detected: midPoint attribute '{}' does not exist in focus schema",
+                            match.getMidPointAttribute());
+                    isValid = false;
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Hallucination detected: invalid midPoint attribute '{}': {}",
+                        match.getMidPointAttribute(), e.getMessage());
+                isValid = false;
+            }
+
+            if (isValid) {
+                validMatches.add(match);
+            } else {
+                hallucinationCount++;
+            }
+        }
+
+        if (hallucinationCount > 0) {
+            LOGGER.warn("Removed {} hallucinated attribute matches from AI response", hallucinationCount);
+        }
+
+        SiMatchSchemaResponseType cleanedResponse = new SiMatchSchemaResponseType();
+        cleanedResponse.getAttributeMatch().addAll(validMatches);
+        return cleanedResponse;
     }
 
     ItemPath getFocusItemPath(String descriptivePath) {

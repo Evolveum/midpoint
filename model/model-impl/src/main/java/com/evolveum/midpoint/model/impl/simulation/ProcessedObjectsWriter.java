@@ -10,10 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
-import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,18 +20,19 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.CorrelationSimulationData;
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.SimulationData;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Writes simulation data into the repository - in the form of "processed objects".
@@ -67,12 +64,19 @@ class ProcessedObjectsWriter {
     }
 
     private void write(@NotNull OperationResult result) {
-        if (data instanceof FullOperationSimulationDataImpl) {
-            writeFullData(((FullOperationSimulationDataImpl) data), result);
-        } else if (data instanceof SingleDeltaSimulationDataImpl<?>) {
-            writeSingleDelta(((SingleDeltaSimulationDataImpl<?>) data), result);
-        } else if (data instanceof ShadowSimulationData) {
-            writeShadowSimulationData(((ShadowSimulationData) data), result);
+        if (data instanceof FullOperationSimulationDataImpl fullData) {
+            writeFullData(fullData, result);
+        } else if (data instanceof SingleDeltaSimulationDataImpl<?> singleDeltaData) {
+            writeSingleDelta(singleDeltaData, result);
+        } else if (data instanceof ShadowSimulationData shadowData) {
+            writeSimulationData(() -> ProcessedObjectImpl.createForShadow(shadowData, this.simulationTransaction),
+                    result);
+        } else if (data instanceof CorrelationSimulationData correlationSimulationData) {
+            writeSimulationData(() ->
+                    ProcessedObjectImpl.createForCorrelation(correlationSimulationData, this.simulationTransaction),
+                    result);
+        } else if (data instanceof MappingSimulationData mappingSimulationData) {
+            writeMappingSimulationData(mappingSimulationData, result);
         } else {
             LOGGER.warn("Simulation data of unexpected type: {}", MiscUtil.getValueWithClass(data));
         }
@@ -171,13 +175,34 @@ class ProcessedObjectsWriter {
         }
     }
 
-    private void writeShadowSimulationData(ShadowSimulationData data, OperationResult result) {
+    private void writeSimulationData(CheckedProducer<ProcessedObjectImpl<?>> processedObjectProducer,
+            OperationResult result) {
         try {
-            LOGGER.trace("Storing delta in {} into {}", data, simulationTransaction);
+            storeProcessedObjects(List.of(processedObjectProducer.get()), this.task, result);
+        } catch (CommonException e) {
+            throw SystemException.unexpected(e, "when storing processed object information");
+        }
+    }
 
-            ProcessedObjectImpl<ShadowType> processedObject =
-                    ProcessedObjectImpl.createForShadow(data, simulationTransaction);
-            storeProcessedObjects(List.of(processedObject), task, result);
+    private void writeMappingSimulationData(MappingSimulationData mappingData, @NotNull OperationResult result) {
+        try {
+            LOGGER.trace("Storing data in {} into {}", mappingData, simulationTransaction);
+
+            final ProcessedObjectImpl<ShadowType> processedShadow =
+                    ProcessedObjectImpl.createForMapping(ShadowType.class, mappingData.getShadow(), null,
+                            this.simulationTransaction);
+            final ProcessedObjectImpl<FocusType> processedFocus =
+                    ProcessedObjectImpl.createForMapping(FocusType.class, mappingData.getFocusBefore(),
+                            mappingData.getSimulationDelta().orElse(null), simulationTransaction);
+
+            processedShadow.setResultAndStatus(mappingData.getMappingEvaluationResult());
+            processedFocus.setResultAndStatus(mappingData.getMappingEvaluationResult());
+            processedFocus.setProjectionRecords(1);
+            storeProcessedObjects(List.of(processedFocus), task, result);
+
+            // Record ID is set to processedFocused by the repository during storing it.
+            processedShadow.setFocusRecordId(processedFocus.getRecordId());
+            storeProcessedObjects(List.of(processedShadow), task, result);
 
         } catch (CommonException e) {
             // TODO which exception to treat?

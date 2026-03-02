@@ -574,15 +574,17 @@ public class SmartIntegrationStatusInfoUtils {
                 s -> rotDefAttributePaths.stream().anyMatch(s::equivalent)
         );
 
-        // Mark all suggested attributes that correspond to the new mapping targets as ADDED (at least one mapping should be new)
+        // Mark all suggested attributes that correspond to the new mapping targets as ADDED (and the rest as NOT_CHANGED)
         suggestedAttributesW.forEach(valueWrapper -> {
             ResourceAttributeDefinitionType realValue = valueWrapper.getRealValue();
             Set<ItemPath> itemPaths = collectMappingTargets(Collections.singletonList(realValue));
-            if (itemPaths.isEmpty()) {
-                return;
-            }
-            if (itemPaths.stream().anyMatch(suggestionMappingTargetPaths::contains)) {
+
+            if (!suggestionMappingTargetPaths.isEmpty()
+                    && !itemPaths.isEmpty()
+                    && itemPaths.stream().anyMatch(suggestionMappingTargetPaths::contains)) {
                 valueWrapper.setStatus(ValueStatus.ADDED);
+            } else {
+                valueWrapper.setStatus(ValueStatus.NOT_CHANGED);
             }
         });
 
@@ -600,6 +602,8 @@ public class SmartIntegrationStatusInfoUtils {
 
                     if (refPath != null && suggestionMappingTargetPaths.stream().anyMatch(p -> p.equivalent(refPath))) {
                         item.setStatus(ValueStatus.ADDED);
+                    } else {
+                        item.setStatus(ValueStatus.NOT_CHANGED);
                     }
                 });
     }

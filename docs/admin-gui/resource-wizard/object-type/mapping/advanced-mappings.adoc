@@ -31,6 +31,7 @@ To access advanced configuration options for your mappings:
 .Enter advanced mapping settings by clicking the Edit button on the row with the particular mapping
 image::advanced-mappings-entry-point.webp["Enter advanced mapping settings by clicking the Edit button on the row with the particular mapping in the mapping list"]
 
+[[main-configuration]]
 === 1. Main configuration
 
 * *From resource attribute* (inbound mappings), *To resource attribute* (outbound mappings): This is the same field you see in the basic xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[mapping configuration screen].

@@ -65,7 +65,13 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
                     AjaxRequestTarget target,
                     boolean isDuplicate,
                     @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
-                ResourceObjectTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
+                ResourceObjectTypeTableWizardPanel.this.onNewValue(value, containerModel,
+                        getObjectDetailsModels().createWrapperContext(), target, isDuplicate, postSaveHandler);
+            }
+
+            @Override
+            protected void onSuggestValue(IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+                ResourceObjectTypeTableWizardPanel.this.onSuggestValue(newWrapperModel, target);
             }
         };
         panel.setOutputMarkupId(true);
@@ -74,7 +80,9 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
 
-    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target, boolean isDuplicate);
+    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target, boolean isDuplicate, @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler);
+
+    protected abstract void onSuggestValue(IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target);
 
     @Override
     protected IModel<String> getSubTextModel() {

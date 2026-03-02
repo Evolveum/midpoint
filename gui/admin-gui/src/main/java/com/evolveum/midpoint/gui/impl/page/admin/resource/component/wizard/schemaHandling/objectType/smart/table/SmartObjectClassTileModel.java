@@ -24,8 +24,10 @@ public class SmartObjectClassTileModel<T extends PrismContainerValueWrapper<Comp
     String name;
     String description;
     ObjectClassSizeEstimationType estimationType;
+    String resourceOid;
+    QName objectClassName;
 
-    public SmartObjectClassTileModel(T valueWrapper, ObjectClassSizeEstimationType sizeEstimation) {
+    public SmartObjectClassTileModel(T valueWrapper, String resourceOid, ObjectClassSizeEstimationType sizeEstimation) {
         super(valueWrapper);
 
         setValue(valueWrapper);
@@ -33,6 +35,8 @@ public class SmartObjectClassTileModel<T extends PrismContainerValueWrapper<Comp
         this.name = extractName(valueWrapper.getRealValue());
         this.description = "Description for this object class is not ready yet, but it will be available soon."; // TODO
         this.estimationType = sizeEstimation;
+        this.resourceOid = resourceOid;
+        this.objectClassName = valueWrapper.getRealValue().getName();
     }
 
     private String extractName(@NotNull ComplexTypeDefinitionType definition) {
@@ -68,5 +72,13 @@ public class SmartObjectClassTileModel<T extends PrismContainerValueWrapper<Comp
 
     public ObjectClassSizeEstimationType getEstimatedSize() {
         return estimationType;
+    }
+
+    public String getResourceOid() {
+        return resourceOid;
+    }
+
+    public QName getObjectClassName() {
+        return objectClassName;
     }
 }

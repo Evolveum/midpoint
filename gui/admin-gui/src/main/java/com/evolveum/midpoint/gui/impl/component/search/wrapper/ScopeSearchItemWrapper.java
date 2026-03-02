@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 
 public class ScopeSearchItemWrapper extends AbstractSearchItemWrapper<SearchBoxScopeType> {
 
@@ -48,7 +49,7 @@ public class ScopeSearchItemWrapper extends AbstractSearchItemWrapper<SearchBoxS
     }
 
     @Override
-    public IModel<String> getName() {
+    public @NotNull IModel<String> getName() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -60,7 +61,7 @@ public class ScopeSearchItemWrapper extends AbstractSearchItemWrapper<SearchBoxS
     }
 
     @Override
-    public IModel<String> getHelp() {
+    public @NotNull IModel<String> getHelp() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -72,7 +73,7 @@ public class ScopeSearchItemWrapper extends AbstractSearchItemWrapper<SearchBoxS
     }
 
     @Override
-    public IModel<String> getTitle() {
+    public @NotNull IModel<String> getTitle() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {

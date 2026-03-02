@@ -14,6 +14,7 @@ import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class UserScimMappingProvider implements WellKnownSchemaProvider {
 
     @Override
     public WellKnownSchemaType getSupportedSchemaType() {
-        return com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType.SCIM_2_0_USER;
+        return WellKnownSchemaType.SCIM_2_0_USER;
     }
 
     @Override
@@ -44,24 +45,12 @@ public class UserScimMappingProvider implements WellKnownSchemaProvider {
     @Override
     public List<SystemMappingSuggestion> suggestInboundMappings() {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("userName", UserType.F_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("displayName", UserType.F_FULL_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("familyName", UserType.F_FAMILY_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("emailAddress", UserType.F_EMAIL_ADDRESS));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("phoneNumber", UserType.F_TELEPHONE_NUMBER));
         return mappings;
     }
 
     @Override
-    public List<SystemMappingSuggestion> suggestOutboundMappings() {
+    public List<SystemMappingSuggestion> suggestOutboundMappings(@Nullable List<ShadowType> sampleShadows) {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("userName", UserType.F_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("displayName", UserType.F_FULL_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("familyName", UserType.F_FAMILY_NAME));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("emailAddress", UserType.F_EMAIL_ADDRESS));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("phoneNumber", UserType.F_TELEPHONE_NUMBER));
         return mappings;
     }
 }

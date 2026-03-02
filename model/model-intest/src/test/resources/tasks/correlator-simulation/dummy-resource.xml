@@ -51,9 +51,6 @@
                 <ref>icfs:uid</ref>
             </attribute>
             <attribute>
-                <ref>ri:correlator</ref>
-            </attribute>
-            <attribute>
                 <ref>ri:employeeNumber</ref>
                 <inbound>
                     <target>
@@ -76,25 +73,6 @@
                         <path>familyName</path>
                     </target>
                 </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:honorificPrefix</ref>
-                <inbound>
-                    <target>
-                        <path>honorificPrefix</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:costCenter</ref>
-                <inbound>
-                    <target>
-                        <path>costCenter</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:dateOfBirth</ref>
             </attribute>
             <mappingsEvaluation>
                 <inbound>

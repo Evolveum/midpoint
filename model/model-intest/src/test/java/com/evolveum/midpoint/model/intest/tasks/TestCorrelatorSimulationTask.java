@@ -50,12 +50,10 @@ public class TestCorrelatorSimulationTask extends AbstractEmptyModelIntegrationT
         super.initSystem(initTask, initResult);
         CommonInitialObjects.addMarks(this, initTask, initResult);
 
-        final DummyTestResource resource = new DummyTestResource(TEST_DIR, "dummy-resource.xml", DUMMY_RESOURCE_OID,
-                "correlation-test",
-                CorrelatorTestUtil::createAttributeDefinitions);
+        final DummyTestResource resource = DummyTestResource.fromFile(TEST_DIR, "dummy-resource.xml",
+                DUMMY_RESOURCE_OID, "correlation-test").withAccountsFromCsv(ACCOUNTS);
         resource.init(this, initTask, initResult);
         this.correlationTask = TestTask.fromFile(CORRELATOR_SIMULATION_TASK, CORRELATOR_SIMULATION_TASK_OID);
-        CorrelatorTestUtil.addAccountsFromCsvFile(this, ACCOUNTS, resource);
 
         importObjectsFromFileRaw(USERS, initTask, initResult);
         assertUsers(7);

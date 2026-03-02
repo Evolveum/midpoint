@@ -134,7 +134,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
         if (addEmptyBlumBehaviourToTextField()) {
             textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
-        textPanel.getBaseFormComponent().add(new ParseAxiomQueryValidator(queryModel));
+        initValidation(textPanel, queryModel);
         container.add(textPanel);
 
         AjaxButton searchConfigurationButton = new AjaxButton(ID_CONFIGURE_BUTTON) {
@@ -173,6 +173,10 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
         fieldTypeButton.add(buttonLabel);
         fieldTypeButton.add(new VisibleBehaviour(() -> FieldType.XML.equals(fieldType)));
         add(fieldTypeButton);
+    }
+
+    protected void initValidation(TextPanel textPanel, SearchFilterTypeForQueryModel queryModel) {
+        textPanel.getBaseFormComponent().add(new ParseAxiomQueryValidator(queryModel));
     }
 
     private void switchToFieldType(FieldType newFieldType, AjaxRequestTarget target) {

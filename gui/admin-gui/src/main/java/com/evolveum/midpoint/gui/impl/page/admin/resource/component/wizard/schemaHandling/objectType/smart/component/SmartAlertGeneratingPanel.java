@@ -118,7 +118,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                 createStringResource("SmartGeneratingPanel.button.ai.suggestions.suggest")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                showSuggestConfirmDialog(getPageBase(), target);
+                onSuggestButtonClick(target);
             }
         };
         suggestButton.add(AttributeModifier.append(
@@ -180,6 +180,11 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         buttonsView.add(stopSuggestionButton);
 
         primaryPanel.add(buttonsView);
+    }
+
+    protected void onSuggestButtonClick(AjaxRequestTarget target) {
+        PageBase pageBase = getPageBase();
+        showSuggestConfirmDialog(pageBase, target);
     }
 
     /** Restarts the polling timer if it exists. */

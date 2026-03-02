@@ -12,7 +12,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -31,9 +34,12 @@ public class ShadowObjectClassStatisticsTypeUtil {
     }
 
     public static ShadowObjectClassStatisticsType getStatisticsRequired(PrismObject<GenericObjectType> holder) {
-        return MiscUtil.argNonNull(
+        ShadowObjectClassStatisticsType statistics = MiscUtil.argNonNull(
                 getExtensionItemRealValue(holder.asObjectable().getExtension(), SchemaConstants.MODEL_EXTENSION_STATISTICS),
                 "No statistics in %s", holder);
+        statistics.getAttribute();
+        statistics.getAttributeTuple();
+        return statistics;
     }
 
     public static GenericObjectType createStatisticsObject(

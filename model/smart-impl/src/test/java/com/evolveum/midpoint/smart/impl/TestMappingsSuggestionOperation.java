@@ -15,12 +15,15 @@ import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AttrName;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.assertj.core.data.Offset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,6 +62,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
+    @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -176,18 +180,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -221,18 +223,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -265,18 +265,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -308,18 +306,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -357,18 +353,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -391,18 +385,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 false,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -440,18 +432,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 false,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -489,18 +479,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 false,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -537,18 +525,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 false,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -585,18 +571,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 false,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -616,11 +600,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         // Empty match response
         var mockClient = createClient(List.of(), List.of());
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
-                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService, true, task, result);
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -649,11 +638,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 "input", "input"
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
-                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService, true, task, result);
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -676,11 +670,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 identity
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
-                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService, true, task, result);
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -709,11 +708,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 List.of(PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
-                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService, true, task, result);
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -747,11 +751,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 List.of(PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
-                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService, true, task, result);
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -782,11 +791,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 List.of(PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
-                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService, false, task, result);
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                false,
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -817,11 +831,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 List.of(PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
-                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService, false, task, result);
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                false,
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -836,63 +855,831 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test100SystemMappingsFromLdapWithPerfectMatch() throws Exception {
+    public void test200HeuristicToUpperCaseFoundAndUsed() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER1.oid, UserType.F_FULL_NAME, PolyString.fromOrig("John Doe"));
-        modifyUserReplace(USER2.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Jane Smith"));
-        modifyUserReplace(USER3.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Bob Johnson"));
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "AAAA");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "BBBB");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "CCCC");
 
-        modifyShadowReplace("user1", CN, "John Doe");
-        modifyShadowReplace("user2", CN, "Different Name");
-        modifyShadowReplace("user3", CN, "Another Name");
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "aaaa");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "bbbb");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "cccc");
 
         refreshShadows();
 
-        var mockClient = createClient(List.of(), List.of());
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_DUMMY.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                false);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
-        match.setWellKnownSchemaType(WellKnownSchemaType.LDAP_INETORGPERSON.name());
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
 
-        assertThat(suggestion.getAttributeMappings())
-                .as("LDAP system mappings should be present")
-                .isNotEmpty();
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
 
-        var cnMappings = suggestion.getAttributeMappings().stream()
-                .filter(m -> m.getDefinition() != null
-                        && m.getDefinition().getRef() != null
-                        && m.getDefinition().getRef().toString().endsWith("cn"))
-                .toList();
+        assertThat(mapping.getExpectedQuality())
+                .as("Heuristic toUpperCase should have perfect quality")
+                .isEqualTo(1.0f);
 
-        assertThat(cnMappings)
-                .as("Should have exactly one cn mapping")
-                .hasSize(1);
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain toUpperCase expression")
+                .isNotNull();
+    }
 
-        var cnMapping = cnMappings.get(0);
+    @Test
+    public void test201HeuristicToLowerCaseFoundAndUsed() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(cnMapping.asPrismContainerValue()))
-                .as("System-provided should be preferred when quality is similar")
-                .isTrue();
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "aaaa");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "bbbb");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "cccc");
 
-        assertThat(cnMapping.getExpectedQuality())
-                .as("System mapping with partial match should have lower quality (~0.33)")
-                .isLessThan(1.0f)
-                .isGreaterThan(0.0f);
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "AAAA");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "BBBB");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "CCCC");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Heuristic toLowerCase should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain toLowerCase expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test202HeuristicTrimFoundAndUsed() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "AAAA");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "BBBB");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "CCCC");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "  AAAA  ");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "  BBBB  ");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "  CCCC  ");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Heuristic trim should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain trim expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test204HeuristicNotFoundFallbackToAI() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "11111");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "22222");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33333");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "xyz11111");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "xyz22222");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "xyz33333");
+
+        refreshShadows();
+
+        String script = "input.substring(3)";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                script
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                true);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("AI mapping should be used when no heuristic matches")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should use AI expression when no heuristic matches")
+                .isNotNull();
+    }
+
+    @Test
+    public void test205HeuristicFoundButAIProducesBetterQuality() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "11111");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "22222");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33333");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "xyz11111");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "xyz22222");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "xyz33333");
+
+        refreshShadows();
+
+        String perfectScript = "input.substring(3)";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                perfectScript
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                true);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("AI mapping should have better quality than any heuristic")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should use AI expression when it's better than heuristic")
+                .isNotNull();
+    }
+
+    @Test
+    public void test206HeuristicUsedWhenAIServiceDisabled() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "AAAA");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "BBBB");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "CCCC");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "aaaa");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "bbbb");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "cccc");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Heuristic should be used when AI service is disabled")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain heuristic expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test207NoHeuristicFoundAIDisabledFallbackToAsIs() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "11111");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "22222");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33333");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "xyz11111");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "22222");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33333");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("No heuristic found and AI disabled => asIs mapping with no expression")
+                .isNull();
+        assertThat(mapping.getExpectedQuality())
+                .as("No assessment performed => null quality")
+                .isCloseTo(0.66F, Offset.offset(0.01F));
+    }
+
+    @Test
+    public void test208OutboundHeuristicFoundAndUsed() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "aaaa");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "bbbb");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "cccc");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "AAAA");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "BBBB");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "CCCC");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                false,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Outbound heuristic toUpperCase should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getOutbound().getExpression())
+                .as("Should contain toUpperCase expression with correct variable name")
+                .isNotNull();
+    }
+
+    @Test
+    public void test209HeuristicPreferredWhenAIProvidesLowerQuality() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "AAAA");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "BBBB");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "CCCC");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "aaaa");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "bbbb");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "cccc");
+
+        refreshShadows();
+
+        String badScript = "input.replaceAll('x', 'y')";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                badScript
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                true);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Heuristic should be used when it has better quality than AI")
+                .isEqualTo(1.0f);
+    }
+
+    @Test
+    public void test210HeuristicStripDiacriticsFoundAndUsedInbound() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Rene");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Muller");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Jose");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "René");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "Müller");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "José");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Heuristic stripDiacritics should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test211HeuristicStripDiacriticsVariousAccents() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Francois");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Zofia");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Arpad");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "François");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "Zofia");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "Árpád");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Heuristic stripDiacritics should handle various accent types")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test212HeuristicStripDiacriticsOutbound() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Štefan");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Niño");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Tomáš");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "Stefan");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "Nino");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "Tomas");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                false,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Outbound heuristic stripDiacritics should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getOutbound().getExpression())
+                .as("Should contain stripDiacritics expression with correct variable name")
+                .isNotNull();
+    }
+
+    @Test
+    public void test213HeuristicStripDiacriticsNorthEuropeanCharacters() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Bjorn");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Ines");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Helene");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "Björn");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "Inés");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "Hélène");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("StripDiacritics should handle Nordic/Scandinavian characters")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test300HeuristicCombinedTrimAndLowerCaseOrder2() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "aaaa");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "bbbb");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "cccc");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "  AAAA  ");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "  BBBB  ");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "  CCCC  ");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Combined heuristic trimAndLowerCase (order 2) should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain trim+toLowerCase expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test301HeuristicCombinedTrimAndStripDiacritics() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Rene");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Muller");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Jose");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "  René  ");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "  Müller  ");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "  José  ");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Combined heuristic trimAndStripDiacritics (order 2) should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain trim+stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test302HeuristicCombinedLowerCaseAndStripDiacritics() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "rene");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "muller");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "jose");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "RENÉ");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "MÜLLER");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "JOSÉ");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Combined heuristic lowerCaseAndStripDiacritics (order 2) should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain toLowerCase+stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test303HeuristicThreeOperationsOrder3() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "rene");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "muller");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "jose");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "  RENÉ  ");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "  MÜLLER  ");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "  JOSÉ  ");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                true,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Three-operation heuristic trimLowerCaseAndStripDiacritics (order 3) should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain trim+toLowerCase+stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test304HeuristicOutboundCombinedTrimAndUpperCase() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "  aaaa  ");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "  bbbb  ");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "  cccc  ");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "AAAA");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "BBBB");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "CCCC");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                false,
+                false);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Outbound combined heuristic trimAndUpperCase should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getOutbound().getExpression())
+                .as("Should contain trim+toUpperCase expression with correct variable")
+                .isNotNull();
     }
 
 }

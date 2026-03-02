@@ -338,7 +338,11 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         //noinspection unchecked
         var attrDef = (ShadowAttributeDefinition<V, ?, ?, ?>) projCtx.findAttributeDefinition(attrName);
         if (attrDef == null) {
-            throw new SchemaException("No definition for attribute " + attrName + " in " + projCtx.getKey());
+            LOGGER.trace(
+                    "No definition for attribute {} in {} (it might have been just deleted), skipping reconciliation of this attribute",
+                    attrName, projCtx.getCompositeObjectDefinition());
+            return;
+            //throw new SchemaException("No definition for attribute " + attrName + " in " + projCtx.getKey());
         }
         if (attrDef.isIgnored(LayerType.MODEL)) {
             LOGGER.trace("Skipping reconciliation of attribute {} because it is ignored", attrName);

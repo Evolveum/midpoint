@@ -62,6 +62,11 @@ public abstract class MappingOverridesTableWizardPanel<C extends Containerable> 
             }
 
             @Override
+            protected ResourceDetailsModel getResourceDetailsModel() {
+                return MappingOverridesTableWizardPanel.this.getAssignmentHolderDetailsModel();
+            }
+
+            @Override
             public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel, List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> listItems) {
                 inEditNewValue(rowModel, target);
             }

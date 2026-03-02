@@ -57,6 +57,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_HEADER = "header";
     private static final String ID_NAME = "name";
+    private static final String ID_MENU_ITEMS_GROUP = "menuItemsGroup";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
 
@@ -98,7 +99,15 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
             protected void populateItem(final ListItem<SideBarMenuItem> item) {
                 Component header = createHeader(item.getModel());
                 item.add(header);
-                item.add(createMenuItems(header, item.getModel()));
+
+                Component menuItems = createMenuItems(header, item.getModel());
+                item.add(menuItems);
+
+                // needed to help assistive technologies to associate menu items with their header
+                // In this case header (e.g. "Self service") is not a parent of it's menu containers in DOM tree,
+                // "home", "credentials" are on the same level. Aria-owns establishes this relationship.
+                // See https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-owns for more
+                header.add(AttributeAppender.append("aria-owns", menuItems.getMarkupId()));
             }
         };
         menuItems.setOutputMarkupId(true);
@@ -184,6 +193,9 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     }
 
     private Component createMenuItems(Component header, IModel<SideBarMenuItem> model) {
+        WebMarkupContainer menuItemsGroup = new WebMarkupContainer(ID_MENU_ITEMS_GROUP);
+        menuItemsGroup.setOutputMarkupId(true);
+
         ListView<MainMenuItem> items = new ListView<>(ID_ITEMS, new PropertyModel<>(model, SideBarMenuItem.F_ITEMS)) {
 
             @Override
@@ -198,17 +210,12 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
                 item.setOutputMarkupId(true);
                 item.add(new VisibleBehaviour(() -> listItem.getModelObject().isVisible()));
                 listItem.add(item);
-
-                // needed to help assistive technologies to associate menu items with their header
-                // In this case header (e.g. "Self service") is not a parent of it's menu containers in DOM tree,
-                // "home", "credentials" are on the same level. Aria-owns establishes this relationship.
-                // See https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-owns for more
-                header.add(AttributeAppender.append("aria-owns", item.getItem().getMarkupId()));
             }
         };
 
         items.setReuseItems(true);
-        return items;
+        menuItemsGroup.add(items);
+        return menuItemsGroup;
     }
 
     private void onMenuClick(IModel<SideBarMenuItem> model) {

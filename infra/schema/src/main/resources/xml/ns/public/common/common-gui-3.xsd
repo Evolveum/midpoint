@@ -6,17 +6,17 @@
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="3.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -29,7 +29,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
     <xsd:complexType name="AdminGuiConfigurationType">
         <xsd:annotation>
@@ -385,7 +385,7 @@
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType">
                 <xsd:annotation>
-                     <xsd:appinfo>
+                    <xsd:appinfo>
                         <a:schemaContext>
                             <a:type>tns:UserType</a:type>
                         </a:schemaContext>
@@ -560,7 +560,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Role collection view defines structure that should be shown in request access UI wizard - in role catalog step.
-                It will represent new menu item with list of roles defined by collectionRef or collection identifier (e.g. allOrgs,  allServices).
+                It will represent new menu item with list of roles defined by collectionRef or collection identifier (e.g. allOrgs, allServices).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -595,7 +595,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0">
+            <xsd:element name="details" type="tns:ContainerPanelConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how details about role should be displayed on popup in role catalog step.
@@ -1173,7 +1173,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="formRef" type="tns:ObjectReferenceType"
-                         minOccurs="0" maxOccurs="1">
+                    minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to midPoint form object
@@ -1639,6 +1639,25 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="label" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>VirtualContainersSpecificationType.label</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display properties of the item. It is used to display the header label of the item.
+                        Only label is used now. Other properties are ignored.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>VirtualContainerItemSpecificationType.display</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -1726,7 +1745,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
-                         minOccurs="0" maxOccurs="1" default="automatic">
+                    minOccurs="0" maxOccurs="1" default="automatic">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1803,7 +1822,7 @@
         <xsd:sequence>
             <!-- later add displayOrder so we are able to sort items according to it -->
             <!-- basic properties -->
-            <xsd:element name="label" type="t:PolyStringType" minOccurs="0" >
+            <xsd:element name="label" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1827,7 +1846,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="singularLabel" type="t:PolyStringType" minOccurs="0" >
+            <xsd:element name="singularLabel" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1847,7 +1866,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="pluralLabel" type="t:PolyStringType" minOccurs="0" >
+            <xsd:element name="pluralLabel" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2272,7 +2291,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-          <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
+            <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -2287,7 +2306,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-          <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
+            <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -2434,7 +2453,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-           <xsd:element name="searchItems" type="tns:SearchItemsType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="searchItems" type="tns:SearchItemsType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         The list of searchable properties which should be displayed on the search panel.
@@ -3063,7 +3082,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
-                         minOccurs="0" maxOccurs="1" default="automatic">
+                    minOccurs="0" maxOccurs="1" default="automatic">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines, whether this column will be visible or it will be hidden.
@@ -3284,7 +3303,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="dashboard" type="tns:DashboardType" />
+    <xsd:element name="dashboard" type="tns:DashboardType"/>
 
     <xsd:complexType name="DashboardLayoutType">
         <xsd:annotation>
@@ -3724,7 +3743,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="configurableUserDashboard" type="tns:ConfigurableUserDashboardType" />
+    <xsd:element name="configurableUserDashboard" type="tns:ConfigurableUserDashboardType"/>
 
     <xsd:complexType name="FeedbackMessagesHookType">
         <xsd:annotation>
@@ -3880,7 +3899,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="adminGuiApprovalsConfiguration" type="tns:AdminGuiApprovalsConfigurationType" />
+    <xsd:element name="adminGuiApprovalsConfiguration" type="tns:AdminGuiApprovalsConfigurationType"/>
 
     <xsd:complexType name="AdminGuiConfigurationDisplayFormatsType">
         <xsd:annotation>
@@ -3948,7 +3967,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
-                         minOccurs="0" maxOccurs="1" default="automatic">
+                    minOccurs="0" maxOccurs="1" default="automatic">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines, whether this field will be visible or it will be hidden.
@@ -4407,7 +4426,7 @@
                          it is.
                     -->
                     <xsd:element name="includeRef" type="tns:ObjectReferenceType"
-                                 minOccurs="0" maxOccurs="unbounded">
+                            minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Included form.
@@ -4426,7 +4445,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="form" type="tns:FormType" />
+    <xsd:element name="form" type="tns:FormType"/>
 
     <xsd:complexType name="FormDefinitionType">
         <xsd:annotation>
@@ -4497,9 +4516,9 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="list" type="xsd:boolean" use="optional" />
+        <xsd:attribute name="list" type="xsd:boolean" use="optional"/>
     </xsd:complexType>
-    <xsd:element name="formItems" type="tns:FormItemsType" />
+    <xsd:element name="formItems" type="tns:FormItemsType"/>
 
 
     <xsd:complexType name="FormDisplayType">
@@ -4595,14 +4614,14 @@
             <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="binding" type="tns:VariableBindingDefinitionType" minOccurs="0" />
-            <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
+            <xsd:element name="binding" type="tns:VariableBindingDefinitionType" minOccurs="0"/>
+            <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0"/>
             <!-- Note: available values are defined by the "set" in the binding. -->
             <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0"/>
             <!-- TODO: condition -->
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="formItem" type="tns:AbstractFormItemType" abstract="true" />
+    <xsd:element name="formItem" type="tns:AbstractFormItemType" abstract="true"/>
 
     <xsd:complexType name="FormItemValidationType">
         <xsd:annotation>
@@ -4653,8 +4672,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="event" type="xsd:string" minOccurs="1" maxOccurs="unbounded" />
-            <xsd:element name="script" type="xsd:string" minOccurs="1" />
+            <xsd:element name="event" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="script" type="xsd:string" minOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 

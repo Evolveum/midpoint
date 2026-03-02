@@ -365,10 +365,17 @@ public abstract class ColumnTileTable<O extends Serializable>
                     }
 
                     @Override
+                    protected boolean isYesButtonVisible() {
+                        return !selected.isEmpty() || !getMultiTableModel().isEmpty();
+                    }
+
+                    @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         if (selected.isEmpty()) {
                             deleteItemPerformed(target, getMultiTableModel());
+                            return;
                         }
+
                         deleteItemPerformed(target, selected);
                     }
                 };
@@ -397,7 +404,7 @@ public abstract class ColumnTileTable<O extends Serializable>
         if (toDelete == null || toDelete.isEmpty()) {
             pageBase.warn(pageBase.createStringResource(
                     "MultiSelectContainerActionTileTablePanel.message.noItemsSelected").getString());
-            target.add(pageBase.getFeedbackPanel().getParent());
+            target.add(pageBase.getFeedbackPanel());
             return true;
         }
         return false;

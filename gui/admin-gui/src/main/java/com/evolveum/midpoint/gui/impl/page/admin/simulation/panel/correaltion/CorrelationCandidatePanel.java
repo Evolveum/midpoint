@@ -6,22 +6,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRulePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.findCandidateMappingsAsWrapper;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.findResourceObjectTypeDefinitionType;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.getCorrelatedOwner;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.getCorrelationCandidateModel;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.getShadowAfterChanges;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,12 +29,23 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRulePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
 
@@ -246,7 +252,9 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
         container.setOutputMarkupId(true);
         add(container);
 
-        var candidateModel = getCorrelationCandidateModel(getModelObject());
+        final ProcessedObject<ShadowType> processedObject = (ProcessedObject<ShadowType>) getModelObject();
+        final ShadowType shadowAfterChanges = getShadowAfterChanges(processedObject);
+        final var candidateModel = getCorrelationCandidateModel(shadowAfterChanges);
 
         container.add(new Label(ID_CANDIDATE_HEADER_TITLE,
                 createStringResource("CorrelationCandidatePanel.count.title", candidateModel.getObject().size())));
@@ -263,54 +271,77 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
         manualCorrelationButton.showTitleAsLabel(true);
         container.add(manualCorrelationButton);
 
-        ProcessedObject<?> modelObject = getModelObject();
-        ObjectDelta<?> delta = modelObject.getDelta();
-        List<String> correlatedOwnersOid = findCorrelatedOwners(delta);
+        final String correlatedOwnerOid = getCorrelatedOwner(shadowAfterChanges).orElse("");
 
-        ListView<ResourceObjectOwnerOptionType> listView =
+        final ListView<ResourceObjectOwnerOptionType> listView =
                 new ListView<>(ID_CANDIDATE_LIST_VIEW, candidateModel) {
 
                     @Override
                     protected void populateItem(@NotNull ListItem<ResourceObjectOwnerOptionType> item) {
-                        WebMarkupContainer candidateRow = new WebMarkupContainer("candidateRow");
-                        candidateRow.setOutputMarkupId(true);
-                        item.add(candidateRow);
-
-                        ResourceObjectOwnerOptionType option = item.getModelObject();
-
-                        ObjectReferenceType ref = option.getCandidateOwnerRef();
-                        String candidateOid = ref.getOid();
-
-                        String displayName = WebModelServiceUtils.resolveReferenceName(ref, getPageBase());
-
-                        if (correlatedOwnersOid.contains(candidateOid)) {
-                            candidateRow.add(AttributeModifier.append("class", "bg-success-light"));
-                            displayName += " (Correlated)";
+                        final ResourceObjectOwnerOptionType option = item.getModelObject();
+                        final OwnerOptionIdentifier ownerIdentifier = OwnerOptionIdentifier.fromStringValueForgiving(
+                                option.getIdentifier());
+                        final ObjectReferenceType ref = option.getCandidateOwnerRef();
+                        if (ref == null || ref.getOid() == null || ref.getOid().isBlank()) {
+                            throw new SystemException("Owner candidate reference is unknown.");
                         }
+                        final WebMarkupContainer candidateRow = candidateRow(correlatedOwnerOid.equals(ref.getOid()),
+                                ownerIdentifier.getExistingOwnerId(), ref, option.getConfidence());
 
-                        String identifier =
-                                option.getIdentifier() != null ?
-                                        option.getIdentifier() : "";
-
-                        candidateRow.add(new Label(ID_CANDIDATE_NAME, Model.of(displayName)));
-                        candidateRow.add(new Label(ID_CANDIDATE_IDENTIFIER, Model.of(identifier)));
-
-                        AjaxIconButton viewLink = new AjaxIconButton(ID_CANDIDATE_VIEW_LINK,
-                                Model.of("fa fa-eye"),
-                                createStringResource("CorrelationCandidatePanel.link.viewDetails")) {
-                            @Override
-                            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                DetailsPageUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
-                            }
-                        };
-                        viewLink.setOutputMarkupId(true);
-                        viewLink.showTitleAsLabel(true);
-                        candidateRow.add(viewLink);
+                        final AjaxIconButton link = candidateViewLink(option.getCandidateOwnerRef(),
+                                !ownerIdentifier.isNoOwner());
+                        candidateRow.add(link);
                         item.add(candidateRow);
+
                     }
                 };
 
         container.add(listView);
+    }
+
+    private WebMarkupContainer candidateRow(boolean isOwner, String identifier, ObjectReferenceType ref,
+            @Nullable Double confidence) {
+
+        String displayName = WebModelServiceUtils.resolveReferenceName(ref, getPageBase());
+        final AttributeModifier classModifier;
+        if (isOwner) {
+            classModifier = AttributeModifier.append("class", "bg-success-light");
+            displayName += " (" + translate("CorrelationCandidatePanel.correlatedWithConfidence",
+                    String.format("%.2f", confidence)) + ")";
+        } else {
+            classModifier = AttributeModifier.append("class", "bg-warning-light");
+            if (confidence != null) {
+                displayName += " (" + translate("CorrelationCandidatePanel.correlatedWithConfidence",
+                        String.format("%.2f", confidence)) + ")";
+            } else {
+                displayName += " (" + translate("CorrelationCandidatePanel.correlatedWithoutConfidence") + ")";
+            }
+        }
+
+        final WebMarkupContainer candidateRow = new WebMarkupContainer("candidateRow");
+        candidateRow.add(classModifier);
+        candidateRow.add(new Label(ID_CANDIDATE_NAME, Model.of(displayName)));
+        candidateRow.add(new Label(ID_CANDIDATE_IDENTIFIER, Model.of(identifier)));
+        return candidateRow;
+    }
+
+    private @NotNull AjaxIconButton candidateViewLink(ObjectReferenceType ref, boolean isVisible) {
+        final AjaxIconButton viewLink = new AjaxIconButton(ID_CANDIDATE_VIEW_LINK,
+                Model.of("fa fa-eye"),
+                createStringResource("CorrelationCandidatePanel.link.viewDetails")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                DetailsPageUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
+            }
+
+            @Override
+            public boolean isVisible() {
+                return isVisible;
+            }
+        };
+        viewLink.setOutputMarkupId(true);
+        viewLink.showTitleAsLabel(true);
+        return viewLink;
     }
 
     private IModel<SimulationResultType> getSimulationResultModel() {

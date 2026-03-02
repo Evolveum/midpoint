@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.OidSearchItemPanel;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -23,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> implements QueryWrapper {
 
@@ -32,7 +32,7 @@ public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> im
     }
 
     @Override
-    public IModel<String> getName() {
+    public @NotNull IModel<String> getName() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -42,7 +42,7 @@ public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> im
     }
 
     @Override
-    public IModel<String> getHelp() {
+    public @NotNull IModel<String> getHelp() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -52,7 +52,7 @@ public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> im
     }
 
     @Override
-    public IModel<String> getTitle() {
+    public @NotNull IModel<String> getTitle() {
         return Model.of("");
     }
 

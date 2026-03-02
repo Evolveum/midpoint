@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.10</version>
+        <version>3.5.11</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
         -->
@@ -235,6 +235,7 @@
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <netty.version>4.1.129.Final</netty.version>
+        <jackson-bom.version>2.21.1</jackson-bom.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
@@ -974,7 +975,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
-                <version>2.9</version>
+                <version>2.10-SNAPSHOT</version>
                 <exclusions>
                     <!-- Connectors may have dependencies on various versions of connector-common,
                          as they can be built against various versions of polygon.
@@ -993,7 +994,7 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <!-- Do not forget to update provisioning/ucf-impl-connid/src/test/resources/connector-ldap.xml when changing connector version. -->
-                <version>3.9.2</version>
+                <version>3.10-SNAPSHOT</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -1856,6 +1857,11 @@
                                 <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/compile
                                       but report can not detect this uses (and if you change scope, it can not compile target project -->
                                 <ignoredNonTestScopedDependency>com.evolveum.prism:prism-impl</ignoredNonTestScopedDependency>
+                                <!-- This is to avoid this compilation error (used to occur only in some specific setups):
+                                     Cannot attach type annotations @org.jetbrains.annotations.NotNull to
+                                     com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun.reportingCharacteristics:
+                                     class file for com.evolveum.axiom.concepts.Lazy not found -->
+                                <ignoredNonTestScopedDependency>com.evolveum.axiom:axiom</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>com.evolveum.commons:concepts</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
                                 <!-- Needed for oauth2 to mail servers in notifications-impl -->

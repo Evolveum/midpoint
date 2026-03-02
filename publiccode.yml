@@ -1,0 +1,118 @@
+publiccodeYmlVersion: 0.5.0
+name: MidPoint
+applicationSuite: Identity governance and administration
+url: https://github.com/Evolveum/midpoint
+landingURL: https://evolveum.com/midpoint/
+softwareVersion: "Check supported midPoint releases: https://evolveum.com/download/ "
+logo: https://evolveum.com/wp-content/uploads/midpoint-logo-blue.png
+platforms:
+  - web
+  - windows
+  - mac
+  - linux
+  - ios
+  - android
+categories:
+  - identity-management
+organisation:
+  uri: https://evolveum.com/
+  name: Evolveum
+usedBy:
+  - European Commission
+  - The French Ministry for Europe and Foreign Affairs
+  - Dartmouth College
+  - University of Western Ontario
+  - Internet2
+  - Nomura Research Institute
+  - Swiss Medical Group
+  - Vodafone Czech Republic
+  - Orange Slovensko
+  - Zentiva
+  - WWK
+  - Swissport Group Services LLC
+  - EnAlpin AG
+  - Switch
+  - Université Libre de Bruxelles
+  - the Laboratoire national de santé
+  - Zurich Brasil Seguros
+  - Prague City Hall
+  - "and others: https://evolveum.com/about-us/references/"
+roadmap: https://docs.evolveum.com/midpoint/roadmap/
+developmentStatus: stable
+softwareType: standalone/web
+description:
+  en:
+    localisedName: MidPoint
+    shortDescription: "MidPoint is the leading open source IGA platform made in the
+      EU that helps organizations be in control over their digital identities. "
+    longDescription: MidPoint is the leading open source identity governance and
+      administration platform recognized by Gartner and KuppingerCole. It is
+      engineered in the EU and supported globally, designed to automate and
+      manage every digital identity. It helps organizations secure their
+      business by delivering the visibility needed to reduce identity risk and
+      ensure compliance. With flexible deployment options, covering both on-prem
+      and cloud, and no license fees, midPoint gives organizations maximum
+      control and freedom over their identity security.
+    documentation: https://docs.evolveum.com/
+    apiDocumentation: https://docs.evolveum.com/midpoint/reference/interfaces/rest/
+    features:
+      - Granular control over who has access to what and why
+      - Modernization of IT infrastructure and digital transformation by
+        adapting to an organization’s environment instead of the other way
+        around
+      - Seamless integration with any system in an organization’s tech stack
+      - Takes stress off the IT team’s shoulders by using simulations to test
+        what would happen without impacting the production environment
+      - Rapid application onboarding, enhanced visibility, and strengthened
+        security by means of reducing the attack surface with AI
+      - Simplified compliance thanks to reporting and configurable policies that
+        adapt as standards change
+      - Accelerated time to production and value from day one with midPoint’s
+        First Steps Methodology
+      - Empowers users with intuitive self-service and frees up IT teams to
+        focus on more strategic priorities while maintaining full oversight and
+        control
+      - Increased operational efficiency with the automation of the entire
+        identity lifecycle, including joiner, mover, leaver processes, password
+        resets, access requests, and more
+    screenshots:
+      - https://evolveum.com/wp-content/uploads/evolveum-midpoint-screenshot-01.png
+      - https://evolveum.com/wp-content/uploads/evolveum-midpoint-screenshot-02.png
+      - https://evolveum.com/wp-content/uploads/evolveum-midpoint-screenshot-03.png
+      - https://evolveum.com/wp-content/uploads/evolveum-midpoint-screenshot-04.png
+      - https://evolveum.com/wp-content/uploads/evolveum-midpoint-screenshot-05.png
+    videos:
+      - https://www.youtube.com/watch?v=ArPvn8N2VfU
+legal:
+  license: EUPL-1.2
+maintenance:
+  type: internal
+  contacts:
+    - name: Evolveum
+      email: info@evolveum.com
+      phone: +421 2 3211 7191
+      affiliation: General inquiries
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - zh
+    - cs
+    - nl
+    - en
+    - et
+    - fi
+    - fr
+    - de
+    - hu
+    - it
+    - ja
+    - ko
+    - lt
+    - pl
+    - pt
+    - ru
+    - es
+    - sk
+    - sl
+    - tr
+    - uk

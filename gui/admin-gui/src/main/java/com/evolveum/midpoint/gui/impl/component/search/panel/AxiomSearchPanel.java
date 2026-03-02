@@ -9,13 +9,9 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AdvancedQueryWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AxiomQueryWrapper;
-import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.query.lang.AxiomQueryContentAssistImpl;
-import com.evolveum.midpoint.prism.query.AxiomQueryContentAssist;
-import com.evolveum.midpoint.prism.query.ContentAssist;
 import com.evolveum.midpoint.prism.query.Suggestion;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -23,15 +19,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 import com.evolveum.midpoint.web.page.admin.configuration.component.QueryPlaygroundPanel;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.session.SessionStorage;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
@@ -40,21 +29,21 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.IRequestParameters;
 import org.apache.wicket.request.cycle.RequestCycle;
 
 import javax.xml.namespace.QName;
+import java.io.Serial;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryPlaygroundPanel.class);
     private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
@@ -74,6 +63,8 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
     private void initLayout() {
         TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
                 new PropertyModel<>(getModel(), AxiomQueryWrapper.F_DSL_QUERY)) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected boolean shouldTrimInput() {
                 return false;
@@ -107,6 +98,8 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
         ObjectMapper mapper = new ObjectMapper();
 
         queryDslField.add(new AjaxFormComponentUpdatingBehavior("keydown") {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);

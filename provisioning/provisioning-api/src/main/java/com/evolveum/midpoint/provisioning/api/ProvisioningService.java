@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
@@ -1065,6 +1066,27 @@ public interface ProvisioningService {
 
     List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    /**
+     * Get the resource referenced by the provided shadow.
+     *
+     * @param shadow The shadow, resource of which you want to read.
+     * @return The resource referenced by the shadow.
+     *
+     * @throws ObjectNotFoundException When the resource referenced by the shadow does not exist.
+     * @throws CommunicationException When error communicating with the resource occurs.
+     * @throws SchemaException When error dealing with resource schema occurs.
+     * @throws ConfigurationException When wrong resource or connector configuration is detected.
+     * @throws SecurityViolationException When some security violation while communicating with the connector
+     * or processing provisioning policies occurs.
+     * @throws IllegalArgumentException When the OID format is wrong, or similar issues.
+     */
+    default ResourceType getShadowResource(ShadowType shadow, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        final String resourceOid = ShadowUtil.getResourceOidRequired(shadow);
+        return getObject(ResourceType.class, resourceOid, null, task, parentResult).asObjectable();
+    }
 
     /**
      * Makes sure that the shadow is in accord with the reality. If there are any unfinished operations associated with the shadow

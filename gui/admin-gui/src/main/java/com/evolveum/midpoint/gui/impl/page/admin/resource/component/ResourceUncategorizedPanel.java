@@ -13,11 +13,15 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -66,6 +70,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
     private static final String ID_TASKS = "tasks";
+    private static final String ID_STATISTICS = "statistics";
 
     public ResourceUncategorizedPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -137,7 +142,25 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         createPanelTitle();
         createObjectTypeChoice();
         createTasksButton(ID_TASKS);
+        createStatisticsButton();
         createShadowTable();
+    }
+
+    private void createStatisticsButton() {
+        //TODO add ObjectTypeStatisticsButton after merge from object-type-statistics branch
+        if(getResourceObjectTypeIdentification() != null){
+            EmptyPanel statisticsPanel = new EmptyPanel(ID_STATISTICS);
+            statisticsPanel.setOutputMarkupId(true);
+            add(statisticsPanel);
+            return;
+        }
+        ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
+        ResourceType resource = objectDetailsModels.getObjectType();
+
+        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_STATISTICS,
+                this::getObjectClass, resource.getOid());
+        statisticsButton.setOutputMarkupId(true);
+        add(statisticsButton);
     }
 
     private void createPanelTitle() {
@@ -215,6 +238,11 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             @Override
             protected boolean isDeleteOnlyRepoShadowAllow() {
                 return false;
+            }
+
+            @Override
+            protected boolean showPopupShadowDetailsOnClick() {
+                return ResourceUncategorizedPanel.this.showPopupShadowDetailsOnClick();
             }
 
             @Override
@@ -337,6 +365,11 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     private ObjectQuery getResourceContentQuery() {
+        var objectTypeIdentification = getResourceObjectTypeIdentification();
+        if (objectTypeIdentification != null) {
+            return ObjectQueryUtil.createResourceAndKindIntent(
+                    getObjectWrapper().getOid(), objectTypeIdentification.getKind(), objectTypeIdentification.getIntent());
+        }
         return ObjectQueryUtil.createResourceAndObjectClassQuery(getObjectWrapper().getOid(), getSelectedObjectClass());
     }
 
@@ -347,9 +380,17 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     @Override
-    protected void customizeTaskCreator(ResourceTaskCreator creator, boolean isSimulation) {
+    protected void customizeTaskCreator(ResourceTaskCreator<?> creator, boolean isSimulation) {
         if (isSimulation) {
             creator.withExecutionMode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
         }
+    }
+
+    protected ResourceObjectTypeIdentification getResourceObjectTypeIdentification() {
+        return null;
+    }
+
+    protected boolean showPopupShadowDetailsOnClick(){
+        return false;
     }
 }

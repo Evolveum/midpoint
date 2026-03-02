@@ -17,21 +17,23 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
+import java.io.Serial;
+
 /**
  * @author katka
  *
  */
 public class PrismPropertyHeaderPanel<T> extends ItemHeaderPanel<PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyDefinition<T>, PrismPropertyWrapper<T>>{
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
+    public PrismPropertyHeaderPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemPanelSettings itemPanelSettings) {
+        super(id, model, itemPanelSettings);
+    }
 
-    /**
-     * @param id
-     * @param model
-     */
+    //TODO check support for itemPanelSettings (label)
     public PrismPropertyHeaderPanel(String id, IModel<PrismPropertyWrapper<T>> model) {
-        super(id, model);
+        super(id, model, null);
     }
 
     @Override

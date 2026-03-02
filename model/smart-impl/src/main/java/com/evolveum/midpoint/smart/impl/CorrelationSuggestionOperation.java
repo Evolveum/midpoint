@@ -49,7 +49,7 @@ class CorrelationSuggestionOperation {
      * whether source attribute is unique or not
      *
      */
-    CorrelationSuggestionsType suggestCorrelation(OperationResult result, ShadowObjectClassStatisticsType statistics, SchemaMatchResultType schemaMatch)
+    CorrelationSuggestionsType suggestCorrelation(OperationResult result, SchemaMatchResultType schemaMatch)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var correlators = KnownCorrelator.getAllFor(ctx.getFocusTypeDefinition().getCompileTimeClass());

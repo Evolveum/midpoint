@@ -30,7 +30,7 @@ public class PoliciesObjectTypeWizardPanel extends AbstractWizardWithChoicePanel
     }
 
     @Override
-    protected void showTypePreviewFragment(AjaxRequestTarget target) {
+    public void showTypePreviewFragment(AjaxRequestTarget target) {
         showChoiceFragment(target, createTypePreview());
     }
 
@@ -55,7 +55,6 @@ public class PoliciesObjectTypeWizardPanel extends AbstractWizardWithChoicePanel
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                super.onExitPerformed(target);
                 PoliciesObjectTypeWizardPanel.this.onExitPerformed(target);
             }
         };

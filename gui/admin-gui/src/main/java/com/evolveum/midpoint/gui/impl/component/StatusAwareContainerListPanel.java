@@ -368,7 +368,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
 
     @Override
     protected String getAdditionalFooterCssClasses() {
-        return "bg-white";
+        return "bg-white border-top";
     }
 
     @Override

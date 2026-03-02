@@ -1,0 +1,98 @@
+= Clock – time provider for midPoint
+:page-nav-title: Clock
+:page-toc: top
+:page-experimental: true
+:page-description: Test time-based tasks using the Clock time provider
+
+The `Clock` class is a centralized time provider used throughout midPoint for scheduling, certification, and expression evaluation.
+You can use it for time overrides during testing.
+
+== What is the Clock class
+
+`Clock` is a central utility that supplies the current time to all parts of midPoint.
+By default, it simply proxies the system clock, but you can make it return an artificial time.
+This makes it possible to:
+
+    * Run time‑dependent logic (certification stage transitions, deadline reminders, scheduled tasks) without changing the host machine clock.
+    * Write deterministic unit or integration tests that involve "now"‑based calculations.
+
+The class is deliberately placed in the common package so that any component (model, provisioning, UI, background tasks) can obtain a consistent notion of "now".
+
+== The Clock class documentation
+
+* link:https://evolveum.com/downloads/midpoint/4.10/midpoint-4.10-javadoc/com/evolveum/midpoint/common/Clock.html[Javadoc for the Clock class]
+* link:https://github.com/Evolveum/midpoint/blob/master/infra/common/src/main/java/com/evolveum/midpoint/common/Clock.java[Clock.java source]
+
+== Typical use cases
+
+Here are some use cases for your inspiration.
+
+.Inject the clock in Spring components
+[source,java]
+----
+@Service
+public class CertificationService {
+
+    @Autowired
+    private Clock clock;          // injected by Spring
+
+    public void runStageTransition(Task task) {
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+        // ... use 'now' to evaluate stage deadlines ...
+    }
+}
+----
+
+The `@Autowired` injection shown works because the `Clock` bean is defined in the core Spring configuration of midPoint.
+
+.Override time in tests
+[source,java]
+----
+@SpringBootTest
+class CertificationCampaignTest {
+
+    @Autowired
+    private Clock clock;
+
+    @Test
+    void testDeadlineReminder() {
+        // Freeze time at 2025‑03‑01T10:00:00Z
+        clock.override(Instant.parse("2025-03-01T10:00:00Z").toEpochMilli());
+
+        // Execute the code that checks "now"
+        campaignService.checkDeadlines();
+
+        // Assertions...
+    }
+}
+----
+
+The `override(...)` replaces the underlying time stamp and every call to `clock.currentTime...` inside the tested code sees the artificial moment.
+This eliminates the timing issues and removes the need for OS-level clock manipulation.
+
+.Shift time relative to the current moment
+[source,java]
+----
+// Move the clock 48 hours forward for a long‑running batch job
+clock.overrideDuration("P2D");   // ISO‑8601 period of 2 days
+----
+
+The offset is cumulative; subsequent calls to `overrideDuration` add to the existing shift.
+
+== Notes for developers
+
+* Do not use `Clock` to manipulate time globally in production environment.
+    Overrides are intended for testing and controlled simulation environments.
+* For certain "special" timestamps, such as those in audit logs, midPoint stores the real system time to keep an immutable record regardless of any `Clock` override.
+
+[WARNING]
+====
+Adjusting the internal time of midPoint does not affect _all_ functions midPoint uses.
+That is why using `Clock` is considered experimental and you may encounter inconsistent behavior.
+====
+
+== Summary
+
+`Clock` provides a single source of truth for the current time throughout midPoint, enabling you to override or shift that time.
+This design enables testing of time‑sensitive features, such as certification campaigns, while keeping production behaviour identical to the JVM clock.
+Use the time manipulation `Clock` provides only in test contexts and controlled simulations.

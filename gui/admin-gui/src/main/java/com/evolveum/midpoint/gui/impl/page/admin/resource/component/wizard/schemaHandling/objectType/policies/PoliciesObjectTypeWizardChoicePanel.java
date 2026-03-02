@@ -58,21 +58,6 @@ public abstract class PoliciesObjectTypeWizardChoicePanel
         return false;
     }
 
-    @Override
-    protected IModel<String> getExitLabel() {
-        return getPageBase().createStringResource("PoliciesObjectTypeWizardChoicePanel.exit");
-    }
-
-    @Override
-    protected boolean isExitButtonVisible() {
-        return false;
-    }
-
-    @Override
-    protected boolean isBackButtonVisible() {
-        return true;
-    }
-
     protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
         return helper.getValueModel();
     }

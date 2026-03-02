@@ -6,21 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 /**
  * @author lskublik
@@ -32,13 +26,13 @@ public class VerticalFormPrismPropertyHeaderPanel<T> extends PrismPropertyHeader
 
     private boolean isRequiredTagVisibleInHeaderPanel = false;
 
-
     /**
-     * @param id
-     * @param model
+     * @param id ID of the component
+     * @param model model with PrismPropertyWrapper
+     * @param settings settings of the panel
      */
-    public VerticalFormPrismPropertyHeaderPanel(String id, IModel<PrismPropertyWrapper<T>> model) {
-        super(id, model);
+    public VerticalFormPrismPropertyHeaderPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemPanelSettings settings) {
+        super(id, model, settings);
     }
 
     @Override

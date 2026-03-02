@@ -57,7 +57,12 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
 
     private void initLayout() {
         if (isCorrelationSimulation(getPageBase(), simulationResultModel)) {
-            var correlationPanel = new SimulationCorrelationPanel(ID_PANEL, simulationResultModel);
+            var correlationPanel = new SimulationCorrelationPanel(ID_PANEL, simulationResultModel){
+                @Override
+                protected void navigateToSimulationResultObject(@NotNull String simulationResultOid, @Nullable String markOid, @NotNull SimulationResultProcessedObjectType object, @NotNull AjaxRequestTarget target) {
+                    ResourceSimulationResultWizardPanel.this.navigateToSimulationResultObject(simulationResultOid, markOid, object, target);
+                }
+            };
             correlationPanel.setOutputMarkupId(true);
             add(correlationPanel);
             return;
@@ -67,20 +72,26 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
             @Override
             protected void navigateToSimulationResultObjects(
                     @NotNull String resultOid,
-                    @Nullable ObjectReferenceType ref,
+                    @Nullable ObjectReferenceType markRef,
                     @Nullable ObjectProcessingStateType state,
                     @NotNull AjaxRequestTarget target) {
-                ResourceSimulationResultWizardPanel.this.navigateToSimulationTasksWizard(resultOid, ref, state, target);
+                ResourceSimulationResultWizardPanel.this.navigateToSimulationResultObjects(resultOid, markRef, state, target);
             }
         };
         resultPanel.setOutputMarkupId(true);
         add(resultPanel);
     }
 
-    protected abstract void navigateToSimulationTasksWizard(
+    protected abstract void navigateToSimulationResultObjects(
             @NotNull String resultOid,
             @Nullable ObjectReferenceType ref,
             @Nullable ObjectProcessingStateType state,
+            @NotNull AjaxRequestTarget target);
+
+    protected abstract void navigateToSimulationResultObject(
+            @NotNull String simulationResultOid,
+            @Nullable String markOid,
+            @NotNull SimulationResultProcessedObjectType object,
             @NotNull AjaxRequestTarget target);
 
     protected boolean isBackButtonVisible() {
@@ -88,9 +99,14 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
     }
 
     @Override
+    protected IModel<String> getBackLabel() {
+        return createStringResource("ResourceSimulationResultWizardPanel.buttonBack");
+    }
+
+    @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
 
-        if(isCorrelationSimulation(getPageBase(), simulationResultModel)) {
+        if (isCorrelationSimulation(getPageBase(), simulationResultModel)) {
             AjaxIconButton export = new AjaxIconButton(buttons.newChildId(), () -> "fa fa-download mr-2",
                     () -> getString("PageSimulationResult.export")) {
                 @Override
@@ -105,16 +121,16 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
             return;
         }
 
-
         AjaxIconButton button = new AjaxIconButton(buttons.newChildId(), () -> "fa-solid fa-magnifying-glass mr-2",
                 () -> getString("PageSimulationResult.viewProcessedObjects")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                navigateToSimulationTasksWizard(
+                navigateToSimulationResultObjects(
                         simulationResultModel.getObject().getOid(),
                         null,
                         null,
-                        ajaxRequestTarget);
+                        ajaxRequestTarget
+                );
             }
         };
         button.showTitleAsLabel(true);

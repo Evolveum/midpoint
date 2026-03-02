@@ -55,7 +55,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestionValue;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.acceptConfirmationTitle;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createConfirmationTitle;
 
 public abstract class AssociationTablePanel
         extends MultiSelectContainerActionTileTablePanel<
@@ -372,8 +372,9 @@ public abstract class AssociationTablePanel
 
             @Override
             protected void processReviewButtonClick(@NotNull AjaxRequestTarget target) {
+                PageBase pageBase = getPageBase();
                 onReviewValue(() -> value, target, getStatusInfoObject(value),
-                        ajaxRequestTarget -> performOnDeleteSuggestion(getPageBase(), ajaxRequestTarget,
+                        ajaxRequestTarget -> performOnDeleteSuggestion(pageBase, ajaxRequestTarget,
                                 value, getStatusInfoObject(value)));
             }
         };
@@ -476,8 +477,15 @@ public abstract class AssociationTablePanel
     }
 
     protected AjaxIconButton createAcceptAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id,  Model.of("fa fa-times"), "SmartMappingTable.apply.all",
+        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-times"), "SmartMappingTable.apply.all",
                 "btn-outline-primary", true);
+    }
+
+    private List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> getAllItemsWithStatus() {
+        List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> allItems = getAllItems();
+        return allItems == null ? List.of() : allItems.stream()
+                .filter(v -> getStatusInfoObject(v) != null)
+                .toList();
     }
 
     protected AjaxIconButton createAcceptDiscardBulkActionButton(String id,
@@ -485,11 +493,11 @@ public abstract class AssociationTablePanel
         AjaxIconButton button = new AjaxIconButton(id, iconCss, createStringResource(labelKey)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> allItems = getAllItems();
+                List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> allItems = getAllItemsWithStatus();
                 if (!allItems.isEmpty()) {
 
                     ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                            acceptConfirmationTitle(getPageBase(), allItems.size(), getCurrentPageItems().isEmpty())) {
+                            createConfirmationTitle(getPageBase(), allItems.size(), getCurrentPageItems().isEmpty(), isAccept)) {
 
                         @Override
                         public void yesPerformed(AjaxRequestTarget target) {
@@ -518,7 +526,6 @@ public abstract class AssociationTablePanel
                 && getStatusAwareDataProvider().getPageSuggestionCount() > 1));
         return button;
     }
-
 
     @SuppressWarnings("rawtypes")
     protected StatusAwareDataProvider<?> getStatusAwareDataProvider() {

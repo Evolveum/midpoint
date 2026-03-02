@@ -14,6 +14,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -24,16 +25,17 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PasswordHintPanel extends InputPanel {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_HINT= "hint";
     private final IModel<String> hintModel;
     private final IModel<ProtectedStringType> passwordModel;
-    private boolean isReadonly;
+    private final boolean isReadonly;
 
     public PasswordHintPanel(String id, IModel<String> hintModel, IModel<ProtectedStringType> passwordModel, boolean isReadonly){
         super(id);
@@ -50,7 +52,7 @@ public class PasswordHintPanel extends InputPanel {
 
     private void initLayout() {
         final TextField<String> hint = new TextField<>(ID_HINT, hintModel) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onComponentTag(ComponentTag tag) {
@@ -62,6 +64,7 @@ public class PasswordHintPanel extends InputPanel {
         };
         hint.setOutputMarkupId(true);
         hint.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        hint.add(AttributeAppender.append("aria-labelledby", this::getLabeledByComponentId));
         hint.add(new EnableBehaviour(() -> !isReadonly));
         hint.add(new PasswordHintValidator(passwordModel));
         add(hint);
@@ -69,6 +72,10 @@ public class PasswordHintPanel extends InputPanel {
 
     protected boolean hideHintValue() {
         return false;
+    }
+
+    protected String getLabeledByComponentId() {
+        return null;
     }
 
     public List<FeedbackMessage> collectHintFeedbackMessages() {

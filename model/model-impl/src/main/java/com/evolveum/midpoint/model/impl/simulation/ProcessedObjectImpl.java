@@ -18,6 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.provisioning.api.CorrelationSimulationData;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
@@ -337,6 +339,44 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ParsedMetricValues.fromEventMarks(
                         marks,
                         List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value())),
+                false,
+                null,
+                shadowBefore,
+                shadowAfter,
+                delta,
+                InternalState.CREATING);
+
+        processedObject.addComputedMetricValues(List.of()); // Ignoring custom metrics in this mode
+
+        // TODO we should somehow record errors during low-level shadow management (classification, correlation)
+        processedObject.setResultAndStatus(null, OperationResultStatusType.SUCCESS);
+
+        return processedObject;
+    }
+
+    static @NotNull ProcessedObjectImpl<ShadowType> createForCorrelation(
+            @NotNull CorrelationSimulationData data, @NotNull SimulationTransactionImpl simulationTransaction)
+            throws CommonException {
+
+        ShadowType shadowBefore = data.getShadowBefore();
+        ObjectDelta<ShadowType> delta = data.getDelta();
+        ShadowType shadowAfter = shadowBefore.clone();
+        delta.applyTo(shadowAfter.asPrismObject());
+
+        List<String> marks = determineCorrelationEventMarks(shadowAfter);
+
+        var processedObject = new ProcessedObjectImpl<>(
+                simulationTransaction.getTransactionId(),
+                shadowBefore.getOid(),
+                ShadowType.class,
+                null,
+                determineShadowDiscriminator(shadowAfter), // or from "before" state?
+                shadowAfter.getName(),
+                ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()),
+                ParsedMetricValues.fromEventMarks(
+                        marks,
+                        List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value(),
                                 SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value(),
                                 SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value(),
                                 SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value(),
@@ -356,6 +396,67 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return processedObject;
     }
 
+    static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForMapping(@NotNull Class<T> objectClass,
+            @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction)
+            throws SchemaException {
+        final T objectAfter = (T) objectBefore.clone();
+
+        final ObjectProcessingStateType processingState;
+        final PrismObject<T> prismObjectAfter = (PrismObject<T>) objectAfter.asPrismObject();
+        if (delta != null && !delta.isEmpty()) {
+            delta.applyTo(prismObjectAfter);
+            processingState = ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType());
+        } else {
+            processingState = ObjectProcessingStateType.UNMODIFIED;
+        }
+
+        var processedObject = new ProcessedObjectImpl<>(
+                simulationTransaction.getTransactionId(),
+                objectBefore.getOid(),
+                objectClass,
+                null,
+                null,
+                objectAfter.getName(),
+                processingState,
+                ParsedMetricValues.fromEventMarks(
+                        List.of(determineItemValueChangesEventMarks(
+                                (PrismObject<T>) objectBefore.asPrismObject(),
+                                prismObjectAfter)),
+                        List.of(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value(),
+                                SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value(),
+                                SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value(),
+                                SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value())),
+                objectClass.isAssignableFrom(FocusType.class),
+                null,
+                objectBefore,
+                objectAfter,
+                delta,
+                InternalState.CREATING);
+
+        processedObject.addComputedMetricValues(List.of()); // Ignoring custom metrics in this mode
+
+        // TODO we should somehow record errors during low-level shadow management (classification, correlation)
+        processedObject.setResultAndStatus(null, OperationResultStatusType.SUCCESS);
+
+        return processedObject;
+    }
+
+    private static <T extends ObjectType> String determineItemValueChangesEventMarks(PrismObject<T> before,
+            PrismObject<T> after) {
+        final List<? extends ItemDelta> modifications = before.diffModifications(after,
+                EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+        if (modifications.isEmpty()) {
+            return SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value();
+        }
+        if (modifications.stream().allMatch(ItemDelta::isAdd)) {
+            return SystemObjectsType.MARK_ITEM_VALUE_ADDED.value();
+        }
+        if (modifications.stream().allMatch(ItemDelta::isDelete)) {
+            return SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value();
+        }
+        return SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value();
+    }
+
     private static List<String> determineShadowEventMarks(ShadowType before, ShadowType after) {
         List<String> marks = new ArrayList<>();
         if (isClassificationChanged(before, after)) {
@@ -363,13 +464,18 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
         if (isCorrelationStateChanged(before, after)) {
             marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
-            if (after.getCorrelation().getSituation() == CorrelationSituationType.EXISTING_OWNER) {
-                marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value());
-            } else if (after.getCorrelation().getSituation() == CorrelationSituationType.NO_OWNER) {
-                marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value());
-            } else if (after.getCorrelation().getSituation() == CorrelationSituationType.UNCERTAIN) {
-                marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN.value());
-            }
+        }
+        return marks;
+    }
+
+    private static List<String> determineCorrelationEventMarks(ShadowType after) {
+        final List<String> marks = new ArrayList<>();
+        if (after.getCorrelation().getSituation() == CorrelationSituationType.EXISTING_OWNER) {
+            marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value());
+        } else if (after.getCorrelation().getSituation() == CorrelationSituationType.NO_OWNER) {
+            marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value());
+        } else if (after.getCorrelation().getSituation() == CorrelationSituationType.UNCERTAIN) {
+            marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN.value());
         }
         return marks;
     }
