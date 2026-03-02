@@ -63,7 +63,7 @@ public abstract class SchemaHandlingWizardChoicePanel
             protected IModel<Badge> getBadgeModel() {
                 ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
                 ResourceWizardStorage storage = SchemaHandlingWizardChoicePanel.this.getPageBase()
-                        .getSessionStorage().getResourceWizardStorage();
+                        .getBrowserTabSessionStorage().getResourceWizardStorage();
 
                 PreviewTileType tile = tileModel.getObject().getValue();
                 ResourceGuideSchemaHandlingWizardTileState state =
@@ -87,7 +87,7 @@ public abstract class SchemaHandlingWizardChoicePanel
             protected boolean isLocked() {
                 ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
                 ResourceWizardStorage storage = SchemaHandlingWizardChoicePanel.this.getPageBase()
-                        .getSessionStorage().getResourceWizardStorage();
+                        .getBrowserTabSessionStorage().getResourceWizardStorage();
 
                 PreviewTileType tile = tileModel.getObject().getValue();
                 return ResourceGuideSchemaHandlingWizardTileState
