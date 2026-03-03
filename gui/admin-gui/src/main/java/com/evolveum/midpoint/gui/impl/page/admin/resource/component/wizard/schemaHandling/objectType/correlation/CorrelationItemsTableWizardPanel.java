@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 
+import com.evolveum.midpoint.web.component.dialog.DataAccessPermission;
 import com.evolveum.midpoint.web.session.SuggestionsStorage;
 
 import org.apache.wicket.AttributeModifier;
@@ -294,7 +295,8 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
                 () -> new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase())) {
             @Override
-            protected void performSuggestOperation(AjaxRequestTarget target) {
+            protected void performSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>> confirmedOptions) {
                 ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
                 SmartIntegrationService service = getPageBase().getSmartIntegrationService();
                 getPageBase().taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
@@ -306,9 +308,10 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             }
 
             @Override
-            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
-                return () -> new RequestDetailsRecordDto(null,
-                        RequestDetailsRecordDto.initDummyCorrelationPermissionData());
+            protected @NotNull IModel<RequestDetailsRecordDto<DataAccessPermission>> getPermissionRecordDtoIModel() {
+                final RequestDetailsRecordDto<DataAccessPermission> requestDetailsRecordDto =
+                        new RequestDetailsRecordDto<>(null, RequestDetailsRecordDto.initDummyCorrelationPermissionData());
+                return () -> requestDetailsRecordDto;
             }
 
             @Override

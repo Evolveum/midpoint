@@ -19,8 +19,7 @@ import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,9 +39,10 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
     protected @NotNull ActivityRunResult runLocally(OperationResult result) throws ActivityRunException, CommonException, ActivityInterruptedException {
         var task = getRunningTask();
         var parentState = Util.getParentState(this, result);
-        var resourceOid = getWorkDefinition().getResourceOid();
-        var typeDef = getWorkDefinition().getTypeIdentification();
-        var targetPathsToIgnore = getWorkDefinition().getTargetPathsToIgnore();
+        final MappingsSuggestionWorkDefinition workDefinition = getWorkDefinition();
+        var resourceOid = workDefinition.getResourceOid();
+        var typeDef = workDefinition.getTypeIdentification();
+        var targetPathsToIgnore = workDefinition.getTargetPathsToIgnore();
         var state = getActivityState();
 
         LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}",
@@ -50,10 +50,11 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
 
         var schemaMatch = parentState.getWorkStateItemRealValueClone(
                 MappingsSuggestionWorkStateType.F_SCHEMA_MATCH, SchemaMatchResultType.class);
-        var isInbound = getWorkDefinition().isInbound();
+        var isInbound = workDefinition.isInbound();
 
+        boolean useAi = workDefinition.getPermissions().contains(DataAccessPermissionType.RAW_DATA_ACCESS);
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, typeDef, schemaMatch, isInbound, true, targetPathsToIgnore, state, task, result);
+                resourceOid, typeDef, schemaMatch, isInbound, useAi, targetPathsToIgnore, state, task, result);
 
         parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
         parentState.flushPendingTaskModifications(result);

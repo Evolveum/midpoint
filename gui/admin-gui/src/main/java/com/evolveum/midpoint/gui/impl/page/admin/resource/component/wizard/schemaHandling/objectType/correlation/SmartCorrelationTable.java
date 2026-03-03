@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.dialog.DataAccessPermission;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -104,8 +105,10 @@ public abstract class SmartCorrelationTable
     }
 
     @Override
-    protected IModel<RequestDetailsRecordDto> buildSmartPermissionRecordDto() {
-        return () -> new RequestDetailsRecordDto(null, initDummyCorrelationPermissionData());
+    protected IModel<RequestDetailsRecordDto<DataAccessPermission>> buildSmartPermissionRecordDto() {
+        final RequestDetailsRecordDto<DataAccessPermission> dataAccessPermissionRequestDetailsRecordDto =
+                new RequestDetailsRecordDto<>(null, initDummyCorrelationPermissionData());
+        return () -> dataAccessPermissionRequestDetailsRecordDto;
     }
 
     @Override
