@@ -6,29 +6,19 @@
 
 package com.evolveum.midpoint.gui.api.component.button;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.wicket.Application;
-import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.util.resource.IResourceStream;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -62,7 +52,8 @@ public abstract class XlsxDownloadButtonPanel extends BasePanel {
     private static final long serialVersionUID = 1L;
 
     private void initLayout() {
-        AbstractDataExporter xlsxDataExporter = new AbstractDataExporter(Model.of("XLSX"), "text/xlsx", "xlsx") {
+        XlsxDataExporter xlsxDataExporter = new XlsxDataExporter() {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public <T> void exportData(IDataProvider<T> dataProvider,
@@ -72,7 +63,7 @@ public abstract class XlsxDownloadButtonPanel extends BasePanel {
                 }
                 try {
                     ((BaseSortableDataProvider) dataProvider).setExportSize(true);
-                    exportDataToXLSX(dataProvider, getExportableColumns(), outputStream);
+                    super.exportData(dataProvider, getExportableColumns(), outputStream);
                     ((BaseSortableDataProvider) dataProvider).setExportSize(false);
                 } catch (Exception ex) {
                     LOGGER.error("Unable to export data,", ex);
@@ -83,64 +74,8 @@ public abstract class XlsxDownloadButtonPanel extends BasePanel {
                 }
             }
 
-            private <T> void exportDataToXLSX(
-                    IDataProvider<T> dataProvider,
-                    List<IExportableColumn<Object, ?>> columns,
-                    OutputStream outputStream
-            ) {
-                Workbook workbook = new XSSFWorkbook();
-                Sheet sheet = workbook.createSheet("Exported data");
-                try {
-                    writeHeaders(columns, sheet);
-                    writeData(dataProvider, columns, sheet);
-                    workbook.write(outputStream);
-                    workbook.close();
-                } catch (IOException ex) {
-                    throw new IllegalStateException("Error during export to XLSX " + ex.getMessage(), ex);
-                }
-            }
-
-            private <T> void writeHeaders(List<IExportableColumn<T, ?>> columns, Sheet sheet) throws IOException {
-                Row header = sheet.createRow(0);
-                int index = 0;
-                for (IExportableColumn<T, ?> col : columns) {
-                    IModel<String> displayModel = col.getDisplayModel();
-                    String display = this.wrapModel(displayModel).getObject();
-                    sheet.setColumnWidth(index, 5000);
-                    header.createCell(index++).setCellValue(display);
-                }
-            }
-
-            private <T> void writeData(IDataProvider<T> dataProvider, List<IExportableColumn<Object,?>> columns, Sheet sheet) throws IOException {
-                long numberOfRows = dataProvider.size();
-                Iterator<? extends T> rowIterator = dataProvider.iterator(0L, numberOfRows);
-
-                int indexRow = 1;
-                while (rowIterator.hasNext()) {
-                    Row sheetRow = sheet.createRow(indexRow++);
-                    T row = (T) rowIterator.next();
-
-                    int indexColumn = 0;
-                    for (IExportableColumn<Object, ?> col : columns) {
-                        IModel<?> dataModel = col.getDataModel((IModel<Object>) dataProvider.model(row));
-                        Object value = this.wrapModel(dataModel).getObject();
-                        if (value != null) {
-                            Class<?> c = value.getClass();
-                            IConverter converter = Application.get().getConverterLocator().getConverter(c);
-                            String cellValue;
-                            if (converter == null) {
-                                cellValue = value.toString();
-                            } else {
-                                cellValue = converter.convertToString(value, Session.get().getLocale());
-                            }
-
-                            sheetRow.createCell(indexColumn++).setCellValue(cellValue);
-                        }
-                    }
-                }
-            }
-
-            private <T> IModel<T> wrapModel(IModel<T> model) {
+            @Override
+            protected <T> IModel<T> wrapModel(IModel<T> model) {
                 if (model == null || model.getObject() == null) {
                     return () -> (T) "";
                 }
@@ -153,7 +88,6 @@ public abstract class XlsxDownloadButtonPanel extends BasePanel {
                 return model;
             }
         };
-
         IModel<String> name = Model.of("");
         final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
             private static final long serialVersionUID = 1L;
@@ -187,7 +121,7 @@ public abstract class XlsxDownloadButtonPanel extends BasePanel {
                         exportSizeLimit = adminGuiConfig.getDefaultExportSettings().getSizeLimit();
                     }
                 } catch (Exception ex) {
-                    LOGGER.error("Unable to get XLSX export size limit,", ex);
+                    LOGGER.error("Unable to get xlsx export size limit,", ex);
                 }
                 boolean askForSizeLimitConfirmation;
                 if (exportSizeLimit < 0) {

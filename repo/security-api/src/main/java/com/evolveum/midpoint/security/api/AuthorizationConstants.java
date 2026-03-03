@@ -649,7 +649,7 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
     public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);
 
-    //ui authorization for ODS export button (will be applied everywhere over mp)
+    //ui authorization for XLSX export button (will be applied everywhere over mp)
     public static final QName AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminXLSXexport");
     public static final String AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_QNAME);
 
