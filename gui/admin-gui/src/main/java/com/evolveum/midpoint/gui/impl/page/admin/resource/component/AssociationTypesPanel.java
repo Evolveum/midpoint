@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DataAccessPermission;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -362,7 +363,8 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(id,
                 () -> new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), switchToggleModel, getPageBase())) {
             @Override
-            protected void performSuggestOperation(AjaxRequestTarget target) {
+            protected void performSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>> confirmedOptions) {
                 onSuggestValue(createContainerModel(), target);
             }
 
@@ -372,8 +374,8 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             }
 
             @Override
-            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
-                return () -> new RequestDetailsRecordDto(null,
+            protected @NotNull IModel<RequestDetailsRecordDto<DataAccessPermission>> getPermissionRecordDtoIModel() {
+                return () -> new RequestDetailsRecordDto<>(null,
                         RequestDetailsRecordDto.initDummyObjectTypePermissionData());
             }
 

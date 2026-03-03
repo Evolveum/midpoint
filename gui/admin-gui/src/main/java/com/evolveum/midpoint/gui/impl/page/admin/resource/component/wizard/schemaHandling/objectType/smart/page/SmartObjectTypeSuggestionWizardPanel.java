@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.dialog.DataAccessPermission;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
@@ -37,6 +38,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyObjectTypePermissionData;
+
+import java.util.List;
 
 public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
@@ -75,13 +78,14 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
     }
 
     private void proceedToSuggestionConfirmationPanel(@NotNull PageBase pageBase, AjaxRequestTarget target, ComplexTypeDefinitionType complexTypeDef) {
-        RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(
+        RequestDetailsConfirmationPanel<DataAccessPermission> dialog = new RequestDetailsConfirmationPanel<>(
                 getPageBase().getMainPopupBodyId(),
-                Model.of(new RequestDetailsRecordDto(null, initDummyObjectTypePermissionData()))) {
+                Model.of(new RequestDetailsRecordDto<>(null, initDummyObjectTypePermissionData()))) {
 
             @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                processSuggestionActivity(target, complexTypeDef.getName(), false);
+            public void yesPerformed(AjaxRequestTarget target,
+                    IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>> confirmedOptions) {
+                processSuggestionActivity(target, complexTypeDef.getName(), false, confirmedOptions);
             }
         };
         pageBase.showMainPopup(dialog, target);
@@ -90,7 +94,8 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
     /**
      * Processes the suggestion activity for the given object class name.
      */
-    private void processSuggestionActivity(AjaxRequestTarget target, QName objectClassName, boolean resetSuggestion) {
+    private void processSuggestionActivity(AjaxRequestTarget target, QName objectClassName, boolean resetSuggestion,
+            IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>> confirmedOptions) {
         String resourceOid = getAssignmentHolderModel().getObjectType().getOid();
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
@@ -111,6 +116,13 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
             return;
         }
 
+        if (confirmedOptions.getObject().size() != 2) {
+            result.recordFatalError("Unable to suggest object types without permissions to access schema and "
+                    + "statistics");
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel(), SmartObjectTypeSuggestionWizardPanel.this);
+            return;
+        }
         boolean executed = runSuggestionAction(
                 getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task);
 
@@ -204,7 +216,10 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
             @Override
             public void refreshSuggestionPerform(AjaxRequestTarget target) {
                 removeLastBreadcrumb();
-                processSuggestionActivity(target, objectClassName, true);
+                final List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>> requestRecords =
+                        initDummyObjectTypePermissionData();
+                processSuggestionActivity(target, objectClassName, true,
+                        () -> requestRecords);
             }
 
             @Override
