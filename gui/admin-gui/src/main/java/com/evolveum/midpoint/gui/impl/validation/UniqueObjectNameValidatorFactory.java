@@ -27,8 +27,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @Component
 public class UniqueObjectNameValidatorFactory extends ItemValidatorFactory {
 
+    public static final String IDENTIFIER = "UniqueObjectName";
+
     public UniqueObjectNameValidatorFactory() {
-        super("UniqueObjectName");
+        super(IDENTIFIER);
     }
 
     @Override
