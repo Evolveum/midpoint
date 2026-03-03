@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.api.component.button.OdsDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.component.button.XlsxDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -206,7 +206,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         exportCSVDataLink.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI)));
         buttonsList.add(exportCSVDataLink);
 
-        OdsDownloadButtonPanel exportODSDataLink = new OdsDownloadButtonPanel(idButton) {
+        XlsxDownloadButtonPanel exportXLSXDataLink = new XlsxDownloadButtonPanel(idButton) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -220,8 +220,8 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                 return getTable().getDataTable();
             }
         };
-        exportODSDataLink.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ODS_EXPORT_ACTION_URI)));
-        buttonsList.add(exportODSDataLink);
+        exportXLSXDataLink.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI)));
+        buttonsList.add(exportXLSXDataLink);
 
         AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(idButton, WebComponentUtil.createCreateReportIcon(),
                 getPageBase().createStringResource("MainObjectListPanel.createReport")) {

@@ -47,7 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.api.component.button.OdsDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.component.button.XlsxDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -1267,7 +1267,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
         buttonsList.add(createCsvDownloadButton(idButton));
-        buttonsList.add(createOdsDownloadButton(idButton));
+        buttonsList.add(createXlsxDownloadButton(idButton));
         return buttonsList;
     }
 
@@ -1290,9 +1290,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return exportCSVDataLink;
     }
 
-    protected OdsDownloadButtonPanel createOdsDownloadButton(String buttonId) {
+    protected XlsxDownloadButtonPanel createXlsxDownloadButton(String buttonId) {
 
-        OdsDownloadButtonPanel exportODSDataLink = new OdsDownloadButtonPanel(buttonId) {
+        XlsxDownloadButtonPanel exportXLSXDataLink = new XlsxDownloadButtonPanel(buttonId) {
             @Override
             protected DataTable<?, ?> getDataTable() {
                 return getTable().getDataTable();
@@ -1305,8 +1305,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
         };
-        exportODSDataLink.add(new VisibleBehaviour(this::isExportODSDataLinkVisible));
-        return exportODSDataLink;
+        exportXLSXDataLink.add(new VisibleBehaviour(this::isExportXLSXDataLinkVisible));
+        return exportXLSXDataLink;
     }
 
     private boolean isExportCSVDataLinkVisible() {
@@ -1314,9 +1314,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
     }
 
-    private boolean isExportODSDataLinkVisible() {
+    private boolean isExportXLSXDataLinkVisible() {
         return !WebComponentUtil.hasPopupableParent(ContainerableListPanel.this)
-                && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ODS_EXPORT_ACTION_URI);
+                && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI);
     }
 
     protected String getStorageKey() {
