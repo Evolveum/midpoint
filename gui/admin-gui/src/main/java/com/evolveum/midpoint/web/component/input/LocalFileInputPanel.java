@@ -142,7 +142,7 @@ public class LocalFileInputPanel extends InputPanel {
             });
         }
 
-        DropdownButtonDto dropdownDto = new DropdownButtonDto(
+        DropdownButtonDto dropdownDto = DropdownButtonDto.create(
                 null, null, () -> LocalizationUtil.translate(selectedPrefixModel.getObject().labelKey), items);
 
         DropdownButtonPanel dropdown = new DropdownButtonPanel(ID_DROPDOWN, dropdownDto) {

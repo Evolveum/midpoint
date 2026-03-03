@@ -33,12 +33,16 @@ public class DropdownButtonDto implements Serializable {
         this(info, icon, Model.of(label), items);
     }
 
-    public DropdownButtonDto(String info, String icon, IModel<String> labelModel, List<InlineMenuItem> items) {
+    private DropdownButtonDto(String info, String icon, IModel<String> labelModel, List<InlineMenuItem> items) {
         this.info = info;
         this.icon = icon;
         this.items = items;
 
         this.labelModel = labelModel;
+    }
+
+    public static DropdownButtonDto create(String info, String icon, IModel<String> labelModel, List<InlineMenuItem> items) {
+        return new DropdownButtonDto(info, icon, labelModel, items);
     }
 
     public String getInfo() {
