@@ -402,6 +402,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                             objectTypeIdentification,
                             inbound,
                             getTargetPathsToIgnore(),
+                            Collections.emptyList(),
                             task,
                             result);
                 });

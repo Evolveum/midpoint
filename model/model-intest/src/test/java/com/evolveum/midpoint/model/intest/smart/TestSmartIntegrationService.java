@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -343,7 +344,8 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest mappings' operation request");
         var token = smartIntegrationService.submitSuggestMappingsOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null, List.of(
+                        DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.RAW_DATA_ACCESS), task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -386,7 +388,8 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest mappings' operation request");
         var token = smartIntegrationService.submitSuggestMappingsOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null, List.of(
+                        DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.RAW_DATA_ACCESS), task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();

@@ -280,6 +280,7 @@ public interface SmartIntegrationService {
             ResourceObjectTypeIdentification typeIdentification,
             Boolean isInbound,
             List<ItemPathType> targetPathsToIgnore,
+            List<DataAccessPermissionType> permissions,
             Task task,
             OperationResult result)
             throws CommonException;

@@ -11037,6 +11037,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Data access permissions given to the suggest task.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

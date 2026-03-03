@@ -797,6 +797,41 @@
     </xsd:complexType>
     <xsd:element name="associationSuggestion" type="tns:AssociationSuggestionType"/>
 
+
+    <xsd:simpleType name="DataAccessPermissionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Permission to access particular kind of data
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="schemaAccess">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>Permission to access schemas.</xsd:documentation>
+                        <jaxb:typesafeEnumMember name="SCHEMA_ACCESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="rawDataAccess">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>Permission to access raw data.</xsd:documentation>
+                        <jaxb:typesafeEnumMember name="RAW_DATA_ACCESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="statisticsAccess">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>Permission to access statistics about the data.</xsd:documentation>
+                        <jaxb:typesafeEnumMember name="STATISTICS_ACCESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <!-- interaction metadata and suggestion quality are to be defined later -->
 
     <!-- ================================================================================================================== -->
