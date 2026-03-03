@@ -11,9 +11,13 @@ import java.io.Serial;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -62,10 +66,23 @@ public class HelpTextPanel extends BasePanel<String> {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        add(AttributeAppender.append("class", "form-text text-muted"));
+        add(AttributeAppender.append("class", "form-text text-muted text-help"));
         add(new VisibleBehaviour(() -> StringUtils.isNotBlank(getModelObject())));
 
-        Label content = new Label(ID_CONTENT, getContentModel());
+        Label content = new Label(ID_CONTENT, getContentModel()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onComponentTagBody(MarkupStream markupStream, ComponentTag openTag) {
+                if (isShowAll()) {
+                    CharSequence body = Strings.toMultilineMarkup(getDefaultModelObjectAsString());
+                    replaceComponentTagBody(markupStream, openTag, body);
+                } else {
+                    super.onComponentTagBody(markupStream, openTag);
+                }
+            }
+        };
         content.setRenderBodyOnly(true);
         add(content);
 
@@ -98,18 +115,28 @@ public class HelpTextPanel extends BasePanel<String> {
         };
     }
 
+    private boolean isShowAll() {
+        return alwaysShowAll || showAll.getObject();
+    }
+
     private IModel<String> getContentModel() {
-        return () -> {
-            String content = getModelObject();
-            if (content == null) {
-                return null;
-            }
+        return new LoadableDetachableModel<>() {
 
-            if (alwaysShowAll || showAll.getObject()) {
-                return content;
-            }
+            @Serial private static final long serialVersionUID = 1L;
 
-            return StringUtils.abbreviate(content, "...", shortHelpLength);
+            @Override
+            protected String load() {
+                String content = getModelObject();
+                if (content == null) {
+                    return null;
+                }
+
+                if (isShowAll()) {
+                    return content.trim();
+                }
+
+                return StringUtils.abbreviate(content.trim(), "...", shortHelpLength);
+            }
         };
     }
 }
