@@ -11,6 +11,6 @@
         log.trace("Shadow {}",
             // resource dummy
             midpoint.getLinkedShadow(focus, '10000000-0000-0000-0000-000000000004', 'account', 'default', true)
-        )[? 'fullname']
+        )[? 'attributes'][? 'fullname']
     </code>
 </script>
