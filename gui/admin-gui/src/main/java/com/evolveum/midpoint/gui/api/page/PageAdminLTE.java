@@ -16,7 +16,9 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.security.BrowserTabIdRequestCycleListener;
+import com.evolveum.midpoint.web.security.*;
+
+import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -42,6 +44,7 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.owasp.html.HtmlPolicyBuilder;
@@ -134,9 +137,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
@@ -325,6 +325,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         Validate.notNull(reportManager, "Report manager was not injected.");
 
         MidPointAuthWebSession.get().setClientCustomization();
+
+        add(new NewWindowNotifyingBehavior());
+
 
 //        add(new AbstractDefaultAjaxBehavior() {
 //            @Serial private static final long serialVersionUID = 1L;
@@ -1267,8 +1270,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
      * e.g. object list page search data, specific details page navigation menu data etc.
      */
     public BrowserTabSessionStorage getBrowserTabSessionStorage() {
-        String tabId =  RequestCycle.get().getMetaData(BrowserTabIdRequestCycleListener.BROWSER_TAB_ID_KEY);
-
+        org.apache.wicket.request.IRequestParameters parameters = RequestCycle.get().getRequest().getRequestParameters();
+        StringValue paramValue = parameters.getParameterValue(BrowserWindowIdentifierFilter.PARAM_WI);
+        String tabId = paramValue != null ? paramValue.toString() : null;
         LOGGER.info("Page Admin LTE: {}", tabId);
 
         if (tabId == null) {

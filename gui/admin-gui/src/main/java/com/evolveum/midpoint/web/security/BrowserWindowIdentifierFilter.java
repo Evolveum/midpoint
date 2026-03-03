@@ -17,6 +17,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.MetaDataKey;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -28,6 +29,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
 
     public static final String PARAM_WI = "w";
+    public static final String PARAM_NEW_WINDOW_FLAG = "newWindow";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -63,7 +65,11 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
         // Build redirect URL with appended wi parameter
         String requestURL = request.getRequestURL().toString();
         String query = request.getQueryString(); // may be null
-        String wi = URLEncoder.encode(UUID.randomUUID().toString().substring(0, 8), StandardCharsets.UTF_8);
+
+        String wi = getWindowParameterFromRefererHeader(request);
+        if (StringUtils.isEmpty(wi)) {
+            wi = URLEncoder.encode(UUID.randomUUID().toString().substring(0, 8), StandardCharsets.UTF_8);
+        }
         request.setAttribute(PARAM_WI, wi);
 
         StringBuilder newUrl = new StringBuilder(requestURL);
@@ -88,5 +94,28 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
             return null;
         }
         return uri.startsWith(context) ? uri.substring(context.length()) : uri;
+    }
+
+    private String getWindowParameterFromRefererHeader(HttpServletRequest request) {
+        if (isNewWindow(request)) {
+            return null;
+        }
+        String referer = request.getHeader("Referer");
+        if (referer != null && referer.contains("w=")) {
+            return referer.split("w=")[1].split("&")[0];
+        }
+        return null;
+    }
+
+    private boolean isNewWindow(HttpServletRequest request) {
+        String newWindowFlag = request.getParameter(PARAM_NEW_WINDOW_FLAG);
+        if (StringUtils.isNotEmpty(newWindowFlag)) {
+            clearNewWindowFlag(request);
+        }
+        return "true".equals(newWindowFlag);
+    }
+
+    private void clearNewWindowFlag(HttpServletRequest request) {
+        request.getParameterMap().remove(PARAM_NEW_WINDOW_FLAG);
     }
 }
