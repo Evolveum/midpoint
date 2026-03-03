@@ -59,7 +59,7 @@ public class UniqueObjectNameValidatorFactory extends ItemValidatorFactory {
             String strValue = value != null ? value.toString() : null;
 
             ObjectQuery query = PrismContext.get().queryFor(type)
-                    .item(ObjectType.F_NAME).eqPoly(strValue)
+                    .item(ObjectType.F_NAME).eqPoly(strValue).matchingNorm()
                     .maxSize(1)
                     .build();
 

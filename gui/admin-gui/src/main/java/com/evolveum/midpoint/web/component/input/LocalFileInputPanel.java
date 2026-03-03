@@ -76,7 +76,44 @@ public class LocalFileInputPanel extends InputPanel {
     protected void onInitialize() {
         super.onInitialize();
 
+        populateModels();
         initLayout();
+    }
+
+    private void populateModels() {
+        String currentValue = model.getObject();
+        if (currentValue == null) {
+            return;
+        }
+
+        for (PathPrefix pathPrefix : prefixesModel.getObject()) {
+            if (pathPrefix == PathPrefix.ABSOLUTE) {
+                continue; // skip absolute, it is default
+            }
+
+            String prefix = pathPrefix.prefixFunction.apply("");
+            if (StringUtils.isEmpty(prefix)) {
+                // if prefix is empty, it means that it cannot be used as prefix, so skip it
+                continue;
+            }
+
+            if (!currentValue.startsWith(prefix)) {
+                continue;
+            }
+
+            selectedPrefixModel.setObject(pathPrefix);
+
+            String suffix = currentValue.substring(prefix.length());
+            inputModel.setObject(suffix);
+
+            LOGGER.trace("Populated models with prefix {} (real prefix {}) and input {}", pathPrefix, prefix, suffix);
+
+            return;
+        }
+
+        // if no prefix matches, use absolute as default
+        selectedPrefixModel.setObject(PathPrefix.ABSOLUTE);
+        inputModel.setObject(currentValue);
     }
 
     private void initLayout() {
@@ -175,7 +212,7 @@ public class LocalFileInputPanel extends InputPanel {
             }
 
             if (StringUtils.isEmpty(s)) {
-                return s;
+                return mpHome;
             }
 
             if (!mpHome.endsWith("/") && !s.startsWith("/")) {
