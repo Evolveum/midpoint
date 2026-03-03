@@ -45,6 +45,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     protected static final String ID_LABEL = "label";
     protected static final String ID_SR_ONLY_LABEL = "srOnlyLabel";
+    // todo rename to ID_TOOLTIP
     protected static final String ID_HELP = "help";
     private static final String ID_EXPERIMENTAL = "experimental";
     private static final String ID_DEPRECATED = "deprecated";

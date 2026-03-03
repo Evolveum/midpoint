@@ -37,6 +37,7 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
+    // todo rename to help after PrismContainerValuePanel#ID_HELP is renamed to ID_TOOLTIP
     private static final String ID_LONG_HELP = "longHelp";
 
     public VerticalFormPrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {

@@ -62,6 +62,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final String ID_SORT_PROPERTIES = "sortProperties";
     private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
     protected static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
+    // todo this should be named "help"
     private static final String ID_LONG_HELP = "longHelp";
 
     public PrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {

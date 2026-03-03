@@ -182,7 +182,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
             @Override
             protected String load() {
-
                 VirtualContainerItemSpecificationType spec = supplier.get();
                 if (spec == null) {
                     return null;
