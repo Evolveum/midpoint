@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.HelpTextPanel;
 import com.evolveum.midpoint.gui.impl.util.GuiConfigUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -22,6 +25,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -296,5 +300,10 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     public Component getLabelComponent() {
         return get(ID_LABEL);
+    }
+
+    protected Component createHelpPanel(String id) {
+        return ItemPanel.createHelpPanel(
+                id, () -> GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), getModelObject().getPath()));
     }
 }
