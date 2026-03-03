@@ -127,7 +127,8 @@ Structure of the data is dictated by xref:/midpoint/reference/schema/common-data
 
 == Creating Expressions
 
-Simple computations can be executed on the data provided to the expression.
+Simple computations can be executed on the data provided to the expression using the variables.
+Following examples assume that midPoint _user_ is provided in variable `focus`, as it is the case in usual mapping expressions:
 
 [source,mel]
 ----
@@ -138,29 +139,102 @@ matches(focus.telephoneNumber, '^[0-9]+$')               // true if number match
 focus.givenName + ' ' + focus.familyName                 // concatenation of values
 ----
 
-// TODO TODO TODO TODO
+The examples demonstrate use of operators (`==`, `||`, etc.) as well as functions and macros (`has(...)`, `size(...)`, `matches(...)`).
 
-_Functions_ can be used in addition to operators.
+There are two types of functions: global functions and member functions.
 
-TODO: Mention basic functions here, describe type-specific and library functions later
+_Global functions_ are specified by their name, providing all the inputs to the function as parameters.
+All the functions in the above example are global functions.
+
+_Member functions_ are executed with respect to some value, usually a variable.
+E.g. the `contains` function in the example below is a member function, which is executed on a string value provided in variable `s`.
+
+[source,mel]
+----
+s.contains('foo')
+----
+
+Some functions are available in both _global_ and _member_ versions, such as `isEmpty()` function:
+
+[source,mel]
+----
+foo.isEmpty()
+isEmpty(foo)
+----
+
+See xref:specification[full MEP specification] for list of all applicable functions.
 
 .Macros
 NOTE: Some MEL functionality is implemented using _macros_ instead of functions.
 Macros are interpreted differently than functions on a deep technical level.
 However, to the common users, macros are functionally almost indistinguishable from functions for most practical cases.
 
-See xref:specification[full MEP specification] for list of all applicable functions.
-
-TODO: Return type
+MidPoint expressions usually expect a specific return type.
+E.g. mapping conditions expect the expression to return a boolean value, while most mapping expression expect a string as return value.
+MEL is a type-aware language, therefore MEL expressions must be written to return value of the correct type.
 
 == Strings and Polystrings
 
-TODO: string literals
+String is perhaps the most frequently used data type in midPoint expressions.
+In MEL, string literals are written using apostrophes:
 
-TODO: regexp (RE2 syntax)
-TODO: polystrings: work like strings, structured (orig,norm)
+[source,mel]
+----
+'foobar'
+----
 
-== Conditions
+Addition operator can be used to concatenate strings:
+
+[source,mel]
+----
+'foo' + 'bar'
+----
+
+There are many functions that can be invoked on strings (as _member_ functions) or using strings (as _global_ functions):
+
+[source,mel]
+----
+ascii('Semančík')
+'foobar'.contains('foo')
+isBlank('bar')
+size('foobar')
+----
+
+Regular expressions are often used to validate, analyze and manipulate strings.
+MEL provides several functions for regular expression matching and replacement:
+
+[source,mel]
+----
+telephoneNumber.matches('^[0-9]+$')
+----
+
+TODO: describe regex extension
+
+MEL regular expressions are following link:https://github.com/google/re2/blob/main/README.md[RE2] syntax, which is basically a simplified Perl-compatible regular expression syntax.
+
+Many string-like values in midPoint are provided in a form of xref:/midpoint/reference/concepts/polystring/[polystrings].
+In MEL, polystrings work exactly as strings would when used in expressions and string functions.
+When a polystring is used instead of string, its `orig` part is used.
+E.g. assuming that the `focus` variable contains an object describing user `Radovan Semančík`, both `familyName` and `givenName` are provided to the expression in a form of polystrings.
+However, these can be easily manipulated in MEL using the usual string conventions:
+
+[source,mel]
+----
+focus.familyName + ', ' + focus.givenName   // Returns: Semančík, Radovan
+----
+
+Polystrings also work as structured object, with `orig` and `norm` parts.
+E.g. the following expression is using `norm` part of the polystrings to generate a username:
+
+[source,mel]
+----
+focus.givenName.norm.substring(0,1) + focus.familyName.norm
+----
+
+== Flow Control
+
+MEL is an expression language.
+Strictly speaking, expressions do not have a "flow", therefore there are no flow control mechanisms in MEL.
 
 * No flow control, but we have conditional
 

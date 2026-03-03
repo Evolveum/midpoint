@@ -11,23 +11,11 @@ TODO
 
 MidPoint Expression Language (MEL) is a ...
 
+TODO: literals
 
 == Operators
 
 TODO: table of operators with precedence
-
-== Operators and Functions
-
-Simple computations can be executed on the data provided to the expression.
-
-[source,mel]
-----
-focus.activation.effectiveStatus == `enabled`            // true if focus is active
-has(focus.emailAddress) || has(focus.telephoneNumber)    // true if either one is set
-size(focus.assignment) > 0                               // true if there is at least one assignment
-matches(focus.telephoneNumber, '^[0-9]+$')               // true if number matches regexp
-focus.givenName + ' ' + focus.familyName                 // concatenation of values
-----
 
 Following _operators_ can be used in MEL expressions:
 
@@ -89,6 +77,33 @@ Following _operators_ can be used in MEL expressions:
 TODO: include indexing ([]) and 'in'
 
 == Functions and Macros
+
+There are two types of functions: global functions and member functions.
+
+* _Global functions_ are specified by their name, providing all the inputs to the function as parameters.
++
+[source,mel]
+----
+size(focus.assignment) > 0
+matches(focus.telephoneNumber, '^[0-9]+$')
+----
+
+* _Member functions_ are executed with respect to some value, usually a variable.
+E.g. the `contains` function in the example below is a member function, which is executed on a string value provided in variable `s`.
++
+[source,mel]
+----
+s.contains('foo')
+----
+
+Some functions are available in both _global_ and _member_ versions, such as `isEmpty()` function:
+
+----
+foo.isEmpty()
+isEmpty(foo)
+----
+
+Following sections provide description of functions available to all MEL expressions.
 
 === all
 
