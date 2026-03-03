@@ -56,6 +56,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_HEADER = "header";
     private static final String ID_NAME = "name";
+    private static final String ID_HEADER_STATE_DESC = "headerStateDesc";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
 
@@ -97,7 +98,9 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
             protected void populateItem(final ListItem<SideBarMenuItem> item) {
                 Component header = createHeader(item.getModel());
                 item.add(header);
-                item.add(createMenuItems(header, item.getModel()));
+
+                Component menuItems = createMenuItems(header, item.getModel());
+                item.add(menuItems);
             }
         };
         menuItems.setOutputMarkupId(true);
@@ -162,24 +165,37 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
     private Component createHeader(IModel<SideBarMenuItem> model) {
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
-        header.add(new AjaxEventBehavior("click") {
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                onMenuClick(model);
-            }
-        });
         header.add(AttributeAppender.append("class", () -> isMenuExpanded(model.getObject()) ? "" : "closed"));
-        header.add(AttributeAppender.append("aria-expanded", () -> isMenuExpanded(model.getObject())));
+        header.add(AttributeAppender.append("aria-label", getHeaderMenuItemName(model)));
 
         Label name = new Label(ID_NAME, () -> getHeaderMenuItemName(model));
         header.add(name);
         header.add(new VisibleBehaviour(() -> model.getObject().isVisible()));
+
+        Label headerStateDescr = new Label(ID_HEADER_STATE_DESC, getHeaderMenuItemAriaDesc(isMenuExpanded(model.getObject())));
+        headerStateDescr.setOutputMarkupId(true);
+        header.add(headerStateDescr);
+        header.add(AttributeAppender.append("aria-describedby", headerStateDescr.getMarkupId()));
+
+        header.add(new AjaxEventBehavior("click") {
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                onMenuClick(model, headerStateDescr, target);
+            }
+        });
+
         return header;
     }
 
     private String getHeaderMenuItemName(IModel<SideBarMenuItem> model) {
         String key = model.getObject().getName();
         return getString(key, null, key);
+    }
+
+    private String getHeaderMenuItemAriaDesc(boolean isExpanded) {
+        String expandedState = getString(isExpanded ?
+                "SideBarMenuPanel.headerAriaLabel.shown" : "SideBarMenuPanel.headerAriaLabel.hidden");
+        return createStringResource("SideBarMenuPanel.headerAriaLabel.withState", expandedState).getString();
     }
 
     private Component createMenuItems(Component header, IModel<SideBarMenuItem> model) {
@@ -210,7 +226,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         return items;
     }
 
-    private void onMenuClick(IModel<SideBarMenuItem> model) {
+    private void onMenuClick(IModel<SideBarMenuItem> model, Component headerStateDescr, AjaxRequestTarget target) {
         SideBarMenuItem mainMenu = model.getObject();
 
         SessionStorage storage = getPageBase().getSessionStorage();
@@ -224,6 +240,10 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
             expanded = true;
         }
         menuState.put(menuLabel, !expanded);
+
+        target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                headerStateDescr.getMarkupId(), getHeaderMenuItemAriaDesc(!expanded), 150));
+
     }
 
     private boolean isMenuExpanded(SideBarMenuItem mainMenu) {

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectClassStatisticsButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType;

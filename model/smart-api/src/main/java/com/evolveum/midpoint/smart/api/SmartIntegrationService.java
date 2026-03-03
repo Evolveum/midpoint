@@ -89,6 +89,34 @@ public interface SmartIntegrationService {
             String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException;
 
+    /** Returns the object holding last known statistics for the given focus object type and resource/kind/intent. */
+    GenericObjectType getLatestFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult parentResult)
+            throws SchemaException;
+
+    /** Deletes all focus object statistics for the given object type and resource/kind/intent. */
+    void deleteFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult result)
+            throws SchemaException;
+
+    /** Regenerates statistics for the given focus object type (e.g. UserType) filtered by resource/kind/intent. */
+    String regenerateFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            Task task,
+            OperationResult result)
+            throws CommonException;
+
     /** Returns the object holding last known schema match for the given resource, kind and intent. */
     public GenericObjectType getLatestObjectTypeSchemaMatch(
             String resourceOid, String kind, String intent, Task task, OperationResult parentResult)

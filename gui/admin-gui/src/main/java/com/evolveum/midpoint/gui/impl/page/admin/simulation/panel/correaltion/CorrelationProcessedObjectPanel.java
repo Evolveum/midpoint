@@ -29,7 +29,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -40,6 +39,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -495,17 +495,22 @@ public abstract class CorrelationProcessedObjectPanel
                     String componentId,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
 
-                ProcessedObject<?> processedObject = SimulationsGuiUtil
-                        .parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
+                final SimulationResultProcessedObjectType processedObjectType = rowModel.getObject().getValue();
+                ProcessedObject<ShadowType> processedObject = (ProcessedObject<ShadowType>) SimulationsGuiUtil
+                        .parseProcessedObject(processedObjectType, getPageBase());
 
-                assert processedObject != null;
-                @Nullable ObjectDelta<?> delta = processedObject.getDelta();
-                List<String> correlatedOwnersOid = findCorrelatedOwners(delta);
+                if (processedObject == null) {
+                    throw new SystemException("Processed object " + processedObjectType + " was not parsed correctly");
+                }
+
+                final ShadowType shadowAfterChanges = getShadowAfterChanges(processedObject);
+                final Optional<String> correlatedOwnerOid = getCorrelatedOwner(shadowAfterChanges);
 
                 List<ResourceObjectOwnerOptionType> candidates =
-                        getCorrelationCandidateModel(processedObject).getObject();
+                        getCorrelationCandidateModel(shadowAfterChanges).getObject();
 
-                CandidateDisplayData displayData = createCandidateDisplay(getPageBase(), candidates, correlatedOwnersOid);
+                CandidateDisplayData displayData = createCandidateDisplay(getPageBase(), candidates,
+                        correlatedOwnerOid.orElse(null));
 
                 AjaxIconButton panel = new AjaxIconButton(componentId,
                         () -> displayData.icon,

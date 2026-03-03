@@ -21,8 +21,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -57,8 +60,10 @@ public class StatisticsService {
 
     private static final String OP_GET_LATEST_STATISTICS = "getLatestStatistics";
     private static final String OP_GET_LATEST_OBJECT_TYPE_STATISTICS = "getLatestObjectTypeStatistics";
+    private static final String OP_GET_LATEST_FOCUS_OBJECT_STATISTICS = "getLatestFocusObjectStatistics";
     private static final String OP_SUBMIT_OBJECT_CLASS_STATISTICS_COMPUTATION = "submitObjectClassStatisticsComputation";
     private static final String OP_SUBMIT_OBJECT_TYPE_STATISTICS_COMPUTATION = "submitObjectTypeStatisticsComputation";
+    private static final String OP_SUBMIT_FOCUS_OBJECT_STATISTICS_COMPUTATION = "submitFocusObjectStatisticsComputation";
 
     /** Default time-to-live for statistics objects if not configured. */
     private static final Duration DEFAULT_STATISTICS_TTL = XmlTypeConverter.createDuration("P1D");
@@ -449,6 +454,216 @@ public class StatisticsService {
         } finally {
             result.close();
         }
+    }
+
+    /**
+     * Returns the object holding last known statistics for the given focus object type and resource/kind/intent.
+     * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
+     */
+    public GenericObjectType getLatestFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult parentResult)
+            throws SchemaException {
+        var result = parentResult.subresult(OP_GET_LATEST_FOCUS_OBJECT_STATISTICS)
+                .addParam("objectTypeName", objectTypeName)
+                .addParam("resourceOid", resourceOid)
+                .addParam("kind", kind.value())
+                .addParam("intent", intent)
+                .build();
+        try {
+            var objects = repositoryService.searchObjects(
+                    GenericObjectType.class,
+                    PrismContext.get().queryFor(GenericObjectType.class)
+                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_FOCUS_OBJECT_TYPE_NAME)
+                            .eq(objectTypeName.getLocalPart())
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
+                            .eq(resourceOid)
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
+                            .eq(kind.value())
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
+                            .eq(intent)
+                            .build(),
+                    null,
+                    result);
+
+            var latestStatistics = objects.stream()
+                    .filter(o -> ObjectTypeUtil.getExtensionItemRealValue(
+                            o.asObjectable().getExtension(), MODEL_EXTENSION_FOCUS_OBJECT_STATISTICS) != null)
+                    .max(Comparator.comparing(
+                            o -> toMillis(FocusObjectStatisticsTypeUtil.getFocusObjectStatisticsRequired(o).getTimestamp())))
+                    .orElse(null);
+
+            if (latestStatistics != null) {
+                var statistics = FocusObjectStatisticsTypeUtil.getFocusObjectStatisticsRequired(latestStatistics);
+                if (isStatisticsExpired(statistics.getTimestamp(), result)) {
+                    LOGGER.info("Focus object statistics {} for type {} expired, deleting",
+                            latestStatistics.getOid(), objectTypeName);
+                    deleteStatistics(latestStatistics.getOid(), result);
+                    return null;
+                }
+            }
+
+            return latestStatistics != null ? latestStatistics.asObjectable() : null;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    public void deleteFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult parentResult) throws SchemaException {
+        var result = parentResult.subresult("deleteFocusObjectStatistics")
+                .addParam("objectTypeName", objectTypeName)
+                .addParam("resourceOid", resourceOid)
+                .addParam("kind", kind.value())
+                .addParam("intent", intent)
+                .build();
+        try {
+            var objects = repositoryService.searchObjects(
+                    GenericObjectType.class,
+                    PrismContext.get().queryFor(GenericObjectType.class)
+                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_FOCUS_OBJECT_TYPE_NAME)
+                            .eq(objectTypeName.getLocalPart())
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
+                            .eq(resourceOid)
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
+                            .eq(kind.value())
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
+                            .eq(intent)
+                            .build(),
+                    null,
+                    result);
+
+            for (var obj : objects) {
+                deleteStatistics(obj.getOid(), result);
+            }
+
+            LOGGER.info("Manually deleted {} focus object statistics for type {}",
+                    objects.size(), objectTypeName);
+            result.recordSuccess();
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    /**
+     * Starts regeneration of statistics for the given focus object type.
+     *
+     * <p>If a statistics computation task for the same object type and resource/kind/intent
+     * is already running, its task OID is returned and no new task is started.
+     * Otherwise, existing statistics are deleted and a new computation task
+     * is submitted.</p>
+     *
+     * @return OID of the running or newly created statistics computation task
+     */
+    public @NotNull String regenerateFocusObjectStatistics(
+            @NotNull QName objectTypeName,
+            @NotNull String resourceOid,
+            @NotNull ShadowKindType kind,
+            @NotNull String intent,
+            Task task,
+            OperationResult parentResult) throws CommonException {
+        String runningTaskOid = findRunningFocusObjectStatisticsComputationTaskOid(
+                objectTypeName, resourceOid, kind, intent, parentResult, task);
+        if (runningTaskOid != null) {
+            LOGGER.debug("There is already a running focus object statistics computation task (OID {}) for type {};"
+                            + " will not start another one",
+                    runningTaskOid, objectTypeName);
+            return runningTaskOid;
+        }
+
+        var result = parentResult.subresult(OP_SUBMIT_FOCUS_OBJECT_STATISTICS_COMPUTATION)
+                .addParam("objectTypeName", objectTypeName)
+                .addParam("resourceOid", resourceOid)
+                .addParam("kind", kind.value())
+                .addParam("intent", intent)
+                .build();
+
+        try {
+            deleteFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, parentResult);
+
+            var oid = modelInteractionService.submit(
+                    new ActivityDefinitionType()
+                            .work(new WorkDefinitionsType()
+                                    .focusObjectStatisticsComputation(new FocusObjectStatisticsComputationWorkDefinitionType()
+                                            .type(objectTypeName)
+                                            .resourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE))
+                                            .kind(kind)
+                                            .intent(intent))),
+                    ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
+                            .name("Regenerate focus object statistics for " + objectTypeName.getLocalPart())
+                            .cleanupAfterCompletion(DEFAULT_STATISTICS_TTL)),
+                    task, result);
+
+            LOGGER.debug("Submitted regenerate focus object statistics operation for type {}: {}",
+                    objectTypeName, oid);
+            return oid;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    /** Returns OID of running focus object statistics computation task for given type and resource/kind/intent, or null if there is none. */
+    private @Nullable String findRunningFocusObjectStatisticsComputationTaskOid(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult result,
+            Task task) throws CommonException {
+
+        var query = PrismContext.get().queryFor(TaskType.class)
+                .item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.RUNNING)
+                .build();
+
+        var foundOidRef = new AtomicReference<String>();
+
+        ResultHandler<TaskType> handler = (taskPrism, lResult) -> {
+            if (foundOidRef.get() != null) {
+                return false;
+            }
+
+            TaskType taskBean = taskPrism.asObjectable();
+            ActivityDefinitionType activity = taskBean.getActivity();
+            if (activity == null || activity.getWork() == null) {
+                return true;
+            }
+
+            WorkDefinitionsType work = activity.getWork();
+            FocusObjectStatisticsComputationWorkDefinitionType def = work.getFocusObjectStatisticsComputation();
+            if (def == null) {
+                return true;
+            }
+
+            if (objectTypeName.equals(def.getType())
+                    && resourceOid.equals(Referencable.getOid(def.getResourceRef()))
+                    && kind.equals(def.getKind())
+                    && intent.equals(def.getIntent())) {
+                foundOidRef.set(taskBean.getOid());
+                return false;
+            }
+
+            return true;
+        };
+
+        modelService.searchObjectsIterative(TaskType.class, query, handler, null, task, result);
+
+        return foundOidRef.get();
     }
 
     /**

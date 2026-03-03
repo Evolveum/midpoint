@@ -301,6 +301,40 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, result);
     }
 
+    @Override
+    public GenericObjectType getLatestFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult parentResult)
+            throws SchemaException {
+        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, parentResult);
+    }
+
+    @Override
+    public void deleteFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult result)
+            throws SchemaException {
+        statisticsService.deleteFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, result);
+    }
+
+    @Override
+    public String regenerateFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            Task task,
+            OperationResult result)
+            throws CommonException {
+        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, task, result);
+    }
+
     public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
             throws SchemaException {
         return schemaMatchService.getLatestObjectTypeSchemaMatch(resourceOid, kind, intent, task, parentResult);
