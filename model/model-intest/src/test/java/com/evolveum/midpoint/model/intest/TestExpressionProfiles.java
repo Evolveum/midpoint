@@ -50,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
  * . `safe` - allow only safe expression evaluators. Restricted MEL scripting only. No Groovy or anything similar.
  * . `restricted` - allows a lot of expressions, except with some limitations on Groovy and MEL method calls
  * . `trusted` - no restrictions whatsoever
- * . `little-trusted` - allows almost nothing; just an invocation of one specifically trusted library function
+ * . `little-trusted` - allows almost nothing; just MEL and an invocation of one specifically trusted library function
  * . `little-trusted-variant` - as before, but allows a different function
  * . `little-trusted-variant-two` - as before, but allows a different function library (`two`)
  * . `forbidden-generate-value-action`, `forbidden-generate-value-action-alt` - allows everything except `generate-value` action
@@ -156,7 +156,11 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     private static final File FILE_SCRIPTING_SCRIPT_IN_QUERY = new File(TEST_DIR, "scripting-script-in-query.xml");
     private static final File FILE_SCRIPTING_SCRIPT_IN_UNASSIGN_FILTER = new File(TEST_DIR, "scripting-script-in-unassign-filter.xml");
 
-    private static final File FILE_SCRIPTING_EXECUTE_SIMPLE_TRUSTED_FUNCTION = new File(TEST_DIR, "scripting-execute-simpleTrustedFunction.xml");
+    private static final File FILE_SCRIPTING_EXECUTE_FUNCTION_SIMPLE_TRUSTED_FUNCTION = new File(TEST_DIR, "scripting-execute-function-simpleTrustedFunction.xml");
+    private static final File FILE_SCRIPTING_EXECUTE_FUNCTION_ANOTHER_TRUSTED_FUNCTION = new File(TEST_DIR, "scripting-execute-function-anotherTrustedFunction.xml");
+    private static final File FILE_SCRIPTING_EXECUTE_MEL_SIMPLE_TRUSTED_FUNCTION = new File(TEST_DIR, "scripting-execute-mel-simpleTrustedFunction.xml");
+    private static final File FILE_SCRIPTING_EXECUTE_MEL_ANOTHER_TRUSTED_FUNCTION = new File(TEST_DIR, "scripting-execute-mel-anotherTrustedFunction.xml");
+    private static final File FILE_SCRIPTING_EXECUTE_MEL_TWO_BOOM = new File(TEST_DIR, "scripting-execute-mel-two-boom.xml");
     private static final File FILE_SCRIPTING_GENERATE_VALUE = new File(TEST_DIR, "scripting-generate-value.xml");
 
     private static final String DETAIL_REASON_MESSAGE_BOOM_RESTRICTED =
@@ -769,12 +773,64 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     /**
      * Executing script in "allowed" trusted library function (`simpleTrustedFunction` call is allowed
      * by `little-trusted` profile. Should succeed.
+     * This test is using `function` evaluator.
      */
     @Test
-    public void test350LittleTrustedLibraryCall() throws CommonException, IOException {
+    public void test350LittleTrustedLibraryCallFunction() throws CommonException, IOException {
         runPositiveBulkActionTest(
-                FILE_SCRIPTING_EXECUTE_SIMPLE_TRUSTED_FUNCTION,
+                FILE_SCRIPTING_EXECUTE_FUNCTION_SIMPLE_TRUSTED_FUNCTION,
                 originForArchetype(ARCHETYPE_LITTLE_TRUSTED_ROLE));
+    }
+
+    /**
+     * Executing script in "allowed" trusted library function (`simpleTrustedFunction` call is allowed
+     * by `little-trusted` profile. Should succeed.
+     * This test is using MEL script.
+     */
+    @Test
+    public void test351LittleTrustedLibraryCallMel() throws CommonException, IOException {
+        runPositiveBulkActionTest(
+                FILE_SCRIPTING_EXECUTE_MEL_SIMPLE_TRUSTED_FUNCTION,
+                originForArchetype(ARCHETYPE_LITTLE_TRUSTED_ROLE));
+    }
+
+    /**
+     * Executing script containing invocation of denied function anotherTrustedFunction.
+     * This test is using `function` evaluator.
+     */
+    @Test
+    public void test352LittleTrustedLibraryCallFunctionFail() throws CommonException, IOException {
+        runNegativeBulkActionTest(
+                FILE_SCRIPTING_EXECUTE_FUNCTION_ANOTHER_TRUSTED_FUNCTION,
+                originForArchetype(ARCHETYPE_LITTLE_TRUSTED_ROLE),
+                "Access to function library method anotherTrustedFunction",
+                "expression profile 'little-trusted', libraries profile 'little-trusted'");
+    }
+
+    /**
+     * Executing script containing invocation of denied function anotherTrustedFunction.
+     * This test is using `function` evaluator.
+     */
+    @Test
+    public void test353LittleTrustedLibraryCallMelFail() throws CommonException, IOException {
+        runNegativeBulkActionTest(
+                FILE_SCRIPTING_EXECUTE_MEL_ANOTHER_TRUSTED_FUNCTION,
+                originForArchetype(ARCHETYPE_LITTLE_TRUSTED_ROLE),
+                "Access to function library method anotherTrustedFunction",
+                "expression profile 'little-trusted', libraries profile 'little-trusted'");
+    }
+
+    /**
+     * Executing script containing invocation of denied function library `two`.
+     * This test is using `function` evaluator.
+     */
+    @Test
+    public void test353LittleTrustedLibraryCallMelTwoBoomFail() throws CommonException, IOException {
+        runNegativeBulkActionTest(
+                FILE_SCRIPTING_EXECUTE_MEL_TWO_BOOM,
+                originForArchetype(ARCHETYPE_LITTLE_TRUSTED_ROLE),
+                "Access to function library method boom",
+                "expression profile 'little-trusted', libraries profile 'little-trusted'");
     }
 
     /**
@@ -784,7 +840,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     @Test
     public void test355LittleTrustedVariantLibraryCall() throws CommonException, IOException {
         runNegativeBulkActionTest(
-                FILE_SCRIPTING_EXECUTE_SIMPLE_TRUSTED_FUNCTION,
+                FILE_SCRIPTING_EXECUTE_FUNCTION_SIMPLE_TRUSTED_FUNCTION,
                 originForArchetype(ARCHETYPE_LITTLE_TRUSTED_VARIANT_ROLE),
                 "Access to function library method simpleTrustedFunction",
                 "expression profile 'little-trusted-variant', libraries profile 'little-trusted-variant'");
@@ -797,7 +853,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     @Test
     public void test358LittleTrustedVariantTwoLibraryCall() throws CommonException, IOException {
         runNegativeBulkActionTest(
-                FILE_SCRIPTING_EXECUTE_SIMPLE_TRUSTED_FUNCTION,
+                FILE_SCRIPTING_EXECUTE_FUNCTION_SIMPLE_TRUSTED_FUNCTION,
                 originForArchetype(ARCHETYPE_LITTLE_TRUSTED_VARIANT_TWO_ROLE),
                 "Access to function library method simpleTrustedFunction",
                 "expression profile 'little-trusted-variant-two', libraries profile 'little-trusted-variant-two'");

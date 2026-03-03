@@ -92,6 +92,13 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             // Exception already processed by the underlying code.
             throw e;
         } catch (Throwable e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SecurityViolationException) {
+                throw getLocalizationService().translate(
+                        new SecurityViolationException(
+                                e.getMessage() + " in " + context.getContextDescription(),
+                                e));
+            }
             throw getLocalizationService().translate(
                     new ExpressionEvaluationException(
                             e.getMessage() + " in " + context.getContextDescription(),

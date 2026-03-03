@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBi
 import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.mel.extension.MidPointCelExtensionManager;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -190,7 +191,11 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     }
 
     private CelType determineResultType(ScriptExpressionEvaluationContext context) {
-        CelType returnType = CelTypeMapper.toCelType(context.getOutputDefinition());
+        ItemDefinition<?> outputDefinition = context.getOutputDefinition();
+        if (outputDefinition == null) {
+            return SimpleType.ANY;
+        }
+        CelType returnType = CelTypeMapper.toCelType(outputDefinition);
         if (isSingleScalarResult(context)) {
             return returnType;
         } else {

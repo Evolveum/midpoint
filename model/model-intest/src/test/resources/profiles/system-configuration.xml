@@ -87,7 +87,6 @@
                 <script>
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <decision>allow</decision>
-                    <typeChecking>true</typeChecking>
                     <permissionProfile>script-mel-restricted</permissionProfile>
                 </script>
             </evaluator>
@@ -113,6 +112,15 @@
             <evaluator>
                 <type>function</type>
                 <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>script</type>
+                <decision>deny</decision>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <decision>allow</decision>
+                    <permissionProfile>script-mel-restricted</permissionProfile>
+                </script>
             </evaluator>
             <functionLibrariesProfile>little-trusted</functionLibrariesProfile>
         </expressionProfile>
@@ -315,7 +323,7 @@
             <identifier>little-trusted</identifier>
             <decision>deny</decision>
             <library>
-                <ref oid="8752dce7-432a-48ad-aa10-1d4deb31dcba"/>
+                <ref oid="8752dce7-432a-48ad-aa10-1d4deb31dcba"/> <!-- one -->
                 <decision>deny</decision>
                 <function>
                     <name>simpleTrustedFunction</name>
@@ -327,7 +335,7 @@
             <identifier>little-trusted-variant</identifier>
             <decision>deny</decision>
             <library>
-                <ref oid="8752dce7-432a-48ad-aa10-1d4deb31dcba"/>
+                <ref oid="8752dce7-432a-48ad-aa10-1d4deb31dcba"/> <!-- one -->
                 <decision>deny</decision>
                 <function>
                     <name>anotherTrustedFunction</name>
@@ -339,7 +347,7 @@
             <identifier>little-trusted-variant-two</identifier>
             <decision>deny</decision>
             <library>
-                <ref oid="f28e0119-5dfe-4e6f-92d7-3a1ad5b1cc91"/>
+                <ref oid="f28e0119-5dfe-4e6f-92d7-3a1ad5b1cc91"/> <!-- two -->
                 <decision>allow</decision>
             </library>
         </functionLibrariesProfile>

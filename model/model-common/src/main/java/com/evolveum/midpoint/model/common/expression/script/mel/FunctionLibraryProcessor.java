@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.config.FunctionConfigItem;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
@@ -112,7 +113,7 @@ public class FunctionLibraryProcessor {
         CelFunctionOverload implementation = args -> {
             try {
                 return CelTypeMapper.toCelValue(executor.execute(functionName, toJavaArgMap(function, args)));
-            } catch (ExpressionEvaluationException e) {
+            } catch (ExpressionEvaluationException | SecurityViolationException e) {
                 throw new MelException(e.getMessage(), e);
             }
         };
