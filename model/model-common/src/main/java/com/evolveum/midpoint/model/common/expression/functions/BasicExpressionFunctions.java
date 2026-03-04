@@ -1311,4 +1311,34 @@ public class BasicExpressionFunctions {
         activity.getDistribution().setWorkerThreads(value);
         // Maybe we could delete empty distribution container if value is null - but most probably we shouldn't.
     }
+
+    // TODO decide about this method
+    public static String substringAfter(String string, String separator) {
+        if (string == null || separator == null) {
+            return null;
+        }
+        int index = string.indexOf(separator);
+        if (index < 0) {
+            return string;
+        }
+        return string.substring(index + separator.length());
+    }
+
+    // TODO decide about this method
+    public static String map(String string, String... keyValuePairs) {
+        if (string == null || keyValuePairs == null) {
+            return string;
+        }
+        if (keyValuePairs.length % 2 != 0) {
+            throw new IllegalArgumentException("keyValuePairs must contain even number of elements");
+        }
+        for (int i = 0; i < keyValuePairs.length; i += 2) {
+            String key = keyValuePairs[i];
+            String value = keyValuePairs[i + 1];
+            if (string.equals(key)) {
+                return value;
+            }
+        }
+        return string;
+    }
 }

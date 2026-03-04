@@ -101,13 +101,13 @@ public class SourceDirectionSpecificationPanel extends BasePanel<SourceSynchroni
         group.add(new Label(ID_DELETED_DISABLE + "Label",
                 getString("SourceDirectionSpecificationPanel.deleted.disable")));
 
-        group.add(new Radio<>(ID_DELETED_REMOVE_LINK, Model.of(DeletedSourceChoice.REMOVE_BROKEN_LINK)));
+        group.add(new Radio<>(ID_DELETED_REMOVE_LINK, Model.of(DeletedSourceChoice.REMOVE_LINK_AND_SYNCHRONIZE)));
         group.add(new Label(ID_DELETED_REMOVE_LINK + "Label",
-                getString("SourceDirectionSpecificationPanel.deleted.removeLink")));
+                getString("SourceDirectionSpecificationPanel.deleted.removeLinkAndSynchronize")));
 
-        group.add(new Radio<>(ID_DELETED_NOTHING, Model.of(DeletedSourceChoice.DO_NOTHING)));
+        group.add(new Radio<>(ID_DELETED_NOTHING, Model.of(DeletedSourceChoice.JUST_REMOVE_LINK)));
         group.add(new Label(ID_DELETED_NOTHING + "Label",
-                getString("SourceDirectionSpecificationPanel.deleted.doNothing")));
+                getString("SourceDirectionSpecificationPanel.deleted.justRemoveLink")));
 
         add(group);
     }
