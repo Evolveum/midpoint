@@ -260,7 +260,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                 if (isSuggestionExists(loadSuggestion(resourceOid).getObject())) {
                                     getSwitchToggleModel().setObject(Boolean.TRUE);
                                 } else {
-                                    performSuggestOperation(target, null);
+                                    performSuggestOperation(target, List.of(DataAccessPermissionType.SCHEMA_ACCESS,
+                                            DataAccessPermissionType.RAW_DATA_ACCESS));
                                 }
 
                                 target.add(AttributeMappingsTableWizardPanel.this);

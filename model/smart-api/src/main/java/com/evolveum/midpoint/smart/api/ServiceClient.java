@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.smart.api;
 
+import java.util.concurrent.CompletableFuture;
+
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -17,6 +19,12 @@ public interface ServiceClient extends AutoCloseable {
 
     /** Invokes the specified method on the remote microservice (or on its substitution) with the given request. */
     <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass) throws SchemaException;
+
+    /**
+     * Asynchronously invokes the specified method on the remote microservice.
+     * Returns a CompletableFuture that will complete with the response or exceptionally with SchemaException.
+     */
+    <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass);
 
     @Override
     void close();
