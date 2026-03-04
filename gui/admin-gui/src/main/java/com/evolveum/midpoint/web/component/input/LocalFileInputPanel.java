@@ -22,11 +22,13 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.file.File;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.validation.FilePathValidator;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -39,6 +41,63 @@ public class LocalFileInputPanel extends InputPanel {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(LocalFileInputPanel.class);
+
+    private enum PathPrefix {
+
+        ABSOLUTE("LocalFileInputPanel.absolute", s -> s),
+
+        MIDPOINT_HOME_RESOURCES("LocalFileInputPanel.midpointHomeResources", s -> {
+
+            String mpHome = System.getProperty("midpoint.home");
+            if (StringUtils.isEmpty(mpHome)) {
+                return s;
+            }
+
+            String resourcesPath = concatPaths(mpHome, "resources");
+
+            return concatPaths(resourcesPath, s);
+        });
+
+        // todo to be discused later, whether we'll use this one or not
+//        MIDPOINT_HOME("LocalFileInputPanel.midpointHome", s -> {
+//
+//            String mpHome = System.getProperty("midpoint.home");
+//            if (StringUtils.isEmpty(mpHome)) {
+//                return s;
+//            }
+//
+//            return concatPaths(mpHome, s);
+//        });
+
+        public final String labelKey;
+
+        public final SerializableFunction<String, String> prefixFunction;
+
+        PathPrefix(String labelKey, SerializableFunction<String, String> prefixFunction) {
+            this.labelKey = labelKey;
+            this.prefixFunction = prefixFunction;
+        }
+
+        private static String concatPaths(String prefix, String suffix) {
+            if (prefix == null) {
+                return suffix;
+            }
+
+            if (StringUtils.isEmpty(suffix)) {
+                return prefix;
+            }
+
+            String separator = File.separator;
+
+            if (!prefix.endsWith(separator) && !suffix.startsWith(separator)) {
+                prefix = prefix + separator;
+            } else if (prefix.endsWith(separator) && suffix.startsWith(separator)) {
+                prefix = prefix.substring(0, prefix.length() - 1);
+            }
+
+            return prefix + suffix;
+        }
+    }
 
     private static final String ID_DROPDOWN_CONTAINER = "dropdownContainer";
     private static final String ID_DROPDOWN = "dropdown";
@@ -56,7 +115,7 @@ public class LocalFileInputPanel extends InputPanel {
         }
     };
 
-    private final IModel<PathPrefix> selectedPrefixModel = Model.of(PathPrefix.MIDPOINT_HOME);
+    private final IModel<PathPrefix> selectedPrefixModel = Model.of(PathPrefix.MIDPOINT_HOME_RESOURCES);
 
     private final IModel<String> inputModel = Model.of();
 
@@ -165,9 +224,22 @@ public class LocalFileInputPanel extends InputPanel {
 
             @Override
             protected void onError(AjaxRequestTarget target, RuntimeException e) {
-                // todo implement
+                LocalFileInputPanel.this.onError(target);
             }
         });
+
+        FilePathValidator validator = new FilePathValidator() {
+
+            @Override
+            protected String preProcessPath(String path) {
+                PathPrefix prefix = selectedPrefixModel.getObject();
+
+                return prefix != null ? prefix.prefixFunction.apply(path) : path;
+            }
+        };
+        validator.checkExistence(true);
+
+        text.add(validator);
         add(text);
     }
 
@@ -200,37 +272,7 @@ public class LocalFileInputPanel extends InputPanel {
         return Arrays.asList(PathPrefix.values());
     }
 
-    private enum PathPrefix {
-
-        ABSOLUTE("LocalFileInputPanel.absolute", s -> s),
-
-        MIDPOINT_HOME("LocalFileInputPanel.midpointHome", s -> {
-
-            String mpHome = System.getProperty("midpoint.home");
-            if (mpHome == null) {
-                return s;
-            }
-
-            if (StringUtils.isEmpty(s)) {
-                return mpHome;
-            }
-
-            if (!mpHome.endsWith("/") && !s.startsWith("/")) {
-                mpHome = mpHome + "/";
-            } else if (mpHome.endsWith("/") && s.startsWith("/")) {
-                mpHome = mpHome.substring(0, mpHome.length() - 1);
-            }
-
-            return mpHome + s;
-        });
-
-        public final String labelKey;
-
-        public final SerializableFunction<String, String> prefixFunction;
-
-        PathPrefix(String labelKey, SerializableFunction<String, String> prefixFunction) {
-            this.labelKey = labelKey;
-            this.prefixFunction = prefixFunction;
-        }
+    protected void onError(AjaxRequestTarget target) {
+        // override this method in case you want to do something when validation error occurs
     }
 }
