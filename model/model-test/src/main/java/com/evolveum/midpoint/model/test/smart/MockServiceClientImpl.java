@@ -13,9 +13,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 /**
  * Smart integration service client to be used when there is no real service available.
@@ -26,13 +26,21 @@ public class MockServiceClientImpl implements ServiceClient {
 
     private Object lastRequest;
     private final Iterator<Object> responses;
+    private final Function<Object, Object> responseFunction;
 
     public MockServiceClientImpl(Object... responses) {
         this.responses = List.of(responses).iterator();
+        this.responseFunction = null;
     }
 
     public MockServiceClientImpl(List<Object> responses) {
         this.responses = responses.iterator();
+        this.responseFunction = null;
+    }
+
+    public MockServiceClientImpl(Function<Object, Object> responseFunction) {
+        this.responses = null;
+        this.responseFunction = responseFunction;
     }
 
     @Override
@@ -40,10 +48,17 @@ public class MockServiceClientImpl implements ServiceClient {
         LOGGER.debug("Invoking {} with request:\n{}",
                 method, PrismContext.get().jsonSerializer().serializeRealValueContent(request));
         lastRequest = request;
-        if (!responses.hasNext()) {
-            throw new AssertionError("No more responses available in the mock service client");
+
+        Object response;
+        if (responseFunction != null) {
+            response = responseFunction.apply(request);
+        } else {
+            if (!responses.hasNext()) {
+                throw new AssertionError("No more responses available in the mock service client");
+            }
+            response = responses.next();
         }
-        var response = responses.next();
+
         if (response instanceof RuntimeException exception) {
             throw exception;
         }
@@ -53,13 +68,11 @@ public class MockServiceClientImpl implements ServiceClient {
 
     @Override
     public <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return invoke(method, request, responseClass);
-            } catch (SchemaException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        try {
+            return CompletableFuture.completedFuture(invoke(method, request, responseClass));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Object getLastRequest() {
