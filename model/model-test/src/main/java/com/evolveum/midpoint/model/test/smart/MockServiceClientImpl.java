@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Smart integration service client to be used when there is no real service available.
@@ -48,6 +49,17 @@ public class MockServiceClientImpl implements ServiceClient {
         }
         //noinspection unchecked
         return (RESP) response;
+    }
+
+    @Override
+    public <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return invoke(method, request, responseClass);
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public Object getLastRequest() {

@@ -13,6 +13,8 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.gui.impl.util.GuiConfigUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -55,10 +57,13 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     protected static final String ID_EXPANDABLE_LABEL_CONTAINER = "expandableLabelContainer";
     protected static final String ID_LABEL = "label";
+    // todo this should be named "tooltip"
     protected static final String ID_HELP = "help";
     private static final String ID_SORT_PROPERTIES = "sortProperties";
     private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
     protected static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
+    // todo this should be named "help"
+    private static final String ID_LONG_HELP = "longHelp";
 
     public PrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -151,6 +156,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 //                }));
 
         //TODO always visible if isObject
+
+        header.add(ItemPanel.createHelpPanel(ID_LONG_HELP, () -> GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), getModelObject().getPath())));
     }
 
     protected IModel<String> getLabelModel() {

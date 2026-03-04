@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.converter.*;
 
+import com.evolveum.midpoint.gui.impl.validation.ValidatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 
 import jakarta.servlet.ServletContext;
@@ -172,6 +173,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired(required = false) private List<WicketConfigurator> wicketConfigurators = new ArrayList<>();
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
     @Autowired private ArchetypeManager archetypeManager;
+    @Autowired private ValidatorFactoryRegistry validatorRegistry;
 
     @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
     @Value("${wicket.request-cycle.timeout:60s}") private java.time.Duration requestCycleTimeout;
@@ -632,5 +634,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public ArchetypeManager getArchetypeManager() {
         return archetypeManager;
+    }
+
+    public ValidatorFactoryRegistry getValidatorRegistry() {
+        return validatorRegistry;
     }
 }

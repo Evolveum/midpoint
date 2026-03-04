@@ -22,18 +22,19 @@ import java.util.List;
 /**
  * DTO for {@link RequestDetailsConfirmationPanel}, holding the confirmation message and a list of request/permission records.
  */
-public class RequestDetailsRecordDto implements Serializable {
+public class RequestDetailsRecordDto<T extends Serializable> implements Serializable {
 
     /** Confirmation message displayed at the top of the smart suggestion dialog. */
     IModel<String> confirmationMessage;
-    List<RequestRecord> records;
+    List<RequestRecord<T>> records;
 
     /** Represents a single request entry with title, description, selection state, and optional click handler. */
-    public record RequestRecord(
+    public record RequestRecord<T extends Serializable>(
             String title,
             String description,
             IModel<Boolean> selected,
-            SerializableFunction<RequestRecord, Void> onClick
+            T option,
+            SerializableFunction<RequestRecord<T>, Void> onClick
     ) implements Serializable {
         @Serial private static final long serialVersionUID = 1L;
 
@@ -46,7 +47,7 @@ public class RequestDetailsRecordDto implements Serializable {
         }
     }
 
-    public RequestDetailsRecordDto(IModel<String> confirmationMessage, List<RequestRecord> records) {
+    public RequestDetailsRecordDto(IModel<String> confirmationMessage, List<RequestRecord<T>> records) {
         this.confirmationMessage = confirmationMessage;
         this.records = records;
     }
@@ -63,11 +64,11 @@ public class RequestDetailsRecordDto implements Serializable {
         return pageBase.createStringResource("SmartSuggestConfirmationPanel.subtitle");
     }
 
-    public List<RequestRecord> getRecords() {
+    public List<RequestRecord<T>> getRecords() {
         return records;
     }
 
-    public void addRecord(RequestRecord record) {
+    public void addRecord(RequestRecord<T> record) {
         if (this.records == null) {
             this.records = new ArrayList<>();
         }
@@ -75,35 +76,38 @@ public class RequestDetailsRecordDto implements Serializable {
     }
 
     // TODO Dummy data for requests (replace later with real dto structured data)
-    public static List<RequestRecord> initDummyObjectTypePermissionData() {
-        List<RequestRecord> records = initDummyCorrelationPermissionData();
-        records.add(new RequestRecord(
+    public static List<RequestRecord<DataAccessPermission>> initDummyObjectTypePermissionData() {
+        List<RequestRecord<DataAccessPermission>> records = initDummyCorrelationPermissionData();
+        records.add(new RequestRecord<>(
                 "Statistical data",
                 "Allow collection of statistical data about resource usage patterns.",
                 Model.of(true),
+                DataAccessPermission.STATISTICS_ACCESS,
                 null
         ));
         return records;
     }
 
-    public static @NotNull List<RequestRecord> initDummyCorrelationPermissionData() {
-        List<RequestRecord> records = new ArrayList<>();
-        records.add(new RequestRecord(
+    public static @NotNull List<RequestRecord<DataAccessPermission>> initDummyCorrelationPermissionData() {
+        List<RequestRecord<DataAccessPermission>> records = new ArrayList<>();
+        records.add(new RequestRecord<>(
                 "Schema access",
                 "Allow access to the resource schema for analysis and suggestions.",
                 Model.of(true),
+                DataAccessPermission.SCHEMA_ACCESS,
                 null
         ));
         return records;
     }
 
-    public static @NotNull List<RequestRecord> initDummyMappingPermissionData() {
-        List<RequestRecord> records = initDummyCorrelationPermissionData();
+    public static @NotNull List<RequestRecord<DataAccessPermission>> initDummyMappingPermissionData() {
+        List<RequestRecord<DataAccessPermission>> records = initDummyCorrelationPermissionData();
 
-        records.add(new RequestRecord(
+        records.add(new RequestRecord<>(
                 "Raw data",
                 "Allow access to raw data on the resource for detailed analysis.",
                 Model.of(true),
+                DataAccessPermission.RAW_DATA_ACCESS,
                 null
         ));
         return records;

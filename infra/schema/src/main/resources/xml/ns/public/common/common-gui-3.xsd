@@ -1666,6 +1666,16 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false"/>
+            <xsd:element name="validator" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Validator identifier. The validator will be used to validate the value of the item on server side.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

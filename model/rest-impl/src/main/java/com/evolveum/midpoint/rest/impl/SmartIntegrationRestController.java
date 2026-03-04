@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
+import java.util.List;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -135,7 +137,9 @@ public class SmartIntegrationRestController extends AbstractRestController {
                     ShadowKindType.fromValue(kind),
                     intent
             );
-            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid, resourceObjectTypeIdentification, isInbound, null, task, result);
+            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid,
+                    resourceObjectTypeIdentification, isInbound, null, List.of(DataAccessPermissionType.SCHEMA_ACCESS,
+                            DataAccessPermissionType.RAW_DATA_ACCESS), task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);

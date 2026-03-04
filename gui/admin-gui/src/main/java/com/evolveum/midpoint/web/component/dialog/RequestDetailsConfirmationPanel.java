@@ -33,12 +33,14 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Popup panel showing a confirmation message with optional request, info note, and "learn more" link for smart suggestions.
  */
-public class RequestDetailsConfirmationPanel extends BasePanel<RequestDetailsRecordDto> implements Popupable {
+public class RequestDetailsConfirmationPanel<T extends Serializable> extends BasePanel<RequestDetailsRecordDto<T>>
+        implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -61,7 +63,7 @@ public class RequestDetailsConfirmationPanel extends BasePanel<RequestDetailsRec
 
     Fragment footer;
 
-    public RequestDetailsConfirmationPanel(String id, IModel<RequestDetailsRecordDto> message) {
+    public RequestDetailsConfirmationPanel(String id, IModel<RequestDetailsRecordDto<T>> message) {
         super(id, message);
     }
 
@@ -109,11 +111,15 @@ public class RequestDetailsConfirmationPanel extends BasePanel<RequestDetailsRec
     }
 
     protected void createYesButton(@NotNull Fragment footer) {
+        final IModel<List<RequestDetailsRecordDto.RequestRecord<T>>> confirmedOptions = () ->
+                getModelObject().records.stream()
+                        .filter(RequestDetailsRecordDto.RequestRecord::isSelected)
+                        .toList();
         AjaxButton yesButton = new AjaxButton(ID_YES, createYesLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 getPageBase().hideMainPopup(target);
-                yesPerformed(target);
+                yesPerformed(target, confirmedOptions);
             }
         };
         yesButton.add(AttributeAppender.append("class", getYesButtonCssClass()));
@@ -121,7 +127,8 @@ public class RequestDetailsConfirmationPanel extends BasePanel<RequestDetailsRec
         footer.add(yesButton);
     }
 
-    public void yesPerformed(AjaxRequestTarget target) {
+    public void yesPerformed(AjaxRequestTarget target,
+            IModel<List<RequestDetailsRecordDto.RequestRecord<T>>> confirmedOptions) {
     }
 
     protected boolean isYesButtonVisible() {
@@ -185,11 +192,11 @@ public class RequestDetailsConfirmationPanel extends BasePanel<RequestDetailsRec
         requestLabel.setOutputMarkupId(true);
         requestContainer.add(requestLabel);
 
-        ListView<RequestDetailsRecordDto.RequestRecord> listView = new ListView<>(ID_LIST_VIEW,
+        ListView<RequestDetailsRecordDto.RequestRecord<T>> listView = new ListView<>(ID_LIST_VIEW,
                 () -> getModelObject().getRecords()) {
             @Override
-            protected void populateItem(@NotNull ListItem<RequestDetailsRecordDto.RequestRecord> item) {
-                RequestDetailsRecordDto.RequestRecord record = item.getModelObject();
+            protected void populateItem(@NotNull ListItem<RequestDetailsRecordDto.RequestRecord<T>> item) {
+                RequestDetailsRecordDto.RequestRecord<T> record = item.getModelObject();
 
                 AjaxCheckBox checkBox = new AjaxCheckBox(ID_REQUEST_CHECK, record.selected()) {
                     @Override
@@ -209,7 +216,7 @@ public class RequestDetailsConfirmationPanel extends BasePanel<RequestDetailsRec
                 }
             }
 
-            private @NotNull AjaxIconButton buildActionComponent(RequestDetailsRecordDto.RequestRecord record) {
+            private @NotNull AjaxIconButton buildActionComponent(RequestDetailsRecordDto.RequestRecord<T> record) {
                 AjaxIconButton action = new AjaxIconButton(ID_REQUEST_ACTION,
                         Model.of("fa fa-info-circle"),
                         createStringResource("SmartSuggestConfirmationPanel.request.record.action.more.info")) {
@@ -228,7 +235,7 @@ public class RequestDetailsConfirmationPanel extends BasePanel<RequestDetailsRec
         requestContainer.add(listView);
     }
 
-    protected List<RequestDetailsRecordDto.RequestRecord> getRequests() {
+    protected List<RequestDetailsRecordDto.RequestRecord<T>> getRequests() {
         return getModelObject() != null && getModelObject().getRecords() != null
                 ? getModelObject().getRecords()
                 : List.of();
@@ -241,7 +248,7 @@ public class RequestDetailsConfirmationPanel extends BasePanel<RequestDetailsRec
     }
 
     protected boolean isRequestPartVisible() {
-        List<RequestDetailsRecordDto.RequestRecord> requests = getRequests();
+        List<RequestDetailsRecordDto.RequestRecord<T>> requests = getRequests();
         return requests != null && !requests.isEmpty();
     }
 

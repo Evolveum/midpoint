@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
+import com.evolveum.midpoint.web.component.dialog.DataAccessPermission;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -542,11 +543,13 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                RequestDetailsConfirmationPanel<DataAccessPermission> dialog =
+                        new RequestDetailsConfirmationPanel<>(getPageBase().getMainPopupBodyId(),
                         buildSmartPermissionRecordDto()) {
 
                     @Override
-                    public void yesPerformed(AjaxRequestTarget target) {
+                    public void yesPerformed(AjaxRequestTarget target,
+                            IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>> confirmedOptions) {
                         onSuggestNewPerformed(target);
                     }
                 };
@@ -561,8 +564,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return suggestObjectButton;
     }
 
-    protected IModel<RequestDetailsRecordDto> buildSmartPermissionRecordDto() {
-        return () -> new RequestDetailsRecordDto(null, null);
+    protected IModel<RequestDetailsRecordDto<DataAccessPermission>> buildSmartPermissionRecordDto() {
+        return () -> new RequestDetailsRecordDto<>(null, null);
     }
 
     @NotNull
