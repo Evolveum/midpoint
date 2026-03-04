@@ -285,7 +285,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
-        createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        createNewObjectButton.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
         return createNewObjectButton;
     }
 
@@ -420,7 +420,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 createReportPerformed(target);
             }
         };
-        createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
+        createReport.add(AttributeAppender.append("class", "mr-2 ml-2 btn btn-default btn-sm"));
         createReport.add(new VisibleBehaviour(this::isReportObjectButtonVisible));
         return createReport;
     }
