@@ -28,23 +28,4 @@ public class RestTestBackend extends RestBackend {
         ret.add(OPENAPI);
         return ret;
     }
-
-    @Override
-    public void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
-        if (developmentObject().getApplication().getApplicationName().getNorm().contains("openproject")) {
-            var documentations = new ArrayList<ProcessedDocumentation>();
-            documentations.add(downloadAndCache(OPENAPI));
-
-            var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
-                    .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
-                    .addRealValues(documentations.stream().map(ProcessedDocumentation::toBean).toList())
-                    .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
-            beans.modelService.executeChanges(List.of(delta), null, task, result);
-        }
-        try {
-            super.processDocumentation();
-        } catch (Exception e) {
-            // Continue with already processed documentation
-        }
-    }
 }
