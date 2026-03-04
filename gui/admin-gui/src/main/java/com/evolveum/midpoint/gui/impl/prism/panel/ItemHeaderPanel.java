@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 
@@ -162,8 +163,9 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         if (wrapper == null || wrapper.getPath() == null) {
             return null;
         }
-        VirtualContainerItemSpecificationType spec =
-                GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), wrapper.getPath());
+
+        ContainerPanelConfigurationType config = getSettings() != null ? getSettings().getConfig() : null;
+        VirtualContainerItemSpecificationType spec = GuiConfigUtil.findItemSpecForPath(config, wrapper.getPath());
 
         return spec != null ? spec.getDisplay() : null;
     }
@@ -313,6 +315,9 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     protected Component createHelpPanel(String id) {
         return ItemPanel.createHelpPanel(
-                id, () -> GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), getModelObject().getPath()));
+                id, () -> {
+                    ContainerPanelConfigurationType config = getSettings() != null ? getSettings().getConfig() : null;
+                    return GuiConfigUtil.findItemSpecForPath(config, getModelObject().getPath());
+                });
     }
 }
