@@ -51,7 +51,7 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
-import com.evolveum.midpoint.gui.impl.component.menu.RightSidebarPanel;
+import com.evolveum.midpoint.gui.impl.component.menu.RightSidebarHelpPanel;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
@@ -483,11 +483,11 @@ public abstract class PageBase extends PageAdminLTE {
 
         addAdditionalFooter((MarkupContainer) get(ID_FOOTER_CONTAINER), ID_ADDITIONAL_FOOTER);
 
-        add(new RightSidebarPanel(ID_RIGHT_SIDEBAR));
+        add(new RightSidebarHelpPanel(ID_RIGHT_SIDEBAR));
     }
 
-    private RightSidebarPanel getRightSidebarPanel() {
-        return (RightSidebarPanel) get(ID_RIGHT_SIDEBAR);
+    private RightSidebarHelpPanel getRightSidebarPanel() {
+        return (RightSidebarHelpPanel) get(ID_RIGHT_SIDEBAR);
     }
 
     public void showRightSidebarHelp(AjaxRequestTarget target, IModel<String> helpContent) {
@@ -500,17 +500,17 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     public void replaceRightSidebarContent(IModel<String> titleModel, SerializableFunction<String, Component> componentProvider) {
-        RightSidebarPanel panel = getRightSidebarPanel();
+        RightSidebarHelpPanel panel = getRightSidebarPanel();
         panel.replaceContent(titleModel, componentProvider);
     }
 
     public void openRightSidebar(AjaxRequestTarget target) {
-        RightSidebarPanel panel = getRightSidebarPanel();
+        RightSidebarHelpPanel panel = getRightSidebarPanel();
         panel.open(target);
     }
 
     public void closeRightSidebar(AjaxRequestTarget target) {
-        RightSidebarPanel panel = getRightSidebarPanel();
+        RightSidebarHelpPanel panel = getRightSidebarPanel();
         panel.close(target);
     }
 

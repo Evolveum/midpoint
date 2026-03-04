@@ -22,18 +22,18 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-public class RightSidebarPanel extends BasePanel<Void> {
+public class RightSidebarHelpPanel extends BasePanel<Void> {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TITLE = "title";
     private static final String ID_CONTENT = "content";
 
-    private final IModel<Boolean> visible = Model.of(true);
+    private final IModel<Boolean> visible = Model.of(false);
 
     private IModel<String> titleModel = Model.of();
 
-    public RightSidebarPanel(String id) {
+    public RightSidebarHelpPanel(String id) {
         super(id);
     }
 
@@ -45,10 +45,10 @@ public class RightSidebarPanel extends BasePanel<Void> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "control-sidebar control-sidebar-light"));
+        add(AttributeAppender.append("class", "right-sidebar-help bg-light border-left border-lightblue p-3"));
         add(new VisibleBehaviour(visible::getObject));
 
-        setOutputMarkupId(true);
+        setOutputMarkupPlaceholderTag(true);
 
         Label title = new Label(ID_TITLE, () -> titleModel.getObject());
         title.add(new VisibleBehaviour(() -> titleModel.getObject() != null && StringUtils.isNotEmpty(titleModel.getObject())));
