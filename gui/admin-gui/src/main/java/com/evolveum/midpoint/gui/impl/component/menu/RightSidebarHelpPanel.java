@@ -69,9 +69,8 @@ public class RightSidebarHelpPanel extends BasePanel<Void> {
 
     /**
      * Replace the content of the right sidebar with a new component provided by the given function.
-     * The function will be called with the ID of the new component to create and return.
      *
-     * @param componentProvider
+     * @param componentProvider The function will be called with the ID of the new component to create and return.
      */
     public void replaceContent(IModel<String> titleModel, SerializableFunction<String, Component> componentProvider) {
         this.titleModel = titleModel != null ? titleModel : Model.of();
