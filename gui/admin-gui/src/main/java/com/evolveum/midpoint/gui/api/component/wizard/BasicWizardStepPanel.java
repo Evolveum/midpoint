@@ -6,9 +6,12 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -21,6 +24,8 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import java.io.Serial;
+
 /**
  * @author lskublik
  */
@@ -30,6 +35,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
+    private static final String ID_SUBTEXT_MORE = "subTextMore";
     private static final String ID_BACK = "back";
     private static final String ID_BACK_LABEL = "backLabel";
     private static final String ID_EXIT = "exit";
@@ -64,6 +70,19 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         Label secondaryText = new Label(ID_SUBTEXT, getSubTextModel());
         secondaryText.add(new VisibleBehaviour(() -> getSubTextModel().getObject() != null));
         add(secondaryText);
+
+        IModel<String> subTextMoreModel = getSubTextMoreModel();
+
+        AjaxButton subTextMore = new AjaxButton(
+                ID_SUBTEXT_MORE, createStringResource("BasicWizardStepPanel.subTextMore")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().showRightSidebarHelp(target, subTextMoreModel);
+            }
+        };
+        subTextMore.add(new VisibleBehaviour(() -> subTextMoreModel != null && subTextMoreModel.getObject() != null));
+        add(subTextMore);
 
         WebMarkupContainer buttonsStrip = new WebMarkupContainer(ID_BUTTONS_STRIP);
         buttonsStrip.setOutputMarkupPlaceholderTag(true);
@@ -231,6 +250,10 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     protected IModel<String> getSubTextModel() {
         return Model.of();
+    }
+
+    protected IModel<String> getSubTextMoreModel() {
+        return createStringResource(getClass().getSimpleName() + ".subText.moreContent");
     }
 
     public boolean onNextPerformed(AjaxRequestTarget target) {
