@@ -742,7 +742,7 @@
     <xsd:complexType name="ValidityPredefinedValueType">
         <xsd:annotation>
             <xsd:documentation>
-                Element which allows predefined validity duration for requested rolesin request access UI wizard.
+                Element which allows predefined validity duration for requested roles in request access UI wizard.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -1597,7 +1597,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Defines if the contianer is expanded or collapsed by default. Default behavior depends on
+                                    Defines if the container is expanded or collapsed by default. Default behavior depends on
                                     various aspects. E.g. whether the container is multi-value, or container any values, ...
                                 </p>
                             </xsd:documentation>
