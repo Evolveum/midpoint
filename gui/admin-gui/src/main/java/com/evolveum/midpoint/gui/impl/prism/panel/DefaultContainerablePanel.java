@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import java.io.Serial;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -20,7 +21,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
@@ -78,35 +78,39 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         add(propertiesLabel);
         propertiesLabel.add(properties);
 
-        AjaxButton labelShowEmpty = createShowEmptyButton(ID_SHOW_EMPTY_BUTTON);
-        labelShowEmpty.setOutputMarkupId(true);
-        labelShowEmpty.add(AttributeAppender.append("style", "cursor: pointer;"));
+        Component labelShowEmpty = createShowEmptyButton(ID_SHOW_EMPTY_BUTTON);
         labelShowEmpty.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
         propertiesLabel.add(labelShowEmpty);
     }
 
-    protected AjaxButton createShowEmptyButton(String id) {
+    protected Component createShowEmptyButton(String id) {
         return new AjaxButton(id) {
-            private static final long serialVersionUID = 1L;
+
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onShowEmptyClick(target);
-                Component firstProperty = DefaultContainerablePanel.this.get(
-                        createComponentPath(ID_PROPERTIES_LABEL, ID_PROPERTIES, "0", ID_PROPERTY));
-                if (firstProperty != null) {
-                    target.focusComponent(firstProperty);
-                }
-                String key = DefaultContainerablePanel.this.getModelObject().isShowEmpty() ?
-                        "DefaultContainerablePanel.message.show" : "DefaultContainerablePanel.message.hide";
-                target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
-                        DefaultContainerablePanel.this.get(ID_SHOW_HIDE_MESSAGE).getMarkupId(), getString(key), 200));
+                showEmptyButtonPerformed(target);
             }
 
             @Override
             public IModel<?> getBody() {
-                return getNameOfShowEmptyButton();
+                return createShowEmptyButtonLabel();
             }
         };
+    }
+
+    protected void showEmptyButtonPerformed(AjaxRequestTarget target) {
+        onShowEmptyClick(target);
+        Component firstProperty = DefaultContainerablePanel.this.get(
+                createComponentPath(ID_PROPERTIES_LABEL, ID_PROPERTIES, "0", ID_PROPERTY));
+        if (firstProperty != null) {
+            target.focusComponent(firstProperty);
+        }
+        String key = DefaultContainerablePanel.this.getModelObject().isShowEmpty() ?
+                "DefaultContainerablePanel.message.show" : "DefaultContainerablePanel.message.hide";
+        target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                DefaultContainerablePanel.this.get(ID_SHOW_HIDE_MESSAGE).getMarkupId(), getString(key), 200));
     }
 
     protected void createContainersPanel() {
@@ -142,7 +146,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         ItemWrapper<?, ?> itemWrapper = item.getModelObject();
         try {
             QName typeName = itemWrapper.getTypeName();
-            if(item.getModelObject() instanceof ResourceAttributeWrapper) {
+            if (item.getModelObject() instanceof ResourceAttributeWrapper) {
                 typeName = new QName("ResourceAttributeDefinition");
             }
 
@@ -187,7 +191,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 
     }
 
-    private StringResourceModel getNameOfShowEmptyButton() {
+    protected IModel<String> createShowEmptyButtonLabel() {
         return getParentPage().createStringResource("ShowEmptyButton.showMore.${showEmpty}", getModel());
     }
 
