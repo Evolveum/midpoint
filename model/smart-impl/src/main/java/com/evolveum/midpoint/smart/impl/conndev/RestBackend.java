@@ -338,7 +338,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             case "POST" -> ConnDevHttpOperationType.POST;
             case "PUT" -> ConnDevHttpOperationType.PUT;
             case "DELETE" -> ConnDevHttpOperationType.DELETE;
-            //case "PATCH" -> ConnDevHttpOperationType.PATCH;
+            case "PATCH" -> ConnDevHttpOperationType.PATCH;
             default -> null;
         };
     }
