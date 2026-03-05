@@ -203,6 +203,7 @@ public interface SmartIntegrationService {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             SchemaMatchResultType schemaMatch,
+            @Nullable List<ItemPath> targetPathsToIgnore,
             @Nullable Object interactionMetadata,
             Task task,
             OperationResult result)
@@ -280,6 +281,7 @@ public interface SmartIntegrationService {
             ResourceObjectTypeIdentification typeIdentification,
             Boolean isInbound,
             List<ItemPathType> targetPathsToIgnore,
+            List<DataAccessPermissionType> permissions,
             Task task,
             OperationResult result)
             throws CommonException;

@@ -10673,7 +10673,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectTypeRelatedSuggestionWorkDefinitionType"/>
+            <xsd:extension base="tns:ObjectTypeRelatedSuggestionWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="targetPathsToIgnore" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Focus item paths that should be ignored when generating correlation suggestions.
+                                Any correlation whose target resolves to one of these paths will not be suggested.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="correlationSuggestionWorkDefinition" type="tns:CorrelationSuggestionWorkDefinitionType"/>
@@ -11034,6 +11045,14 @@
                                 The meaning of a target path depends on the mapping direction.
                                 Inbound mappings: paths on the midpoint side where inbound mapping results would be stored.
                                 Outbound mappings: paths of resource attributes where outbound mapping results would be stored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Data access permissions given to the suggest task.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

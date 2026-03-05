@@ -12,11 +12,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeRelatedSuggestionWorkDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkDefinitionType;
 
 import java.util.List;
 import java.util.Objects;
@@ -31,12 +30,14 @@ public class MappingsSuggestionWorkDefinition extends ObjectTypeRelatedSuggestio
 
     private final boolean isInbound;
     private final List<ItemPath> targetPathsToIgnore;
+    private final List<DataAccessPermissionType> permissions;
 
     MappingsSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
         var workDefinition = (MappingsSuggestionWorkDefinitionType) info.getBean();
         this.isInbound = workDefinition.isInbound();
         this.targetPathsToIgnore = getTargetPathsToIgnore(workDefinition);
+        this.permissions = workDefinition.getPermissions();
     }
 
     /**
@@ -58,4 +59,9 @@ public class MappingsSuggestionWorkDefinition extends ObjectTypeRelatedSuggestio
     public List<ItemPath> getTargetPathsToIgnore() {
         return targetPathsToIgnore;
     }
+
+    public List<DataAccessPermissionType> getPermissions() {
+        return this.permissions;
+    }
+
 }

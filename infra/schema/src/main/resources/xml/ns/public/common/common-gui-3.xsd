@@ -742,7 +742,7 @@
     <xsd:complexType name="ValidityPredefinedValueType">
         <xsd:annotation>
             <xsd:documentation>
-                Element which allows predefined validity duration for requested rolesin request access UI wizard.
+                Element which allows predefined validity duration for requested roles in request access UI wizard.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -1597,7 +1597,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Defines if the contianer is expanded or collapsed by default. Default behavior depends on
+                                    Defines if the container is expanded or collapsed by default. Default behavior depends on
                                     various aspects. E.g. whether the container is multi-value, or container any values, ...
                                 </p>
                             </xsd:documentation>
@@ -1666,6 +1666,16 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false"/>
+            <xsd:element name="validator" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Validator identifier. The validator will be used to validate the value of the item on server side.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

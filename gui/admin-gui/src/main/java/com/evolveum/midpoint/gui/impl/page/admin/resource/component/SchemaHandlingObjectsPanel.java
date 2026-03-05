@@ -27,6 +27,7 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.dialog.DataAccessPermission;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -126,19 +127,22 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(idAiPanel,
                 () -> new SmartGeneratingAlertDto(null, Model.of(), getPageBase())) {
             @Override
-            protected void performSuggestOperation(AjaxRequestTarget target) {
+            protected void performSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>> confirmedOptions) {
                 switchSuggestion.setObject(Boolean.TRUE);
                 onSuggestValue(createContainerModel(), target);
             }
 
             @Override
             protected void onSuggestButtonClick(AjaxRequestTarget target) {
-                performSuggestOperation(target);
+                performSuggestOperation(target, null);
             }
 
             @Override
-            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
-                return () -> new RequestDetailsRecordDto(null, initDummyObjectTypePermissionData());
+            protected @NotNull IModel<RequestDetailsRecordDto<DataAccessPermission>> getPermissionRecordDtoIModel() {
+                final RequestDetailsRecordDto<DataAccessPermission> dataAccessPermissionRequestDetailsRecordDto =
+                        new RequestDetailsRecordDto<>(null, initDummyObjectTypePermissionData());
+                return () -> dataAccessPermissionRequestDetailsRecordDto;
             }
 
             @Override

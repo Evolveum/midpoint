@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 
 import com.evolveum.midpoint.web.component.TabSeparatedTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.dialog.DataAccessPermission;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
@@ -259,7 +260,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                 if (isSuggestionExists(loadSuggestion(resourceOid).getObject())) {
                                     getSwitchToggleModel().setObject(Boolean.TRUE);
                                 } else {
-                                    performSuggestOperation(target);
+                                    performSuggestOperation(target, List.of(DataAccessPermissionType.SCHEMA_ACCESS,
+                                            DataAccessPermissionType.RAW_DATA_ACCESS));
                                 }
 
                                 target.add(AttributeMappingsTableWizardPanel.this);
@@ -354,8 +356,13 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
                 () -> new SmartGeneratingAlertDto(loadSuggestion(resourceOid), getSwitchToggleModel(), getPageBase())) {
             @Override
-            protected void performSuggestOperation(AjaxRequestTarget target) {
-                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target);
+            protected void performSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>> confirmedOptions) {
+                final List<DataAccessPermissionType> permissions = confirmedOptions.getObject().stream()
+                        .map(RequestDetailsRecordDto.RequestRecord::option)
+                        .map(DataAccessPermission::toSchemaType)
+                        .toList();
+                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, permissions);
             }
 
             @Override
@@ -364,9 +371,10 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             }
 
             @Override
-            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
-                return () -> new RequestDetailsRecordDto(null,
-                        RequestDetailsRecordDto.initDummyMappingPermissionData());
+            protected @NotNull IModel<RequestDetailsRecordDto<DataAccessPermission>> getPermissionRecordDtoIModel() {
+                final RequestDetailsRecordDto<DataAccessPermission> optionsData = new RequestDetailsRecordDto<>(
+                        null, RequestDetailsRecordDto.initDummyMappingPermissionData());
+                return () -> optionsData;
             }
 
             @Override
@@ -382,7 +390,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         return aiPanel;
     }
 
-    protected void performSuggestOperation(AjaxRequestTarget target) {
+    protected void performSuggestOperation(AjaxRequestTarget target,
+            List<DataAccessPermissionType> permissions) {
         ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
         if (objectTypeIdentification == null) {
             LOGGER.warn("Cannot perform suggest mapping operation - no resource object type definition found.");
@@ -402,6 +411,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                             objectTypeIdentification,
                             inbound,
                             getTargetPathsToIgnore(),
+                            permissions,
                             task,
                             result);
                 });
@@ -527,7 +537,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return Model.of();
+        return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.subText");
     }
 
     @Override

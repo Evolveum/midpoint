@@ -32,6 +32,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
     protected static final String ID_HEADER = "header";
     protected static final String ID_VALUE = "value";
+    protected static final String ID_HELP = "help";
 
     /**
      * @param id
@@ -54,6 +55,13 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
                         AttributeAppender.append(
                                 "aria-labelledby",
                                 getHeader().getLabelComponent().getMarkupId())));
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        add(createHelpPanel(ID_HELP));
     }
 
     private ItemHeaderPanel getHeader() {

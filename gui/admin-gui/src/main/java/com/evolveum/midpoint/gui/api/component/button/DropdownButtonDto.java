@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.api.component.button;
 import java.io.Serializable;
 import java.util.List;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
 public class DropdownButtonDto implements Serializable {
@@ -21,15 +24,25 @@ public class DropdownButtonDto implements Serializable {
     private static final long serialVersionUID = 1L;
     private String info;
     private String icon;
-    private String label;
+
+    private IModel<String> labelModel;
 
     private List<InlineMenuItem> items;
 
     public DropdownButtonDto(String info, String icon, String label, List<InlineMenuItem> items) {
+        this(info, icon, Model.of(label), items);
+    }
+
+    private DropdownButtonDto(String info, String icon, IModel<String> labelModel, List<InlineMenuItem> items) {
         this.info = info;
         this.icon = icon;
-        this.label = label;
         this.items = items;
+
+        this.labelModel = labelModel;
+    }
+
+    public static DropdownButtonDto create(String info, String icon, IModel<String> labelModel, List<InlineMenuItem> items) {
+        return new DropdownButtonDto(info, icon, labelModel, items);
     }
 
     public String getInfo() {
@@ -49,11 +62,15 @@ public class DropdownButtonDto implements Serializable {
     }
 
     public String getLabel() {
-        return label;
+        return labelModel.getObject();
     }
 
     public void setLabel(String label) {
-        this.label = label;
+        this.labelModel.setObject(label);
+    }
+
+    public IModel<String> getLabelModel() {
+        return labelModel;
     }
 
     public List<InlineMenuItem> getMenuItems() {

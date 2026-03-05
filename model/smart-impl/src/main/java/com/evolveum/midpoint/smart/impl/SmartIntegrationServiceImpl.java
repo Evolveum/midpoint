@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.smart.api.synchronization.SourceSynchronizationAnswers;
-import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
-import com.evolveum.midpoint.smart.api.synchronization.TargetSynchronizationAnswers;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +46,9 @@ import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.smart.api.synchronization.SourceSynchronizationAnswers;
+import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
+import com.evolveum.midpoint.smart.api.synchronization.TargetSynchronizationAnswers;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -62,6 +64,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @Service("smartIntegrationService")
@@ -604,6 +607,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             SchemaMatchResultType schemaMatch,
+            @Nullable List<ItemPath> targetPathsToIgnore,
             @Nullable Object interactionMetadata,
             Task task,
             OperationResult parentResult)
@@ -617,7 +621,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var correlation = new CorrelationSuggestionOperation(
                     TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result))
-                    .suggestCorrelation(result, schemaMatch);
+                    .suggestCorrelation(result, schemaMatch, targetPathsToIgnore);
             LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
             return correlation;
         } catch (Throwable t) {
@@ -746,6 +750,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             ResourceObjectTypeIdentification typeIdentification,
             Boolean isInbound,
             List<ItemPathType> targetPathsToIgnore,
+            List<DataAccessPermissionType> permissions,
             Task task,
             OperationResult parentResult) throws CommonException {
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_MAPPINGS_OPERATION)
@@ -758,6 +763,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectType(typeIdentification.asBean())
                     .inbound(isInbound);
+            permissions.forEach(mappingsSuggestionWorkDefinition::permissions);
 
             if (targetPathsToIgnore != null) {
                 mappingsSuggestionWorkDefinition.getTargetPathsToIgnore().addAll(targetPathsToIgnore);
