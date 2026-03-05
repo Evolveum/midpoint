@@ -10,6 +10,7 @@ import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessedDocumentationType;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class ProcessedDocumentation {
 
@@ -49,7 +50,7 @@ public class ProcessedDocumentation {
 
     public void write(String value) throws IOException {
         try (DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(asOutputStream()))) {
-            outStream.writeUTF(value);
+            outStream.write(value.getBytes(StandardCharsets.UTF_8));
         }
     }
 

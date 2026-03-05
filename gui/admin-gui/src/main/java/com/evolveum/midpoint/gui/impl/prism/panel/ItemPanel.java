@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -206,6 +208,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
     protected Component createHelpPanel(String id) {
         return createHelpPanel(
-                id, () -> GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), getModelObject().getPath()));
+                id, () -> {
+                    ContainerPanelConfigurationType config = getSettings() != null ? getSettings().getConfig() : null;
+                    return GuiConfigUtil.findItemSpecForPath(config, getModelObject().getPath());
+                });
     }
 }

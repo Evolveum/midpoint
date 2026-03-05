@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.gui.impl.util.GuiConfigUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -157,7 +159,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         //TODO always visible if isObject
 
-        header.add(ItemPanel.createHelpPanel(ID_LONG_HELP, () -> GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), getModelObject().getPath())));
+        header.add(
+                ItemPanel.createHelpPanel(
+                        ID_LONG_HELP, () -> {
+                            ContainerPanelConfigurationType config = getSettings() != null ? getSettings().getConfig() : null;
+                            return GuiConfigUtil.findItemSpecForPath(config, getModelObject().getPath());
+                        }));
     }
 
     protected IModel<String> getLabelModel() {

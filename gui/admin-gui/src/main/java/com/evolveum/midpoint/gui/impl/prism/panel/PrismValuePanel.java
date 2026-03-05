@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -209,8 +211,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             factory.configure(panelCtx, component);
             valueContainer.add(feedback);
 
+            ContainerPanelConfigurationType config = settings != null ? settings.getConfig() : null;
             VirtualContainerItemSpecificationType spec =
-                    GuiConfigUtil.findItemSpecForPath(getSettings().getConfig(), getModelObject().getParent().getPath());
+                    GuiConfigUtil.findItemSpecForPath(config, getModelObject().getParent().getPath());
             List<String> validators = spec != null ? spec.getValidator() : List.of();
 
             if (!validators.isEmpty() && component instanceof InputPanel ip) {

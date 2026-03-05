@@ -23,6 +23,11 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+/**
+ * Panel for form input hints. It shows short version of the hint and allows to expand it to full text if needed.
+ *
+ * @author Viliam Repan (lazyman)
+ */
 public class HelpTextPanel extends BasePanel<String> {
 
     @Serial private static final long serialVersionUID = 1L;
