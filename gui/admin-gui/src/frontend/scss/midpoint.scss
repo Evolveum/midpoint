@@ -2597,6 +2597,16 @@ footer.main-footer a {
 }
 
 .right-sidebar-help {
+  @extend .bg-white;
+  @extend .border-left;
   width: 350px;
-  border-left: 1px solid #dee2e6;
+
+  > .header {
+    @extend .border-bottom;
+    @extend .p-3;
+  }
+
+  > .body {
+    @extend .p-3;
+  }
 }
