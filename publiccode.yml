@@ -3,7 +3,6 @@ name: MidPoint
 applicationSuite: Identity governance and administration
 url: https://github.com/Evolveum/midpoint
 landingURL: https://evolveum.com/midpoint/
-softwareVersion: "Check supported midPoint releases: https://evolveum.com/download/ "
 logo: https://evolveum.com/wp-content/uploads/midpoint-logo-blue.png
 platforms:
   - web
