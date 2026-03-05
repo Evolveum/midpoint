@@ -9,7 +9,11 @@
         xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <wicket:enclosure child="title">
-        <h5 wicket:id="title"/>
+        <div class="d-flex justify-content-between">
+            <h5 wicket:id="title"/>
+            <a class="btn btn-sm" wicket:id="close"/>
+        </div>
+
         <hr class="mb-2"/>
     </wicket:enclosure>
     <div wicket:id="content"/>
