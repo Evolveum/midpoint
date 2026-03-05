@@ -42,12 +42,13 @@ public class CorrelationSuggestionRemoteServiceCallActivityRun extends LocalActi
         var parentState = Util.getParentState(this, result);
         var resourceOid = getWorkDefinition().getResourceOid();
         var typeDef = getWorkDefinition().getTypeIdentification();
+        var targetPathsToIgnore = getWorkDefinition().getTargetPathsToIgnore();
 
         var schemaMatch = parentState.getWorkStateItemRealValueClone(
                 CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH, SchemaMatchResultType.class);
 
         var suggestedCorrelation = SmartIntegrationBeans.get().smartIntegrationService.suggestCorrelation(
-                resourceOid, typeDef, schemaMatch, null, task, result);
+                resourceOid, typeDef, schemaMatch, targetPathsToIgnore, null, task, result);
 
         parentState.setWorkStateItemRealValues(CorrelationSuggestionWorkStateType.F_RESULT, suggestedCorrelation);
         parentState.flushPendingTaskModifications(result);

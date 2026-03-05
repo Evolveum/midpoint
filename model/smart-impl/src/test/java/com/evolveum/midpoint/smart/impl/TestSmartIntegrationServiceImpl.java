@@ -1220,7 +1220,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var suggestedCorrelations = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
 
         then("suggestions are correct");
         displayValueAsXml("suggested correlations", suggestedCorrelations);

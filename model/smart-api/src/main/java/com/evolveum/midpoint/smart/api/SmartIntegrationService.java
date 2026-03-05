@@ -203,6 +203,7 @@ public interface SmartIntegrationService {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             SchemaMatchResultType schemaMatch,
+            @Nullable List<ItemPath> targetPathsToIgnore,
             @Nullable Object interactionMetadata,
             Task task,
             OperationResult result)
