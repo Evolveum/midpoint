@@ -537,7 +537,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return Model.of();
+        return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.subText");
     }
 
     @Override
