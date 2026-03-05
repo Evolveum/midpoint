@@ -65,7 +65,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(wrapper -> getVisibility(wrapper))
                     .editabilityHandler(getEditabilityHandler())
-                    .panelConfiguration(config)
+                    .panelConfiguration(null)
                     .mandatoryHandler(getMandatoryHandler());
             if (config == null) {
                 Panel panel = createPanel(ID_CONTAINER, getTypeName(), getModel(), builder);

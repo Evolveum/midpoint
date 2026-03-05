@@ -525,15 +525,15 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         // We're currently in recursive search, called from findContainer() and following code just jumps to "root" object
         // wrapper to add virtual containers from there.
 
-//        if (getParent() == null) {
-//            return;
-//        }
-//        PrismObjectWrapper<?> objectWrapper = getParent().findObjectWrapper();
-//        if (objectWrapper == null) {
-//            return;
-//        }
-//        PrismObjectValueWrapper<?> objectValue = objectWrapper.getValue();
-//        addVirtualContainersFrom(objectValue, containers);
+        if (getParent() == null) {
+            return;
+        }
+        PrismObjectWrapper<?> objectWrapper = getParent().findObjectWrapper();
+        if (objectWrapper == null) {
+            return;
+        }
+        PrismObjectValueWrapper<?> objectValue = objectWrapper.getValue();
+        addVirtualContainersFrom(objectValue, containers);
     }
 
     private void addVirtualContainersFrom(PrismContainerValueWrapper<?> containerValue, List<PrismContainerWrapper<?>> containers) {
