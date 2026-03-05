@@ -542,9 +542,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
                 continue;
             }
 
+            String identifier = containerWrapper.getIdentifier();
             if (containerWrapper.isVirtual()
-                    && containerWrapper.getIdentifier() == null
-                    || containers.stream().noneMatch(c -> containerWrapper.getIdentifier().equals(c.getIdentifier()))) {
+                    && (identifier == null || containers.stream().noneMatch(c -> identifier.equals(c.getIdentifier())))) {
                 containers.add(containerWrapper);
             }
         }
