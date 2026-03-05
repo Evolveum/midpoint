@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -70,7 +70,6 @@
                     </source>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 name + iterationToken
                             </code>
@@ -103,12 +102,12 @@
                     <expression>
                         <allowEmptyValues>true</allowEmptyValues>
                         <script>
-                            <description>
-                                This is ugly. However, this kind of expression should not be common.
-                            </description>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                input == null ? null : input.contains('#') ? null : input
+                                if (input?.contains('#')) {
+                                    return null
+                                } else {
+                                    return input
+                                }
                             </code>
                         </script>
                     </expression>
@@ -136,7 +135,6 @@
                     <expression>
                         <allowEmptyValues>false</allowEmptyValues>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>'Came from ' + input</code>
                         </script>
                     </expression>
@@ -152,12 +150,10 @@
                     <expression>
                         <allowEmptyValues>false</allowEmptyValues>
                         <script>
-                            <documentation>
-                                We are not doing the "assert midpoint.isEvaluateNew()" here.
-                                MEL cannot really do that, leaving that to the Groovy version of the resource.
-                            </documentation>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
+                                def evaluateNew = midpoint.isEvaluateNew()
+                                log.debug("Ship inbound evaluateNew: {} : {}", evaluateNew, input)
+                                assert evaluateNew != null : "null evaluateNew"
                                 'The crew of ' + input
                             </code>
                         </script>
@@ -167,7 +163,6 @@
                     </target>
                     <condition>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>input != null</code>
                         </script>
                     </condition>
@@ -182,7 +177,6 @@
                     <channel>http://pirates.net/avast</channel>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>9999 + 1</code>
                         </script>
                     </expression>
@@ -301,8 +295,7 @@
                         <strength>weak</strength>
                         <condition>
                             <script>
-                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                                <code>!has(focus.activation.validFrom) &amp;&amp; !has(focus.activation.validTo)</code>
+                                <code>focus?.getActivation()?.getValidFrom() == null &amp;&amp; focus?.getActivation()?.getValidTo() == null</code>
                             </script>
                         </condition>
                     </inbound>
@@ -345,7 +338,6 @@
                     </source>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 'T' + name + iterationToken
                             </code>
@@ -357,9 +349,8 @@
                     <strength>weak</strength>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                input.substring(1)
+                                input?.substring(1)
                             </code>
                         </script>
                     </expression>
@@ -376,7 +367,6 @@
                     </source>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>fullName + ' (test)'</code>
                         </script>
                     </expression>
@@ -405,7 +395,6 @@
                 <inbound>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>'The crew of Titanicum ' + input + 'icum'</code>
                         </script>
                     </expression>
@@ -414,7 +403,6 @@
                     </target>
                     <condition>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>input != null</code>
                         </script>
                     </condition>
@@ -601,9 +589,8 @@
             <language>Logo</language>
             <argument>
                 <script>
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        'user: ' + ( focus == null ? 'null' : focus.name )
+                    'user: ' + user?.getName()
                     </code>
                 </script>
                 <name>usr</name>
@@ -615,13 +602,6 @@
                     'account: ' + account?.getActivation()?.getAdministrativeStatus()
                     </code>
                 </script>
-                <!--<script>-->
-                <!--    &lt;!&ndash; Note: We cannot test for account name as name is only assigned in provisioning &ndash;&gt;-->
-                <!--    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>-->
-                <!--    <code>-->
-                <!--        'account: ' + ( projection == null ? 'null' : projection.activation.administrativeStatus)-->
-                <!--    </code>-->
-                <!--</script>-->
                 <name>acc</name>
             </argument>
             <argument>

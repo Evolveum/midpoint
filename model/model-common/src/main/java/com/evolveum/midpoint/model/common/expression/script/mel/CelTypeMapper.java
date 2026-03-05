@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression.script.mel;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.binding.TypeSafeEnum;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -136,29 +137,6 @@ public class CelTypeMapper implements CelTypeProvider  {
         addJavaMapping(QNameCelValue.CEL_TYPE, QName.class, true);
         addJavaMapping(PROTECTED_STRING_CEL_TYPE, ProtectedStringType.class, false);
 
-
-        // TODO: temporary
-        addJavaMapping(SimpleType.DYN, PrismContext.class, false);
-        addJavaMapping(SimpleType.DYN, Collection.class, false);
-        addJavaMapping(SimpleType.DYN, Map.class, false);
-        addJavaMapping(SimpleType.DYN, Referencable.class, false);
-        addJavaMapping(SimpleType.DYN, ByteBuffer.class, false);
-        addJavaMapping(SimpleType.DYN, Class.class, false);
-        addJavaMapping(SimpleType.DYN, ItemPathType.class, false);
-        addJavaMapping(SimpleType.DYN, PrismValue.class, false);
-        addJavaMapping(SimpleType.DYN, PrismProperty.class, false);
-        addJavaMapping(SimpleType.DYN, ObjectType.class, false);
-        addJavaMapping(SimpleType.DYN, ObjectReferenceType.class, false);
-        addJavaMapping(SimpleType.DYN, ResourceType.class, false);
-        addJavaMapping(SimpleType.DYN, ShadowType.class, false);
-        addJavaMapping(SimpleType.DYN, TaskType.class, false);
-        addJavaMapping(SimpleType.DYN, Object[].class, false);
-
-//        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
-//        addMapping(UniformItemPath.class, ItemPathType.COMPLEX_TYPE, false);
-//        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
-//        addMapping(QName.class, DOMUtil.XSD_QNAME, true);
-
     }
 
 
@@ -223,6 +201,11 @@ public class CelTypeMapper implements CelTypeProvider  {
     @NotNull
     public static CelType toCelType(@NotNull ItemDefinition<?> def) {
         if (def instanceof PrismPropertyDefinition<?> propDef) {
+            if (propDef.isEnum()) {
+                // Special treatment. If we would try to find mapping for this type by QName, nothing could be found.
+                // We just translate all enums to strings.
+                return SimpleType.STRING;
+            }
             return CelTypeMapper.toCelType(propDef.getTypeName());
         } else if (def instanceof PrismObjectDefinition<?>) {
             return ObjectCelValue.CEL_TYPE;
@@ -453,7 +436,15 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (def == null) {
             return CelTypeMapper.toCelValue(typedValue.getValue());
         }
-        if (def instanceof PrismPropertyDefinition<?>) {
+        if (def instanceof PrismPropertyDefinition<?> propDef) {
+            if (propDef.isEnum()) {
+                Object value = typedValue.getValue();
+                if (value instanceof TypeSafeEnum tse) {
+                    return tse.value();
+                } else {
+                    return value.toString();
+                }
+            }
             if (QNameUtil.match(((PrismPropertyDefinition<?>)def).getTypeName(), PrismConstants.POLYSTRING_TYPE_QNAME)) {
                 Object value = typedValue.getValue();
                 if (value == null) {

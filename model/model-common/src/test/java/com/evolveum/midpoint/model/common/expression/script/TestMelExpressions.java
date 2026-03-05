@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluat
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -31,10 +32,7 @@ import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -466,6 +464,63 @@ public class TestMelExpressions extends AbstractScriptTest {
                         "bar", "BAR", PrimitiveType.STRING
                 ),
                 Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionStringPlusString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                "FOOBAR");
+    }
+
+    @Test
+    public void testExpressionPolyStringPlusString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                "FOOBAR");
+    }
+
+    @Test
+    public void testExpressionStringPlusPolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", PrismTestUtil.createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
+                ),
+                "FOOBAR");
+    }
+
+    @Test
+    public void testExpressionPolyStringPlusPolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", PrismTestUtil.createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
+                ),
+                "FOOBAR");
+    }
+
+    @Test
+    public void testExpressionStringPlusEnum() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", ActivationStatusType.ENABLED,
+                            prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
+                                .findItemDefinition(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS))
+                ),
+                "FOOenabled");
     }
 
     @Test

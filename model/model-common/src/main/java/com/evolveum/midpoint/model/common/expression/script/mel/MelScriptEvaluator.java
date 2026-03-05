@@ -195,11 +195,18 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         if (outputDefinition == null) {
             return SimpleType.ANY;
         }
-        CelType returnType = CelTypeMapper.toCelType(outputDefinition);
+        // Let's not be too smart here.
+        // We could determine specific CEL type from outputDefinition, but we do not want to.
+        // There are cases when the expression expects polystring, but the script produces string.
+        // Setting polystring as a expected result type would cause an error in CEL compiler.
+        // We do not want that.
+        // We want the CEL script to produce whatever it produces, then we can use our heuristics to
+        // convert it to correct type.
+        // All we want to do is to indicate whether we are expecting scalar or list value.
         if (isSingleScalarResult(context)) {
-            return returnType;
+            return SimpleType.ANY;
         } else {
-            return ListType.create(returnType);
+            return ListType.create(SimpleType.ANY);
         }
     }
 
