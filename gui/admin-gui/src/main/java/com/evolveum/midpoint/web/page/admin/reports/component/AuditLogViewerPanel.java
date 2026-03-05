@@ -32,12 +32,14 @@ import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.api.component.button.XlsxDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadInlineMenuItem;
+import com.evolveum.midpoint.gui.api.component.button.XlsxDownloadInlineMenuItem;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -69,6 +71,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -186,42 +189,78 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         return getSelectedObjects().stream().map(SelectableBean::getValue).collect(Collectors.toList());
     }
 
+    protected List<InlineMenuItem> createDownloadFormatMenu() {
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI)) {
+            items.add(new CsvDownloadInlineMenuItem(
+                    createStringResource("CsvDownloadButtonPanel.export"),
+                    getPageBase()
+            ) {
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                protected String getFilename() {
+                    return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+                }
+
+                @Override
+                protected DataTable<?, ?> getDataTable() {
+                    return getTable().getDataTable();
+                }
+            });
+        }
+
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI)) {
+            items.add(new XlsxDownloadInlineMenuItem(
+                    createStringResource("XlsxDownloadButtonPanel.export"),
+                    getPageBase()
+            ) {
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                protected String getFilename() {
+                    return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+                }
+
+                @Override
+                protected DataTable<?, ?> getDataTable() {
+                    return getTable().getDataTable();
+                }
+            });
+        }
+        return items;
+    }
+
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        CsvDownloadButtonPanel exportCSVDataLink = new CsvDownloadButtonPanel(idButton) {
 
-            @Serial private static final long serialVersionUID = 1L;
+        DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-download", null, createDownloadFormatMenu());
+        DropdownButtonPanel downloadFormatMenu = new DropdownButtonPanel(idButton, model) {
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected String getFilename() {
-                return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+            protected String getSpecialButtonClass() {
+                return "btn btn-default btn-sm";
             }
 
             @Override
-            protected DataTable<?, ?> getDataTable() {
-                return getTable().getDataTable();
-            }
-        };
-        exportCSVDataLink.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI)));
-        buttonsList.add(exportCSVDataLink);
-
-        XlsxDownloadButtonPanel exportXLSXDataLink = new XlsxDownloadButtonPanel(idButton) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String getFilename() {
-                return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+            protected String getSpecialDropdownMenuClass() {
+                return "dropdown-menu-left";
             }
 
             @Override
-            protected DataTable<?, ?> getDataTable() {
-                return getTable().getDataTable();
+            protected void onInitialize() {
+                super.onInitialize();
+                getButtonContainer().add(AttributeModifier.append("aria-label", "AssignmentTablePanel.operationMenu"));
             }
         };
-        exportXLSXDataLink.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI)));
-        buttonsList.add(exportXLSXDataLink);
+        downloadFormatMenu.setVisible(
+                WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI) ||
+                        WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI)
+        );
+        buttonsList.add(downloadFormatMenu);
 
         AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(idButton, WebComponentUtil.createCreateReportIcon(),
                 getPageBase().createStringResource("MainObjectListPanel.createReport")) {
@@ -480,7 +519,8 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
     @Override
     protected IColumn<SelectableBean<AuditEventRecordType>, String> createCustomExportableColumn(
-            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
+            IModel<String> displayModel, GuiObjectColumnType
+                    guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
 
         ItemPath path = WebComponentUtil.getPath(guiObjectColumn);
 
@@ -555,7 +595,8 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     }
 
     private IColumn<SelectableBean<AuditEventRecordType>, String> createDeltaColumn(
-            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
+            IModel<String> displayModel, GuiObjectColumnType
+                    guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
 
         boolean changedItemVisible = getColumnTypeConfigContext().isChangedItemSearchItemVisible();
 
