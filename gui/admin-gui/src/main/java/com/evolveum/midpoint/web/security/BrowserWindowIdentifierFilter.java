@@ -57,6 +57,14 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
 
         // If parameter present and non-empty, continue normally
         String existing = request.getParameter(PARAM_WI);
+        String wi = getWindowParameterFromRefererHeader(request);
+        if (StringUtils.isEmpty(wi)) {
+            wi = URLEncoder.encode(UUID.randomUUID().toString().substring(0, 8), StandardCharsets.UTF_8);
+        }
+//        if (StringUtils.isEmpty(wi)) {
+//            existing = null;
+//        }
+
         if (existing != null && !existing.isEmpty()) {
             filterChain.doFilter(request, response);
             return;
@@ -66,22 +74,23 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
         String requestURL = request.getRequestURL().toString();
         String query = request.getQueryString(); // may be null
 
-        String wi = getWindowParameterFromRefererHeader(request);
-        if (StringUtils.isEmpty(wi)) {
-            wi = URLEncoder.encode(UUID.randomUUID().toString().substring(0, 8), StandardCharsets.UTF_8);
-        }
-        request.setAttribute(PARAM_WI, wi);
+//        if (!StringUtils.isEmpty(wi)) {
 
-        StringBuilder newUrl = new StringBuilder(requestURL);
-        if (StringUtils.isNotEmpty(query)) {
-            newUrl.append("?").append(query).append("&");
-        } else {
-            newUrl.append("?");
-        }
+            request.setAttribute(PARAM_WI, wi);
 
-        newUrl.append(PARAM_WI).append("=").append(wi);
+            StringBuilder newUrl = new StringBuilder(requestURL);
+            if (StringUtils.isNotEmpty(query)) {
+                newUrl.append("?").append(query).append("&");
+            } else {
+                newUrl.append("?");
+            }
 
-        response.sendRedirect(newUrl.toString());
+            newUrl.append(PARAM_WI).append("=").append(wi);
+
+            response.sendRedirect(newUrl.toString());
+//        } else {
+//            filterChain.doFilter(request, response);
+//        }
     }
 
     public static String getPathWithoutContext(HttpServletRequest request) {
@@ -109,9 +118,9 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
 
     private boolean isNewWindow(HttpServletRequest request) {
         String newWindowFlag = request.getParameter(PARAM_NEW_WINDOW_FLAG);
-        if (StringUtils.isNotEmpty(newWindowFlag)) {
-            clearNewWindowFlag(request);
-        }
+//        if (StringUtils.isNotEmpty(newWindowFlag)) {
+//            clearNewWindowFlag(request);
+//        }
         return "true".equals(newWindowFlag);
     }
 

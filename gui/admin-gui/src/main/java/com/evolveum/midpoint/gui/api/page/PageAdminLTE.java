@@ -329,9 +329,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         add(new NewWindowNotifyingBehavior());
 
 
-//        add(new AbstractDefaultAjaxBehavior() {
-//            @Serial private static final long serialVersionUID = 1L;
-//
+        add(new AbstractDefaultAjaxBehavior() {
+            @Serial private static final long serialVersionUID = 1L;
+
 //            @Override
 //            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
 //                super.updateAjaxAttributes(attributes);
@@ -339,56 +339,76 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 //                        "return { tabId: sessionStorage.getItem('tabId') };"
 //                );
 //            }
-//
+
+            @Override
+            public void renderHead(final Component component, final IHeaderResponse response) {
+                super.renderHead(component, response);
+                //todo leave js for a while here
+                response.render(JavaScriptHeaderItem.forScript(
+                        "document.addEventListener('DOMContentLoaded', function() {\n" +
+                                "    // Initialize tabId in sessionStorage if not exists\n" +
+                                "    if (!sessionStorage.getItem('w')) {\n" +
+                                "        sessionStorage.setItem('w', crypto.randomUUID());\n" +
+                                "    }\n" +
+                                "    var tabId = sessionStorage.getItem('w');\n" +
+                                "    console.log('tabId initialized:', tabId);\n" +
+                                "    // === Add tabId to page URL if not already present ===\n" +
+                                "    var url = new URL(window.location.href);\n" +
+                                "    var wParam = url.searchParams.get('w');\n" +
+                                "    if (wParam !== tabId) {\n" +
+                                "       url.searchParams.set('w', tabId);\n" +
+                                "       console.log('redirect to url ' + url.toString());\n" +
+                                "       window.history.replaceState({}, '', url);\n" +
+                                "    }" +
+                                "    if (!url.searchParams.has('w')) {\n" +
+                                "        url.searchParams.set('w', tabId);\n" +
+                                "        window.history.replaceState({}, '', url);\n" +
+                                "        console.log('tabId added to URL');\n" +
+                                "    }\n" +
+
+                                "    // Subscribe to all Wicket Ajax calls before they are sent\n" +
+                                "    Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attrs, jqXHR, settings) {\n" +
+                                "        if (!attrs) return;\n" +
+                                "        attrs.ep = attrs.ep || {};\n" +
+                                "        attrs.ep.w = tabId;\n" +
+                                "    });\n" +
+                                "    // Send tabId once on page load\n" +
+                                "    Wicket.Ajax.ajax({\n" +
+                                "        u: '" + getCallbackUrl().toString() + "',\n" +
+                                "        ep: { w: tabId }\n" +
+                                "    });\n" +
+
+                                "});",
+                        "tab-id-init"
+                ));
+            }
+
 //            @Override
-//            public void renderHead(final Component component, final IHeaderResponse response) {
-//                super.renderHead(component, response);
-//
-//                response.render(JavaScriptHeaderItem.forScript(
-//                        "document.addEventListener('DOMContentLoaded', function() {\n" +
-//                        "    // Initialize tabId in sessionStorage if not exists\n" +
-//                        "    if (!sessionStorage.getItem('tabId')) {\n" +
-//                        "        sessionStorage.setItem('tabId', crypto.randomUUID());\n" +
-//                        "    }\n" +
-//                        "\n" +
-//                        "    var tabId = sessionStorage.getItem('tabId');\n" +
-//                        "    console.log('tabId initialized:', tabId);\n" +
-//                        "\n" +
-//                        "    // Subscribe to all Wicket Ajax calls before they are sent\n" +
-//                        "    Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attrs, jqXHR, settings) {\n" +
-//                        "        console.log('entered subscribe');\n" +
-//                        "        if (!attrs) {\n" +
-//                        "            console.warn('attrs is undefined!');\n" +
-//                        "            return;\n" +
-//                        "        }\n" +
-//                        "        attrs.ep = attrs.ep || {};\n" +
-//                        "        attrs.ep.tabId = sessionStorage.getItem('tabId');\n" +
-//                        "        console.log('tabId added to Ajax request:', sessionStorage.getItem('tabId'));\n" +
-//                        "    });\n" +
-//                        "\n" +
-//                        "    // Send tabId once on page load\n" +
-//                        "    Wicket.Ajax.ajax({\n" +
-//                        "        u: '" + getCallbackUrl().toString() + "',\n" +
-//                        "        ep: { tabId: tabId }\n" +
-//                        "    });\n" +
-//                        "});\n",
-//                        "tab-id-init"
-//                ));
-//            }
-//
-//            @Override
-//            protected void respond(AjaxRequestTarget target) {
+//            protected void onComponentRendered() {
+//                super.onComponentRendered();
 //                String tabId = RequestCycle.get()
 //                        .getRequest()
 //                        .getRequestParameters()
-//                        .getParameterValue("tabId")
+//                        .getParameterValue("w")
 //                        .toOptionalString();
 //                if (tabId != null && !tabId.isEmpty()) {
-//                    Session.get().setAttribute("tabId", tabId);
+//
 //                }
 //            }
 //
-//        });
+            @Override
+            protected void respond(AjaxRequestTarget target) {
+                String tabId = RequestCycle.get()
+                        .getRequest()
+                        .getRequestParameters()
+                        .getParameterValue("w")
+                        .toOptionalString();
+                if (tabId != null && !tabId.isEmpty()) {
+//                    Session.get().setAttribute("tabId", tabId);
+                }
+            }
+
+        });
     }
 
     @Override
