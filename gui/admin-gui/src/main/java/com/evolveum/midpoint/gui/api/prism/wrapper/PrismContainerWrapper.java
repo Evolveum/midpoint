@@ -13,6 +13,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author katka
  *
@@ -30,7 +33,13 @@ public interface PrismContainerWrapper<C extends Containerable> extends ItemWrap
     boolean isVirtual();
 
     <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
-    <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier);
+
+    default <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier) {
+        return findContainer(identifier, new HashSet<>());
+    }
+
+    <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier, Set<ItemPath> alreadyVisited);
+
     <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;
     <R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path) throws SchemaException;
     <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) throws SchemaException;

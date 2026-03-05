@@ -8,9 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -156,10 +154,21 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         return findItem(path, PrismContainerWrapper.class);
     }
 
+    @Override
     public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier) {
+        return findContainer(identifier, new HashSet<>());
+    }
+
+    @Override
+    public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier, Set<ItemPath> alreadySearched) {
         List<PrismContainerValueWrapper<C>> values = getValues();
         for (PrismContainerValueWrapper<C> value : values) {
-            PrismContainerWrapper<T> wrapper = value.findContainer(identifier);
+            if (alreadySearched.contains(value.getPath())) {
+                continue;
+            }
+            alreadySearched.add(value.getPath());
+
+            PrismContainerWrapper<T> wrapper = value.findContainer(identifier, alreadySearched);
             if (wrapper != null) {
                 return wrapper;
             }

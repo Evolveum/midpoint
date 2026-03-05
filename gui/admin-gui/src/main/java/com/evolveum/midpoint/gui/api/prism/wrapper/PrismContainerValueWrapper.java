@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.gui.api.prism.wrapper;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
@@ -49,7 +51,13 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     List<? extends ItemWrapper<?, ?>> getItems();
 
     <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
-    <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier);
+
+    default <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier) {
+        return findContainer(identifier, new HashSet<>());
+    }
+
+    <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier, Set<ItemPath> alreadyVisited);
+
     <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) throws SchemaException;
     <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;
     <R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path) throws SchemaException;

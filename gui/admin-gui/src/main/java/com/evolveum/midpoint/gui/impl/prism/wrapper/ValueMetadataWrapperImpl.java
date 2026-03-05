@@ -431,7 +431,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier) {
+    public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier, Set<ItemPath> alreadySearched) {
         return null;
     }
 

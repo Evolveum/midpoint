@@ -455,21 +455,23 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier) {
+    public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier, Set<ItemPath> alreadySearched) {
         List<PrismContainerWrapper<? extends Containerable>> containers = new ArrayList<>();
         List<PrismContainerWrapper<? extends Containerable>> basicContainers = getContainers();
         if (CollectionUtils.isNotEmpty(basicContainers)) {
-            containers.addAll(basicContainers);
+            basicContainers.forEach(c -> {
+                if (alreadySearched.contains(c.getPath())) {
+                    return;
+                }
+
+                alreadySearched.add(c.getPath());
+                containers.add(c);
+            });
         }
 
         if (!isVirtual()) {
-            addVirtualContainers(containers);
+            addVirtualContainers(containers, alreadySearched);
         }
-
-//        List<PrismContainerWrapper<? extends Containerable>> virtualContainers = collectVirtualContainers();
-//        if (CollectionUtils.isNotEmpty(virtualContainers)) {
-//            containers.addAll(virtualContainers);
-//        }
 
         for (PrismContainerWrapper<? extends Containerable> container : containers) {
             if (identifier.equals(container.getIdentifier())) {
@@ -478,7 +480,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         }
 
         for (PrismContainerWrapper<? extends Containerable> container : containers) {
-            PrismContainerWrapper<T> foundContainer = container.findContainer(identifier);
+            PrismContainerWrapper<T> foundContainer = container.findContainer(identifier, alreadySearched);
             if (foundContainer != null) {
                 return foundContainer;
             }
@@ -515,30 +517,34 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         }
     }
 
-    private void addVirtualContainers(List<PrismContainerWrapper<?>> containers) {
-        addVirtualContainersFrom(this, containers);
+    private void addVirtualContainers(List<PrismContainerWrapper<?>> containers, Set<ItemPath> alreadySearched) {
+        addVirtualContainersFrom(this, containers, alreadySearched);
         if (!containers.isEmpty() || this instanceof PrismObjectValueWrapper) {
             return;
         }
 
-        // This part seem to be wrong on multiple levels.
-        // We're currently in recursive search, called from findContainer() and following code just jumps to "root" object
-        // wrapper to add virtual containers from there.
-
-//        if (getParent() == null) {
-//            return;
-//        }
-//        PrismObjectWrapper<?> objectWrapper = getParent().findObjectWrapper();
-//        if (objectWrapper == null) {
-//            return;
-//        }
-//        PrismObjectValueWrapper<?> objectValue = objectWrapper.getValue();
-//        addVirtualContainersFrom(objectValue, containers);
+        if (getParent() == null) {
+            return;
+        }
+        PrismObjectWrapper<?> objectWrapper = getParent().findObjectWrapper();
+        if (objectWrapper == null) {
+            return;
+        }
+        PrismObjectValueWrapper<?> objectValue = objectWrapper.getValue();
+        addVirtualContainersFrom(objectValue, containers, alreadySearched);
     }
 
-    private void addVirtualContainersFrom(PrismContainerValueWrapper<?> containerValue, List<PrismContainerWrapper<?>> containers) {
+    private void addVirtualContainersFrom(
+            PrismContainerValueWrapper<?> containerValue,
+            List<PrismContainerWrapper<?>> containers,
+            Set<ItemPath> alreadySearched) {
+
         for (ItemWrapper<?, ?> itemWrapper : containerValue.getItems()) {
             if (!(itemWrapper instanceof PrismContainerWrapper<?> containerWrapper)) {
+                continue;
+            }
+
+            if (alreadySearched.contains(itemWrapper.getPath())) {
                 continue;
             }
 
@@ -546,6 +552,8 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             if (containerWrapper.isVirtual()
                     && (identifier == null || containers.stream().noneMatch(c -> identifier.equals(c.getIdentifier())))) {
                 containers.add(containerWrapper);
+
+                alreadySearched.add(containerWrapper.getPath());
             }
         }
     }
