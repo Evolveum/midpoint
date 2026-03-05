@@ -310,7 +310,6 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
                 };
             }
         };
-        title.add(AttributeAppender.append("title", titleModel));
         add(title);
 
         // todo implement properly and make visible
