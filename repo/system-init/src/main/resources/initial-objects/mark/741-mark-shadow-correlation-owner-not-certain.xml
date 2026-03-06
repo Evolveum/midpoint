@@ -21,7 +21,7 @@
             </translation>
         </label>
         <help>
-            <orig>Number of objects that could be correlated to multiple resource owners.</orig>
+            <orig>Number of resource objects that could not be reliably correlated to a single owner or where the correlation confidence is low.</orig>
             <translation>
                 <key>SimulationCorrelationPanel.uncertain.help</key>
             </translation>

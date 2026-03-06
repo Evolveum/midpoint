@@ -65,6 +65,10 @@ public class WellKnownSchemaService {
     }
 
     public Optional<WellKnownSchemaProvider> getProviderFromSchemaMatch(SchemaMatchResultType schemaMatch) {
+        if (schemaMatch == null) {
+            LOGGER.trace("No schema match result.");
+            return Optional.empty();
+        }
         String knownSchemaTypeStr = schemaMatch.getWellKnownSchemaType();
         if (knownSchemaTypeStr == null) {
             LOGGER.trace("No known schema type in schema match result.");
