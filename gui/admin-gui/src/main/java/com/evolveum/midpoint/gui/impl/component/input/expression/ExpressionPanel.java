@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.ExpressionUtil.ExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 public class ExpressionPanel extends BasePanel<ExpressionType> {
@@ -165,7 +166,8 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 @Override
                 protected String load() {
                     if (StringUtils.isNotEmpty(getModelObject().getDescription())) {
-                        return getPageBase().createStringResource(getModelObject().getDescription()).getString();
+                        StringResourceModel stringResource = getPageBase().createStringResource(getModelObject().getDescription());
+                        return StringEscapeUtils.escapeHtml4(stringResource.getString());
                     }
 
                     Class<? extends EvaluatorExpressionPanel> evaluatorPanel = null;
@@ -176,11 +178,11 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     if (evaluatorPanel != null) {
                         try {
                             Method m = evaluatorPanel.getMethod("getInfoDescription", ExpressionType.class, PageBase.class);
-                            return (String) m.invoke(null, getModelObject(), getPageBase());
+                            String description = (String) m.invoke(null, getModelObject(), getPageBase());
+                            return StringEscapeUtils.escapeHtml4(description);
                         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                             LOGGER.debug("Couldn't find method getInfoDescription in class {}", evaluatorPanel.getSimpleName());
                         }
-
                     }
 
                     return StringEscapeUtils.escapeHtml4(
@@ -200,7 +202,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         setOutputMarkupId(true);
         WebMarkupContainer infoContainer = new WebMarkupContainer(ID_INFO_CONTAINER);
         infoContainer.setOutputMarkupId(true);
-        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && (!isInTable()|| isReadOnly())));
+        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && (!isInTable() || isReadOnly())));
         add(infoContainer);
 
         Label infoLabel = new Label(ID_INFO_LABEL, infoLabelModel);
