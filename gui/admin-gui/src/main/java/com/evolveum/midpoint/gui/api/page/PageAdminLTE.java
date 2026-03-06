@@ -31,6 +31,7 @@ import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -332,82 +333,16 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         add(new AbstractDefaultAjaxBehavior() {
             @Serial private static final long serialVersionUID = 1L;
 
-//            @Override
-//            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-//                super.updateAjaxAttributes(attributes);
-//                attributes.getDynamicExtraParameters().add(
-//                        "return { tabId: sessionStorage.getItem('tabId') };"
-//                );
-//            }
-
             @Override
             public void renderHead(final Component component, final IHeaderResponse response) {
                 super.renderHead(component, response);
-                //todo leave js for a while here
-                response.render(JavaScriptHeaderItem.forScript(
-                        "document.addEventListener('DOMContentLoaded', function() {\n" +
-                                "    // Initialize tabId in sessionStorage if not exists\n" +
-                                "    if (!sessionStorage.getItem('w')) {\n" +
-                                "        const windowId = encodeURIComponent(crypto.randomUUID().substring(0, 8));\n" +
-                                "        console.log('windowId initialized:', windowId);\n" +
-                                "        sessionStorage.setItem('w', windowId);\n" +
-                                "    }\n" +
-                                "    var tabId = sessionStorage.getItem('w');\n" +
-                                "    console.log('tabId initialized:', tabId);\n" +
-                                "    // === Add tabId to page URL if not already present ===\n" +
-                                "    var url = new URL(window.location.href);\n" +
-                                "    var wParam = url.searchParams.get('w');\n" +
-                                "    if (wParam !== tabId) {\n" +
-                                "       url.searchParams.set('w', tabId);\n" +
-                                "       console.log('redirect to url ' + url.toString());\n" +
-                                "       window.location.replace(url);\n" +
-                                "    }" +
-                                "    if (!url.searchParams.has('w')) {\n" +
-                                "        url.searchParams.set('w', tabId);\n" +
-                                "        window.history.replaceState({}, '', url);\n" +
-                                "        console.log('tabId added to URL');\n" +
-                                "    }\n" +
-
-                                "    // Subscribe to all Wicket Ajax calls before they are sent\n" +
-                                "    Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attrs, jqXHR, settings) {\n" +
-                                "        if (!attrs) return;\n" +
-                                "        attrs.ep = attrs.ep || {};\n" +
-                                "        attrs.ep.w = tabId;\n" +
-                                "    });\n" +
-                                "    // Send tabId once on page load\n" +
-                                "    Wicket.Ajax.ajax({\n" +
-                                "        u: '" + getCallbackUrl().toString() + "',\n" +
-                                "        ep: { w: tabId }\n" +
-                                "    });\n" +
-
-                                "});",
-                        "tab-id-init"
-                ));
+                CharSequence callbackUrl = getCallbackUrl();
+                String js = "MidPointTheme.initTabId('" + callbackUrl + "');";
+                response.render(OnDomReadyHeaderItem.forScript(js));
             }
 
-//            @Override
-//            protected void onComponentRendered() {
-//                super.onComponentRendered();
-//                String tabId = RequestCycle.get()
-//                        .getRequest()
-//                        .getRequestParameters()
-//                        .getParameterValue("w")
-//                        .toOptionalString();
-//                if (tabId != null && !tabId.isEmpty()) {
-//
-//                }
-//            }
-//
             @Override
             protected void respond(AjaxRequestTarget target) {
-                String tabId = RequestCycle.get()
-                        .getRequest()
-                        .getRequestParameters()
-                        .getParameterValue("w")
-                        .toOptionalString();
-                if (tabId != null && !tabId.isEmpty()) {
-//                    Session.get().setAttribute("tabId", tabId);
-                }
             }
 
         });

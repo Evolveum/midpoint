@@ -555,6 +555,42 @@ export default class MidPointTheme {
         });
     }
 
+    initTabId(callbackUrl) {
+        if (!sessionStorage.getItem('w')) {
+            const windowId = encodeURIComponent(crypto.randomUUID().substring(0, 8));
+            console.log('windowId initialized:', windowId);
+            sessionStorage.setItem('w', windowId);
+        }
+
+        var tabId = sessionStorage.getItem('w');
+        console.log('tabId initialized:', tabId);
+
+        // === Add tabId to page URL if not already present ===
+        var url = new URL(window.location.href);
+        var wParam = url.searchParams.get('w');
+
+        if (wParam !== tabId) {
+           url.searchParams.set('w', tabId);
+           console.log('redirect to url ' + url.toString());
+           window.location.replace(url);
+        }
+
+        if (!url.searchParams.has('w')) {
+            url.searchParams.set('w', tabId);
+            window.history.replaceState({}, '', url);
+            console.log('tabId added to URL');
+        }
+
+        if (window.Wicket && Wicket.Event) {
+            // Subscribe to all Wicket Ajax calls before they are sent
+            Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attrs, jqXHR, settings) {
+            if (!attrs) return;
+                attrs.ep = attrs.ep || {};
+                attrs.ep.w = tabId;
+            });
+        }
+    }
+
     keydownForMenuItems(sideBar, self) {
         if (!sideBar.length) {
             return;
