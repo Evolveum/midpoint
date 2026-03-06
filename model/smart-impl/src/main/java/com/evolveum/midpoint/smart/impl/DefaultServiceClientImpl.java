@@ -125,8 +125,8 @@ public class DefaultServiceClientImpl implements ServiceClient {
                 var wrappedResponseText = "{ \"wrapper\": " + responseText + " }";
                 return PrismContext.get().parserFor(wrappedResponseText).parseRealValue(responseClass);
             } else {
-                throw new SystemException("Service call (%s) failed with status: %d %s".formatted(
-                        method, statusType.getStatusCode(), statusType.getReasonPhrase()));
+                throw new SystemException("Service call (%s) failed with status: %d %s. Response: %s".formatted(
+                        method, statusType.getStatusCode(), statusType.getReasonPhrase(), responseText));
             }
         }
     }
