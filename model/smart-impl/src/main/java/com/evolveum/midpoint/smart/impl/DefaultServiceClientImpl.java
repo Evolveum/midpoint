@@ -8,6 +8,10 @@
 package com.evolveum.midpoint.smart.impl;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -48,26 +52,33 @@ public class DefaultServiceClientImpl implements ServiceClient {
     /** The client used to access the remote service. */
     private final WebClient webClient;
 
-    /** Timeout for receiving answer from the Python service. Later it will be configurable. */
-    private static final long RECEIVE_TIMEOUT = 300_000;
+    /** Thread pool for async invocations. */
+    private final ExecutorService executorService;
 
-    // TODO decide if we use these providers or not.
-    @Autowired private MidpointXmlProvider<?> xmlProvider;
-    @Autowired private MidpointJsonProvider<?> jsonProvider;
-    @Autowired private MidpointYamlProvider<?> yamlProvider;
+    /** Timeout for receiving answer from the Python service. Later it will be configurable. */
+    private static final long RECEIVE_TIMEOUT = 120_000;
+
+    /** Default thread pool size for parallel AI service calls. */
+    private static final int DEFAULT_THREAD_POOL_SIZE = 20;
 
     DefaultServiceClientImpl(@Nullable SmartIntegrationConfigurationType configurationBean) throws ConfigurationException {
         // FIXME temporary hack to force CXF to use HTTP/1.1 (remove it eventually, because it influences all HTTP communication).
         System.setProperty("org.apache.cxf.transport.http.forceVersion", "1.1");
-        webClient = WebClient.create(
-                getServiceUrl(configurationBean),
-                Arrays.asList(xmlProvider, jsonProvider, yamlProvider),
-                true);
+        webClient = WebClient.create(getServiceUrl(configurationBean), true);
 
         var conduit = WebClient.getConfig(webClient).getHttpConduit();
         var policy = new HTTPClientPolicy();
         policy.setReceiveTimeout(RECEIVE_TIMEOUT);
         conduit.setClient(policy);
+
+        this.executorService = Executors.newFixedThreadPool(
+                DEFAULT_THREAD_POOL_SIZE,
+                r -> {
+                    Thread t = new Thread(r);
+                    t.setName("smart-service-client-" + t.getId());
+                    t.setDaemon(true);
+                    return t;
+                });
     }
 
     private static String getServiceUrl(@Nullable SmartIntegrationConfigurationType configurationBean)
@@ -92,7 +103,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
         return getServiceUrlOverride() != null;
     }
 
-    /** A generic method that calls a remote service. Treats serialization/parsing of the exchanged data. */
+    /** A generic method that calls a remote service synchronously. Treats serialization/parsing of the exchanged data. */
     public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass)
             throws SchemaException {
         // FIXME this is a temporary hack to work around limitations of our JSON serializer/deserializer.
@@ -114,8 +125,8 @@ public class DefaultServiceClientImpl implements ServiceClient {
                 var wrappedResponseText = "{ \"wrapper\": " + responseText + " }";
                 return PrismContext.get().parserFor(wrappedResponseText).parseRealValue(responseClass);
             } else {
-                throw new SystemException("Service call (%s) failed with status: %d %s".formatted(
-                        method, statusType.getStatusCode(), statusType.getReasonPhrase()));
+                throw new SystemException("Service call (%s) failed with status: %d %s. Response: %s".formatted(
+                        method, statusType.getStatusCode(), statusType.getReasonPhrase(), responseText));
             }
         }
     }
@@ -129,8 +140,31 @@ public class DefaultServiceClientImpl implements ServiceClient {
         };
     }
 
+    /** A generic method that calls a remote service asynchronously. Returns a CompletableFuture. */
+    @Override
+    public <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return invoke(method, request, responseClass);
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+            }
+        }, executorService);
+    }
+
     @Override
     public void close() {
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                LOGGER.warn("Executor service did not terminate in time, forcing shutdown");
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            LOGGER.warn("Interrupted while waiting for executor service termination");
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
         webClient.close();
     }
 }

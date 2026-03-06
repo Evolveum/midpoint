@@ -32,6 +32,8 @@ public class PrismContainerHeaderPanel<C extends Containerable, PCW extends Pris
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
+    // todo rename to "help" after current help is renamed to tooltip
+    private static final String ID_HELP = "longHelp";
 
     public PrismContainerHeaderPanel(String id, IModel<PCW> model, ItemPanelSettings itemPanelSettings) {
         super(id, model, itemPanelSettings);
@@ -39,12 +41,17 @@ public class PrismContainerHeaderPanel<C extends Containerable, PCW extends Pris
 
     @Override
     protected void initButtons() {
-
         super.initButtons();
         initExpandCollapseButton();
             //TODO: sorting
     }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        add(createHelpPanel(ID_HELP));
+    }
 
     @Override
     protected Component createTitle(IModel<String> label) {

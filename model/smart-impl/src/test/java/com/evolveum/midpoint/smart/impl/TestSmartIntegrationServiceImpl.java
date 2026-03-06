@@ -1062,25 +1062,36 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test300SuggestMappings() throws CommonException, ActivityInterruptedException {
         skipIfRealService();
 
-        var mockClient = new MockServiceClientImpl(
-                new SiMatchSchemaResponseType()
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
-                                .midPointAttribute(asStringSimple(UserType.F_NAME)))
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.TYPE.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.PHONE.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
-                        // No mapping for status -> activation, as non-attribute mappings are not supported yet
-                // icfs:name -> name and ri:fullName -> fullName are as-is, LLM microservice should not be called
-                new RuntimeException("LLM went crazy here"),
-                new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")
-        );
+        var schemaMatchResponse = new SiMatchSchemaResponseType()
+                .attributeMatch(new SiAttributeMatchSuggestionType()
+                        .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                        .midPointAttribute(asStringSimple(UserType.F_NAME)))
+                .attributeMatch(new SiAttributeMatchSuggestionType()
+                        .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
+                        .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
+                .attributeMatch(new SiAttributeMatchSuggestionType()
+                        .applicationAttribute(asStringSimple(Account.AttributeNames.TYPE.path()))
+                        .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
+                .attributeMatch(new SiAttributeMatchSuggestionType()
+                        .applicationAttribute(asStringSimple(Account.AttributeNames.PHONE.path()))
+                        .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER)));
+
+        var mockClient = new MockServiceClientImpl(request -> {
+            if (request instanceof SiMatchSchemaRequestType) {
+                return schemaMatchResponse;
+            } else if (request instanceof SiSuggestMappingRequestType mappingRequest) {
+                var appAttr = mappingRequest.getApplicationAttribute();
+                if (!appAttr.isEmpty()) {
+                    String attrName = appAttr.get(0).getName();
+                    if (attrName.contains("type")) {
+                        throw new RuntimeException("LLM went crazy here");
+                    } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
+                        return new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')");
+                    }
+                }
+            }
+            return null;
+        });
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
@@ -1209,7 +1220,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var suggestedCorrelations = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
 
         then("suggestions are correct");
         displayValueAsXml("suggested correlations", suggestedCorrelations);

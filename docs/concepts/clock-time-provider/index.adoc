@@ -84,6 +84,7 @@ The offset is cumulative; subsequent calls to `overrideDuration` add to the exis
 * Do not use `Clock` to manipulate time globally in production environment.
     Overrides are intended for testing and controlled simulation environments.
 * For certain "special" timestamps, such as those in audit logs, midPoint stores the real system time to keep an immutable record regardless of any `Clock` override.
+* If you use `Clock` to travel back in time, xref:/midpoint/reference/tasks/activities/error-handling/#_triggers[trigger] and xref:/midpoint/reference/tasks/specific/focus-validity-scan/[validity] scanners may behave unexpectedly regarding the objects they choose to process.
 
 [WARNING]
 ====

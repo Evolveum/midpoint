@@ -61,6 +61,7 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
     @Override
     public List<SystemMappingSuggestion> suggestInboundMappings() {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("uid", UserType.F_NAME));
         return mappings;
     }
 

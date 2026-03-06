@@ -99,13 +99,13 @@ public class TargetDirectionSpecificationPanel extends BasePanel<TargetSynchroni
             }
         });
 
-        group.add(new Radio<>(ID_DELETED_REMOVE, Model.of(DeletedTargetChoice.REMOVE_BROKEN_LINK)));
+        group.add(new Radio<>(ID_DELETED_REMOVE, Model.of(DeletedTargetChoice.REMOVE_LINK_AND_SYNCHRONIZE)));
         group.add(new Label(ID_DELETED_REMOVE + "Label",
-                getString("TargetDirectionSpecificationPanel.deleted.remove")));
+                getString("TargetDirectionSpecificationPanel.deleted.removeLinkAndSynchronize")));
 
-        group.add(new Radio<>(ID_DELETED_NOTHING, Model.of(DeletedTargetChoice.DO_NOTHING)));
+        group.add(new Radio<>(ID_DELETED_NOTHING, Model.of(DeletedTargetChoice.JUST_REMOVE_LINK)));
         group.add(new Label(ID_DELETED_NOTHING + "Label",
-                getString("TargetDirectionSpecificationPanel.deleted.nothing")));
+                getString("TargetDirectionSpecificationPanel.deleted.justRemoveLink")));
 
         add(group);
     }

@@ -55,7 +55,7 @@ public abstract class ConnectorDevelopmentBackend {
 
     private static ConnectorDevelopmentBackend backendFor(ConnDevIntegrationType integrationType, ConnectorDevelopmentType connDev, ConnDevBeans beans, Task task, OperationResult result) {
         return switch (integrationType) {
-            case REST -> new RestTestBackend(beans, connDev, task, result);
+            case REST -> new RestBackend(beans, connDev, task, result);
             case SCIM -> new JsonHalBackend(beans, connDev, task, result);
             case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };

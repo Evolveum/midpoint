@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -21,6 +24,7 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractWizardBasicInitializer extends BasePanel {
@@ -28,6 +32,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
     private static final String ID_TITLE_ICON = "titleIcon";
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
+    private static final String ID_SUBTEXT_MORE = "subTextMore";
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_BUTTONS = "buttons";
@@ -61,6 +66,20 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
         Label secondaryText = new Label(ID_SUBTEXT, getSubTextModel());
         secondaryText.add(new VisibleBehaviour(() -> getSubTextModel() != null && getSubTextModel().getObject() != null));
         add(secondaryText);
+
+        IModel<String> subTextMoreModel = getSubTextMoreModel();
+
+        AjaxButton subTextMore = new AjaxButton(
+                ID_SUBTEXT_MORE, createStringResource("AbstractWizardBasicInitializer.subTextMore")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().showRightSidebarHelp(target, subTextMoreModel);
+            }
+        };
+        subTextMore.add(new VisibleBehaviour(() ->
+                subTextMoreModel != null && StringUtils.isNotEmpty(subTextMoreModel.getObject())));
+        add(subTextMore);
 
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
@@ -125,6 +144,21 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
         saveButton.add(new VisibleBehaviour(this::isSubmitButtonVisible));
         saveButton.add(AttributeAppender.append("class", getSubmitButtonCssClass()));
         buttons.add(saveButton);
+    }
+
+    /**
+     * This is the same on two places, not sure why, see BasicWizardStepPanel.
+     */
+    protected IModel<String> getSubTextMoreModel() {
+        Class<?> clazz = getClass();
+        if (clazz.isAnonymousClass()) {
+            clazz = clazz.getSuperclass();
+        }
+
+        String key = clazz.getSimpleName() + ".subText.moreContent";
+
+        return new StringResourceModel(key)
+                .setDefaultValue("");
     }
 
     protected String getButtonContainerAdditionalCssClass() {

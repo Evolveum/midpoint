@@ -338,7 +338,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             case "POST" -> ConnDevHttpOperationType.POST;
             case "PUT" -> ConnDevHttpOperationType.PUT;
             case "DELETE" -> ConnDevHttpOperationType.DELETE;
-            //case "PATCH" -> ConnDevHttpOperationType.PATCH;
+            case "PATCH" -> ConnDevHttpOperationType.PATCH;
             default -> null;
         };
     }
@@ -374,52 +374,39 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         ConnDevDocumentationSourceType openApi = null;
-        var byMidpoint = new ArrayList<ConnDevDocumentationSourceType>();
-        var byScrapper = new ArrayList<ConnDevDocumentationSourceType>();
-        for (var doc : developmentObject().getDocumentationSource()) {
-            if (isOpenApi(doc)) {
-                // Workaround since midPoint does not
-                openApi = doc;
-                byMidpoint.add(doc);
-            } else {
-                byScrapper.add(doc);
-            }
-        }
+        var byScrapper = developmentObject().getDocumentationSource();
 
         var documentations = new ArrayList<ProcessedDocumentation>();
-        if (openApi != null) {
-            documentations.add(downloadAndCache(openApi));
-        }
         if (!byScrapper.isEmpty()) {
             downloadUsingScrapper(byScrapper, documentations);
         }
 
-        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
-                .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
-                .addRealValues(documentations.stream().map(ProcessedDocumentation::toBean).toList())
-                .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
-        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        if (!documentations.isEmpty()) {
+            var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                    .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
+                    .addRealValues(documentations.stream().map(ProcessedDocumentation::toBean).toList())
+                    .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
+            beans.modelService.executeChanges(List.of(delta), null, task, result);
+        }
     }
 
-    private void downloadUsingScrapper(ArrayList<ConnDevDocumentationSourceType> byScrapper, ArrayList<ProcessedDocumentation> documentations) {
+    private void downloadUsingScrapper(Collection<ConnDevDocumentationSourceType> byScrapper, Collection<ProcessedDocumentation> documentations) {
         var request = scrapperRequest(byScrapper);
         try(var job = client().postJob("scrape/{sessionId}/scrape", request)) {
             var scrapped = job.waitAndProcess(SLEEP_TIME, json -> {
                 var ret = new ArrayList<ProcessedDocumentation>();
-                var jsonUris = json.get("relevantDocuments");
 
-                var jsonFulltexts = json.get("relevantDocumentsFulltext");
+                var savedPages = json.get("savedPages");
 
-                for (int i = 0; i < jsonUris.size(); i++) {
-                    try {
-                        var uri = toString(jsonUris.get(i));
-                        var fulltext = toString(jsonFulltexts.get(i));
+                if (savedPages instanceof ObjectNode pages) {
+                    for (var page : pages.properties()) {
+                        var uri = page.getKey();
+                        // FIXME: This does not work for string
+                        var content = toString(page.getValue().get("content"));
+
                         var processed = new ProcessedDocumentation(UUID.randomUUID().toString(), uri);
-                        processed.write(fulltext);
+                        processed.write(content);
                         ret.add(processed);
-                    } catch (Exception e) {
-                        // Skipping documentation
-                        // FIXME: we should log this
                     }
                 }
                 return ret;
@@ -431,7 +418,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     }
 
-    private ObjectNode scrapperRequest(ArrayList<ConnDevDocumentationSourceType> byScrapper) {
+    private ObjectNode scrapperRequest(Collection<ConnDevDocumentationSourceType> byScrapper) {
         var ret = JSON_FACTORY.objectNode();
         var starterLinks = JSON_FACTORY.arrayNode();
         var trustedDomains = new HashSet<String>();
@@ -634,13 +621,13 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     private void restoreSession(ServiceClient.RestorationClient client) throws IOException {
         // FIXME: Implement full session restoration here
-        ensureDocumentationIsUploaded(client);
+        // ensureDocumentationIsUploaded(client);
 
     }
 
     private void synchronizeSession(ServiceClient.RestorationClient client) throws IOException {
         // FIXME: Implement session synchronization here
-        ensureDocumentationIsUploaded(client);
+        // ensureDocumentationIsUploaded(client);
     }
 
 

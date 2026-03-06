@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:enclosure child="title">
+        <div class="header d-flex justify-content-between border-bottom">
+            <div wicket:id="title"/>
+            <a class="btn btn-xs px-1 align-middle" wicket:id="close" wicket:message="title:Button.close">
+                <i class="fa fa-times fa-lg align-middle"></i>
+            </a>
+        </div>
+    </wicket:enclosure>
+    <div class="body">
+        <div wicket:id="content"/>
+    </div>
+</wicket:panel>
+</html>
+

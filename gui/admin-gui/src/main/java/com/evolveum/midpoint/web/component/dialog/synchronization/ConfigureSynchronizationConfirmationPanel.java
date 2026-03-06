@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.component.dialog.synchronization;
 
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.synchronization.*;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -45,12 +44,12 @@ public class ConfigureSynchronizationConfirmationPanel extends ConfirmationPanel
     IModel<SourceSynchronizationAnswers> sourceAnswersModel =
             Model.of(new SourceSynchronizationAnswers(
                     UnmatchedSourceChoice.ADD_FOCUS,
-                    DeletedSourceChoice.DO_NOTHING));
+                    DeletedSourceChoice.REMOVE_LINK_AND_SYNCHRONIZE));
 
     IModel<TargetSynchronizationAnswers> targetAnswersModel =
             Model.of(new TargetSynchronizationAnswers(
                     UnmatchedTargetChoice.DO_NOTHING,
-                    DeletedTargetChoice.REMOVE_BROKEN_LINK,
+                    DeletedTargetChoice.REMOVE_LINK_AND_SYNCHRONIZE,
                     DisputedTargetChoice.CREATE_CORRELATION_CASE));
 
     IModel<DirectionChoicePanel.DirectionSelection> directionSelectionModel = Model.of(

@@ -51,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -343,17 +344,20 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
     }
 
     protected void performDeleteConfirmationAction(AjaxRequestTarget target) {
-        List<RequestDetailsRecordDto.RequestRecord> records = List.of(
-                new RequestDetailsRecordDto.RequestRecord(
+        List<RequestDetailsRecordDto.RequestRecord<Serializable>> records = List.of(
+                new RequestDetailsRecordDto.RequestRecord<>(
                         getString("RequestDetailsConfirmationPanel.request.details.title"),
                         null,
                         forceDeleteEnabled,
+                        null,
                         null
                 )
         );
 
-        RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                () -> new RequestDetailsRecordDto(createStringResource("RequestDetailsConfirmationPanel.discard.suggestion"),
+        RequestDetailsConfirmationPanel<Serializable> dialog =
+                new RequestDetailsConfirmationPanel<>(getPageBase().getMainPopupBodyId(),
+                () -> new RequestDetailsRecordDto<>(createStringResource("RequestDetailsConfirmationPanel.discard"
+                        + ".suggestion"),
                         records) {
                     @Override
                     public IModel<String> getRequestLabelModel(@NotNull PageBase pageBase) {
@@ -383,7 +387,8 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
             }
 
             @Override
-            public void yesPerformed(AjaxRequestTarget target) {
+            public void yesPerformed(AjaxRequestTarget target,
+                    IModel<List<RequestDetailsRecordDto.RequestRecord<Serializable>>> confirmedOptions) {
                 performOnDelete(target);
             }
 

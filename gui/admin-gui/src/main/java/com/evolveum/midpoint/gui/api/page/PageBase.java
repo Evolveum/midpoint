@@ -10,12 +10,6 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.result.Toast;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
-import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -31,6 +25,7 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -49,11 +44,16 @@ import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.gui.api.AdminLTESkin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
+import com.evolveum.midpoint.gui.impl.component.menu.RightSidebarHelpPanel;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
@@ -79,8 +79,10 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.BaseMenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
+import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -126,7 +128,10 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_CART_LINK = "cartLink";
     private static final String ID_CART_COUNT = "cartCount";
     private static final String ID_ADDITIONAL_FOOTER = "additionalFooter";
+    private static final String ID_RIGHT_SIDEBAR = "rightSidebar";
+
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
+
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
     public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
     public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
@@ -477,6 +482,42 @@ public abstract class PageBase extends PageAdminLTE {
         mainHeader.add(accessibilityLogo);
 
         addAdditionalFooter((MarkupContainer) get(ID_FOOTER_CONTAINER), ID_ADDITIONAL_FOOTER);
+
+        add(new RightSidebarHelpPanel(ID_RIGHT_SIDEBAR));
+    }
+
+    private RightSidebarHelpPanel getRightSidebarPanel() {
+        return (RightSidebarHelpPanel) get(ID_RIGHT_SIDEBAR);
+    }
+
+    public void showRightSidebarHelp(AjaxRequestTarget target, IModel<String> helpContent) {
+        showRightSidebarHelp(target, createStringResource("PageBase.rightSidebarDefaultHelpTitle"), helpContent);
+    }
+
+    public void showRightSidebarHelp(AjaxRequestTarget target, IModel<String> titleModel, IModel<String> helpContent) {
+        replaceRightSidebarContent(titleModel, id -> {
+            MultiLineLabel label = new MultiLineLabel(id, helpContent);
+            // todo make sure this is ok
+            label.setEscapeModelStrings(false);
+
+            return label;
+        });
+        openRightSidebar(target);
+    }
+
+    public void replaceRightSidebarContent(IModel<String> titleModel, SerializableFunction<String, Component> componentProvider) {
+        RightSidebarHelpPanel panel = getRightSidebarPanel();
+        panel.replaceContent(titleModel, componentProvider);
+    }
+
+    public void openRightSidebar(AjaxRequestTarget target) {
+        RightSidebarHelpPanel panel = getRightSidebarPanel();
+        panel.open(target);
+    }
+
+    public void closeRightSidebar(AjaxRequestTarget target) {
+        RightSidebarHelpPanel panel = getRightSidebarPanel();
+        panel.close(target);
     }
 
     private void updateAccessibilityLogo(String logoId) {

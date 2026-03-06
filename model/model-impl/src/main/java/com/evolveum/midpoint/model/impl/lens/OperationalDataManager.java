@@ -611,7 +611,9 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
         }
         var sourceProvenanceMetadata = sourceMetadataAny.getProvenance();
         if (sourceProvenanceMetadata != null) {
-            targetMetadata.setProvenance(sourceProvenanceMetadata.cloneWithoutId());
+            if (targetMetadata.getProvenance() == null) {
+                targetMetadata.setProvenance(sourceProvenanceMetadata.cloneWithoutId());
+            }
         }
     }
 

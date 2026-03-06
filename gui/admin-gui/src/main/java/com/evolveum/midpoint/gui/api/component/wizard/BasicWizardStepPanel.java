@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import java.io.Serial;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -15,8 +18,10 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -26,10 +31,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
+    private static final String ID_SUBTEXT_MORE = "subTextMore";
     private static final String ID_BACK = "back";
     private static final String ID_BACK_LABEL = "backLabel";
     private static final String ID_EXIT = "exit";
@@ -65,6 +71,20 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         secondaryText.add(new VisibleBehaviour(() -> getSubTextModel().getObject() != null));
         add(secondaryText);
 
+        IModel<String> subTextMoreModel = getSubTextMoreModel();
+
+        AjaxButton subTextMore = new AjaxButton(
+                ID_SUBTEXT_MORE, createStringResource("BasicWizardStepPanel.subTextMore")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().showRightSidebarHelp(target, subTextMoreModel);
+            }
+        };
+        subTextMore.add(new VisibleBehaviour(() ->
+                subTextMoreModel != null && StringUtils.isNotEmpty(subTextMoreModel.getObject())));
+        add(subTextMore);
+
         WebMarkupContainer buttonsStrip = new WebMarkupContainer(ID_BUTTONS_STRIP);
         buttonsStrip.setOutputMarkupPlaceholderTag(true);
         buttonsStrip.setVisible(isExitButtonVisible()
@@ -73,7 +93,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
                 || getNextBehaviour().isVisible());
         add(buttonsStrip);
 
-        AjaxLink back = new AjaxLink<>(ID_BACK) {
+        AjaxLink<?> back = new AjaxLink<>(ID_BACK) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -87,7 +107,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         WebComponentUtil.addDisabledClassBehavior(back);
         buttonsStrip.add(back);
 
-        AjaxLink exit = new AjaxLink<>(ID_EXIT) {
+        AjaxLink<?> exit = new AjaxLink<>(ID_EXIT) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -185,7 +205,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     }
 
     protected boolean isSubmitVisible() {
-      return getWizard().getNextPanel() == null;
+        return getWizard().getNextPanel() == null;
     }
 
     private VisibleBehaviour getExitVisibility() {
@@ -213,8 +233,8 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         return (AjaxSubmitButton) get(createComponentPath(ID_BUTTONS_STRIP, ID_NEXT));
     }
 
-    protected AjaxLink getBack() {
-        return (AjaxLink) get(createComponentPath(ID_BUTTONS_STRIP, ID_BACK));
+    protected AjaxLink<?> getBack() {
+        return (AjaxLink<?>) get(createComponentPath(ID_BUTTONS_STRIP, ID_BACK));
     }
 
     protected IModel<String> getBackLabelModel() {
@@ -233,25 +253,51 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         return Model.of();
     }
 
+    /**
+     * This is the same on two places, not sure why, see BasicWizardStepPanel.
+     */
+    protected IModel<String> getSubTextMoreModel() {
+        Class<?> clazz = getClass();
+        if (clazz.isAnonymousClass()) {
+            clazz = clazz.getSuperclass();
+        }
+
+        String key = clazz.getSimpleName() + ".subText.moreContent";
+
+        return new StringResourceModel(key)
+                .setDefaultValue("");
+    }
+
     public boolean onNextPerformed(AjaxRequestTarget target) {
         WizardModel model = getWizard();
+        WebComponentUtil.getPageBase(model.getPanel()).closeRightSidebar(target);
+
         if (model.hasNext()) {
             model.next();
-            target.add(model.getPanel());
+
+            Component panel = model.getPanel();
+            target.add(panel);
         }
 
         return false;
     }
 
     protected void onSubmitPerformed(AjaxRequestTarget target) {
+        getPageBase().closeRightSidebar(target);
+
         onExitPerformed(target);
     }
 
     public boolean onBackPerformed(AjaxRequestTarget target) {
         WizardModel model = getWizard();
+
+        WebComponentUtil.getPageBase(model.getPanel()).closeRightSidebar(target);
+
         if (model.hasPrevious()) {
             model.previous();
-            target.add(model.getPanel());
+
+            Component panel = model.getPanel();
+            target.add(panel);
         }
 
         return false;
@@ -262,15 +308,15 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 
-    protected final Label getTextLabel(){
+    protected final Label getTextLabel() {
         return (Label) get(ID_TEXT);
     }
 
-    protected final Label getSubtextLabel(){
+    protected final Label getSubtextLabel() {
         return (Label) get(ID_SUBTEXT);
     }
 
-    protected final WebMarkupContainer getButtonContainer(){
+    protected final WebMarkupContainer getButtonContainer() {
         return (WebMarkupContainer) get(ID_BUTTONS_STRIP);
     }
 }
