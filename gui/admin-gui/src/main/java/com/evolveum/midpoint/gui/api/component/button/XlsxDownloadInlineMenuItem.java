@@ -10,15 +10,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
@@ -26,52 +22,44 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.resource.IResourceStream;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 
-public abstract class CsvDownloadButtonPanel extends BasePanel {
+public abstract class XlsxDownloadInlineMenuItem extends InlineMenuItem {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CsvDownloadButtonPanel.class);
-    private static final String DOT_CLASS = CsvDownloadButtonPanel.class.getName() + ".";
-    private static final String OPERATION_GET_EXPORT_SIZE_LIMIT = DOT_CLASS + "getDefaultExportSizeLimit";
-
-    private static final String ID_EXPORT_DATA = "exportData";
-
-    //    private final boolean canCountBeforeExporting;
+    private static final Trace LOGGER = TraceManager.getTrace(XlsxDownloadInlineMenuItem.class);
+    private final Component component;
+    private AbstractAjaxDownloadBehavior ajaxDownloadBehavior;
+    private IModel<String> name;
     List<Integer> exportableColumnsIndex = new ArrayList<>();
 
-//    public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting) {
-//        super(id);
-//        this.canCountBeforeExporting = canCountBeforeExporting;
-//    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
+    public XlsxDownloadInlineMenuItem(IModel<String> label, Component component) {
+        super(label);
+        this.component = component;
         initLayout();
-    }
-
-    public CsvDownloadButtonPanel(String id) {
-        super(id);
     }
 
     private static final long serialVersionUID = 1L;
 
     private void initLayout() {
-        CSVDataExporter csvDataExporter = new CSVDataExporter() {
+        XlsxDataExporter xlsxDataExporter = new XlsxDataExporter() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public <T> void exportData(IDataProvider<T> dataProvider,
                     List<IExportableColumn<T, ?>> columns, OutputStream outputStream) {
                 if (dataProvider instanceof SelectableBeanContainerDataProvider) {
-                    ((SelectableBeanContainerDataProvider) dataProvider).setExport(true);        // TODO implement more nicely
+                    ((SelectableBeanContainerDataProvider) dataProvider).setExport(true);
                 }
                 try {
                     ((BaseSortableDataProvider) dataProvider).setExportSize(true);
@@ -87,78 +75,70 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
             }
 
             @Override
-            protected String quoteValue(String value) {
-                value = value.replaceAll("^\\[|\\]$", "");
-                return super.quoteValue(value);
-            }
-
-            @Override
             protected <T> IModel<T> wrapModel(IModel<T> model) {
                 if (model == null || model.getObject() == null) {
                     return () -> (T) "";
                 }
                 if (model.getObject() instanceof Referencable) {
                     return () -> {
-                        String value = WebModelServiceUtils.resolveReferenceName((Referencable) model.getObject(), getPageBase());
+                        String value = WebModelServiceUtils.resolveReferenceName(
+                                (Referencable) model.getObject(),
+                                WebComponentUtil.getPageBase(component)
+                        );
                         return (T) (value == null ? "" : value);
                     };
                 }
-                return super.wrapModel(model);
+                return model;
             }
         };
-        IModel<String> name = Model.of("");
-        final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
+        name = Model.of("");
+        ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public IResourceStream getResourceStream() {
-                return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, getDataTable());
+                return new ExportToolbar.DataExportResourceStreamWriter(xlsxDataExporter, getDataTable());
             }
 
             public String getFileName() {
                 if (StringUtils.isEmpty(name.getObject())) {
-                    return CsvDownloadButtonPanel.this.getFilename();
+                    return XlsxDownloadInlineMenuItem.this.getFilename();
                 }
                 return name.getObject();
             }
         };
 
-        add(ajaxDownloadBehavior);
+        component.add(ajaxDownloadBehavior);
+    }
 
-        AjaxIconButton exportDataLink = new AjaxIconButton(ID_EXPORT_DATA, new Model<>("fa fa-download"),
-                createStringResource("CsvDownloadButtonPanel.export")) {
-
-            private static final long serialVersionUID = 1L;
-
+    @Override
+    public InlineMenuItemAction initAction() {
+        return new InlineMenuItemAction() {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 long exportSizeLimit = -1;
                 try {
-                    CompiledGuiProfile adminGuiConfig = getPageBase().getCompiledGuiProfile();
+                    CompiledGuiProfile adminGuiConfig = WebComponentUtil.getPageBase(component).getCompiledGuiProfile();
                     if (adminGuiConfig.getDefaultExportSettings() != null && adminGuiConfig.getDefaultExportSettings().getSizeLimit() != null) {
                         exportSizeLimit = adminGuiConfig.getDefaultExportSettings().getSizeLimit();
                     }
                 } catch (Exception ex) {
-                    LOGGER.error("Unable to get csv export size limit,", ex);
+                    LOGGER.error("Unable to get xlsx export size limit,", ex);
                 }
                 boolean askForSizeLimitConfirmation;
                 if (exportSizeLimit < 0) {
                     askForSizeLimitConfirmation = false;
                 } else {
-//                    if (canCountBeforeExporting) {
                     IDataProvider<?> dataProvider = getDataTable().getDataProvider();
                     long size = dataProvider.size();
                     askForSizeLimitConfirmation = size > exportSizeLimit;
-//                    } else {
-//                        askForSizeLimitConfirmation = true;     // size is unknown
-//                    }
                 }
                 Long useExportSizeLimit = null;
                 if (askForSizeLimitConfirmation) {
                     useExportSizeLimit = exportSizeLimit;
                 }
                 exportableColumnsIndex.clear();
-                ExportingPanel exportingPanel = new ExportingPanel(getPageBase().getMainPopupBodyId(),
+                ExportingPanel exportingPanel = new ExportingPanel(WebComponentUtil.getPageBase(component).getMainPopupBodyId(),
                         getDataTable(), exportableColumnsIndex, useExportSizeLimit, name) {
                     private static final long serialVersionUID = 1L;
 
@@ -166,11 +146,15 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                     public void exportPerformed(AjaxRequestTarget target) {
                         ajaxDownloadBehavior.initiate(target);
                     }
+
+                    @Override
+                    protected IModel<String> getConfirmationMessage(final Long exportSizeLimit) {
+                        return getPageBase().createStringResource("XlsxDownloadButtonPanel.confirmationMessage", exportSizeLimit);
+                    }
                 };
-                getPageBase().showMainPopup(exportingPanel, target);
+                WebComponentUtil.getPageBase(component).showMainPopup(exportingPanel, target);
             }
         };
-        add(exportDataLink);
     }
 
     private <T> List<IExportableColumn<T, ?>> getExportableColumns() {

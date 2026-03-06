@@ -1205,6 +1205,12 @@
                 <artifactId>poi</artifactId>
                 <version>${poi.version}</version>
             </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
 
             <!-- Used by cxf-core, can go away with CXF -->
             <dependency>

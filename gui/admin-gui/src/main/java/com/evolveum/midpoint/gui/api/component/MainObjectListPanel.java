@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -226,7 +227,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         buttonsList.add(createNewObjectButton(buttonId));
         buttonsList.add(createImportObjectButton(buttonId));
-        buttonsList.add(createDownloadButton(buttonId));
+        buttonsList.add(DropdownButtonUtil.createDownloadButtonPanel(buttonId, this));
         buttonsList.add(createCreateReportButton(buttonId));
         buttonsList.add(createRefreshButton(buttonId));
         buttonsList.add(createPlayPauseButton(buttonId));
@@ -284,7 +285,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
-        createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        createNewObjectButton.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
         return createNewObjectButton;
     }
 
@@ -419,7 +420,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 createReportPerformed(target);
             }
         };
-        createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
+        createReport.add(AttributeAppender.append("class", "mr-2 ml-2 btn btn-default btn-sm"));
         createReport.add(new VisibleBehaviour(this::isReportObjectButtonVisible));
         return createReport;
     }
