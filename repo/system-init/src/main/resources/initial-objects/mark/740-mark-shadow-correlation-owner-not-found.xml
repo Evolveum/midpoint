@@ -23,7 +23,7 @@
         <help>
             <orig>Number of objects that could not be correlated to any resource owner.</orig>
             <translation>
-                <key>SimulationCorrelationPanel.uncertain.help</key>
+                <key>SimulationCorrelationPanel.notCorrelated.help</key>
             </translation>
         </help>
         <icon>
