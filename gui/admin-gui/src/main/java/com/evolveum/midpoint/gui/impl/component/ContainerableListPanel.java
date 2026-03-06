@@ -46,8 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.api.component.button.XlsxDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonUtil;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -80,7 +79,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -1266,57 +1264,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        buttonsList.add(createCsvDownloadButton(idButton));
-        buttonsList.add(createXlsxDownloadButton(idButton));
+        buttonsList.add(DropdownButtonUtil.createDownloadButtonPanel(idButton, this));
         return buttonsList;
-    }
-
-    protected CsvDownloadButtonPanel createCsvDownloadButton(String buttonId) {
-
-        CsvDownloadButtonPanel exportCSVDataLink = new CsvDownloadButtonPanel(buttonId) {
-            @Override
-            protected DataTable<?, ?> getDataTable() {
-                return getTable().getDataTable();
-            }
-
-            @Override
-            protected String getFilename() {
-                return getType().getSimpleName() +
-                        "_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-            }
-
-        };
-        exportCSVDataLink.add(new VisibleBehaviour(this::isExportCSVDataLinkVisible));
-        return exportCSVDataLink;
-    }
-
-    protected XlsxDownloadButtonPanel createXlsxDownloadButton(String buttonId) {
-
-        XlsxDownloadButtonPanel exportXLSXDataLink = new XlsxDownloadButtonPanel(buttonId) {
-            @Override
-            protected DataTable<?, ?> getDataTable() {
-                return getTable().getDataTable();
-            }
-
-            @Override
-            protected String getFilename() {
-                return getType().getSimpleName() +
-                        "_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-            }
-
-        };
-        exportXLSXDataLink.add(new VisibleBehaviour(this::isExportXLSXDataLinkVisible));
-        return exportXLSXDataLink;
-    }
-
-    private boolean isExportCSVDataLinkVisible() {
-        return !WebComponentUtil.hasPopupableParent(ContainerableListPanel.this)
-                && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
-    }
-
-    private boolean isExportXLSXDataLinkVisible() {
-        return !WebComponentUtil.hasPopupableParent(ContainerableListPanel.this)
-                && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI);
     }
 
     protected String getStorageKey() {

@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -226,8 +227,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         buttonsList.add(createNewObjectButton(buttonId));
         buttonsList.add(createImportObjectButton(buttonId));
-        buttonsList.add(createCsvDownloadButton(buttonId));
-        buttonsList.add(createXlsxDownloadButton(buttonId));
+        buttonsList.add(DropdownButtonUtil.createDownloadButtonPanel(buttonId, this));
         buttonsList.add(createCreateReportButton(buttonId));
         buttonsList.add(createRefreshButton(buttonId));
         buttonsList.add(createPlayPauseButton(buttonId));

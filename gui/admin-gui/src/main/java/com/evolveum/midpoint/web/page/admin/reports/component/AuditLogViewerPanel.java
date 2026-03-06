@@ -20,7 +20,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -36,10 +35,7 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadInlineMenuItem;
-import com.evolveum.midpoint.gui.api.component.button.XlsxDownloadInlineMenuItem;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonUtil;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -71,7 +67,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -189,78 +184,11 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         return getSelectedObjects().stream().map(SelectableBean::getValue).collect(Collectors.toList());
     }
 
-    protected List<InlineMenuItem> createDownloadFormatMenu() {
-        List<InlineMenuItem> items = new ArrayList<>();
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI)) {
-            items.add(new CsvDownloadInlineMenuItem(
-                    createStringResource("CsvDownloadButtonPanel.export"),
-                    getPageBase()
-            ) {
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                protected String getFilename() {
-                    return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-                }
-
-                @Override
-                protected DataTable<?, ?> getDataTable() {
-                    return getTable().getDataTable();
-                }
-            });
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI)) {
-            items.add(new XlsxDownloadInlineMenuItem(
-                    createStringResource("XlsxDownloadButtonPanel.export"),
-                    getPageBase()
-            ) {
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                protected String getFilename() {
-                    return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-                }
-
-                @Override
-                protected DataTable<?, ?> getDataTable() {
-                    return getTable().getDataTable();
-                }
-            });
-        }
-        return items;
-    }
-
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
 
-        DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-download", null, createDownloadFormatMenu());
-        DropdownButtonPanel downloadFormatMenu = new DropdownButtonPanel(idButton, model) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String getSpecialButtonClass() {
-                return "btn btn-default btn-sm";
-            }
-
-            @Override
-            protected String getSpecialDropdownMenuClass() {
-                return "dropdown-menu-left";
-            }
-
-            @Override
-            protected void onInitialize() {
-                super.onInitialize();
-                getButtonContainer().add(AttributeModifier.append("aria-label", "AssignmentTablePanel.operationMenu"));
-            }
-        };
-        downloadFormatMenu.setVisible(
-                WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI) ||
-                        WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI)
-        );
-        buttonsList.add(downloadFormatMenu);
+        buttonsList.add(DropdownButtonUtil.createDownloadButtonPanel(idButton, this));
 
         AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(idButton, WebComponentUtil.createCreateReportIcon(),
                 getPageBase().createStringResource("MainObjectListPanel.createReport")) {
