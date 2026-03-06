@@ -52,6 +52,8 @@ public class OtpPanel<F extends FocusType> extends InputPanel {
     private static final String ID_CODE_FEEDBACK = "codeFeedback";
     private static final String ID_CODE_HELP = "codeHelp";
 
+    private boolean editMode = false;
+
     private final IModel<F> focusModel;
 
     private final IModel<OtpCredentialType> model;
@@ -127,10 +129,12 @@ public class OtpPanel<F extends FocusType> extends InputPanel {
         Label qr = new Label(ID_QR, qrModel);
         qr.setRenderBodyOnly(true);
         qr.setEscapeModelStrings(false);
+        qr.add(new VisibleBehaviour(() -> !editMode));
         add(qr);
 
         WebMarkupContainer codeGroup = new WebMarkupContainer(ID_CODE_GROUP);
         codeGroup.setOutputMarkupId(true);
+        codeGroup.add(new VisibleBehaviour(() -> !editMode));
         add(codeGroup);
 
         TextField<Integer> code = new TextField<>(ID_CODE, codeModel);
@@ -198,5 +202,9 @@ public class OtpPanel<F extends FocusType> extends InputPanel {
 
     private void refreshCodeGroup(AjaxRequestTarget target) {
         target.add(get(ID_CODE_GROUP));
+    }
+
+    public void setEditMode(boolean editMode) {
+        this.editMode = editMode;
     }
 }

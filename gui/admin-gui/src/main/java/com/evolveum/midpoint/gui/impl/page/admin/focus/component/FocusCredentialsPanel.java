@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.otp.OtpListPanel;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -45,7 +47,7 @@ public class FocusCredentialsPanel<F extends FocusType, FDM extends FocusDetails
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_TAB_PANEL = "tabPanel";
+    private static final String ID_CONTENT = "content";
 
     public FocusCredentialsPanel(
             String id,
@@ -56,8 +58,14 @@ public class FocusCredentialsPanel<F extends FocusType, FDM extends FocusDetails
 
     @Override
     protected void initLayout() {
-        TabbedPanel<?> tabPanel = new TabbedPanel<>(ID_TAB_PANEL, createTabs());
-        add(tabPanel);
+        List<ITab> tabs = createTabs();
+
+        if (tabs.size() == 1) {
+            WebMarkupContainer panel = tabs.get(0).getPanel(ID_CONTENT);
+            add(panel);
+        } else {
+            add(new TabbedPanel<>(ID_CONTENT, tabs));
+        }
     }
 
     private List<ITab> createTabs() {
@@ -65,39 +73,42 @@ public class FocusCredentialsPanel<F extends FocusType, FDM extends FocusDetails
 
         // todo fix authorization. previously there was panel for password with
         //  custom name (identifier) and details menu and could be hidden via gui panels
-        tabs.add(createPasswordTab());
-        tabs.add(createOtpsTab());
+        tabs.add(
+                createTab(
+                        createStringResource("FocusCredentialsPanel.tab.password"),
+                        id -> createPasswordPanel(id)));
+        tabs.add(
+                createTab(
+                        createStringResource("FocusCredentialsPanel.tab.otp"),
+                        id -> createOtpsPanel(id)));
 
         return tabs;
     }
 
-    private ITab createPasswordTab() {
-        return new PanelTab(createStringResource("FocusCredentialsPanel.tab.password")) {
+    private ITab createTab(IModel<String> title, SerializableFunction<String, WebMarkupContainer> panelSupplier) {
+        return new PanelTab(title) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new SingleContainerPanel<>(panelId,
-                        PrismContainerWrapperModel.fromContainerWrapper(
-                                getObjectWrapperModel(), ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD)),
-                        PasswordType.COMPLEX_TYPE);
+                return panelSupplier.apply(panelId);
             }
         };
     }
 
-    private ITab createOtpsTab() {
-        return new PanelTab(createStringResource("FocusCredentialsPanel.tab.otp")) {
+    private WebMarkupContainer createPasswordPanel(String panelId) {
+        return new SingleContainerPanel<>(panelId,
+                PrismContainerWrapperModel.fromContainerWrapper(
+                        getObjectWrapperModel(), ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD)),
+                PasswordType.COMPLEX_TYPE);
+    }
 
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                PrismContainerWrapperModel<F, OtpCredentialType> model =
-                        PrismContainerWrapperModel.fromContainerWrapper(
-                                getObjectWrapperModel(),
-                                ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_TOTP),
-                                () ->
-                                        getPageBase());
+    private WebMarkupContainer createOtpsPanel(String panelId) {
+        PrismContainerWrapperModel<F, OtpCredentialType> model =
+                PrismContainerWrapperModel.fromContainerWrapper(
+                        getObjectWrapperModel(),
+                        ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_TOTP),
+                        () -> getPageBase());
 
-                return new OtpListPanel(panelId, () -> getObjectDetailsModels().getObjectType(), model, null);
-            }
-        };
+        return new OtpListPanel(panelId, () -> getObjectDetailsModels().getObjectType(), model, null);
     }
 }

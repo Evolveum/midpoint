@@ -10,8 +10,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -19,12 +17,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -46,6 +44,7 @@ import com.evolveum.midpoint.web.application.Counter;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -179,12 +178,12 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
 
                     @Override
                     protected void onDeletePerformed(AjaxRequestTarget target) {
-                        OtpListPanel.this.onEditPerformed(target, model);
+                        OtpListPanel.this.onDeletePerformed(target, model);
                     }
 
                     @Override
                     protected void onEditPerformed(AjaxRequestTarget target) {
-                        OtpListPanel.this.onDeletePerformed(target, model);
+                        OtpListPanel.this.onEditPerformed(target, model);
                     }
                 };
                 item.add(panel);
@@ -232,24 +231,12 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
             }
         };
 
-        OtpPopupPanel<F> panel = new OtpPopupPanel<>(getPageBase().getMainPopupBodyId(), focusModel, credentialModel) {
-
-            @Override
-            protected void onCancelPerformed(AjaxRequestTarget target) {
-                OtpListPanel.this.onCancelPerformed(target);
-
-                super.onCancelPerformed(target);
-            }
-
-            @Override
-            protected void onConfirmPerformed(AjaxRequestTarget target) {
-                OtpListPanel.this.onConfirmPerformed(target, credentialModel.getObject());
-
-                super.onConfirmPerformed(target);
-            }
-        };
-
-        getPageBase().showMainPopup(panel, target);
+        showOtpEditorPopup(
+                target,
+                credentialModel,
+                false,
+                t -> onNewOtpConfirmPerformed(t, credentialModel.getObject()),
+                this::onNewOtpCancelPerformed);
     }
 
     private void onDeletePerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<OtpCredentialType>> model) {
@@ -264,19 +251,68 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
     }
 
     private void onEditPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<OtpCredentialType>> model) {
-        // todo implement
+        IModel<OtpCredentialType> credentialModel = new LoadableModel<>(false) {
+
+            @Override
+            protected OtpCredentialType load() {
+                return model.getObject().getNewValue().asContainerable();
+            }
+        };
+
+        showOtpEditorPopup(
+                target,
+                credentialModel,
+                true,
+                t -> onEditOtpConfirmPerformed(t, credentialModel),
+                t -> onEditOtpCancelPerformed(t));
+
         refreshTable(target);
     }
 
-    private void onCancelPerformed(AjaxRequestTarget target) {
+    private void onEditOtpCancelPerformed(AjaxRequestTarget target) {
+        refreshTable(target); // todo
+    }
+
+    private void onEditOtpConfirmPerformed(AjaxRequestTarget target, IModel<OtpCredentialType> credentialModel) {
+        refreshTable(target);   // todo
+    }
+
+    private void onNewOtpCancelPerformed(AjaxRequestTarget target) {
         refreshTable(target);
     }
 
-    private void onConfirmPerformed(AjaxRequestTarget target, OtpCredentialType credential) {
+    private void onNewOtpConfirmPerformed(AjaxRequestTarget target, OtpCredentialType credential) {
         PrismContainerWrapper<OtpCredentialType> wrapper = model.getObject();
 
         createNewItemContainerValueWrapper(credential.asPrismContainerValue(), wrapper, target);
 
         refreshTable(target);
+    }
+
+    private void showOtpEditorPopup(
+            AjaxRequestTarget target,
+            IModel<OtpCredentialType> credentialModel,
+            boolean editMode,
+            SerializableConsumer<AjaxRequestTarget> confirmHandler,
+            SerializableConsumer<AjaxRequestTarget> cancelHandler) {
+        OtpPopupPanel<F> panel = new OtpPopupPanel<>(getPageBase().getMainPopupBodyId(), focusModel, credentialModel) {
+
+            @Override
+            protected void onCancelPerformed(AjaxRequestTarget target) {
+                cancelHandler.accept(target);
+
+                super.onCancelPerformed(target);
+            }
+
+            @Override
+            protected void onConfirmPerformed(AjaxRequestTarget target) {
+                confirmHandler.accept(target);
+
+                super.onConfirmPerformed(target);
+            }
+        };
+        panel.setEditMode(editMode);
+
+        getPageBase().showMainPopup(panel, target);
     }
 }

@@ -34,6 +34,8 @@ public class OtpPopupPanel<F extends FocusType> extends BasePanel<OtpCredentialT
 
     private final IModel<F> focusModel;
 
+    private boolean editMode;
+
     public OtpPopupPanel(String id, IModel<F> focusModel, IModel<OtpCredentialType> model) {
         super(id, model);
 
@@ -51,7 +53,9 @@ public class OtpPopupPanel<F extends FocusType> extends BasePanel<OtpCredentialT
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
 
-        form.add(new OtpPanel<>(ID_OTP, focusModel, getModel()));
+        OtpPanel<F> otp = new OtpPanel<>(ID_OTP, focusModel, getModel());
+        otp.setEditMode(editMode);
+        form.add(otp);
     }
 
     @Override
@@ -129,5 +133,9 @@ public class OtpPopupPanel<F extends FocusType> extends BasePanel<OtpCredentialT
 
     protected void onConfirmPerformed(AjaxRequestTarget target) {
         getPageBase().hideMainPopup(target);
+    }
+
+    public void setEditMode(boolean editMode) {
+        this.editMode = editMode;
     }
 }
