@@ -360,7 +360,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                                 "    if (wParam !== tabId) {\n" +
                                 "       url.searchParams.set('w', tabId);\n" +
                                 "       console.log('redirect to url ' + url.toString());\n" +
-                                "       window.history.replaceState({}, '', url);\n" +
+                                "       window.location.replace(url);\n" +
                                 "    }" +
                                 "    if (!url.searchParams.has('w')) {\n" +
                                 "        url.searchParams.set('w', tabId);\n" +
