@@ -348,7 +348,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                         "document.addEventListener('DOMContentLoaded', function() {\n" +
                                 "    // Initialize tabId in sessionStorage if not exists\n" +
                                 "    if (!sessionStorage.getItem('w')) {\n" +
-                                "        sessionStorage.setItem('w', crypto.randomUUID());\n" +
+                                "        const windowId = encodeURIComponent(crypto.randomUUID().substring(0, 8));\n" +
+                                "        console.log('windowId initialized:', windowId);\n" +
+                                "        sessionStorage.setItem('w', windowId);\n" +
                                 "    }\n" +
                                 "    var tabId = sessionStorage.getItem('w');\n" +
                                 "    console.log('tabId initialized:', tabId);\n" +

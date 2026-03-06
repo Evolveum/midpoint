@@ -17,7 +17,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.MetaDataKey;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -58,9 +57,9 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
         // If parameter present and non-empty, continue normally
         String existing = request.getParameter(PARAM_WI);
         String wi = getWindowParameterFromRefererHeader(request);
-        if (StringUtils.isEmpty(wi)) {
-            wi = URLEncoder.encode(UUID.randomUUID().toString().substring(0, 8), StandardCharsets.UTF_8);
-        }
+//        if (StringUtils.isEmpty(wi)) {
+//            wi = URLEncoder.encode(UUID.randomUUID().toString().substring(0, 8), StandardCharsets.UTF_8);
+//        }
 //        if (StringUtils.isEmpty(wi)) {
 //            existing = null;
 //        }
@@ -74,7 +73,7 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
         String requestURL = request.getRequestURL().toString();
         String query = request.getQueryString(); // may be null
 
-//        if (!StringUtils.isEmpty(wi)) {
+        if (!StringUtils.isEmpty(wi)) {
 
             request.setAttribute(PARAM_WI, wi);
 
@@ -88,9 +87,9 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
             newUrl.append(PARAM_WI).append("=").append(wi);
 
             response.sendRedirect(newUrl.toString());
-//        } else {
-//            filterChain.doFilter(request, response);
-//        }
+        } else {
+            filterChain.doFilter(request, response);
+        }
     }
 
     public static String getPathWithoutContext(HttpServletRequest request) {
