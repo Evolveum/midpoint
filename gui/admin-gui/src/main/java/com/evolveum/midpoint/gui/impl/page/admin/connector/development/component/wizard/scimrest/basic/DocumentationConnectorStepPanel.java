@@ -294,7 +294,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                 };
 
                 addUrl.showTitleAsLabel(true);
-                addUrl.add(AttributeAppender.replace("class", "btn btn-default rounded-0 ml-auto"));
+                addUrl.add(AttributeAppender.replace("class", "btn btn-default rounded-0 ml-auto text-nowrap"));
                 addUrl.add(AttributeAppender.replace("style", "border-right: 0 !important;"));
                 buttons.add(addUrl);
 
@@ -310,7 +310,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                 };
 
                 uploadFile.showTitleAsLabel(true);
-                uploadFile.add(AttributeAppender.replace("class", "btn btn-default rounded-0"));
+                uploadFile.add(AttributeAppender.replace("class", "btn btn-default rounded-0 text-nowrap"));
                 buttons.add(uploadFile);
                 return buttons;
             }

@@ -340,6 +340,10 @@ export default class MidPointTheme {
                 });
             });
 
+            $(document).on("focusout mouseleave", "[data-toggle='tooltip']", function () {
+                clearTimeout($(this).data("tooltipShowDelayTimer"));
+            });
+
             $.fn.showTooltip = function (setFocus = false) {
                 const $el = $(this);
                 if (typeof $el.tooltip === "function") {
@@ -368,8 +372,14 @@ export default class MidPointTheme {
                         trigger: 'manual'
                     });
 
-                    $el.tooltip("show");
-                    $el.removeAttr("aria-describedby");
+                    // "tooltipShowDelayTimer" is used to prevent tooltip from showing when user quickly moves mouse
+                    // over multiple icons with tooltips or quickly tabs through them. Tooltip will be shown only for
+                    // the last hovered/focused element after 1 second delay.
+                    clearTimeout($el.data("tooltipShowDelayTimer"));
+                    $el.data("tooltipShowDelayTimer", setTimeout(() => {
+                        $el.tooltip("show");
+                        $el.removeAttr("aria-describedby");
+                    }, 1000));
 
                     setTimeout(() => {
                         const $tooltip = $('.tooltip:visible').last();

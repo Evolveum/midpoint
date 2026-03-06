@@ -12,6 +12,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -27,6 +28,7 @@ public class RightSidebarHelpPanel extends BasePanel<Void> {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TITLE = "title";
+    private static final String ID_CLOSE = "close";
     private static final String ID_CONTENT = "content";
 
     private final IModel<Boolean> visible = Model.of(false);
@@ -45,7 +47,7 @@ public class RightSidebarHelpPanel extends BasePanel<Void> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "right-sidebar-help bg-light border-left border-lightblue p-3"));
+        add(AttributeAppender.append("class", "right-sidebar-help"));
         add(new VisibleBehaviour(visible::getObject));
 
         setOutputMarkupPlaceholderTag(true);
@@ -54,7 +56,20 @@ public class RightSidebarHelpPanel extends BasePanel<Void> {
         title.add(new VisibleBehaviour(() -> titleModel.getObject() != null && StringUtils.isNotEmpty(titleModel.getObject())));
         add(title);
 
+        AjaxLink<Void> close = new AjaxLink<>(ID_CLOSE) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                closePerformed(target);
+            }
+        };
+        add(close);
+
         add(new WebMarkupContainer(ID_CONTENT));
+    }
+
+    private void closePerformed(AjaxRequestTarget target) {
+        close(target);
     }
 
     public void open(AjaxRequestTarget target) {

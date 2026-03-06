@@ -253,6 +253,9 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         return Model.of();
     }
 
+    /**
+     * This is the same on two places, not sure why, see BasicWizardStepPanel.
+     */
     protected IModel<String> getSubTextMoreModel() {
         Class<?> clazz = getClass();
         if (clazz.isAnonymousClass()) {
@@ -267,13 +270,13 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     public boolean onNextPerformed(AjaxRequestTarget target) {
         WizardModel model = getWizard();
+        WebComponentUtil.getPageBase(model.getPanel()).closeRightSidebar(target);
+
         if (model.hasNext()) {
             model.next();
 
             Component panel = model.getPanel();
             target.add(panel);
-
-            WebComponentUtil.getPageBase(panel).closeRightSidebar(target);
         }
 
         return false;
@@ -287,13 +290,14 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     public boolean onBackPerformed(AjaxRequestTarget target) {
         WizardModel model = getWizard();
+
+        WebComponentUtil.getPageBase(model.getPanel()).closeRightSidebar(target);
+
         if (model.hasPrevious()) {
             model.previous();
 
             Component panel = model.getPanel();
             target.add(panel);
-
-            WebComponentUtil.getPageBase(panel).closeRightSidebar(target);
         }
 
         return false;

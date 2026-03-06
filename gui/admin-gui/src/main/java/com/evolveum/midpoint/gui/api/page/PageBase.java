@@ -495,7 +495,13 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     public void showRightSidebarHelp(AjaxRequestTarget target, IModel<String> titleModel, IModel<String> helpContent) {
-        replaceRightSidebarContent(titleModel, id -> new MultiLineLabel(id, helpContent));
+        replaceRightSidebarContent(titleModel, id -> {
+            MultiLineLabel label = new MultiLineLabel(id, helpContent);
+            // todo make sure this is ok
+            label.setEscapeModelStrings(false);
+
+            return label;
+        });
         openRightSidebar(target);
     }
 

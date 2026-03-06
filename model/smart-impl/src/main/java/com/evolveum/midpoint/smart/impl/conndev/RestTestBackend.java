@@ -14,9 +14,9 @@ import java.util.List;
 public class RestTestBackend extends RestBackend {
 
     private static final ConnDevDocumentationSourceType OPENAPI = new ConnDevDocumentationSourceType()
-            .name("OpenProject OpenAPI specification")
+            .name("OpenProject OpenAPI")
             .description("OpenAPI specification")
-            .uri("https://www.openproject.org/docs/api/v3/spec.yml");
+            .uri("https://www.openproject.org/docs/api/");
 
     public RestTestBackend(ConnDevBeans beans, ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         super(beans, connDev, task, result);

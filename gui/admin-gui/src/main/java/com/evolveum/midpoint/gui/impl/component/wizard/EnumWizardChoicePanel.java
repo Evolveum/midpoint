@@ -104,6 +104,8 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     }
 
     protected void onTileClick(T value, AjaxRequestTarget target) {
+        WebComponentUtil.getPageBase(this).closeRightSidebar(target);
+
         if (value == null) {
             goToObjectPerformed(getObjectType());
             return;
