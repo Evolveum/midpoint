@@ -201,7 +201,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     }
 
     /** Restarts the polling timer if it exists. */
-    private void restartTimeBehavior(AjaxRequestTarget target) {
+    public void restartTimeBehavior(AjaxRequestTarget target) {
         if (timerBehavior != null) {
             try {
                 timerBehavior.restart(target);

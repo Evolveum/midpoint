@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -145,10 +146,10 @@ class MappingsSuggestionOperation {
             collectSystemMappings(knownSchemaProvider, shadowsForValidation, result)
                     .forEach(mappingCandidates::proposeSystemMapping);
 
-            var mappingFutures = new ArrayList<MappingFuture>();
+            var mappingFutures = new ArrayList<CompletableFuture<Void>>();
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
-                var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
+                var op = mappingsSuggestionState.recordProcessingStart("test");
                 mappingsSuggestionState.flush(result);
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
@@ -164,34 +165,39 @@ class MappingsSuggestionOperation {
                 var valuePairsForValidation = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                         .from(shadowsForValidation);
 
-                var future = suggestMappingAsync(matchPair, valuePairsForLLM, valuePairsForValidation, result);
-                mappingFutures.add(new MappingFuture(future, matchPair, op));
+                final OperationResult mappingResult = result.createSubresult("Mapping suggestion for the pair of "
+                        + matchPair.getShadowAttributePath() + " and " + matchPair.getFocusPropertyPath());
+                var future = suggestMappingAsync(matchPair, valuePairsForLLM, valuePairsForValidation, mappingResult)
+                        .thenAccept(aiMapping -> {
+                            if (aiMapping != null) {
+                                mappingCandidates.propose(aiMapping);
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
+                            } else {
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
+                            }
+                        }).exceptionally(e -> {
+                            Throwable cause = e.getCause() != null // e = CompletionException
+                                    ? e.getCause().getCause() != null // e.getCause = RuntimeException
+                                        ? e.getCause().getCause() // e.getCause.getCause = Actual interesting exception
+                                        : e.getCause()
+                                    : e;
+                            if (cause instanceof LowQualityMappingException) {
+                                LOGGER.debug("Skipping mapping due to low quality: {}", cause.getMessage());
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
+                            } else if (cause instanceof MissingSourceDataException) {
+                                LOGGER.debug("Skipping mapping due to missing source data: {}", cause.getMessage());
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
+                            } else {
+                                LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", cause,
+                                        matchPair.getShadowAttributePath());
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.FAILURE);
+                            }
+                            return null;
+                        });
+                mappingFutures.add(future);
             }
 
-            for (MappingFuture mappingFuture : mappingFutures) {
-                try {
-                    var aiMapping = mappingFuture.future.join();
-                    if (aiMapping != null) {
-                        mappingCandidates.propose(aiMapping);
-                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.SUCCESS);
-                    } else {
-                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.SKIP);
-                    }
-                } catch (Exception e) {
-                    Throwable cause = e.getCause() != null ? e.getCause() : e;
-                    if (cause instanceof LowQualityMappingException) {
-                        LOGGER.debug("Skipping mapping due to low quality: {}", cause.getMessage());
-                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.SKIP);
-                    } else if (cause instanceof MissingSourceDataException) {
-                        LOGGER.debug("Skipping mapping due to missing source data: {}", cause.getMessage());
-                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.SKIP);
-                    } else {
-                        LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", cause, mappingFuture.matchPair.getShadowAttributePath());
-                        mappingsSuggestionState.recordProcessingEnd(mappingFuture.operation, ItemProcessingOutcomeType.FAILURE);
-                    }
-                }
-                ctx.checkIfCanRun();
-            }
+            CompletableFuture.allOf(mappingFutures.toArray(new CompletableFuture[]{})).join();
 
             mappingCandidates.best()
                     .forEach(suggestion.getAttributeMappings()::add);
@@ -606,14 +612,5 @@ class MappingsSuggestionOperation {
             return new MappingEvaluationResult(expression, expectedQuality, isSystemProvided);
         }
     }
-
-    /**
-     * Helper record to track async mapping suggestions with their associated metadata.
-     */
-    private record MappingFuture(
-            CompletableFuture<AttributeMappingsSuggestionType> future,
-            SchemaMatchOneResultType matchPair,
-            com.evolveum.midpoint.schema.statistics.Operation operation
-    ) {}
 
 }

@@ -43,7 +43,11 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.TabSeparatedTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.DataAccessPermission;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
+import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
@@ -74,6 +78,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
+import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyMappingPermissionData;
 
 /**
  * @author lskublik
@@ -101,6 +106,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     IModel<Boolean> inboundSuggestionToggleModel = Model.of(Boolean.FALSE);
     IModel<Boolean> outboundSuggestionToggleModel = Model.of(Boolean.FALSE);
     boolean isInboundTabSelected = true;
+    private SerializableConsumer<AjaxRequestTarget> restartTime;
 
     public AttributeMappingsTableWizardPanel(
             String id,
@@ -127,6 +133,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     private void initLayout() {
         String resourceOid = getResourceOid();
         SmartAlertGeneratingPanel aiPanel = createSmartAlertGeneratingPanel(resourceOid);
+        this.restartTime = aiPanel::restartTimeBehavior;
         add(aiPanel);
 
         List<ITab> tabs = new ArrayList<>();
@@ -260,8 +267,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                 if (isSuggestionExists(loadSuggestion(resourceOid).getObject())) {
                                     getSwitchToggleModel().setObject(Boolean.TRUE);
                                 } else {
-                                    performSuggestOperation(target, List.of(DataAccessPermissionType.SCHEMA_ACCESS,
-                                            DataAccessPermissionType.RAW_DATA_ACCESS));
+                                    showSuggestConfirmDialog(getPageBase(), target, (atarget, permissions) ->
+                                            performSuggestOperation(atarget, permissions.getObject()));
                                 }
 
                                 target.add(AttributeMappingsTableWizardPanel.this);
@@ -281,6 +288,28 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         columnTileTable.add(AttributeAppender.append("class", "p-0"));
 
         return columnTileTable;
+    }
+
+    private void showSuggestConfirmDialog(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @NotNull SerializableBiConsumer<AjaxRequestTarget,
+                    IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>>> action) {
+        final RequestDetailsRecordDto<DataAccessPermission> dataAccessPermissionRequestDetailsRecordDto =
+                new RequestDetailsRecordDto<>(null, initDummyMappingPermissionData());
+        RequestDetailsConfirmationPanel<DataAccessPermission> dialog = new RequestDetailsConfirmationPanel<>(
+                pageBase.getMainPopupBodyId(), () -> dataAccessPermissionRequestDetailsRecordDto) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target,
+                    IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>> confirmedOptions) {
+                action.accept(target, confirmedOptions);
+                target.add(AttributeMappingsTableWizardPanel.this);
+                getTable().refreshAndDetach(target);
+                restartTime.accept(target);
+            }
+        };
+        pageBase.showMainPopup(dialog, target);
     }
 
     private @NotNull @Unmodifiable List<ItemPathType> getTargetPathsToIgnore() {
@@ -358,11 +387,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
                     IModel<List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>>> confirmedOptions) {
-                final List<DataAccessPermissionType> permissions = confirmedOptions.getObject().stream()
-                        .map(RequestDetailsRecordDto.RequestRecord::option)
-                        .map(DataAccessPermission::toSchemaType)
-                        .toList();
-                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, permissions);
+                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions.getObject());
             }
 
             @Override
@@ -391,7 +416,11 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     protected void performSuggestOperation(AjaxRequestTarget target,
-            List<DataAccessPermissionType> permissions) {
+            List<RequestDetailsRecordDto.RequestRecord<DataAccessPermission>> confirmedOptions) {
+        final List<DataAccessPermissionType> permissions = confirmedOptions.stream()
+                .map(RequestDetailsRecordDto.RequestRecord::option)
+                .map(DataAccessPermission::toSchemaType)
+                .toList();
         ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
         if (objectTypeIdentification == null) {
             LOGGER.warn("Cannot perform suggest mapping operation - no resource object type definition found.");
