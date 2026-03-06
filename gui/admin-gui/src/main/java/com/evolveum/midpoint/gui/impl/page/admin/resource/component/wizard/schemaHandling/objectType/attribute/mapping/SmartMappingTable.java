@@ -522,7 +522,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
             if (parentContainerValue == null || parentContainerValue.getRealValue() == null) {
                 return;
             }
-            removeMappingTypeSuggestionNew(getPageBase(), status, parentContainerValue.getRealValue(), task, task.getResult());
+
+            PrismValue oldValue = parentContainerValue.getOldValue();
+            removeMappingTypeSuggestionNew(getPageBase(), status, oldValue.getRealValue(), task, task.getResult());
         } else {
             resolveDeletedItem(value);
         }
