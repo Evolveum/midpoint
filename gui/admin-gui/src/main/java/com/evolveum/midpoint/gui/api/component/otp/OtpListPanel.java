@@ -44,7 +44,6 @@ import com.evolveum.midpoint.web.application.Counter;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -231,12 +230,24 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
             }
         };
 
-        showOtpEditorPopup(
-                target,
-                credentialModel,
-                false,
-                t -> onNewOtpConfirmPerformed(t, credentialModel.getObject()),
-                this::onNewOtpCancelPerformed);
+        OtpPopupPanel<F> panel = new OtpPopupPanel<>(getPageBase().getMainPopupBodyId(), focusModel, credentialModel) {
+
+            @Override
+            protected void onCancelPerformed(AjaxRequestTarget target) {
+                onNewOtpCancelPerformed(target);
+
+                super.onCancelPerformed(target);
+            }
+
+            @Override
+            protected void onConfirmPerformed(AjaxRequestTarget target) {
+                onNewOtpConfirmPerformed(target, credentialModel.getObject());
+
+                super.onConfirmPerformed(target);
+            }
+        };
+
+        getPageBase().showMainPopup(panel, target);
     }
 
     private void onDeletePerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<OtpCredentialType>> model) {
@@ -259,26 +270,36 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
             }
         };
 
-        showOtpEditorPopup(
-                target,
-                credentialModel,
-                true,
-                t -> onEditOtpConfirmPerformed(t, credentialModel),
-                t -> onEditOtpCancelPerformed(t));
+        EditOtpPopupPanel<F> panel = new EditOtpPopupPanel<>(getPageBase().getMainPopupBodyId(), focusModel, credentialModel) {
 
-        refreshTable(target);
+            @Override
+            protected void onCancelPerformed(AjaxRequestTarget target) {
+                onEditOtpCancelPerformed(target);
+
+                super.onCancelPerformed(target);
+            }
+
+            @Override
+            protected void onConfirmPerformed(AjaxRequestTarget target) {
+                onEditOtpConfirmPerformed(target, credentialModel.getObject());
+
+                super.onConfirmPerformed(target);
+            }
+        };
+
+        getPageBase().showMainPopup(panel, target);
     }
 
     private void onEditOtpCancelPerformed(AjaxRequestTarget target) {
         refreshTable(target); // todo
     }
 
-    private void onEditOtpConfirmPerformed(AjaxRequestTarget target, IModel<OtpCredentialType> credentialModel) {
+    private void onEditOtpConfirmPerformed(AjaxRequestTarget target, OtpCredentialType credentialModel) {
         refreshTable(target);   // todo
     }
 
     private void onNewOtpCancelPerformed(AjaxRequestTarget target) {
-        refreshTable(target);
+        // nothing to do
     }
 
     private void onNewOtpConfirmPerformed(AjaxRequestTarget target, OtpCredentialType credential) {
@@ -287,32 +308,5 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
         createNewItemContainerValueWrapper(credential.asPrismContainerValue(), wrapper, target);
 
         refreshTable(target);
-    }
-
-    private void showOtpEditorPopup(
-            AjaxRequestTarget target,
-            IModel<OtpCredentialType> credentialModel,
-            boolean editMode,
-            SerializableConsumer<AjaxRequestTarget> confirmHandler,
-            SerializableConsumer<AjaxRequestTarget> cancelHandler) {
-        OtpPopupPanel<F> panel = new OtpPopupPanel<>(getPageBase().getMainPopupBodyId(), focusModel, credentialModel) {
-
-            @Override
-            protected void onCancelPerformed(AjaxRequestTarget target) {
-                cancelHandler.accept(target);
-
-                super.onCancelPerformed(target);
-            }
-
-            @Override
-            protected void onConfirmPerformed(AjaxRequestTarget target) {
-                confirmHandler.accept(target);
-
-                super.onConfirmPerformed(target);
-            }
-        };
-        panel.setEditMode(editMode);
-
-        getPageBase().showMainPopup(panel, target);
     }
 }

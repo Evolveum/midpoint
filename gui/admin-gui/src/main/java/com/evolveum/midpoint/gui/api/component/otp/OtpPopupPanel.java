@@ -75,7 +75,7 @@ public class OtpPopupPanel<F extends FocusType> extends BasePanel<OtpCredentialT
         };
         footer.add(cancel);
 
-        AjaxSubmitButton confirm = new AjaxSubmitButton(ID_CONFIRM) {
+        AjaxSubmitButton confirm = new AjaxSubmitButton(ID_CONFIRM, getConfirmButtonLabel()) {
 
             @Override
             protected void onError(AjaxRequestTarget target) {
@@ -114,7 +114,11 @@ public class OtpPopupPanel<F extends FocusType> extends BasePanel<OtpCredentialT
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("OtpPanel.title");
+        return createStringResource("OtpPopupPanel.title");
+    }
+
+    public IModel<String> getConfirmButtonLabel() {
+        return createStringResource("OtpPopupPanel.verifyAndEnable");
     }
 
     protected void onCancelPerformed(AjaxRequestTarget target) {
@@ -122,6 +126,7 @@ public class OtpPopupPanel<F extends FocusType> extends BasePanel<OtpCredentialT
     }
 
     private OtpPanel<F> getOtpPanel() {
+        // noinspection unchecked
         return (OtpPanel<F>) get(createComponentPath(ID_FORM, ID_OTP));
     }
 
