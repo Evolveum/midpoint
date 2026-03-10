@@ -12,6 +12,12 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/**
+ * Request access submission result.
+ *
+ * It contains the result of the submission, the list of changes that were executed and the count
+ * of person of interest (POI) for whose new access was requested.
+ */
 public record SubmissionResult(
         OperationResult result,
         Collection<ObjectDeltaOperation<? extends ObjectType>> changes,
