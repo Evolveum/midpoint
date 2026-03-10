@@ -20,6 +20,8 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -765,7 +767,7 @@ public class RequestAccess implements Serializable {
         return getConflicts().stream().noneMatch(c -> c.getState() == ConflictState.UNRESOLVED);
     }
 
-    public OperationResult submitRequest(PageBase page) {
+    public SubmissionResult submitRequest(PageBase page) {
         int usersCount = requestItems.keySet().size();
         if (usersCount == 0) {
             return null;
@@ -778,7 +780,7 @@ public class RequestAccess implements Serializable {
         return submitMultiRequest(page);
     }
 
-    private OperationResult submitMultiRequest(PageBase page) {
+    private SubmissionResult submitMultiRequest(PageBase page) {
         ExplicitChangeExecutionWorkDefinitionType explicitChangeExecution = new ExplicitChangeExecutionWorkDefinitionType();
 
         for (ObjectReferenceType poiRef : requestItems.keySet()) {
@@ -825,25 +827,26 @@ public class RequestAccess implements Serializable {
             result.close();
         }
 
-        return result;
+        return new SubmissionResult(result, null, requestItems.size());
     }
 
-    private OperationResult submitSingleRequest(PageBase page) {
+    private SubmissionResult submitSingleRequest(PageBase page) {
         Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS_SINGLE);
         OperationResult result = task.getResult();
 
         ObjectReferenceType poiRef = requestItems.keySet().stream().findFirst().orElse(null);
 
-        ObjectDelta<UserType> delta;
+        Collection<ObjectDeltaOperation<? extends ObjectType>> changes = null;
         try {
             PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
-            delta = createUserDelta(user);
+            ObjectDelta<UserType> delta = createUserDelta(user);
 
             ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
             options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
             Boolean executeAfterApprovals = isDefaultExecuteAfterAllApprovals(page);
             options.executeImmediatelyAfterApproval(executeAfterApprovals != null ? !executeAfterApprovals : null);
-            page.getModelService().executeChanges(Collections.singletonList(delta), options, task, result);
+
+            changes = page.getModelService().executeChanges(Collections.singletonList(delta), options, task, result);
 
             result.recordSuccess();
         } catch (Exception e) {
@@ -854,7 +857,7 @@ public class RequestAccess implements Serializable {
             result.computeStatusIfUnknown();
         }
 
-        return result;
+        return new SubmissionResult(result, changes, requestItems.size());
     }
 
     private ModelExecuteOptions createSubmitModelOptions(PrismContext ctx) {
