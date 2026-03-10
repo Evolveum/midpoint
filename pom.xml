@@ -249,7 +249,7 @@
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.7.0.0-SNAPSHOT</connid.version>
 
-        <poi.version>5.2.3</poi.version>
+        <poi.version>5.4.0</poi.version>
         <!-- Version for classgraph must the one declared in Prism -->
         <classgraph.version>4.8.162</classgraph.version>
         <guava.version>32.1.2-jre</guava.version>
