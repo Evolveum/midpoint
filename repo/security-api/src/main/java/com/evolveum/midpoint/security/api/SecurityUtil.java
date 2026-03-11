@@ -403,7 +403,7 @@ public class SecurityUtil {
         if (authentication == null) {
             SecurityViolationException ex = new SecurityViolationException("No authentication");
             // TODO should we really log this? Usually the one who catches the exception does that.
-            LOGGER.error("No authentication", ex);
+            LOGGER.debug("No authentication", ex);
             throw ex;
         }
         Object principalObject = authentication.getPrincipal();

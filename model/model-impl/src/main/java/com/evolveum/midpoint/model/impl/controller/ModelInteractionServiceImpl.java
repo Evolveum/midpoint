@@ -757,12 +757,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = null;
-        try {
-            principal = securityContextManager.getPrincipal();
-        } catch (SecurityViolationException e) {
-            LOGGER.warn("Security violation while getting principal to get GUI config: {}", e.getMessage(), e);
-        }
+        // If the security context disappears during request processing (e.g. logout mid-request), the exception should propagate.
+        MidPointPrincipal principal = securityContextManager.getPrincipal();
 
         if (!(principal instanceof GuiProfiledPrincipal guiProfiledPrincipal)) {
             // May be used for unauthenticated user, error pages and so on

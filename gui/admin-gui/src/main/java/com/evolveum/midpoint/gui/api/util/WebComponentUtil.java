@@ -4082,6 +4082,9 @@ public final class WebComponentUtil {
         OperationResult result = task.getResult();
         try {
             return service.getCompiledGuiProfile(task, result);
+        } catch (SecurityViolationException e) {
+            // Authentication was lost during request processing (e.g. logout)
+            throw new RestartResponseException(PageLogin.class);
         } catch (Throwable e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
             if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
