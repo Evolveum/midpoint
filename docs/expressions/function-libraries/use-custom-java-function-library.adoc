@@ -1,0 +1,108 @@
+= Use custom Java function library in midPoint
+:page-nav-title: Custom Java function library
+:page-toc: top
+:page-keywords: function library, custom function, java function, custom java function, java function library, jar
+:page-description: Package Java classes to JAR files to use them as custom functions in midPoint expression scripts
+
+MidPoint makes compiled Java classes available to all script expressions similarly to functions in expression function libraries.
+Methods of public classes packaged in JAR files and placed in midPoint home directory are accessible in expressions using their fully qualified class name.
+
+This mechanism is distinct from the XML-based xref:/midpoint/reference/expressions/function-libraries/[expression function libraries] that store Groovy functions as midPoint repository objects.
+
+== Prerequisites
+
+To create a custom Java function library, you need to have access to the environment on which midPoint runs;
+you need to have the write permission in the xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory] and be able to restart the midPoint instance.
+
+:sectnums:
+
+== Write the function library class
+
+Any public class with public static methods works.
+No special interfaces, annotations, or base classes are required.
+You can use the example below as a starting reference point.
+
+[source,java]
+----
+package org.sample;
+
+public class SampleUtil {
+    public static String hello(String input) {
+        return "Hello, " + input + "!";
+    }
+}
+----
+
+Requirements and constraints:
+
+* Classes must be `public`.
+* Methods called from expression scripts must be `public static`.
+* The class and its dependencies must be compatible with the JVM version midPoint runs on.
+* Do not use package or class names that would collide with those already used by midPoint.
+
+== Build and deploy the JAR
+
+. Compile and package the class into a JAR.
+. Copy the resulting JAR directly to the `lib` directory in midPoint home directory, e.g., `/opt/midpoint/var/lib/`.
+    ** Classes placed there are loaded at startup.
+    ** Do not place the JAR into a subdirectory.
+. Restart midPoint so that the new JAR is loaded.
+    If you update an existing JAR, a restart is also required.
+
+== Call the custom function from a script expression
+
+Refer to the method by its fully qualified class name.
+No import or explicit library declaration in the XML configuration is needed.
+
+The mapping below is a modified version of the default `generate-fullname` mapping from the Person object template.
+It passes the concatenated `givenName` and `familyName` variables to the `hello()` method and writes the result to `fullName`.
+
+[source,xml]
+----
+<mapping>
+    <name>generate-fullname</name>
+    <description>Generate fullName using a custom Java utility</description>
+    <strength>strong</strength>
+    <source>
+        <path>givenName</path>
+    </source>
+    <source>
+        <path>familyName</path>
+    </source>
+    <expression>
+        <script>
+            <code>
+                org.sample.SampleUtil.hello(basic.concatName(givenName, familyName))
+            </code>
+        </script>
+    </expression>
+    <target>
+        <path>fullName</path>
+    </target>
+</mapping>
+----
+
+The same call syntax works in any midPoint script context.
+
+:sectnums!:
+
+== Troubleshooting
+
+* `ClassNotFoundException` or `NoClassDefFoundError` in script evaluation. +
+    The JAR is not on the classpath.
+    Verify that:
+    ** The file is in `lib` under midPoint home (not a subdirectory).
+    ** MidPoint was restarted after you copied there the JAR.
+    ** The fully qualified class name in the script matches the compiled class exactly, including case.
+* Changes to the JAR have no effect. +
+    ** You have to restart midPoint both after adding and updating the JAR file.
+* Dependency conflicts. +
+    ** If your library depends on a third-party library, include that dependency in the JAR or place the dependency JAR separately to the `lib` directory.
+        Be cautious about including libraries that midPoint itself uses;
+        version conflicts can cause unpredictable failures.
+
+== See also
+
+* xref:/midpoint/reference/expressions/function-libraries/[]
+* xref:/midpoint/reference/expressions/function-libraries/configuration/[]
+* xref:/midpoint/reference/expressions/expressions/script/[]
