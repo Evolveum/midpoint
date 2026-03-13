@@ -8,6 +8,8 @@ package com.evolveum.midpoint.wf.impl.other;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
+
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
@@ -17,6 +19,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.prism.query.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,9 +46,9 @@ import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.OperationResultRepoSearchAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
@@ -862,6 +865,82 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                 .isEqualTo("Work item has been allocated to you");
         assertThat(second.getBody()).as("second work item notification body")
                 .contains("Stage: 3/3");
+    }
+
+    /**
+     * Checks that an auto-completed skipped approval stage produces a synthetic
+     * work item audit record and that manual stage records are still present.
+     *
+     * MID-10918
+     */
+    @Test
+    public void test405AuditWithAutoCompletedSkipStage() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        login(userAdministrator);
+
+        given("a mixed auto-completed/manual approval case");
+        dummyAuditService.clear();
+        UserType user = new UserType()
+                .name("test405")
+                .assignment(ROLE_AUTOCOMPLETIONS.assignmentTo());
+        addObject(user, task, result);
+
+        CaseType approvalCase = assertCase(result, "after")
+                .subcases()
+                .singleWithApprovalSchema()
+                .getObject()
+                .asObjectable();
+        CaseWorkItemType workItem = getOpenWorkItemRequired(approvalCase);
+        String manualWorkItemId = WorkItemId.create(approvalCase.getOid(), workItem.getId()).asString();
+        String skippedSyntheticWorkItemId = approvalCase.getOid() + ":-2";
+
+        when("the manual stage is approved");
+        approveWorkItem(workItem, task, result);
+        waitForCaseClose(approvalCase);
+
+        then("GUI-relevant work item audit records are present");
+        List<AuditEventRecord> guiWorkItemRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM).stream()
+                .filter(record -> isGuiVisibleWorkItemRecord(record, skippedSyntheticWorkItemId))
+                .toList();
+
+        displayCollection("GUI work item audit records", guiWorkItemRecords);
+
+        AuditEventRecord skippedStageRecord = extractSingleton(guiWorkItemRecords.stream()
+                .filter(record -> record.getPropertyValues(AuditingConstants.AUDIT_WORK_ITEM_ID).contains(skippedSyntheticWorkItemId))
+                .toList());
+
+        List<AuditEventRecord> manualStageRecords = guiWorkItemRecords.stream()
+                .filter(record -> record.getPropertyValues(AuditingConstants.AUDIT_WORK_ITEM_ID).contains(manualWorkItemId))
+                .toList();
+
+        assertThat(guiWorkItemRecords).hasSize(3);
+
+        assertThat(skippedStageRecord.getEventStage()).isEqualTo(AuditEventStage.EXECUTION);
+        assertThat(skippedStageRecord.getPropertyValues(AuditingConstants.AUDIT_STAGE_NUMBER)).containsExactly("2");
+        assertThat(skippedStageRecord.getResult()).isEqualTo("skip");
+
+        assertThat(manualStageRecords)
+                .hasSize(2)
+                .allSatisfy(record -> assertThat(record.getPropertyValues(AuditingConstants.AUDIT_STAGE_NUMBER)).containsExactly("3"))
+                .extracting(AuditEventRecord::getEventStage)
+                .containsExactlyInAnyOrder(AuditEventStage.REQUEST, AuditEventStage.EXECUTION);
+    }
+
+    private boolean isGuiVisibleWorkItemRecord(AuditEventRecord record, String skippedSyntheticWorkItemId) {
+        Collection<String> workItemIds = record.getPropertyValues(AuditingConstants.AUDIT_WORK_ITEM_ID);
+        return workItemIds.contains(skippedSyntheticWorkItemId)
+                || workItemIds.stream().anyMatch(id -> !id.contains(":-"));
+    }
+
+    protected @NotNull CaseWorkItemType getOpenWorkItemRequired(CaseType aCase) {
+        var openWorkItems = aCase.getWorkItem().stream()
+                .filter(CaseTypeUtil::isCaseWorkItemNotClosed)
+                .toList();
+        return MiscUtil.extractSingletonRequired(
+                openWorkItems,
+                () -> new AssertionError("More than one open work item: " + openWorkItems),
+                () -> new AssertionError("No open work items in: " + aCase));
     }
 
     /** Checks that there is no (flawed) deputy query when there are no assignees present. MID-8134. */

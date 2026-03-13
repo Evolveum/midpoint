@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.cases.api.AuditingConstants;
+import com.evolveum.midpoint.cases.api.extensions.StageClosingResult;
 
 import com.evolveum.midpoint.cases.api.extensions.AuditingExtension;
 import com.evolveum.midpoint.cases.impl.engine.CaseBeans;
@@ -218,9 +219,46 @@ public class PendingAuditRecords implements DebugDumpable {
         records.add(record);
     }
 
+    public void addAutoClosingWorkItem(
+            @NotNull StageClosingResult closingInformation,
+            @NotNull OperationResult result) {
+        CaseType aCase = operation.getCurrentCase();
+        Integer stageNumber = aCase.getStageNumber();
+        AuditEventRecord record = prepareAuditRecordCommon(AuditEventStage.EXECUTION, stageNumber, result);
+
+        record.setInitiator(beans.miscHelper.getRequesterIfExists(aCase, result));
+        record.addPropertyValue(AuditingConstants.AUDIT_WORK_ITEM_ID, WorkItemId.create(aCase.getOid(), -stageNumber).asString());
+        if (operation.doesUseStages()) {
+            String stageOutcome = ApprovalUtils.approvalLevelOutcomeFromUri(closingInformation.getStageOutcomeUri()).value();
+            record.setResult(stageOutcome);
+            record.setMessage(ApprovalContextUtil.getCompleteStageInfo(aCase) + " : " + stageOutcome);
+        }
+
+        extension.enrichAutoClosingWorkItemAuditRecord(record, operation, result);
+
+        records.add(record);
+    }
+
     private AuditEventRecord prepareWorkItemAuditRecordCommon(
             @NotNull CaseWorkItemType workItem,
             @NotNull AuditEventStage stage,
+            @NotNull OperationResult result) {
+        AuditEventRecord record = prepareAuditRecordCommon(stage, workItem.getStageNumber(), result);
+
+        record.addReferenceValueIgnoreNull(AuditingConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), false, result));
+        record.addReferenceValues(AuditingConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), false, result));
+
+        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_ESCALATION_LEVEL_NUMBER, WorkItemTypeUtil.getEscalationLevelNumber(workItem));
+        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_ESCALATION_LEVEL_NAME, WorkItemTypeUtil.getEscalationLevelName(workItem));
+        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, WorkItemTypeUtil.getEscalationLevelDisplayName(workItem));
+        record.addPropertyValue(AuditingConstants.AUDIT_WORK_ITEM_ID, WorkItemId.create(operation.getCurrentCase().getOid(), workItem.getId()).asString());
+
+        return record;
+    }
+
+    private AuditEventRecord prepareAuditRecordCommon(
+            @NotNull AuditEventStage stage,
+            @Nullable Integer stageNumber,
             @NotNull OperationResult result) {
 
         CaseType aCase = operation.getCurrentCase();
@@ -242,18 +280,14 @@ public class PendingAuditRecords implements DebugDumpable {
 
         record.addReferenceValueIgnoreNull(AuditingConstants.AUDIT_OBJECT, objectRef);
         record.addReferenceValueIgnoreNull(AuditingConstants.AUDIT_TARGET, resolveIfNeeded(aCase.getTargetRef(), false, result));
-        record.addReferenceValueIgnoreNull(AuditingConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), false, result));
-        record.addReferenceValues(AuditingConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), false, result));
+
         if (operation.doesUseStages()) {
-            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NUMBER, workItem.getStageNumber());
+            record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NUMBER, stageNumber);
             record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_COUNT, ApprovalContextUtil.getStageCount(wfc));
             record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_NAME, ApprovalContextUtil.getStageName(aCase));
             record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_STAGE_DISPLAY_NAME, ApprovalContextUtil.getStageDisplayName(aCase));
         }
-        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_ESCALATION_LEVEL_NUMBER, WorkItemTypeUtil.getEscalationLevelNumber(workItem));
-        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_ESCALATION_LEVEL_NAME, WorkItemTypeUtil.getEscalationLevelName(workItem));
-        record.addPropertyValueIgnoreNull(AuditingConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, WorkItemTypeUtil.getEscalationLevelDisplayName(workItem));
-        record.addPropertyValue(AuditingConstants.AUDIT_WORK_ITEM_ID, WorkItemId.create(aCase.getOid(), workItem.getId()).asString());
+
         return record;
     }
     //endregion

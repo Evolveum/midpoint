@@ -406,6 +406,11 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
         addDeltaIfNeeded(auditEventRecord, true, operation.getCurrentCase());
     }
 
+    @Override
+    public void enrichAutoClosingWorkItemAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation) {
+        addDeltaIfNeeded(auditEventRecord, true, operation.getCurrentCase());
+    }
+
     private void addDeltaIfNeeded(AuditEventRecord auditEventRecord, boolean toApprove, CaseType aCase) {
         if (CaseTypeUtil.isApprovalCase(aCase)) { // TODO needed?
             ObjectTreeDeltas<?> deltas;
