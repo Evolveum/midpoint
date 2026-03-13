@@ -85,7 +85,7 @@ To execute the code updating values on a resource, you have multiple options.
 
 * Create and run a xref:/midpoint/reference/misc/bulk/scripting-tasks/[scripting task] and use the code in its `code` section.
     See the example below.
-* Define a xref:/midpoint/reference/roles-policies/policies/[policy] that triggers a scripted action when a condition is met.
+* Define a xref:/midpoint/reference/roles-policies/[policy] that triggers a scripted action when a condition is met.
 // Possibly also via the RPC endpoint? /midpoint/reference/interfaces/rest/endpoints/rpc/ @dakle 2026-03-12
 
 The activity of the task below contains a query xref:/midpoint/reference/concepts/query/midpoint-query-language/filters/[filter] to tell midPoint which shadow objects to load from the repository and pipe into the Groovy script.
