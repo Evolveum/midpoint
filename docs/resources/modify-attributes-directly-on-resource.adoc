@@ -1,7 +1,7 @@
 = Modify attributes directly on resource
 :page-toc: top
-:page-keywords: shadow, delta, resource, attribute, provision, modify attribute directly, fire-and-forget action, fire and forget action
-:page-description: Construct a delta for the attribute in a Groovy script and change the attribute value directly on the resource by updating the resource object shadow
+:page-keywords: shadow, delta, resource, attribute, provision, modify attribute directly, fire-and-forget, fire and forget
+:page-description: Construct a delta for an attribute in a Groovy script and change the attribute value directly on a resource by updating the resource object shadow
 
 You may sometimes need to update an attribute on a resource without going through the standard midPoint mapping & provisioning procedure.
 Whatever your use case for side-stepping the standard mappings is, you can construct a delta for the attribute in a Groovy script and change the attribute value directly on the resource by updating the resource object shadow.
@@ -11,7 +11,7 @@ Whatever your use case for side-stepping the standard mappings is, you can const
 . Write the Groovy code to handle the specified attribute value update:
     ** Select the resource, xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[object class], and attribute with which to work.
     ** Define the new value for the attribute.
-    ** Compare the existing value of the attribute with the new value and create a xref:https://docs.evolveum.com/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/processing/model/delta/[delta].
+    ** Compare the existing value of the attribute with the new value and create a xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/processing/model/delta/[delta].
     ** Use xref:/midpoint/reference/interfaces/model-java/introduction/#creating-modifying-and-deleting-objects[`midpoint.executeChanges(delta)`] to update the attribute.
 . Create an iterative scripting task.
     ** The xref:/midpoint/reference/misc/bulk/scripting-tasks/[scripting task] queries xref:/midpoint/architecture/concepts/shadow/[shadows] of the selected object class on the specified resource.
@@ -36,10 +36,10 @@ import com.evolveum.midpoint.schema.util.Resource
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType
 import javax.xml.namespace.QName
 
-// Obtain the resource. Replace the OID string with your resource OID.
+// Obtain the resource
 def resource = midpoint.getObject(
     com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType,
-    'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // Replace with your resource OID
     null
 )
 
@@ -74,9 +74,9 @@ def delta = Resource.of(resource)
 // Execute against the resource and provision the change immediately
 midpoint.executeChanges(delta)
 ----
-<1> The `ShadowType.F_ATTRIBUTES.append(attrName)` call constructs the item path `attributes/<attrName>`, which is the correct path for any resource attribute on the shadow object.
-<2> `replace()` produces a `REPLACE` delta, which sets the attribute to the value you supply, removing any pre-existing one.
-Use `add()` if you want to add without removing the pre-existing values, e.g. for a multivalued attributes.
+<1> The `ShadowType.F_ATTRIBUTES.append(attrName)` call constructs the item path `attributes/<attrName>`, which is the correct path for any resource attribute in the shadow object.
+<2> `replace()` produces a `REPLACE` delta which sets the attribute to the value you supply, removing any pre-existing one.
+Use `add()` if you want to add without removing the pre-existing values, e.g. for a multivalued attribute.
 
 
 == Create a task to iterate over shadows and update the attribute
@@ -91,7 +91,7 @@ To execute the code updating values on a resource, you have multiple options.
 The activity of the task below contains a query xref:/midpoint/reference/concepts/query/midpoint-query-language/filters/[filter] to tell midPoint which shadow objects to load from the repository and pipe into the Groovy script.
 The Groovy code in the task then needs the resource object and object class name to look up their schema in order to construct the delta properly.
 
-In the task below, we query all objects of the selected class on the specified resource.
+In the example task below, we query all objects of the selected class on the specified resource.
 Change the filtering options to suit your needs.
 
 .Iterate through the shadows of the selected object class on the specified resource and update the defined attribute value directly in the shadows
@@ -111,15 +111,15 @@ Change the filtering options to suit your needs.
                 <objects>
                     <type>ShadowType</type>
                     <query>
-                        <q:filter>
+                        <q:filter> <1>
                             <q:and>
                                 <q:ref>
                                     <q:path>resourceRef</q:path>
-                                    <q:value oid="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/> <1>
+                                    <q:value oid="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/> <2>
                                 </q:ref>
                                 <q:equal>
                                     <q:path>objectClass</q:path>
-                                    <q:value>ri:AccountObjectClass</q:value> <2>
+                                    <q:value>ri:AccountObjectClass</q:value> <3>
                                 </q:equal>
                             </q:and>
                         </q:filter>
@@ -129,7 +129,7 @@ Change the filtering options to suit your needs.
                     <s:execute>
                         <s:script>
                             <code>
-                                <!-- The attribute update code goes here --> <3>
+                                <!-- The attribute update Groovy code goes here --> <4>
                             </code>
                         </s:script>
                     </s:execute>
@@ -140,10 +140,12 @@ Change the filtering options to suit your needs.
 
 </task>
 ----
-<1> Your resource OID.
-<2> The object class containing the attribute you are about to update. +
+<1> This filter defines which shadows are piped into the Groovy script.
+<2> Your resource OID.
+<3> The object class containing the attribute you are about to update. +
     The resource OID and object class specification here needs to match the specification in the Groovy script.
-<3> Use the link:#groovy-update-attribute-directly[Groovy code from above].
+<4> Use the link:#groovy-update-attribute-directly[Groovy code from above].
+    Use `input.getOid()` instead of the literal string definition to obtain the shadow OIDs.
 
 [[clone-and-diff]]
 == Note on clone-and-diff approach
@@ -170,9 +172,9 @@ The `Resource.of()` approach constructs the minimal delta directly and is recomm
 == See also
 
 * xref:/midpoint/architecture/concepts/shadow/[]
+* xref:/midpoint/reference/concepts/query/midpoint-query-language/filters/[]
 * xref:/midpoint/reference/expressions/[]
 * xref:/midpoint/reference/misc/bulk/scripting-tasks/[]
+* xref:/midpoint/reference/security/authorization/configuration/selectors/[]
 * xref:/midpoint/reference/tasks/[]
 * xref:/midpoint/reference/tasks/task-manager/[]
-* xref:/midpoint/reference/concepts/query/midpoint-query-language/filters/[]
-* xref:/midpoint/reference/security/authorization/configuration/selectors/[]
