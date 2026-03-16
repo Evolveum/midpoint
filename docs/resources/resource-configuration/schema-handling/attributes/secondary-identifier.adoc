@@ -1,4 +1,7 @@
-= Secondary Identifier
+= Secondary identifier
+:page-toc: top
+:page-keywords: consistency, ldap
+:page-description: Designate an attribute as an alternative way to identify or find resource objects
 
 Indicated if the attribute should be considered as a xref:/midpoint/reference/resources/resource-schema/#_secondary_identifier[secondary identifier] or not.
 
@@ -26,3 +29,48 @@ MidPoint must be configured to stop using this attribute as a secondary identifi
 [NOTE]
 This may work fine, but the result is not guaranteed.
 Some scenarios may require secondary identifier.
+
+== Prevent duplicating accounts instead of linking
+
+When you have an authoritative source system (e.g., HRIS) and an Active Directory (AD) as a target system, you may face the following situation:
+
+* You import users from the source system.
+* You expect (and have midPoint set up to do so) to have the imported accounts provisioned to AD.
+* However, the AD reconciliation fails because some of the imported accounts already exist there but midPoint was unable to link them.
+* The AD provisioning process ends with `AlreadyExistsException`.
+
+What happens is that midPoint, being unaware of the target resource accounts existence, tries to create a duplicate of them but that is prohibited by the AD target system.
+Instead of gracefully handling the exception, discovering the pre-existing accounts, and linking them with the corresponding focal objects, midPoint ends up with an unhandled exception, unable to proceed.
+This may be because your primary identifier is a DN and the existing target accounts have a DN that is different from what midPoint computed for the imported accounts.
+
+To fix the situation, set another unique attribute as a *secondary identifier* to help midPoint link the accounts.
+For instance, the `userPrincipalName` attribute: it is typically unique across the AD "forest" and is not position-dependent the way DN is.
+Adding it as a secondary identifier allows the discovery mechanism to find the existing accounts regardless of their organization units (OU).
+
+In the `schemaHandling` section of your AD resource, add `<secondaryIdentifier>true</secondaryIdentifier>` to the `userPrincipalName` attribute definition:
+
+[source,xml]
+----
+<resource>
+    ...
+    <schemaHandling>
+        <objectType>
+            <attribute>
+                <ref>ri:userPrincipalName</ref>
+                <secondaryIdentifier>true</secondaryIdentifier>
+                ...
+                <outbound>
+                    ...
+                </outbound>
+            </attribute>
+            ...
+        </objectType>
+    </schemaHandling>
+</resource>
+----
+
+== See also
+
+* xref:/midpoint/reference/resources/resource-schema/#_secondary_identifier[]
+* xref:/midpoint/reference/synchronization/consistency/[]
+* xref:/connectors/connid/1.x/connector-development-guide/#error-handling[]
