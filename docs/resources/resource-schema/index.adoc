@@ -360,7 +360,7 @@ Then it can make a uniqueness check for both primary and secondary identifiers b
 Which is much more efficient than trying to create the account on resource and failing (maybe even several times).
 Secondary identifiers may be also used to confirm the equivalence of an object after primary identifier changes and in similar situations.
 
-See also xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/secondary-identifier/#prevent-duplicating-accounts-instead-of-linking[]
+See also xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/secondary-identifier/[]
 
 === namingAttribute
 
