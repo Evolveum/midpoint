@@ -150,7 +150,7 @@ If set to 0 then operation re-tries are disabled.
 After this interval has passed the dead shadows are deleted.
 Note: this may also be influenced by `pendingOperationGracePeriod`.
 Dead shadow may be kept for longer than the interval specified in `deadShadowRetentionPeriod` if that is needed to for evaluation of grace period.
-| `reshreshOnRead`
+| `refreshOnRead`
 | false
 | If set to true then midPoint will always refresh shadow when it is retrieved.
 Refreshing a shadow means that the status of asynchronous (e.g. manual) opearions is checked,
