@@ -305,6 +305,15 @@ public class CorrelationServiceImpl implements CorrelationService {
         correlationCaseManager.completeCorrelationCase(currentCase, caseCloser, task, result);
     }
 
+    @Override
+    public void prepareCorrelationCaseClosing(
+            @NotNull CaseType currentCase,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException {
+        correlationCaseManager.prepareCorrelationCaseClosing(currentCase, task, result);
+    }
+
     /**
      * Resolves the given correlation case - in the correlator.
      * (For majority of correlators this is no-op. See {@link Correlator#resolve(CaseType, String, Task, OperationResult)}.)

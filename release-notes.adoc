@@ -38,6 +38,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 == Changes with Respect To Version 4.9.6
 
 * Fixed reconc task with tailoring GUI error in Subtasks tab. See bug:MID-11107[].
+* Fixed correlation case closing on resolution error. See bug:MID-11094[]
 
 == Changes with Respect To Version 4.9.5
 
