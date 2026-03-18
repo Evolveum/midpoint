@@ -41,6 +41,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed skip activation outbounds for unmanaged shadows. See bug:MID-11029[].
 * Removed redundant ProvisioningService#getObject calls during context load. See bug:MID-11115[].
 * Improve certification progress bar visibility. See bug:MID-10930[].
+* Fixed admin gui configuration merging. See bug:MID-11045[]
 
 == Changes with Respect To Version 4.10
 
