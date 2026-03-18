@@ -22,6 +22,10 @@ The presented scenario is used in situations that have the following typical sym
 
 The example solution below runs a reconciliation, immediately identifies failed objects, and applies a mark to them, so that a shadow policy can automatically quarantine them until you can identify the root issue, fix the source data, and remove the mark.
 
+You can use this method for both inbound and outbound reconciliation.
+However, note that marked objects stay in quarantine until you remove the mark.
+This means that if an object is marked during reconciliation, it will not be processed in any subsequent reconciliation (inbound or outbound) until the mark is removed.
+
 The solution employs xref:/midpoint/reference/tasks/activities/error-handling/#_failed_objects_selector[failed objects selector] and xref:/midpoint/reference/concepts/mark/#shadow-policy-marks[shadow policy marks].
 
 . Create a composite task containing two xref:/midpoint/reference/tasks/activities[activities] chained using the `<composition>` element in the task definition:
