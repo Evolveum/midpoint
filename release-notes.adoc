@@ -74,7 +74,16 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed the usage of the multiple ProtectedStringType fields in the same panel. See bug:MID-11072[]
 * Fixed misleading information in audit log during password reset. See bug:MID-11077[]
 * Fixed authentication exception handling while user login. See bug:MID-10953[]
-* Fixed progress bar colors in the Certification items dashboard panel . See bug:MID-10930[]
+* Fixed progress bar colors in the Certification items dashboard panel. See bug:MID-10930[]
+* Extended the list of the searchable items for UserType. See bug:MID-11012[]
+* Fixed report data type name and exported file name to be unique. See bug:MID-10978[]
+* Fixed the mapping for stage deadline column in certification cases table. See bug:MID-11023[]
+* Fixed the path traversal vulnerability in the report import. See bug:MID-11014[]
+* Fixed certification case stage outcome information. See bug:MID-11026[]
+* Fixed admin gui configuration merging. See bug:MID-11045[]
+* Fixed correlation work item panel. See bug:MID-10993[]
+* Fixed NPE in general notifier. See bug:MID-11038[]
+* Fixed page storage for dashboard widget collection. See bug:MID-11038[]
 
 === Releases Of Other Components
 
