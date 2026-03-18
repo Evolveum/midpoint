@@ -30,7 +30,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 == Changes with Respect To Version 4.8.11
 
-
+* Fixed the usage of the multiple ProtectedStringType fields in the same panel. See bug:MID-11072[]
 
 == Changes with Respect To Version 4.8.10
 
