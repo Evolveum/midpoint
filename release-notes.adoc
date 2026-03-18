@@ -48,6 +48,8 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Multiple libraries updated, including spring boot.
 * Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
 * bug:MID-10997[] Added support for additional footer.
+* bug:MID-11036[] Implemented export to XLSX.
+* bug:MID-10918[] Improved audit record for skipped approval stage.
 
 === Major Bugfixes
 
@@ -68,6 +70,11 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed attempt to modify immutable definition. See bug:MID-11001[].
 * Fixed schema type object updates and prism context schema registry reload. See bug:MID-10983[].
 * Fixed ConcurrentModificationException in RelationUtil. See bug:MID-10940[]
+* Fixed the execution of the 'Delete all closed tasks' action. See bug:MID-11069[]
+* Fixed the usage of the multiple ProtectedStringType fields in the same panel. See bug:MID-11072[]
+* Fixed misleading information in audit log during password reset. See bug:MID-11077[]
+* Fixed authentication exception handling while user login. See bug:MID-10953[]
+* Fixed progress bar colors in the Certification items dashboard panel . See bug:MID-10930[]
 
 === Releases Of Other Components
 
