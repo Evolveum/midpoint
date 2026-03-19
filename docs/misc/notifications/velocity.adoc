@@ -4,9 +4,12 @@
 :page-upkeep-status: yellow
 :page-display-order: 900
 :page-toc: top
+:page-keywords: notification, velocity, schema extension, schema extension attributes, template
+:page-description: Examples of using Apache Velocity in midPoint notifications and how to access schema extension attributes using Velocity.
 
-You can use Apache Velocity templates for writing notifications
-or xref:/midpoint/reference/misc/notifications/message-templates/[message templates].
+You can use Apache Velocity when writing notifications
+and xref:/midpoint/reference/misc/notifications/message-templates/[message templates].
+This article contains examples of using Apache Velocity for writing notifications, as well as how to access schema extension attributes in the Velocity code.
 
 == How to use Velocity
 
