@@ -119,7 +119,114 @@ and just reference those from your configured notifiers.
 // There is the Velocity escaping tool, but currently we don't provide it for our expressions.
 // https://velocity.apache.org/tools/2.0/apidocs/org/apache/velocity/tools/generic/EscapeTool.html
 
+== Use extension attributes in Velocity templates
 
-== External links
+If you have a xref:/midpoint/reference/schema/custom-schema-extension/[schema extension] defined, accessing the attributes in from the extension requires a few extra steps compared to the built-in attributes.
 
-* https://velocity.apache.org/engine/devel/user-guide.html[Velocity User Guide]
+[NOTE]
+====
+Schema extensions are not exclusive to focal objects of the `UserType`.
+You can face a similar challenge in Velocity templates with extension attributes of any other type, such as `OrgType` or `ServiceType`.
+The solution examples in this section deal with `UserType` extension attributes.
+See link:#other-focal-object-types[Other focal object type extensions] for more information on dealing with extension attributes in other types.
+====
+
+=== The problem
+
+Extension attributes on a user object cannot be accessed directly through `$event.extension`.
+
+The `extension` property on an `event` object returns an internal xref:/glossary/#prism[Prism] container value structure that Velocity cannot traverse.
+Attempting to access a field value with any of the following patterns does not work:
+
+.Invalid patterns for extension attributes access
+[source,velocity]
+----
+$event.extension.myField
+$event.extension["myField"]
+$event.extension.get("http://example.com/userType").myField
+----
+
+`$event.extension` by itself renders as a debug dump of the structure, for example:
+
+.`$event.extension` debug dump
+[source,velocity]
+----
+PCV(null):[PP({http://example.com/userType}Field1):[PPV(String:value1)], PP({http://example.com/userType}Field2):[PPV(String:value2)]]
+----
+
+This may be useful for configuration discovery but cannot be used to extract individual values.
+
+=== The solution
+
+Retrieve the full user object from the event using `$event.requesteeObject`, then read extension properties from it using the `basic.getExtensionPropertyValue()` method from the xref:/midpoint/reference/expressions/expressions/script/functions/[Basic library]:
+
+.Correct way to access user schema extension attributes
+[source,velocity]
+----
+#set($user = $event.requesteeObject)<1>
+#set($activationCode = ${basic.getExtensionPropertyValue($user, 'activationCode')}) <2>
+
+Your activation code is: $activationCode
+----
+<1> `$event.requesteeObject` returns the full `UserType` object.
+<2> `activationCode` is the `UserType` schema extension attribute.
+    `getExtensionPropertyValue()` takes the whole user object and the name of the extension property as a string, and returns its value.
+
+For multivalued extension properties, use `basic.getExtensionPropertyValues()` to get a collection of values over which you can iterate with `#foreach`.
+
+Below is a worked example of a simple user notifier which sends a notification every time a user focal object is modified.
+The notification contains the modified user's names and office floor number, the latter being an attribute from a schema extension.
+
+.Simple user notifier example working both with built-in and extended schema attributes
+[source,xml]
+----
+<simpleUserNotifier>
+    <name>user-modified-notification</name>
+    <bodyExpression>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+            <code>
+#set($user = $event.requesteeObject)
+#set($officeFloor = ${basic.getExtensionPropertyValue($user, 'officeFloorNumber')})
+User was modified in midPoint.
+
+Name:        $user.name <1>
+Given name:  $user.givenName <2>
+Family name: $user.familyName <2>
+#if($officeFloor)
+Office floor number: $officeFloor <3>
+#end
+            </code>
+        </script>
+    </bodyExpression>
+    <transport>
+        <_value>file transport</_value>
+    </transport>
+</simpleUserNotifier>
+----
+<1> The `name` in `UserType` is a `PolyStringType`, not a plain string.
+    In a Velocity context, `$user.name` calls `toString()` on the Java object, which may render as an internal representation rather than the human-readable value.
+    In such a case, use `$user.name.orig` which retrieves the primary (original) string explicitly.
+<2> Plain `xsd:string` built-in attributes requiring no special treatment.
+<3> The attribute from the schema extension obtained by the `getExtensionPropertyValue()` method.
+
+[[other-focal-object-types]]
+=== Other focal object type extensions
+
+`basic.getExtensionPropertyValue()` is not specific to `UserType`.
+Its first argument accepts any midPoint object, so the same calls work for `OrgType`, `RoleType`, `ServiceType`, and other extended types.
+
+The difference lies in which notifier you use and how you obtain the focal object from the event.
+For notifications about focal objects other than users, use `simpleFocalObjectNotifier` instead of `simpleUserNotifier`.
+Based on the pattern established for `simpleUserNotifier`, retrieving the focal object via `$event.requesteeObject` is the expected approach, though you should xref:/midpoint/reference/misc/notifications/configuration/#expression-variables[verify the available variables].
+
+== See also
+
+* link:https://velocity.apache.org/engine/devel/user-guide.html[Velocity User Guide]
+* xref:/midpoint/reference/expressions/expressions/script/[]
+* xref:/midpoint/reference/expressions/expressions/script/functions/[]
+* xref:/midpoint/reference/misc/notifications/configuration/[]
+* xref:/midpoint/reference/misc/notifications/message-templates/[]
+* xref:/midpoint/reference/schema/custom-schema-extension/[]
+* xref:/midpoint/reference/schema/custom-schema-extension/changing-schema-extension-via-GUI/[]
+
