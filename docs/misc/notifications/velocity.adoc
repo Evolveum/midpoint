@@ -240,4 +240,3 @@ Based on the pattern established for `simpleUserNotifier`, retrieving the focal 
 * xref:/midpoint/reference/misc/notifications/configuration/[]
 * xref:/midpoint/reference/misc/notifications/message-templates/[]
 * xref:/midpoint/reference/schema/custom-schema-extension/[]
-* xref:/midpoint/reference/schema/custom-schema-extension/changing-schema-extension-via-GUI/[]
