@@ -31,6 +31,8 @@ public interface ConnectorDevelopmentService {
 
     StatusInfo<ConnDevDiscoverObjectClassInformationResultType> getDiscoverObjectClassInformationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    StatusInfo<ConnDevDiscoverObjectClassDetailsResultType> getDiscoverObjectClassDetailsStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    StatusInfo<ConnDevDiscoverObjectClassAttributesResultType> getDiscoverObjectClassAttributesStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    StatusInfo<ConnDevDiscoverObjectClassEndpointsResultType> getDiscoverObjectClassEndpointsStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
 }

@@ -24,6 +24,7 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.function.BooleanSupplier;
 
 public class ServiceClient {
 
@@ -210,13 +211,16 @@ public class ServiceClient {
                     || (status ==  JobStatus.FAILED && getResult() != null && !getResult().isEmpty());
         }
 
-        public <T,E extends Exception> T waitAndProcess(long sleepTime, CheckedFunction<ObjectNode, T, E> transform) throws E {
+        public <T,E extends Exception> T waitAndProcess(long sleepTime, BooleanSupplier canRun, CheckedFunction<ObjectNode, T, E> transform) throws E {
             while(process()) {
                 // FIXME: Here we can provide status message update to task
                 try {
                     Thread.sleep(sleepTime);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
+                }
+                if (!canRun.getAsBoolean()) {
+                    throw new RuntimeException("Task interrupted");
                 }
             }
             if (isFinished()) {
