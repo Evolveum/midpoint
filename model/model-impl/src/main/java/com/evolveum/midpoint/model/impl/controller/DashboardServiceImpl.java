@@ -12,6 +12,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.model.api.ModelAuditService;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -351,7 +352,9 @@ public class DashboardServiceImpl implements DashboardService {
 
             CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
                     collectionSpec, null, task, task.getResult());
-            CollectionStats collStats = modelInteractionService.determineCollectionStats(compiledCollection, task, result);
+
+            // For ShadowType collections, use repository-only counting. Provisioning-based counting returns UNKNOWN for dashboard widgets.
+            CollectionStats collStats = modelInteractionService.determineCollectionStats(adjustCollectionForShadowCounting(compiledCollection), task, result);
 
             Integer value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
             Integer domainValue = collStats.getDomainCount();
@@ -377,6 +380,36 @@ public class DashboardServiceImpl implements DashboardService {
             LOGGER.error("CollectionRefSpecificationType is null in widget " + widget.getIdentifier());
         }
         return null;
+    }
+
+    private CompiledObjectCollectionView adjustCollectionForShadowCounting(CompiledObjectCollectionView compiledCollection) {
+        Class<?> targetClass = compiledCollection.getTargetClass();
+        if (targetClass == null || !ShadowType.class.isAssignableFrom(targetClass)) {
+            return compiledCollection;
+        }
+
+        CompiledObjectCollectionView copy = getCompiledObjectCollectionViewCopy(compiledCollection);
+        copy.setOptions(withNoFetch(compiledCollection.getOptions()));
+        copy.setDomainOptions(withNoFetch(compiledCollection.getDomainOptions()));
+
+        return copy;
+    }
+
+    private CompiledObjectCollectionView getCompiledObjectCollectionViewCopy(CompiledObjectCollectionView original) {
+        CompiledObjectCollectionView copy = new CompiledObjectCollectionView();
+        copy.setContainerType(original.getContainerType());
+        copy.setViewIdentifier(original.getViewIdentifier());
+        copy.setCollection(CloneUtil.clone(original.getCollection()));
+        copy.setFilter(CloneUtil.clone(original.getFilter()));
+        copy.setDomainFilter(CloneUtil.clone(original.getDomainFilter()));
+        return copy;
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> withNoFetch(
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        GetOperationOptionsBuilder builder = schemaService.getOperationOptionsBuilder().setFrom(options);
+        builder.root().noFetch();
+        return builder.build();
     }
 
     private static VariablesMap createVariables(PrismObject<? extends ObjectType> object,
