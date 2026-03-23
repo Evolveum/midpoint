@@ -142,9 +142,7 @@ public class ActivityPath implements Serializable {
 
     public ActivityPath append(String identifier) {
         List<String> union = new ArrayList<>(identifiers);
-        if (identifier != null) {
-            union.add(identifier);
-        }
+        union.add(identifier);
         return ActivityPath.fromList(union);
     }
 
