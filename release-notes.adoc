@@ -510,6 +510,17 @@ Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
+=== Upgrade from MidPoint 4.10.x
+
+MidPoint {release-version} data model is completely backwards compatible with midPoint 4.10.
+
+Please follow our xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-guide/[Upgrade guide] carefully.
+
+Note that:
+
+* There are no database schema changes.
+* There are minor changes in the initial objects, system configuration localization keys.
+
 === Upgrade From MidPoint 4.9
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
