@@ -1,24 +1,133 @@
-= Actions Authorizations
+= Bulk Actions Authorizations
 :page-since: 4.8
+:toc-top:
+:page-keywords: bulk actions, action authorizations, bulk action, action, actions, authorization, authorizations
+:page-description: This describes authorizations required to run bulk actions.
 
-Actions are generally considered "safe", as their execution involves checking appropriate authorizations.
-For example, if one executes `add` action, the `#add` authorization relevant to object(s) being added is required.
 
-However, to add another layer of security - for example, to prevent denial of service attacks - the mere execution of a action requires a special authorization.
+This describes authorizations required to run bulk actions.
 
-Before midPoint 4.8, it was named `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript`.
-Unfortunately, the name was confusing.
-It sounds like the authorization would allow to run Groovy (or Velocity, Python, JavaScript, and similar) scripts, which is not true.
-(Because of their power, to run these scripts from actions before 4.8, the `#all` authorization was required.)
+Bulk xref:/midpoint/reference/misc/bulk/index.adoc#_actions[actions] in midPoint allow users to execute operations on many objects at once, making large-scale management tasks faster and more efficient.
+Because such operations can affect many objects simultaneously, midPoint requires both the standard object authorization and an additional bulk-action authorization.
 
-Since 4.8, the `#executeScript` authorization is replaced by `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#all`.
-Furthermore, it is now possible to allow or deny execution of _individual actions_ using authorizations.
+To enable users to run bulk actions, you need to grant them:
 
-For example, if only `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#assign` is granted, then only `assign` action can be invoked.
+. Authorization to run bulk actions - `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3`.
+You can grant this bulk authorization either for:
 
-See xref:/midpoint/reference/misc/bulk/index.adoc#_actions[Actions].
-The primary names of actions should be used: e.g., `generate-value` (not `generateValue`).
+** Individual actions, such as `assign`, `unassign`, `delete`, `resolve`.  +
+For example, when you grant the `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#assign` authorization to users, they will be able to execute the `assign` action in bulk.
+
+** Or for all bulk actions using the following authorization -  `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#all`.
+This allows users to execute all bulk actions, such as `assign`, `unassign`, `delete`, `resolve`, etc.
+
+. Access to the actual objects on which bulk actions are executed. +
+The object authorizations do not always correspond directly to the bulk action authorizations.
+The minimum required object authorizations for each bulk action are listed in the table below.
+
++
+For example, to be able to _resolve_ objects in bulk, you need the `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get` authorization for those individual objects.
+
++
+In some cases, it may be necessary to fetch an actual object beforehand, or specify additional parameters for an action.
+This may require additional authorizations.
+For example, if you need to resolve objects before modifying them, you will not only need privileges for the `resolve` and `modify` actions, but you will also need the object `get` and `modify` authorizations.
+
++
+[%autowidth, cols="a,a"]
+|===
+| Bulk action | Required object model authorization
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#all`
+| Depends on the actual bulk action that is executed.
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#assign`
+| `assign` for the request phase, and `modify` for the execution phase.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#execute-script`
+| Depends on the executed script.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#evaluate-expression`
+| Depends on the executed expression.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#log`
+| No authorization required.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#modify`
+| `modify`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#recompute`
+| `recompute`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#add`
+| `add`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#apply-definition`
+| No authorization required.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#delete`
+| `delete`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#unassign`
+| `unassign` for the request phase, and `modify` for the execution phase.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#purge-schema`
+| `modify`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#enable`
+| `modify`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#disable`
+| `modify`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#resume`
+| `resumeTask`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#generate-value`
+| `modify`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#discover-connectors`
+| No authorization required.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#resolve`
+| `get`
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#notify`
+| No authorization required.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#reencrypt`
+| No authorization required.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#validate`
+| No authorization required.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#test-resource`
+| No authorization required.
+
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#search`
+| `read`, or alternatively, `search` and `get`.
+
+|===
+
++
+Note that primary names of actions are used, e.g., `generate-value` as opposed to `generateValue`.
+
++
+For more information on actions, see xref:/midpoint/reference/misc/bulk/#_actions[]. +
+For details regarding model authorizations, see xref:/midpoint/reference/security/authorization/model[] and xref:/midpoint/reference/security/authorization/configuration/[].
+
+
+
+[NOTE]
+====
+Before midPoint 4.8, the `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#all` authorization was named `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript`.
+Despite the confusing name, this authorization would not allow you to run Groovy scripts (or Velocity, Python, JavaScript, and similar).
+As scripts are powerful tools, running them still required the `#all` authorization.
+====
+
 
 == See Also
 
 * xref:../[Authorization]
+* xref:/midpoint/reference/misc/bulk/index.adoc#_actions[Actions]
+* xref:/midpoint/reference/security/authorization/model[]
