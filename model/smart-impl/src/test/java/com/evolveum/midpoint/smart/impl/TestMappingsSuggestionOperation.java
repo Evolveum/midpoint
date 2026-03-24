@@ -3,17 +3,15 @@ package com.evolveum.midpoint.smart.impl;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
-import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.task.api.Task;
@@ -109,6 +107,21 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null, task, result);
     }
 
+    private void correlateAccount(TestObject<UserType> user, Task task, OperationResult result)
+            throws CommonException, IOException {
+        var shadow = findShadowRequest()
+                .withResource(RESOURCE_DUMMY.getObjectable())
+                .withDefaultAccountType()
+                .withNameValue(user.getNameOrig())
+                .build().findRequired(task, result);
+        executeChanges(
+                PrismContext.get().deltaFor(ShadowType.class)
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
+                        .add(new PrismReferenceValueImpl(user.oid, UserType.COMPLEX_TYPE))
+                        .asObjectDelta(shadow.getOid()),
+                null, task, result);
+    }
+
     private ServiceClient createClient(List<ItemPath> focusPaths, List<ItemPath> shadowPaths, String... scripts) {
         SiMatchSchemaResponseType matchResponse = new SiMatchSchemaResponseType();
         for (int i = 0; i < focusPaths.size(); i++) {
@@ -167,10 +180,28 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
     @Test
     public void test001AsIsMappingWhenDataIdentical() throws Exception {
+        testAsIsMapping();
+    }
+
+    @Test
+    public void test002AsIsMappingWhenUsersAreNotLinkedButOnlyCorrelated() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_LINK_REF), (Object) null);
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_LINK_REF), (Object) null);
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_LINK_REF), (Object) null);
+
+        correlateAccount(USER1, task, result);
+        correlateAccount(USER2, task, result);
+        correlateAccount(USER3, task, result);
 
         refreshShadows();
+        testAsIsMapping();
+    }
+
+    private void testAsIsMapping() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         // Personal number is identical on both sides
         var mockClient = createClient(
@@ -205,7 +236,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test002TransformationMappingWhenScriptProvided() throws Exception {
+    public void test003TransformationMappingWhenScriptProvided() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -245,7 +276,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test003InvalidScriptShouldBeIgnored() throws Exception {
+    public void test004InvalidScriptShouldBeIgnored() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -285,7 +316,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test004InvalidScriptWithCorrectRetry() throws Exception {
+    public void test005InvalidScriptWithCorrectRetry() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -331,7 +362,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test005LowQualityMappingShouldBeSkipped() throws Exception {
+    public void test006LowQualityMappingShouldBeSkipped() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
