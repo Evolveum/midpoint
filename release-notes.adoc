@@ -35,6 +35,10 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.9.6
+
+* Fixed reconc task with tailoring GUI error in Subtasks tab. See bug:MID-11107[].
+
 == Changes with Respect To Version 4.9.5
 
 * Fixed displaying some approved and executed changes as "Waiting to be applied". See bug:MID-10828[].
@@ -46,7 +50,6 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Improved error logging in SqaleTableMapping. See bug:MID-11018[].
 * Fixed visibility of the create report button.
 * Fixed shadow attributes/id parsing exception. See bug:MID-10944[].
-* Fixed reconc task with tailoring GUI error in Subtasks tab. See bug:MID-11107[].
 * Updated spring boot to 3.5.8.
 
 == Changes with Respect To Version 4.9.4
