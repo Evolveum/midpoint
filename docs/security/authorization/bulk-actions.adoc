@@ -41,7 +41,7 @@ For example, if you need to resolve objects before modifying them, you will not 
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#all`
 | Depends on the actual bulk action that is executed.
 
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#assign`
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#assign`
 | `assign` for the request phase, and `modify` for the execution phase.
 
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#execute-script`
