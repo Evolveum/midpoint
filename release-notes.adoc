@@ -320,6 +320,7 @@ Create metadata were added to campaign object while its creation. See bug:MID-10
 * Fixed "all tasks running" message. See bug:MID-10958[].
 * Fixed displaying some approved and executed changes as "Waiting to be applied". See bug:MID-10828[].
 * No longer evaluating timed actions on cancelled cases. See bug:MID-10934[].
+* Fixed authentication exception handling while user login. See bug:MID-10953[]
 
 === Releases Of Other Components
 
