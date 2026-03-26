@@ -23,18 +23,28 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -85,6 +95,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP;
 
 /**
  * @author katkav
@@ -158,8 +170,56 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(IModel<SelectableBean<O>> rowModel, AjaxRequestTarget target) {
-                onNameColumnPerform(rowModel, target);
+            protected AbstractLink getObjectNameLinkComponent(String id, IModel<SelectableBean<O>> rowModel) {
+                AbstractLink link = new AjaxLink<>(id) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        //click event is handled in AjaxEventBehavior
+                    }
+                };
+                O obj = rowModel.getObject() != null ? rowModel.getObject().getValue() : null;
+                if (obj != null) {
+                    link.add(new AjaxEventBehavior("click") {
+                        @Serial private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                            super.updateAjaxAttributes(attributes);
+
+                            attributes.getDynamicExtraParameters().add(
+                                    "return { ctrlKey: Wicket.Event.fix(attrs.event).ctrlKey };"
+                            );
+
+                            attributes.getAjaxCallListeners().add(new AjaxCallListener() {
+                                @Override
+                                public CharSequence getPrecondition(Component component) {
+                                    return "if(attrs.event.ctrlKey || attrs.event.which === 2) { " +
+                                            "attrs.event.preventDefault(); " +          // stop browser navigation
+                                            "window.open(attrs.event.currentTarget.href, '_blank'); " +
+                                            "return false; " + // cancel AJAX
+                                            "} else { return true; }"; // normal click → AJAX
+                                }
+                            });
+                        }
+
+                        @Override
+                        protected void onEvent(AjaxRequestTarget target) {
+                            onNameColumnPerform(rowModel, target);
+                        }
+                    });
+                    link.add(AttributeModifier.replace("href", urlForNameColumnLink(obj)));
+                }
+                return link;
+            }
+
+            private String urlForNameColumnLink(O obj) {
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, obj.getOid());
+                Class<? extends PageBase> detailsPageClass = OBJECT_DETAILS_PAGE_MAP.get(obj.getClass());
+                var url = RequestCycle.get().urlFor(detailsPageClass, parameters);
+                return url != null ? url.toString() : "#";
             }
 
             @Override
