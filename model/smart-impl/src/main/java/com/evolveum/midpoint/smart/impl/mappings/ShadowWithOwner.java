@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * Simple value object representing a shadow and its owner.
  */
-public record OwnedShadow(ShadowType shadow, FocusType owner) {
+public record ShadowWithOwner(ShadowType shadow, FocusType owner) {
 
     public ValuesPair<?, ?> toValuesPair(ItemPath shadowAttrPath, ItemPath focusPropPath) {
         return new ValuesPair<>(

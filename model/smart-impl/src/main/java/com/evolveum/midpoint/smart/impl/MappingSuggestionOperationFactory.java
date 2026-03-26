@@ -26,20 +26,20 @@ public class MappingSuggestionOperationFactory {
 
     private final MappingsQualityAssessor mappingsQualityAssessor;
     private final MappingScriptValidator mappingScriptValidator;
-    private final OwnedShadowsProvider ownedShadowsProvider;
+    private final ShadowsWithOwnersProvider shadowsWithOwnersProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final HeuristicRuleMatcher heuristicRuleMatcher;
     private final CategoricalAttributeRegistry categoricalAttributeRegistry;
 
     public MappingSuggestionOperationFactory(MappingsQualityAssessor mappingsQualityAssessor,
+            ShadowsWithOwnersProvider shadowsWithOwnersProvider,
             MappingScriptValidator mappingScriptValidator,
-            OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
             HeuristicRuleMatcher heuristicRuleMatcher,
             CategoricalAttributeRegistry categoricalAttributeRegistry) {
         this.mappingsQualityAssessor = mappingsQualityAssessor;
         this.mappingScriptValidator = mappingScriptValidator;
-        this.ownedShadowsProvider = ownedShadowsProvider;
+        this.shadowsWithOwnersProvider = shadowsWithOwnersProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.heuristicRuleMatcher = heuristicRuleMatcher;
         this.categoricalAttributeRegistry = categoricalAttributeRegistry;
@@ -57,7 +57,7 @@ public class MappingSuggestionOperationFactory {
                 TypeOperationContext.init(client, resourceOid, typeIdentification, activityState, task, parentResult),
                 this.mappingsQualityAssessor,
                 this.mappingScriptValidator,
-                this.ownedShadowsProvider,
+                this.shadowsWithOwnersProvider,
                 this.wellKnownSchemaService,
                 this.heuristicRuleMatcher,
                 this.categoricalAttributeRegistry,
