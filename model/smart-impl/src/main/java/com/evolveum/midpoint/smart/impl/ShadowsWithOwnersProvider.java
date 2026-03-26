@@ -8,19 +8,18 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
+import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
 import com.evolveum.midpoint.util.exception.*;
 
 /**
  * Strategy interface for fetching owned shadows samples for mapping suggestion.
  */
-public interface OwnedShadowsProvider {
+public interface ShadowsWithOwnersProvider {
 
-    List<OwnedShadow> fetch(
+    List<ShadowWithOwner> fetch(
             TypeOperationContext ctx,
             OperationContext.StateHolder state,
             OperationResult result,

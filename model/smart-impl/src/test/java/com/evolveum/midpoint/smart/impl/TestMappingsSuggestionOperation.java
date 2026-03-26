@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -61,6 +62,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
     @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
+    @Autowired private CorrelationService correlationService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -216,7 +218,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -259,7 +261,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -301,7 +303,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -342,7 +344,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -389,7 +391,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -421,7 +423,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,
@@ -468,7 +470,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,
@@ -515,7 +517,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,
@@ -561,7 +563,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,
@@ -607,7 +609,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,
@@ -636,7 +638,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -674,7 +676,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -706,7 +708,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -744,7 +746,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -787,7 +789,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -827,7 +829,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,
@@ -867,7 +869,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,
@@ -910,7 +912,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -956,7 +958,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1002,7 +1004,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1050,7 +1052,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1098,7 +1100,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1144,7 +1146,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1190,7 +1192,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1234,7 +1236,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,
@@ -1282,7 +1284,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1324,7 +1326,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1370,7 +1372,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1416,7 +1418,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,
@@ -1462,7 +1464,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1508,7 +1510,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1554,7 +1556,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1600,7 +1602,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1646,7 +1648,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 true,
@@ -1692,7 +1694,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 ctx,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 false,

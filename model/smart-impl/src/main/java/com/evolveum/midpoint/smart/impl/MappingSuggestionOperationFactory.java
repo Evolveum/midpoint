@@ -21,16 +21,16 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 public class MappingSuggestionOperationFactory {
 
     private final MappingsQualityAssessor mappingsQualityAssessor;
-    private final OwnedShadowsProvider ownedShadowsProvider;
+    private final ShadowsWithOwnersProvider shadowsWithOwnersProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final HeuristicRuleMatcher heuristicRuleMatcher;
 
     public MappingSuggestionOperationFactory(MappingsQualityAssessor mappingsQualityAssessor,
-            OwnedShadowsProvider ownedShadowsProvider,
+            ShadowsWithOwnersProvider shadowsWithOwnersProvider,
             WellKnownSchemaService wellKnownSchemaService,
             HeuristicRuleMatcher heuristicRuleMatcher) {
         this.mappingsQualityAssessor = mappingsQualityAssessor;
-        this.ownedShadowsProvider = ownedShadowsProvider;
+        this.shadowsWithOwnersProvider = shadowsWithOwnersProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.heuristicRuleMatcher = heuristicRuleMatcher;
     }
@@ -43,7 +43,7 @@ public class MappingSuggestionOperationFactory {
         return MappingsSuggestionOperation.init(
                 TypeOperationContext.init(client, resourceOid, typeIdentification, activityState, task, parentResult),
                 this.mappingsQualityAssessor,
-                this.ownedShadowsProvider,
+                this.shadowsWithOwnersProvider,
                 this.wellKnownSchemaService,
                 this.heuristicRuleMatcher,
                 isInbound,
