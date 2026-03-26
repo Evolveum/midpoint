@@ -81,6 +81,7 @@ class MappingsSuggestionOperation {
     private final boolean isInbound;
     private final boolean useAiService;
     @Nullable private final ShadowObjectClassStatisticsType objectTypeStatistics;
+    private final int retryCount;
 
     private MappingsSuggestionOperation(
             TypeOperationContext ctx,
@@ -92,7 +93,8 @@ class MappingsSuggestionOperation {
             CategoricalAttributeRegistry categoricalAttributeRegistry,
             boolean isInbound,
             boolean useAiService,
-            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics) {
+            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            int retryCount) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
         this.scriptValidator = scriptValidator;
@@ -103,6 +105,7 @@ class MappingsSuggestionOperation {
         this.isInbound = isInbound;
         this.useAiService = useAiService;
         this.objectTypeStatistics = objectTypeStatistics;
+        this.retryCount = retryCount;
     }
 
     static MappingsSuggestionOperation init(
@@ -115,7 +118,8 @@ class MappingsSuggestionOperation {
             CategoricalAttributeRegistry categoricalAttributeRegistry,
             boolean isInbound,
             boolean useAiService,
-            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics)
+            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            int retryCount)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return new MappingsSuggestionOperation(
@@ -128,7 +132,8 @@ class MappingsSuggestionOperation {
                 categoricalAttributeRegistry,
                 isInbound,
                 useAiService,
-                objectTypeStatistics);
+                objectTypeStatistics,
+                retryCount);
     }
 
     private MappingDirection resolveDirection() {
@@ -641,7 +646,7 @@ class MappingsSuggestionOperation {
         String errorLog = null;
         String retryScript = null;
 
-        for (int attempt = 1; attempt <= 2; attempt++) {
+        for (int attempt = 0; attempt <= retryCount; attempt++) {
             var mappingResponse = askMicroserviceAsync(matchPair, valuePairsForLLM, errorLog, retryScript);
             retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
             var aiExpression = buildScriptExpression(mappingResponse);
@@ -653,11 +658,11 @@ class MappingsSuggestionOperation {
                 }
                 break;
             } catch (ExpressionEvaluationException | SecurityViolationException e) {
-                if (attempt == 1) {
+                if (attempt < retryCount) {
                     errorLog = e.getMessage();
-                    LOGGER.warn("Validation issues found on attempt 1; retrying.");
+                    LOGGER.warn("Validation issues found on attempt {}; retrying.", attempt);
                 } else {
-                    LOGGER.warn("Validation issues persist after retry; giving up.");
+                    LOGGER.warn("Validation issues found in mapping script; giving up.");
                     throw e;
                 }
             }

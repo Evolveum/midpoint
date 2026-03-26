@@ -194,7 +194,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -240,7 +241,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -285,7 +287,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -329,7 +332,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                1);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -379,7 +383,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -414,7 +419,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -464,7 +470,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -514,7 +521,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -563,7 +571,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 true,
-                null);
+                null,
+                1);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -612,7 +621,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -644,7 +654,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -685,7 +696,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -720,7 +732,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -761,7 +774,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -807,7 +821,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -850,7 +865,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -893,7 +909,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -939,7 +956,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -988,7 +1006,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1037,7 +1056,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1088,7 +1108,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1139,7 +1160,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1188,7 +1210,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1237,7 +1260,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1284,7 +1308,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1335,7 +1360,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1380,7 +1406,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1429,7 +1456,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1478,7 +1506,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1527,7 +1556,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1576,7 +1606,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1625,7 +1656,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1674,7 +1706,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1723,7 +1756,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 true,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1772,7 +1806,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new CategoricalAttributeRegistry(),
                 false,
                 false,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);

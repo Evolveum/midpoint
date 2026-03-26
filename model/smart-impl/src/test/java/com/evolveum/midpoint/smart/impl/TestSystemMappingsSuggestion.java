@@ -207,7 +207,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -266,7 +267,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -316,7 +318,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -369,7 +372,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new CategoricalAttributeRegistry(),
                 true,
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, acceptedSuggestionPaths);
@@ -408,7 +412,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new CategoricalAttributeRegistry(),
                 false, // outbound
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, false, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -502,7 +507,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new CategoricalAttributeRegistry(),
                 false, // outbound
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, false, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -549,7 +555,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new CategoricalAttributeRegistry(),
                 false, // outbound
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_AD.oid, ACCOUNT_DEFAULT, false, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -624,7 +631,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new CategoricalAttributeRegistry(),
                 false, // outbound
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_AD.oid, ACCOUNT_DEFAULT, false, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -671,7 +679,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new CategoricalAttributeRegistry(),
                 false, // outbound
                 true,
-                null);
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_AD.oid, ACCOUNT_DEFAULT, false, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
