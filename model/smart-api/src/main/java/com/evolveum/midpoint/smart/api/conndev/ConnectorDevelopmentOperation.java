@@ -41,7 +41,11 @@ public interface ConnectorDevelopmentOperation {
 
     String submitDiscoverObjectClasses(Task task, OperationResult result);
 
-    String submitDiscoverObjectClassDetails(String user, Task testTask, OperationResult testOperationResult);
+    String submitDiscoverObjectClassDetails(String objectClass, Task testTask, OperationResult testOperationResult);
+
+    String submitDiscoverObjectClassAttributes(String objectClass, Task testTask, OperationResult testOperationResult);
+
+    String submitDiscoverObjectClassEndpoints(String objectClass, Task testTask, OperationResult testOperationResult);
 
     String submitGenerateArtifact(ConnDevArtifactType artifact, Task testTask, OperationResult testOperationResult);
 

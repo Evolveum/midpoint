@@ -10,14 +10,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundEvaluatorWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundMappingContainerWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundEvaluatorWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundMappingContainerWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page.SmartObjectTypeSuggestionWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -287,56 +282,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     public void showPoliciesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         showContainerWizardForObjectType(target, pathToValue, PoliciesObjectTypeWizardPanel.class);
-    }
-
-    public void showAssociationInboundsWizard(
-            AjaxRequestTarget target,
-            ItemPath pathToValue,
-            ShadowAssociationTypeDefinitionType association,
-            IModel<String> exitLabel) {
-        showWizard(target, pathToValue, AssociationInboundMappingContainerWizardPanel.class, exitLabel);
-        addWizardBreadcrumbsForAssociationType(
-                association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
-    }
-
-    public void showAssociationInboundWizard(
-            AjaxRequestTarget target,
-            ItemPath pathToValue,
-            ShadowAssociationTypeDefinitionType association,
-            IModel<String> exitLabel) {
-        AssociationInboundEvaluatorWizardPanel panel = showWizard(
-                target,
-                pathToValue,
-                AssociationInboundEvaluatorWizardPanel.class,
-                exitLabel);
-        panel.setShowChoicePanel(true);
-        addWizardBreadcrumbsForAssociationType(
-                association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
-    }
-
-    public void showAssociationOutboundsWizard(
-            AjaxRequestTarget target,
-            ItemPath pathToValue,
-            ShadowAssociationTypeDefinitionType association,
-            IModel<String> exitLabel) {
-        showWizard(target, pathToValue, AssociationOutboundMappingContainerWizardPanel.class, exitLabel);
-        addWizardBreadcrumbsForAssociationType(
-                association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
-    }
-
-    public void showAssociationOutboundWizard(
-            AjaxRequestTarget target,
-            ItemPath pathToValue,
-            ShadowAssociationTypeDefinitionType association,
-            IModel<String> exitLabel) {
-        AssociationOutboundEvaluatorWizardPanel panel = showWizard(
-                target,
-                pathToValue,
-                AssociationOutboundEvaluatorWizardPanel.class,
-                exitLabel);
-        panel.setShowChoicePanel(true);
-        addWizardBreadcrumbsForAssociationType(
-                association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
     }
 
     public void showComplexOrEnumerationTypeWizard(AjaxRequestTarget target) {

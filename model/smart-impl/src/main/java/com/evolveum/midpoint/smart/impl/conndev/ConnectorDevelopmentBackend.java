@@ -9,6 +9,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -22,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.function.BooleanSupplier;
 
 public abstract class ConnectorDevelopmentBackend {
 
@@ -41,6 +43,17 @@ public abstract class ConnectorDevelopmentBackend {
         this.development = development;
         this.task = task;
         this.result = result;
+    }
+
+    /**
+     * Returns a supplier that operations must poll to implement cooperative cancellation.
+     *
+     * Because operations run in threads that cannot be forcibly killed, each operation is
+     * responsible for periodically checking this supplier and stopping itself when it returns
+     * false — which happens once the task has been suspended or stopped.
+     */
+    protected BooleanSupplier canRun() {
+        return task instanceof RunningTask rt ? rt::canRun : () -> true;
     }
 
 

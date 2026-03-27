@@ -40,7 +40,7 @@ public class DiscoverObjectClassInformationActivityHandler
     public DiscoverObjectClassInformationActivityHandler() {
         super(
                 ConnDevDiscoverObjectClassInformationDefinitionType.COMPLEX_TYPE,
-                WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_DETAILS,
+                WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_INFORMATION,
                 ConnDevDiscoverObjectClassInformationWorkStateType.COMPLEX_TYPE,
                 DiscoverObjectClassInformationActivityHandler.WorkDefinition.class,
                 DiscoverObjectClassInformationActivityHandler.WorkDefinition::new);
@@ -49,7 +49,7 @@ public class DiscoverObjectClassInformationActivityHandler
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                ConnDevCreateConnectorWorkDefinitionType.COMPLEX_TYPE, DiscoverObjectClassInformationActivityHandler.WorkDefinition.class);
+                ConnDevDiscoverObjectClassInformationDefinitionType.COMPLEX_TYPE, DiscoverObjectClassInformationActivityHandler.WorkDefinition.class);
     }
 
     @Override
