@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import java.util.Locale;
 
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
@@ -79,6 +80,8 @@ public interface ModelServiceLocator {
     SecurityContextManager getSecurityContextManager();
 
     ExpressionFactory getExpressionFactory();
+
+    BrowserTabSessionStorage getBrowserTabSessionStorage();
 
     /**
      * Returns currently applicable user profile, compiled for efficient use in the user interface.
