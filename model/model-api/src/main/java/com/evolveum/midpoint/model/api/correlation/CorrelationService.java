@@ -112,15 +112,19 @@ public interface CorrelationService {
      * Find focus, which is either linked or correlated with given shadow.
      *
      * This method firstly tries to find focus, which is linked. If no such focus is found, it tries to find focus,
-     * which is at least correlated with the shadow.
-     *
-     * This method does not run the correlation process itself. It relies on existing link/correlation information
-     * stored in focuses/shadow.
+     * which is at least correlated with the shadow. If not even that exists, it tries to run actual correlation
+     * process.
      *
      * @param shadow The Shadow, whose linked or correlated focus you want to find.
+     * @param resource The resource, which will be used for correlation if there is no linked or correlated focus yet.
+     * @param typeDef The object type definition for the purposes of correlation.
+     * @param correlationDef The definition of correlation for the purposes of correlation.
+     *
      * @return The found focus or empty Optional if no linked/correlated focus was found.
      */
-    Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, OperationResult result) throws SchemaException;
+    Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, @NotNull ResourceType resource,
+            @NotNull ResourceObjectTypeDefinition typeDef, @NotNull CorrelationDefinitionType correlationDef,
+            @NotNull Task task, OperationResult result) throws SchemaException;
 
 
     @FunctionalInterface

@@ -620,8 +620,33 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     @Override
-    public Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, OperationResult result)
+    public Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, @NotNull ResourceType resource,
+            @NotNull ResourceObjectTypeDefinition typeDef, @NotNull CorrelationDefinitionType correlationDef,
+            @NotNull Task task, OperationResult result)
             throws SchemaException {
+        try {
+            return findLinkedOwner(shadow, result)
+                    .or(() -> readCandidateOwner(shadow, result))
+                    .or(() -> {
+                        try {
+                            return Optional.ofNullable(correlate(shadow, resource, typeDef, correlationDef, task, result)
+                                    .getOwner())
+                                    .filter(owner -> owner instanceof FocusType)
+                                    .map(owner -> (FocusType) owner);
+                        } catch (SchemaException | ExpressionEvaluationException | CommunicationException |
+                                 SecurityViolationException | ConfigurationException | ObjectNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+        } catch (TunnelException e) {
+            if (e.getCause() instanceof SchemaException se) {
+                throw se;
+            }
+            throw SystemException.unexpected(e.getCause());
+        }
+    }
+
+    private Optional<FocusType> findLinkedOwner(ShadowType shadow, OperationResult result) throws SchemaException {
         final ObjectQuery query = PrismContext.get().queryFor(FocusType.class)
                 .item(FocusType.F_LINK_REF)
                 .ref(shadow.getOid())
@@ -632,10 +657,12 @@ public class CorrelationServiceImpl implements CorrelationService {
         if (linkedFocuses.size() == 1) {
             return Optional.of(linkedFocuses.get(0).asObjectable());
         } else if (linkedFocuses.size() > 1) {
-            throw new IllegalStateException("Shadow " + shadow + " is linked with more than one focus: "
-                    + linkedFocuses);
+            throw new SystemException("Shadow " + shadow + " is linked with more than one focus: " + linkedFocuses);
         }
+        return Optional.empty();
+    }
 
+    private Optional<FocusType> readCandidateOwner(ShadowType shadow, OperationResult result) {
         final String ownerCandidateOid = Optional.ofNullable(shadow.getCorrelation())
                 .map(ShadowCorrelationStateType::getResultingOwner)
                 .map(AbstractReferencable::getOid)
@@ -645,12 +672,15 @@ public class CorrelationServiceImpl implements CorrelationService {
         }
 
         try {
-            final FocusType correlatedFocus = this.repositoryService.getObject(FocusType.class, ownerCandidateOid, null, result)
+            final FocusType correlatedFocus = this.repositoryService.getObject(FocusType.class, ownerCandidateOid, null,
+                            result)
                     .asObjectable();
             return Optional.of(correlatedFocus);
         } catch (ObjectNotFoundException e) {
-            throw new IllegalStateException("Shadow" + shadow + " is correlated with focus with oid "
+            throw SystemException.unexpected(e, "Shadow" + shadow + " is correlated with focus with oid "
                     + ownerCandidateOid + ", which does not exist.");
+        } catch (SchemaException e) {
+            throw new TunnelException(e);
         }
     }
 
