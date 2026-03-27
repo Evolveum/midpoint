@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -53,6 +54,14 @@ public class TestResourceAccounts {
         this.shadowReader = shadowReader;
         this.resource = resource;
         this.prismContext = prismContext;
+    }
+
+    public TestResourceAccounts ofObjectType(ResourceObjectTypeIdentification objectTypeId) {
+        final ShadowReader reader = (resource, task, result) ->
+                this.shadowReader.readShadows(resource, task, result).stream()
+                        .filter(shadow -> ShadowUtil.getTypeIdentification(shadow.asObjectable()).equals(objectTypeId))
+                        .toList();
+        return new TestResourceAccounts(reader, this.resource, this.prismContext);
     }
 
     /**

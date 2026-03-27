@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -32,13 +33,42 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * Tests the mapping simulation task functionality.
+ *
+ * == Test Data Architecture
+ *
+ * This test leverages a `{code dummy-resource.xml}` and `{code accounts.csv}` to provide isolated
+ * test scenarios for different mapping simulation behaviors. The key mechanism is the
+ * *delineator* column in the CSV file, which routes accounts to specific object types
+ * defined in the resource XML.
+ *
+ * === Accounts CSV Structure
+ *
+ * The CSV file contains accounts categorized by their `{code delineator}` attribute value. These accounts are then
+ * divided into separate object types by the `filter` configuration in the resource xml.
+ *
+ * === Resource Object Type Delineation
+ *
+ * The resource XML defines multiple `{code <objectType>}` elements, each with a
+ * `{code <delineation>}` filter that matches the corresponding `{code delineator}` value
+ *
+ * === Test Isolation
+ *
+ * Each test method calls `{@link #setObjectTypeIntent(String)}` to configure which accounts
+ * the simulation task should process. Only accounts with a matching delineator value are included,
+ * enabling isolated testing.
+ */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest {
@@ -67,14 +97,7 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         this.resource.init(this, initTask, initResult);
         this.mappingTask = TestTask.fromFile(SIMULATION_TASK, SIMULATION_TASK_OID);
         this.users = repoAddObjectsFromFile(USERS, UserType.class, initResult);
-        assertUsers(9); // Including one admin.
-
-        final Collection<PrismObject<ShadowType>> linkedAccounts = this.resource.getAccounts(this, this::listAccounts)
-                .linkWithUsers(this.users, delta -> this.executeChanges(delta, null, initTask, initResult), initTask,
-                        initResult)
-                .onAttributes(ACCOUNT_CORRELATION_ATTRIBUE, UserType.F_NAME);
-        assertThat(linkedAccounts).as("Check test precondition: Linked accounts count").hasSize(6);
-
+        assertUsers(10); // Including one admin.
     }
 
     @BeforeMethod
@@ -85,13 +108,16 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
     @Test
     void accountIsLinkedToUser_simulateMappingAlsoWithExistingMappings_allMappingsShouldBeEvaluated()
             throws Exception {
+        final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
-        given("One account is linked with a user");
-        and("Object type definition in resource contains one inbound mapping");
+        given("Object type definition in resource contains one inbound mapping");
         and("Mapping simulation task contains one explicitly defined mapping");
         and("Mapping simulation task is configured to include existing mappings");
         includeExistingMappings(true);
+        and("One account is linked with a user");
+        final Collection<PrismObject<ShadowType>> linkedAccounts = linkAccounts("default", result);
+        assertThat(linkedAccounts).as("Check test precondition: Linked accounts count").hasSize(1);
 
         when("Mapping simulation task is run on the resource.");
         mappingTask.rerun(result);
@@ -110,20 +136,23 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
     }
 
     @DataProvider
-    Object[] existingMappingsExclusionValues() {
+    Object[] existingMappingsExclusionFlags() {
         return new Object[]{null, false};
     }
 
-    @Test(dataProvider = "existingMappingsExclusionValues")
+    @Test(dataProvider = "existingMappingsExclusionFlags")
     void accountIsLinkedToUser_simulateMappingButExcludeExistingOnes_existingMappingsShouldNotBeEvaluated(
             Boolean excludeExistingMappingsOption) throws Exception {
+        final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
-        given("Accounts are linked with a user");
-        and("Object type definition in resource contains one inbound mapping");
+        given("Object type definition in resource contains one inbound mapping");
         and("Mapping simulation task contains one explicitly defined mapping");
         and("Mapping simulation task is configured to exclude existing mappings");
         includeExistingMappings(excludeExistingMappingsOption);
+        and("One account is linked with a user");
+        final Collection<PrismObject<ShadowType>> linkedAccounts = linkAccounts("default", result);
+        assertThat(linkedAccounts).as("Check test precondition: Linked accounts count").hasSize(1);
 
         when("Mapping simulation task is run on the resource.");
         mappingTask.rerun(result);
@@ -147,7 +176,7 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
     }
 
     @Test
-    void accountDoesNotHaveAnyOwner_simulateMappingAlsoMapping_mappingResultsShouldBeAppliedToEmptyFocus()
+    void accountDoesNotHaveAnyOwner_simulateMapping_mappingResultsShouldBeAppliedToEmptyFocus()
             throws Exception {
         final OperationResult result = getTestOperationResult();
 
@@ -178,10 +207,13 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
             throws Exception {
         final OperationResult result = getTestOperationResult();
 
-        given("Accounts are linked with a user");
-        and("Object type definition in resource does not contain any inbound mapping");
+        given("Object type definition in resource does not contain any inbound mapping");
         and("Mapping simulation task contains one explicitly defined mapping");
         final String intent = "marks-test";
+        and("Accounts are linked with a user");
+        final Collection<PrismObject<ShadowType>> linkedAccounts = linkAccounts(intent, result);
+        assertThat(linkedAccounts).as("Check test precondition: Linked accounts count").hasSize(4);
+
         and("Mapping simulation task is configured to use object type with \"" + intent + "\" intent");
         setObjectTypeIntent(intent);
 
@@ -216,13 +248,17 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
     void linkedAccountHasObjectTypeWithInheritance_simulateMappingButExcludeExistingOnes_existingMappingsShouldNotBeEvaluated()
             throws Exception {
         final OperationResult result = getTestOperationResult();
+        final Task task = getTestTask();
 
-        given("Accounts are linked with a user");
-        and("Object type definition in resource contains one inbound mapping defined in its super type");
+        given("Object type definition in resource contains one inbound mapping defined in its super type");
         and("Mapping simulation task contains one explicitly defined mapping");
         and("Mapping simulation task is configured to exclude existing mappings");
         includeExistingMappings(false);
         final String intent = "exclusion-test";
+        and("Accounts are linked with a user");
+        final Collection<PrismObject<ShadowType>> linkedAccounts = linkAccounts(intent, result);
+        assertThat(linkedAccounts).as("Check test precondition: Linked accounts count").hasSize(1);
+
         and("Mapping simulation task is configured to use object type with \"" + intent + "\" intent");
         setObjectTypeIntent(intent);
 
@@ -242,7 +278,7 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
     }
 
     @Test
-    void noAccountLinkedOneAccountCorrelated_simulateMapping_linkedAndCorrelatedAccountsAndFocusesShouldBeProcessed()
+    void noAccountLinkedOneAccountAlreadyCorrelated_simulateMapping_correlatedAccountAndItsFocusShouldBeProcessed()
             throws Exception {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
@@ -253,10 +289,10 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         setObjectTypeIntent(intent);
         and("One account is correlated but not linked with a user");
         final Collection<PrismObject<ShadowType>> correlatedShadows = this.resource.getAccounts(this, this::listAccounts)
+                .ofObjectType(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, intent))
                 .correlateWithUsers(this.users, delta -> this.executeChanges(delta, null, task, result), task, result)
-                .onAttributes(ACCOUNT_CORRELATION_ATTRIBUE, UserType.F_FAMILY_NAME);
+                .onAttributes(ACCOUNT_CORRELATION_ATTRIBUE, UserType.F_NAME);
         assertThat(correlatedShadows).as("Check test precondition: Correlated accounts count").hasSize(1);
-        and("There is some mapping to simulate, either explicitly defined in work def or already present in resource.");
 
         when("Mapping simulation task is run on the resource.");
         mappingTask.rerun(result);
@@ -267,7 +303,36 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
         assertProcessedFocusesCount(processedObjects, 1)
-                // There are two processed focuses, each should have one processed shadow.
+                .assertName("mcclane")
+                // There are two processed objects, each should have one processed shadow.
+                .assertContainsProjectionRecords(1);
+        assertProcessedShadowsCount(processedObjects, 1)
+                .assertContainsLinkedFocus();
+    }
+
+    @Test
+    void noAccountLinkedNoAccountCorrelatedYet_simulateMapping_accountCorrelatedInSimulationAndItsFocusShouldBeProcessed()
+            throws Exception {
+        final Task task = getTestTask();
+        final OperationResult result = getTestOperationResult();
+
+        given("No account is linked, nor correlated with a user yet");
+        and("Resource object type contains correlation inbound mapping");
+        final String intent = "auto-correlation-test";
+        and("Mapping simulation task is configured to use object type with \"" + intent + "\" intent");
+        setObjectTypeIntent(intent);
+
+        when("Mapping simulation task is run on the resource.");
+        mappingTask.rerun(result);
+
+        then("Shadow correlated during simulation should be processed.");
+        assertSimulationResult(mappingTask.oid, "Assert mapping simulation result metrics.")
+                .assertObjectsProcessed(2);
+        final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
+                result).getProcessedObjects(result);
+        assertProcessedFocusesCount(processedObjects, 1)
+                .assertName("norris")
+                // There are two processed objects, each should have one processed shadow.
                 .assertContainsProjectionRecords(1);
         assertProcessedShadowsCount(processedObjects, 1)
                 .assertContainsLinkedFocus();
@@ -295,6 +360,15 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         then("Task should fail, because it supports only PREVIEW execution mode.");
         mappingTask.doAssert("Mapping task is supported only in PREVIEW mode, thus it should fail.")
                 .assertFatalError();
+    }
+
+    private Collection<PrismObject<ShadowType>> linkAccounts(String intent, OperationResult result)
+            throws CommonException {
+        final Task task = getTestTask();
+        return this.resource.getAccounts(this, this::listAccounts)
+                .ofObjectType(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, intent))
+                .linkWithUsers(this.users, delta -> this.executeChanges(delta, null, task, result), task, result)
+                .onAttributes(ACCOUNT_CORRELATION_ATTRIBUE, UserType.F_NAME);
     }
 
     private void setExecutionMode(ExecutionModeType executionMode) throws Exception {
@@ -421,6 +495,15 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
                             .as("Check number of modified %s objects", this.currentObjectsDescription)
                             .hasSize(expectedNumberOfModifiedObjects),
                     "modified " + this.currentObjectsDescription);
+        }
+
+        ProcessedObjectsAsserter assertName(String... names) {
+            this.objectsAsserter
+                    .map(ProcessedObject::getName)
+                    .filteredOn(Objects::nonNull)
+                    .map(PolyStringType::getOrig)
+                    .contains(names);
+            return this;
         }
 
     }
