@@ -41,10 +41,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public ConnDevApplicationInfoType discoverBasicInformation() {
         try(var job = client().postJob("digester/{sessionId}/metadata")) {
-            return job.waitAndProcess(SLEEP_TIME, o -> {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ConnDevApplicationInfoType();
 
-                var jsonInfo = o.get("infoAboutSchema");
+                var jsonInfo = o.get("infoMetadata");
                 if (jsonInfo.isEmpty()) {
                     // Should we re
                     return ret;
@@ -81,7 +81,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public List<ConnDevAuthInfoType> discoverAuthorizationInformation() {
         try(var job = client().postJob("digester/{sessionId}/auth")) {
-            return job.waitAndProcess(SLEEP_TIME, json -> {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                 var ret = new ArrayList<ConnDevAuthInfoType>();
                 for (var jsonAuth : json.get("auth")) {
                     var auth = SupportedAuthorization.fromAiType(jsonAuth.get("type").asText());
@@ -108,7 +108,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 Objects.requireNonNullElse(developmentObject().getApplication().getVersion(), "latest")));
         request.set("llmGeneratedSearchQuery", JSON_FACTORY.booleanNode(false));
         try(var jobSpec = client().postJob("discovery/{sessionId}/discovery", request)) {
-            return jobSpec.waitAndProcess(SLEEP_TIME, result -> {
+            return jobSpec.waitAndProcess(SLEEP_TIME, canRun(), result -> {
                 var results = jobSpec.getResult().get("candidateLinksEnriched");
 
                 var map = new HashMap<String, ConnDevDocumentationSourceType>();
@@ -213,7 +213,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         }
 
         try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass())) {
-            return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
+            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
         } catch (Exception e) {
             throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
         }
@@ -233,7 +233,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
     private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription) {
         try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix)) {
-            return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
+            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
         } catch (Exception e) {
             throw new SystemException("Couldn't generate " + scriptDescription + " for objectClass " + artifactSpec.getObjectClass(), e);
         }
@@ -251,7 +251,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated) {
         try(var job = client().postJob("digester/{sessionId}/classes")) {
-            return job.waitAndProcess(SLEEP_TIME, o -> {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
                 var jsonClasses = o.get("objectClasses");
                 for (var jsonClass : jsonClasses) {
@@ -286,7 +286,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass) {
         try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/endpoints")) {
-            return job.waitAndProcess(SLEEP_TIME, o -> {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevHttpEndpointType>();
                 var jsonClasses = o.get("endpoints");
                 for (var jsonClass : jsonClasses) {
@@ -346,7 +346,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass) {
         try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes")) {
-            return job.waitAndProcess(SLEEP_TIME, o -> {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevAttributeInfoType>();
                 var jsonAttributes = (ObjectNode) o.get("attributes");
                 for (var entry : jsonAttributes.properties()) {
@@ -393,7 +393,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     private void downloadUsingScrapper(Collection<ConnDevDocumentationSourceType> byScrapper, Collection<ProcessedDocumentation> documentations) {
         var request = scrapperRequest(byScrapper);
         try(var job = client().postJob("scrape/{sessionId}/scrape", request)) {
-            var scrapped = job.waitAndProcess(SLEEP_TIME, json -> {
+            var scrapped = job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                 var ret = new ArrayList<ProcessedDocumentation>();
 
                 var savedPages = json.get("savedPages");
@@ -555,7 +555,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) {
         try {
             try(var job = client().postJob("digester/{sessionId}/relations")) {
-                return job.waitAndProcess(SLEEP_TIME, json -> {
+                return job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                     var ret = new ArrayList<ConnDevRelationInfoType>();
                     var jsonRelations = json.get("relations");
                     for (var object : jsonRelations) {

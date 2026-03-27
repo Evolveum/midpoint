@@ -1,11 +1,17 @@
 package com.evolveum.midpoint.smart.impl.conndev.activity;
 
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -19,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.List;
+import java.util.Set;
 
 public abstract class AbstractConnDevActivityHandler<T extends AbstractConnDevActivityHandler.AbstractWorkDefinition, S extends AbstractConnDevActivityHandler<T,S>>
         extends ModelActivityHandler<T, S> {
@@ -66,6 +74,46 @@ public abstract class AbstractConnDevActivityHandler<T extends AbstractConnDevAc
         return ARCHETYPE_OID;
     }
 
+    /**
+     * Suspends all non-closed sibling tasks of the given activity types for the same connector development.
+     * Should be called on failure to implement fail-fast behavior across parallel tasks.
+     */
+    protected static void suspendSiblings(
+            String connectorDevelopmentOid,
+            Set<ItemName> siblingActivityTypes,
+            LocalActivityRun<?, ?, ?> activityRun,
+            OperationResult result) throws SchemaException {
+        var runningTask = activityRun.getRunningTask();
+        var query = PrismContext.get().queryFor(TaskType.class)
+                .item(ItemPath.create(
+                        TaskType.F_AFFECTED_OBJECTS,
+                        TaskAffectedObjectsType.F_ACTIVITY,
+                        ActivityAffectedObjectsType.F_OBJECTS,
+                        BasicObjectSetType.F_OBJECT_REF))
+                .ref(connectorDevelopmentOid)
+                .build();
+        List<String> siblingOids = ConnDevBeans.get().repositoryService
+                .searchObjects(TaskType.class, query, null, result)
+                .stream()
+                .map(o -> o.asObjectable())
+                .filter(t -> t.getExecutionState() != TaskExecutionStateType.CLOSED)
+                .filter(t -> hasSiblingActivityType(t, siblingActivityTypes))
+                .map(TaskType::getOid)
+                .filter(oid -> !oid.equals(runningTask.getOid()))
+                .toList();
+        if (!siblingOids.isEmpty()) {
+            LOGGER.info("Suspending {} sibling task(s) due to failure in task {}",
+                    siblingOids.size(), runningTask.getName());
+            activityRun.getBeans().taskManager.suspendTasks(siblingOids, TaskManager.DO_NOT_WAIT, result);
+        }
+    }
+
+    private static boolean hasSiblingActivityType(TaskType task, Set<ItemName> activityTypes) {
+        if (task.getAffectedObjects() == null || task.getAffectedObjects().getActivity().isEmpty()) {
+            return false;
+        }
+        return activityTypes.contains(task.getAffectedObjects().getActivity().get(0).getActivityType());
+    }
 
     public static abstract class AbstractWorkDefinition<T extends ConnDevBaseWorkDefinitionType> extends com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition {
 

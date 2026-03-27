@@ -7,15 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.Strings;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -30,8 +25,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-
-import java.util.Optional;
 
 /**
  * @author lskublik
@@ -56,7 +49,7 @@ public class WaitingObjectClassDetailsConnectorStepPanel extends WaitingConnecto
 
     @Override
     protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getDetailsModel().getServiceLocator().getConnectorService().getDiscoverObjectClassDetailsStatus(token, task, result);
+        return getDetailsModel().getServiceLocator().getConnectorService().getDiscoverObjectClassAttributesStatus(token, task, result);
     }
 
     @Override
@@ -92,7 +85,7 @@ public class WaitingObjectClassDetailsConnectorStepPanel extends WaitingConnecto
 
     @Override
     protected ItemName getActivityType() {
-        return WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_DETAILS;
+        return WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_ATTRIBUTES;
     }
 
     @Override
