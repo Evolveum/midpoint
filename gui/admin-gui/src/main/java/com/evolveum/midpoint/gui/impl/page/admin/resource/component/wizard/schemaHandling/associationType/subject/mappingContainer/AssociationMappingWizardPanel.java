@@ -9,9 +9,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.BasicAssociationInboundStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.BasicAssociationOutboundStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.OutboundMappingMainConfigurationStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.OutboundMappingOptionalConfigurationStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -26,9 +35,10 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundMappingMainConfigurationStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundMappingOptionalConfigurationStepPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 public class AssociationMappingWizardPanel<C extends Containerable> extends AbstractWizardPanel<C, ResourceDetailsModel> {
 
@@ -39,7 +49,7 @@ public class AssociationMappingWizardPanel<C extends Containerable> extends Abst
     }
 
     protected void initLayout() {
-        add(createChoiceFragment(createTablePanel(MappingDirection.OBJECTS)));
+        add(createChoiceFragment(createTablePanel(MappingDirection.INBOUND)));
     }
 
     protected AssociationMappingsTableWizardPanel<C> createTablePanel(
@@ -53,6 +63,96 @@ public class AssociationMappingWizardPanel<C extends Containerable> extends Abst
             @Override
             protected void inEditOutboundAttributeValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target, MappingDirection initialTab) {
                 showOutboundAttributeMappingWizardFragment(target, value, initialTab);
+            }
+
+            @Override
+            protected void showMainMappingConfigurationWizardFragment(AjaxRequestTarget target, boolean isInbound) {
+                showWizardFragment(
+                        target,
+                        new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createMainMappingBasicSteps(isInbound))));
+            }
+        };
+    }
+
+    private @Nullable PrismContainerValueWrapper<MappingType> findMainMapping(boolean isInbound) {
+        PrismContainerWrapper<MappingType> container = findMainMappingContainer(isInbound);
+        if (container == null) {
+            return null;
+        }
+
+        List<PrismContainerValueWrapper<MappingType>> values = container.getValues();
+        return values == null || values.isEmpty() ? null : values.get(0);
+    }
+
+    private @Nullable PrismContainerWrapper<MappingType> findMainMappingContainer(boolean isInbound) {
+        ItemPath path = ItemPath.create(
+                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                isInbound
+                        ? ShadowAssociationDefinitionType.F_INBOUND
+                        : ShadowAssociationDefinitionType.F_OUTBOUND);
+
+        try {
+            return getValueModel().getObject().findContainer(path);
+        } catch (SchemaException e) {
+            throw new IllegalStateException(
+                    "Couldn't find container for " + (isInbound ? "inbound" : "outbound") + " mapping in the model.", e);
+        }
+    }
+
+    private @NotNull @Unmodifiable List<WizardStep> createMainMappingBasicSteps(boolean isInbound) {
+        WizardStep step = isInbound
+                ? createInboundMainMappingStep()
+                : createOutboundMainMappingStep();
+
+        return List.of(step);
+    }
+
+    private @NotNull WizardStep createInboundMainMappingStep() {
+        return new BasicAssociationInboundStepPanel(
+                getAssignmentHolderModel(),
+                () -> findMainMapping(true)) {
+
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
+                OperationResult result = AssociationMappingWizardPanel.this.onSavePerformed(target);
+                if (result == null || result.isError()) {
+                    target.add(getFeedback());
+                    refresh(target);
+                    return;
+                }
+
+                onExitPerformed(target);
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                removeLastBreadcrumb();
+                showTableFragment(target, MappingDirection.INBOUND);
+            }
+        };
+    }
+
+    private @NotNull WizardStep createOutboundMainMappingStep() {
+        return new BasicAssociationOutboundStepPanel(
+                getAssignmentHolderModel(),
+                () -> findMainMapping(false)) {
+
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
+                OperationResult result = AssociationMappingWizardPanel.this.onSavePerformed(target);
+                if (result == null || result.isError()) {
+                    target.add(getFeedback());
+                    refresh(target);
+                    return;
+                }
+
+                removeLastBreadcrumb();
+                onExitPerformed(target);
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target, MappingDirection.OUTBOUND);
             }
         };
     }
