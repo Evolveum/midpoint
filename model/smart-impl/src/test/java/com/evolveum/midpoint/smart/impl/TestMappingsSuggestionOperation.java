@@ -4,7 +4,7 @@ import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -116,10 +116,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 .withDefaultAccountType()
                 .withNameValue(user.getNameOrig())
                 .build().findRequired(task, result);
+        final PrismReferenceValue userReference = PrismContext.get().itemFactory().createReferenceValue(user.oid,
+                UserType.COMPLEX_TYPE);
         executeChanges(
                 PrismContext.get().deltaFor(ShadowType.class)
                         .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
-                        .add(new PrismReferenceValueImpl(user.oid, UserType.COMPLEX_TYPE))
+                        .add(userReference)
                         .asObjectDelta(shadow.getOid()),
                 null, task, result);
     }
