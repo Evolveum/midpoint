@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectTemplate oid="768db2d3-2e73-4cfd-80e5-8fbbba4cf301"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:race="http://midpoint.evolveum.com/xml/ns/test/mql-concurrency-race">
+    <name>MQL org workplace-only template</name>
+    <mapping>
+        <name>org-member-by-workplace-mql</name><strength>strong</strength>
+        <source><name>workplaceId</name><path>$focus/extension/race:workplaceId</path></source>
+        <expression><assignmentTargetSearch><targetType>c:OrgType</targetType><filter><q:text>identifier = $workplaceId</q:text></filter></assignmentTargetSearch></expression>
+        <target><path>$focus/assignment</path><set><predefined>none</predefined></set></target>
+        <condition><script><code>java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1)); return workplaceId != null;</code></script></condition>
+    </mapping>
+</objectTemplate>

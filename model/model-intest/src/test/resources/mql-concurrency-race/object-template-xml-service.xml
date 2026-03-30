@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectTemplate oid="5e8bf29e-85df-4c61-9305-a05a61cd7201"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:race="http://midpoint.evolveum.com/xml/ns/test/mql-concurrency-race">
+    <name>XML service-only template</name>
+    <mapping>
+        <name>service-owner-xml</name><strength>strong</strength>
+        <source><name>name</name><path>$focus/name</path></source>
+        <expression><assignmentTargetSearch><targetType>c:ServiceType</targetType><filter><q:equal><q:path>extension/race:initialOwnerName</q:path><expression><script><code>java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.scriptSleepMs", 3)); return name;</code></script></expression></q:equal></filter><assignmentProperties><relation>owner</relation></assignmentProperties></assignmentTargetSearch></expression>
+        <target><path>$focus/assignment</path><set><predefined>none</predefined></set></target>
+        <condition><script><code>java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1)); return name != null;</code></script></condition>
+    </mapping>
+</objectTemplate>

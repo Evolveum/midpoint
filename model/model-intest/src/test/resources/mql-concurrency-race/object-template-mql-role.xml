@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectTemplate oid="95d4c0c3-52dd-4f2c-b749-84b8ca10db05"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:race="http://midpoint.evolveum.com/xml/ns/test/mql-concurrency-race">
+    <name>MQL role-only template</name>
+    <mapping>
+        <name>role-by-sap-mql</name><strength>strong</strength>
+        <source><name>dynamicCode1</name><path>$focus/extension/race:sapCode1</path></source>
+        <expression><assignmentTargetSearch><targetType>c:RoleType</targetType><filter><q:text>extension/exRoleSapCode1 = `dynamicCode1` and extension/exRoleSapCode = 'yyy' and extension/exRoleApplicationInstanceName = 'FSD' and extension/exRoleVariant = 'PRIMARY'</q:text></filter></assignmentTargetSearch></expression>
+        <target><path>$focus/assignment</path><set><predefined>none</predefined></set></target>
+        <condition><script><code>java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1)); return dynamicCode1 != null;</code></script></condition>
+    </mapping>
+</objectTemplate>

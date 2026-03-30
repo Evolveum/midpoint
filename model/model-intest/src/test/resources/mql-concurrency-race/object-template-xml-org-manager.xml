@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectTemplate oid="5d6bdc03-aa68-4d9d-aac2-602a2c9b2e04"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:race="http://midpoint.evolveum.com/xml/ns/test/mql-concurrency-race">
+    <name>XML org manager-only template</name>
+    <mapping>
+        <name>org-manager-by-personal-number-xml</name><strength>strong</strength>
+        <source><name>personalNumber</name><path>$focus/personalNumber</path></source>
+        <expression><assignmentTargetSearch><targetType>c:OrgType</targetType><filter><q:equal><q:path>extension/race:managerPersonalNumber</q:path><expression><path>$personalNumber</path></expression></q:equal></filter><assignmentProperties><relation>manager</relation></assignmentProperties></assignmentTargetSearch></expression>
+        <target><path>$focus/assignment</path><set><predefined>none</predefined></set></target>
+        <condition><script><code>java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1)); return personalNumber != null;</code></script></condition>
+    </mapping>
+</objectTemplate>

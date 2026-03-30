@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectTemplate oid="90fcf182-c498-4fc3-9f94-5f94db35d603"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>MQL org manager-only template</name>
+    <mapping>
+        <name>org-manager-by-personal-number-mql</name><strength>strong</strength>
+        <source><name>personalNumber</name><path>$focus/personalNumber</path></source>
+        <expression><assignmentTargetSearch><targetType>c:OrgType</targetType><filter><q:text>extension/managerPersonalNumber = $personalNumber</q:text></filter><assignmentProperties><relation>manager</relation></assignmentProperties></assignmentTargetSearch></expression>
+        <target><path>$focus/assignment</path><set><predefined>none</predefined></set></target>
+        <condition><script><code>java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1)); return personalNumber != null;</code></script></condition>
+    </mapping>
+</objectTemplate>

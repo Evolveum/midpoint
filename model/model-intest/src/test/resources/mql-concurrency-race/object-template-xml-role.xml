@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectTemplate oid="4d983b59-fd2e-4f00-a08e-f1e0d5d77f06"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:race="http://midpoint.evolveum.com/xml/ns/test/mql-concurrency-race">
+    <name>XML role-only template</name>
+    <mapping>
+        <name>role-by-sap-xml</name><strength>strong</strength>
+        <source><name>dynamicCode1</name><path>$focus/extension/race:sapCode1</path></source>
+        <expression><assignmentTargetSearch><targetType>c:RoleType</targetType><filter><q:and><q:equal><q:path>extension/race:exRoleSapCode1</q:path><expression><script><code>java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.scriptSleepMs", 3)); return dynamicCode1;</code></script></expression></q:equal><q:equal><q:path>extension/race:exRoleSapCode</q:path><q:value>yyy</q:value></q:equal><q:equal><q:path>extension/race:exRoleApplicationInstanceName</q:path><q:value>FSD</q:value></q:equal><q:equal><q:path>extension/race:exRoleVariant</q:path><q:value>PRIMARY</q:value></q:equal></q:and></filter></assignmentTargetSearch></expression>
+        <target><path>$focus/assignment</path><set><predefined>none</predefined></set></target>
+        <condition><script><code>java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1)); return dynamicCode1 != null;</code></script></condition>
+    </mapping>
+</objectTemplate>

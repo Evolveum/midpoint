@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<objectTemplate oid="7c46f8cf-1d7a-45df-9a67-c1a0d61b0801"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:race="http://midpoint.evolveum.com/xml/ns/test/mql-concurrency-race">
+    <name>MQL concurrency race template</name>
+
+    <mapping>
+        <name>service-owner-mql</name>
+        <strength>strong</strength>
+        <source>
+            <name>name</name>
+            <path>$focus/name</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:ServiceType</targetType>
+                <filter>
+                    <q:text><![CDATA[
+extension/initialOwnerName exists and
+extension/initialOwnerName = `name`
+                    ]]></q:text>
+                </filter>
+                <assignmentProperties>
+                    <relation>owner</relation>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code><![CDATA[
+java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1));
+return name != null;
+                ]]></code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>service-owner-shadow-mql</name>
+        <strength>strong</strength>
+        <source>
+            <name>serviceOwnerShadow</name>
+            <path>$focus/name</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:ServiceType</targetType>
+                <filter>
+                    <q:text><![CDATA[
+extension/initialOwnerName exists and
+extension/initialOwnerName = `serviceOwnerShadow`
+                    ]]></q:text>
+                </filter>
+                <assignmentProperties>
+                    <relation>owner</relation>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code><![CDATA[
+java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1));
+return serviceOwnerShadow != null;
+                ]]></code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>org-member-by-workplace-mql</name>
+        <strength>strong</strength>
+        <source>
+                <name>workplaceId</name>
+                <path>$focus/extension/race:workplaceId</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:text>identifier = $workplaceId</q:text>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code><![CDATA[
+java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1));
+return workplaceId != null;
+                ]]></code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>org-member-by-workplace-shadow-mql</name>
+        <strength>strong</strength>
+        <source>
+            <name>workplaceShadow</name>
+                <path>$focus/extension/race:workplaceId</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:text>identifier = $workplaceShadow</q:text>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code><![CDATA[
+java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1));
+return workplaceShadow != null;
+                ]]></code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>org-manager-by-personal-number-mql</name>
+        <strength>strong</strength>
+        <source>
+            <name>personalNumber</name>
+            <path>$focus/personalNumber</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:text>extension/managerPersonalNumber = $personalNumber</q:text>
+                </filter>
+                <assignmentProperties>
+                    <relation>manager</relation>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code><![CDATA[
+java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1));
+return personalNumber != null;
+                ]]></code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>org-manager-by-personal-number-shadow-mql</name>
+        <strength>strong</strength>
+        <source>
+            <name>managerNumberShadow</name>
+            <path>$focus/personalNumber</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:text>extension/managerPersonalNumber = $managerNumberShadow</q:text>
+                </filter>
+                <assignmentProperties>
+                    <relation>manager</relation>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code><![CDATA[
+java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1));
+return managerNumberShadow != null;
+                ]]></code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>role-by-sap-mql</name>
+        <strength>strong</strength>
+        <source>
+            <name>dynamicCode1</name>
+            <path>$focus/extension/race:sapCode1</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:RoleType</targetType>
+                <filter>
+                    <q:text><![CDATA[
+extension/exRoleSapCode1 = `dynamicCode1` and
+extension/exRoleSapCode = 'yyy' and
+extension/exRoleApplicationInstanceName = 'FSD' and
+extension/exRoleVariant = 'PRIMARY'
+                    ]]></q:text>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code><![CDATA[
+java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1));
+return dynamicCode1 != null;
+                ]]></code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>role-by-sap-shadow-mql</name>
+        <strength>strong</strength>
+        <source>
+            <name>dynamicCodeShadow</name>
+            <path>$focus/extension/race:sapCode1</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:RoleType</targetType>
+                <filter>
+                    <q:text><![CDATA[
+extension/exRoleSapCode1 = `dynamicCodeShadow` and
+extension/exRoleSapCode = 'yyy' and
+extension/exRoleApplicationInstanceName = 'FSD' and
+extension/exRoleVariant = 'PRIMARY'
+                    ]]></q:text>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code><![CDATA[
+java.lang.Thread.sleep(Integer.getInteger("midpoint.mqlRace.conditionSleepMs", 1));
+return dynamicCodeShadow != null;
+                ]]></code>
+            </script>
+        </condition>
+    </mapping>
+</objectTemplate>
