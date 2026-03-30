@@ -33,6 +33,8 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.input.validator.ContentTypeFileValidator;
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorFactory;
 
 /**
  * @author shood
@@ -63,13 +65,6 @@ public class UploadDownloadPanel extends InputPanel {
 
     public List<String> getAllowedUploadContentTypes() {
         return allowedUploadContentTypes;
-    }
-
-    public void setAllowedUploadContentTypes(List<String> allowedUploadContentTypes) {
-        if (allowedUploadContentTypes == null) {
-            allowedUploadContentTypes = new ArrayList<>();
-        }
-        this.allowedUploadContentTypes = allowedUploadContentTypes;
     }
 
     @Override
@@ -119,7 +114,7 @@ public class UploadDownloadPanel extends InputPanel {
         fileUpload.add((IValidator<List<FileUpload>>) validatable -> {
 
             List<FileUpload> list = validatable.getValue();
-            if (list == null) {
+            if (list == null || list.isEmpty()) {
                 return;
             }
 
@@ -127,34 +122,15 @@ public class UploadDownloadPanel extends InputPanel {
                 return;
             }
 
-            String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
+            final String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
+            final List<MimeType> allowedTypes = FileValidatorFactory.getMimeTypes(getAllowedUploadContentTypes());
 
             try {
-                List<MimeType> allowedTypes = getAllowedUploadContentTypes().stream()
-                        .map(s -> {
-                            try {
-                                return new MimeType(s);
-                            } catch (MimeTypeParseException ex) {
-                                return null;
-                            }
-                        })
-                        .filter(m -> m != null)
-                        .toList();
-
                 for (FileUpload fu : list) {
-                    String contentType = fu.getContentType();
-                    MimeType mime = new MimeType(contentType);
-
-                    boolean matched = false;
-                    for (MimeType allowed : allowedTypes) {
-                        if (allowed.match(mime)) {
-                            matched = true;
-                            break;
-                        }
-                    }
-
-                    if (!matched) {
-                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
+                    final ContentTypeFileValidator contentTypeFileValidator = new ContentTypeFileValidator(allowedTypes);
+                    final String deniedContentType = contentTypeFileValidator.validate(fu);
+                    if (!"".equals(deniedContentType)) {
+                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, deniedContentType);
                         validatable.error(new ValidationError(msg));
                     }
                 }
