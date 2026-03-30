@@ -25,6 +25,11 @@ public class ObjectTypeMappingNameValidator extends MappingNameValidator {
     @Override
     public void validate(IValidatable<String> validatable) {
         String value = validatable.getValue();
+
+        if (StringUtils.isEmpty(value) && validatable.getModel() != null) {
+            value = validatable.getModel().getObject();
+        }
+
         if (StringUtils.isEmpty(value)) {
             return;
         }
