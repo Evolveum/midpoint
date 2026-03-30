@@ -1944,4 +1944,14 @@ export default class MidPointTheme {
             $(idInput).passwordFieldValidatorPopover(idInput, ".password-validator-popover");
         });
     };
+
+    handleCtrlClick(event) {
+        if (event.ctrlKey || event.which === 2) {
+            event.preventDefault(); // stop browser navigation
+            window.open(event.currentTarget.href, '_blank', 'noopener=true');
+            return false; // cancel AJAX
+        } else {
+            return true; // normal click → AJAX
+        }
+    }
 }
