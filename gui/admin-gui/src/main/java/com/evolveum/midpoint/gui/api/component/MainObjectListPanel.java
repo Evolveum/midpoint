@@ -197,7 +197,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                                 public CharSequence getPrecondition(Component component) {
                                     return "if(attrs.event.ctrlKey || attrs.event.which === 2) { " +
                                             "attrs.event.preventDefault(); " +          // stop browser navigation
-                                            "window.open(attrs.event.currentTarget.href, '_blank'); " +
+                                            "window.open(attrs.event.currentTarget.href, '_blank', 'noopener=true'); " +
                                             "return false; " + // cancel AJAX
                                             "} else { return true; }"; // normal click → AJAX
                                 }
