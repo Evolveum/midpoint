@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
-import com.evolveum.midpoint.web.component.input.validator.FileValidatorFactory;
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -95,7 +95,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
                 ItemPath path = panelCtx.getValueWrapperModel().getObject().getParent().getPath();
 
                 if (Objects.equals(path, ItemPath.create(FocusType.F_JPEG_PHOTO))) {
-                    return FileValidatorFactory.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES;
+                    return FileValidatorUtil.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES;
                 }
 
                 return super.getAllowedUploadContentTypes();
