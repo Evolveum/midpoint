@@ -6,6 +6,7 @@ import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.io.IOException;
 import java.util.List;
 
 public class OfflineBackend extends ConnectorDevelopmentBackend {
@@ -278,6 +279,11 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     @Override
     public void processDocumentation() {
         // NOOP
+    }
+
+    @Override
+    protected void restoreSession(ServiceClient.RestorationClient client) throws IOException {
+        // NOOP - offline backend has no remote session to restore
     }
 
     @Override
