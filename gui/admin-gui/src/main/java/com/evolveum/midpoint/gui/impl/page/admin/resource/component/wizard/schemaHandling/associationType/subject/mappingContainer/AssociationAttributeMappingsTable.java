@@ -212,8 +212,6 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 AbstractAttributeMappingsDefinitionType.F_REF,
                 getPageBase(),
                 target);
-
-        System.out.println("dssf");
     }
 
     @Override

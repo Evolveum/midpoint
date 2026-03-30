@@ -424,7 +424,8 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
                 } else {
                     isEvaluatorPanelExpanded = !isEvaluatorPanelExpanded;
-                    if (!ExpressionPanel.this.getModelObject().getExpressionEvaluator().isEmpty()) {
+                    if (ExpressionPanel.this.getModelObject() != null
+                            && !ExpressionPanel.this.getModelObject().getExpressionEvaluator().isEmpty()) {
                         updateLabelForExistingEvaluator();
                     }
 
