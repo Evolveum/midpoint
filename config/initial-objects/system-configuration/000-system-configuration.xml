@@ -181,6 +181,10 @@
             <skipWhenSuccess>true</skipWhenSuccess>
         </operationExecutionRecording>
     </internals>
+    <smartIntegration>
+        <statisticsTtl>P1D</statisticsTtl>
+        <mappingSuggestionRetryCount>0</mappingSuggestionRetryCount>
+    </smartIntegration>
     <adminGuiConfiguration>
         <homePage id="21">
             <type>UserType</type>
