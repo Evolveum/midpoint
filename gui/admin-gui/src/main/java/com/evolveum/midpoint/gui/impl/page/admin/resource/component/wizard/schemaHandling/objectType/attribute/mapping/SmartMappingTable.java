@@ -529,8 +529,8 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     }
 
-    public boolean isValidFormComponents() {
-        return true;
+    public boolean isValidFormComponents(@Nullable AjaxRequestTarget target) {
+        return getTable().isValidFormComponents(target);
     }
 
     protected IModel<PrismContainerValueWrapper<P>> getValueModel() {

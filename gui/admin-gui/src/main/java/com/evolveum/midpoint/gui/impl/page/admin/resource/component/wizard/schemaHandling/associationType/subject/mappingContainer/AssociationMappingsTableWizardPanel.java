@@ -98,7 +98,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
             @Override
             protected void onClickTabPerformed(int index, @NotNull Optional<AjaxRequestTarget> target) {
                 isInboundTabSelected = index == 0;
-                if (getTable().isValidFormComponents()) {
+                if (getTable().isValidFormComponents(target.orElse(null))) {
                     super.onClickTabPerformed(index, target);
                 }
             }
