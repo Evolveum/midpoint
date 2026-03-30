@@ -67,7 +67,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
 
             @Override
             protected LoadableDetachableModel<List<ProgressBar>> createCampaignProgressModel() {
-                return CertMiscUtil.createCampaignWorkItemsProgressBarModel(getCampaign(), getPrincipalOid(), getPageBase());
+                return CertMiscUtil.createCampaignProgressBarModel(getCampaign(), getPrincipalOid(), getPageBase());
             }
 
             @Override

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.services.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -157,14 +158,16 @@ public class LeftMenuPanel extends BasePanel<Void> {
             @Override
             protected String load() {
                 try {
-                    AccessCertificationService acs = getPageBase().getCertificationService();
-                    Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
-                    OperationResult result = task.getResult();
-                    int openCertWorkItems = acs.countOpenWorkItems(getPrismContext().queryFactory().createQuery(), true, null, task, result);
-                    if (openCertWorkItems == 0) {
+                    // Use method that respects collectDecisionsFromAllReviewers setting
+                    long openCertItems = CertMiscUtil.countOpenCertItems(
+                            (String) null, // all campaigns
+                            getPageBase().getPrincipal(),
+                            true, // notDecidedOnly
+                            getPageBase());
+                    if (openCertItems == 0) {
                         return null;
                     }
-                    return Integer.toString(openCertWorkItems);
+                    return Long.toString(openCertItems);
                 } catch (Exception e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
                     return null;

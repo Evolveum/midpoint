@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.DeadlinePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
@@ -1095,13 +1096,13 @@ public class ColumnUtils {
 
                         decidedPercent = all != 0 ? (decidedItems * 100) / all : 0;
                     } else {
-                        ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid());
-                        Task task = pageBase.createSimpleTask("countWorkItems");
-                        openNotDecidedItems = pageBase.getCertificationService().countOpenWorkItems(query, true,
-                                false, null, task, task.getResult());
+                        // Use method that respects collectDecisionsFromAllReviewers setting
+                        MidPointPrincipal principal = pageBase.getPrincipal();
+                        openNotDecidedItems = CertMiscUtil.countOpenCertItems(
+                                campaign.getOid(), principal, true, pageBase);
 
-                        int allOpenItems = pageBase.getCertificationService().countOpenWorkItems(query, false,
-                                false, null, task, task.getResult());
+                        long allOpenItems = CertMiscUtil.countOpenCertItems(
+                                campaign.getOid(), principal, false, pageBase);
                         decidedItems = allOpenItems - openNotDecidedItems;
                         decidedPercent = allOpenItems != 0 ? (decidedItems * 100) / allOpenItems : 0;
                     }

@@ -8,9 +8,12 @@ package com.evolveum.midpoint.notifications.impl.events.factory;
 
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +38,13 @@ import com.evolveum.midpoint.task.api.Task;
 @Component
 public class CertEventFactory {
 
+    private static final Trace LOGGER = TraceManager.getTrace(CertEventFactory.class);
+
     @Autowired
     private LightweightIdentifierGenerator idGenerator;
+
+    @Autowired
+    private ModelInteractionService modelInteractionService;
 
     public CertCampaignEvent createOnCampaignStartEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertCampaignEventImpl event = new CertCampaignEventImpl(idGenerator, campaign, EventOperationType.ADD);
@@ -87,15 +95,35 @@ public class CertEventFactory {
 
     public CertReviewEvent createReviewRequestedEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
             List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertReviewEventImpl event = new CertReviewEventImpl(idGenerator, cases, campaign, EventOperationType.ADD);
+        CertReviewEventImpl event = new CertReviewEventImpl(idGenerator, cases, campaign, EventOperationType.ADD,
+                isCollectDecisionsFromAllReviewers(result));
         fillInReviewerRelatedEvent(reviewerOrDeputyRef, actualReviewerRef, task, event, result);
         return event;
     }
 
     public CertReviewEvent createReviewDeadlineApproachingEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
             List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertReviewEventImpl event = new CertReviewEventImpl(idGenerator, cases, campaign, EventOperationType.MODIFY);
+        CertReviewEventImpl event = new CertReviewEventImpl(idGenerator, cases, campaign, EventOperationType.MODIFY,
+                isCollectDecisionsFromAllReviewers(result));
         fillInReviewerRelatedEvent(reviewerOrDeputyRef, actualReviewerRef, task, event, result);
         return event;
+    }
+
+    /**
+     * Returns whether decisions should be collected from all reviewers.
+     * If true (default), awaiting response is determined by WorkItem.outcome.
+     * If false, awaiting response is determined by Case.currentStageOutcome.
+     */
+    private boolean isCollectDecisionsFromAllReviewers(OperationResult result) {
+        try {
+            AccessCertificationConfigurationType config = modelInteractionService.getCertificationConfiguration(result);
+            if (config == null || config.isCollectDecisionsFromAllReviewers() == null) {
+                return true;  // default: true
+            }
+            return config.isCollectDecisionsFromAllReviewers();
+        } catch (Exception e) {
+            LOGGER.warn("Couldn't load certification configuration, using default value (true)", e);
+            return true;
+        }
     }
 }
