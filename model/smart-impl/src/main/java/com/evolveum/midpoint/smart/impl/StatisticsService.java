@@ -674,8 +674,8 @@ public class StatisticsService {
         try {
             SystemConfigurationType systemConfig = Objects.requireNonNull(systemObjectCache.getSystemConfiguration(result))
                     .asObjectable();
-            if (systemConfig.getInternals() != null && systemConfig.getInternals().getSmartIntegrationStatisticsTtl() != null) {
-                Duration configuredTtl = systemConfig.getInternals().getSmartIntegrationStatisticsTtl();
+            if (systemConfig.getSmartIntegration() != null && systemConfig.getSmartIntegration().getStatisticsTtl() != null) {
+                Duration configuredTtl = systemConfig.getSmartIntegration().getStatisticsTtl();
                 LOGGER.debug("Using configured TTL for statistics: {}", configuredTtl);
                 return configuredTtl;
             }

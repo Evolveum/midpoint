@@ -31,6 +31,9 @@ public class ServiceClient {
     private static final String SESSION_PATTERN = "{sessionId}";
     private static final String RELATIVE_SESSION_ENDPOINT = "session/{sessionId}";
 
+    private static final long DOCUMENTATION_JOB_TIMEOUT_MS = 60_000;
+    private static final long DOCUMENTATION_JOB_POLL_INTERVAL_MS = 2_000;
+
 
 
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
@@ -231,30 +234,28 @@ public class ServiceClient {
     }
 
     private void ensureSessionExists() throws IOException {
-        var request = new HttpHead(sessionEndpoint);
-        var response = client.execute(request);
-        if (HttpStatus.SC_NOT_FOUND == response.getCode()) {
-            createSession();
-        } else if (HttpStatus.SC_OK != response.getCode() && HttpStatus.SC_NO_CONTENT != response.getCode()) {
-            throw new IOException("Could not determine code-generation session at " + apiBase + ". Status code" + response.getCode());
+        int code;
+        try (var response = client.execute(new HttpHead(sessionEndpoint))) {
+            code = response.getCode();
         }
-        if (synchronization != null) {
-            synchronization.restore(new RestorationClient());
+        if (HttpStatus.SC_NOT_FOUND == code) {
+            createSession();
+        } else if (HttpStatus.SC_OK != code && HttpStatus.SC_NO_CONTENT != code) {
+            throw new IOException("Could not determine code-generation session at " + apiBase + ". Status code " + code);
         }
     }
 
     private void createSession() throws IOException {
-        //client.execute()
-        var request = new HttpPost(sessionEndpoint);
-        var response = client.execute(request);
-        if (response.getCode() == HttpStatus.SC_OK || response.getCode() == HttpStatus.SC_CREATED) {
+        int code;
+        try (var response = client.execute(new HttpPost(sessionEndpoint))) {
+            code = response.getCode();
+        }
+        if (code == HttpStatus.SC_OK || code == HttpStatus.SC_CREATED) {
             if (restoration != null) {
                 restoration.restore(new RestorationClient());
             }
-            // Session was successfully created
         } else {
-            // There were some problems with creating session
-            throw new IOException("Could not create code-generation session at " + sessionEndpoint + ". Status code" + response.getCode());
+            throw new IOException("Could not create code-generation session at " + sessionEndpoint + ". Status code " + code);
         }
     }
 
@@ -274,30 +275,57 @@ public class ServiceClient {
 
     public class RestorationClient {
 
-        public void putIfMissing(String apiUri, Supplier<HttpEntity> entitySupplier) throws IOException {
-            var uri = appendSession(apiBase + apiUri);
-            var checkCode = client.execute(new HttpHead(uri)).getCode();
-            if (checkCode == HttpStatus.SC_OK || checkCode == HttpStatus.SC_NO_CONTENT) {
-                // Content exists
-                // In future we should check if content was changed
-                return;
-            }
-            if (checkCode != HttpStatus.SC_NOT_FOUND) {
-                throw new IOException("problem determining content presence at " + uri + ". Status code: " + checkCode);
-            }
-
-            put(apiUri, entitySupplier);
-        }
-
         public void put(String apiUri, Supplier<HttpEntity> entitySupplier) throws IOException {
             var uri = appendSession(apiBase + apiUri);
             var request = new HttpPut(uri);
             request.setEntity(entitySupplier.get());
-            var uploadResponse = client.execute(request);
-            if (uploadResponse.getCode() >= 200 && uploadResponse.getCode() < 300) {
+            try (var uploadResponse = client.execute(request)) {
+                if (uploadResponse.getCode() >= 200 && uploadResponse.getCode() < 300) {
+                    return;
+                }
+                throw new IOException("Problem uploading content to " + uri + ". Status code " + uploadResponse.getCode());
+            }
+        }
+
+        public void putDocumentationIfMissing(String apiUri, Supplier<HttpEntity> entitySupplier) throws IOException {
+            var uri = appendSession(apiBase + apiUri);
+            int checkCode;
+            try (var response = client.execute(new HttpHead(uri))) {
+                checkCode = response.getCode();
+            }
+            if (checkCode == HttpStatus.SC_OK || checkCode == HttpStatus.SC_NO_CONTENT) {
                 return;
             }
-            throw new IOException("Problem uploading content to " + uri + ". Status code" + uploadResponse.getCode());
+            put(apiUri, entitySupplier);
+        }
+
+        public void waitForDocumentationJobs(String statusApiUri) throws IOException {
+            var uri = appendSession(apiBase + statusApiUri);
+            var deadline = System.currentTimeMillis() + DOCUMENTATION_JOB_TIMEOUT_MS;
+            while (System.currentTimeMillis() < deadline) {
+                try (var response = client.execute(new HttpGet(uri))) {
+                    var result = parseJson(response.getEntity().getContent());
+                    var allDone = true;
+                    for (var job : result.get("uploadJobs")) {
+                        var status = job.get("status").asText();
+                        if (status.equals("failed")) {
+                            throw new IOException("Documentation job failed: " + job.get("jobId").asText());
+                        }
+                        if (!status.equals("finished")) {
+                            allDone = false;
+                            break;
+                        }
+                    }
+                    if (allDone) return;
+                }
+                try {
+                    Thread.sleep(DOCUMENTATION_JOB_POLL_INTERVAL_MS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interrupted while waiting for documentation jobs", e);
+                }
+            }
+            throw new IOException("Timed out waiting for documentation jobs at " + uri);
         }
 
     }

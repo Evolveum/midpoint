@@ -10,8 +10,10 @@ import java.io.Serial;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -54,10 +56,11 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
     @Override
     protected Component createComponent(String componentId, IModel<String> labelModel, IModel<SelectableBean<O>> rowModel) {
         return new TitleWithMarks(componentId, labelModel, createRealMarksList(rowModel.getObject())) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onTitleClicked(AjaxRequestTarget target) {
-                ObjectNameColumn.this.onClick(rowModel, target);
+            protected AbstractLink createTitleLinkComponent(String id) {
+                return getObjectNameLinkComponent(id, rowModel);
             }
 
             @Override
@@ -68,6 +71,17 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
             @Override
             protected IModel<String> createPrimaryMarksTitle() {
                 return createStringResource("ObjectNameColumn.objectMarks");
+            }
+        };
+    }
+
+    protected AbstractLink getObjectNameLinkComponent(String id, IModel<SelectableBean<O>> rowModel) {
+        return new AjaxLink<>(id) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ObjectNameColumn.this.onClick(rowModel, target);
             }
         };
     }

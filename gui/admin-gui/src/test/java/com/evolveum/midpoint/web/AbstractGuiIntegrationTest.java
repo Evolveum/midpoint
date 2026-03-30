@@ -29,6 +29,8 @@ import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -124,6 +126,8 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
     public static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "value-policy.xml");
     protected static final String SECURITY_POLICY_OID = "00000000-0000-0000-0000-000000000120";
+
+    protected static final String TEST_WINDOW_ID = "testWindowId";
 
     @Autowired private MidPointApplication application;
     @Autowired protected PrismContext prismContext;
@@ -243,6 +247,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
             @Override
             public ExpressionFactory getExpressionFactory() {
                 return expressionFactory;
+            }
+
+            @Override
+            public BrowserTabSessionStorage getBrowserTabSessionStorage() {
+                return MidPointAuthWebSession.get().getBrowserTabSessionStorage(TEST_WINDOW_ID);
             }
 
             @Override

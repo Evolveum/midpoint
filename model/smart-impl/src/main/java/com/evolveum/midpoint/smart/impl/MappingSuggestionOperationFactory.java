@@ -49,6 +49,7 @@ public class MappingSuggestionOperationFactory {
             ResourceObjectTypeIdentification typeIdentification, CurrentActivityState<?> activityState,
             boolean isInbound, boolean useAiService,
             @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            int retryCount,
             Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
@@ -62,6 +63,7 @@ public class MappingSuggestionOperationFactory {
                 this.categoricalAttributeRegistry,
                 isInbound,
                 useAiService,
-                objectTypeStatistics);
+                objectTypeStatistics,
+                retryCount);
     }
 }
