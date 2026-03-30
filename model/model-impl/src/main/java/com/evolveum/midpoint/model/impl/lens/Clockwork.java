@@ -174,7 +174,8 @@ public class Clockwork {
 
             } catch (ConflictDetectedException e) {
                 LOGGER.debug("Clockwork conflict detected", e);
-                conflictResolutionContext.recordConflictException();
+                conflictResolutionContext.recordConflictException(
+                        ModelExecuteOptions.getFocusConflictResolution(context.getOptions()));
                 return HookOperationMode.FOREGROUND;
             }
         } finally {

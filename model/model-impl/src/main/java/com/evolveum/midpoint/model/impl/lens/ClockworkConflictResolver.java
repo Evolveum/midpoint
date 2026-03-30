@@ -56,9 +56,12 @@ public class ClockworkConflictResolver {
         private boolean conflictExceptionPresent;
         private ConflictResolutionType resolutionPolicy;
 
-        void recordConflictException() {
+        void recordConflictException(ConflictResolutionType resolutionPolicy) {
             focusConflictPresent = true;
             conflictExceptionPresent = true;
+            if (this.resolutionPolicy == null) {
+                this.resolutionPolicy = resolutionPolicy;
+            }
         }
     }
 
@@ -81,7 +84,7 @@ public class ClockworkConflictResolver {
     }
 
     <F extends ObjectType> void detectFocusConflicts(LensContext<F> context, Context resolutionContext, OperationResult result) {
-        resolutionContext.resolutionPolicy = ModelImplUtils.getConflictResolution(context);
+        resolutionContext.resolutionPolicy = getResolutionPolicy(context);
         ConflictWatcher watcher = context.getFocusConflictWatcher();
         if (watcher != null
                 && resolutionContext.resolutionPolicy != null
@@ -114,7 +117,12 @@ public class ClockworkConflictResolver {
             Context resolutionContext, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
             CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
-        ConflictResolutionType resolutionPolicy = resolutionContext.resolutionPolicy;
+            ConflictResolutionType resolutionPolicy =
+                resolutionContext.resolutionPolicy != null ? resolutionContext.resolutionPolicy : getResolutionPolicy(context);
+        if ((resolutionPolicy == null || resolutionPolicy.getAction() == ConflictResolutionActionType.NONE)
+                && resolutionContext.conflictExceptionPresent) {
+            resolutionPolicy = getImplicitConflictResolutionPolicy();
+        }
         if (resolutionPolicy == null || resolutionPolicy.getAction() == ConflictResolutionActionType.NONE) {
             if (resolutionContext.conflictExceptionPresent) {
                 throw new SystemException("Conflict exception present but resolution policy is null/NONE");
@@ -262,5 +270,21 @@ public class ClockworkConflictResolver {
             return false;
         }
         return true;
+    }
+
+    private <F extends ObjectType> ConflictResolutionType getResolutionPolicy(LensContext<F> context) {
+        ConflictResolutionType policy = ModelImplUtils.getConflictResolution(context);
+        if (policy != null) {
+            return policy;
+        }
+        return ModelExecuteOptions.getFocusConflictResolution(context.getOptions());
+    }
+
+    private <F extends ObjectType> ConflictResolutionType getImplicitConflictResolutionPolicy() {
+        ConflictResolutionType conflictResolution = new ConflictResolutionType();
+        conflictResolution.setAction(ConflictResolutionActionType.RECOMPUTE);
+        conflictResolution.setMaxAttempts(3);
+        conflictResolution.setDelayUnit(100);
+        return conflictResolution;
     }
 }

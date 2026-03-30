@@ -556,7 +556,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             provisioning.determineShadowState(shadow.asPrismObject(), task, result);
         }
 
-        LensContext<O> lensContext = contextFactory.createRecomputeContext(object, options, task, result);
+        ModelExecuteOptions effectiveOptions = ensureRecomputeConflictResolution(options);
+        LensContext<O> lensContext = contextFactory.createRecomputeContext(object, effectiveOptions, task, result);
 
         securityEnforcer.authorize(
                 ModelAuthorizationAction.RECOMPUTE.getUrl(), AuthorizationPhaseType.REQUEST,
@@ -565,6 +566,25 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         LOGGER.trace("Recomputing {}, context:\n{}", object, lensContext.debugDumpLazily());
         clockwork.run(lensContext, task, result);
+    }
+
+    /**
+     * Recompute should be idempotent even when multiple threads hit the same focus concurrently.
+     * If the caller did not request any focus-conflict policy explicitly, use an internal retry policy
+     * so concurrent same-focus recomputes are resolved by clockwork instead of persisting duplicate state.
+     */
+    private @NotNull ModelExecuteOptions ensureRecomputeConflictResolution(@Nullable ModelExecuteOptions options) {
+        ModelExecuteOptions effectiveOptions = ModelExecuteOptions.create(options);
+        if (effectiveOptions.getFocusConflictResolution() != null) {
+            return effectiveOptions;
+        }
+
+        ConflictResolutionType conflictResolution = new ConflictResolutionType();
+        conflictResolution.setAction(ConflictResolutionActionType.RECOMPUTE);
+        conflictResolution.setMaxAttempts(3);
+        conflictResolution.setDelayUnit(100);
+        effectiveOptions.focusConflictResolution(conflictResolution);
+        return effectiveOptions;
     }
 
     private void applyDefinitions(
