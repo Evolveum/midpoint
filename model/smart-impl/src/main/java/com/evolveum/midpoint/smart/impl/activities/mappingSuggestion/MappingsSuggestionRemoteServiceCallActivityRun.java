@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -84,7 +84,7 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
             var statisticsObject = SmartIntegrationBeans.get().repositoryService
                     .getObject(GenericObjectType.class, statisticsOid, null, result)
                     .asObjectable();
-            return ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
+            return ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
         } catch (Exception e) {
             LOGGER.warn("Failed to load object type statistics from work state, proceeding without them: {}", e.getMessage());
             return null;

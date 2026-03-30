@@ -33,7 +33,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.task.api.Task;
@@ -195,7 +195,7 @@ public class SchemaMatchService {
                             ObjectTypeUtil.getExtensionItemRealValue(
                                     o.getExtension(), MODEL_EXTENSION_OBJECT_TYPE_SCHEMA_MATCH) != null)
                     .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectTypeStatisticsTypeUtil.getObjectTypeSchemaMatchRequired(o).getTimestamp())))
+                            o -> toMillis(ShadowObjectTypeUtil.getObjectTypeSchemaMatchRequired(o).getTimestamp())))
                     .orElse(null);
         } catch (Throwable t) {
             result.recordException(t);

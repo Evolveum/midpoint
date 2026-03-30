@@ -42,8 +42,8 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -110,11 +110,11 @@ public class StatisticsService {
                     .filter(o -> ObjectTypeUtil.getExtensionItemRealValue(
                             o.asObjectable().getExtension(), MODEL_EXTENSION_STATISTICS) != null)
                     .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(o).getTimestamp())))
+                            o -> toMillis(ShadowObjectClassUtil.getStatisticsRequired(o).getTimestamp())))
                     .orElse(null);
 
             if (latestStatistics != null) {
-                var statistics = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(latestStatistics);
+                var statistics = ShadowObjectClassUtil.getStatisticsRequired(latestStatistics);
                 if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Statistics {} for resource {} and class {} expired, deleting",
                             latestStatistics.getOid(), resourceOid, objectClassName);
@@ -360,11 +360,11 @@ public class StatisticsService {
                     .filter(o -> ObjectTypeUtil.getExtensionItemRealValue(
                             o.asObjectable().getExtension(), MODEL_EXTENSION_OBJECT_TYPE_STATISTICS) != null)
                     .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(o).getTimestamp())))
+                            o -> toMillis(ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(o).getTimestamp())))
                     .orElse(null);
 
             if (latestStatistics != null) {
-                var statistics = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(latestStatistics);
+                var statistics = ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(latestStatistics);
                 if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Object type statistics {} for resource {}/{}/{} expired, deleting",
                             latestStatistics.getOid(), resourceOid, kind, intent);
