@@ -122,8 +122,8 @@ public interface SmartIntegrationService {
             throws CommonException;
 
     /** Returns the object holding last known schema match for the given resource, kind and intent. */
-    public GenericObjectType getLatestObjectTypeSchemaMatch(
-            String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+    GenericObjectType getLatestObjectTypeSchemaMatch(
+            String resourceOid, String kind, String intent, OperationResult parentResult)
             throws SchemaException;
 
     /** Computes schema match pairs for the given resource and object type. */

@@ -53,7 +53,7 @@ public class CorrelationSuggestionSchemaMatchingActivityRun extends LocalActivit
     private @Nullable String findLatestSchemaMatchObjectOid(OperationResult result) throws SchemaException {
         var workDef = getWorkDefinition();
         var lastSchemaMatchObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeSchemaMatch(
-                workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), getRunningTask(), result);
+                workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), result);
         return lastSchemaMatchObject != null ? lastSchemaMatchObject.getOid() : null;
     }
 
@@ -64,13 +64,20 @@ public class CorrelationSuggestionSchemaMatchingActivityRun extends LocalActivit
         var resourceOid = workDef.getResourceOid();
         var typeIdentification = workDef.getTypeIdentification();
 
-        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
-        SchemaMatchResultType match = SmartIntegrationBeans.get().smartIntegrationService
-                .computeSchemaMatch(resourceOid, typeIdentification, useAi, getRunningTask(), result);
+        var foundOid = findLatestSchemaMatchObjectOid(result);
+        if (foundOid != null) {
+            LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
+            setSchemaMatchObjectOidInWorkState(foundOid, result);
+            return ActivityRunResult.success();
+        }
 
-        var parentState = Util.getParentState(this, result);
-        parentState.setWorkStateItemRealValues(CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH, match);
-        parentState.flushPendingTaskModificationsChecked(result);
+        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
+        var match = SmartIntegrationBeans.get().smartIntegrationService
+                .computeSchemaMatch(resourceOid, typeIdentification, useAi, getRunningTask(), result);
+        var schemaMatchOid = SmartIntegrationBeans.get().schemaMatchService
+                .saveSchemaMatch(resourceOid, workDef.getKind(), workDef.getIntent(), match, result);
+
+        setSchemaMatchObjectOidInWorkState(schemaMatchOid, result);
 
         return ActivityRunResult.success();
     }

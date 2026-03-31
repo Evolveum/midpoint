@@ -335,6 +335,25 @@ public class StatisticsService {
      * Returns the object holding last known statistics for the given resource, kind and intent.
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
+    public ShadowObjectClassStatisticsType loadObjectTypeStatistics(ObjectReferenceType statisticsRef, OperationResult result) {
+        try {
+            if (statisticsRef == null) {
+                return null;
+            }
+            var statisticsOid = Referencable.getOid(statisticsRef);
+            if (statisticsOid == null) {
+                return null;
+            }
+            var statisticsObject = repositoryService
+                    .getObject(GenericObjectType.class, statisticsOid, null, result)
+                    .asObjectable();
+            return ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to load object type statistics, proceeding without them: {}", e.getMessage());
+            return null;
+        }
+    }
+
     public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
