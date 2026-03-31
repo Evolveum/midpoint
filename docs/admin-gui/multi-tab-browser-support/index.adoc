@@ -7,12 +7,6 @@ doc-type: intro
 :page-toc: top
 :page-upkeep-status: red
 
-[NOTE]
-====
-It's just a draft of the page
-
-====
-
 == Introduction
 
 The MidPoint multi-tab browser support feature enhances the user experience by allowing multiple pages within the application to be opened and managed simultaneously in separate tabs.
@@ -25,13 +19,79 @@ The feature is particularly useful for complex administrative workflows that req
 Overall, multi-tab support brings a more flexible, productive, and modern interaction model to MidPoint, aligning it with standard browser usability expectations while preserving system stability and consistency.
 
 
-== Supported use cases
+== Supported scenarios
 
-* Object list views opened from left-side menu
+The multi-tab support in MidPoint is designed to cover the most common administrative workflows, ensuring that each browser tab operates independently while preserving its own UI state.
 
-* Object list views on the object details page
+=== Navigation and page access
+* Opening object list views from the main navigation menu (left-side menu) in multiple tabs
+* Opening object details pages (e.g. users, roles, resources, tasks) in separate tabs
+* Navigating within object details using the internal navigation menu (panels like assignments, inducements, policies, etc.)
+* Using browser navigation (back/forward) with correct restoration of page state and breadcrumbs
+* Using application's Back button (where accessible) with correct restoration of page state and breadcrumbs
 
-* Navigation, breadcrumbs, back button
+=== Object exploration and comparison
 
-* Preview changes
+* Viewing and comparing multiple objects (e.g. users, roles) side-by-side in different tabs
+* Opening object details from object list tables into new browser tabs (e.g. Ctrl+click / middle-click)
+* Working with multiple independent object lists (e.g. different filters applied in each tab)
+
+=== Search and filtering
+
+* Search filter type and attributes are stored independently per tab
+* Each tab preserves:
+** selected object type (where accessible, e.g. User, Role type on Repository objects page)
+** search type (advanced search, fulltext search)
+** paging configuration (page size, current page)
+* Search state is restored after page reload or reopening within the same tab
+* Table state (sorting, filtering, visible data) is isolated per tab
+
+=== Editing and preview
+
+* Editing multiple different objects in parallel across different tabs
+* Using preview changes independently in each tab
+
+== Limitations
+
+While multi-tab support significantly improves usability, there are some intentional limitations:
+
+=== Inline details are not supported
+
+Tables that display object details inline (without navigation to a dedicated page) do not support multi-tab usage.
+
+Examples:
+
+* User details → Assignments (inline role/org list)
+* System configuration → Logging → Appenders
+
+These views are not designed to be opened in separate tabs.
+
+=== No automatic synchronization between tabs
+
+Each tab operates with its own isolated state.
+
+* Changes made in one tab are not automatically reflected in other open tabs
+* Data consistency depends on manual refresh or navigation
+
+=== Concurrent editing is not handled
+
+Editing the same object in multiple tabs is not supported and may lead to conflicts:
+
+* Changes saved in one tab can overwrite changes made in another tab
+* No conflict detection or merge mechanism is provided
+
+=== Tab state depends on window identifier
+
+Tab isolation relies on a browser-specific identifier (windowName / internal w parameter):
+
+* Each tab must maintain its own identifier
+* Opening links in new tabs is supported for bookmarkable pages only (e.g. object lists, details)
+* Non-bookmarkable or AJAX-only interactions may not fully preserve tab context
+
+=== Session-based persistence
+
+Tab state is stored in server session:
+
+* State is lost after session expiration
+* Not shared across different browsers or devices
 
