@@ -186,7 +186,12 @@ public class PageSelfDashboard extends PageSelf {
                     LOGGER.error("Cannot load logged in focus");
                     return null;
                 }
-                return (PrismObject<UserType>) principal.getFocus().asPrismObject().clone();
+                PrismObject<UserType> self = (PrismObject<UserType>) principal.getFocus().asPrismObject().clone();
+                DashboardWidgetRuntimeInspector.TrimPlan trimPlan = DashboardWidgetRuntimeInspector.deriveFocusTrimPlan(PageSelfDashboard.this, getCompiledGuiProfile().getHomePage());
+                if (trimPlan.enabled()) {
+                    trimPlan.trimFocus(PageSelfDashboard.this, self.asObjectable());
+                }
+                return self;
             }
         };
     }

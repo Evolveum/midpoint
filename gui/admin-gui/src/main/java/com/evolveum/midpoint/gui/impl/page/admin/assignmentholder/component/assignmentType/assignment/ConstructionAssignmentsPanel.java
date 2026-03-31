@@ -54,7 +54,6 @@ public class ConstructionAssignmentsPanel<AH extends AssignmentHolderType> exten
 
     @Override
     protected ObjectQuery getCustomizeQuery() {
-        return getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_CONSTRUCTION).build();
+        return AssignmentPanelQueries.constructions();
     }
 }

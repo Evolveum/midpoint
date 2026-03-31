@@ -47,8 +47,7 @@ public class FocusMappingsAssignmentsPanel<AH extends AssignmentHolderType> exte
 
 
     protected ObjectQuery createCustomizeQuery() {
-        return getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_FOCUS_MAPPINGS).build();
+        return AssignmentPanelQueries.focusMappings();
     }
 
     @Override

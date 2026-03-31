@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl;
 
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY;
 import static com.evolveum.midpoint.model.impl.controller.ModelController.getObjectManager;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
@@ -45,7 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Component
 public class ModelObjectResolver implements ObjectResolver {
 
-    private static final int ORG_TREE_SEARCH_WIDTH_BATCH_SIZE = 50;
+    private static final int DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE = 50;
+    private static final int ORG_TREE_SEARCH_WIDTH_BATCH_SIZE = getOrgTreeSearchWidthBatchSize();
     private static final int ORG_TREE_SEARCH_WIDTH_BATCH_THRESHOLD = 5;
 
     @Autowired private ProvisioningService provisioning;
@@ -57,6 +59,21 @@ public class ModelObjectResolver implements ObjectResolver {
     private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 
     private static final String OP_HANDLE_OBJECT_FOUND = ModelObjectResolver.class.getName() + "." + HANDLE_OBJECT_FOUND;
+
+    private static int getOrgTreeSearchWidthBatchSize() {
+        int configuredValue = Integer.getInteger(
+                MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY,
+                DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE);
+        if (configuredValue < 1) {
+            Objects.requireNonNull(LOGGER).warn(
+                    "Invalid value {} for system property {}; using default {}",
+                    configuredValue,
+                    MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY,
+                    DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE);
+            return DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE;
+        }
+        return configuredValue;
+    }
 
     @Override
     public <O extends ObjectType> @NotNull O resolve(

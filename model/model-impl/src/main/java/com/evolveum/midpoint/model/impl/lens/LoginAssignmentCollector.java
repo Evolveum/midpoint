@@ -7,14 +7,16 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
+import com.google.common.collect.Lists;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +32,11 @@ import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -49,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Collects [evaluated] assignments during login process.
@@ -59,10 +64,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelT
 public class LoginAssignmentCollector {
 
     private static final Trace LOGGER = TraceManager.getTrace(LoginAssignmentCollector.class);
+    private static final int TARGET_PREFETCH_BATCH_SIZE = 100;
 
     @Autowired private ReferenceResolver referenceResolver;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private PrismContext prismContext;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
     @Autowired private Clock clock;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
@@ -91,6 +98,9 @@ public class LoginAssignmentCollector {
                 collectForcedAssignments( // [EP:APSO] DONE
                         focusBean, lensContext.getFocusContext().getLifecycleModel(), task, result);
 
+        Map<QName, Map<String, PrismObject<? extends ObjectType>>> prefetchedTargetsByTypeAndOid =
+                prefetchDirectAssignmentTargets(explicitAssignments, forcedAssignments, result);
+
         if (!explicitAssignments.isEmpty() || !forcedAssignments.isEmpty()) {
 
             AssignmentEvaluator.Builder<AH> builder =
@@ -103,6 +113,7 @@ public class LoginAssignmentCollector {
                             // It also avoids nasty problems with resources being down,
                             // resource schema not available, etc.
                             .loginMode(true)
+                            .prefetchedTargetsByTypeAndOid(prefetchedTargetsByTypeAndOid)
                             // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
                             // will need something to push on the stack. So give them context placeholder.
                             .lensContext(lensContext);
@@ -174,6 +185,72 @@ public class LoginAssignmentCollector {
             RepositoryCache.exitLocalCaches();
         }
         return evaluatedAssignments;
+    }
+
+    private Map<QName, Map<String, PrismObject<? extends ObjectType>>> prefetchDirectAssignmentTargets(
+            Collection<AssignmentConfigItem> explicitAssignments,
+            Collection<AssignmentConfigItem> forcedAssignments,
+            OperationResult result) throws SchemaException {
+        Map<QName, Set<String>> oidsByType = new HashMap<>();
+        collectTargetOidsByType(explicitAssignments, oidsByType);
+        collectTargetOidsByType(forcedAssignments, oidsByType);
+
+        if (oidsByType.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<QName, Map<String, PrismObject<? extends ObjectType>>> prefetchedTargetsByTypeAndOid = new HashMap<>();
+        for (var entry : oidsByType.entrySet()) {
+            QName typeName = entry.getKey();
+            Set<String> oids = entry.getValue();
+            if (oids.isEmpty()) {
+                continue;
+            }
+
+            Class<? extends ObjectType> targetClass =
+                    prismContext.getSchemaRegistry().determineClassForTypeRequired(typeName, ObjectType.class);
+            Map<String, PrismObject<? extends ObjectType>> targetsByOid = new LinkedHashMap<>();
+            for (List<String> batch : Lists.partition(new ArrayList<>(oids), TARGET_PREFETCH_BATCH_SIZE)) {
+                ObjectQuery query = prismContext.queryFor(targetClass)
+                        .id(batch.toArray(new String[0]))
+                        .build();
+
+                Map<String, PrismObject<? extends ObjectType>> batchTargetsByOid = repositoryService
+                        .searchObjects(targetClass, query, createReadOnlyCollection(), result)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                PrismObject::getOid,
+                                object -> object,
+                                (left, right) -> left,
+                                LinkedHashMap::new));
+                targetsByOid.putAll(batchTargetsByOid);
+            }
+
+            if (!targetsByOid.isEmpty()) {
+                prefetchedTargetsByTypeAndOid.put(typeName, targetsByOid);
+            }
+        }
+
+        return prefetchedTargetsByTypeAndOid;
+    }
+
+    private void collectTargetOidsByType(
+            Collection<AssignmentConfigItem> assignments,
+            Map<QName, Set<String>> oidsByType) {
+        for (AssignmentConfigItem assignmentWithOrigin : assignments) {
+            AssignmentType assignment = assignmentWithOrigin.value();
+            if (assignment.getTargetRef() == null) {
+                continue;
+            }
+
+            var targetRef = assignment.getTargetRef();
+            if (targetRef.getOid() == null || targetRef.getType() == null) {
+                continue;
+            }
+
+            oidsByType.computeIfAbsent(targetRef.getType(), ignored -> new LinkedHashSet<>())
+                    .add(targetRef.getOid());
+        }
     }
 
     private <AH extends AssignmentHolderType> LensContext<AH> createAuthenticationLensContext(

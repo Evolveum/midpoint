@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.WidgetFocusTrimContribution;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -55,6 +56,10 @@ public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDe
 
     public DelegatedToMePanel(String id, UserDetailsModel userDetailsModel, ContainerPanelConfigurationType config) {
         super(id, userDetailsModel, config);
+    }
+
+    public static void contributeFocusTrimPlan(WidgetFocusTrimContribution contribution, String panelType, int limit) {
+        contribution.addPreservedAssignmentPanelRule(panelType, UserType.COMPLEX_TYPE);
     }
 
     public List<AssignmentType> getAssignmentTypeList() {
