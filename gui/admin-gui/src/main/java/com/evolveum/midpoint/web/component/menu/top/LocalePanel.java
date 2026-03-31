@@ -47,6 +47,11 @@ public abstract class LocalePanel extends BasePanel {
         return FLAG_CLASS_PREFIX + descriptor.getFlag();
     }
 
+    protected String getSelectedLocaleName() {
+        AvailableLocale.LocaleDescriptor descriptor = getSelectedLocaleDescriptor();
+        return descriptor != null ? descriptor.getName() : null;
+    }
+
     protected AvailableLocale.LocaleDescriptor getSelectedLocaleDescriptor() {
         Locale locale = getSession().getLocale();
         if (locale == null) {
