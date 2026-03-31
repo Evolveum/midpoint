@@ -132,9 +132,8 @@ public class UploadDownloadPanel extends InputPanel {
                     final String contentType = fu.getContentType();
 
                     final ContentTypeFileValidator contentTypeFileValidator = new ContentTypeFileValidator(allowedTypes);
-                    final String deniedContentType = contentTypeFileValidator.validate(contentType);
-                    if (!"".equals(deniedContentType)) {
-                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, deniedContentType);
+                    if (!contentTypeFileValidator.isValid(contentType)) {
+                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
                         validatable.error(new ValidationError(msg));
                         continue;
                     }

@@ -11,10 +11,10 @@ import org.testng.annotations.Test;
 
 import static com.evolveum.midpoint.common.MimeTypeUtil.*;
 
+import static org.testng.Assert.*;
+
 import com.evolveum.midpoint.web.component.input.validator.ContentTypeFileValidator;
 import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
-
-import static org.testng.Assert.assertEquals;
 
 /**
  * @author matisovaa
@@ -27,23 +27,20 @@ public class FileValidatorTest {
     public void test4299ContentTypeFileValidator_validJPEG() throws Exception {
         final ContentTypeFileValidator contentTypeFileValidator =
                 new ContentTypeFileValidator(FileValidatorUtil.getMimeTypes(FileValidatorUtil.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES));
-        final String deniedContentType = contentTypeFileValidator.validate(MIME_IMAGE_JPEG);
-        assertEquals(deniedContentType, "");
+        assertTrue(contentTypeFileValidator.isValid(MIME_IMAGE_JPEG));
     }
 
     @Test
     public void test4299ContentTypeFileValidator_validPNG() throws Exception {
         final ContentTypeFileValidator contentTypeFileValidator =
                 new ContentTypeFileValidator(FileValidatorUtil.getMimeTypes(FileValidatorUtil.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES));
-        final String deniedContentType = contentTypeFileValidator.validate(MIME_IMAGE_PNG);
-        assertEquals(deniedContentType, "");
+        assertTrue(contentTypeFileValidator.isValid(MIME_IMAGE_PNG));
     }
 
     @Test
     public void test4299ContentTypeFileValidator_invalid() throws Exception {
         final ContentTypeFileValidator contentTypeFileValidator =
                 new ContentTypeFileValidator(FileValidatorUtil.getMimeTypes(FileValidatorUtil.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES));
-        final String deniedContentType = contentTypeFileValidator.validate(MIME_APPLICATION_XML);
-        assertEquals(deniedContentType, MIME_APPLICATION_XML);
+        assertFalse(contentTypeFileValidator.isValid(MIME_APPLICATION_XML));
     }
 }

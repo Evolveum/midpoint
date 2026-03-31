@@ -22,15 +22,15 @@ public class ContentTypeFileValidator {
         this.allowedTypes = allowedTypes;
     }
 
-    public String validate(final String contentType) throws MimeTypeParseException {
+    public boolean isValid(final String contentType) throws MimeTypeParseException {
         final MimeType fileMime = new MimeType(contentType);
 
         for (MimeType allowed : allowedTypes) {
             if (allowed.match(fileMime)) {
-                return "";
+                return true;
             }
         }
 
-        return contentType;
+        return false;
     }
 }
