@@ -11,11 +11,8 @@ import java.io.InputStream;
 import java.io.Serial;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HexFormat;
 import java.util.List;
-import java.util.Objects;
 
-import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +32,6 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.input.validator.ContentTypeFileValidator;
 import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 
 /**
@@ -125,22 +121,18 @@ public class UploadDownloadPanel extends InputPanel {
             }
 
             final String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
-            final List<MimeType> allowedTypes = FileValidatorUtil.getMimeTypes(getAllowedUploadContentTypes());
 
             try {
                 for (FileUpload fu : list) {
                     final String contentType = fu.getContentType();
 
-                    final ContentTypeFileValidator contentTypeFileValidator = new ContentTypeFileValidator(allowedTypes);
-                    if (!contentTypeFileValidator.isValid(contentType)) {
+                    if (!FileValidatorUtil.isValidContentType(contentType, FileValidatorUtil.getMimeTypes(getAllowedUploadContentTypes()))) {
                         String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
                         validatable.error(new ValidationError(msg));
                         continue;
                     }
 
-                    final String magicNumberForContentType = FileValidatorUtil.CONTENT_TYPES_TO_MAGIC_NUMBERS.get(contentType);
-                    final String magicNumberOfFile = HexFormat.of().formatHex(getInputStream().readNBytes(magicNumberForContentType.length() / 2));
-                    if (!Objects.equals(magicNumberForContentType, magicNumberOfFile)) {
+                    if (!FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {
                         String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType);
                         validatable.error(new ValidationError(msg));
                     }
