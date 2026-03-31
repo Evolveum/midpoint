@@ -29,7 +29,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         this.policyRule = policyRule;
     }
 
-    public ActivityPolicyType getPolicy() {
+    public PolicyRuleType getPolicy() {
         return policyRule.getPolicy();
     }
 
@@ -54,7 +54,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
     }
 
     @NotNull
-    public List<ActivityPolicyActionType> getActions() {
+    public List<PolicyActionType> getActions() {
         return policyRule.getActions();
     }
 
@@ -123,7 +123,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
         debugDumpLabelLn(sb, "policyRuleType", indent + 1);
         indentDebugDump(sb, indent + 2);
-        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, getPolicy(), ActivityPolicyType.COMPLEX_TYPE, PrismContext.LANG_XML);
+        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, getPolicy(), PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
         sb.append('\n');
         debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
         return sb.toString();

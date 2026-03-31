@@ -45,7 +45,7 @@ public class ActivityPolicyStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public static ActivityPolicyType forName(@NotNull ActivityDefinitionType activityDef, String name) {
+    public static PolicyRuleType forName(@NotNull ActivityDefinitionType activityDef, String name) {
         ActivityPoliciesType policies = activityDef.getPolicies();
 
         Assertions.assertThat(policies)

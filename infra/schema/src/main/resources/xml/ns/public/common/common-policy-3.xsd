@@ -383,11 +383,151 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="executionTime" type="tns:DurationThresholdPolicyConstraintType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The execution time constrain evaluates activity execution time.
+
+                                When the exceeds element is specified, constraint will trigger if the task execution
+                                time exceeds the specified value. When the below element is specified, constraint will
+                                trigger if the task execution time is below the specified value.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executionAttempts" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This constraint evaluates how many times the activity realization was attempted.
+
+                                When the "exceeds" element is specified, constraint will trigger if the number of attempts
+                                exceeds the specified value. When the "below" element is specified, constraint will trigger
+                                if the number of attempts is below the specified value.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="itemProcessingResult" type="tns:ItemProcessingResultPolicyConstraintType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Constraint that evaluates result of one item (object) that was processed by activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
         <!--<xsd:attribute name="id" type="xsd:long"/>--> <!-- already present in the abstract constraint -->
     </xsd:complexType>
+
+
+    <xsd:complexType name="ItemProcessingResultPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint based on the result of the processing for one object that is processed by the activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Operation result status to match. It can be either PARTIAL_ERROR or FATAL_ERROR.
+                                If not present, we decide solely on error category. If error categories are not specified,
+                                any error matches.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="errorCategory" type="tns:ErrorCategoryType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Error category (network, security, policy, ...) to match.
+
+                                NOTE: that some errors are not propagated to the level where they can be recognized
+                                by this selector.
+
+                                If not present, we decide solely on the status.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="itemProcessingResultPolicyConstraint" type="tns:ItemProcessingResultPolicyConstraintType"/>
+
+    <xsd:complexType name="NumericThresholdPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraints based on numeric value (integer).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:sequence>
+                        <xsd:element name="below" type="xsd:int" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    If constraint metric value is smaller than "below" value for activity, the constraint is triggered.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="exceeds" type="xsd:int" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    If constraint metric value is greater than "exceeds" value for activity, the constraint is triggered.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="numericThresholdPolicyConstraint" type="tns:NumericThresholdPolicyConstraintType"/>
+
+    <xsd:complexType name="DurationThresholdPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint based on duration and its threshold.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="below" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If constraint metric value is smaller than "below" duration for activity, the policy action is triggered.
+                                E.g. If the activity execution time is below this duration, the policy action is triggered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="exceeds" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If constraint metric value is greater than "exceeds" duration for activity, the policy action is triggered.
+                                E.g. If the activity execution time exceeds this duration, the policy action is triggered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="durationThresholdPolicyConstraint" type="tns:DurationThresholdPolicyConstraintType"/>
 
     <xsd:complexType name="PolicyConstraintReferenceType">
         <xsd:annotation>
@@ -1701,9 +1841,54 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="restartActivity" type="tns:RestartActivityPolicyActionType" minOccurs="0"/>
+            <xsd:element name="skipActivity" type="tns:SkipActivityPolicyActionType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="SkipActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Skip activity that triggered policy constraint, continue with next activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="skipActivityPolicyAction" type="tns:SkipActivityPolicyActionType"/>
+
+    <xsd:complexType name="RestartActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Restart the run and realization of the activity that triggered policy constraint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <xsd:element name="delay" type="xsd:duration" minOccurs="0" default="PT5S">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What delay to introduce between attempts. Actual delay is taken as a random
+                                number between 0 and delay*(2^(n-1)), where n is the number attempts so far.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="restartActivityPolicyAction" type="tns:RestartActivityPolicyActionType"/>
 
     <xsd:complexType name="PolicyActionType">
         <xsd:annotation>

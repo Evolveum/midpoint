@@ -20,7 +20,7 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 public class ActivityPolicyUtils {
 
@@ -51,7 +51,7 @@ public class ActivityPolicyUtils {
         return new SingleLocalizableMessage(key, new Object[0], fallBackMessage);
     }
 
-    public static String createIdentifier(ActivityPath path, ActivityPolicyType policy) {
+    public static String createIdentifier(ActivityPath path, PolicyRuleType policy) {
         return path.toString() + ":" + policy.getId();
     }
 

@@ -85,10 +85,15 @@ class PolicyRulesCollector<O extends ObjectType> {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
+        collectObjectRulesFromActivity(rules);
         collectObjectRulesFromAssignments(rules);
         collectGlobalObjectRules(rules, result);
         resolveConstraintReferences(rules);
         return rules;
+    }
+
+    private void collectObjectRulesFromActivity(List<EvaluatedPolicyRuleImpl> rules) {
+        // todo implement
     }
 
     private void collectObjectRulesFromAssignments(List<EvaluatedPolicyRuleImpl> rules) {

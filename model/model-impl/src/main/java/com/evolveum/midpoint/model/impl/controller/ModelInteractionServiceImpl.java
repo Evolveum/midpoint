@@ -2475,9 +2475,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 return true;
             }
 
-            for (ActivityPolicyType policy : policies.getPolicy()) {
+            for (PolicyRuleType policy : policies.getPolicy()) {
                 ItemPath path = policy.asPrismContainerValue().getPath();
-                ItemPath enabledPath = path.append(ActivityPolicyType.F_ENABLED);
+                ItemPath enabledPath = path.append(PolicyRuleType.F_ENABLED);
 
                 S_ItemEntry sie = deltaBuilderHolder.getValue();
 

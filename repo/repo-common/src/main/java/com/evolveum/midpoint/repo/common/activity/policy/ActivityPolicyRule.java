@@ -21,10 +21,10 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingR
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * A policy rule that is being evaluated in a context of given activity.
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
  */
 public class ActivityPolicyRule implements DebugDumpable {
 
-    private final @NotNull ActivityPolicyType policy;
+    private final @NotNull PolicyRuleType policy;
 
     private final @NotNull ActivityPath path;
 
@@ -60,7 +60,7 @@ public class ActivityPolicyRule implements DebugDumpable {
     private final @NotNull Set<DataNeed> dataNeeds;
 
     public ActivityPolicyRule(
-            @NotNull ActivityPolicyType policy, @NotNull ActivityPath path, @NotNull Set<DataNeed> dataNeeds) {
+            @NotNull PolicyRuleType policy, @NotNull ActivityPath path, @NotNull Set<DataNeed> dataNeeds) {
         this.policy = policy;
         this.path = path;
         this.dataNeeds = dataNeeds;
@@ -117,7 +117,7 @@ public class ActivityPolicyRule implements DebugDumpable {
     }
 
     @NotNull
-    public ActivityPolicyType getPolicy() {
+    public PolicyRuleType getPolicy() {
         return policy;
     }
 
@@ -143,7 +143,7 @@ public class ActivityPolicyRule implements DebugDumpable {
         debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
         debugDumpLabelLn(sb, "policyRuleType", indent + 1);
         indentDebugDump(sb, indent + 2);
-        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policy, ActivityPolicyType.COMPLEX_TYPE, PrismContext.LANG_XML);
+        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policy, PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
         return sb.toString();
     }
 
@@ -155,13 +155,13 @@ public class ActivityPolicyRule implements DebugDumpable {
     }
 
     @NotNull
-    public List<ActivityPolicyActionType> getActions() {
-        ActivityPolicyActionsType actions = policy.getPolicyActions();
+    public List<PolicyActionType> getActions() {
+        PolicyActionsType actions = policy.getPolicyActions();
         if (actions == null) {
             return List.of();
         }
 
-        List<ActivityPolicyActionType> result = new ArrayList<>();
+        List<PolicyActionType> result = new ArrayList<>();
 
         addAction(result, actions.getNotification());
         addAction(result, actions.getRestartActivity());
@@ -171,9 +171,18 @@ public class ActivityPolicyRule implements DebugDumpable {
         return result;
     }
 
-    private void addAction(List<ActivityPolicyActionType> actions, ActivityPolicyActionType action) {
-        if (action != null) {
-            actions.add(action);
+    private void addAction(List<PolicyActionType> all, List<? extends PolicyActionType> actions) {
+        if (actions != null) {
+            actions.stream()
+                    .filter(a -> a != null)
+                    .forEach(all::add);
         }
+    }
+
+    private void addAction(List<PolicyActionType> all, PolicyActionType action) {
+        if (action == null) {
+            return;
+        }
+        addAction(all, List.of(action));
     }
 }

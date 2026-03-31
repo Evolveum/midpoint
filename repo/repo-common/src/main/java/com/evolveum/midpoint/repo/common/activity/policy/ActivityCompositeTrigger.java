@@ -7,14 +7,13 @@
 package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.Collection;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
-import javax.xml.namespace.QName;
-
-public class ActivityCompositeTrigger extends EvaluatedActivityPolicyRuleTrigger<ActivityPolicyConstraintsType> {
+public class ActivityCompositeTrigger extends EvaluatedActivityPolicyRuleTrigger<PolicyConstraintsType> {
 
     private final @NotNull QName kind;
 
@@ -22,7 +21,7 @@ public class ActivityCompositeTrigger extends EvaluatedActivityPolicyRuleTrigger
 
     public ActivityCompositeTrigger(
             @NotNull QName kind,
-            @NotNull ActivityPolicyConstraintsType constraint,
+            @NotNull PolicyConstraintsType constraint,
             @NotNull Collection<EvaluatedActivityPolicyRuleTrigger<?>> innerTriggers) {
         super(constraint, null, null);
 

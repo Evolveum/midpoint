@@ -97,7 +97,7 @@ public class ActivityPolicyRulesProcessor {
 
         ActivityPath activityPath = activity.getPath();
         ActivityPoliciesType activityPoliciesBean = activity.getDefinition().getPoliciesDefinition().getPolicies();
-        List<ActivityPolicyType> policyBeans = activityPoliciesBean.getPolicy();
+        List<PolicyRuleType> policyBeans = activityPoliciesBean.getPolicy();
 
         policyBeans.stream()
                 .filter(policyBean -> BooleanUtils.isNotFalse(policyBean.isEnabled()))
@@ -113,7 +113,7 @@ public class ActivityPolicyRulesProcessor {
         return rules;
     }
 
-    private static Set<DataNeed> getDataNeeds(ActivityPolicyType policyBean) {
+    private static Set<DataNeed> getDataNeeds(PolicyRuleType policyBean) {
         return ActivityCompositeConstraintEvaluator.get().getDataNeeds(createRootConstraintElement(policyBean));
     }
 
@@ -205,7 +205,7 @@ public class ActivityPolicyRulesProcessor {
 
         LOGGER.trace("Starting evaluation of rule {}, name: {}", rule.getRuleIdentifier(), rule.getName());
 
-        JAXBElement<ActivityPolicyConstraintsType> element = createRootConstraintElement(rule.getPolicy());
+        JAXBElement<PolicyConstraintsType> element = createRootConstraintElement(rule.getPolicy());
 
         ActivityPolicyRuleEvaluationContext context = new ActivityPolicyRuleEvaluationContext(rule, activityRun, processingResult);
 
@@ -221,17 +221,17 @@ public class ActivityPolicyRulesProcessor {
                 rule.getRuleIdentifier(), rule.isTriggered(), rule.getTriggers());
     }
 
-    private static JAXBElement<ActivityPolicyConstraintsType> createRootConstraintElement(ActivityPolicyType policyBean) {
+    private static JAXBElement<PolicyConstraintsType> createRootConstraintElement(PolicyRuleType policyBean) {
         return new JAXBElement<>(
-                ActivityPolicyConstraintsType.F_AND,
-                ActivityPolicyConstraintsType.class,
+                PolicyConstraintsType.F_AND,
+                PolicyConstraintsType.class,
                 policyBean.getPolicyConstraints());
     }
 
     private void executeActions(EvaluatedActivityPolicyRule rule, OperationResult result) throws ActivityRunPolicyException {
 
-        for (ActivityPolicyActionType action : rule.getActions()) {
-            if (action instanceof NotificationActivityPolicyActionType na) {
+        for (PolicyActionType action : rule.getActions()) {
+            if (action instanceof NotificationPolicyActionType) {
                 LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
 
                 activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
@@ -252,7 +252,7 @@ public class ActivityPolicyRulesProcessor {
                         .policyAction(action.clone());
                 var cause = new ActivityPolicyBasedAbortException(message, defaultMessage, abortInfo);
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, ABORTED, cause);
-            } else if (action instanceof SuspendTaskActivityPolicyActionType) {
+            } else if (action instanceof SuspendTaskPolicyActionType) {
                 LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
                 var cause = new ActivityPolicyBasedHaltException(message, defaultMessage);
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, HALTING_ERROR, cause);

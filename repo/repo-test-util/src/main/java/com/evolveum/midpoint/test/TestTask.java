@@ -9,6 +9,8 @@ package com.evolveum.midpoint.test;
 import java.io.File;
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -21,10 +23,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Task that is to be used in tests.
@@ -200,7 +198,7 @@ public class TestTask extends TestObject<TaskType> {
             throw new IllegalStateException("No activity policies for path " + path + " in task " + oid);
         }
 
-        ActivityPolicyType policy = policies.getPolicy().stream()
+        PolicyRuleType policy = policies.getPolicy().stream()
                 .filter(p -> exact ?
                         Objects.equals(policyIdentifier, p.getName())
                         : p.getName() != null && p.getName().contains(policyIdentifier))
