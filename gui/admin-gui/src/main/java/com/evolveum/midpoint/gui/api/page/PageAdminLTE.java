@@ -144,6 +144,8 @@ import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.springframework.web.util.UriComponentsBuilder;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -335,7 +337,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
             @Override
             public void renderHead(final Component component, final IHeaderResponse response) {
                 super.renderHead(component, response);
-                String js = "MidPointTheme.initTabId();";
+                String js = "MidPointTheme.initWindowId();";
                 response.render(OnDomReadyHeaderItem.forScript(js));
             }
 
@@ -1227,21 +1229,24 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public BrowserTabSessionStorage getBrowserTabSessionStorage() {
         org.apache.wicket.request.IRequestParameters parameters = RequestCycle.get().getRequest().getRequestParameters();
         StringValue paramValue = parameters.getParameterValue(BrowserWindowIdentifierFilter.PARAM_WI);
-        String tabId = paramValue != null ? paramValue.toString() : null;
-        LOGGER.trace("Page Admin LTE: {}", tabId);
+        String windowId = paramValue != null ? paramValue.toString() : null;
+        LOGGER.trace("Page Admin LTE: {}", windowId);
 
-        if (tabId == null) {
-            //try to get tabId from Referer header
+        if (windowId == null) {
+            //try to get windowId from Referer header
             String referer = ((ServletWebRequest)RequestCycle.get().getRequest()).getHeader("Referer");
-            if (referer != null && referer.contains("w=")) {
-                tabId = referer.split("w=")[1].split("&")[0];
+            if (referer != null) {
+                windowId = UriComponentsBuilder.fromUriString(referer)
+                        .build()
+                        .getQueryParams()
+                        .getFirst(BrowserWindowIdentifierFilter.PARAM_WI);
             }
-            if (tabId == null) {
+            if (windowId == null) {
                 return new BrowserTabSessionStorage();
             }
         }
 
-        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(tabId);
+        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(windowId);
     }
 
     public SecretsProviderManager getSecretsProviderManager() {
