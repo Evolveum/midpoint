@@ -2,11 +2,11 @@
 :page-nav-title: Schema extensions in GUI
 :page-upkeep-status: green
 :page-since: 4.9
-:page-order: 100
+:page-display-order: 100
 :experimental:
 :page-toc: top
 :page-keywords: schema extension, custom schema extension, schema extension change, add custom schema, add custom attribute, changing schema via GUI
-:page-description: How to create and change custom schema extensions in midPoint GUI
+:page-description: How to create and change custom schema extensions in the midPoint GUI.
 
 You can configure custom schemas in the midPoint graphical user interface (GUI).
 After each change, the schema is reloaded and you can immediately see the new attributes
@@ -165,7 +165,7 @@ When creating a new schema extension, this means:
 . Define the enumeration (see below).
 . link:#add-schema-extension-items[Add the item] that uses the enumeration—select the enumeration as its data type in the first step as you would select _Int_ for numbers or _String_ for texts.
 
-.Schema extension definitions view with a new _preferredShirtColor_ attribute using _colors_ enumeration as its type
+.Schema extension definitions view with a new _preferredShirtColor_ attribute using _Colors_ enumeration as its type
 image::schema-extension-edit-definitions-new-enum-item.webp["Schema extension definitions view with a new preferredShirtColor attribute using Colors enumeration as its type"]
 
 [NOTE]

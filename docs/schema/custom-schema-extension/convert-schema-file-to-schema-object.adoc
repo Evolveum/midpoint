@@ -2,7 +2,7 @@
 :page-nav-title: Convert schema file to schema object
 :page-keywords: old schema, schema file, convert to schema object, convert to schema repository object
 :page-description: A procedure to convert the midPoint schema extension from an XSD file to the repository-stored SchemaType object.
-:page-order: 200
+:page-display-order: 200
 :page-upkeep-status: green
 
 Since midPoint 4.9, the schema extension is stored in the database.
