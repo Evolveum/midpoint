@@ -24,6 +24,14 @@ import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ItemProcessin
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Activity policy constraints evaluator will skip all unknown constraints.
+ * Currently, it knows only:
+ * {@link PolicyConstraintsType#F_EXECUTION_TIME}
+ * {@link PolicyConstraintsType#F_EXECUTION_ATTEMPTS}
+ * {@link PolicyConstraintsType#F_ITEM_PROCESSING_RESULT}
+ *
+ */
 @Component
 public class ActivityPolicyConstraintsEvaluator {
 

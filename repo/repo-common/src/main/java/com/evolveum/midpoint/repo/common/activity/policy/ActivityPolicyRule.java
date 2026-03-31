@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
  * A policy rule that is being evaluated in a context of given activity.
  *
  * - These objects are created when an activity run ({@link AbstractActivityRun}) starts - in
- * {@link ActivityPolicyRulesProcessor#collectRulesAndPreexistingValues(OperationResult)} method.
+ * {@link ActivityPolicyRulesCollector#collectRulesAndPreexistingValues(OperationResult)} method.
  *
  * - They are evaluated periodically during the activity run - currently in
  * {@link ActivityPolicyRulesProcessor#evaluateAndExecuteRules(ItemProcessingResult, OperationResult)} method.

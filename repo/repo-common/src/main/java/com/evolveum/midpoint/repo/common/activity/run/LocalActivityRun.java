@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesCollector;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -87,7 +88,7 @@ public abstract class LocalActivityRun<
         //
         // Besides collecting the rules, we also determine preexisting values for them here.
         try {
-            new ActivityPolicyRulesProcessor(this)
+            new ActivityPolicyRulesCollector(this)
                     .collectRulesAndPreexistingValues(result);
         } catch (CommonException e) {
             throw new ActivityRunException(e.getMessage(), FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR, e);
