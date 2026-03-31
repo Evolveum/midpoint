@@ -1,19 +1,20 @@
 = Convert schema file to schema object saved in repository
 :page-nav-title: Convert schema file to schema object
-:page-keywords: [ "old schema", "schema file", "convert to schema object", "convert to schema repository object"]
+:page-keywords: old schema, schema file, convert to schema object, convert to schema repository object
+:page-description: A procedure to convert the midPoint schema extension from an XSD file to the repository-stored SchemaType object.
 :page-order: 200
 :page-upkeep-status: green
 
-From midPoint 4.9, the schema extension is stored in the database.
-Version before midPoint 4.9 use the schema extension as the XSD file in the midPoint home directory.
+Since midPoint 4.9, the schema extension is stored in the database.
+Version before midPoint 4.9 use the schema extension as XSD files in the midPoint home directory.
 
-So we need a procedure to convert the schema from the xsd file to the SchemaType object.
-This procedure is a very simple shortcut, just paste schema from xsd file into the attribute definition that contains the SchemaType.
-Finally, we import a new `SchemaType` object into midPoint.
+This article describes a procedure to convert the schema from the XSD file to the SchemaType object.
+This procedure is a very simple shortcut—just paste the schema from the XSD file into the attribute definition that contains the `SchemaType`.
+Afterwards, import the new `SchemaType` object into midPoint.
 
 == Example
 
-The following example shows a schema extension for user that adds one new attributes. Example is in xsd file format.
+The following example shows a schema extension for user that adds one new attributes. Example is in the XSD file format.
 
 .Schema from file
 [source,xml]
@@ -45,7 +46,7 @@ The following example shows a schema extension for user that adds one new attrib
 </xsd:schema>
 ----
 
-New `SchemaType` object prepare for import into midPoint.
+New `SchemaType` object prepared for import into midPoint.
 
 .Schema from file
 [source,xml]
@@ -83,4 +84,4 @@ New `SchemaType` object prepare for import into midPoint.
 </schema>
 ----
 
-For basic information about extension schema see xref:/midpoint/reference/schema/custom-schema-extension/[Schema extension].
+For information about schema extensions, see xref:/midpoint/reference/schema/custom-schema-extension/[].
