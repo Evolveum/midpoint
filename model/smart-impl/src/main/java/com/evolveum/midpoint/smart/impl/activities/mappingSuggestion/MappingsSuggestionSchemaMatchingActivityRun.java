@@ -68,11 +68,15 @@ public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRu
         var resourceOid = workDef.getResourceOid();
         var typeIdentification = workDef.getTypeIdentification();
 
-        var foundOid = findLatestSchemaMatchObjectOid(result);
-        if (foundOid != null) {
-            LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
-            setSchemaMatchObjectOidInWorkState(foundOid, result);
-            return ActivityRunResult.success();
+        if (!workDef.isForceRecomputeSchemaMatch()) {
+            var foundOid = findLatestSchemaMatchObjectOid(result);
+            if (foundOid != null) {
+                LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
+                setSchemaMatchObjectOidInWorkState(foundOid, result);
+                return ActivityRunResult.success();
+            }
+        } else {
+            LOGGER.debug("Force recompute schema match requested, skipping existing schema match check");
         }
 
         boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);

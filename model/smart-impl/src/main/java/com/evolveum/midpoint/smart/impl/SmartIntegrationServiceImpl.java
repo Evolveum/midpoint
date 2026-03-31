@@ -712,6 +712,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public String submitSuggestCorrelationOperation(
             String resourceOid, ResourceObjectTypeIdentification typeIdentification,
             List<DataAccessPermissionType> permissions,
+            boolean forceRecomputeSchemaMatch,
             Task task, OperationResult parentResult)
             throws CommonException {
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_CORRELATION_OPERATION)
@@ -723,6 +724,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectType(typeIdentification.asBean());
             workDef.getPermissions().addAll(permissions);
+            if (forceRecomputeSchemaMatch) {
+                workDef.setForceRecomputeSchemaMatch(true);
+            }
             var oid = modelInteractionService.submit(
                     new ActivityDefinitionType()
                             .work(new WorkDefinitionsType()
@@ -799,6 +803,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Boolean isInbound,
             List<ItemPathType> targetPathsToIgnore,
             List<DataAccessPermissionType> permissions,
+            boolean forceRecomputeSchemaMatch,
             Task task,
             OperationResult parentResult) throws CommonException {
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_MAPPINGS_OPERATION)
@@ -812,6 +817,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .objectType(typeIdentification.asBean())
                     .inbound(isInbound);
             permissions.forEach(mappingsSuggestionWorkDefinition::permissions);
+            if (forceRecomputeSchemaMatch) {
+                mappingsSuggestionWorkDefinition.setForceRecomputeSchemaMatch(true);
+            }
 
             if (targetPathsToIgnore != null) {
                 mappingsSuggestionWorkDefinition.getTargetPathsToIgnore().addAll(targetPathsToIgnore);

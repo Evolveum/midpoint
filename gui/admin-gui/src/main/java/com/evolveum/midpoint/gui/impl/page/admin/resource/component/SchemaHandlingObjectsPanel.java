@@ -136,6 +136,12 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
+            protected void performRegenerateSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                // We override the generate button, so this method should not be called at all.
+            }
+
+            @Override
             protected @NotNull AjaxIconButton createGenerateButton(String buttonId) {
                 // We override this button, because we want to redirect to suggestion page without any confirmation
                 // dialog.

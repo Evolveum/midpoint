@@ -230,6 +230,7 @@ public interface SmartIntegrationService {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             List<DataAccessPermissionType> permissions,
+            boolean forceRecomputeSchemaMatch,
             Task task,
             OperationResult result)
             throws CommonException;
@@ -297,6 +298,7 @@ public interface SmartIntegrationService {
             Boolean isInbound,
             List<ItemPathType> targetPathsToIgnore,
             List<DataAccessPermissionType> permissions,
+            boolean forceRecomputeSchemaMatch,
             Task task,
             OperationResult result)
             throws CommonException;
