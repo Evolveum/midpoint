@@ -266,7 +266,9 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private String urlForNavItemLink(ContainerPanelConfigurationType panelConfig) {
         PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, objectDetailsModel.getObjectWrapper().getOid());
+        if (objectDetailsModel.getObjectWrapper().getOid() != null) {
+            parameters.add(OnePageParameterEncoder.PARAMETER, objectDetailsModel.getObjectWrapper().getOid());
+        }
 
         var panelId = panelConfig.getIdentifier();
         if (panelId != null) {
