@@ -193,21 +193,6 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-            }
-
-            //todo fix
-//            @Override
-//            protected void onError(AjaxRequestTarget target) {
-//                super.onError(target);
-//
-//                target.add(getPageBase().getFeedbackPanel());
-//            }
-        };
-        link.add(new AjaxEventBehavior("click") {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
                 //CTRL+click should work only for the items without submenu
@@ -229,7 +214,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             }
 
             @Override
-            protected void onEvent(AjaxRequestTarget target) {
+            public void onClick(AjaxRequestTarget target) {
                 target.add(DetailsNavigationPanel.this);
                 onClickPerformed(panelConfig, target);
                 clickedMenuItemName = createButtonLabel(panelConfig).getObject();
@@ -242,7 +227,14 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 panelConfigDto.setExpanded(!panelConfigDto.isExpanded());
             }
 
-        });
+            //todo fix
+//            @Override
+//            protected void onError(AjaxRequestTarget target) {
+//                super.onError(target);
+//
+//                target.add(getPageBase().getFeedbackPanel());
+//            }
+        };
         link.add(AttributeModifier.replace("href", urlForNavItemLink(panelConfig)));
 
         link.add(AttributeModifier.append(
@@ -266,7 +258,9 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private String urlForNavItemLink(ContainerPanelConfigurationType panelConfig) {
         PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, objectDetailsModel.getObjectWrapper().getOid());
+        if (objectDetailsModel.getObjectWrapper().getOid() != null) {
+            parameters.add(OnePageParameterEncoder.PARAMETER, objectDetailsModel.getObjectWrapper().getOid());
+        }
 
         var panelId = panelConfig.getIdentifier();
         if (panelId != null) {
