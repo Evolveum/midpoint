@@ -280,7 +280,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         mount(new MountedMapper(MOUNT_GONE_ERROR, PageError410.class, new PageParametersEncoder()));
 
         getRequestCycleListeners().add(new LoggingRequestCycleListener(this));
-        getRequestCycleListeners().add(new BrowserTabIdRequestCycleListener());
 
         getAjaxRequestTargetListeners().add(new AjaxRequestTarget.IListener() {
 

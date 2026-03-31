@@ -179,8 +179,6 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType, M extends Ob
     }
 
     protected final BrowserTabSessionStorage getBrowserTabSessionStorage() {
-//        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
-//        var windowName = WebComponentUtil.getBrowserWindowNameParameter(AbstractObjectMainPanel.this);
         return getPageBase().getBrowserTabSessionStorage();
     }
 }

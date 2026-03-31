@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Filter checks existence of "w" query parameter in URL, if not present, it wraps the request into custom
@@ -82,8 +83,11 @@ public class BrowserWindowIdentifierFilter extends OncePerRequestFilter {
 
     private String getWindowParameterFromRefererHeader(HttpServletRequest request) {
         String referer = request.getHeader("Referer");
-        if (referer != null && referer.contains("w=")) {
-            return referer.split("w=")[1].split("&")[0];
+        if (referer != null) {
+            return UriComponentsBuilder.fromUriString(referer)
+                    .build()
+                    .getQueryParams()
+                    .getFirst(PARAM_WI);
         }
         return null;
     }

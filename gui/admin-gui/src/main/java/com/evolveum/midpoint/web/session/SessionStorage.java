@@ -69,7 +69,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
     public static final String KEY_CERT_DECISIONS = "certDecisions";
 
-    private final Map<String, BrowserTabSessionStorage> storageByWindowName = new HashMap<>();
+    private final Map<String, BrowserTabSessionStorage> storageByWindowId = new HashMap<>();
     private SuggestionsStorage suggestions;
     private ResourceWizardStorage resourceWizardStorage;
 
@@ -98,17 +98,17 @@ public class SessionStorage implements Serializable, DebugDumpable {
         this.mode = mode;
     }
 
-    public BrowserTabSessionStorage getBrowserTabSessionStorage(@NotNull String windowName) {
-        BrowserTabSessionStorage browserTabSessionStorage = storageByWindowName.get(windowName);
+    public BrowserTabSessionStorage getBrowserTabSessionStorage(@NotNull String windowId) {
+        BrowserTabSessionStorage browserTabSessionStorage = storageByWindowId.get(windowId);
         if (browserTabSessionStorage == null) {
             browserTabSessionStorage = new BrowserTabSessionStorage();
-            storageByWindowName.put(windowName, browserTabSessionStorage);
+            storageByWindowId.put(windowId, browserTabSessionStorage);
         }
         return browserTabSessionStorage;
     }
 
     public void clearAllBrowserTabsStorages() {
-        storageByWindowName.values()
+        storageByWindowId.values()
                 .forEach(BrowserTabSessionStorage::clearPageStorage);
     }
 
@@ -144,7 +144,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
         DebugUtil.debugDumpWithLabelLn(sb, "mode", mode, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "requestAccess", requestAccess, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "storageByWindowName", storageByWindowName, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "storageByWindowName", storageByWindowId, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "suggestions", suggestions, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "resourceWizardStorage", resourceWizardStorage, indent + 1);
 
@@ -157,8 +157,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
             sb.append("\n");
             DebugUtil.dumpObjectSizeEstimate(sb, "requestAccess", requestAccess, indent + 1);
         }
-        DebugUtil.dumpObjectSizeEstimate(sb, "storageByWindowName", (Serializable) storageByWindowName, indent + 1);
-        for (Entry<String, BrowserTabSessionStorage> entry : storageByWindowName.entrySet()) {
+        DebugUtil.dumpObjectSizeEstimate(sb, "storageByWindowName", (Serializable) storageByWindowId, indent + 1);
+        for (Entry<String, BrowserTabSessionStorage> entry : storageByWindowId.entrySet()) {
             sb.append("\n");
             DebugUtil.dumpObjectSizeEstimate(sb, entry.getKey(), entry.getValue(), indent + 2);
         }
