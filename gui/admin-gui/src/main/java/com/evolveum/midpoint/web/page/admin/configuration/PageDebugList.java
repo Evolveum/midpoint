@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -30,6 +31,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,6 +80,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jspecify.annotations.NonNull;
 
 /**
  * @author lazyman
@@ -185,14 +189,14 @@ public class PageDebugList extends PageAdminConfiguration {
 
         BoxedTablePanel<DebugObjectItem> table = new BoxedTablePanel<>(ID_TABLE, provider, createColumns(),
                 UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
                 DebugSearchFragment headerFragment = new DebugSearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
                         showAllItemsModel) {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void searchPerformed(AjaxRequestTarget target) {
@@ -220,15 +224,15 @@ public class PageDebugList extends PageAdminConfiguration {
 
         column = new AjaxLinkColumn<>(createStringResource("pageDebugList.name"),
                 DebugObjectItem.F_NAME, DebugObjectItem.F_NAME) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId,
                     final IModel<DebugObjectItem> rowModel) {
 
-                TwoValueLinkPanel panel = new TwoValueLinkPanel(componentId,
+                TwoValueLinkPanel<?> panel = new TwoValueLinkPanel<>(componentId,
                         new IModel<String>() {
-                            private static final long serialVersionUID = 1L;
+                            @Serial private static final long serialVersionUID = 1L;
 
                             @Override
                             public String getObject() {
@@ -251,13 +255,19 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        DebugObjectItem object = rowModel.getObject();
-                        objectEditPerformed(object.getOid(), object.getType());
+                        objectEditPerformed(rowModel.getObject());
                     }
 
                     @Override
                     public boolean isEnabled() {
                         return rowModel.getObject().getOid() != null;
+                    }
+
+                    protected @NonNull String urlForLinkRedirection() {
+                        PageParameters parameters = getDebugViewPageParameters(rowModel.getObject());
+                        Class<PageDebugView> debugViewPageClass = PageDebugView.class;
+                        var url = RequestCycle.get().urlFor(debugViewPageClass, parameters);
+                        return url.toString();
                     }
                 };
 
@@ -280,7 +290,7 @@ public class PageDebugList extends PageAdminConfiguration {
         }
 
         column = new AbstractColumn<>(new Model<>(), null) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getCssClass() {
@@ -291,7 +301,7 @@ public class PageDebugList extends PageAdminConfiguration {
             public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId,
                     IModel<DebugObjectItem> rowModel) {
                 cellItem.add(new DebugButtonPanel<>(componentId, rowModel) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void deletePerformed(AjaxRequestTarget target, IModel<DebugObjectItem> model) {
@@ -324,12 +334,12 @@ public class PageDebugList extends PageAdminConfiguration {
     private List<InlineMenuItem> initInlineMenu() {
         List<InlineMenuItem> headerMenuItems = new ArrayList<>();
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportSelected"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(PageDebugList.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -341,12 +351,12 @@ public class PageDebugList extends PageAdminConfiguration {
 
         headerMenuItems
                 .add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAllSelectedType"), true) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public InlineMenuItemAction initAction() {
                         return new HeaderMenuAction(PageDebugList.this) {
-                            private static final long serialVersionUID = 1L;
+                            @Serial private static final long serialVersionUID = 1L;
 
                             @Override
                             public void onSubmit(AjaxRequestTarget target) {
@@ -358,12 +368,12 @@ public class PageDebugList extends PageAdminConfiguration {
 
         headerMenuItems
                 .add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportShadowsOnResource")) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public InlineMenuItemAction initAction() {
                         return new HeaderMenuAction(PageDebugList.this) {
-                            private static final long serialVersionUID = 1L;
+                            @Serial private static final long serialVersionUID = 1L;
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
@@ -380,12 +390,12 @@ public class PageDebugList extends PageAdminConfiguration {
                 });
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(PageDebugList.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -396,12 +406,12 @@ public class PageDebugList extends PageAdminConfiguration {
         });
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("roleMiningExportPanel.operation.button.title")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(PageDebugList.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -410,6 +420,8 @@ public class PageDebugList extends PageAdminConfiguration {
                         var downloadBehaviour = list.get(0);
                         ExportMiningPanel dialog = new ExportMiningPanel(((PageBase) getPage()).getMainPopupBodyId(),
                                 createStringResource("roleMiningExportPanel.panel.message"), downloadBehaviour) {
+                            @Serial private static final long serialVersionUID = 1L;
+
                             @Override
                             public HashMap<String, String> getArchetypeObjectsList() {
                                 String string = DOT_CLASS + "filterArchetypeObjects";
@@ -448,12 +460,12 @@ public class PageDebugList extends PageAdminConfiguration {
         });
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteSelected"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(PageDebugList.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -464,12 +476,12 @@ public class PageDebugList extends PageAdminConfiguration {
         });
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllType"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(PageDebugList.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -481,12 +493,12 @@ public class PageDebugList extends PageAdminConfiguration {
 
         headerMenuItems
                 .add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteShadowsOnResource")) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public InlineMenuItemAction initAction() {
                         return new HeaderMenuAction(PageDebugList.this) {
-                            private static final long serialVersionUID = 1L;
+                            @Serial private static final long serialVersionUID = 1L;
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
@@ -502,12 +514,12 @@ public class PageDebugList extends PageAdminConfiguration {
                 });
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllIdentities"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(PageDebugList.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -554,12 +566,16 @@ public class PageDebugList extends PageAdminConfiguration {
         target.add(getFeedbackPanel());
     }
 
-    private void objectEditPerformed(String oid, Class<? extends ObjectType> type) {
+    private void objectEditPerformed(@NotNull DebugObjectItem debugObjectItem) {
+        navigateToNext(PageDebugView.class, getDebugViewPageParameters(debugObjectItem));
+    }
+
+    private @NotNull PageParameters getDebugViewPageParameters(@NotNull DebugObjectItem debugObjectItem) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageDebugView.PARAM_OBJECT_ID, oid);
-        parameters.add(PageDebugView.PARAM_OBJECT_TYPE, type.getSimpleName());
+        parameters.add(PageDebugView.PARAM_OBJECT_ID, debugObjectItem.getOid());
+        parameters.add(PageDebugView.PARAM_OBJECT_TYPE, debugObjectItem.getType().getSimpleName());
         parameters.add(PageDebugView.PARAM_SHOW_ALL_ITEMS, showAllItemsModel.getObject());
-        navigateToNext(PageDebugView.class, parameters);
+        return parameters;
     }
 
     private RepositoryObjectDataProvider<?> getTableDataProvider() {
@@ -570,7 +586,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private IModel<String> createDeleteConfirmString() {
         return new IModel<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -730,7 +746,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void deleteAllIdentities(AjaxRequestTarget target) {
         DeleteAllPanel dialog = new DeleteAllPanel(getMainPopupBodyId()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
@@ -783,7 +799,7 @@ public class PageDebugList extends PageAdminConfiguration {
         provider.clearCache();
 
         showResult(result);
-        target.add((Component) getListTable());
+        target.add(getListTable());
         target.add(getFeedbackPanel());
     }
 
@@ -840,7 +856,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private Popupable getDeleteConfirmationPanel() {
         return new DeleteConfirmationPanel(getMainPopupBodyId(), createDeleteConfirmString()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
