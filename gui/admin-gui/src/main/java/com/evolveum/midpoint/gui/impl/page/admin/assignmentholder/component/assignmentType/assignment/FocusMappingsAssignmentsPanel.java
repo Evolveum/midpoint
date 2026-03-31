@@ -8,10 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -47,8 +45,7 @@ public class FocusMappingsAssignmentsPanel<AH extends AssignmentHolderType> exte
     }
 
     protected ObjectQuery createCustomizeQuery() {
-        return getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_FOCUS_MAPPINGS).build();
+        return AssignmentPanelQueries.focusMappings();
     }
 
     @Override
