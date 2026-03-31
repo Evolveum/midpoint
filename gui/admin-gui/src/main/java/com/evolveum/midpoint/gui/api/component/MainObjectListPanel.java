@@ -186,7 +186,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                         onNameColumnPerform(rowModel, target);
                     }
                 };
-                if (rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
+                if (rowModel.getObject() != null && rowModel.getObject().getValue() != null && isClickable(rowModel)) {
                     link.add(AttributeModifier.replace("href", urlForNameColumnLink(rowModel.getObject().getValue())));
                 }
                 return link;
