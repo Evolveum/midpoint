@@ -2,6 +2,7 @@
 :page-nav-title: Schema extensions in GUI
 :page-upkeep-status: green
 :page-since: 4.9
+:page-order: 100
 :experimental:
 :page-toc: top
 :page-keywords: schema extension, custom schema extension, schema extension change, add custom schema, add custom attribute, changing schema via GUI
