@@ -81,8 +81,6 @@ import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jspecify.annotations.NonNull;
-
 /**
  * @author lazyman
  */
@@ -263,7 +261,7 @@ public class PageDebugList extends PageAdminConfiguration {
                         return rowModel.getObject().getOid() != null;
                     }
 
-                    protected @NonNull String urlForLinkRedirection() {
+                    protected @NotNull String urlForLinkRedirection() {
                         PageParameters parameters = getDebugViewPageParameters(rowModel.getObject());
                         Class<PageDebugView> debugViewPageClass = PageDebugView.class;
                         var url = RequestCycle.get().urlFor(debugViewPageClass, parameters);
