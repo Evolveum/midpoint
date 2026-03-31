@@ -1,0 +1,12 @@
+{
+  "jobId" : "c1f289e3-b434-4f4c-a00f-106775e2f51d",
+  "status" : "finished",
+  "createdAt" : "2026-03-11T00:00:00.000000+00:00",
+  "startedAt" : "2026-03-11T00:00:00.000000+00:00",
+  "updatedAt" : "2026-03-11T00:00:00.000000+00:00",
+  "result" : {},
+  "progress" : {
+    "stage" : "finished",
+    "message" : "completed"
+  }
+}

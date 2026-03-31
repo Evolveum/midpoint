@@ -24,22 +24,132 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class ResourceAssociationTypeWizardPanel extends AbstractWizardChoicePanelWithSeparatedCreatePanel<ShadowAssociationTypeDefinitionType> {
 
     boolean isPanelForDuplicate = false;
+    private boolean infoPanelClosed = false;
+
+    private static final String ID_INFO_PANEL = "infoPanel";
+    private static final String ID_INFO_TEXT = "infoText";
+    private static final String ID_CLOSE = "close";
 
     public ResourceAssociationTypeWizardPanel(
             String id,
             WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
+    }
+
+    @Override
+    protected void initLayout() {
+        super.initLayout();
+        add(initInfoPanel());
+    }
+
+    private @NotNull WebMarkupContainer initInfoPanel() {
+        WebMarkupContainer infoPanel = new WebMarkupContainer(ID_INFO_PANEL);
+        infoPanel.setOutputMarkupId(true);
+        infoPanel.setOutputMarkupPlaceholderTag(true);
+
+        Label infoText = new Label(ID_INFO_TEXT, LoadableDetachableModel.of(this::createMultiRuleInfoMessage));
+        infoPanel.add(infoText);
+
+        infoPanel.add(new VisibleBehaviour(() -> hasMultipleProvisioningRules() && !infoPanelClosed));
+
+        infoPanel.add(new AjaxLink<Void>(ID_CLOSE) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                infoPanelClosed = true;
+                target.add(infoPanel);
+            }
+        });
+        return infoPanel;
+    }
+
+    private String createMultiRuleInfoMessage() {
+        String ruleName = getSupportedRuleName();
+        return createStringResource(
+                "ResourceAssociationTypeWizardPanel.multipleRulesInfo",
+                ruleName).getString();
+    }
+
+    private @NotNull String getSupportedRuleName() {
+        var value = getValueModel().getObject();
+        if (value == null) {
+            return "";
+        }
+
+        var association = Optional.ofNullable(value.getRealValue())
+                .map(ShadowAssociationTypeDefinitionType::getSubject)
+                .map(ShadowAssociationTypeSubjectDefinitionType::getAssociation)
+                .orElse(null);
+
+        if (association == null) {
+            return "";
+        }
+
+        List<String> supportedRules = new ArrayList<>();
+
+        MappingType inbound = getFirst(association.getInbound());
+        if (inbound != null) {
+            supportedRules.add(formatRuleLabel("inbound", inbound));
+        }
+
+        MappingType outbound = getFirst(association.getOutbound());
+        if (outbound != null) {
+            supportedRules.add(formatRuleLabel("outbound", outbound));
+        }
+
+        return String.join(", ", supportedRules);
+    }
+
+    private @NotNull String formatRuleLabel(String direction, @NotNull MappingType mapping) {
+        String name = mapping.getName();
+        if (name == null || name.isBlank()) {
+            name = "unnamed";
+        }
+        return direction + ": " + name;
+    }
+
+    private MappingType getFirst(List<?> list) {
+        return (list == null || list.isEmpty()) ? null : (MappingType) list.get(0);
+    }
+
+    private boolean hasMultipleProvisioningRules() {
+        PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> valueWrapper = getValueModel().getObject();
+        if (valueWrapper == null || valueWrapper.getRealValue() == null) {
+            return false;
+        }
+
+        ShadowAssociationTypeDefinitionType associationType = valueWrapper.getRealValue();
+        ShadowAssociationTypeSubjectDefinitionType subject = associationType.getSubject();
+        if (subject == null || subject.getAssociation() == null) {
+            return false;
+        }
+
+        ShadowAssociationDefinitionType association = subject.getAssociation();
+
+        int inboundCount = association.getInbound() != null ? association.getInbound().size() : 0;
+        int outboundCount = association.getOutbound() != null ? association.getOutbound().size() : 0;
+
+        return inboundCount > 1 || outboundCount > 1;
     }
 
     public void setPanelForDuplicate(boolean panelForDuplicate) {

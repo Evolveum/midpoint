@@ -9,15 +9,21 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
-import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -29,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
@@ -36,15 +43,26 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
+import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.C_CORRELATION_SUGGESTION;
+import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.C_MAPPINGS_SUGGESTION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType.F_FOCUS_TYPE_SUGGESTION;
 
 public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceType> {
 
     private static final String DOT_CLASS = ResourceDetailsModel.class.getName() + ".";
     private static final String OPERATION_FETCH_SCHEMA = DOT_CLASS + "fetchSchema";
     private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsModel.class);
+
+    private static final @NotNull List<ItemName> OBJECT_TYPE_SUGGESTION_ACTIVITY_TYPES = List.of(
+            F_FOCUS_TYPE_SUGGESTION,
+            C_CORRELATION_SUGGESTION,
+            C_MAPPINGS_SUGGESTION);
 
     private final LoadableModel<List<ObjectClassWrapper>> objectClassesModel;
 
@@ -70,7 +88,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                 OperationResult result = new OperationResult("bla");
                 @Nullable ResourceSchema schemaForConnector = getPageBase().getModelService().fetchSchema(resourceType.asPrismObject(), result);
 
-                if (schemaForConnector == null){
+                if (schemaForConnector == null) {
                     return list;
                 }
 
@@ -97,7 +115,6 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                         }
                     });
                 });
-
 
                 return list;
             }
@@ -235,5 +252,122 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
             return null;
         }
         return schema.findObjectClassDefinition(objectClass);
+    }
+
+    /**
+     * Performs post-save cleanup for deleted object types.
+     *
+     * <p>When an object type is removed, any related suggestion tasks are deleted as well,
+     * so that newly created object types do not reuse stale focus type, correlation,
+     * or mapping suggestions.</p>
+     */
+    @Override
+    public void performAfterSavePerformed(
+            @Nullable Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
+            @NotNull AjaxRequestTarget target,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        if (result.isError() || executedDeltas == null || executedDeltas.isEmpty()) {
+            return;
+        }
+
+        String resourceOid = getObjectType() != null ? getObjectType().getOid() : null;
+        if (resourceOid == null) {
+            return;
+        }
+
+        PageBase pageBase = getPageBase();
+        SmartIntegrationService smartIntegrationService = pageBase.getSmartIntegrationService();
+
+        List<ResourceObjectTypeDefinitionType> deletedObjectTypes = findDeletedObjectTypes(executedDeltas);
+        if (deletedObjectTypes.isEmpty()) {
+            return;
+        }
+
+        for (ResourceObjectTypeDefinitionType deletedObjectType : deletedObjectTypes) {
+            removeRelatedSuggestionTasks(
+                    deletedObjectType,
+                    resourceOid,
+                    smartIntegrationService,
+                    pageBase,
+                    task,
+                    result);
+        }
+
+        result.computeStatusIfUnknown();
+    }
+
+    private void removeRelatedSuggestionTasks(
+            @NotNull ResourceObjectTypeDefinitionType deletedObjectType,
+            @NotNull String resourceOid,
+            @NotNull SmartIntegrationService smartIntegrationService,
+            @NotNull PageBase pageBase,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        try {
+            ResourceObjectTypeIdentification objectTypeIdentification =
+                    ResourceObjectTypeIdentification.of(deletedObjectType);
+
+            SearchResultList<PrismObject<TaskType>> relatedTasks =
+                    smartIntegrationService.listObjectTypeRelatedSuggestionTasks(
+                            objectTypeIdentification,
+                            resourceOid,
+                            OBJECT_TYPE_SUGGESTION_ACTIVITY_TYPES,
+                            task,
+                            result);
+
+            for (PrismObject<TaskType> taskToDelete : relatedTasks) {
+                removeWholeTaskObject(pageBase, task, result, taskToDelete.getOid());
+            }
+        } catch (Exception e) {
+            LOGGER.warn(
+                    "Couldn't delete suggestion tasks for object type '{}'/{}: {}",
+                    deletedObjectType.getKind(),
+                    deletedObjectType.getIntent(),
+                    e.getMessage(),
+                    e);
+        }
+    }
+
+    /**
+     * Extracts object types that were deleted in the provided executed deltas.
+     */
+    private @NotNull List<ResourceObjectTypeDefinitionType> findDeletedObjectTypes(
+            @NotNull Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+
+        List<ResourceObjectTypeDefinitionType> deleted = new ArrayList<>();
+
+        for (ObjectDeltaOperation<? extends ObjectType> odo : executedDeltas) {
+            if (odo == null || odo.getObjectDelta() == null) {
+                continue;
+            }
+
+            ObjectDelta<? extends ObjectType> delta = odo.getObjectDelta();
+            if (!ResourceType.class.equals(delta.getObjectTypeClass())) {
+                continue;
+            }
+
+            List<PrismValue> deletedValues = delta.getDeletedValuesFor(
+                    ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+
+            if (deletedValues == null || deletedValues.isEmpty()) {
+                continue;
+            }
+
+            for (PrismValue deletedValue : deletedValues) {
+                if (!(deletedValue instanceof PrismContainerValue<?> containerValue)) {
+                    continue;
+                }
+
+                Containerable containerable = containerValue.asContainerable();
+                if (containerable instanceof ResourceObjectTypeDefinitionType objectType) {
+                    deleted.add(objectType.clone());
+                }
+            }
+        }
+
+        return deleted;
     }
 }

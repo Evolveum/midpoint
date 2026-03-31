@@ -115,7 +115,7 @@ public enum ResourceGuideAssociationTypeTileState {
             return true;
         }
 
-        return !hasMapping(subject);
+        return !hasInboundMapping(subject);
     }
 
     private static boolean hasMapping(@Nullable ShadowAssociationTypeSubjectDefinitionType subject) {
@@ -123,18 +123,23 @@ public enum ResourceGuideAssociationTypeTileState {
             return false;
         }
 
+        return hasInboundMapping(subject) || hasOutboundMapping(subject);
+    }
+
+    private static boolean hasInboundMapping(@NotNull ShadowAssociationTypeSubjectDefinitionType subject) {
         AssociationSynchronizationExpressionEvaluatorType syncEvaluator = getAssociationSyncEvaluator(subject);
         if (syncEvaluator != null) {
-            if (hasItems(syncEvaluator.getAttribute()) || hasItems(syncEvaluator.getObjectRef())) {
-                return true;
-            }
+            return hasItems(syncEvaluator.getAttribute()) || hasItems(syncEvaluator.getObjectRef());
         }
+        return false;
+    }
 
-        AssociationConstructionExpressionEvaluatorType constructionEvaluator =
-                getAssociationConstructionEvaluator(subject);
-        return constructionEvaluator != null
-                && (hasItems(constructionEvaluator.getAttribute())
-                || hasItems(constructionEvaluator.getObjectRef()));
+    private static boolean hasOutboundMapping(@NotNull ShadowAssociationTypeSubjectDefinitionType subject) {
+        AssociationConstructionExpressionEvaluatorType constructionEvaluator = getAssociationConstructionEvaluator(subject);
+        if (constructionEvaluator != null) {
+            return hasItems(constructionEvaluator.getAttribute()) || hasItems(constructionEvaluator.getObjectRef());
+        }
+        return false;
     }
 
     private static boolean hasItems(@Nullable List<?> items) {

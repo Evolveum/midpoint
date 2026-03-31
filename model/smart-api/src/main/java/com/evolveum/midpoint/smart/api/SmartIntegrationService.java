@@ -9,9 +9,12 @@ package com.evolveum.midpoint.smart.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -25,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -274,19 +278,18 @@ public interface SmartIntegrationService {
      * <p>
      * Returns a token that can be used to query operation status.
      *
-     * @param targetPathsToIgnore
-     *         Item paths representing mapping targets that should be ignored
-     *         when generating suggestions. The interpretation of these paths
-     *         depends on the {@code isInbound} parameter:
-     *         <p>
-     *         <ul>
-     *             <li><b>Inbound mappings</b>: paths on the midpoint side
-     *                 (i.e. where inbound mapping results would be stored)</li>
-     *             <li><b>Outbound mappings</b>: paths of resource attributes
-     *                 (i.e. where outbound mapping results would be stored)</li>
-     *         </ul>
-     *         Any mapping whose target resolves to one of these paths will not
-     *         be suggested.
+     * @param targetPathsToIgnore Item paths representing mapping targets that should be ignored
+     * when generating suggestions. The interpretation of these paths
+     * depends on the {@code isInbound} parameter:
+     * <p>
+     * <ul>
+     *     <li><b>Inbound mappings</b>: paths on the midpoint side
+     *         (i.e. where inbound mapping results would be stored)</li>
+     *     <li><b>Outbound mappings</b>: paths of resource attributes
+     *         (i.e. where outbound mapping results would be stored)</li>
+     * </ul>
+     * Any mapping whose target resolves to one of these paths will not
+     * be suggested.
      */
     String submitSuggestMappingsOperation(
             String resourceOid,
@@ -382,4 +385,14 @@ public interface SmartIntegrationService {
     /** Builds synchronization reactions from TARGET scenario answers. */
     SynchronizationReactionsType buildTargetSynchronizationReactionsFromAnswers(
             TargetSynchronizationAnswers answers);
+
+    /**
+     * Returns suggestion tasks related to the given resource object type, filtered by activity types.
+     */
+    @NotNull SearchResultList<PrismObject<TaskType>> listObjectTypeRelatedSuggestionTasks(
+            @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
+            @NotNull String resourceOid,
+            @NotNull List<ItemName> activityTypes,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws CommonException;
 }

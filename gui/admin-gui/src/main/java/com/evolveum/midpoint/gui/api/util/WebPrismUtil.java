@@ -667,7 +667,7 @@ public class WebPrismUtil {
                 PrismPropertyWrapper<String> nameProperty = containerValue.findProperty(AbstractMappingType.F_NAME);
                 String name = nameProperty.getValue().getRealValue();
 
-                if (StringUtils.equals(value, name)) {
+                if (StringUtils.equals(StringUtils.trim(value), StringUtils.trim(name))) {
                     numberOfSameRef++;
                 }
             } catch (SchemaException e) {

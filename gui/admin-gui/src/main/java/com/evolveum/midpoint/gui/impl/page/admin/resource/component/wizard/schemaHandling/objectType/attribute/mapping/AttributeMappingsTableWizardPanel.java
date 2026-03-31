@@ -18,6 +18,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.page.admin.FormWrapperValidator;
+
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -99,6 +103,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     private static final String OP_SUGGEST_MAPPING = CLASS_DOT + "suggestMapping";
     private static final String OP_LOAD_SUGGESTION = CLASS_DOT + "loadSuggestion";
 
+    private static final String ID_MAIN_FORM = "form";
     private static final String ID_AI_PANEL = "aiPanel";
     private static final String ID_TAB_TABLE = "panel";
 
@@ -131,10 +136,28 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     private void initLayout() {
+
+        MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
+        form.setOutputMarkupId(true);
+
+        //noinspection rawtypes,unchecked
+        form.add(new FormWrapperValidator<>(getPageBase()) {
+
+            @Override
+            protected PrismObjectWrapper getObjectWrapper() {
+                return getAssignmentHolderDetailsModel().getObjectWrapper();
+            }
+        });
+
+        form.setMultiPart(true);
+        add(form);
+
+        add(form);
+
         String resourceOid = getResourceOid();
         SmartAlertGeneratingPanel aiPanel = createSmartAlertGeneratingPanel(resourceOid);
         this.restartTime = aiPanel::restartTimeBehavior;
-        add(aiPanel);
+        form.add(aiPanel);
 
         List<ITab> tabs = new ArrayList<>();
         tabs.add(createInboundTableTab(resourceOid, inboundSuggestionToggleModel));
@@ -152,7 +175,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             protected void onClickTabPerformed(int index, @NotNull Optional<AjaxRequestTarget> target) {
                 isInboundTabSelected = index == 0;
-                if (getTable().isValidFormComponents()) {
+                if (getTable().isValidFormComponents(target.orElse(null))) {
                     super.onClickTabPerformed(index, target);
                 }
             }
@@ -161,7 +184,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         switchTabs(tabPanel);
 
         tabPanel.setOutputMarkupId(true);
-        add(tabPanel);
+        form.add(tabPanel);
     }
 
     private void switchTabs(TabSeparatedTabbedPanel<ITab> tabPanel) {
@@ -261,7 +284,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                 createStringResource("Suggestion.button.suggest"),
                                 () -> GuiStyleConstants.CLASS_MAGIC_WAND,
                                 ConfirmationOption.mappingPermissionsOptions(),
-                                () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {},
+                                () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
+                                },
                                         (target, confirmedOptions) -> {
                                             performSuggestOperation(target, confirmedOptions);
                                             refreshAfterSuggestionOperationSubmitted(target);
@@ -312,7 +336,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                             return null;
                         }
 
-                        return objectApplyDelta.asObjectable();                    }
+                        return objectApplyDelta.asObjectable();
+                    }
                 };
 
         columnTileTable.setOutputMarkupId(true);
@@ -490,7 +515,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 getPageBase().createStringResource("AttributeMappingsTableWizardPanel.showOverrides")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (getTable().isValidFormComponents()) {
+                if (getTable() != null && getTable().isValidFormComponents(target)) {
                     onShowOverrides(target, getSelectedMappingType());
                 }
             }
@@ -548,7 +573,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     @Override
     protected boolean isValid(AjaxRequestTarget target) {
-        return getTable().isValidFormComponents();
+        return Objects.requireNonNull(getTable()).isValidFormComponents(target);
     }
 
     protected abstract void onShowOverrides(AjaxRequestTarget target, MappingDirection selectedMappingType);
@@ -606,16 +631,19 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     @SuppressWarnings("unchecked")
     public TabbedPanel<ITab> getTabPanel() {
-        return ((TabbedPanel<ITab>) get(ID_TAB_TABLE));
+        return (TabbedPanel<ITab>) get(createComponentPath(ID_MAIN_FORM, ID_TAB_TABLE));
     }
 
     @SuppressWarnings("unchecked")
-    protected SmartMappingTable<MappingType> getTable() {
-        return (SmartMappingTable<MappingType>) getTabPanel().get(TabbedPanel.TAB_PANEL_ID);
+    protected @Nullable SmartMappingTable<MappingType> getTable() {
+        Component component = getTabPanel().get(TabbedPanel.TAB_PANEL_ID);
+        return component instanceof SmartMappingTable<?>
+                ? (SmartMappingTable<MappingType>) component
+                : null;
     }
 
     protected SmartAlertGeneratingPanel getAiPanel() {
-        return (SmartAlertGeneratingPanel) get(ID_AI_PANEL);
+        return (SmartAlertGeneratingPanel) get(createComponentPath(ID_MAIN_FORM, ID_AI_PANEL));
     }
 
     protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {

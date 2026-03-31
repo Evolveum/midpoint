@@ -529,6 +529,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly,
                 options, task, result, target);
 
+        if (!previewOnly && !result.isError()) {
+            getObjectDetailsModels().performAfterSavePerformed(executedDeltas, target, task, result);
+        }
+
         afterSavePerformed(result, executedDeltas, target);
 
         return executedDeltas;

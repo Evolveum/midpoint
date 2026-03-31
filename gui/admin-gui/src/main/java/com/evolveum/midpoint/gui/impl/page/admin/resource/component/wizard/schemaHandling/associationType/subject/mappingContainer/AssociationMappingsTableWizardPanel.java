@@ -15,7 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceNavigationWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.TabSeparatedTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -37,12 +38,15 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +60,7 @@ import java.util.Optional;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "AssociationMappingsTableWizardPanel.outboundTable", icon = "fa fa-arrow-right-from-bracket"))
-public abstract class AssociationMappingsTableWizardPanel<C extends Containerable> extends AbstractResourceWizardBasicPanel<C> {
+public abstract class AssociationMappingsTableWizardPanel<C extends Containerable> extends AbstractResourceNavigationWizardBasicPanel<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationMappingsTableWizardPanel.class);
 
@@ -94,7 +98,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
             @Override
             protected void onClickTabPerformed(int index, @NotNull Optional<AjaxRequestTarget> target) {
                 isInboundTabSelected = index == 0;
-                if (getTable().isValidFormComponents()) {
+                if (getTable().isValidFormComponents(target.orElse(null))) {
                     super.onClickTabPerformed(index, target);
                 }
             }
@@ -257,7 +261,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
 
     private ITab createInboundTableTab() {
         return new IconPanelTab(
-                getPageBase().createStringResource("AssociationMappingsTableWizardPanel.inbound.objectsTable")) {
+                getPageBase().createStringResource("AssociationMappingsTableWizardPanel.inbound")) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -272,6 +276,12 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
                     @Override
                     protected boolean isAttributeVisible() {
                         return AssociationMappingsTableWizardPanel.this.isAttributeVisible();
+                    }
+
+                    @Override
+                    protected void initPanelToolbarButtons(@NotNull RepeatingView toolbar) {
+                        creatEditMainConfigurationButton(toolbar);
+                        super.initPanelToolbarButtons(toolbar);
                     }
 
                     @Override
@@ -295,9 +305,31 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
         };
     }
 
+
+    protected void creatEditMainConfigurationButton(@NotNull RepeatingView repeatingView) {
+        AjaxIconButton newObjectButton = new AjaxIconButton(repeatingView.newChildId(),
+                Model.of("fa fa-cog"),
+                createStringResource("AssociationMappingsTableWizardPanel.editMainConfigurationButton")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showMainMappingConfigurationWizardFragment(target, isInboundTabSelected);
+            }
+        };
+
+        newObjectButton.showTitleAsLabel(true);
+        newObjectButton.add(AttributeAppender.replace("class", "btn btn-link ml-auto"));
+        repeatingView.add(newObjectButton);
+    }
+
+    protected abstract void showMainMappingConfigurationWizardFragment(
+            AjaxRequestTarget target, boolean isInboundTabSelected);
+
     private @NotNull ITab createOutboundTableTab() {
         return new IconPanelTab(
-                getPageBase().createStringResource("AssociationMappingsTableWizardPanel.outbound.objectsTable")) {
+                getPageBase().createStringResource("AssociationMappingsTableWizardPanel.outbound")) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -312,6 +344,12 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
                     @Override
                     protected boolean isAttributeVisible() {
                         return AssociationMappingsTableWizardPanel.this.isAttributeVisible();
+                    }
+
+                    @Override
+                    protected void initPanelToolbarButtons(@NotNull RepeatingView toolbar) {
+                        creatEditMainConfigurationButton(toolbar);
+                        super.initPanelToolbarButtons(toolbar);
                     }
 
                     @Override
@@ -349,4 +387,13 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
         return objectApplyDelta.asObjectable();
     }
 
+    @Override
+    protected String getSubmitButtonCssClass() {
+        return "ml-auto btn-primary";
+    }
+
+    @Override
+    protected void addCustomButtons(@NotNull RepeatingView buttons) {
+       //TBD
+    }
 }
