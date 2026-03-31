@@ -13,6 +13,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
 
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
@@ -135,11 +136,12 @@ public class UploadDownloadPanel extends InputPanel {
                     if (!"".equals(deniedContentType)) {
                         String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, deniedContentType);
                         validatable.error(new ValidationError(msg));
+                        continue;
                     }
 
                     final String magicNumberForContentType = FileValidatorUtil.CONTENT_TYPES_TO_MAGIC_NUMBERS.get(contentType);
                     final String magicNumberOfFile = HexFormat.of().formatHex(getInputStream().readNBytes(magicNumberForContentType.length() / 2));
-                    if (magicNumberForContentType != null && !magicNumberForContentType.equals(magicNumberOfFile)) {
+                    if (!Objects.equals(magicNumberForContentType, magicNumberOfFile)) {
                         String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType);
                         validatable.error(new ValidationError(msg));
                     }
