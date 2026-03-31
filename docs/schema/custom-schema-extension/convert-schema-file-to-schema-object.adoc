@@ -1,6 +1,7 @@
 = Convert schema file to schema object saved in repository
 :page-nav-title: Convert schema file to schema object
 :page-keywords: [ "old schema", "schema file", "convert to schema object", "convert to schema repository object"]
+:page-order: 200
 :page-upkeep-status: green
 
 From midPoint 4.9, the schema extension is stored in the database.
