@@ -6,7 +6,9 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -68,6 +70,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     final LifecycleStateModelType focusStateModel;
     final XMLGregorianCalendar now;
     final PrismObject<SystemConfigurationType> systemConfiguration;
+    final Map<QName, Map<String, PrismObject<? extends ObjectType>>> prefetchedTargetsByTypeAndOid;
     /**
      * Simplified evaluation mode: evaluating only authorizations and gui config.
      * Necessary during login.
@@ -96,6 +99,9 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         now = builder.now;
         loginMode = builder.loginMode;
         systemConfiguration = builder.systemConfiguration;
+        prefetchedTargetsByTypeAndOid = builder.prefetchedTargetsByTypeAndOid != null
+                ? builder.prefetchedTargetsByTypeAndOid
+                : Collections.emptyMap();
         evaluatedAssignmentTargetCache = new EvaluatedAssignmentTargetCache();
         memberOfEngine = new MemberOfEngine();
 
@@ -253,6 +259,17 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         return memberOfEngine.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
     }
 
+    @Nullable PrismObject<? extends ObjectType> getPrefetchedTarget(@NotNull ObjectReferenceType targetRef) {
+        String oid = targetRef.getOid();
+        QName type = targetRef.getType();
+        if (oid == null || type == null) {
+            return null;
+        }
+        return prefetchedTargetsByTypeAndOid
+                .getOrDefault(type, Collections.emptyMap())
+                .get(oid);
+    }
+
     public static final class Builder<AH extends AssignmentHolderType> {
         private ReferenceResolver referenceResolver;
         private ObjectDeltaObject<AH> focusOdoAbsolute;
@@ -261,6 +278,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         private XMLGregorianCalendar now;
         private boolean loginMode = false;
         private PrismObject<SystemConfigurationType> systemConfiguration;
+        private Map<QName, Map<String, PrismObject<? extends ObjectType>>> prefetchedTargetsByTypeAndOid;
 
         public Builder() {
         }
@@ -303,6 +321,12 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
         public Builder<AH> systemConfiguration(PrismObject<SystemConfigurationType> val) {
             systemConfiguration = val;
+            return this;
+        }
+
+        public Builder<AH> prefetchedTargetsByTypeAndOid(
+                Map<QName, Map<String, PrismObject<? extends ObjectType>>> val) {
+            prefetchedTargetsByTypeAndOid = val;
             return this;
         }
 

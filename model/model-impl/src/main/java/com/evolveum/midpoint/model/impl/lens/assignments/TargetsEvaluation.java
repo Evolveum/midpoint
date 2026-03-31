@@ -232,6 +232,12 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     private List<PrismObject<? extends ObjectType>> resolveTargets()
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
+        if (targetRef.getOid() != null && targetRef.getType() != null) {
+            PrismObject<? extends ObjectType> prefetchedTarget = ctx.ae.getPrefetchedTarget(targetRef);
+            if (prefetchedTarget != null) {
+                return List.of(prefetchedTarget);
+            }
+        }
         var filterExpressionEvaluator =
                 createFilterExpressionEvaluator(segment.assignmentOrigin.child(AssignmentType.F_TARGET_REF));
         return ctx.ae.referenceResolver.resolve(
