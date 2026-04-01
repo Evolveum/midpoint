@@ -174,6 +174,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
 
+    //used for the cases when no window identifier is found, e.g. in tests
+    private static final String SINGLE_SESSION_STORAGE_KEY = "singleSessionStorageKey";
+
     /**
      * See https://www.javadoc.io/doc/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer/20191001.1/org/owasp/html/HtmlPolicyBuilder.html
      */
@@ -1242,7 +1245,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                         .getFirst(BrowserWindowIdentifierFilter.PARAM_WI);
             }
             if (windowId == null) {
-                return new BrowserTabSessionStorage();
+                windowId = SINGLE_SESSION_STORAGE_KEY;
             }
         }
 
