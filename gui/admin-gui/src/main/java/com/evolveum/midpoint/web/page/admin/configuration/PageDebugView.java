@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -70,7 +71,7 @@ import com.evolveum.midpoint.gui.api.component.form.TextArea;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
                         label = "PageDebugView.auth.debug.label", description = "PageDebugView.auth.debug.description") })
 public class PageDebugView extends PageAdminConfiguration {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "initObjectViewObject";

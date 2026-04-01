@@ -175,42 +175,24 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
+                    protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                        super.updateAjaxAttributes(attributes);
+
+                        WebComponentUtil.updateAjaxLinkAttributesForCtrlClickRedirection(attributes);
+                    }
+
+                    @Override
                     public void onClick(AjaxRequestTarget target) {
-                        //click event is handled in AjaxEventBehavior
+                        onNameColumnPerform(rowModel, target);
                     }
                 };
-                O obj = rowModel.getObject() != null ? rowModel.getObject().getValue() : null;
-                if (obj != null) {
-                    link.add(new AjaxEventBehavior("click") {
-                        @Serial private static final long serialVersionUID = 1L;
-
-                        @Override
-                        protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                            super.updateAjaxAttributes(attributes);
-
-                            attributes.getDynamicExtraParameters().add(
-                                    "return { ctrlKey: Wicket.Event.fix(attrs.event).ctrlKey };"
-                            );
-
-                            attributes.getAjaxCallListeners().add(new AjaxCallListener() {
-                                @Override
-                                public CharSequence getPrecondition(Component component) {
-                                    return "return MidPointTheme.handleCtrlClick(attrs.event);";
-                                }
-                            });
-                        }
-
-                        @Override
-                        protected void onEvent(AjaxRequestTarget target) {
-                            onNameColumnPerform(rowModel, target);
-                        }
-                    });
-                    link.add(AttributeModifier.replace("href", urlForNameColumnLink(obj)));
+                if (rowModel.getObject() != null && rowModel.getObject().getValue() != null && isClickable(rowModel)) {
+                    link.add(AttributeModifier.replace("href", urlForNameColumnLink(rowModel.getObject().getValue())));
                 }
                 return link;
             }
 
-            private String urlForNameColumnLink(O obj) {
+            private @NotNull String urlForNameColumnLink(@NotNull O obj) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, obj.getOid());
                 Class<? extends PageBase> detailsPageClass = OBJECT_DETAILS_PAGE_MAP.get(obj.getClass());
