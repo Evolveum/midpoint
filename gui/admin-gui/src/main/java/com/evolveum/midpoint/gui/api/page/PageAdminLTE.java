@@ -1230,6 +1230,14 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
      * e.g. object list page search data, specific details page navigation menu data etc.
      */
     public BrowserTabSessionStorage getBrowserTabSessionStorage() {
+        String windowId = getWindowIdPageParameter();
+        if (windowId == null) {
+            windowId = SINGLE_SESSION_STORAGE_KEY;
+        }
+        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(windowId);
+    }
+
+    private String getWindowIdPageParameter() {
         org.apache.wicket.request.IRequestParameters parameters = RequestCycle.get().getRequest().getRequestParameters();
         StringValue paramValue = parameters.getParameterValue(BrowserWindowIdentifierFilter.PARAM_WI);
         String windowId = paramValue != null ? paramValue.toString() : null;
@@ -1244,12 +1252,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                         .getQueryParams()
                         .getFirst(BrowserWindowIdentifierFilter.PARAM_WI);
             }
-            if (windowId == null) {
-                windowId = SINGLE_SESSION_STORAGE_KEY;
-            }
         }
-
-        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(windowId);
+        return windowId;
     }
 
     public SecretsProviderManager getSecretsProviderManager() {
@@ -1293,5 +1297,17 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public ConnectorDevelopmentService getConnectorService() {
         return connectorService;
+    }
+
+    @Override
+    public PageParameters getPageParameters() {
+        PageParameters parameters = super.getPageParameters();
+        PageParameters parametersCopy = parameters != null ? new PageParameters(parameters) : new PageParameters();
+
+        String windowId = getWindowIdPageParameter();
+        if (!parametersCopy.contains(BrowserWindowIdentifierFilter.PARAM_WI) && windowId != null) {
+            parametersCopy.add(BrowserWindowIdentifierFilter.PARAM_WI, windowId);
+        }
+        return parametersCopy;
     }
 }
