@@ -331,7 +331,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             var scrapped = job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                 var ret = new ArrayList<ProcessedDocumentation>();
 
-                var savedPages = json.get("savedPages");
+                var savedPages = json.get("savedDocumentations");
 
                 if (savedPages instanceof ObjectNode pages) {
                     for (var page : pages.properties()) {
