@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -70,7 +72,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     final LifecycleStateModelType focusStateModel;
     final XMLGregorianCalendar now;
     final PrismObject<SystemConfigurationType> systemConfiguration;
-    final Map<QName, Map<String, PrismObject<? extends ObjectType>>> prefetchedTargetsByTypeAndOid;
+    final Map<QName, Map<String, PrismObject<? extends ObjectType>>> cachedTargetsByTypeAndOid;
     /**
      * Simplified evaluation mode: evaluating only authorizations and gui config.
      * Necessary during login.
@@ -99,9 +101,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         now = builder.now;
         loginMode = builder.loginMode;
         systemConfiguration = builder.systemConfiguration;
-        prefetchedTargetsByTypeAndOid = builder.prefetchedTargetsByTypeAndOid != null
-                ? builder.prefetchedTargetsByTypeAndOid
-                : Collections.emptyMap();
+        cachedTargetsByTypeAndOid = copyTargetsByTypeAndOid(builder.prefetchedTargetsByTypeAndOid);
         evaluatedAssignmentTargetCache = new EvaluatedAssignmentTargetCache();
         memberOfEngine = new MemberOfEngine();
 
@@ -259,15 +259,37 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         return memberOfEngine.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
     }
 
-    @Nullable PrismObject<? extends ObjectType> getPrefetchedTarget(@NotNull ObjectReferenceType targetRef) {
+    @Nullable PrismObject<? extends ObjectType> getCachedTarget(@NotNull ObjectReferenceType targetRef) {
         String oid = targetRef.getOid();
         QName type = targetRef.getType();
         if (oid == null || type == null) {
             return null;
         }
-        return prefetchedTargetsByTypeAndOid
+        return cachedTargetsByTypeAndOid
                 .getOrDefault(type, Collections.emptyMap())
                 .get(oid);
+    }
+
+    void cacheResolvedTarget(@NotNull ObjectReferenceType targetRef, @NotNull PrismObject<? extends ObjectType> target) {
+        String oid = targetRef.getOid();
+        QName type = targetRef.getType();
+        if (oid == null || type == null) {
+            return;
+        }
+        cachedTargetsByTypeAndOid
+                .computeIfAbsent(type, ignored -> new LinkedHashMap<>())
+                .putIfAbsent(oid, target);
+    }
+
+    private static Map<QName, Map<String, PrismObject<? extends ObjectType>>> copyTargetsByTypeAndOid(
+            Map<QName, Map<String, PrismObject<? extends ObjectType>>> source) {
+        if (source == null || source.isEmpty()) {
+            return new HashMap<>();
+        }
+        Map<QName, Map<String, PrismObject<? extends ObjectType>>> copy = new HashMap<>();
+        source.forEach((type, targetsByOid) ->
+                copy.put(type, new LinkedHashMap<>(targetsByOid)));
+        return copy;
     }
 
     public static final class Builder<AH extends AssignmentHolderType> {
