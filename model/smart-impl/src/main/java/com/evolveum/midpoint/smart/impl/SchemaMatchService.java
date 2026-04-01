@@ -11,6 +11,7 @@ package com.evolveum.midpoint.smart.impl;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
@@ -26,6 +27,9 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -80,7 +84,10 @@ public class SchemaMatchService {
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
-            var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result);
+            var options = GetOperationOptionsBuilder.create()
+                    .item(ResourceType.F_CONNECTOR_REF).resolve()
+                    .build();
+            var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, options, null, task, result);
             var focusTypeDefinition = ctx.getFocusTypeDefinition();
             var matchingOp = new SchemaMatchingOperation(serviceClient, wellKnownSchemaService, useAiService);
             var match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource);
@@ -132,8 +139,12 @@ public class SchemaMatchService {
             return Optional.empty();
         }
 
+        //TODO this is a nasty hack for MCM demo, remove later.
         var applicationAttrDefBean = createAttributeDefinition(
                 shadowAttrPath, shadowAttrDef, ctx.getShadowDefinition());
+        if (isLdapResource(ctx.resource)) {
+            applicationAttrDefBean.setMaxOccurs(1);
+        }
         var midPointPropertyDefBean = createAttributeDefinition(
                 focusPropPath, focusPropDef, focusTypeDefinition);
 
@@ -192,6 +203,21 @@ public class SchemaMatchService {
         } finally {
             result.close();
         }
+    }
+
+    //TODO this is a nasty hack for MCM demo, remove later.
+    private boolean isLdapResource(ResourceType resource) {
+        var connectorRef = resource.getConnectorRef();
+        if (connectorRef == null) {
+            return false;
+        }
+        if (connectorRef.getObject() != null && connectorRef.getObject().getRealValue() instanceof ConnectorType connector) {
+            String bundle = connector.getConnectorBundle();
+            String type = connector.getConnectorType();
+            return (bundle != null && bundle.toLowerCase().contains("ldap"))
+                    || (type != null && type.toLowerCase().contains("ldap"));
+        }
+        return false;
     }
 
     private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
