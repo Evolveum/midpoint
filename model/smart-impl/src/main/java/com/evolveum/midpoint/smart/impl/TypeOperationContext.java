@@ -9,6 +9,8 @@ package com.evolveum.midpoint.smart.impl;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -60,8 +63,21 @@ class TypeOperationContext extends OperationContext {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
+        return init(serviceClient, resourceOid, typeIdentification, null, activityState, task, result);
+    }
+
+    static TypeOperationContext init(
+            ServiceClient serviceClient,
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable CurrentActivityState<?> activityState,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
         var resource = SmartIntegrationBeans.get().modelService
-                .getObject(ResourceType.class, resourceOid, null, task, result)
+                .getObject(ResourceType.class, resourceOid, options, task, result)
                 .asObjectable();
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
         var typeDefinition = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
