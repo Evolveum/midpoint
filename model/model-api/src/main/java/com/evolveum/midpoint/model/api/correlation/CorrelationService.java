@@ -115,6 +115,9 @@ public interface CorrelationService {
      * which is at least correlated with the shadow. If not even that exists, it tries to run actual correlation
      * process.
      *
+     * NOTE: Implementations may decide to write the results of the correlation (if run) to the shadow. Consult
+     * implementation documentation to check it.
+     *
      * @param shadow The Shadow, whose linked or correlated focus you want to find.
      * @param resource The resource, which will be used for correlation if there is no linked or correlated focus yet.
      * @param typeDef The object type definition for the purposes of correlation.
@@ -124,7 +127,9 @@ public interface CorrelationService {
      */
     Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, @NotNull ResourceType resource,
             @NotNull ResourceObjectTypeDefinition typeDef, @NotNull CorrelationDefinitionType correlationDef,
-            @NotNull Task task, OperationResult result) throws SchemaException;
+            @NotNull Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
 
     @FunctionalInterface

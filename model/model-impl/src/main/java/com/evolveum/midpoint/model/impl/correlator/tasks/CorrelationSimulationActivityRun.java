@@ -7,21 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.correlator.tasks;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_OWNER_OPTIONS_PATH;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_RESULTING_OWNER_PATH;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_SITUATION_PATH;
-
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.CorrelationSimulationData;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -36,7 +29,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaExtender;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -128,42 +120,9 @@ public class CorrelationSimulationActivityRun
 
     private ObjectDelta<ShadowType> createDelta(CompleteCorrelationResult correlationResult, ShadowType shadow)
             throws SchemaException {
-        S_ItemEntry builder = this.prismContext.deltaFor(ShadowType.class)
-                .oldObject(shadow)
-                .optimizing();
-        if (correlationResult.isError()) {
-            builder = builder.item(CORRELATION_SITUATION_PATH)
-                    .replace(CorrelationSituationType.ERROR);
-        } else {
-            if (ownerOptionsChanged(shadow, correlationResult.getOwnerOptions())) {
-                builder = builder.item(CORRELATION_OWNER_OPTIONS_PATH)
-                        .replace(correlationResult.getOwnerOptions());
-            }
-            builder = builder.item(CORRELATION_SITUATION_PATH)
-                    .replace(correlationResult.getSituation())
-                    .item(CORRELATION_RESULTING_OWNER_PATH)
-                    .replace(ObjectTypeUtil.createObjectRef(correlationResult.getOwner()));
-        }
-        return builder.asObjectDelta(shadow.getOid());
-    }
-
-    private boolean ownerOptionsChanged(ShadowType shadow, @Nullable ResourceObjectOwnerOptionsType newOwnerOptions) {
-        final ShadowCorrelationStateType oldCorrelation = shadow.getCorrelation();
-        final ResourceObjectOwnerOptionsType oldOptions = oldCorrelation != null
-                ? oldCorrelation.getOwnerOptions()
-                : null;
-
-        if (oldOptions == null) {
-            return newOwnerOptions != null;
-        } else {
-            if (newOwnerOptions == null) {
-                return true;
-            } else {
-                // We have to ignore auto-generated PCV IDs
-                return !oldOptions.asPrismContainerValue().equals(
-                        newOwnerOptions.asPrismContainerValue(), EquivalenceStrategy.REAL_VALUE);
-            }
-        }
+        return this.prismContext.deltaFactory().object().createModifyDelta(shadow.getOid(),
+                correlationResult.toDeltaItems(this.prismContext, shadow),
+                ShadowType.class);
     }
 
 }
