@@ -214,11 +214,10 @@ public class SmartGeneratingAlertDto implements Serializable {
     }
 
     protected StatusRowRecord getSafeRow(PageBase pageBase) {
-        List<StatusRowRecord> statusRows = getStatusRows(pageBase);
-        if (!statusRows.isEmpty()) {
-            return statusRows.get(statusRows.size() - 1);
-        }
-        return null;
+        return getStatusRows(pageBase).stream()
+                .filter(row -> row.realizationState() != null)
+                .reduce((first, second) -> second) // last element
+                .orElse(null);
     }
 
     private int getSuggestedObjectsCount() {
