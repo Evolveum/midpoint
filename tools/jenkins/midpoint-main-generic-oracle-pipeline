@@ -66,10 +66,10 @@ podTemplate(
             stage ("create-db") {
                 container ("kubectl") {
                     withKubeConfig([credentialsId: '6a647093-716e-4e8f-90bd-a8007be37f0e',
-                                    serverUrl: 'https://10.100.1.42:6443',
+                                    serverUrl: 'https://10.200.130.10:6443',
                                     contextName: 'jenkins',
                                     clusterName: 'kubernetes',
-                                    namespace: 'jenkins'
+                                    namespace: 'jenkins-legacy'
                     ]) {
                         sh """#!/bin/bash
 mkdir ../logs-${JOB_NAME}-${BUILD_NUMBER}
@@ -90,7 +90,7 @@ spec:
   resources:
     requests:
       storage: \${3:-5}\${4:-G}i
-  storageClassName: csi-rbd-ssd
+  storageClassName: rbd-delete
   volumeMode: Filesystem
 EOF
 }
@@ -128,10 +128,10 @@ spec:
           protocol: TCP
       resources:
         requests:
-          memory: "4Gi"
+          memory: "6Gi"
           cpu: "2"
         limits:
-          memory: "4Gi"
+          memory: "6Gi"
           cpu: "2"
       env:
         - name: ORACLE_CHARACTERSET
@@ -158,17 +158,17 @@ echo
 # 20 => 20Gi space, 15 is not enough for our tests and causes errors:
 # ORA-00257: Archiver error. Connect AS SYSDBA only until resolved. (Oracle 23ai)
 # ORA-01691: unable to extend lob segment MIDPOINT.SYS_LOB... by 1024 in tablespace USERS
-createPVC jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} 10 | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc
-createDBPod jenkins test-db ${JOB_NAME}-${BUILD_NUMBER} test-db-${JOB_NAME}-${BUILD_NUMBER} |
+createPVC jenkins-legacy test-db-${JOB_NAME}-${BUILD_NUMBER} 10 | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc
+createDBPod jenkins-legacy test-db ${JOB_NAME}-${BUILD_NUMBER} test-db-${JOB_NAME}-${BUILD_NUMBER} |
     tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod
 pvcdbname="\$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc)"
 poddbname="\$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod)"
 
-podIPs="\$(kubectl get -n jenkins \${poddbname} -o=jsonpath="{.status.podIP}{':'}{.status.hostIP}")"
+podIPs="\$(kubectl get -n jenkins-legacy \${poddbname} -o=jsonpath="{.status.podIP}{':'}{.status.hostIP}")"
 while [ "\${podIPs:0:1}" == ":" ]
 do
     sleep 5
-    podIPs="\$(kubectl get -n jenkins \${poddbname} -o=jsonpath="{.status.podIP}{':'}{.status.hostIP}")"
+    podIPs="\$(kubectl get -n jenkins-legacy \${poddbname} -o=jsonpath="{.status.podIP}{':'}{.status.hostIP}")"
 done
 poddbIP="\$(echo -n \${podIPs} | cut -d : -f 1)"
 hostdbIP="\$(echo -n \${podIPs} | cut -d : -f 2)"
@@ -177,7 +177,7 @@ echo "\${poddbIP}" > ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod-ip
 
 echo
 
-kubectl get -n jenkins \${poddbname} -o=jsonpath="{range .status.conditions[*]}{.type}{': '}{.status}{'\\n'}{end}"
+kubectl get -n jenkins-legacy \${poddbname} -o=jsonpath="{range .status.conditions[*]}{.type}{': '}{.status}{'\\n'}{end}"
 
 echo -e  "\\nPod IP: \${poddbIP}\\nHost IP: \${hostdbIP}\\n"
                         """
@@ -211,10 +211,10 @@ echo -e  "\\nPod IP: \${poddbIP}\\nHost IP: \${hostdbIP}\\n"
             stage("init-db") {
                 container ("kubectl") {
                     withKubeConfig([credentialsId: '6a647093-716e-4e8f-90bd-a8007be37f0e',
-                                    serverUrl: 'https://10.100.1.42:6443',
+                                    serverUrl: 'https://10.200.130.10:6443',
                                     contextName: 'jenkins',
                                     clusterName: 'kubernetes',
-                                    namespace: 'jenkins'
+                                    namespace: 'jenkins-legacy'
                     ]) {
                         sh """#!/bin/bash
 # max attempts * sleep lower (5s by default => 1200 s => 20m)
@@ -260,14 +260,14 @@ function checkDB {
 }
 
 echo -e "\\nWait to DB get up..."
-checkDB jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} ../logs-${JOB_NAME}-${BUILD_NUMBER} 0
+checkDB jenkins-legacy test-db-${JOB_NAME}-${BUILD_NUMBER} ../logs-${JOB_NAME}-${BUILD_NUMBER} 0
 
 # dd of=... is used because cat > redirect would require some quoting to work on the remote side.
 cat config/sql/generic/oracle-*-all.sql repo/repo-sql-impl-test/sql-procedures/oracle.sql |
-    kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- dd of=ora-mp-init.sql
+    kubectl exec -i -n jenkins-legacy test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- dd of=ora-mp-init.sql
 
 # Inside Oracle container sys/Heslo123@xepdb1 works the same as sys/Heslo123@//localhost:1521/xepdb1
-cat <<EOF | kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus sys/Heslo123@${oraclePDB} as sysdba
+cat <<EOF | kubectl exec -i -n jenkins-legacy test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus sys/Heslo123@${oraclePDB} as sysdba
 CREATE USER midpoint IDENTIFIED BY password;
 GRANT connect,resource TO midpoint;
 ALTER USER midpoint quota 10G on users;
@@ -275,7 +275,7 @@ ALTER USER midpoint quota 10G on users;
 EOF
 
 # midpoint/password@//localhost:1521/xepdb1 would also work, but not necessary inside Oracle container:
-cat <<EOF | kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus midpoint/password@${oraclePDB}
+cat <<EOF | kubectl exec -i -n jenkins-legacy test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus midpoint/password@${oraclePDB}
 @ora-mp-init.sql
 EOF
                     """
@@ -332,16 +332,16 @@ EOF
             // Cleanup the kube stuff and collect kube logs.
             container ("kubectl") {
                 withKubeConfig([credentialsId: '6a647093-716e-4e8f-90bd-a8007be37f0e',
-                                serverUrl: 'https://10.100.1.42:6443',
+                                serverUrl: 'https://10.200.130.10:6443',
                                 contextName: 'jenkins',
                                 clusterName: 'kubernetes',
-                                namespace: 'jenkins'
+                                namespace: 'jenkins-legacy'
                 ]) {
                     try {
                         sh """#!/bin/bash
-kubectl logs -n jenkins \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod) -c oracle > ../logs-${JOB_NAME}-${BUILD_NUMBER}/pod-db-oracle-full.log
+kubectl logs -n jenkins-legacy \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod) -c oracle > ../logs-${JOB_NAME}-${BUILD_NUMBER}/pod-db-oracle-full.log
 
-kubectl delete -n jenkins \\
+kubectl delete -n jenkins-legacy \\
     \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod) \\
     \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc)
                         """
