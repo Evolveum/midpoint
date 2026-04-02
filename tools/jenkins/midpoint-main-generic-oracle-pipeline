@@ -66,10 +66,10 @@ podTemplate(
             stage ("create-db") {
                 container ("kubectl") {
                     withKubeConfig([credentialsId: '6a647093-716e-4e8f-90bd-a8007be37f0e',
-                                    serverUrl: 'https://10.100.1.42:6443',
+                                    serverUrl: 'https://10.200.130.10:6443',
                                     contextName: 'jenkins',
                                     clusterName: 'kubernetes',
-                                    namespace: 'jenkins'
+                                    namespace: 'jenkins-legacy'
                     ]) {
                         sh """#!/bin/bash
 mkdir ../logs-${JOB_NAME}-${BUILD_NUMBER}
@@ -211,10 +211,10 @@ echo -e  "\\nPod IP: \${poddbIP}\\nHost IP: \${hostdbIP}\\n"
             stage("init-db") {
                 container ("kubectl") {
                     withKubeConfig([credentialsId: '6a647093-716e-4e8f-90bd-a8007be37f0e',
-                                    serverUrl: 'https://10.100.1.42:6443',
+                                    serverUrl: 'https://10.200.130.10:6443',
                                     contextName: 'jenkins',
                                     clusterName: 'kubernetes',
-                                    namespace: 'jenkins'
+                                    namespace: 'jenkins-legacy'
                     ]) {
                         sh """#!/bin/bash
 # max attempts * sleep lower (5s by default => 1200 s => 20m)
@@ -332,10 +332,10 @@ EOF
             // Cleanup the kube stuff and collect kube logs.
             container ("kubectl") {
                 withKubeConfig([credentialsId: '6a647093-716e-4e8f-90bd-a8007be37f0e',
-                                serverUrl: 'https://10.100.1.42:6443',
+                                serverUrl: 'https://10.200.130.10:6443',
                                 contextName: 'jenkins',
                                 clusterName: 'kubernetes',
-                                namespace: 'jenkins'
+                                namespace: 'jenkins-legacy'
                 ]) {
                     try {
                         sh """#!/bin/bash
