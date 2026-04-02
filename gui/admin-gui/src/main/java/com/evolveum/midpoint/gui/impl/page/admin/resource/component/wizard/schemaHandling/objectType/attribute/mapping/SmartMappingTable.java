@@ -41,6 +41,7 @@ import com.evolveum.midpoint.gui.impl.component.tile.column.ColumnTileTable;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.preview.PreviewMappingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.FocusStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectTypeStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionFlow;
@@ -58,7 +59,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -71,6 +71,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -186,11 +187,12 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         inlineMenuItems.add(createDiscardItemMenu());
                         inlineMenuItems.add(createChangeMappingNameInlineMenu());
                         inlineMenuItems.add(createChangeLifecycleButtonInlineMenu());
+                        inlineMenuItems.add(createDuplicateInlineMenu());
+
                         if (isSimulationSupported()) {
                             inlineMenuItems.add(createSimulationInlineMenu());
                         }
-                        inlineMenuItems.add(createDuplicateInlineMenu());
-
+                        inlineMenuItems.add(createPreviewInlineMenu());
                         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceObjectTypeDefinition = findResourceObjectTypeDefinition();
                         if (resourceObjectTypeDefinition != null && resourceObjectTypeDefinition.getRealValue() != null) {
                             inlineMenuItems.add(createResourceAttributeStatisticsMenu(resourceObjectTypeDefinition.getRealValue()));
@@ -454,6 +456,41 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     @Override
                     public @NotNull String getCssClass() {
                         return "col-2 header-border-right";
+                    }
+
+                    @SuppressWarnings("rawtypes")
+                    @Override
+                    protected <IW extends ItemWrapper> @NotNull Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                        Component columnPanel = super.createColumnPanel(componentId, rowModel);
+                        columnPanel.setOutputMarkupId(true);
+
+                        if (rowModel != null
+                                && rowModel.getObject() != null
+                                && rowModel.getObject().getParent() != null
+                                && rowModel.getObject().getParent().getRealValue() instanceof MappingType) {
+
+                            PrismContainerValueWrapper<MappingType> mappingWrapper =
+                                    (PrismContainerValueWrapper<MappingType>) rowModel.getObject().getParent();
+
+                            if (getStatusInfo(mappingWrapper) != null) {
+
+                                columnPanel.add(AttributeModifier.append("class", "btn-link cursor-pointer"));
+
+                                columnPanel.add(new AjaxEventBehavior("click") {
+                                    @Override
+                                    protected void onEvent(AjaxRequestTarget target) {
+                                        PreviewMappingPanel panel = new PreviewMappingPanel(
+                                                getPageBase().getMainPopupBodyId(),
+                                                Model.of(mappingWrapper),
+                                                getMappingDirectionType() == MappingDirection.INBOUND);
+
+                                        getPageBase().showMainPopup(panel, target);
+                                    }
+                                });
+                            }
+                        }
+
+                        return columnPanel;
                     }
                 };
 
@@ -952,72 +989,150 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected InlineMenuItem createSimulationInlineMenu() {
-        return new InlineMenuItem(
-                createStringResource("SmartMappingPanel.simulate")) {
-            @Serial private static final long serialVersionUID = 1L;
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("SmartMappingPanel.simulate"))
+                .icon("fa fa-flask")
+                .headerMenuItem(false)
+                .action(new ColumnMenuAction<PrismContainerValueWrapper<MappingType>>() {
 
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-
-            @Override
-            public @NotNull InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<PrismContainerValueWrapper<MappingType>>() {
-
-                    @SuppressWarnings("unchecked")
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-
-                        //TBD
-                        //simulated multiple mapping using mapping preview activity is not supported yet.
-                        if (getRowModel() != null) {
-                            InlineMappingDefinitionType mappingToSimulate = new InlineMappingDefinitionType();
-                            ItemPathType refPath = getRefPath(getRowModel().getObject());
-                            if (refPath != null) {
-                                mappingToSimulate.setRef(refPath);
-
-                                MappingType mappingRealValue = getRowModel().getObject().getRealValue();
-                                WebPrismUtil.cleanupEmptyContainerValue(mappingRealValue.asPrismContainerValue());
-
-                                if (mappingRealValue instanceof InboundMappingType inbound) {
-                                    mappingToSimulate.getInbound().add(inbound.clone());
-                                } else if (mappingRealValue instanceof OutboundMappingType outbound) {
-                                    mappingToSimulate.getOutbound().add(outbound.clone());
-                                }
-
-                                SimulationParams<?> params = new SimulationParams<>(
-                                        getPageBase(),
-                                        getResourceType(),
-                                        findResourceObjectTypeDefinition().getRealValue(),
-                                        ResourceTaskFlavors.MAPPING_PREVIEW_ACTIVITY,
-                                        mappingToSimulate.clone(),
-                                        ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
-                                );
-
-                                SimulationActionFlow<?> flow = new SimulationActionFlow(params) {
-                                    @Override
-                                    public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
-                                        ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
-                                        if (simulationResultReference == null || simulationResultReference.getOid() == null) {
-                                            LOGGER.error("Simulation result reference or OID is null for task {}", task.getName());
-                                            return;
-                                        }
-                                        SimulationResultType simulationResultType = loadSimulationResult(pageBase, simulationResultReference.getOid());
-                                        buildSimulationResultPanel(target, Model.of(simulationResultType));
-
-                                    }
-                                };
-                                flow.enableSampling();
-                                flow.showProgressPopup();
-                                flow.start(target);
-
-                            }
+                        if (getRowModel() == null) {
+                            return;
                         }
+
+                        InlineMappingDefinitionType mappingToSimulate = new InlineMappingDefinitionType();
+                        ItemPathType refPath = getRefPath(getRowModel().getObject());
+                        if (refPath == null) {
+                            return;
+                        }
+
+                        mappingToSimulate.setRef(refPath);
+
+                        MappingType mappingRealValue = getRowModel().getObject().getRealValue();
+                        //noinspection unchecked
+                        WebPrismUtil.cleanupEmptyContainerValue(mappingRealValue.asPrismContainerValue());
+
+                        if (mappingRealValue instanceof InboundMappingType inbound) {
+                            mappingToSimulate.getInbound().add(inbound.clone());
+                        } else if (mappingRealValue instanceof OutboundMappingType outbound) {
+                            mappingToSimulate.getOutbound().add(outbound.clone());
+                        }
+
+                        SimulationParams<?> params = new SimulationParams<>(
+                                getPageBase(),
+                                getResourceType(),
+                                findResourceObjectTypeDefinition().getRealValue(),
+                                ResourceTaskFlavors.MAPPING_PREVIEW_ACTIVITY,
+                                mappingToSimulate.clone(),
+                                ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
+                        );
+
+                        SimulationActionFlow<?> flow = getSimulationActionFlow(params);
+                        flow.start(target);
                     }
-                };
+                })
+                .buildInlineMenu();
+    }
+
+    private @NotNull SimulationActionFlow<?> getSimulationActionFlow(SimulationParams<?> params) {
+        SimulationActionFlow<?> flow = new SimulationActionFlow(params) {
+            @Override
+            public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+                ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
+                if (simulationResultReference == null || simulationResultReference.getOid() == null) {
+                    LOGGER.error("Simulation result reference or OID is null for task {}", task.getName());
+                    return;
+                }
+                SimulationResultType simulationResultType = loadSimulationResult(pageBase, simulationResultReference.getOid());
+                buildSimulationResultPanel(target, Model.of(simulationResultType));
+
             }
         };
+        flow.enableSampling();
+        flow.showProgressPopup();
+        return flow;
+    }
+
+    protected InlineMenuItem createPreviewInlineMenu() {
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("SmartMappingPanel.preview.mapping"))
+                .icon("fa fa-search")
+                .headerMenuItem(false)
+                .action(new ColumnMenuAction<PrismContainerValueWrapper<MappingType>>() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null) {
+                            return;
+                        }
+
+                        IModel<PrismContainerValueWrapper<MappingType>> mappingWrapper = getRowModel();
+
+                        PreviewMappingPanel previewMappingPanel = new PreviewMappingPanel(
+                                getPageBase().getMainPopupBodyId(),
+                                mappingWrapper,
+                                getMappingDirectionType() == MappingDirection.INBOUND) {
+
+                            @Override
+                            public void customizeFooterButtons(@NotNull RepeatingView repeater) {
+                                super.customizeFooterButtons(repeater);
+
+                                StatusInfo<?> statusInfo = getStatusInfo(mappingWrapper.getObject());
+                                if (statusInfo != null) {
+                                    AjaxIconButton discardSuggestionButton = buildDiscardButton(repeater, mappingWrapper);
+                                    discardSuggestionButton.add(AttributeModifier.replace("class",
+                                            "btn-link text-danger ml-auto"));
+                                    repeater.add(discardSuggestionButton);
+
+                                    AjaxIconButton acceptSuggestionButton =
+                                            buildAcceptButton(repeater, mappingWrapper, statusInfo);
+                                    acceptSuggestionButton.add(AttributeModifier.replace("class", "btn btn-primary"));
+                                    repeater.add(acceptSuggestionButton);
+                                }
+                            }
+
+                            private @NotNull AjaxIconButton buildAcceptButton(
+                                    @NotNull RepeatingView repeater,
+                                    IModel<PrismContainerValueWrapper<MappingType>> rowModel,
+                                    StatusInfo<?> statusInfo) {
+                                AjaxIconButton acceptSuggestionButton = new AjaxIconButton(
+                                        repeater.newChildId(),
+                                        Model.of("fa fa-check mr-2"),
+                                        createStringResource("SmartMappingTable.apply.suggestion")) {
+                                    @Override
+                                    public void onClick(AjaxRequestTarget target) {
+                                        acceptSuggestionItemPerformed(rowModel, statusInfo, target);
+                                        getPageBase().hideMainPopup(target);
+                                    }
+                                };
+                                acceptSuggestionButton.setOutputMarkupId(true);
+                                acceptSuggestionButton.showTitleAsLabel(true);
+                                return acceptSuggestionButton;
+                            }
+
+                            private @NotNull AjaxIconButton buildDiscardButton(
+                                    @NotNull RepeatingView repeater,
+                                    IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                                AjaxIconButton discardSuggestionButton = new AjaxIconButton(
+                                        repeater.newChildId(),
+                                        Model.of("fa fa-times mr-2"),
+                                        createStringResource("SmartMappingTable.dismiss")) {
+                                    @Override
+                                    public void onClick(AjaxRequestTarget target) {
+                                        deleteItemPerform(rowModel.getObject());
+                                        getPageBase().hideMainPopup(target);
+                                    }
+                                };
+                                discardSuggestionButton.setOutputMarkupId(true);
+                                discardSuggestionButton.showTitleAsLabel(true);
+                                return discardSuggestionButton;
+                            }
+                        };
+
+                        getPageBase().showMainPopup(previewMappingPanel, target);
+                    }
+                })
+                .buildInlineMenu();
     }
 
     private @Nullable ItemPathType getRefPath(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {
