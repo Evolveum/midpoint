@@ -183,6 +183,7 @@
     </internals>
     <smartIntegration>
         <statisticsTtl>P1D</statisticsTtl>
+        <schemaMatchTtl>P1D</schemaMatchTtl>
         <mappingSuggestionRetryCount>0</mappingSuggestionRetryCount>
     </smartIntegration>
     <adminGuiConfiguration>
