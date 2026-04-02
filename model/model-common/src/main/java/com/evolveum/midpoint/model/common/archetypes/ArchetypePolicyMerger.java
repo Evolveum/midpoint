@@ -174,9 +174,13 @@ class ArchetypePolicyMerger {
     }
 
     private List<ItemConstraintType> mergeItemConstraints(List<ItemConstraintType> currentConstraints, List<ItemConstraintType> superConstraints) {
-        return adminGuiConfigurationMergeManager.mergeContainers(currentConstraints, superConstraints,
+        return adminGuiConfigurationMergeManager.mergeContainers(
+                currentConstraints,
+                superConstraints,
                 this::createItemConstraintPredicate,
-                this::mergeItemConstraint);
+                this::mergeItemConstraint,
+                false
+        );
     }
 
     private Predicate<ItemConstraintType> createItemConstraintPredicate(ItemConstraintType constraint) {
@@ -216,9 +220,13 @@ class ArchetypePolicyMerger {
     }
 
     private List<LifecycleStateType> mergeLifecycleState(List<LifecycleStateType> currentState, List<LifecycleStateType> superLifecycleStates) {
-        return adminGuiConfigurationMergeManager.mergeContainers(currentState, superLifecycleStates,
+        return adminGuiConfigurationMergeManager.mergeContainers(
+                currentState,
+                superLifecycleStates,
                 this::createLifecycleStatePredicate,
-                this::mergeLifecycleState);
+                this::mergeLifecycleState,
+                false
+        );
     }
 
     private Predicate<LifecycleStateType> createLifecycleStatePredicate(LifecycleStateType currentState) {
@@ -290,9 +298,13 @@ class ArchetypePolicyMerger {
     }
 
     private List<LifecycleStateActionType> mergeEntryAction(List<LifecycleStateActionType> currentActions, List<LifecycleStateActionType> superActions) {
-        return adminGuiConfigurationMergeManager.mergeContainers(currentActions, superActions,
+        return adminGuiConfigurationMergeManager.mergeContainers(
+                currentActions,
+                superActions,
                 this::createLifecycleStateActionPredicate,
-                this::mergeAction);
+                this::mergeAction,
+                false
+        );
     }
 
     private Predicate<LifecycleStateActionType> createLifecycleStateActionPredicate(LifecycleStateActionType action) {

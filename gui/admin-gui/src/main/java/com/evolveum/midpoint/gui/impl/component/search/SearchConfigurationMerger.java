@@ -78,8 +78,13 @@ public class SearchConfigurationMerger {
             return searchItems;
         }
 
-        List<SearchItemType> mergedItems = pageBase.getAdminGuiConfigurationMergeManager().mergeContainers(searchItems.getSearchItem(),
-                customSearchItems.getSearchItem(), item -> searchItemMatch(item), (item1, item2) -> mergeSearchItem(item1, item2));
+        List<SearchItemType> mergedItems = pageBase.getAdminGuiConfigurationMergeManager().mergeContainers(
+                searchItems.getSearchItem(),
+                customSearchItems.getSearchItem(),
+                SearchConfigurationMerger::searchItemMatch,
+                SearchConfigurationMerger::mergeSearchItem,
+                true
+        );
 
         searchItems.getSearchItem().clear();
         searchItems.getSearchItem().addAll(mergedItems);
@@ -158,7 +163,5 @@ public class SearchConfigurationMerger {
         }
         return item;
     }
-
-
 
 }
