@@ -95,7 +95,6 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         StringResourceModel labelModel = new StringResourceModel(
                 "${nameModel}",
                 getModel()).setDefaultValue(new PropertyModel<>(getModel(), "nameModel"));
-        //todo use BookmarkablePageLink here
         Link<Void> link = new Link<>(ID_LINK) {
             @Serial private static final long serialVersionUID = 1L;
 

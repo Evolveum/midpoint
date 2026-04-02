@@ -198,18 +198,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 //CTRL+click should work only for the items without submenu
                 //parent items (which have submenus) should only expand/collapse on click
                 if (!submenuExist) {
-                    attributes.getDynamicExtraParameters().add(
-                            "return { ctrlKey: Wicket.Event.fix(attrs.event).ctrlKey };"
-                    );
-
-                    attributes.getAjaxCallListeners().add(new AjaxCallListener() {
-                        @Serial private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public CharSequence getPrecondition(Component component) {
-                            return "return MidPointTheme.handleCtrlClick(attrs.event);";
-                        }
-                    });
+                    WebComponentUtil.updateAjaxLinkAttributesForCtrlClickRedirection(attributes);
                 }
             }
 

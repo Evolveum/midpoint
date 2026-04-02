@@ -96,7 +96,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
                     ShadowKindType.fromValue(kind),
                     intent
             );
-            var oid = smartIntegrationService.submitSuggestCorrelationOperation(resourceOid, resourceObjectTypeIdentification, List.of(), task, result);
+            var oid = smartIntegrationService.submitSuggestCorrelationOperation(resourceOid, resourceObjectTypeIdentification, List.of(), false, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestCorrelationOperationStatus(oid, task, result);
@@ -139,7 +139,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
             );
             var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid,
                     resourceObjectTypeIdentification, isInbound, null, List.of(DataAccessPermissionType.SCHEMA_ACCESS,
-                            DataAccessPermissionType.RAW_DATA_ACCESS), task, result);
+                            DataAccessPermissionType.RAW_DATA_ACCESS), false, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);

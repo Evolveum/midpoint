@@ -144,6 +144,8 @@ import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.springframework.web.util.UriComponentsBuilder;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -171,6 +173,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
+
+    //used for the cases when no window identifier is found, e.g. in tests
+    private static final String SINGLE_SESSION_STORAGE_KEY = "singleSessionStorageKey";
 
     /**
      * See https://www.javadoc.io/doc/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer/20191001.1/org/owasp/html/HtmlPolicyBuilder.html
@@ -335,7 +340,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
             @Override
             public void renderHead(final Component component, final IHeaderResponse response) {
                 super.renderHead(component, response);
-                String js = "MidPointTheme.initTabId();";
+                String js = "MidPointTheme.initWindowId();";
                 response.render(OnDomReadyHeaderItem.forScript(js));
             }
 
@@ -1225,23 +1230,30 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
      * e.g. object list page search data, specific details page navigation menu data etc.
      */
     public BrowserTabSessionStorage getBrowserTabSessionStorage() {
+        String windowId = getWindowIdPageParameter();
+        if (windowId == null) {
+            windowId = SINGLE_SESSION_STORAGE_KEY;
+        }
+        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(windowId);
+    }
+
+    private String getWindowIdPageParameter() {
         org.apache.wicket.request.IRequestParameters parameters = RequestCycle.get().getRequest().getRequestParameters();
         StringValue paramValue = parameters.getParameterValue(BrowserWindowIdentifierFilter.PARAM_WI);
-        String tabId = paramValue != null ? paramValue.toString() : null;
-        LOGGER.trace("Page Admin LTE: {}", tabId);
+        String windowId = paramValue != null ? paramValue.toString() : null;
+        LOGGER.trace("Page Admin LTE: {}", windowId);
 
-        if (tabId == null) {
-            //try to get tabId from Referer header
+        if (windowId == null) {
+            //try to get windowId from Referer header
             String referer = ((ServletWebRequest)RequestCycle.get().getRequest()).getHeader("Referer");
-            if (referer != null && referer.contains("w=")) {
-                tabId = referer.split("w=")[1].split("&")[0];
-            }
-            if (tabId == null) {
-                return new BrowserTabSessionStorage();
+            if (referer != null) {
+                windowId = UriComponentsBuilder.fromUriString(referer)
+                        .build()
+                        .getQueryParams()
+                        .getFirst(BrowserWindowIdentifierFilter.PARAM_WI);
             }
         }
-
-        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(tabId);
+        return windowId;
     }
 
     public SecretsProviderManager getSecretsProviderManager() {
@@ -1285,5 +1297,17 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public ConnectorDevelopmentService getConnectorService() {
         return connectorService;
+    }
+
+    @Override
+    public PageParameters getPageParameters() {
+        PageParameters parameters = super.getPageParameters();
+        PageParameters parametersCopy = parameters != null ? new PageParameters(parameters) : new PageParameters();
+
+        String windowId = getWindowIdPageParameter();
+        if (!parametersCopy.contains(BrowserWindowIdentifierFilter.PARAM_WI) && windowId != null) {
+            parametersCopy.add(BrowserWindowIdentifierFilter.PARAM_WI, windowId);
+        }
+        return parametersCopy;
     }
 }

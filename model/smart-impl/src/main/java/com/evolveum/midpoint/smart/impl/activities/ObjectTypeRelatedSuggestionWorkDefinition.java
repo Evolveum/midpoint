@@ -37,6 +37,7 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
     private final String resourceOid;
     private final ResourceObjectTypeIdentification typeIdentification;
     @Nullable private final String schemaMatchObjectOid;
+    private final boolean forceRecomputeSchemaMatch;
 
     protected ObjectTypeRelatedSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
@@ -47,6 +48,7 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
                 ResourceObjectTypeIdentification.of(
                         configNonNull(typedDefinition.getObjectType(), "No object type specified"));
         schemaMatchObjectOid = Referencable.getOid(typedDefinition.getSchemaMatchRef());
+        forceRecomputeSchemaMatch = Boolean.TRUE.equals(typedDefinition.isForceRecomputeSchemaMatch());
     }
 
     public String getResourceOid() {
@@ -68,6 +70,10 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
 
     public @Nullable String getSchemaMatchObjectOid() {
         return schemaMatchObjectOid;
+    }
+
+    public boolean isForceRecomputeSchemaMatch() {
+        return forceRecomputeSchemaMatch;
     }
 
     @Override

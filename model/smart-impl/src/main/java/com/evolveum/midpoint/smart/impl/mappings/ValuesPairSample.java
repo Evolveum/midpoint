@@ -88,6 +88,6 @@ public record ValuesPairSample<S, F>(ItemPath focusPropertyPath, ItemPath shadow
     }
 
     public interface SampleOf {
-        ValuesPairSample<?, ?> from(Collection<OwnedShadow> ownedShadows);
+        ValuesPairSample<?, ?> from(Collection<ShadowWithOwner> shadowWithOwners);
     }
 }

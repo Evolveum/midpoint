@@ -19,8 +19,7 @@ import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -44,8 +43,9 @@ public class CorrelationSuggestionRemoteServiceCallActivityRun extends LocalActi
         var typeDef = getWorkDefinition().getTypeIdentification();
         var targetPathsToIgnore = getWorkDefinition().getTargetPathsToIgnore();
 
-        var schemaMatch = parentState.getWorkStateItemRealValueClone(
-                CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH, SchemaMatchResultType.class);
+        var schemaMatchRef = parentState.getWorkStateItemRealValueClone(
+                CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH_REF, ObjectReferenceType.class);
+        var schemaMatch = SmartIntegrationBeans.get().schemaMatchService.loadSchemaMatch(schemaMatchRef, result);
 
         var suggestedCorrelation = SmartIntegrationBeans.get().smartIntegrationService.suggestCorrelation(
                 resourceOid, typeDef, schemaMatch, targetPathsToIgnore, null, task, result);
@@ -56,4 +56,5 @@ public class CorrelationSuggestionRemoteServiceCallActivityRun extends LocalActi
 
         return ActivityRunResult.success();
     }
+
 }

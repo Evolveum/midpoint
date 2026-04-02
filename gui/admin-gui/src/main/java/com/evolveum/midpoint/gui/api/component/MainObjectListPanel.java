@@ -178,16 +178,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                         super.updateAjaxAttributes(attributes);
 
-                        attributes.getDynamicExtraParameters().add(
-                                "return { ctrlKey: Wicket.Event.fix(attrs.event).ctrlKey };"
-                        );
-
-                        attributes.getAjaxCallListeners().add(new AjaxCallListener() {
-                            @Override
-                            public CharSequence getPrecondition(Component component) {
-                                return "return MidPointTheme.handleCtrlClick(attrs.event);";
-                            }
-                        });
+                        WebComponentUtil.updateAjaxLinkAttributesForCtrlClickRedirection(attributes);
                     }
 
                     @Override
@@ -195,10 +186,13 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                         onNameColumnPerform(rowModel, target);
                     }
                 };
+                if (rowModel.getObject() != null && rowModel.getObject().getValue() != null && isClickable(rowModel)) {
+                    link.add(AttributeModifier.replace("href", urlForNameColumnLink(rowModel.getObject().getValue())));
+                }
                 return link;
             }
 
-            private String urlForNameColumnLink(O obj) {
+            private @NotNull String urlForNameColumnLink(@NotNull O obj) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, obj.getOid());
                 Class<? extends PageBase> detailsPageClass = OBJECT_DETAILS_PAGE_MAP.get(obj.getClass());

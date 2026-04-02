@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.setExtensionPropertyRealValues;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectClassStatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
@@ -331,7 +331,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         assertThat(retrieved).isNotNull();
         assertThat(retrieved.getOid()).isEqualTo(oid);
-        var retrievedStats = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(retrieved.asPrismObject());
+        var retrievedStats = ShadowObjectClassUtil.getStatisticsRequired(retrieved.asPrismObject());
         assertThat(retrievedStats.getSize()).isEqualTo(100);
     }
 
@@ -410,7 +410,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         assertThat(retrieved).isNotNull();
         assertThat(retrieved.getOid()).isEqualTo(oidWithStats);
-        var retrievedStats = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(retrieved.asPrismObject());
+        var retrievedStats = ShadowObjectClassUtil.getStatisticsRequired(retrieved.asPrismObject());
         assertThat(retrievedStats.getSize()).isEqualTo(200);
     }
 

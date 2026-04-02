@@ -106,7 +106,7 @@ public class PageAttorneySelection extends PageBase {
 
             @Override
             protected IColumn<SelectableBean<UserType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-                return new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
+                return new ObjectNameColumn<>(createStringResource("ObjectType.name"), null, null, PageAttorneySelection.this) {
 
                     @Serial private static final long serialVersionUID = 1L;
 

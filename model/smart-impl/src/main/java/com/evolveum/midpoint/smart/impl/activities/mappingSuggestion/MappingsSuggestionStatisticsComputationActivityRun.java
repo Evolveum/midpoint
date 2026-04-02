@@ -8,7 +8,7 @@
 
 package com.evolveum.midpoint.smart.impl.activities.mappingSuggestion;
 
-import static com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil.createObjectTypeStatisticsObject;
+import static com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil.createObjectTypeStatisticsObject;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
