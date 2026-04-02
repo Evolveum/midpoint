@@ -1299,15 +1299,23 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return connectorService;
     }
 
+    /**
+     * Update page parameters with window id parameter so that the wicket
+     * can correctly find an existing page in the wicket page storage.
+     * @return
+     */
     @Override
     public PageParameters getPageParameters() {
         PageParameters parameters = super.getPageParameters();
-        PageParameters parametersCopy = parameters != null ? new PageParameters(parameters) : new PageParameters();
 
         String windowId = getWindowIdPageParameter();
-        if (!parametersCopy.contains(BrowserWindowIdentifierFilter.PARAM_WI) && windowId != null) {
-            parametersCopy.add(BrowserWindowIdentifierFilter.PARAM_WI, windowId);
+        if (parameters == null) {
+            parameters = new PageParameters();
         }
-        return parametersCopy;
+        if (!parameters.contains(BrowserWindowIdentifierFilter.PARAM_WI) && windowId != null) {
+            parameters.add(BrowserWindowIdentifierFilter.PARAM_WI, windowId);
+        }
+
+        return parameters;
     }
 }
