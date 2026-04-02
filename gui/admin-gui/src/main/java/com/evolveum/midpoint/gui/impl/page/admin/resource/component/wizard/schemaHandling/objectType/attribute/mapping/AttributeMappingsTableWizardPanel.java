@@ -508,11 +508,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        IModel<PrismContainerValueWrapper<P>> valueModel = getValueModel();
-        PrismContainerValueWrapper<P> object = valueModel.getObject();
-        if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType def) {
-            buttons.add(createSimulationMenuButton(buttons, () -> def));
-        }
+        //TBD after mcm
+//        IModel<PrismContainerValueWrapper<P>> valueModel = getValueModel();
+//        PrismContainerValueWrapper<P> object = valueModel.getObject();
+//        if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType def) {
+//            buttons.add(createSimulationMenuButton(buttons, () -> def));
+//        }
 
         buttons.add(createShowOverridesButton(buttons));
     }
