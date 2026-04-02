@@ -23,16 +23,12 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.*;
 
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxCallListener;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -43,8 +39,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -95,8 +89,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP;
 
 /**
  * @author katkav
@@ -193,11 +185,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
 
             private @NotNull String urlForNameColumnLink(@NotNull O obj) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, obj.getOid());
-                Class<? extends PageBase> detailsPageClass = OBJECT_DETAILS_PAGE_MAP.get(obj.getClass());
-                var url = RequestCycle.get().urlFor(detailsPageClass, parameters);
-                return url != null ? url.toString() : "#";
+                return DetailsPageUtil.getObjectDetailsLinkNavigationUrl(obj);
             }
 
             @Override

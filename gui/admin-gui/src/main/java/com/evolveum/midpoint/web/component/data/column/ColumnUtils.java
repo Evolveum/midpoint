@@ -640,125 +640,63 @@ public class ColumnUtils {
             }
         });
         if (!showOnlyWorkItemData) {
-            columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.object")) {
-                private static final long serialVersionUID = 1L;
+            columns.add(new ObjectReferenceColumn<>(
+                    createStringResource("WorkItemsPanel.object"), "") {
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
-                protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getObjectRef(), true, pageBase));
-                }
-
-                @Override
-                public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-
-                    dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
-                }
-
-                @Override
-                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
-                        final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                public IModel<List<ObjectReferenceType>> extractDataModel(
+                        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                     CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
                     AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
-                    if (object == null) {
-                        super.populateItem(cellItem, componentId, rowModel);
-                    } else {
-                        IModel model = createLinkModel(rowModel);
-                        cellItem.add(new Label(componentId, model));
+                    if (object != null) {
+                        ObjectReferenceType ort = new ObjectReferenceType();
+                        ort.asReferenceValue().setObject(object.asPrismObject());
+                        ort.setOid(object.getOid());
+                        ort.setType(WebComponentUtil.classToQName(object.getClass()));
+                        return () -> Collections.singletonList(ort);
                     }
-
-                    Component c = cellItem.get(componentId);
-
-                    String descriptionValue = "";
-                    ObjectReferenceType objectRef = caseType.getObjectRef();
-                    if (objectRef != null) {
-                        PrismReferenceValue refVal = objectRef.asReferenceValue();
-                        if (refVal.getObject() != null) {
-                            descriptionValue = refVal.getObject().asObjectable().getDescription();
-                        }
-                    }
-
-                    c.add(new AttributeAppender("title", descriptionValue));
+                    return () -> Collections.singletonList(caseType.getObjectRef());
                 }
 
                 @Override
-                public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
-                            Collections.singletonList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
+                protected boolean showDisplayNameAndName() {
+                    return true;
                 }
             });
-            columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.target")) {
-
-                private static final long serialVersionUID = 1L;
+            columns.add(new ObjectReferenceColumn<>(
+                    createStringResource("WorkItemsPanel.target"), "") {
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
-                protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                public IModel<List<ObjectReferenceType>> extractDataModel(
+                        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                     CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getTargetRef(), false, pageBase));
+                    return () -> Collections.singletonList(caseType.getTargetRef());
                 }
 
                 @Override
-                public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    dispatchToObjectDetailsPage(caseType.getTargetRef(), pageBase, false);
-                }
-
-                @Override
-                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
-                        final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    super.populateItem(cellItem, componentId, rowModel);
-                    Component c = cellItem.get(componentId);
-
-                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    PrismReferenceValue refVal = caseType.getTargetRef() != null ? caseType.getTargetRef().asReferenceValue() : null;
-                    String descriptionValue = refVal != null && refVal.getObject() != null ?
-                            refVal.getObject().asObjectable().getDescription() : "";
-
-                    c.add(new AttributeAppender("title", descriptionValue));
-                }
-
-                @Override
-                public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    CaseWorkItemType caseWorkItem = unwrapRowModel(rowModel);
-                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItem);
-                    if (caseType == null) {
-                        return false;
-                    }
-
-                    ObjectReferenceType ref = caseType.getTargetRef();
-                    return ref != null && ref.getOid() != null;
+                protected boolean showDisplayNameAndName() {
+                    return true;
                 }
             });
         }
         if (isFullView) {
-            columns.add(new AbstractExportableColumn<>(
-                    createStringResource("WorkItemsPanel.actors")) {
-                private static final long serialVersionUID = 1L;
+            columns.add(new ObjectReferenceColumn<>(
+                    createStringResource("WorkItemsPanel.actors"), "") {
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
-                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
-                        String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                public IModel<List<ObjectReferenceType>> extractDataModel(
+                        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                     CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    List<ObjectReferenceType> assigneeRefs = getActorsForWorkitem(caseWorkItemType, CaseTypeUtil.isClosed(caseType));
-                    cellItem.add(getMultilineLinkPanel(componentId, assigneeRefs, pageBase));
+                    List<ObjectReferenceType> assigneeRefs =
+                            getActorsForWorkitem(caseWorkItemType, CaseTypeUtil.isClosed(caseType));
+                    return () -> assigneeRefs;
                 }
-
-                @Override
-                public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false);
-                    return Model.of(assignee != null ? assignee : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true));
-                }
-
             });
         }
         columns.add(new AbstractExportableColumn<>(
@@ -1404,39 +1342,20 @@ public class ColumnUtils {
         IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
         columns.add(column);
 
-        columns.add(new AjaxLinkColumn<>(createStringResource("pageCases.table.objectRef")) {
-            private static final long serialVersionUID = 1L;
+        columns.add(new ObjectReferenceColumn<>(
+                createStringResource("pageCases.table.objectRef"), "") {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+            public IModel<List<ObjectReferenceType>> extractDataModel(
+                    IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseModelObject = rowModel.getObject().getValue();
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseModelObject.getObjectRef(), true, pageBase));
+                return () -> Collections.singletonList(caseModelObject.getObjectRef());
             }
 
             @Override
-            protected IModel<String> createLinkModel(IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType caseType = rowModel.getObject().getValue();
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getObjectRef(), true, pageBase));
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType caseType = rowModel.getObject().getValue();
-
-                dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
-            }
-
-            @Override
-            public boolean isEnabled(IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType caseType = rowModel.getObject().getValue();
-                if (caseType.getObjectRef() == null) {
-                    return false;
-                }
-
-                PrismObject object = caseType.getObjectRef().getObject();
-                // Do not generate link if the object has not been created yet.
-                // Check the version to see if it has not been created.
-                return object != null && object.getVersion() != null;
+            protected boolean showDisplayNameAndName() {
+                return true;
             }
         });
 
@@ -1648,11 +1567,20 @@ public class ColumnUtils {
     }
 
     public static AbstractColumn<SelectableBean<CaseType>, String> createCaseActorsColumn(PageBase pageBase) {
-        return new AbstractColumn<>(createStringResource("pageCases.table.actors")) {
+        return new ObjectReferenceColumn<>(
+                createStringResource("pageCases.table.actors"), "") {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType caseInstance = rowModel != null ? rowModel.getObject().getValue() : null;
-                item.add(getMultilineLinkPanel(componentId, getActorsForCase(caseInstance), pageBase));
+            public IModel<List<ObjectReferenceType>> extractDataModel(
+                    IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType caseModelObject = rowModel.getObject().getValue();
+                return () -> getActorsForCase(caseModelObject);
+            }
+
+            @Override
+            protected boolean showDisplayNameAndName() {
+                return true;
             }
         };
     }
