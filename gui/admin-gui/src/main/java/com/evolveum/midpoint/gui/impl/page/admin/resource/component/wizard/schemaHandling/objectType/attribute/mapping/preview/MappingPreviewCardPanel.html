@@ -1,0 +1,39 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="card">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <span wicket:id="strengthIcon" class="fa-xl mr-3"></span>
+                <span wicket:id="strengthLabel" class="mb-0 mr-5" style="font-size:14px"></span>
+
+                <div class="mr-5">
+                    <div class="text-muted font-weight-semibold" style="font-size:14px">
+                        <wicket:message key="MappingPreviewCardPanel.source"/>
+                    </div>
+                    <div wicket:id="sourceValue" class="mb-0" style="font-size:15px"></div>
+                </div>
+
+                <div class="text-muted mr-5">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
+
+                <div>
+                    <div class="text-muted font-weight-semibold" style="font-size:14px">
+                        <wicket:message key="MappingPreviewCardPanel.target"/>
+                    </div>
+                    <div wicket:id="targetValue" class="mb-0" style="font-size:15px"></div>
+                </div>
+            </div>
+
+            <span wicket:id="aiIcon"></span>
+        </div>
+    </div>
+</wicket:panel>
+</html>

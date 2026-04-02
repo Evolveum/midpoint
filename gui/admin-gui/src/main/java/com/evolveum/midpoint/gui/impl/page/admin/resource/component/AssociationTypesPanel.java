@@ -393,6 +393,12 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             }
 
             @Override
+            protected void performRegenerateSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                onSuggestValue(createContainerModel(), target);
+            }
+
+            @Override
             protected void onSuggestionFinish(AjaxRequestTarget target) {
                 getTableComponent().refreshAndDetach(target);
             }

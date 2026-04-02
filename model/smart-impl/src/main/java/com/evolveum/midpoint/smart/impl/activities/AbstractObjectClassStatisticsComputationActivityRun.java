@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.smart.impl.activities;
 
-import static com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil.createStatisticsObject;
+import static com.evolveum.midpoint.schema.util.ShadowObjectClassUtil.createStatisticsObject;
 
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;

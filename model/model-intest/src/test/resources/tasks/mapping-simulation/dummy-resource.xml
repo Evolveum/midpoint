@@ -70,6 +70,37 @@
                     <q:text>c:attributes/ri:delineator = "correlated-test"</q:text>
                 </filter>
             </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
+        </objectType>
+
+        <objectType>
+            <kind>account</kind>
+            <intent>auto-correlation-test</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>c:attributes/ri:delineator = "auto-correlation-test"</q:text>
+                </filter>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
+            <!-- Specify the correlator, which will be used for automatic correlation -->
+            <attribute>
+                <ref>familyName</ref>
+                <inbound>
+                    <name>correlator mapping</name>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                    <evaluationPhases>
+                        <include>beforeCorrelation</include>
+                    </evaluationPhases>
+                </inbound>
+                <correlator/>
+            </attribute>
         </objectType>
 
         <objectType>
@@ -81,6 +112,9 @@
                     <q:text>c:attributes/ri:delineator = "without-owner-test"</q:text>
                 </filter>
             </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
         </objectType>
 
         <objectType>
@@ -92,6 +126,9 @@
                     <q:text>c:attributes/ri:delineator = "marks-test"</q:text>
                 </filter>
             </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
         </objectType>
 
         <objectType>
@@ -107,6 +144,9 @@
                     </target>
                 </inbound>
             </attribute>
+            <focus>
+                <type>UserType</type>
+            </focus>
         </objectType>
         <objectType>
             <kind>account</kind>
@@ -121,6 +161,9 @@
                     <q:text>c:attributes/ri:delineator = "exclusion-test"</q:text>
                 </filter>
             </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
         </objectType>
     </schemaHandling>
 </resource>

@@ -151,6 +151,10 @@ public class SimpleValueExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     private void removeItem(AjaxRequestTarget target) {
+        if(getModelObject() == null){
+            return;
+        }
+
         getModelObject().getExpressionEvaluator().clear();
         target.add(getValueContainer());
         target.add(getFeedback());
@@ -159,6 +163,9 @@ public class SimpleValueExpressionPanel extends EvaluatorExpressionPanel {
     private void addValue(AjaxRequestTarget target) {
         List<String> values = getEvaluatorValues();
         values.add("");
+        if(getModelObject() == null){
+            getModel().setObject(new ExpressionType());
+        }
         updateEvaluatorValue(values);
         target.add(getValueContainer());
         target.add(getFeedback());

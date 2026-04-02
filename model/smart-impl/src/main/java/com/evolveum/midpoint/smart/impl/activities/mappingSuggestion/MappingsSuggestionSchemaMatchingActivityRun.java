@@ -29,7 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Computes schema match and stores it into the parent work state as XML string for reuse.
+ * Computes schema match, persists it as a GenericObjectType,
+ * and stores a reference to it in the parent work state for reuse.
  */
 public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRun<
         MappingsSuggestionWorkDefinition,
@@ -56,7 +57,7 @@ public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRu
     private @Nullable String findLatestSchemaMatchObjectOid(OperationResult result) throws SchemaException {
         var workDef = getWorkDefinition();
         var lastSchemaMatchObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeSchemaMatch(
-                workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), getRunningTask(), result);
+                workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), result);
         return lastSchemaMatchObject != null ? lastSchemaMatchObject.getOid() : null;
     }
 
@@ -67,13 +68,24 @@ public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRu
         var resourceOid = workDef.getResourceOid();
         var typeIdentification = workDef.getTypeIdentification();
 
-        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
-        SchemaMatchResultType match = SmartIntegrationBeans.get().smartIntegrationService
-                .computeSchemaMatch(resourceOid, typeIdentification, useAi, getRunningTask(), result);
+        if (!workDef.isForceRecomputeSchemaMatch()) {
+            var foundOid = findLatestSchemaMatchObjectOid(result);
+            if (foundOid != null) {
+                LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
+                setSchemaMatchObjectOidInWorkState(foundOid, result);
+                return ActivityRunResult.success();
+            }
+        } else {
+            LOGGER.debug("Force recompute schema match requested, skipping existing schema match check");
+        }
 
-        var parentState = Util.getParentState(this, result);
-        parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_SCHEMA_MATCH, match);
-        parentState.flushPendingTaskModificationsChecked(result);
+        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
+        var match = SmartIntegrationBeans.get().smartIntegrationService
+                .computeSchemaMatch(resourceOid, typeIdentification, useAi, getRunningTask(), result);
+        var schemaMatchOid = SmartIntegrationBeans.get().schemaMatchService
+                .saveSchemaMatch(resourceOid, workDef.getKind(), workDef.getIntent(), match, result);
+
+        setSchemaMatchObjectOidInWorkState(schemaMatchOid, result);
 
         return ActivityRunResult.success();
     }

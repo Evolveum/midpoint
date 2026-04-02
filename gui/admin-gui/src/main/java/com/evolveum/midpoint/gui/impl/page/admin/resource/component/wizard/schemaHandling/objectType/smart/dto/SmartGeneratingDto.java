@@ -59,7 +59,7 @@ public class SmartGeneratingDto implements Serializable {
 
     /**
      * Builds a list of statusInfo rows for display in the UI.
-     * Each row has a label and a done/in-progress flag.
+     * Each row has a label and a realizationState/in-progress flag.
      */
     public List<StatusRowRecord> getStatusRows(PageBase pageBase) {
         if (statusInfo == null || statusInfo.getObject() == null) {

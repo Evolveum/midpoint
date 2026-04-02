@@ -16,8 +16,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
-import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -63,7 +62,7 @@ class ObjectTypesSuggestionRemoteServiceCallActivityRun
             LOGGER.debug("Going to suggest object types for resource {} and object class {}; statistics in: {}",
                     resourceOid, objectClassName, statisticsOid);
 
-            var statistics = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(
+            var statistics = ShadowObjectClassUtil.getStatisticsRequired(
                     getBeans().repositoryService.getObject(GenericObjectType.class, statisticsOid, null, result));
             suggestedTypes = SmartIntegrationBeans.get().smartIntegrationService.suggestObjectTypes(
                     resourceOid, objectClassName, statistics, task, result);

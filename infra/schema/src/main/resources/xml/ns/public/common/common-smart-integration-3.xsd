@@ -75,6 +75,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="schemaMatchTtl" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Time-to-live for schema match objects. Schema match results older than this
+                        will be automatically deleted when accessed. Default is P1D (1 day).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationConfigurationType.schemaMatchTtl</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="mappingSuggestionRetryCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

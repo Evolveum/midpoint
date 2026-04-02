@@ -12,8 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 
 import com.evolveum.midpoint.task.api.Task;
@@ -102,7 +101,7 @@ public final class ObjectTypeStatisticsActions {
             ItemPathType preSelectedRefAttribute) throws SchemaException {
 
         ShadowObjectClassStatisticsType statistics =
-                ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
+                ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
 
         SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
                 pageBase.getMainPopupBodyId(),

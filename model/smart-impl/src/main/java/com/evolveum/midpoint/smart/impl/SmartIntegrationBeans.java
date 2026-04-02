@@ -36,6 +36,8 @@ public class SmartIntegrationBeans {
     @Autowired public ModelService modelService;
     @Autowired public RepositoryService repositoryService;
     @Autowired public SmartIntegrationServiceImpl smartIntegrationService;
+    @Autowired public SchemaMatchService schemaMatchService;
+    @Autowired public StatisticsService statisticsService;
     @Autowired public Clock clock;
     @Autowired public LocalizationService localizationService;
     @Autowired public Protector protector;

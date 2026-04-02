@@ -8,7 +8,7 @@
 
 package com.evolveum.midpoint.smart.impl.activities.objectTypeStatisticsComputation;
 
-import static com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil.createObjectTypeStatisticsObject;
+import static com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil.createObjectTypeStatisticsObject;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;

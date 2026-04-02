@@ -8,15 +8,12 @@
 
 package com.evolveum.midpoint.smart.impl.activities.mappingSuggestion;
 
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -51,13 +48,14 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}",
                 resourceOid, typeDef.getKind(), typeDef.getIntent());
 
-        var schemaMatch = parentState.getWorkStateItemRealValueClone(
-                MappingsSuggestionWorkStateType.F_SCHEMA_MATCH, SchemaMatchResultType.class);
         var isInbound = workDefinition.isInbound();
-
         boolean useAi = workDefinition.getPermissions().contains(DataAccessPermissionType.RAW_DATA_ACCESS);
-
-        var objectTypeStatistics = loadObjectTypeStatistics(parentState, result);
+        var statisticsRef = parentState.getWorkStateItemRealValueClone(
+                MappingsSuggestionWorkStateType.F_STATISTICS_REF, ObjectReferenceType.class);
+        var objectTypeStatistics = SmartIntegrationBeans.get().statisticsService.loadObjectTypeStatistics(statisticsRef, result);
+        var schemaMatchRef = parentState.getWorkStateItemRealValueClone(
+                MappingsSuggestionWorkStateType.F_SCHEMA_MATCH_REF, ObjectReferenceType.class);
+        var schemaMatch = SmartIntegrationBeans.get().schemaMatchService.loadSchemaMatch(schemaMatchRef, result);
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
                 resourceOid, typeDef, schemaMatch, isInbound, useAi, objectTypeStatistics, targetPathsToIgnore, state, task, result);
@@ -69,25 +67,4 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         return ActivityRunResult.success();
     }
 
-    private ShadowObjectClassStatisticsType loadObjectTypeStatistics(
-            ActivityState parentState, OperationResult result) {
-        try {
-            var statisticsRef = parentState.getWorkStateItemRealValueClone(
-                    MappingsSuggestionWorkStateType.F_STATISTICS_REF, ObjectReferenceType.class);
-            if (statisticsRef == null) {
-                return null;
-            }
-            var statisticsOid = Referencable.getOid(statisticsRef);
-            if (statisticsOid == null) {
-                return null;
-            }
-            var statisticsObject = SmartIntegrationBeans.get().repositoryService
-                    .getObject(GenericObjectType.class, statisticsOid, null, result)
-                    .asObjectable();
-            return ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
-        } catch (Exception e) {
-            LOGGER.warn("Failed to load object type statistics from work state, proceeding without them: {}", e.getMessage());
-            return null;
-        }
-    }
 }

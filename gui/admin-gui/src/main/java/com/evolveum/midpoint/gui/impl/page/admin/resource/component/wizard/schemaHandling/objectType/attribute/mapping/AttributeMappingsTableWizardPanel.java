@@ -20,6 +20,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.gui.impl.page.admin.FormWrapperValidator;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import org.apache.wicket.AttributeModifier;
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceNavigationWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
@@ -96,7 +96,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "AttributeMappingsTableWizardPanel.outboundTable", icon = "fa fa-arrow-right-from-bracket"))
-public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceNavigationWizardBasicPanel<P> {
+public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTableWizardPanel.class);
     private static final String CLASS_DOT = AttributeMappingsTableWizardPanel.class.getName() + ".";
@@ -287,7 +287,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                 () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
                                 },
                                         (target, confirmedOptions) -> {
-                                            performSuggestOperation(target, confirmedOptions);
+                                            AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions, false);
                                             refreshAfterSuggestionOperationSubmitted(target);
                                         }),
                                 getPageBase());
@@ -421,7 +421,14 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
-                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions);
+                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions, false);
+                refreshAfterSuggestionOperationSubmitted(target);
+            }
+
+            @Override
+            protected void performRegenerateSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions, true);
                 refreshAfterSuggestionOperationSubmitted(target);
             }
 
@@ -451,7 +458,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     private void performSuggestOperation(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+            boolean forceRecomputeSchemaMatch) {
         final List<DataAccessPermissionType> permissions = confirmedOptions.getObject().stream()
                 .map(ConfirmationOption::option)
                 .map(DataAccessPermission::toSchemaType)
@@ -476,6 +484,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                             inbound,
                             getTargetPathsToIgnore(),
                             permissions,
+                            forceRecomputeSchemaMatch,
                             task,
                             result);
                 });
@@ -499,11 +508,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        IModel<PrismContainerValueWrapper<P>> valueModel = getValueModel();
-        PrismContainerValueWrapper<P> object = valueModel.getObject();
-        if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType def) {
-            buttons.add(createSimulationMenuButton(buttons, () -> def));
-        }
+        //TBD after mcm
+//        IModel<PrismContainerValueWrapper<P>> valueModel = getValueModel();
+//        PrismContainerValueWrapper<P> object = valueModel.getObject();
+//        if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType def) {
+//            buttons.add(createSimulationMenuButton(buttons, () -> def));
+//        }
 
         buttons.add(createShowOverridesButton(buttons));
     }

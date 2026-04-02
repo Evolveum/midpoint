@@ -16,6 +16,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -31,9 +33,11 @@ import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
@@ -136,9 +140,11 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        return createCompleteResult(
-                correlateInternal(rootCorrelatorContext, correlationContext, result),
-                rootCorrelatorContext);
+        final XMLGregorianCalendar correlationStart = XmlTypeConverter.createXMLGregorianCalendar();
+        final CorrelationResult correlationResult = correlateInternal(rootCorrelatorContext, correlationContext,
+                result);
+        return createCompleteResult(correlationResult, rootCorrelatorContext, correlationContext.getCorrelatorState(),
+                correlationStart, XmlTypeConverter.createXMLGregorianCalendar());
     }
 
     /**
@@ -181,7 +187,9 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     private static @NotNull CompleteCorrelationResult createCompleteResult(
-            CorrelationResult correlationResult, CorrelatorContext<?> correlatorContext) {
+            CorrelationResult correlationResult, CorrelatorContext<?> correlatorContext,
+            @Nullable AbstractCorrelatorStateType correlatorState, XMLGregorianCalendar correlationStart,
+            XMLGregorianCalendar correlationEnd) {
         CandidateOwners candidateOwners = correlationResult.getCandidateOwners();
         double definiteThreshold = correlatorContext.getDefiniteThreshold();
         Collection<CandidateOwner.ObjectBased> owners =
@@ -213,9 +221,14 @@ public class CorrelationServiceImpl implements CorrelationService {
         CandidateOwners finalCandidates = CandidateOwners.from(eligibleCandidates);
         if (owners.size() == 1) {
             ObjectType owner = owners.iterator().next().getValue();
-            return CompleteCorrelationResult.existingOwner(owner, finalCandidates, optionsBean);
+            return CompleteCorrelationResult.builderForExistingOwner(correlationStart, correlationEnd)
+                    .owner(owner)
+                    .candidateOwners(finalCandidates)
+                    .ownerOptions(optionsBean)
+                    .correlatorState(correlatorState)
+                    .build();
         } else if (eligibleCandidates.isEmpty()) {
-            return CompleteCorrelationResult.noOwner();
+            return CompleteCorrelationResult.builderForNoOwner(correlationStart, correlationEnd).build();
         } else {
             // Here we want to explicitly add also the option for no owner, because we are not sure that the
             // candidates are good enough. There is still a possibility, that the owner simply does not exist, and we
@@ -223,7 +236,11 @@ public class CorrelationServiceImpl implements CorrelationService {
             optionsBean.getOption().add(
                     new ResourceObjectOwnerOptionType()
                             .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue()));
-            return CompleteCorrelationResult.uncertain(finalCandidates, optionsBean);
+            return CompleteCorrelationResult.builderForUncertainOwner(correlationStart, correlationEnd)
+                    .candidateOwners(finalCandidates)
+                    .ownerOptions(optionsBean)
+                    .correlatorState(correlatorState)
+                    .build();
         }
     }
 
@@ -619,9 +636,49 @@ public class CorrelationServiceImpl implements CorrelationService {
         return ctx.getConfiguration().getCorrelationItemPaths();
     }
 
+    /**
+     * {@inheritDoc}
+     * This implementation has an intended side effect of storing the correlation results (if correlation was run) to
+     * the repository.
+     */
     @Override
-    public Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, OperationResult result)
-            throws SchemaException {
+    public Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, @NotNull ResourceType resource,
+            @NotNull ResourceObjectTypeDefinition typeDef, @NotNull CorrelationDefinitionType correlationDef,
+            @NotNull Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        try {
+            final Optional<FocusType> existingOwner = findLinkedOwner(shadow, result)
+                    .or(() -> readCandidateOwner(shadow, result));
+            if (existingOwner.isEmpty()) {
+                return correlateOwnerAndStoreResult(shadow, resource, typeDef, correlationDef, task, result);
+            }
+            return existingOwner;
+        } catch (TunnelException e) {
+            if (e.getCause() instanceof SchemaException se) {
+                throw se;
+            }
+            throw SystemException.unexpected(e.getCause());
+        }
+    }
+
+    private Optional<FocusType> correlateOwnerAndStoreResult(ShadowType shadow, ResourceType resource,
+            ResourceObjectTypeDefinition typeDef, CorrelationDefinitionType correlationDef, Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        final CompleteCorrelationResult correlationResult = correlate(shadow, resource, typeDef, correlationDef,
+                task, result);
+
+        final Collection<ItemDelta<?, ?>> deltas = correlationResult.toDeltaItems(this.beans.prismContext, shadow);
+        this.repositoryService.modifyObject(shadow.getClass(), shadow.getOid(), deltas, result);
+
+        return Optional.ofNullable(correlationResult.getOwner())
+                .filter(owner -> owner instanceof FocusType)
+                .map(owner -> (FocusType) owner);
+    }
+
+    private Optional<FocusType> findLinkedOwner(ShadowType shadow, OperationResult result) throws SchemaException {
         final ObjectQuery query = PrismContext.get().queryFor(FocusType.class)
                 .item(FocusType.F_LINK_REF)
                 .ref(shadow.getOid())
@@ -632,10 +689,12 @@ public class CorrelationServiceImpl implements CorrelationService {
         if (linkedFocuses.size() == 1) {
             return Optional.of(linkedFocuses.get(0).asObjectable());
         } else if (linkedFocuses.size() > 1) {
-            throw new IllegalStateException("Shadow " + shadow + " is linked with more than one focus: "
-                    + linkedFocuses);
+            throw new SystemException("Shadow " + shadow + " is linked with more than one focus: " + linkedFocuses);
         }
+        return Optional.empty();
+    }
 
+    private Optional<FocusType> readCandidateOwner(ShadowType shadow, OperationResult result) {
         final String ownerCandidateOid = Optional.ofNullable(shadow.getCorrelation())
                 .map(ShadowCorrelationStateType::getResultingOwner)
                 .map(AbstractReferencable::getOid)
@@ -645,12 +704,15 @@ public class CorrelationServiceImpl implements CorrelationService {
         }
 
         try {
-            final FocusType correlatedFocus = this.repositoryService.getObject(FocusType.class, ownerCandidateOid, null, result)
+            final FocusType correlatedFocus = this.repositoryService
+                    .getObject(FocusType.class, ownerCandidateOid, null, result)
                     .asObjectable();
             return Optional.of(correlatedFocus);
         } catch (ObjectNotFoundException e) {
-            throw new IllegalStateException("Shadow" + shadow + " is correlated with focus with oid "
+            throw SystemException.unexpected(e, "Shadow" + shadow + " is correlated with focus with oid "
                     + ownerCandidateOid + ", which does not exist.");
+        } catch (SchemaException e) {
+            throw new TunnelException(e);
         }
     }
 
