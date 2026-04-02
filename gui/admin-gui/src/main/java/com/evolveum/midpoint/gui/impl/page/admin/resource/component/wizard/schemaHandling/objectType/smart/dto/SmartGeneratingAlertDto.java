@@ -198,19 +198,25 @@ public class SmartGeneratingAlertDto implements Serializable {
 
     public IModel<String> getDefaultSubTextModel(PageBase pageBase) {
         SmartGenerationState state = resolveState();
-        Object[] args = null;
+
         if (state == SmartGenerationState.FINISHED) {
-            args = new Object[] { getSuggestedObjectsCount() };
-        } else if (state == SmartGenerationState.IN_PROGRESS && getSafeRow(pageBase) != null) {
-            StatusRowRecord safeRow = getSafeRow(pageBase);
-            args = new Object[] { safeRow.text().getObject() };
-        } else if (state == SmartGenerationState.FAILED && getStatusInfo() != null) {
-            StatusInfo<?> object = getStatusInfo().getObject();
-            String localizedMessage = object.getLocalizedMessage();
-            args = new Object[] { localizedMessage != null ? localizedMessage : "" };
+            return state.createSubTextModel(pageBase, getSuggestedObjectsCount());
         }
 
-        return state.createSubTextModel(pageBase, args);
+        if (state == SmartGenerationState.IN_PROGRESS) {
+            StatusRowRecord safeRow = getSafeRow(pageBase);
+            return safeRow != null
+                    ? state.createSubTextModel(pageBase, safeRow.text().getObject())
+                    : pageBase.createStringResource("SmartGeneratingDto.null");
+        }
+
+        if (state == SmartGenerationState.FAILED && getStatusInfo() != null) {
+            StatusInfo<?> status = getStatusInfo().getObject();
+            String localizedMessage = status != null ? status.getLocalizedMessage() : null;
+            return state.createSubTextModel(pageBase, localizedMessage != null ? localizedMessage : "");
+        }
+
+        return state.createSubTextModel(pageBase);
     }
 
     protected StatusRowRecord getSafeRow(PageBase pageBase) {
