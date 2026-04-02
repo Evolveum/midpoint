@@ -21,7 +21,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -663,9 +662,9 @@ public class CorrelationServiceImpl implements CorrelationService {
         }
     }
 
-    private @NonNull Optional<FocusType> correlateOwnerAndStoreResult(ShadowType shadow, @NonNull ResourceType resource,
-            @NonNull ResourceObjectTypeDefinition typeDef, @NonNull CorrelationDefinitionType correlationDef,
-            @NonNull Task task, OperationResult result)
+    private Optional<FocusType> correlateOwnerAndStoreResult(ShadowType shadow, ResourceType resource,
+            ResourceObjectTypeDefinition typeDef, CorrelationDefinitionType correlationDef, Task task,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         final CompleteCorrelationResult correlationResult = correlate(shadow, resource, typeDef, correlationDef,
