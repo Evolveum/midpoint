@@ -20,6 +20,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.gui.impl.page.admin.FormWrapperValidator;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import org.apache.wicket.AttributeModifier;
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceNavigationWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
@@ -96,7 +96,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "AttributeMappingsTableWizardPanel.outboundTable", icon = "fa fa-arrow-right-from-bracket"))
-public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceNavigationWizardBasicPanel<P> {
+public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTableWizardPanel.class);
     private static final String CLASS_DOT = AttributeMappingsTableWizardPanel.class.getName() + ".";
