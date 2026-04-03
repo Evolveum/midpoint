@@ -61,6 +61,7 @@ public abstract class AjaxLinkWithNewTabSupport extends Panel {
             }
         };
         configureNavigationLink(link);
+        link.add(AttributeAppender.append("class", getLinkAdditionalStyle()));
         link.add(AttributeAppender.append("title", getLinkDescriptiveTitle()));
         link.setOutputMarkupId(true);
 
@@ -85,6 +86,10 @@ public abstract class AjaxLinkWithNewTabSupport extends Panel {
     }
 
     protected abstract String getNavigationUrl();
+
+    protected String getLinkAdditionalStyle() {
+        return null;
+    }
 
     protected String getLinkDescriptiveTitle() {
         return null;
