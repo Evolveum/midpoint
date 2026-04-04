@@ -19,24 +19,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class MappingSimulationData implements SimulationData {
 
     private final FocusType focusBefore;
-    private final ShadowType shadow;
     private final ObjectDelta<FocusType> simulationDelta;
     private final OperationResult mappingEvaluationResult;
 
-    public MappingSimulationData(FocusType focusBefore, ShadowType shadow, @Nullable ObjectDelta<FocusType> simulationDelta,
+    public MappingSimulationData(FocusType focusBefore, @Nullable ObjectDelta<FocusType> simulationDelta,
             OperationResult mappingEvaluationResult) {
         this.focusBefore = focusBefore;
-        this.shadow = shadow;
         this.simulationDelta = simulationDelta;
         this.mappingEvaluationResult = mappingEvaluationResult;
     }
 
     public FocusType getFocusBefore() {
         return this.focusBefore;
-    }
-
-    public ShadowType getShadow() {
-        return this.shadow;
     }
 
     public OperationResult getMappingEvaluationResult() {

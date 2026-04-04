@@ -188,22 +188,13 @@ class ProcessedObjectsWriter {
         try {
             LOGGER.trace("Storing data in {} into {}", mappingData, simulationTransaction);
 
-            final ProcessedObjectImpl<ShadowType> processedShadow =
-                    ProcessedObjectImpl.createForMapping(ShadowType.class, mappingData.getShadow(), null,
-                            this.simulationTransaction);
             final ProcessedObjectImpl<FocusType> processedFocus =
                     ProcessedObjectImpl.createForMapping(FocusType.class, mappingData.getFocusBefore(),
                             mappingData.getSimulationDelta().orElse(null), simulationTransaction);
 
-            processedShadow.setResultAndStatus(mappingData.getMappingEvaluationResult());
             processedFocus.setResultAndStatus(mappingData.getMappingEvaluationResult());
             processedFocus.setProjectionRecords(1);
             storeProcessedObjects(List.of(processedFocus), task, result);
-
-            // Record ID is set to processedFocused by the repository during storing it.
-            processedShadow.setFocusRecordId(processedFocus.getRecordId());
-            storeProcessedObjects(List.of(processedShadow), task, result);
-
         } catch (CommonException e) {
             // TODO which exception to treat?
             throw SystemException.unexpected(e, "when storing processed object information");
