@@ -623,7 +623,6 @@ public class NotificationsTest extends AbstractIntegrationTest {
     @Test (enabled = false)
     public void test400MessageTransportToMultipleRecipientAddressesFromExpression() throws Exception {
         OperationResult result = getTestOperationResult();
-        String messageBody = "This is message body";
 
         given("configuration with transport using recipient address expression which returns 2 recipients");
         final String RECIPIENT_EXPRESSION = "import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;\n"
@@ -633,10 +632,12 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 + "def user1 = new UserType()\n"
                 + "user1.name = new PolyStringType(\"jackold\")\n"
                 + "user1.emailAddress = \"jack.sparrow@evolveum.com\"\n"
+                + "user1.locale = \"sk\"\n"
                 + "\n"
                 + "def user2 = new UserType()\n"
                 + "user2.name = new PolyStringType(\"jacknew\")\n"
                 + "user2.emailAddress = \"jack.sparrow1@evolveum.com\"\n"
+                + "user2.locale = \"sk\"\n"
                 + "def recipients = new ArrayList();"
                 + "recipients.add(user1);"
                 + "recipients.add(user2);"
@@ -652,9 +653,8 @@ public class NotificationsTest extends AbstractIntegrationTest {
                         .handler(new EventHandlerType()
                                 .generalNotifier(new GeneralNotifierType()
                                         .recipientExpression(groovyExpression(RECIPIENT_EXPRESSION))
-                                        .bodyExpression(velocityExpression(messageBody))
-//                                        .messageTemplateRef(createObjectReference(
-//                                                        "2dfbfee0-3363-4310-ab53-f7a87534522d", MessageTemplateType.COMPLEX_TYPE, null))
+                                        .messageTemplateRef(createObjectReference(
+                                                        "2dfbfee0-3363-4310-ab53-f7a87534522d", MessageTemplateType.COMPLEX_TYPE, null))
                                         .transport("test"))))
                 .asItemDeltas();
         display(result);
