@@ -623,15 +623,23 @@ public class NotificationsTest extends AbstractIntegrationTest {
     @Test (enabled = false)
     public void test400MessageTransportToMultipleRecipientAddressesFromExpression() throws Exception {
         OperationResult result = getTestOperationResult();
+        String messageBody = "This is message body";
 
         given("configuration with transport using recipient address expression which returns 2 recipients");
-        final String RECIPIENT_EXPRESSION = "import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;"
-                + "import java.util.ArrayList;"
+        final String RECIPIENT_EXPRESSION = "import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;\n"
+                + "import java.util.ArrayList;\n"
+                + "import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;\n"
+                + "\n"
+                + "def user1 = new UserType()\n"
+                + "user1.name = new PolyStringType(\"jackold\")\n"
+                + "user1.emailAddress = \"jack.sparrow@evolveum.com\"\n"
+                + "\n"
+                + "def user2 = new UserType()\n"
+                + "user2.name = new PolyStringType(\"jacknew\")\n"
+                + "user2.emailAddress = \"jack.sparrow1@evolveum.com\"\n"
                 + "def recipients = new ArrayList();"
-                + "UserType manager = midpoint.getObject(UserType.class, 'c0c010c0-d34d-b33f-f00d-111111111111');"
-                + "UserType admin = midpoint.getObject(UserType.class, '00000000-0000-0000-0000-000000000002');"
-                + "recipients.add(manager);"
-                + "recipients.add(admin);"
+                + "recipients.add(user1);"
+                + "recipients.add(user2);"
                 + "return recipients";
         Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
                 .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
@@ -644,7 +652,9 @@ public class NotificationsTest extends AbstractIntegrationTest {
                         .handler(new EventHandlerType()
                                 .generalNotifier(new GeneralNotifierType()
                                         .recipientExpression(groovyExpression(RECIPIENT_EXPRESSION))
-                                        .messageTemplateRef("2dfbfee0-3363-4310-ab53-f7a87534522d", MessageTemplateType.COMPLEX_TYPE)
+                                        .bodyExpression(velocityExpression(messageBody))
+//                                        .messageTemplateRef(createObjectReference(
+//                                                        "2dfbfee0-3363-4310-ab53-f7a87534522d", MessageTemplateType.COMPLEX_TYPE, null))
                                         .transport("test"))))
                 .asItemDeltas();
         display(result);
@@ -664,12 +674,12 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message1 = testTransport.getMessages().get(0);
         assertThat(message1).isNotNull();
         and("address of the first message is based on notifier/recipientExpression");
-        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "administrator@evolveum.com");
+        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "jack.sparrow1@evolveum.com");
 
         Message message2 = testTransport.getMessages().get(1);
         assertThat(message2).isNotNull();
         and("address of the second message is based on notifier/recipientExpression");
-        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "administrator@evolveum.com");
+        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "jack.sparrow1@evolveum.com");
     }
 
     @Test
