@@ -43,6 +43,8 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
@@ -4311,6 +4313,19 @@ public final class WebComponentUtil {
         String key = "trigger." + handler.getClass().getName();
 
         return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(key);
+    }
+
+    public static void updateAjaxLinkAttributesForCtrlClickRedirection(AjaxRequestAttributes attributes) {
+        attributes.getDynamicExtraParameters().add(
+                "return { ctrlKey: Wicket.Event.fix(attrs.event).ctrlKey };"
+        );
+
+        attributes.getAjaxCallListeners().add(new AjaxCallListener() {
+            @Override
+            public CharSequence getPrecondition(Component component) {
+                return "return MidPointTheme.handleCtrlClick(attrs.event);";
+            }
+        });
     }
 
     public static String getLabelForItemValue(PrismValueWrapper valueWrapper, PageBase pageBase){

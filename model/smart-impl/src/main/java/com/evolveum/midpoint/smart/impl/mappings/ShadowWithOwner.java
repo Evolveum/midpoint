@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2025 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
- * Licenced under the EUPL-1.2 or later.
- *
+ * Licensed under the EUPL-1.2 or later.
  *
  */
 
@@ -19,7 +18,7 @@ import java.util.List;
 /**
  * Simple value object representing a shadow and its owner.
  */
-public record OwnedShadow(ShadowType shadow, FocusType owner) {
+public record ShadowWithOwner(ShadowType shadow, FocusType owner) {
 
     public ValuesPair<?, ?> toValuesPair(ItemPath shadowAttrPath, ItemPath focusPropPath) {
         return new ValuesPair<>(

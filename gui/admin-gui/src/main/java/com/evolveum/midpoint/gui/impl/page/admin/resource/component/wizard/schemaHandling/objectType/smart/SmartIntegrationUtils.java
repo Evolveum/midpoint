@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -674,7 +674,7 @@ public class SmartIntegrationUtils {
                 target.add(pageBase.getFeedbackPanel());
                 return;
             }
-            statisticsRequired = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(latestStatistics);
+            statisticsRequired = ShadowObjectClassUtil.getStatisticsRequired(latestStatistics);
         } catch (SchemaException e) {
             throw new RuntimeException("Couldn't get statistics for "
                     + objectClass + " on resource " + resourceOid, e);

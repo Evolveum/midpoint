@@ -10305,6 +10305,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="forceRecomputeSchemaMatch" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, forces recomputation of the schema match even if a valid (non-expired) schema
+                                match object already exists. Typically set when the user explicitly triggers a regenerate
+                                action from the GUI.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypeRelatedSuggestionWorkDefinitionType.forceRecomputeSchemaMatch</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

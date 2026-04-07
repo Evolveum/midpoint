@@ -174,6 +174,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
 
+    //used for the cases when no window identifier is found, e.g. in tests
+    private static final String SINGLE_SESSION_STORAGE_KEY = "singleSessionStorageKey";
+
     /**
      * See https://www.javadoc.io/doc/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer/20191001.1/org/owasp/html/HtmlPolicyBuilder.html
      */
@@ -1227,6 +1230,14 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
      * e.g. object list page search data, specific details page navigation menu data etc.
      */
     public BrowserTabSessionStorage getBrowserTabSessionStorage() {
+        String windowId = getWindowIdPageParameter();
+        if (windowId == null) {
+            windowId = SINGLE_SESSION_STORAGE_KEY;
+        }
+        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(windowId);
+    }
+
+    private String getWindowIdPageParameter() {
         org.apache.wicket.request.IRequestParameters parameters = RequestCycle.get().getRequest().getRequestParameters();
         StringValue paramValue = parameters.getParameterValue(BrowserWindowIdentifierFilter.PARAM_WI);
         String windowId = paramValue != null ? paramValue.toString() : null;
@@ -1241,12 +1252,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                         .getQueryParams()
                         .getFirst(BrowserWindowIdentifierFilter.PARAM_WI);
             }
-            if (windowId == null) {
-                return new BrowserTabSessionStorage();
-            }
         }
-
-        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(windowId);
+        return windowId;
     }
 
     public SecretsProviderManager getSecretsProviderManager() {
@@ -1290,5 +1297,25 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public ConnectorDevelopmentService getConnectorService() {
         return connectorService;
+    }
+
+    /**
+     * Update page parameters with window id parameter so that the wicket
+     * can correctly find an existing page in the wicket page storage.
+     * @return
+     */
+    @Override
+    public PageParameters getPageParameters() {
+        PageParameters parameters = super.getPageParameters();
+
+        String windowId = getWindowIdPageParameter();
+        if (parameters == null) {
+            parameters = new PageParameters();
+        }
+        if (!parameters.contains(BrowserWindowIdentifierFilter.PARAM_WI) && windowId != null) {
+            parameters.add(BrowserWindowIdentifierFilter.PARAM_WI, windowId);
+        }
+
+        return parameters;
     }
 }

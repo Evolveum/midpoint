@@ -87,7 +87,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
     }
 
     public BrowserTabSessionStorage getBrowserTabSessionStorage(String windowName) {
-        return sessionStorage.getBrowserTabSessionStorage(windowName);
+        return getSessionStorage().getBrowserTabSessionStorage(windowName);
     }
 
     public void setClientCustomization() {

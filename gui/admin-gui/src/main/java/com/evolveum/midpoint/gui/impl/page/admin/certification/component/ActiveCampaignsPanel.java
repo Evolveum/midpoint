@@ -12,6 +12,8 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertItems;
 
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -30,6 +32,9 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * Panel is used as an active campaigns preview on the Certification items page.
@@ -83,6 +88,14 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
             @Override
             protected void detailsButtonClickPerformed(AjaxRequestTarget target) {
                 showCertItems(getCampaign().getOid(), target);
+            }
+
+            @Override
+            protected String getDetailsLinkNavigationUrl() {
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, getCampaign().getOid());
+                var url = RequestCycle.get().urlFor(getCertItemsPage(), parameters);
+                return url != null ? url.toString() : "#";
             }
         };
     }

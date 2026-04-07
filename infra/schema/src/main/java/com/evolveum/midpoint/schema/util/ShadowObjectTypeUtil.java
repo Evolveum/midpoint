@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getExtensionItemRealValue;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.setExtensionPropertyRealValues;
 
-public class ShadowObjectTypeStatisticsTypeUtil {
+public class ShadowObjectTypeUtil {
 
     public static ShadowObjectClassStatisticsType getObjectTypeStatisticsRequired(GenericObjectType holder) {
         return getObjectTypeStatisticsRequired(holder.asPrismObject());

@@ -83,7 +83,7 @@ public class SmartMetadataUtil {
     }
 
     public static void markContainerProvenance(@Nullable PrismValue value, @NotNull ProvenanceKind kind) {
-        if(value != null){
+        if (value != null) {
             ValueMetadataTypeUtil.getOrCreateMetadata(value, kind.metadata);
         }
     }
@@ -192,6 +192,18 @@ public class SmartMetadataUtil {
 
     public static boolean isMarkedAsAiProvided(@Nullable PrismValue value) {
         return isMarkedWithProvenance(value, ProvenanceKind.AI);
+    }
+
+    //TODO simplify
+    public static ProvenanceKind resolveProvenanceKind(@Nullable PrismValue value) {
+        if (isMarkedWithProvenance(value, ProvenanceKind.AI)) {
+            return ProvenanceKind.AI;
+        }
+
+        if (isMarkedWithProvenance(value, ProvenanceKind.SYSTEM)) {
+            return ProvenanceKind.SYSTEM;
+        }
+        return null;
     }
 
     public static void unmarkAsAiProvided(@Nullable PrismValue value) {

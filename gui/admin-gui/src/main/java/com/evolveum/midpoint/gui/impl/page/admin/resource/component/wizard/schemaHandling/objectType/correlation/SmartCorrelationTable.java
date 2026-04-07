@@ -564,7 +564,7 @@ public abstract class SmartCorrelationTable
                         .withHideInProgress(true))
                 .runVoid((task, result) -> {
                     service.submitSuggestCorrelationOperation(getResourceOid(), objectTypeIdentification, permissions,
-                            task, result);
+                            false, task, result);
                     refreshAndDetach(target);
                 });
     }

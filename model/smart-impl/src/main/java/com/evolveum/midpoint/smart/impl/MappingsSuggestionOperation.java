@@ -32,7 +32,7 @@ import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher
 import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
 import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.MissingSourceDataException;
-import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
+import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
@@ -74,7 +74,7 @@ class MappingsSuggestionOperation {
     private final TypeOperationContext ctx;
     private final MappingsQualityAssessor qualityAssessor;
     private final MappingScriptValidator scriptValidator;
-    private final OwnedShadowsProvider ownedShadowsProvider;
+    private final ShadowsWithOwnersProvider shadowsWithOwnersProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final HeuristicRuleMatcher heuristicRuleMatcher;
     private final CategoricalAttributeRegistry categoricalAttributeRegistry;
@@ -86,8 +86,8 @@ class MappingsSuggestionOperation {
     private MappingsSuggestionOperation(
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
+            ShadowsWithOwnersProvider shadowsWithOwnersProvider,
             MappingScriptValidator scriptValidator,
-            OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
             HeuristicRuleMatcher heuristicRuleMatcher,
             CategoricalAttributeRegistry categoricalAttributeRegistry,
@@ -98,7 +98,7 @@ class MappingsSuggestionOperation {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
         this.scriptValidator = scriptValidator;
-        this.ownedShadowsProvider = ownedShadowsProvider;
+        this.shadowsWithOwnersProvider = shadowsWithOwnersProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.heuristicRuleMatcher = heuristicRuleMatcher;
         this.categoricalAttributeRegistry = categoricalAttributeRegistry;
@@ -112,7 +112,7 @@ class MappingsSuggestionOperation {
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             MappingScriptValidator scriptValidator,
-            OwnedShadowsProvider ownedShadowsProvider,
+            ShadowsWithOwnersProvider shadowsWithOwnersProvider,
             WellKnownSchemaService wellKnownSchemaService,
             HeuristicRuleMatcher heuristicRuleMatcher,
             CategoricalAttributeRegistry categoricalAttributeRegistry,
@@ -125,8 +125,8 @@ class MappingsSuggestionOperation {
         return new MappingsSuggestionOperation(
                 ctx,
                 qualityAssessor,
+                shadowsWithOwnersProvider,
                 scriptValidator,
-                ownedShadowsProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 categoricalAttributeRegistry,
@@ -279,7 +279,7 @@ class MappingsSuggestionOperation {
 
     private List<AttributeMappingsSuggestionType> collectSystemMappings(
             WellKnownSchemaProvider knownSchemaProvider,
-            List<OwnedShadow> shadowsForValidation,
+            List<ShadowWithOwner> shadowsForValidation,
             OperationResult result) {
         if (knownSchemaProvider == null) {
             return List.of();
@@ -287,7 +287,7 @@ class MappingsSuggestionOperation {
         var mappings = isInbound
                 ? knownSchemaProvider.suggestInboundMappings()
                 : knownSchemaProvider.suggestOutboundMappings(
-                        shadowsForValidation.stream().map(OwnedShadow::shadow).toList());
+                        shadowsForValidation.stream().map(ShadowWithOwner::shadow).toList());
         return mappings.stream()
                 .map(systemMapping -> assessAndBuildSystemMapping(systemMapping, shadowsForValidation, result))
                 .flatMap(opt -> opt.stream())
@@ -296,7 +296,7 @@ class MappingsSuggestionOperation {
 
     private Optional<AttributeMappingsSuggestionType> assessAndBuildSystemMapping(
             SystemMappingSuggestion systemMapping,
-            List<OwnedShadow> shadowsForValidation,
+            List<ShadowWithOwner> shadowsForValidation,
             OperationResult result) {
         try {
             var direction = resolveDirection();
@@ -324,14 +324,14 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private List<OwnedShadow> collectOwnedShadows(OperationResult result)
+    private List<ShadowWithOwner> collectOwnedShadows(OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
         state.setExpectedProgress(LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
         state.flush(result); // because finding an owned shadow can take a while
         try {
-            return ownedShadowsProvider.fetch(ctx, state, result, LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
+            return shadowsWithOwnersProvider.fetch(ctx, state, result, LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
         } catch (Exception e) {
             state.recordException(e);
             throw e;
@@ -499,6 +499,12 @@ class MappingsSuggestionOperation {
 
         // Check for missing target data
         if (valuePairsForValidation.isTargetDataMissing(MISSING_DATA_THRESHOLD)) {
+            if (useAiService && isInbound) {
+                var categoricalResult = tryCategoricalMappingSuggestion(matchPair);
+                if (categoricalResult != null) {
+                    return categoricalResult;
+                }
+            }
             LOGGER.trace("Target data missing. We'll use 'asIs' mapping (no LLM call).");
             return MappingEvaluationResult.of(null, null, isSystemProvided);
         }

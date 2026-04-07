@@ -22,7 +22,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -129,7 +129,7 @@ public class ObjectClassStatisticsButton extends BasePanel<QName> {
             @NotNull QName objectClassName) throws SchemaException {
 
         ShadowObjectClassStatisticsType statistics =
-                ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(statisticsObject);
+                ShadowObjectClassUtil.getStatisticsRequired(statisticsObject);
 
         SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
                 pageBase.getMainPopupBodyId(),

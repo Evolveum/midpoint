@@ -46,11 +46,12 @@ public class GroupActiveDirectoryMappingProvider implements WellKnownSchemaProvi
     public List<SystemMappingSuggestion> suggestInboundMappings() {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", AbstractRoleType.F_IDENTIFIER));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", RoleType.F_NAME, MappingStrengthType.STRONG));
         mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                 "sAMAccountName",
                 RoleType.F_NAME,
-                "'ad:' + sAMAccountName",
-                "Inbound: group-sync-methodology name with prefix (ad:<sAMAccountName>)",
+                "resource.name + '-' + input",
+                "Inbound: group name with resource prefix (<resource>-<sAMAccountName>)",
                 MappingStrengthType.STRONG));
         return mappings;
     }
