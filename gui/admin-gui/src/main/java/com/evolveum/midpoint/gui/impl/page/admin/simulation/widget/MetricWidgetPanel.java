@@ -258,7 +258,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
         DashboardWidgetDataType data = widget.getData();
         if (data == null || data.getMetricRef() == null) {
-            return new DisplayType().label("MetricWidgetPanel.unnamed");
+            return new DisplayType().label(GuiDisplayTypeUtil.createPolyStringType("MetricWidgetPanel.unnamed"));
         }
 
         SimulationMetricReferenceType metricRef = data.getMetricRef();

@@ -16,7 +16,7 @@ import java.io.Serializable;
 /**
  * Simple inner DTO for rendering one statusInfo line.
  */
-public record StatusRowRecord(IModel<String> text, ActivityProgressInformation.RealizationState done,
+public record StatusRowRecord(IModel<String> text, ActivityProgressInformation.RealizationState realizationState,
                               StatusInfo<?> statusInfo) implements Serializable {
 
     public StatusInfo<?> getStatusInfo() {
@@ -40,14 +40,14 @@ public record StatusRowRecord(IModel<String> text, ActivityProgressInformation.R
         if (isFatalError) {
             return "fa fa-exclamation-triangle text-danger";
         }
-        if (done == null) {
+        if (realizationState == null) {
             return "fa fa fa-pause";
-        } else if (done == ActivityProgressInformation.RealizationState.UNKNOWN) {
+        } else if (realizationState == ActivityProgressInformation.RealizationState.UNKNOWN) {
             return "fa fa-question-circle";
-        } else if (done == ActivityProgressInformation.RealizationState.COMPLETE) {
+        } else if (realizationState == ActivityProgressInformation.RealizationState.COMPLETE) {
             return "fa fa-check text-success";
         } else {
-            assert done == ActivityProgressInformation.RealizationState.IN_PROGRESS;
+            assert realizationState == ActivityProgressInformation.RealizationState.IN_PROGRESS;
             if (executing) {
                 return "fa fa-spinner fa-spin";
             } else {

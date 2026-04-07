@@ -499,6 +499,12 @@ class MappingsSuggestionOperation {
 
         // Check for missing target data
         if (valuePairsForValidation.isTargetDataMissing(MISSING_DATA_THRESHOLD)) {
+            if (useAiService && isInbound) {
+                var categoricalResult = tryCategoricalMappingSuggestion(matchPair);
+                if (categoricalResult != null) {
+                    return categoricalResult;
+                }
+            }
             LOGGER.trace("Target data missing. We'll use 'asIs' mapping (no LLM call).");
             return MappingEvaluationResult.of(null, null, isSystemProvided);
         }

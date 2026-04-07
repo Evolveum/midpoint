@@ -61,6 +61,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
+
 /**
  * Created by honchar
  */
@@ -318,7 +320,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public String getDownloadContentType() {
-                return "image/jpeg";
+                return MIME_IMAGE_JPEG;
             }
 
         };

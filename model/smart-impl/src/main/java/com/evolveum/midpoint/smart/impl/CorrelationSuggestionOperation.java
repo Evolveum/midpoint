@@ -142,7 +142,8 @@ class CorrelationSuggestionOperation {
                                         + "-to-" + focusItemPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusItemPath.toBean()))
-                                .use(InboundMappingUseType.CORRELATION);
+                                .use(InboundMappingUseType.CORRELATION)
+                                .strength(MappingStrengthType.STRONG);
                         var attrDefBean = new ResourceAttributeDefinitionType()
                                 .ref(resourceAttrName.toBean())
                                 .inbound(inbound);
@@ -184,20 +185,25 @@ class CorrelationSuggestionOperation {
     }
 
     /**
-     * Collects target paths of existing correlation mappings configured on the resource type.
+     * Collects target paths of existing correlators configured in the correlation definition on the resource type.
      */
-    private List<ItemPath> collectExistingCorrelationPaths() throws ConfigurationException {
+    private List<ItemPath> collectExistingCorrelationPaths() {
         var existingPaths = new ArrayList<ItemPath>();
-        for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : ctx.typeDefinition.getAttributeDefinitions()) {
-            for (InboundMappingType inboundMappingBean : attributeDefinition.getInboundMappingBeans()) {
-                if (InboundMappingUseType.CORRELATION.equals(inboundMappingBean.getUse())) {
-                    // Get the target path on the focus side (e.g., user.name)
-                    ItemPath targetPath = InboundMappingConfigItem.configItem(inboundMappingBean, ConfigurationItemOrigin.undeterminedSafe(), InboundMappingConfigItem.class)
-                            .getTargetPath();
-                    if (targetPath != null) {
-                        existingPaths.add(targetPath);
-                    }
-                }
+        CorrelationDefinitionType correlationDef = ctx.typeDefinition.getCorrelationDefinitionBean();
+        if (correlationDef == null) {
+            return existingPaths;
+        }
+        CompositeCorrelatorType correlators = correlationDef.getCorrelators();
+        if (correlators == null) {
+            return existingPaths;
+        }
+        for (ItemsSubCorrelatorType itemsCorrelator : correlators.getItems()) {
+            if (itemsCorrelator.getItem().size() != 1) {
+                continue; // skip composite correlators (multiple items)
+            }
+            CorrelationItemType item = itemsCorrelator.getItem().get(0);
+            if (item.getRef() != null) {
+                existingPaths.add(item.getRef().getItemPath());
             }
         }
         return existingPaths;

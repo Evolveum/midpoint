@@ -46,11 +46,12 @@ public class GroupOfNamesLdapMappingProvider implements WellKnownSchemaProvider 
     public List<SystemMappingSuggestion> suggestInboundMappings() {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", AbstractRoleType.F_IDENTIFIER));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", RoleType.F_NAME, MappingStrengthType.STRONG));
         mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                 "cn",
                 RoleType.F_NAME,
-                "'ldap:' + cn",
-                "Inbound: group-sync-methodology name with prefix (ldap:<cn>)",
+                "resource.name + '-' + input",
+                "Inbound: group name with resource prefix (<resource>-<cn>)",
                 MappingStrengthType.STRONG));
         return mappings;
     }

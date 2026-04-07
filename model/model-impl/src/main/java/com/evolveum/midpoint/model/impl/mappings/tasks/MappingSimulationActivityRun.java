@@ -152,7 +152,7 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
 
         final SimulationTransaction simulationTransaction = Objects.requireNonNull(getSimulationTransaction(),
                 "Required simulation transaction does not exist.");
-        simulationTransaction.writeSimulationData(new MappingSimulationData(targetFocus, shadow, objectDelta,
+        simulationTransaction.writeSimulationData(new MappingSimulationData(targetFocus, objectDelta,
                 evaluationResult), task, result);
 
         return true;

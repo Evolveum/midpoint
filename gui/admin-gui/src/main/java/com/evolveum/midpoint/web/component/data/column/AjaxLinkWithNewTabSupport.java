@@ -12,6 +12,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -60,6 +61,10 @@ public abstract class AjaxLinkWithNewTabSupport extends Panel {
             }
         };
         configureNavigationLink(link);
+        link.add(AttributeAppender.append("class", getLinkAdditionalStyle()));
+        link.add(AttributeAppender.append("title", getLinkDescriptiveTitle()));
+        link.setOutputMarkupId(true);
+
         Label label = new Label(ID_LABEL, labelModel);
         link.add(label);
         link.add(new EnableBehaviour(AjaxLinkWithNewTabSupport.this::isEnabled));
@@ -82,4 +87,11 @@ public abstract class AjaxLinkWithNewTabSupport extends Panel {
 
     protected abstract String getNavigationUrl();
 
+    protected String getLinkAdditionalStyle() {
+        return null;
+    }
+
+    protected String getLinkDescriptiveTitle() {
+        return null;
+    }
 }
