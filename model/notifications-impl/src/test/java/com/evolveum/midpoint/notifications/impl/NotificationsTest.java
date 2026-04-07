@@ -619,8 +619,13 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(message.getBody()).startsWith(messageBody); // there can be subscription footer
     }
 
-    //covers 11038
-    @Test (enabled = false)
+    /**
+     * Tests that the notification manager sends the notification to each
+     * recipient defined in the recipient expression.
+     * Covers 11038.
+     * @throws Exception
+     */
+    @Test
     public void test400MessageTransportToMultipleRecipientAddressesFromExpression() throws Exception {
         OperationResult result = getTestOperationResult();
 
@@ -630,11 +635,13 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 + "import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;\n"
                 + "\n"
                 + "def user1 = new UserType()\n"
+                + "user1.oid = \"3f6e1a0c-8b27-4d91-9c5e-2f7a6b4d8e12\"\n"
                 + "user1.name = new PolyStringType(\"jackold\")\n"
                 + "user1.emailAddress = \"jack.sparrow@evolveum.com\"\n"
                 + "user1.locale = \"sk\"\n"
                 + "\n"
                 + "def user2 = new UserType()\n"
+                + "user2.oid = \"b92c4f73-6d15-4a88-a2e9-5c1d7f3b9a40\"\n"
                 + "user2.name = new PolyStringType(\"jacknew\")\n"
                 + "user2.emailAddress = \"jack.sparrow1@evolveum.com\"\n"
                 + "user2.locale = \"sk\"\n"
