@@ -165,6 +165,16 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                     }
 
                     @Override
+                    protected void editSearchByIdPerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editSearchById(objectClassName, target);
+                    }
+
+                    @Override
+                    protected void editSearchFilterPerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editSearchFilter(objectClassName, target);
+                    }
+
+                    @Override
                     protected void editSchemaPerformed(String objectClassName, AjaxRequestTarget target) {
                         getController().editSchema(objectClassName, target);
                     }
