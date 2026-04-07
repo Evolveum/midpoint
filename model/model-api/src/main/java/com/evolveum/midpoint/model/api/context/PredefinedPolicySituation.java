@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 /**
  * @author semancik
@@ -34,7 +35,13 @@ public enum PredefinedPolicySituation {
 
     OBJECT_TIME_VALIDITY(SchemaConstants.MODEL_POLICY_SITUATION_TIME_VALIDITY, PolicyConstraintKindType.OBJECT_TIME_VALIDITY),
 
-    ASSIGNMENT_TIME_VALIDITY(SchemaConstants.MODEL_POLICY_SITUATION_TIME_VALIDITY, PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY);
+    ASSIGNMENT_TIME_VALIDITY(SchemaConstants.MODEL_POLICY_SITUATION_TIME_VALIDITY, PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY),
+
+    EXECUTION_TIME(SchemaConstants.MODEL_POLICY_SITUATION_EXECUTION_TIME, PolicyConstraintKindType.EXECUTION_TIME),
+
+    EXECUTION_ATTEMPTS(SchemaConstants.MODEL_POLICY_SITUATION_EXECUTION_ATTEMPTS, PolicyConstraintKindType.EXECUTION_ATTEMPTS),
+
+    ITEM_PROCESSING_RESULT(SchemaConstants.MODEL_POLICY_SITUATION_ITEM_PROCESSING_RESULT, PolicyConstraintKindType.ITEM_PROCESSING_RESULT);
 
     private String url;
     private PolicyConstraintKindType constraintKind;
