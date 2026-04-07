@@ -178,8 +178,7 @@ class ArchetypePolicyMerger {
                 currentConstraints,
                 superConstraints,
                 this::createItemConstraintPredicate,
-                this::mergeItemConstraint,
-                false
+                this::mergeItemConstraint
         );
     }
 
@@ -224,8 +223,7 @@ class ArchetypePolicyMerger {
                 currentState,
                 superLifecycleStates,
                 this::createLifecycleStatePredicate,
-                this::mergeLifecycleState,
-                false
+                this::mergeLifecycleState
         );
     }
 
@@ -302,8 +300,7 @@ class ArchetypePolicyMerger {
                 currentActions,
                 superActions,
                 this::createLifecycleStateActionPredicate,
-                this::mergeAction,
-                false
+                this::mergeAction
         );
     }
 

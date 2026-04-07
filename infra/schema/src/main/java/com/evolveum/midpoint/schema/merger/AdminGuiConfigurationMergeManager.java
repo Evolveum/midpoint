@@ -240,8 +240,7 @@ public class AdminGuiConfigurationMergeManager {
                 configuredPanel.getAction(),
                 mergedPanel.getAction(),
                 this::actionMatches,
-                this::mergeGuiAction,
-                false
+                this::mergeGuiAction
         );
         PreviewContainerPanelConfigurationType afterMerge = mergePanels(mergedPanel, configuredPanel);
         afterMerge.getAction().clear();
@@ -368,8 +367,7 @@ public class AdminGuiConfigurationMergeManager {
                 currentVirtualContainers,
                 superObjectDetails,
                 this::createVirtualContainersPredicate,
-                this::mergeVirtualContainer,
-                false
+                this::mergeVirtualContainer
         );
     }
 
@@ -381,8 +379,7 @@ public class AdminGuiConfigurationMergeManager {
             List<C> currentContainers,
             List<C> superContainers,
             Function<C, Predicate<C>> predicate,
-            BiFunction<C, C, C> mergeFunction,
-            boolean onlyCustomVisibleIfExists
+            BiFunction<C, C, C> mergeFunction
     ) {
         if (currentContainers.isEmpty()) {
             if (superContainers.isEmpty()) {
@@ -408,12 +405,7 @@ public class AdminGuiConfigurationMergeManager {
 
         for (C currentContainer : currentContainers) {
             if (!findAny(predicate.apply(currentContainer), mergedContainers)) {
-                final C clonedContainer = cloneComplex(currentContainer);
-                if (onlyCustomVisibleIfExists &&
-                        ((SearchItemType) clonedContainer).isVisibleByDefault() != null) {
-                    ((SearchItemType) clonedContainer).setVisibleByDefault(false);
-                }
-                mergedContainers.add(clonedContainer);
+                mergedContainers.add(cloneComplex(currentContainer));
             }
         }
 
