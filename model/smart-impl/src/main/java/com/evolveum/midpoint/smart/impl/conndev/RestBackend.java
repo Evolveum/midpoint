@@ -188,6 +188,8 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             case CONNID_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
                     "connid", "ConnID mapping script");
             case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, input.getEndpoint());
+            case SEARCH_BY_ID_DEFINITION -> generateObjectClassScript(artifactSpec, "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()), "search by ID script");
+            case SEARCH_FILTER_DEFINITION -> generateObjectClassScript(artifactSpec, "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()), "search filter script");
             case CREATE -> generateObjectClassScript(artifactSpec, "create", "Create script");
             case UPDATE ->  generateObjectClassScript(artifactSpec, "update", "Update script");
             case DELETE -> generateObjectClassScript(artifactSpec, "delete", "Delete script");

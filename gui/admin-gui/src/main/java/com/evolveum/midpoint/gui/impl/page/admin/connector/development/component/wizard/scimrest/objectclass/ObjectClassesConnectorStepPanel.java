@@ -212,7 +212,7 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
         itemNames.put("ObjectClassesConnectorStepPanel.search",
                 List.of(
                         ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION,
-                        ConnDevObjectClassInfoType.F_GET_OPERATION,
+                        ConnDevObjectClassInfoType.F_SEARCH_ID_OPERATION,
                         ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION));
         itemNames.put("ObjectClassesConnectorStepPanel.create", List.of(ConnDevObjectClassInfoType.F_CREATE_SCRIPT));
         itemNames.put("ObjectClassesConnectorStepPanel.update", List.of(ConnDevObjectClassInfoType.F_UPDATE_SCRIPT));
