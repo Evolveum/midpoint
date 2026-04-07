@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.AssignmentPanelRule;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -97,7 +99,11 @@ public class GdprAssignmentPanel extends AbstractAssignmentPanel<UserType> {
 //    }
 
     protected ObjectQuery getCustomizeQuery() {
-        return getPrismContext().queryFor(AssignmentType.class)
+        return createAssignmentCustomizeQuery(getPageBase(), null);
+    }
+
+    public static ObjectQuery createAssignmentCustomizeQuery(PageBase pageBase, AssignmentPanelRule rule) {
+        return pageBase.getPrismContext().queryFor(AssignmentType.class)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
                 .refRelation(SchemaConstants.ORG_CONSENT)

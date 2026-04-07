@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.AssignmentPanelRule;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.WidgetFocusTrimContribution;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -57,6 +59,10 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
         setModel(PrismContainerWrapperModel.fromContainerWrapper(model, AssignmentHolderType.F_ASSIGNMENT, (Supplier<PageBase> & Serializable) () -> getPageBase()));
     }
 
+    public static void contributeFocusTrimPlan(WidgetFocusTrimContribution contribution, String panelType, int limit) {
+        contribution.addAssignmentPanelRule(panelType, limit, null);
+    }
+
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         return null;
@@ -91,30 +97,47 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
 
     @Override
     protected ObjectQuery getCustomizeQuery() {
-        Collection<QName> delegationRelations = getPageBase().getRelationRegistry()
+        return createBaseAssignmentCustomizeQuery(getPageBase(), getAssignmentType());
+    }
+
+    public static ObjectQuery createAssignmentCustomizeQuery(PageBase pageBase, AssignmentPanelRule rule) {
+        return createBaseAssignmentCustomizeQuery(pageBase, rule != null ? rule.targetType() : null);
+    }
+
+    private static ObjectQuery createBaseAssignmentCustomizeQuery(PageBase pageBase, QName targetType) {
+        // Keep this aligned with AbstractAssignmentTypePanel.getTargetTypeFilter():
+        // current assignment panels derive target filtering only from getAssignmentType().
+        Collection<QName> delegationRelations = pageBase.getRelationRegistry()
                 .getAllRelationsFor(RelationKindType.DELEGATION);
 
         //do not show archetype assignments
         ObjectReferenceType archetypeRef = new ObjectReferenceType();
         archetypeRef.setType(ArchetypeType.COMPLEX_TYPE);
         archetypeRef.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
-        RefFilter archetypeFilter = (RefFilter) getPageBase().getPrismContext().queryFor(AssignmentType.class)
+        RefFilter archetypeFilter = (RefFilter) pageBase.getPrismContext().queryFor(AssignmentType.class)
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(archetypeRef.asReferenceValue())
                 .buildFilter();
         archetypeFilter.setOidNullAsAny(true);
 
-        ObjectFilter relationFilter = getPageBase().getPrismContext().queryFor(AssignmentType.class)
+        ObjectFilter relationFilter = pageBase.getPrismContext().queryFor(AssignmentType.class)
                 .not()
                 .item(AssignmentType.F_TARGET_REF)
                 .refRelation(delegationRelations.toArray(new QName[0]))
                 .buildFilter();
 
-        ObjectQuery query = getPrismContext().queryFactory().createQuery(relationFilter);
-        query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
+        ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery(relationFilter);
+        query.addFilter(pageBase.getPrismContext().queryFactory().createNot(archetypeFilter));
 
-        RefFilter targetRefFilter = getTargetTypeFilter();
-        if (targetRefFilter != null) {
+        if (targetType != null) {
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setType(targetType);
+            ort.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
+            RefFilter targetRefFilter = (RefFilter) pageBase.getPrismContext().queryFor(AssignmentType.class)
+                    .item(AssignmentType.F_TARGET_REF)
+                    .ref(ort.asReferenceValue())
+                    .buildFilter();
+            targetRefFilter.setOidNullAsAny(true);
             query.addFilter(targetRefFilter);
         }
         return query;

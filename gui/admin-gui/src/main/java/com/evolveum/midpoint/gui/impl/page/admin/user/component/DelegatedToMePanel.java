@@ -8,9 +8,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.AssignmentPanelRule;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.WidgetFocusTrimContribution;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -55,6 +59,18 @@ public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDe
 
     public DelegatedToMePanel(String id, UserDetailsModel userDetailsModel, ContainerPanelConfigurationType config) {
         super(id, userDetailsModel, config);
+    }
+
+    public static void contributeFocusTrimPlan(WidgetFocusTrimContribution contribution, String panelType, int limit) {
+        contribution.addPreservedAssignmentPanelRule(panelType, UserType.COMPLEX_TYPE);
+    }
+
+    public static ObjectQuery createAssignmentCustomizeQuery(PageBase pageBase, AssignmentPanelRule rule) {
+        return pageBase.getPrismContext().queryFactory().createQuery(
+                pageBase.getPrismContext().queryFor(AssignmentType.class)
+                        .item(AssignmentType.F_TARGET_REF)
+                        .refType(UserType.COMPLEX_TYPE)
+                        .buildFilter());
     }
 
     public List<AssignmentType> getAssignmentTypeList() {

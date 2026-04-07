@@ -12,10 +12,12 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.AssignmentPanelRule;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -46,7 +48,10 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
         if (!isRepositorySearchEnabled()) {
             return null;
         }
-        // This should do customPostSearch on repository level.
+        return createAssignmentCustomizeQuery(getPageBase(), null);
+    }
+
+    public static ObjectQuery createAssignmentCustomizeQuery(PageBase pageBase, AssignmentPanelRule rule) {
         return QueryBuilder.queryFor(AssignmentType.class)
                 .ref(AssignmentType.F_TARGET_REF, OrgType.COMPLEX_TYPE, null)
                 .item(ObjectType.F_SUBTYPE).contains("access")
