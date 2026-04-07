@@ -119,6 +119,11 @@ spec:
   containers:
     - name: oracle
       image: "${params.DB_IMAGE ?: 'container-registry.oracle.com/database/express:21.3.0-xe'}"
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          sed -i '/<initParam name="pga_aggregate_target"/a\\         <initParam name="cpu_count" value="2"/>' \\\$ORACLE_HOME/assistants/dbca/templates/XE_Database.dbc
+          exec /opt/oracle/runOracle.sh
       ports:
         - name: oracle
           containerPort: 1521
@@ -128,10 +133,10 @@ spec:
           protocol: TCP
       resources:
         requests:
-          memory: "6Gi"
+          memory: "4Gi"
           cpu: "2"
         limits:
-          memory: "6Gi"
+          memory: "4Gi"
           cpu: "2"
       env:
         - name: ORACLE_CHARACTERSET
