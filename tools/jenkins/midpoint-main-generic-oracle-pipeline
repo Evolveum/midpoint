@@ -127,10 +127,10 @@ spec:
           protocol: TCP
       resources:
         requests:
-          memory: "4Gi"
+          memory: "6Gi"
           cpu: "2"
         limits:
-          memory: "4Gi"
+          memory: "6Gi"
           cpu: "2"
       env:
         - name: ORACLE_CHARACTERSET
