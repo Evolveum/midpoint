@@ -293,7 +293,7 @@ public class SearchBuilder<C extends Serializable> {
 
         // isViewForDashboard == true && collectionView == null can happen when
         // we're opening popup (different list of objects) and don't want to use collection ref
-        // from underyling page
+        // from underlying page
         if (isViewForDashboard && collectionView != null) {
             basicSearchWrapper.getItemsList().add(new ObjectCollectionSearchItemWrapper(collectionView));
         }
@@ -319,13 +319,24 @@ public class SearchBuilder<C extends Serializable> {
             viewListItem.setVisible(true);
             basicSearchWrapper.getItemsList().add(viewListItem);
         }
-
     }
 
     private void sortItems(BasicQueryWrapper basicSearchWrapper) {
-        basicSearchWrapper.getItemsList().sort((i1, i2) -> String.CASE_INSENSITIVE_ORDER.compare(
-                StringUtils.isEmpty(i1.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i1.getName().getObject()).getString(),
-                StringUtils.isEmpty(i2.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i2.getName().getObject()).getString()));
+        basicSearchWrapper.getItemsList().sort((i1, i2) -> {
+                    int displayOrder1 = (i1 == null || i1.getDisplayOrder() == null) ? Integer.MAX_VALUE : i1.getDisplayOrder();
+                    int displayOrder2 = (i2 == null || i2.getDisplayOrder() == null) ? Integer.MAX_VALUE : i2.getDisplayOrder();
+                    if (displayOrder1 == displayOrder2) {
+                        assert i1 != null;
+                        assert i2 != null;
+                        return String.CASE_INSENSITIVE_ORDER.compare(
+                                StringUtils.isEmpty(i1.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i1.getName().getObject()).getString(),
+                                StringUtils.isEmpty(i2.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i2.getName().getObject()).getString()
+                        );
+                    } else {
+                        return Integer.compare(displayOrder1, displayOrder2);
+                    }
+                }
+        );
 
         basicSearchWrapper.getItemsList().sort(Comparator.comparing(i -> i instanceof PropertySearchItemWrapper));
     }
