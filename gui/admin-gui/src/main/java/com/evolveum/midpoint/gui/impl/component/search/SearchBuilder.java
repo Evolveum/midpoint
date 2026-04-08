@@ -323,15 +323,10 @@ public class SearchBuilder<C extends Serializable> {
 
     private void sortItems(BasicQueryWrapper basicSearchWrapper) {
         basicSearchWrapper.getItemsList().sort((i1, i2) -> {
-                    int displayOrder1 = (i1 == null || i1.getDisplayOrder() == null) ? Integer.MAX_VALUE : i1.getDisplayOrder();
-                    int displayOrder2 = (i2 == null || i2.getDisplayOrder() == null) ? Integer.MAX_VALUE : i2.getDisplayOrder();
+                    int displayOrder1 = getDisplayOrderFromSearchItemWrapper(i1);
+                    int displayOrder2 = getDisplayOrderFromSearchItemWrapper(i2);
                     if (displayOrder1 == displayOrder2) {
-                        assert i1 != null;
-                        assert i2 != null;
-                        return String.CASE_INSENSITIVE_ORDER.compare(
-                                StringUtils.isEmpty(i1.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i1.getName().getObject()).getString(),
-                                StringUtils.isEmpty(i2.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i2.getName().getObject()).getString()
-                        );
+                        return String.CASE_INSENSITIVE_ORDER.compare(getNameFromSearchItemWrapper(i1), getNameFromSearchItemWrapper(i2));
                     } else {
                         return Integer.compare(displayOrder1, displayOrder2);
                     }
@@ -339,6 +334,21 @@ public class SearchBuilder<C extends Serializable> {
         );
 
         basicSearchWrapper.getItemsList().sort(Comparator.comparing(i -> i instanceof PropertySearchItemWrapper));
+    }
+
+    private int getDisplayOrderFromSearchItemWrapper(FilterableSearchItemWrapper<?> searchItemWrapper) {
+        return (searchItemWrapper == null || searchItemWrapper.getDisplayOrder() == null) ?
+                Integer.MAX_VALUE :
+                searchItemWrapper.getDisplayOrder();
+    }
+
+    private String getNameFromSearchItemWrapper(FilterableSearchItemWrapper<?> searchItemWrapper) {
+        if (searchItemWrapper == null) {
+            return "";
+        }
+        return StringUtils.isEmpty(searchItemWrapper.getName().getObject()) ?
+                "" :
+                PageBase.createStringResourceStatic(searchItemWrapper.getName().getObject()).getString();
     }
 
     private SearchBoxConfigurationType getConfiguredSearchBox() {

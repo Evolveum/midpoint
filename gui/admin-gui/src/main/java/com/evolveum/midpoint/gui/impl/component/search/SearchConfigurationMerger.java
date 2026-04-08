@@ -77,16 +77,7 @@ public class SearchConfigurationMerger {
             return searchItems;
         }
 
-        final List<SearchItemType> customSearchItemsWithDisplayOrder =
-                IntStream
-                        .range(0, customSearchItems.getSearchItem().size())
-                        .mapToObj(i -> {
-                            final SearchItemType customSearchItem = customSearchItems.getSearchItem().get(i);
-                            if (customSearchItem.getDisplayOrder() == null) {
-                                customSearchItem.setDisplayOrder(i);
-                            }
-                            return customSearchItem;
-                        }).collect(Collectors.toList());
+        final List<SearchItemType> customSearchItemsWithDisplayOrder = getSearchItemsWithDisplayOrder(customSearchItems);
 
         if (searchItems == null || CollectionUtils.isEmpty(searchItems.getSearchItem())) {
             customSearchItems.getSearchItem().clear();
@@ -94,16 +85,8 @@ public class SearchConfigurationMerger {
             return customSearchItems;
         }
 
-        final List<SearchItemType> searchItemsWithRemovedVisibleByDefault =
-                searchItems.getSearchItem().stream()
-                        .peek(searchItem -> {
-                            if (searchItem.isVisibleByDefault() != null) {
-                                searchItem.setVisibleByDefault(null);
-                            }
-                        }).toList();
-
         final List<SearchItemType> mergedItems = pageBase.getAdminGuiConfigurationMergeManager().mergeContainers(
-                searchItemsWithRemovedVisibleByDefault,
+                getSearchItemsWithRemovedVisibleByDefault(searchItems),
                 customSearchItemsWithDisplayOrder,
                 SearchConfigurationMerger::searchItemMatch,
                 SearchConfigurationMerger::mergeSearchItem
@@ -112,6 +95,27 @@ public class SearchConfigurationMerger {
         searchItems.getSearchItem().clear();
         searchItems.getSearchItem().addAll(mergedItems);
         return searchItems;
+    }
+
+    private static List<SearchItemType> getSearchItemsWithDisplayOrder(SearchItemsType searchItems) {
+        return IntStream
+                .range(0, searchItems.getSearchItem().size())
+                .mapToObj(i -> {
+                    final SearchItemType customSearchItem = searchItems.getSearchItem().get(i);
+                    if (customSearchItem.getDisplayOrder() == null) {
+                        customSearchItem.setDisplayOrder(i);
+                    }
+                    return customSearchItem;
+                }).collect(Collectors.toList());
+    }
+
+    private static List<SearchItemType> getSearchItemsWithRemovedVisibleByDefault(SearchItemsType searchItems) {
+        return searchItems.getSearchItem().stream()
+                .peek(searchItem -> {
+                    if (searchItem.isVisibleByDefault() != null) {
+                        searchItem.setVisibleByDefault(null);
+                    }
+                }).toList();
     }
 
     private static Predicate<SearchItemType> searchItemMatch(SearchItemType searchItem) {
