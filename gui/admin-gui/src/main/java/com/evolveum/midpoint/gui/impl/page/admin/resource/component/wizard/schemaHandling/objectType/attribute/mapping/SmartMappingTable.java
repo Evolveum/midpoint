@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGu
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
 import static com.evolveum.midpoint.prism.PrismConstants.VARIABLE_BINDING_DEF_MATCHING_RULE_NAME;
+import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDivider;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_MAPPINGS;
 
 import java.io.Serial;
@@ -180,24 +181,42 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
                     @Override
                     public @NotNull List<InlineMenuItem> getInlineMenuItems() {
-                        List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
-                        inlineMenuItems.add(createPreviewInlineMenu());
-                        inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
-                        inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
-                        inlineMenuItems.add(createAcceptItemMenu());
-                        inlineMenuItems.add(createDiscardItemMenu());
-                        inlineMenuItems.add(createChangeMappingNameInlineMenu());
+                        List<InlineMenuItem> inlineMenuItems = new ArrayList<>();
+
+                        InlineMenuItem changeLifecycleButtonInlineMenu = createChangeLifecycleButtonInlineMenu();
                         inlineMenuItems.add(createChangeLifecycleButtonInlineMenu());
-                        inlineMenuItems.add(createDuplicateInlineMenu());
+                        inlineMenuItems.add(createEditInlineMenu());
+                        InlineMenuItem duplicateInlineMenu = createDuplicateInlineMenu();
+                        inlineMenuItems.add(duplicateInlineMenu);
+                        InlineMenuItem changeMappingNameInlineMenu = createChangeMappingNameInlineMenu();
+                        inlineMenuItems.add(changeMappingNameInlineMenu);
+                        inlineMenuItems.add(createSectionDivider(
+                                changeLifecycleButtonInlineMenu.getVisibilityChecker(),
+                                changeMappingNameInlineMenu.getVisibilityChecker(),
+                                duplicateInlineMenu.getVisibilityChecker()));
 
                         if (isSimulationSupported()) {
-                            inlineMenuItems.add(createSimulationInlineMenu());
+                            InlineMenuItem simulationInlineMenu = createSimulationInlineMenu();
+                            inlineMenuItems.add(simulationInlineMenu);
+                            inlineMenuItems.add(createSectionDivider(simulationInlineMenu.getVisibilityChecker()));
                         }
+
                         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceObjectTypeDefinition = findResourceObjectTypeDefinition();
                         if (resourceObjectTypeDefinition != null && resourceObjectTypeDefinition.getRealValue() != null) {
                             inlineMenuItems.add(createResourceAttributeStatisticsMenu(resourceObjectTypeDefinition.getRealValue()));
                             inlineMenuItems.add(createFocusAttributeStatisticsMenu(resourceObjectTypeDefinition.getRealValue()));
+                            inlineMenuItems.add(createSectionDivider());
                         }
+
+                        inlineMenuItems.add(createDeleteItemMenu());
+                        inlineMenuItems.add(createPreviewInlineMenu());
+
+                        //buttons
+                        inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
+                        inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
+                        inlineMenuItems.add(createAcceptItemMenu());
+                        inlineMenuItems.add(createDiscardItemMenu());
+
                         return inlineMenuItems;
                     }
 
@@ -479,11 +498,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                 columnPanel.add(new AjaxEventBehavior("click") {
                                     @Override
                                     protected void onEvent(AjaxRequestTarget target) {
-                                        PreviewMappingPanel panel = new PreviewMappingPanel(
-                                                getPageBase().getMainPopupBodyId(),
-                                                Model.of(mappingWrapper),
-                                                getMappingDirectionType() == MappingDirection.INBOUND);
-
+                                        PreviewMappingPanel panel = buildPreviewMappingPanelPopup(() -> mappingWrapper);
                                         getPageBase().showMainPopup(panel, target);
                                     }
                                 });
@@ -653,6 +668,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     protected @NotNull InlineMenuItem createDuplicateInlineMenu() {
         return InlineMenuItemBuilder.create()
+                .icon("fa fa-copy")
                 .label(createStringResource("DuplicationProcessHelper.menu.duplicate"))
                 .action(DuplicationProcessHelper.createDuplicateColumnAction(getPageBase(),
                         this::createDuplicateValuePerform))
@@ -668,6 +684,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     private @NotNull InlineMenuItem createChangeLifecycleButtonInlineMenu() {
         return InlineMenuItemBuilder.create()
+                .icon("fa fa-sync")
                 .label(createStringResource("AttributeMappingsTable.button.changeLifecycle"))
                 .action(createChangeLifecycleColumnAction(getPageBase(), this::refreshAndDetach,
                         () -> getTable().getSelectedContainerItems()))
@@ -677,6 +694,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     private @NotNull InlineMenuItem createChangeMappingNameInlineMenu() {
         return InlineMenuItemBuilder.create()
+                .icon("fa fa-sync")
                 .label(createStringResource("AttributeMappingsTable.button.changeMappingName"))
                 .action(createChangeNameColumnAction(getPageBase(), this::refreshAndDetach))
                 .headerMenuItem(false)
@@ -692,8 +710,14 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 return false;
             }
             try {
+                if (rowModel == null || rowModel.getObject() == null) {
+                    return false;
+                }
                 @SuppressWarnings("unchecked") PrismPropertyWrapper<String> property =
                         ((PrismContainerValueWrapper<MappingType>) rowModel.getObject()).findProperty(MappingType.F_NAME);
+                if (property == null) {
+                    return false;
+                }
                 return property.isReadOnly();
             } catch (SchemaException e) {
                 return false;
@@ -792,7 +816,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     private @NotNull InlineMenuItem createResourceAttributeStatisticsMenu(ResourceObjectTypeDefinitionType objectTypeDefinitionType) {
         return InlineMenuItemBuilder.create()
                 .label(createStringResource("SmartMappingTable.objectTypeStatistics.resourceAttribute"))
-                .icon("fa-solid fa-chart-bar")
+                .icon("fa fa-bar-chart")
                 .action(new ColumnMenuAction<>() {
                     @SuppressWarnings("unchecked")
                     @Override
@@ -825,7 +849,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
         return InlineMenuItemBuilder.create()
                 .label(createStringResource("SmartMappingTable.objectTypeStatistics.focusAttribute.outbound." + isOutbound))
-                .icon("fa-solid fa-chart-bar")
+                .icon("fa fa-line-chart")
                 .action(new ColumnMenuAction<>() {
                     @SuppressWarnings("unchecked")
                     @Override
@@ -993,6 +1017,8 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 .label(createStringResource("SmartMappingPanel.simulate"))
                 .icon("fa fa-flask")
                 .headerMenuItem(false)
+                //only for inbound
+                .visibilityChecker((rowModel, isHeader) -> !isHeader && getMappingDirectionType() == MappingDirection.INBOUND)
                 .action(new ColumnMenuAction<PrismContainerValueWrapper<MappingType>>() {
 
                     @Override
@@ -1067,73 +1093,79 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         }
 
                         IModel<PrismContainerValueWrapper<MappingType>> mappingWrapper = getRowModel();
-
-                        PreviewMappingPanel previewMappingPanel = new PreviewMappingPanel(
-                                getPageBase().getMainPopupBodyId(),
-                                mappingWrapper,
-                                getMappingDirectionType() == MappingDirection.INBOUND) {
-
-                            @Override
-                            public void customizeFooterButtons(@NotNull RepeatingView repeater) {
-                                super.customizeFooterButtons(repeater);
-
-                                StatusInfo<?> statusInfo = getStatusInfo(mappingWrapper.getObject());
-                                if (statusInfo != null) {
-                                    AjaxIconButton discardSuggestionButton = buildDiscardButton(repeater, mappingWrapper);
-                                    discardSuggestionButton.add(AttributeModifier.replace("class",
-                                            "btn-link text-danger ml-auto"));
-                                    repeater.add(discardSuggestionButton);
-
-                                    AjaxIconButton acceptSuggestionButton =
-                                            buildAcceptButton(repeater, mappingWrapper, statusInfo);
-                                    acceptSuggestionButton.add(AttributeModifier.replace("class", "btn btn-primary"));
-                                    repeater.add(acceptSuggestionButton);
-                                }
-                            }
-
-                            private @NotNull AjaxIconButton buildAcceptButton(
-                                    @NotNull RepeatingView repeater,
-                                    IModel<PrismContainerValueWrapper<MappingType>> rowModel,
-                                    StatusInfo<?> statusInfo) {
-                                AjaxIconButton acceptSuggestionButton = new AjaxIconButton(
-                                        repeater.newChildId(),
-                                        Model.of("fa fa-check mr-2"),
-                                        createStringResource("SmartMappingTable.apply.suggestion")) {
-                                    @Override
-                                    public void onClick(AjaxRequestTarget target) {
-                                        acceptSuggestionItemPerformed(rowModel, statusInfo, target);
-                                        getPageBase().hideMainPopup(target);
-                                    }
-                                };
-                                acceptSuggestionButton.setOutputMarkupId(true);
-                                acceptSuggestionButton.showTitleAsLabel(true);
-                                return acceptSuggestionButton;
-                            }
-
-                            private @NotNull AjaxIconButton buildDiscardButton(
-                                    @NotNull RepeatingView repeater,
-                                    IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                                AjaxIconButton discardSuggestionButton = new AjaxIconButton(
-                                        repeater.newChildId(),
-                                        Model.of("fa fa-times mr-2"),
-                                        createStringResource("SmartMappingTable.dismiss")) {
-                                    @Override
-                                    public void onClick(AjaxRequestTarget target) {
-                                        deleteItemPerform(rowModel.getObject());
-                                        getPageBase().hideMainPopup(target);
-                                    }
-                                };
-                                discardSuggestionButton.setOutputMarkupId(true);
-                                discardSuggestionButton.showTitleAsLabel(true);
-                                return discardSuggestionButton;
-                            }
-                        };
-
+                        PreviewMappingPanel previewMappingPanel = buildPreviewMappingPanelPopup(mappingWrapper);
                         getPageBase().showMainPopup(previewMappingPanel, target);
                     }
                 })
                 .visibilityChecker(bySuggestion(true, this::getStatusInfo))
                 .buildInlineMenu();
+    }
+
+    private @NotNull PreviewMappingPanel buildPreviewMappingPanelPopup(IModel<PrismContainerValueWrapper<MappingType>> mappingWrapper) {
+        return new PreviewMappingPanel(
+                getPageBase().getMainPopupBodyId(),
+                mappingWrapper,
+                getMappingDirectionType() == MappingDirection.INBOUND) {
+
+            @Override
+            public void customizeFooterButtons(@NotNull RepeatingView repeater) {
+                super.customizeFooterButtons(repeater);
+
+                StatusInfo<?> statusInfo = getStatusInfo(mappingWrapper.getObject());
+                if (statusInfo != null) {
+                    AjaxIconButton discardSuggestionButton = buildDiscardButton(repeater, mappingWrapper);
+                    discardSuggestionButton.add(AttributeModifier.replace("class",
+                            "btn-link text-danger ml-auto"));
+                    repeater.add(discardSuggestionButton);
+
+                    AjaxIconButton acceptSuggestionButton =
+                            buildAcceptButton(repeater, mappingWrapper, statusInfo);
+                    acceptSuggestionButton.add(AttributeModifier.replace("class", "btn btn-primary"));
+                    repeater.add(acceptSuggestionButton);
+                }
+            }
+
+        };
+    }
+
+    private @NotNull AjaxIconButton buildAcceptButton(
+            @NotNull RepeatingView repeater,
+            IModel<PrismContainerValueWrapper<MappingType>> rowModel,
+            StatusInfo<?> statusInfo) {
+        AjaxIconButton acceptSuggestionButton = new AjaxIconButton(
+                repeater.newChildId(),
+                Model.of("fa fa-check mr-2"),
+                createStringResource("SmartMappingTable.apply.suggestion")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                var accepted = acceptSuggestionItemPerformed(rowModel, statusInfo, target);
+                getAcceptedSuggestionsCache().add(accepted);
+                refreshAndDetach(target);
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        acceptSuggestionButton.setOutputMarkupId(true);
+        acceptSuggestionButton.showTitleAsLabel(true);
+        return acceptSuggestionButton;
+    }
+
+    private @NotNull AjaxIconButton buildDiscardButton(
+            @NotNull RepeatingView repeater,
+            IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+        AjaxIconButton discardSuggestionButton = new AjaxIconButton(
+                repeater.newChildId(),
+                Model.of("fa fa-times mr-2"),
+                createStringResource("SmartMappingTable.dismiss")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteItemPerform(rowModel.getObject());
+                refreshAndDetach(target);
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        discardSuggestionButton.setOutputMarkupId(true);
+        discardSuggestionButton.showTitleAsLabel(true);
+        return discardSuggestionButton;
     }
 
     private @Nullable ItemPathType getRefPath(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {

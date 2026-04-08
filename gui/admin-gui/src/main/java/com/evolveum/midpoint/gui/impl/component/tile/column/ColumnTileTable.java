@@ -229,6 +229,11 @@ public abstract class ColumnTileTable<O extends Serializable>
             @NotNull List<InlineMenuItem> allItems) {
         return !allItems.isEmpty() ? new InlineMenuButtonColumn<>(allItems, pageBase) {
             @Override
+            protected boolean showInlineMenuIcon() {
+                return true;
+            }
+
+            @Override
             public String getCssClass() {
                 return "inline-menu-column col";
             }
@@ -299,6 +304,8 @@ public abstract class ColumnTileTable<O extends Serializable>
 
     protected InlineMenuItem createDeleteItemMenu() {
         return InlineMenuItemBuilder.create()
+                .icon("fa fa-trash text-danger")
+                .additionalCssClass("text-danger")
                 .label(createStringResource("pageAdminFocus.button.delete"))
                 .action(createDeleteColumnAction())
                 .visibilityChecker(getDefaultMenuVisibilityChecker())
@@ -311,6 +318,7 @@ public abstract class ColumnTileTable<O extends Serializable>
 
     protected InlineMenuItem createEditInlineMenu() {
         return InlineMenuItemBuilder.create()
+                .icon("fa fa-edit")
                 .label(createStringResource("PageBase.button.edit"))
                 .action(createEditColumnAction())
                 .headerMenuItem(false)

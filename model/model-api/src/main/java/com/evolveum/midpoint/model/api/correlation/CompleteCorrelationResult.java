@@ -70,7 +70,7 @@ public class CompleteCorrelationResult extends AbstractCorrelationResult<ObjectT
         this.correlatorState = builder.correlatorState;
     }
 
-    public static Buildable builderForNoOwner(XMLGregorianCalendar correlationStart,
+    public static WithNoOwner builderForNoOwner(XMLGregorianCalendar correlationStart,
             XMLGregorianCalendar correlationEnd) {
         return new Builder(correlationStart, correlationEnd)
                 .situation(NO_OWNER)
@@ -379,8 +379,8 @@ public class CompleteCorrelationResult extends AbstractCorrelationResult<ObjectT
                 .replace(end);
     }
 
-    private static final class Builder implements Buildable, WithExistingOwnerBuilder, WithUncertainOwnerBuilder,
-            WithErrorBuilder {
+    private static final class Builder implements Buildable, WithNoOwner, WithExistingOwnerBuilder,
+            WithUncertainOwnerBuilder, WithErrorBuilder {
 
         private final XMLGregorianCalendar correlationStart;
         private final XMLGregorianCalendar correlationEnd;
@@ -434,6 +434,10 @@ public class CompleteCorrelationResult extends AbstractCorrelationResult<ObjectT
 
     public interface Buildable {
         CompleteCorrelationResult build();
+    }
+
+    public interface WithNoOwner extends Buildable {
+        WithExistingOwnerBuilder correlatorState(@Nullable AbstractCorrelatorStateType correlatorState);
     }
 
     public interface WithExistingOwnerBuilder extends Buildable {

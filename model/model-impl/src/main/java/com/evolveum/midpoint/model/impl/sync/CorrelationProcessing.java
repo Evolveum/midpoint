@@ -112,7 +112,8 @@ class CorrelationProcessing<F extends FocusType> {
                 .build();
         try {
             CompleteCorrelationResult correlationResult = correlateInRootCorrelator(result);
-            syncCtx.applyShadowDeltas(correlationResult.toDeltaItems(this.beans.prismContext, getShadow()));
+            syncCtx.applyShadowDeltas(correlationResult.toDeltaItems(this.beans.prismContext,
+                    this.syncCtx.getShadowedResourceObjectBefore()));
 
             if (correlationResult.isCertain()) {
                 closeCaseIfNeeded(result);

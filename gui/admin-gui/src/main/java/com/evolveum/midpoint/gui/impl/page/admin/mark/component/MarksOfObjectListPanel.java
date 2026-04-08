@@ -108,11 +108,11 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                         .toList());
 
                 selectedMarks.addAll(object.getPolicyStatement().stream()
-                                .filter(ps -> ps.getMarkRef() != null)
-                                .map(ps -> ps.getMarkRef())
-                                .filter(ref -> ref.getOid() != null)
-                                .map(AbstractReferencable::getOid)
-                                .toList());
+                        .filter(ps -> ps.getMarkRef() != null)
+                        .map(ps -> ps.getMarkRef())
+                        .filter(ref -> ref.getOid() != null)
+                        .map(AbstractReferencable::getOid)
+                        .toList());
 
                 if (selectedMarks.isEmpty()) {
                     LOGGER.trace("Selected object does not contain any mark.");
@@ -440,7 +440,7 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
 
     public ColumnMenuAction<SelectableBean<MarkType>> createDeleteColumnAction() {
         return new ColumnMenuAction<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -514,6 +514,8 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
         try {
             PrismContainerWrapper<PolicyStatementType> container = objectModel.getObject().findContainer(ObjectType.F_POLICY_STATEMENT);
             PrismContainerValue<PolicyStatementType> newValue = container.getItem().getDefinition().instantiate().createNewValue();
+            PolicyStatementType policyStatement = newValue.asContainerable();
+            policyStatement.setType(PolicyStatementTypeType.APPLY); // default value
             PrismContainerValueWrapper<PolicyStatementType> newItemWrapper = WebPrismUtil.createNewValueWrapper(container, newValue, getPageBase());
             container.getValues().add(newItemWrapper);
         } catch (SchemaException e) {
