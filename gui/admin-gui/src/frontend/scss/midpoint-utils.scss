@@ -5,7 +5,20 @@
  */
 
 @use "sass:math";
+@use "sass:map";
 @use "sass:color";
+
+:root {
+  @each $color, $value in $theme-bg-subtle {
+    --bs-#{$color}-bg-subtle: #{map-get($theme-bg-subtle, $color)};
+  }
+  @each $color, $value in $theme-border-subtle {
+      --bs-#{$color}-border-subtle: #{map-get($theme-border-subtle, $color)};
+  }
+  @each $color, $value in $theme-text-emphasis {
+      --bs-#{$color}-text-emphasis: #{map-get($theme-text-emphasis, $color)};
+    }
+}
 
 // simple width, mainly usable for table columns. Bootstrap has only w-* for 25%, 50%, 75%, 100%
 @each $breakpoint in map-keys($grid-breakpoints) {
@@ -161,5 +174,18 @@ div[role="button"].btn, .btn {
   }
   .text-toned-#{$color} {
       color: mix(#ffffff, $value, 90%);
+  }
+}
+
+.badge {
+font-weight: 600;
+  &.badge-opaque {
+    @each $color, $value in $theme-colors {
+      &.badge-#{$color} {
+        color: var(--bs-#{$color}-text-emphasis);
+        background-color: var(--bs-#{$color}-bg-subtle);
+        border: 1px solid var(--bs-#{$color}-border-subtle);
+      }
+    }
   }
 }
