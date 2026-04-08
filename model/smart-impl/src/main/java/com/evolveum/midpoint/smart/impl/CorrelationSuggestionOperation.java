@@ -142,7 +142,8 @@ class CorrelationSuggestionOperation {
                                         + "-to-" + focusItemPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusItemPath.toBean()))
-                                .use(InboundMappingUseType.CORRELATION);
+                                .use(InboundMappingUseType.CORRELATION)
+                                .strength(MappingStrengthType.STRONG);
                         var attrDefBean = new ResourceAttributeDefinitionType()
                                 .ref(resourceAttrName.toBean())
                                 .inbound(inbound);

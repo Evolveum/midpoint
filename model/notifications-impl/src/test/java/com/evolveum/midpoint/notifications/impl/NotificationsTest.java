@@ -619,19 +619,35 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(message.getBody()).startsWith(messageBody); // there can be subscription footer
     }
 
-    //covers 11038
-    @Test (enabled = false)
+    /**
+     * Tests that the notification manager sends the notification to each
+     * recipient defined in the recipient expression.
+     * Covers 11038.
+     * @throws Exception
+     */
+    @Test
     public void test400MessageTransportToMultipleRecipientAddressesFromExpression() throws Exception {
         OperationResult result = getTestOperationResult();
 
         given("configuration with transport using recipient address expression which returns 2 recipients");
-        final String RECIPIENT_EXPRESSION = "import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;"
-                + "import java.util.ArrayList;"
+        final String RECIPIENT_EXPRESSION = "import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;\n"
+                + "import java.util.ArrayList;\n"
+                + "import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;\n"
+                + "\n"
+                + "def user1 = new UserType()\n"
+                + "user1.oid = \"3f6e1a0c-8b27-4d91-9c5e-2f7a6b4d8e12\"\n"
+                + "user1.name = new PolyStringType(\"jackold\")\n"
+                + "user1.emailAddress = \"jack.sparrow@evolveum.com\"\n"
+                + "user1.locale = \"sk\"\n"
+                + "\n"
+                + "def user2 = new UserType()\n"
+                + "user2.oid = \"b92c4f73-6d15-4a88-a2e9-5c1d7f3b9a40\"\n"
+                + "user2.name = new PolyStringType(\"jacknew\")\n"
+                + "user2.emailAddress = \"jack.sparrow1@evolveum.com\"\n"
+                + "user2.locale = \"sk\"\n"
                 + "def recipients = new ArrayList();"
-                + "UserType manager = midpoint.getObject(UserType.class, 'c0c010c0-d34d-b33f-f00d-111111111111');"
-                + "UserType admin = midpoint.getObject(UserType.class, '00000000-0000-0000-0000-000000000002');"
-                + "recipients.add(manager);"
-                + "recipients.add(admin);"
+                + "recipients.add(user1);"
+                + "recipients.add(user2);"
                 + "return recipients";
         Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
                 .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
@@ -644,7 +660,8 @@ public class NotificationsTest extends AbstractIntegrationTest {
                         .handler(new EventHandlerType()
                                 .generalNotifier(new GeneralNotifierType()
                                         .recipientExpression(groovyExpression(RECIPIENT_EXPRESSION))
-                                        .messageTemplateRef("2dfbfee0-3363-4310-ab53-f7a87534522d", MessageTemplateType.COMPLEX_TYPE)
+                                        .messageTemplateRef(createObjectReference(
+                                                        "2dfbfee0-3363-4310-ab53-f7a87534522d", MessageTemplateType.COMPLEX_TYPE, null))
                                         .transport("test"))))
                 .asItemDeltas();
         display(result);
@@ -664,12 +681,12 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message1 = testTransport.getMessages().get(0);
         assertThat(message1).isNotNull();
         and("address of the first message is based on notifier/recipientExpression");
-        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "administrator@evolveum.com");
+        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "jack.sparrow1@evolveum.com");
 
         Message message2 = testTransport.getMessages().get(1);
         assertThat(message2).isNotNull();
         and("address of the second message is based on notifier/recipientExpression");
-        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "administrator@evolveum.com");
+        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "jack.sparrow1@evolveum.com");
     }
 
     @Test

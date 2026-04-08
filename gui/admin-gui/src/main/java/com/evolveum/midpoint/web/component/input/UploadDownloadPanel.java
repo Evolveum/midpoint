@@ -13,7 +13,6 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 
 /**
  * @author shood
@@ -63,13 +63,6 @@ public class UploadDownloadPanel extends InputPanel {
 
     public List<String> getAllowedUploadContentTypes() {
         return allowedUploadContentTypes;
-    }
-
-    public void setAllowedUploadContentTypes(List<String> allowedUploadContentTypes) {
-        if (allowedUploadContentTypes == null) {
-            allowedUploadContentTypes = new ArrayList<>();
-        }
-        this.allowedUploadContentTypes = allowedUploadContentTypes;
     }
 
     @Override
@@ -119,7 +112,7 @@ public class UploadDownloadPanel extends InputPanel {
         fileUpload.add((IValidator<List<FileUpload>>) validatable -> {
 
             List<FileUpload> list = validatable.getValue();
-            if (list == null) {
+            if (list == null || list.isEmpty()) {
                 return;
             }
 
@@ -127,39 +120,28 @@ public class UploadDownloadPanel extends InputPanel {
                 return;
             }
 
-            String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
+            final String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
 
             try {
-                List<MimeType> allowedTypes = getAllowedUploadContentTypes().stream()
-                        .map(s -> {
-                            try {
-                                return new MimeType(s);
-                            } catch (MimeTypeParseException ex) {
-                                return null;
-                            }
-                        })
-                        .filter(m -> m != null)
-                        .toList();
-
                 for (FileUpload fu : list) {
-                    String contentType = fu.getContentType();
-                    MimeType mime = new MimeType(contentType);
+                    final String contentType = fu.getContentType();
 
-                    boolean matched = false;
-                    for (MimeType allowed : allowedTypes) {
-                        if (allowed.match(mime)) {
-                            matched = true;
-                            break;
-                        }
+                    if (!FileValidatorUtil.isValidContentType(contentType, FileValidatorUtil.getMimeTypes(getAllowedUploadContentTypes()))) {
+                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
+                        validatable.error(new ValidationError(msg));
+                        continue;
                     }
 
-                    if (!matched) {
-                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
+                    if (!FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {
+                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType);
                         validatable.error(new ValidationError(msg));
                     }
                 }
             } catch (MimeTypeParseException ex) {
                 String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage());
+                validatable.error(new ValidationError(msg));
+            } catch (IOException ex) {
+                String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, ex.getMessage());
                 validatable.error(new ValidationError(msg));
             }
         });
