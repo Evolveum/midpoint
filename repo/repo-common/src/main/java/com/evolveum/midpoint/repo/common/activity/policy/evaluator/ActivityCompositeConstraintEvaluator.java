@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.List;
 import java.util.Set;
-import javax.xml.namespace.QName;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBElement;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.repo.common.activity.policy.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 // TODO create package com.evolveum.midpoint.repo.common.policy and merge this class with
@@ -62,14 +62,14 @@ public class ActivityCompositeConstraintEvaluator
             ActivityCompositeTrigger rv;
             if (isNot) {
                 if (triggers.isEmpty()) {
-                    rv = createTrigger(PolicyConstraintsType.F_NOT, constraint, triggers);
+                    rv = createTrigger(PolicyConstraintKindType.NOT, constraint, triggers);
                 } else {
                     rv = null;
                 }
             } else {
                 if (!triggers.isEmpty()) {
                     rv = createTrigger(
-                            isAnd ? PolicyConstraintsType.F_AND : PolicyConstraintsType.F_OR,
+                            isAnd ? PolicyConstraintKindType.AND : PolicyConstraintKindType.OR,
                             constraint,
                             triggers);
                 } else {
@@ -91,7 +91,7 @@ public class ActivityCompositeConstraintEvaluator
     }
 
     private ActivityCompositeTrigger createTrigger(
-            QName kind,
+            PolicyConstraintKindType kind,
             JAXBElement<PolicyConstraintsType> element,
             List<EvaluatedActivityPolicyRuleTrigger<?>> triggers) {
         return new ActivityCompositeTrigger(kind, element.getValue(), triggers);

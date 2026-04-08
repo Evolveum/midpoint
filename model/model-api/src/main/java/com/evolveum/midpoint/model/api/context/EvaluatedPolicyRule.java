@@ -28,19 +28,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public interface EvaluatedPolicyRule extends AssociatedPolicyRule {
 
     @NotNull
-    Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
+    Collection<EvaluatedFocusPolicyRuleTrigger<?>> getTriggers();
 
     /**
      * Returns all triggers, even those that were indirectly collected via situation policy rules.
      */
     @NotNull
-    Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
+    Collection<EvaluatedFocusPolicyRuleTrigger<?>> getAllTriggers();
 
     /**
      * Returns all triggers of given type, stepping down to situation policy rules and composite triggers.
      * An exception are composite "not" triggers: it is usually of no use to collect negated triggers.
      */
-    <T extends EvaluatedPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type);
+    <T extends EvaluatedFocusPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type);
 
     /** Name of the policy rule, as configured. */
     @Nullable String getName();

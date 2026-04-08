@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.model.api.util;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,26 +23,26 @@ public class EvaluatedPolicyRuleUtil {
     /**
      * Arranges triggers into trees according to presentation instructions (hidden, final, displayOrder).
      */
-    public static List<TreeNode<EvaluatedPolicyRuleTrigger<?>>> arrangeForPresentationInt(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        TreeNode<EvaluatedPolicyRuleTrigger<?>> root = new TreeNode<>();
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+    public static List<TreeNode<EvaluatedFocusPolicyRuleTrigger<?>>> arrangeForPresentationInt(Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
+        TreeNode<EvaluatedFocusPolicyRuleTrigger<?>> root = new TreeNode<>();
+        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
             arrangeForPresentationInt(root, trigger);
         }
         sortTriggersInt(root);
         return root.getChildren();
     }
 
-    private static void arrangeForPresentationInt(TreeNode<EvaluatedPolicyRuleTrigger<?>> root, EvaluatedPolicyRuleTrigger<?> trigger) {
+    private static void arrangeForPresentationInt(TreeNode<EvaluatedFocusPolicyRuleTrigger<?>> root, EvaluatedFocusPolicyRuleTrigger<?> trigger) {
         PolicyConstraintPresentationType presentation = trigger.getConstraint().getPresentation();
         boolean hidden = isHidden(presentation, trigger.getConstraintKind());
         boolean isFinal = presentation != null && Boolean.TRUE.equals(presentation.isFinal());
         if (!hidden) {
-            TreeNode<EvaluatedPolicyRuleTrigger<?>> newNode = new TreeNode<>(trigger);
+            TreeNode<EvaluatedFocusPolicyRuleTrigger<?>> newNode = new TreeNode<>(trigger);
             root.add(newNode);
             root = newNode;
         }
         if (!isFinal) {
-            for (EvaluatedPolicyRuleTrigger<?> innerTrigger : trigger.getInnerTriggers()) {
+            for (EvaluatedFocusPolicyRuleTrigger<?> innerTrigger : trigger.getInnerTriggers()) {
                 arrangeForPresentationInt(root, innerTrigger);
             }
         }
@@ -62,8 +62,8 @@ public class EvaluatedPolicyRuleUtil {
                 || kind == PolicyConstraintKindType.AND || kind == PolicyConstraintKindType.OR;
     }
 
-    private static void sortTriggersInt(TreeNode<EvaluatedPolicyRuleTrigger<?>> node) {
-        Comparator<? super TreeNode<EvaluatedPolicyRuleTrigger<?>>> comparator = (t1, t2) -> {
+    private static void sortTriggersInt(TreeNode<EvaluatedFocusPolicyRuleTrigger<?>> node) {
+        Comparator<? super TreeNode<EvaluatedFocusPolicyRuleTrigger<?>>> comparator = (t1, t2) -> {
             PolicyConstraintPresentationType p1 = t1.getUserObject().getConstraint().getPresentation();
             PolicyConstraintPresentationType p2 = t2.getUserObject().getConstraint().getPresentation();
             int o1 = p1 != null && p1.getDisplayOrder() != null ? p1.getDisplayOrder() : Integer.MAX_VALUE;
@@ -75,21 +75,21 @@ public class EvaluatedPolicyRuleUtil {
     }
 
     @NotNull
-    public static List<TreeNode<LocalizableMessage>> extractMessages(Collection<EvaluatedPolicyRuleTrigger<?>> triggers, MessageKind kind) {
+    public static List<TreeNode<LocalizableMessage>> extractMessages(Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers, MessageKind kind) {
         return extractMessages(arrangeForPresentationInt(triggers), kind);
     }
 
     @NotNull
-    public static List<TreeNode<LocalizableMessage>> extractMessages(List<TreeNode<EvaluatedPolicyRuleTrigger<?>>> triggerTreeList,
+    public static List<TreeNode<LocalizableMessage>> extractMessages(List<TreeNode<EvaluatedFocusPolicyRuleTrigger<?>>> triggerTreeList,
             MessageKind kind) {
         List<TreeNode<LocalizableMessage>> messageTreeList = new ArrayList<>();
-        for (TreeNode<EvaluatedPolicyRuleTrigger<?>> tree : triggerTreeList) {
+        for (TreeNode<EvaluatedFocusPolicyRuleTrigger<?>> tree : triggerTreeList) {
             messageTreeList.add(tree.transform(trigger -> getMessage(trigger, kind)));
         }
         return messageTreeList;
     }
 
-    private static LocalizableMessage getMessage(EvaluatedPolicyRuleTrigger<?> trigger, MessageKind kind) {
+    private static LocalizableMessage getMessage(EvaluatedFocusPolicyRuleTrigger<?> trigger, MessageKind kind) {
         switch (kind) {
             case NORMAL: return trigger.getMessage();
             case SHORT: return trigger.getMessage();

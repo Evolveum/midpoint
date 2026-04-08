@@ -6,8 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
@@ -65,7 +65,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
 
     @Override
     boolean hasPolicyRuleExceptions(
-            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
         return evaluatedAssignment.hasPolicyRuleException(policyRule, triggers);
     }
 

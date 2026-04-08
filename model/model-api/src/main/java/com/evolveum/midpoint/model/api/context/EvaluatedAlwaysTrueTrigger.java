@@ -12,7 +12,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AlwaysTruePolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
-public class EvaluatedAlwaysTrueTrigger extends EvaluatedPolicyRuleTrigger<AlwaysTruePolicyConstraintType> {
+public class EvaluatedAlwaysTrueTrigger extends EvaluatedFocusPolicyRuleTrigger<AlwaysTruePolicyConstraintType> {
 
     public EvaluatedAlwaysTrueTrigger(
             @NotNull PolicyConstraintKindType kind, @NotNull AlwaysTruePolicyConstraintType constraint,

@@ -16,16 +16,12 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleIdentifier;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRuleTrigger;
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.config.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -65,7 +61,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     @NotNull private final AbstractPolicyRuleConfigItem<?> policyRuleCI;
     @NotNull private final PolicyRuleType policyRuleBean;
 
-    @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+    @NotNull private final Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
     /**
      * Information about exact place where the rule was found. This can be important for rules that are
@@ -233,7 +229,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
 
     @NotNull
     @Override
-    public Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers() {
+    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getTriggers() {
         return triggers;
     }
 
@@ -244,9 +240,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
 
     @NotNull
     @Override
-    public Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers() {
-        List<EvaluatedPolicyRuleTrigger<?>> rv = new ArrayList<>();
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getAllTriggers() {
+        List<EvaluatedFocusPolicyRuleTrigger<?>> rv = new ArrayList<>();
+        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedSituationTrigger) {
                 rv.addAll(((EvaluatedSituationTrigger) trigger).getAllTriggers());
             } else {
@@ -263,15 +259,15 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     }
 
     @Override
-    public <T extends EvaluatedPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type) {
+    public <T extends EvaluatedFocusPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type) {
         List<T> selectedTriggers = new ArrayList<>();
         collectTriggers(selectedTriggers, getAllTriggers(), type);
         return selectedTriggers;
     }
 
-    private <T extends EvaluatedPolicyRuleTrigger<?>> void collectTriggers(Collection<T> collected,
-            Collection<EvaluatedPolicyRuleTrigger<?>> all, Class<T> type) {
-        for (EvaluatedPolicyRuleTrigger<?> trigger : all) {
+    private <T extends EvaluatedFocusPolicyRuleTrigger<?>> void collectTriggers(Collection<T> collected,
+            Collection<EvaluatedFocusPolicyRuleTrigger<?>> all, Class<T> type) {
+        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : all) {
             if (type.isAssignableFrom(trigger.getClass())) {
                 //noinspection unchecked
                 collected.add((T) trigger);
@@ -286,7 +282,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         }
     }
 
-    public void trigger(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+    public void trigger(Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
         String ruleName = getName();
         LOGGER.debug("Policy rule {} triggered: {}", ruleName, triggers);
         LOGGER.trace("Policy rule {} triggered:\n{}", ruleName, DebugUtil.debugDumpLazily(triggers, 1));
@@ -294,7 +290,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     }
 
     @Override
-    public void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger) {
+    public void addTrigger(@NotNull EvaluatedFocusPolicyRuleTrigger<?> trigger) {
         triggers.add(trigger);
     }
 
@@ -313,7 +309,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         }
 
         if (!triggers.isEmpty()) {
-            EvaluatedPolicyRuleTrigger<?> firstTrigger = triggers.iterator().next();
+            EvaluatedFocusPolicyRuleTrigger<?> firstTrigger = triggers.iterator().next();
             if (firstTrigger instanceof EvaluatedSituationTrigger) {
                 Collection<EvaluatedPolicyRule> sourceRules = ((EvaluatedSituationTrigger) firstTrigger).getSourceRules();
                 if (!sourceRules.isEmpty()) {    // should be always the case
@@ -446,7 +442,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
             sb.append(" # {T:");
             sb.append(
                     getTriggers().stream()
-                            .map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
+                            .map(EvaluatedFocusPolicyRuleTrigger::toDiagShortcut)
                             .collect(Collectors.joining(", ")));
             sb.append("}");
         }
@@ -470,7 +466,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     public void addToEvaluatedPolicyRuleBeans(
             @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
             @NotNull PolicyRuleExternalizationOptions options,
-            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable Predicate<EvaluatedFocusPolicyRuleTrigger<?>> triggerSelector,
             @Nullable EvaluatedAssignment newOwner) {
         addToEvaluatedPolicyRuleBeansInternal(ruleBeans, options, triggerSelector, newOwner);
     }
@@ -478,7 +474,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     public void addToEvaluatedPolicyRuleBeansInternal(
             @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
             @NotNull PolicyRuleExternalizationOptions options,
-            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable Predicate<EvaluatedFocusPolicyRuleTrigger<?>> triggerSelector,
             @Nullable EvaluatedAssignment newOwner) {
         EvaluatedPolicyRuleType bean = new EvaluatedPolicyRuleType();
         bean.setRuleName(getName());
@@ -493,7 +489,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
                 bean.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
             }
         }
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
             if (triggerSelector != null && !triggerSelector.test(trigger)) {
                 continue;
             }

@@ -16,6 +16,8 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -57,5 +59,10 @@ public class ExecutionTimeConstraintEvaluator
     @Override
     public Set<DataNeed> getDataNeeds(JAXBElement<DurationThresholdPolicyConstraintType> constraint) {
         return Set.of(DataNeed.EXECUTION_TIME);
+    }
+
+    @Override
+    protected PolicyConstraintKindType getPolicyConstraintKind() {
+        return PolicyConstraintKindType.EXECUTION_TIME;
     }
 }

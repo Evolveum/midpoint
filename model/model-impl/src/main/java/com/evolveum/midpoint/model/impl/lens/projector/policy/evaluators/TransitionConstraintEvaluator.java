@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedTransitionTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
@@ -57,7 +57,7 @@ public class TransitionConstraintEvaluator
                 .build();
         try {
             TransitionPolicyConstraintType trans = constraintElement.getValue();
-            List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+            List<EvaluatedFocusPolicyRuleTrigger<?>> triggers = new ArrayList<>();
             boolean match =
                     evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
                             && evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
@@ -82,14 +82,14 @@ public class TransitionConstraintEvaluator
     private <O extends ObjectType> boolean evaluateState(
             TransitionPolicyConstraintType trans,
             PolicyRuleEvaluationContext<O> rctx, ObjectState state, Boolean expected,
-            List<EvaluatedPolicyRuleTrigger<?>> triggers, OperationResult result)
+            List<EvaluatedFocusPolicyRuleTrigger<?>> triggers, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (expected == null) {
             return true;
         }
         PolicyRuleEvaluationContext<O> subContext = rctx.cloneWithStateConstraints(state);
-        List<EvaluatedPolicyRuleTrigger<?>> subTriggers =
+        List<EvaluatedFocusPolicyRuleTrigger<?>> subTriggers =
                 policyConstraintsEvaluator.evaluateConstraints(trans.getConstraints(), true, subContext, result);
         triggers.addAll(subTriggers);
         boolean real = !subTriggers.isEmpty();

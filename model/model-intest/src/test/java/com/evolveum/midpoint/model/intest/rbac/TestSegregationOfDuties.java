@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1745,10 +1744,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         display("Evaluated policy rules", allTargetsPolicyRules);
         assertEquals("Wrong number of evaluated policy rules", 2, allTargetsPolicyRules.size());
         EvaluatedPolicyRule evaluatedSodPolicyRule = getEvaluatedPolicyRule(allTargetsPolicyRules, GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME);
-        EvaluatedPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
+        EvaluatedFocusPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
         displayDumpable("Own trigger", sodTrigger);
         assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
-        EvaluatedPolicyRuleTrigger<?> situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
+        EvaluatedFocusPolicyRuleTrigger<?> situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
         displayDumpable("Situation trigger", situationTrigger);
         PolicyActionsType sodActions = evaluatedSodPolicyRule.getActions();
         display("Actions", sodActions);
@@ -1878,18 +1877,18 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     }
 
     private void assertEvaluatedPolicyRuleTriggers(EvaluatedPolicyRule evaluatedPolicyRule,
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
+                                                   Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
         assertEquals("Wrong number of triggers in evaluated policy rule " + evaluatedPolicyRule.getName(), expectedNumberOfTriggers, triggers.size());
     }
 
-    private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+    private EvaluatedFocusPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
         assertEvaluatedPolicyRuleTriggers(evaluatedPolicyRule, triggers, 1);
         return triggers.iterator().next();
     }
 
     @SuppressWarnings("SameParameterValue")
-    private EvaluatedPolicyRuleTrigger<?> getEvaluatedPolicyRuleTrigger(
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, PolicyConstraintKindType expectedConstraintType) {
+    private EvaluatedFocusPolicyRuleTrigger<?> getEvaluatedPolicyRuleTrigger(
+            Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers, PolicyConstraintKindType expectedConstraintType) {
         return triggers.stream().filter(trigger -> expectedConstraintType.equals(trigger.getConstraintKind())).findFirst().get();
     }
 

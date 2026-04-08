@@ -16,20 +16,20 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<TransitionPolicyConstraintType> {
+public class EvaluatedTransitionTrigger extends EvaluatedFocusPolicyRuleTrigger<TransitionPolicyConstraintType> {
 
-    @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
+    @NotNull private final Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers;
 
     public EvaluatedTransitionTrigger(
             @NotNull PolicyConstraintKindType kind, @NotNull TransitionPolicyConstraintType constraint,
             LocalizableMessage message, LocalizableMessage shortMessage,
-            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
+            @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers) {
         super(kind, constraint, message, shortMessage, false);
         this.innerTriggers = innerTriggers;
     }
 
     @NotNull
-    public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
+    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getInnerTriggers() {
         return innerTriggers;
     }
 

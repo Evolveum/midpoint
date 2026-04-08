@@ -41,7 +41,7 @@ import java.util.function.Predicate;
  * if a role `coordinator` excludes all roles of type `worker`, and has appropriate policy rule on it, then when you
  * are assigning `worker-1` and `worker-2`, both get this policy rule (with 2 triggers) as a foreign rule. However, only
  * one trigger is relevant for each of the workers. Hence, use appropriate method to select relevant triggers, e.g.
- * {@link #getRelevantExclusionTriggers()} or {@link EvaluatedPolicyRuleTrigger#isRelevantForNewOwner(EvaluatedAssignment)}.
+ * {@link #getRelevantExclusionTriggers()} or {@link EvaluatedFocusPolicyRuleTrigger#isRelevantForNewOwner(EvaluatedAssignment)}.
  */
 @Experimental
 public interface AssociatedPolicyRule extends DebugDumpable, Serializable, Cloneable {
@@ -106,14 +106,14 @@ public interface AssociatedPolicyRule extends DebugDumpable, Serializable, Clone
     void addToEvaluatedPolicyRuleBeans(
             @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
             @NotNull PolicyRuleExternalizationOptions options,
-            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable Predicate<EvaluatedFocusPolicyRuleTrigger<?>> triggerSelector,
             @Nullable EvaluatedAssignment newOwner);
 
     /**
      * Adds a trigger to the policy rule.
      * For internal use only.
      */
-    void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger);
+    void addTrigger(@NotNull EvaluatedFocusPolicyRuleTrigger<?> trigger);
 
     static int getTriggeredRulesCount(Collection<? extends AssociatedPolicyRule> policyRules) {
         return (int) policyRules.stream().filter(AssociatedPolicyRule::isTriggered).count();

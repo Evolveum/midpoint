@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, NumericConstraintTrigger<C>> {
@@ -97,8 +98,10 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
         return false;
     }
 
+    protected abstract PolicyConstraintKindType getPolicyConstraintKind();
+
     private NumericConstraintTrigger<C> createTrigger(C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
-        return new NumericConstraintTrigger<>(constraint, message, shortMessage);
+        return new NumericConstraintTrigger<>(getPolicyConstraintKind(), constraint, message, shortMessage);
     }
 
     public abstract Integer getLocalValue(ActivityPolicyRuleEvaluationContext context);

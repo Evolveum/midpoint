@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<HasAssignmentPolicyConstraintType> {
+public class EvaluatedHasAssignmentTrigger extends EvaluatedFocusPolicyRuleTrigger<HasAssignmentPolicyConstraintType> {
 
     @NotNull private final Collection<PrismObject<?>> matchingTargets;
 

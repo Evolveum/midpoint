@@ -641,7 +641,7 @@ public class TestPolicyRules extends AbstractLensTest {
         // checking the rules
         assertEvaluatedTargetPolicyRules(context, 1);
         assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
-        EvaluatedPolicyRuleTrigger<?> trigger = assertTriggeredTargetPolicyRule(context, ROLE_LOCALIZED.oid,
+        EvaluatedFocusPolicyRuleTrigger<?> trigger = assertTriggeredTargetPolicyRule(context, ROLE_LOCALIZED.oid,
                 PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1, true);
         LocalizableMessage message = trigger.getMessage();
 

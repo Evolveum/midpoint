@@ -490,13 +490,13 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     public boolean hasPolicyRuleException(
-            @NotNull EvaluatedPolicyRuleImpl rule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+            @NotNull EvaluatedPolicyRuleImpl rule, @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
 
         if (hasDirectPolicyRuleException(rule, triggers)) {
             return true;
         }
 
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger exclusionTrigger) {
                 EvaluatedAssignmentImpl<?> conflictingAssignment =
                         (EvaluatedAssignmentImpl<?>) exclusionTrigger.getConflictingAssignment();
@@ -511,7 +511,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     private boolean hasDirectPolicyRuleException(
             @NotNull EvaluatedPolicyRule rule,
-            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+            @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
         for (PolicyExceptionType policyException: getAssignment().getPolicyException()) {
             String ruleName = rule.getName();
             if (policyException.getRuleName().equals(ruleName)) {

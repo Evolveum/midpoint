@@ -124,14 +124,14 @@ public class ForeignPolicyRuleImpl implements AssociatedPolicyRule {
     public void addToEvaluatedPolicyRuleBeans(
             @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
             @NotNull PolicyRuleExternalizationOptions options,
-            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable Predicate<EvaluatedFocusPolicyRuleTrigger<?>> triggerSelector,
             @Nullable EvaluatedAssignment newOwner) {
         assert newOwner == null || newOwner == this.newOwner;
         evaluatedPolicyRule.addToEvaluatedPolicyRuleBeansInternal(ruleBeans, options, triggerSelector, this.newOwner);
     }
 
     @Override
-    public void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger) {
+    public void addTrigger(@NotNull EvaluatedFocusPolicyRuleTrigger<?> trigger) {
         evaluatedPolicyRule.addTrigger(trigger);
     }
 }

@@ -6,26 +6,17 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedExclusionTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Common abstract superclass for triggered exclusion and requirement constraints.
  */
-public abstract class EvaluatedExclusionRequirementTrigger extends EvaluatedPolicyRuleTrigger<ExclusionPolicyConstraintType> {
+public abstract class EvaluatedExclusionRequirementTrigger extends EvaluatedFocusPolicyRuleTrigger<ExclusionPolicyConstraintType> {
 
     @NotNull private final EvaluatedAssignment thisAssignment;
     @NotNull private final ObjectType thisTarget;

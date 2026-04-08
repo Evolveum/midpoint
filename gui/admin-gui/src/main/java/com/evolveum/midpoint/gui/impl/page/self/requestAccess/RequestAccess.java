@@ -18,7 +18,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 
@@ -57,7 +56,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -674,13 +672,13 @@ public class RequestAccess implements Serializable, DebugDumpable {
     }
 
     private void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
+                                 Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers, boolean warning) {
 
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger evaluatedExclusionTrigger) {
                 createConflicts(userRef, conflicts, evaluatedAssignment, evaluatedExclusionTrigger, warning);
             } else if (trigger instanceof EvaluatedCompositeTrigger compositeTrigger) {
-                Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
+                Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
                 createConflicts(userRef, conflicts, evaluatedAssignment, innerTriggers, warning);
             }
         }

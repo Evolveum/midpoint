@@ -11,17 +11,15 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.model.api.context.*;
 import jakarta.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RecordPolicyActionType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.CompositeConstraintEvaluator;
@@ -160,7 +158,7 @@ abstract class PolicyRuleEvaluator {
      * We consider unnamed root-level composition as a fake one, so we look into individual sub-triggers in that case;
      * whereas if there is a name and/or presentation, we consider that composition as a single entity.
     */
-    private @NotNull static List<EvaluatedPolicyRuleTrigger<?>> getIndividualTriggers(
+    private @NotNull static List<EvaluatedFocusPolicyRuleTrigger<?>> getIndividualTriggers(
             @NotNull EvaluatedCompositeTrigger trigger, @NotNull PolicyConstraintsType constraints) {
         // TODO reconsider this
         if (constraints.getName() == null && constraints.getPresentation() == null) {

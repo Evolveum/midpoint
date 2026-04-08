@@ -12,7 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EvaluatedCustomConstraintTrigger extends EvaluatedPolicyRuleTrigger<CustomPolicyConstraintType> {
+public class EvaluatedCustomConstraintTrigger extends EvaluatedFocusPolicyRuleTrigger<CustomPolicyConstraintType> {
 
     public EvaluatedCustomConstraintTrigger(
             @NotNull PolicyConstraintKindType kind,

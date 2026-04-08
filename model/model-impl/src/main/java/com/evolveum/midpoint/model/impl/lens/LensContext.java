@@ -1290,8 +1290,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    private void dumpTriggersCollection(int indent, StringBuilder sb, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+    private void dumpTriggersCollection(int indent, StringBuilder sb, Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
+        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent);
             sb.append("trigger: ").append(trigger);

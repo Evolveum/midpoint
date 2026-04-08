@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,7 +67,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
             boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
             boolean isNot = QNameUtil.match(PolicyConstraintsType.F_NOT, constraint.getName());
             assert isAnd || isOr || isNot;
-            List<EvaluatedPolicyRuleTrigger<?>> triggers =
+            List<EvaluatedFocusPolicyRuleTrigger<?>> triggers =
                     policyConstraintsEvaluator.evaluateConstraints(constraint.getValue(), !isOr, rctx, result);
             EvaluatedCompositeTrigger rv;
             if (isNot) {
@@ -98,7 +98,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
     @NotNull
     private EvaluatedCompositeTrigger createTrigger(
             PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
-            List<EvaluatedPolicyRuleTrigger<?>> triggers,
+            List<EvaluatedFocusPolicyRuleTrigger<?>> triggers,
             PolicyRuleEvaluationContext<?> rctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {

@@ -10,14 +10,16 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingResultPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
-public class EvaluatedItemStatePolicyTrigger extends EvaluatedActivityPolicyRuleTrigger<ItemProcessingResultPolicyConstraintType> {
+public class EvaluatedItemProcessingResultPolicyTrigger
+        extends EvaluatedActivityPolicyRuleTrigger<ItemProcessingResultPolicyConstraintType> {
 
-    public EvaluatedItemStatePolicyTrigger(
+    public EvaluatedItemProcessingResultPolicyTrigger(
             @NotNull ItemProcessingResultPolicyConstraintType constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage) {
 
-        super(constraint, message, shortMessage);
+        super(PolicyConstraintKindType.ITEM_PROCESSING_RESULT, constraint, message, shortMessage);
     }
 }

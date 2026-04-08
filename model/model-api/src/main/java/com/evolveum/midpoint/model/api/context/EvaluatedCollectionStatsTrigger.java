@@ -11,7 +11,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EvaluatedCollectionStatsTrigger extends EvaluatedPolicyRuleTrigger<CollectionStatsPolicyConstraintType> {
+public class EvaluatedCollectionStatsTrigger extends EvaluatedFocusPolicyRuleTrigger<CollectionStatsPolicyConstraintType> {
 
     public EvaluatedCollectionStatsTrigger(
             @NotNull PolicyConstraintKindType kind, @NotNull CollectionStatsPolicyConstraintType constraint,

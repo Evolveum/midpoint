@@ -8,9 +8,9 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
@@ -47,14 +47,14 @@ public abstract class PolicyRuleEvaluationContext<O extends ObjectType> {
 
     public abstract PolicyRuleEvaluationContext<O> cloneWithStateConstraints(ObjectState state);
 
-    void triggerRuleIfNoExceptions(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+    void triggerRuleIfNoExceptions(Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
         if (!hasPolicyRuleExceptions(policyRule, triggers)) {
             policyRule.trigger(triggers);
         }
     }
 
     boolean hasPolicyRuleExceptions(
-            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
         return false; // FIXME not currently implemented for objects (only for assignments)
     }
 

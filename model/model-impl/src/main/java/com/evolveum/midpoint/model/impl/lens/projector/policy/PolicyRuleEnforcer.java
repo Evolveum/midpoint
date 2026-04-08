@@ -16,14 +16,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.util.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -123,18 +120,18 @@ class PolicyRuleEnforcer<O extends ObjectType> {
     private void computeEnforcementForTriggeredRules(Collection<? extends EvaluatedPolicyRule> policyRules) {
         for (EvaluatedPolicyRule policyRule: policyRules) {
 
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggers = policyRule.getTriggers();
+            Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers = policyRule.getTriggers();
             if (triggers.isEmpty()) {
                 continue;
             }
 
             boolean enforceAll = policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-            Collection<EvaluatedPolicyRuleTrigger<?>> enforcingTriggers;
+            Collection<EvaluatedFocusPolicyRuleTrigger<?>> enforcingTriggers;
             if (enforceAll) {
                 enforcingTriggers = triggers;
             } else {
                 enforcingTriggers = triggers.stream()
-                        .filter(EvaluatedPolicyRuleTrigger::isEnforcementOverride)
+                        .filter(EvaluatedFocusPolicyRuleTrigger::isEnforcementOverride)
                         .collect(Collectors.toList());
                 if (enforcingTriggers.isEmpty()) {
                     continue;

@@ -10,14 +10,17 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
-public class DurationThresholdPolicyTrigger<C extends DurationThresholdPolicyConstraintType> extends EvaluatedActivityPolicyRuleTrigger<C> {
+public class DurationThresholdPolicyTrigger<C extends DurationThresholdPolicyConstraintType>
+        extends EvaluatedActivityPolicyRuleTrigger<C> {
 
     public DurationThresholdPolicyTrigger(
+            @NotNull PolicyConstraintKindType policyConstraintKind,
             @NotNull C constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage) {
 
-        super(constraint, message, shortMessage);
+        super(policyConstraintKind, constraint, message, shortMessage);
     }
 }

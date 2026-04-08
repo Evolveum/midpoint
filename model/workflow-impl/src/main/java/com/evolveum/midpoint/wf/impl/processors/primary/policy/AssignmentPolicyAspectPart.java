@@ -291,7 +291,7 @@ public class AssignmentPolicyAspectPart {
                 LOGGER.debug(" - Rule: {}", rule.toShortString());
                 LOGGER.debug("   - Approval actions: {}", rule.getEnabledActions(ApprovalPolicyActionType.class));
                 // TODO somehow distinguish own/foreign rules
-                for (EvaluatedPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getTriggers()) {
+                for (EvaluatedFocusPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getTriggers()) {
                     LOGGER.debug("   - Trigger: {}", trigger);
                 }
             }

@@ -18,7 +18,7 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 public class EvaluatedModificationTrigger<C extends ModificationPolicyConstraintType>
-        extends EvaluatedPolicyRuleTrigger<C> {
+        extends EvaluatedFocusPolicyRuleTrigger<C> {
 
     @NotNull private final Collection<PrismObject<?>> matchingTargets;
 

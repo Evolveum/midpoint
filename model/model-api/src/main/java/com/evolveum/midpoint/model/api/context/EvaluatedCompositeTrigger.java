@@ -18,22 +18,22 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<PolicyConstraintsType> {
+public class EvaluatedCompositeTrigger extends EvaluatedFocusPolicyRuleTrigger<PolicyConstraintsType> {
 
-    @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
+    @NotNull private final Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers;
 
     public EvaluatedCompositeTrigger(
             @NotNull PolicyConstraintKindType kind,
             @NotNull PolicyConstraintsType constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage,
-            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
+            @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers) {
         super(kind, constraint, message, shortMessage, false);
         this.innerTriggers = innerTriggers;
     }
 
     @NotNull
-    public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
+    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getInnerTriggers() {
         return innerTriggers;
     }
 
@@ -41,7 +41,7 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
     public String toDiagShortcut() {
         return super.toDiagShortcut()
             + innerTriggers.stream()
-                    .map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
+                    .map(EvaluatedFocusPolicyRuleTrigger::toDiagShortcut)
                     .distinct()
                     .collect(Collectors.joining("+", "(", ")"));
     }

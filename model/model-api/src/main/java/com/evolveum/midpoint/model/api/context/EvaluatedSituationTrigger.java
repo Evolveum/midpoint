@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolic
 
 import org.jetbrains.annotations.Nullable;
 
-public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<PolicySituationPolicyConstraintType> {
+public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<PolicySituationPolicyConstraintType> {
 
     @NotNull private final Collection<EvaluatedPolicyRule> sourceRules;
 
@@ -46,7 +46,7 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
         List<EvaluatedPolicyRule> rv = new ArrayList<>();
         for (EvaluatedPolicyRule sourceRule : sourceRules) {
             rv.add(sourceRule);
-            for (EvaluatedPolicyRuleTrigger<?> trigger : sourceRule.getTriggers()) {
+            for (EvaluatedFocusPolicyRuleTrigger<?> trigger : sourceRule.getTriggers()) {
                 if (trigger instanceof EvaluatedSituationTrigger) {
                     rv.addAll(((EvaluatedSituationTrigger) trigger).getAllSourceRules());
                 }
@@ -55,8 +55,8 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
         return rv;
     }
 
-    public Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers() {
-        List<EvaluatedPolicyRuleTrigger<?>> rv = new ArrayList<>();
+    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getAllTriggers() {
+        List<EvaluatedFocusPolicyRuleTrigger<?>> rv = new ArrayList<>();
         rv.add(this);
         getAllSourceRules().forEach(r -> rv.addAll(r.getTriggers()));
         return rv;

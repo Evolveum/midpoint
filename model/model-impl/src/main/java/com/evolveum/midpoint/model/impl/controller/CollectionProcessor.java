@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
 import com.evolveum.midpoint.schema.config.AbstractAssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
@@ -157,7 +157,7 @@ public class CollectionProcessor {
         for (CollectionStatsPolicyConstraintType collectionStatsPolicy : policyConstraints.getCollectionStats()) {
             CollectionStats stats = determineCollectionStats(collectionView, task, result);
             if (isThresholdTriggered(stats, collection, policyThreshold)) {
-                EvaluatedPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(
+                EvaluatedFocusPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(
                         PolicyConstraintKindType.COLLECTION_STATS, collectionStatsPolicy,
                         new LocalizableMessageBuilder()
                                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)

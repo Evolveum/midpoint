@@ -10,11 +10,16 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
 public class NumericConstraintTrigger<C extends NumericThresholdPolicyConstraintType>
         extends EvaluatedActivityPolicyRuleTrigger<C> {
 
-    public NumericConstraintTrigger(@NotNull C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
-        super(constraint, message, shortMessage);
+    public NumericConstraintTrigger(
+            @NotNull PolicyConstraintKindType constraintKind,
+            @NotNull C constraint,
+            LocalizableMessage message,
+            LocalizableMessage shortMessage) {
+        super(constraintKind, constraint, message, shortMessage);
     }
 }

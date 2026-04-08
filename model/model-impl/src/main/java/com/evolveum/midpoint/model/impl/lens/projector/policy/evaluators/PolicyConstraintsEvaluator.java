@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -48,18 +48,18 @@ public class PolicyConstraintsEvaluator {
 
     // returns non-empty list if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
     @SuppressWarnings("unchecked")
-    @NotNull <O extends ObjectType> List<EvaluatedPolicyRuleTrigger<?>> evaluateConstraints(
+    @NotNull <O extends ObjectType> List<EvaluatedFocusPolicyRuleTrigger<?>> evaluateConstraints(
             PolicyConstraintsType constraints, boolean allMustApply, PolicyRuleEvaluationContext<O> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (constraints == null) {
             return Collections.emptyList();
         }
-        List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+        List<EvaluatedFocusPolicyRuleTrigger<?>> triggers = new ArrayList<>();
         for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false, false)) {
             PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
                     (PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) getConstraintEvaluator(constraint);
-            Collection<? extends EvaluatedPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(constraint, ctx, result);
+            Collection<? extends EvaluatedFocusPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(constraint, ctx, result);
             LOGGER.trace("Evaluated policy rule triggers: {}", newTriggers);
             traceConstraintEvaluationResult(constraint, ctx, newTriggers);
             if (!newTriggers.isEmpty()) {
@@ -76,7 +76,7 @@ public class PolicyConstraintsEvaluator {
     private <O extends ObjectType> void traceConstraintEvaluationResult(
             JAXBElement<AbstractPolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<O> ctx,
-            Collection<? extends EvaluatedPolicyRuleTrigger<?>> newTriggers) throws SchemaException {
+            Collection<? extends EvaluatedFocusPolicyRuleTrigger<?>> newTriggers) throws SchemaException {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
