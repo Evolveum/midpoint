@@ -1132,7 +1132,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         getPageBase().showMainPopup(previewMappingPanel, target);
                     }
                 })
-                .visibilityChecker(bySuggestion(false, this::getStatusInfo))
+                .visibilityChecker(bySuggestion(true, this::getStatusInfo))
                 .buildInlineMenu();
     }
 
