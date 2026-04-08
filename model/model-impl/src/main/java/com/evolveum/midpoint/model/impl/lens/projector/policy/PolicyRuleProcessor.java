@@ -13,6 +13,9 @@ import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRulesEvaluator.FocusPolicyRulesEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRulesEvaluator.ProjectionPolicyRulesEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyProcessorHelper;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleCounterUpdater;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.List;
 
 /**
  * A facade for various actions related to handling of policy rules: evaluation, enforcement, and so on.
@@ -130,6 +134,29 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             LensContext<AH> context, @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         // No need for custom operation result, as this already has one
+
+        // todo switch to activity policy rule counter updater [viliam]
+//        AbstractActivityRun<?, ?, ?> activityRun = ActivityPolicyProcessorHelper.getCurrentActivityRun();
+//        new ActivityPolicyRuleCounterUpdater(
+//                activityRun,
+//                () -> {
+//                    LensFocusContext<?> focusContext = context.getFocusContext();
+//                    if (focusContext == null) {
+//                        return List.of();
+//                    }
+//
+//                    return focusContext.getObjectPolicyRules();
+//                },
+//                ruleIdentifier -> {
+//                    LensFocusContext<?> focusContext = context.getFocusContext();
+//                    if (focusContext == null) {
+//                        return null;
+//                    }
+//
+//                    return focusContext.getPolicyRuleCounter(ruleIdentifier);
+//                })
+//                .updateCounters(result);
+
         new PolicyRuleCounterUpdater<>(context, task)
                 .updateCounters(result);
     }

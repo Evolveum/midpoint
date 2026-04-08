@@ -6,11 +6,11 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 
 public interface ActivityPolicyRuleEvent extends ActivityEvent {
 
     String getRuleName();
 
-    EvaluatedActivityPolicyRule getPolicyRule();
+    GenericEvaluatedPolicyRule getPolicyRule();
 }

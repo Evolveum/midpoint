@@ -6,26 +6,24 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
-import com.evolveum.midpoint.notifications.api.events.ActivityPolicyRuleEvent;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
-
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.notifications.api.events.ActivityPolicyRuleEvent;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * Event that is triggered by the 'notification' policy rule action during activity execution.
  */
 public class ActivityPolicyRuleEventImpl extends ActivityEventImpl implements ActivityPolicyRuleEvent {
 
-    private @NotNull EvaluatedActivityPolicyRule policyRule;
+    @NotNull private final GenericEvaluatedPolicyRule policyRule;
 
     public ActivityPolicyRuleEventImpl(
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
-            @NotNull EvaluatedActivityPolicyRule policyRule) {
+            @NotNull GenericEvaluatedPolicyRule policyRule) {
 
         super(activityRun);
 
@@ -33,7 +31,7 @@ public class ActivityPolicyRuleEventImpl extends ActivityEventImpl implements Ac
     }
 
     @Override
-    public @NotNull EvaluatedActivityPolicyRule getPolicyRule() {
+    public @NotNull GenericEvaluatedPolicyRule getPolicyRule() {
         return policyRule;
     }
 

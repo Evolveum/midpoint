@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,14 +20,14 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingR
  */
 public class ActivityPolicyRuleEvaluationContext {
 
-    private final @NotNull EvaluatedActivityPolicyRule rule;
+    private final @NotNull GenericEvaluatedPolicyRule rule;
 
     private final @NotNull AbstractActivityRun<?, ?, ?> activityRun;
 
     private final ItemProcessingResult processingResult;
 
     public ActivityPolicyRuleEvaluationContext(
-            @NotNull EvaluatedActivityPolicyRule rule,
+            @NotNull GenericEvaluatedPolicyRule rule,
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
             ItemProcessingResult processingResult) {
 
@@ -39,7 +40,7 @@ public class ActivityPolicyRuleEvaluationContext {
         return activityRun;
     }
 
-    public @NotNull EvaluatedActivityPolicyRule getRule() {
+    public @NotNull GenericEvaluatedPolicyRule getRule() {
         return rule;
     }
 

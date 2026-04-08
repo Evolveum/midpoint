@@ -16,15 +16,16 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
-import com.evolveum.midpoint.schema.config.AbstractPolicyRuleConfigItem;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
-import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleIdentifier;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
+import com.evolveum.midpoint.schema.config.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -142,6 +143,51 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
                 evaluatedAssignment,
                 targetType);
     }
+
+//    @Override
+//    public ActivityPath getPath() {
+//        return null;    // todo fix [viliam]
+//    }
+//
+//    @Override
+//    public @NotNull ActivityPolicyRuleIdentifier getRuleIdentifier() {
+//        return null;    // todo fix [viliam]
+//    }
+//
+//    @Override
+//    public void setCount(Integer localValue, Integer totalValue) {
+//        // todo fix [viliam]
+//    }
+//
+//    @Override
+//    public void setCurrentState(ActivityPolicyStateType currentState) {
+//        // todo fix [viliam]
+//    }
+//
+//    @Override
+//    public void setTriggers(List<EvaluatedActivityPolicyRuleTrigger<?>> triggers) {
+//        // todo fix [viliam]
+//    }
+//
+//    @Override
+//    public boolean hasThreshold() {
+//        return EvaluatedPolicyRule.super.hasThreshold();
+//    }
+//
+//    @Override
+//    public boolean isApplicableToAssignment() {
+//        return EvaluatedPolicyRule.super.isApplicableToAssignment();
+//    }
+//
+//    @Override
+//    public boolean isApplicableToFocusObject() {
+//        return EvaluatedPolicyRule.super.isApplicableToFocusObject();
+//    }
+//
+//    @Override
+//    public boolean isApplicableToProjection() {
+//        return EvaluatedPolicyRule.super.isApplicableToProjection();
+//    }
 
     @Override
     public String getName() {

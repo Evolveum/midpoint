@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.util.DebugUtil.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -19,7 +21,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class EvaluatedActivityPolicyRule implements DebugDumpable {
+public class EvaluatedActivityPolicyRule implements GenericEvaluatedPolicyRule, DebugDumpable {
 
     @NotNull private final ActivityPolicyRule policyRule;
 
@@ -29,7 +31,8 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         this.policyRule = policyRule;
     }
 
-    public PolicyRuleType getPolicy() {
+    @NotNull
+    public PolicyRuleType getPolicyRule() {
         return policyRule.getPolicy();
     }
 
@@ -77,7 +80,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
     }
 
     public boolean hasThreshold() {
-        return getPolicy().getPolicyThreshold() != null;
+        return getPolicyRule().getPolicyThreshold() != null;
     }
 
     public boolean isOverThreshold() {
@@ -123,7 +126,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
         debugDumpLabelLn(sb, "policyRuleType", indent + 1);
         indentDebugDump(sb, indent + 2);
-        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, getPolicy(), PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
+        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, getPolicyRule(), PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
         sb.append('\n');
         debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
         return sb.toString();

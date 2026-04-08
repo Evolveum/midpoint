@@ -25,10 +25,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyProcessorHelper;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesCollector;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
-import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
-import com.evolveum.midpoint.schema.config.MappingConfigItem;
+import com.evolveum.midpoint.schema.config.*;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -85,15 +88,29 @@ class PolicyRulesCollector<O extends ObjectType> {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
-        collectObjectRulesFromActivity(rules);
+        collectObjectRulesFromActivity(rules, result);
         collectObjectRulesFromAssignments(rules);
         collectGlobalObjectRules(rules, result);
         resolveConstraintReferences(rules);
         return rules;
     }
 
-    private void collectObjectRulesFromActivity(List<EvaluatedPolicyRuleImpl> rules) {
-        // todo implement
+    // todo better implementation needed, we need to know that policies came from activity (and which one)
+    //  so that we can figure out how to manage counters, etc. [viliam]
+    private void collectObjectRulesFromActivity(List<EvaluatedPolicyRuleImpl> rules, OperationResult result) {
+        Collection<ActivityPolicyRule> activityRules = ActivityPolicyProcessorHelper.getActivityPolicyRules();
+        if (activityRules.isEmpty()) {
+            return;
+        }
+
+        for (ActivityPolicyRule rule : activityRules) {
+            String ruleId = rule.getRuleIdentifier().toString();
+            ActivityPolicyRuleConfigItem ruleCI =
+                    ConfigurationItem.configItem(rule.getPolicy(), ConfigurationItemOrigin.embedded(rule), ActivityPolicyRuleConfigItem.class);
+
+            LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
+            rules.add(new EvaluatedPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT));
+        }
     }
 
     private void collectObjectRulesFromAssignments(List<EvaluatedPolicyRuleImpl> rules) {

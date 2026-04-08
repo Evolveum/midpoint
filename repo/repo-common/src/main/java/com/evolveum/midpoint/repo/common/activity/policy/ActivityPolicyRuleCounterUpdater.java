@@ -9,7 +9,11 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,24 +33,28 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * TODO: Way to similar to PolicyRuleCounterUpdater located in model.
  *  Consider refactoring to avoid code duplication.
  */
-class ActivityPolicyRuleUpdater {
+public class ActivityPolicyRuleCounterUpdater {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ActivityPolicyRuleUpdater.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ActivityPolicyRuleCounterUpdater.class);
 
     private final @NotNull AbstractActivityRun<?, ?, ?> activityRun;
 
-    private final @NotNull Collection<EvaluatedActivityPolicyRule> evaluatedRules;
+    private final @NotNull Supplier<Collection<GenericEvaluatedPolicyRule>> policyRulesProvider;
 
-    ActivityPolicyRuleUpdater(
+    private final Function<String, Integer> alreadyIncrementedValueChecker;
+
+    public ActivityPolicyRuleCounterUpdater(
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
-            @NotNull Collection<EvaluatedActivityPolicyRule> evaluatedRules) {
+            @NotNull Supplier<Collection<GenericEvaluatedPolicyRule>> policyRulesProvider,
+            Function<String, Integer> alreadyIncrementedValueChecker) {
 
         this.activityRun = activityRun;
-        this.evaluatedRules = evaluatedRules;
+        this.policyRulesProvider = policyRulesProvider;
+        this.alreadyIncrementedValueChecker = alreadyIncrementedValueChecker;
     }
 
     /** Updates counters for the triggered "counter-style" rules in repo (activity state) and in memory (rules themselves). */
-    void updateCounters(OperationResult result)
+    public void updateCounters(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         // Collect rules that need their counters incremented
@@ -81,17 +89,34 @@ class ActivityPolicyRuleUpdater {
     }
 
     /** Returns rules that should have their counters incremented, in a form of map: ID -> rule. */
-    private @NotNull Map<String, EvaluatedActivityPolicyRule> collectRulesToIncrement() {
-        Map<String, EvaluatedActivityPolicyRule> rulesToIncrementMap = new HashMap<>();
-        for (EvaluatedActivityPolicyRule rule : evaluatedRules) {
+    private @NotNull Map<String, GenericEvaluatedPolicyRule> collectRulesToIncrement() {
+        Collection<GenericEvaluatedPolicyRule> rules = policyRulesProvider.get();
+
+        Map<String, GenericEvaluatedPolicyRule> rulesToIncrementMap = new HashMap<>();
+        for (GenericEvaluatedPolicyRule rule : rules) {
             if (!rule.isTriggered()) {
                 LOGGER.trace("Rule {} is not triggered, skipping counter update", rule.getRuleIdentifier());
-            } else if (!rule.hasThreshold()) {
-                LOGGER.trace("Rule {} does not have a threshold, skipping counter update", rule.getRuleIdentifier());
-            } else {
-                LOGGER.trace("Incrementing counter for rule {}", rule.getRuleIdentifier());
-                rulesToIncrementMap.put(rule.getRuleIdentifier().toString(), rule);
+                continue;
             }
+
+            if (!rule.hasThreshold()) {
+                LOGGER.trace("Rule {} does not have a threshold, skipping counter update", rule.getRuleIdentifier());
+                continue;
+            }
+
+            if (alreadyIncrementedValueChecker != null) {
+                Integer alreadyIncrementedValue = alreadyIncrementedValueChecker.apply(rule.getRuleIdentifier().toString());
+                if (alreadyIncrementedValue != null) {
+                    // todo skip also already incremented, uncomment and fix
+//                    rule.setCount(alreadyIncrementedValue);
+                    LOGGER.trace("Rule {} already has an incremented value {}, skipping counter update",
+                            rule.getRuleIdentifier(), alreadyIncrementedValue);
+                    continue;
+                }
+            }
+
+            LOGGER.trace("Incrementing counter for rule {}", rule.getRuleIdentifier());
+            rulesToIncrementMap.put(rule.getRuleIdentifier().toString(), rule);
         }
         return rulesToIncrementMap;
     }

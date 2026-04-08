@@ -6,23 +6,20 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.FULL_EXECUTION_MODE_POLICY_RULES;
-import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.PREVIEW_MODE_POLICY_RULES;
-
 import static java.util.Objects.requireNonNull;
 
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.FINISHED;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.FINISHED;
-import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.FULL_EXECUTION_MODE_POLICY_RULES;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.PREVIEW_MODE_POLICY_RULES;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 import java.util.Map;
-
-import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,12 +31,12 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDe
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.DummyOperationImpl;
@@ -50,10 +47,14 @@ import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 
 /**
  * Implements/represents a run (execution) of an activity in a task.
@@ -660,7 +661,7 @@ public abstract class AbstractActivityRun<
         }
     }
 
-    public void sendActivityPolicyRuleTriggeredEvent(EvaluatedActivityPolicyRule policyRule, OperationResult result) {
+    public void sendActivityPolicyRuleTriggeredEvent(GenericEvaluatedPolicyRule policyRule, OperationResult result) {
         for (ActivityListener activityListener : emptyIfNull(getBeans().activityListeners)) {
             try {
                 activityListener.onActivityPolicyRuleTriggered(this, policyRule, getRunningTask(), result);

@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
+
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,7 +66,7 @@ public class ActivityPolicyRulesProcessor {
             return;
         }
 
-        Collection<EvaluatedActivityPolicyRule> evaluatedRules = rules.stream()
+        Collection<GenericEvaluatedPolicyRule> evaluatedRules = rules.stream()
                 .map(EvaluatedActivityPolicyRule::new)
                 .collect(Collectors.toList());
 
@@ -76,21 +78,21 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void evaluateRules(
-            Collection<EvaluatedActivityPolicyRule> rules, ItemProcessingResult processingResult, OperationResult result) {
+            Collection<GenericEvaluatedPolicyRule> rules, ItemProcessingResult processingResult, OperationResult result) {
 
-        for (EvaluatedActivityPolicyRule rule : rules) {
+        for (GenericEvaluatedPolicyRule rule : rules) {
             evaluateRule(rule, processingResult, result);
         }
     }
 
-    private void updateCounters(Collection<EvaluatedActivityPolicyRule> evaluatedRules, OperationResult result)
+    private void updateCounters(Collection<GenericEvaluatedPolicyRule> evaluatedRules, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        new ActivityPolicyRuleUpdater(activityRun, evaluatedRules)
+        new ActivityPolicyRuleCounterUpdater(activityRun, () -> evaluatedRules, null)
                 .updateCounters(result);
     }
 
-    private ActivityPolicyStateType createPolicyState(EvaluatedActivityPolicyRule rule) {
+    private ActivityPolicyStateType createPolicyState(GenericEvaluatedPolicyRule rule) {
         ActivityPolicyStateType state = new ActivityPolicyStateType();
         state.setIdentifier(rule.getRuleIdentifier().toString());
         state.setName(rule.getName());
@@ -102,7 +104,7 @@ public class ActivityPolicyRulesProcessor {
         return state;
     }
 
-    private void executeAndStoreState(Collection<EvaluatedActivityPolicyRule> evaluatedRules, OperationResult result)
+    private void executeAndStoreState(Collection<GenericEvaluatedPolicyRule> evaluatedRules, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, ActivityRunPolicyException {
 
         // These will be written to activity state at the end
@@ -112,7 +114,7 @@ public class ActivityPolicyRulesProcessor {
             LOGGER.trace("Executing activity policy rules for {} ({})",
                     activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
 
-            for (EvaluatedActivityPolicyRule rule : evaluatedRules) {
+            for (GenericEvaluatedPolicyRule rule : evaluatedRules) {
                 if (!rule.isTriggered()) {
                     LOGGER.trace("Policy rule {} was not triggered, not executing actions", rule);
                     continue;
@@ -129,7 +131,7 @@ public class ActivityPolicyRulesProcessor {
             }
         } finally {
             // update policy states after all rules were enforced (even if ThresholdPolicyViolationException was thrown)
-            Map<String, EvaluatedActivityPolicyRule> ruleMap = evaluatedRules.stream()
+            Map<String, GenericEvaluatedPolicyRule> ruleMap = evaluatedRules.stream()
                     .collect(Collectors.toMap(r -> r.getRuleIdentifier().toString(), r -> r));
 
             Map<String, ActivityPolicyStateType> updated = activityRun.updateActivityPolicyState(policyStates, result);
@@ -138,11 +140,11 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void evaluateRule(
-            EvaluatedActivityPolicyRule rule, ItemProcessingResult processingResult, OperationResult result) {
+            GenericEvaluatedPolicyRule rule, ItemProcessingResult processingResult, OperationResult result) {
 
         LOGGER.trace("Starting evaluation of rule {}, name: {}", rule.getRuleIdentifier(), rule.getName());
 
-        JAXBElement<PolicyConstraintsType> element = createRootConstraintElement(rule.getPolicy());
+        JAXBElement<PolicyConstraintsType> element = createRootConstraintElement(rule.getPolicyRule());
 
         ActivityPolicyRuleEvaluationContext context = new ActivityPolicyRuleEvaluationContext(rule, activityRun, processingResult);
 
@@ -165,7 +167,7 @@ public class ActivityPolicyRulesProcessor {
                 policyBean.getPolicyConstraints());
     }
 
-    private void executeActions(EvaluatedActivityPolicyRule rule, OperationResult result) throws ActivityRunPolicyException {
+    private void executeActions(GenericEvaluatedPolicyRule rule, OperationResult result) throws ActivityRunPolicyException {
 
         for (PolicyActionType action : rule.getActions()) {
             if (action instanceof NotificationPolicyActionType) {
