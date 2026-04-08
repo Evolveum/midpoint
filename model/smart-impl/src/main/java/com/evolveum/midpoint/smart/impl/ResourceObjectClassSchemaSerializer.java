@@ -6,6 +6,7 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiObjectSchemaType;
@@ -38,17 +39,20 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
         var schema = new SiObjectSchemaType()
                 .name(objectClassDef.getObjectClassName())
                 .description(objectClassDef.getDescription()); // TODO change to native description
+        //TODO this is a nasty hack for MCM demo, remove later.
+        boolean isLdap = isLdapResource();
         for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : objectClassDef.getAttributeDefinitions()) {
             var path = attributeDefinition.getStandardPath();
             var pathString = DescriptiveItemPath.of(path, shadowDefinition).asString();
             registerPathMapping(pathString, path);
+            int maxOccurs = isLdap ? 1 : attributeDefinition.getMaxOccurs();
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
                             .name(pathString)
                             .type(fixTypeName(attributeDefinition.getTypeName()))
                             .description(attributeDefinition.getDescription()) // TODO change to native description
                             .minOccurs(attributeDefinition.getMinOccurs())
-                            .maxOccurs(attributeDefinition.getMaxOccurs()));
+                            .maxOccurs(maxOccurs));
         }
         var credentialsCapability = objectClassDef.getEnabledCapability(CredentialsCapabilityType.class, resource);
         if (credentialsCapability != null && CapabilityUtil.getEnabledPasswordCapability(credentialsCapability) != null) {
@@ -100,5 +104,20 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
             // TODO what to do with lockout status?
         }
         return schema;
+    }
+
+    //TODO this is a nasty hack for MCM demo, remove later.
+    private boolean isLdapResource() {
+        var connectorRef = resource.getConnectorRef();
+        if (connectorRef == null) {
+            return false;
+        }
+        if (connectorRef.getObject() != null && connectorRef.getObject().getRealValue() instanceof ConnectorType connector) {
+            String bundle = connector.getConnectorBundle();
+            String type = connector.getConnectorType();
+            return (bundle != null && bundle.toLowerCase().contains("ldap"))
+                    || (type != null && type.toLowerCase().contains("ldap"));
+        }
+        return false;
     }
 }

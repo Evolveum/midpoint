@@ -179,10 +179,14 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
                 onRadioTileSelected(getSelectedTileModel(), ajaxRequestTarget);
-                ajaxRequestTarget.add(SmartObjectClassTable.this);
+                onSelectionRefresh(ajaxRequestTarget);
             }
         });
         return radioGroup;
+    }
+
+    protected void onSelectionRefresh(@NotNull AjaxRequestTarget target) {
+        target.add(SmartObjectClassTable.this);
     }
 
     private void initializeSelectedTile(
@@ -212,7 +216,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         ComplexTypeDefinitionType realValue = object.getRealValue();
 
         ObjectClassSizeEstimationType sizeEstimation = objectClassSizeEstimationCache.get(realValue.getName());
-        return new SmartObjectClassTileModel<>(object, sizeEstimation);
+        return new SmartObjectClassTileModel<>(object, resourceOid, sizeEstimation);
     }
 
     private @Nullable ObjectClassSizeEstimationType getObjectClassSizeEstimationType(
@@ -245,16 +249,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
             @Override
             protected void onViewSchema(AjaxRequestTarget target) {
-                SmartObjectClassTileModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> smartModel;
-                if (getModelObject() instanceof SmartObjectClassTileModel) {
-                    smartModel =
-                            (SmartObjectClassTileModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>>) getModelObject();
-                } else {
-                    return;
-                }
-
                 PrismContainerValueWrapper<ComplexTypeDefinitionType> value = ((SmartObjectClassTileModel<?>) getModelObject()).getValue();
-
                 displaySchemaViewTablePopup(target, () -> value);
                 super.onViewSchema(target);
             }
@@ -346,8 +341,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     }
 
     protected void setDefaultPagingSize(UserProfileStorage.@NotNull TableId tableId) {
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        UserProfileStorage userProfile = getBrowserTabSessionStorage().getUserProfile();
         userProfile.setPagingSize(
                 tableId,
                 getMaxTileCount());
@@ -550,6 +544,5 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     public boolean displayNoValuePanel() {
         return getProvider().size() == 0;
     }
-
 
 }

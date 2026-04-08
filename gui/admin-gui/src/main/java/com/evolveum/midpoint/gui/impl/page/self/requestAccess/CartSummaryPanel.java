@@ -283,7 +283,12 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                 openConflictPerformed(target);
             }
         };
-        openConflict.add(new VisibleBehaviour(() -> getModelObject().getWarningCount() > 0 || getModelObject().getErrorCount() > 0));
+        openConflict.add(
+                new VisibleBehaviour(() ->
+                        (getModelObject().getWarningCount() > 0 && getModelObject().areShoppingCartItemsRelatedToConflicts()) ||
+                                getModelObject().getErrorCount() > 0
+                )
+        );
         form.add(openConflict);
 
         FeedbackPanel messages = new FeedbackPanel(ID_MESSAGES);

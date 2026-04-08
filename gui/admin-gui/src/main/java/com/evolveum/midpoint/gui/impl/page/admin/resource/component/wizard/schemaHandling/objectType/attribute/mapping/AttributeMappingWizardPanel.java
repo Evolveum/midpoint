@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -60,6 +62,11 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             }
 
             @Override
+            protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+                showChoiceFragment(target, buildSimulationWizard(simulationResultTypeIModel));
+            }
+
+            @Override
             protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
                 showOutboundAttributeMappingWizardFragment(target, value);
             }
@@ -72,6 +79,15 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             @Override
             protected void onShowOverrides(AjaxRequestTarget target, MappingDirection selectedTable) {
                 showAttributeOverrides(target, selectedTable);
+            }
+        };
+    }
+
+    private @NotNull SimulationWizardPanel<?> buildSimulationWizard(IModel<SimulationResultType> simulationResultTypeIModel) {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper(), simulationResultTypeIModel) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel(MappingDirection.INBOUND));
             }
         };
     }
@@ -204,6 +220,11 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             @Override
             public void onBackPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTablePanel(direction));
+            }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("SimulationTaskWizardPanel.attributeMappingWizardPanel.back");
             }
         };
     }

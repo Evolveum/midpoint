@@ -6,11 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
@@ -25,7 +29,7 @@ import org.apache.wicket.request.cycle.RequestCycle;
  */
 public abstract class PageableListView<LI extends Serializable, SPI extends Serializable> extends ListView<LI> implements IPageableItems {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public PageableListView(String id, ISortableDataProvider<SPI, String> provider, UserProfileStorage.TableId tableId) {
         super(id);
@@ -35,6 +39,11 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
             @Override
             protected List<LI> createItem(SPI providerItem) {
                 return PageableListView.this.createItem(providerItem);
+            }
+
+            @Override
+            protected UserProfileStorage getUserProfileStorage() {
+                return PageableListView.this.getUserProfileStorage();
             }
         });
     }
@@ -90,11 +99,17 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
         return getPageableModel().getProvider();
     }
 
+    private UserProfileStorage getUserProfileStorage() {
+//        MidPointAuthWebSession session = MidPointAuthWebSession.get();
+//        var windowName = WebComponentUtil.getBrowserWindowNameParameter(PageableListView.this);
+        PageBase pageBase = WebComponentUtil.getPageBase(PageableListView.this);
+        return pageBase.getBrowserTabSessionStorage().getUserProfile();
+    }
+
     private static class PageableListModel<LI extends Serializable, SPI extends Serializable> implements IModel<List<LI>> {
 
         private ISortableDataProvider<SPI, String> provider;
-
-        private UserProfileStorage.TableId tableId;
+        private final UserProfileStorage.TableId tableId;
 
         private long itemsPerPage;
 
@@ -124,10 +139,14 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
                 return itemsPerPage;
             }
 
-            MidPointAuthWebSession session = MidPointAuthWebSession.get();
-            UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+            if (getUserProfileStorage() != null) {
+                return getUserProfileStorage().getPagingSize(tableId);
+            }
+            return UserProfileStorage.DEFAULT_PAGING_SIZE;
+        }
 
-            return userProfile.getPagingSize(tableId);
+        protected UserProfileStorage getUserProfileStorage() {
+            return null;
         }
 
         public void setItemsPerPage(long itemsPerPage) {

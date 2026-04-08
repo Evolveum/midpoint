@@ -6,10 +6,26 @@
 
 package com.evolveum.midpoint.model.common.expression.script;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.evolveum.midpoint.common.Clock;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.testng.AssertJUnit;
@@ -21,7 +37,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -30,7 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
+    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
         return new GroovyScriptEvaluator(prismContext, protector, localizationService);
     }
 
@@ -43,7 +58,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals101() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals101",
                 createVariables(
                         "foo", "FOO", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -55,7 +69,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals102() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals102",
                 createVariables(
                         "foo", "FOOBAR", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -67,7 +80,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals111() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals111",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -80,7 +92,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals112() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals112",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -92,7 +103,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals121() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals121",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -104,7 +114,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals122() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals122",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -116,7 +125,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals201() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals201",
                 createVariables(
                         "foo", "FOO", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -128,7 +136,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals202() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals202",
                 createVariables(
                         "foo", "FOOBAR", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -140,7 +147,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals211() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals211",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -152,7 +158,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals212() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals212",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -164,7 +169,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals221() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals221",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -176,7 +180,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals222() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals222",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -188,7 +191,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify101() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify101",
                 createVariables(
                         "foo", "FOO", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -200,7 +202,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify102() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify102",
                 createVariables(
                         "foo", "FOOBAR", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -212,7 +213,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify111() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify111",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -224,7 +224,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify112() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify112",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -236,7 +235,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify121() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify121",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -248,7 +246,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify122() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify122",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -260,7 +257,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify201() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify201",
                 createVariables(
                         "foo", "FOO", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -272,7 +268,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify202() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify202",
                 createVariables(
                         "foo", "FOOBAR", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -284,7 +279,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify211() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify211",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -296,7 +290,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify212() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify212",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -308,7 +301,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify221() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify221",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -320,7 +312,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify222() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify222",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -335,7 +326,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-look.xml",
-                "testLookAtPoison",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -353,7 +343,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell.xml",
-                "testSmellPoison",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -371,7 +360,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-tricky.xml",
-                "testSmellPoisonTricky",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -390,7 +378,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-dynamic.xml",
-                "testSmellPoisonDynamic",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -409,7 +396,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-very-dynamic.xml",
-                "testSmellPoisonVeryDynamic",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -428,7 +414,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-reflection.xml",
-                "testSmellPoisonReflection",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -449,7 +434,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         try {
             evaluateAndAssertStringScalarExpression(
                     "expression-poison-drink.xml",
-                    "testDrinkPoison",
                     createPoisonVariables(poison),
                     "");
 
@@ -481,7 +465,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         try {
             evaluateAndAssertStringScalarExpression(
                     "expression-syntax-error.xml",
-                    "testSyntaxError",
                     createPoisonVariables(poison),
                     RESULT_POISON_OK);
 
@@ -502,7 +485,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-string-exec.xml",
-                "testStringExec",
                 null,
                 RESULT_STRING_EXEC);
 
@@ -520,11 +502,111 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-list-exec.xml",
-                "testListExec",
                 null,
                 RESULT_STRING_EXEC);
 
         // THEN
 
     }
+
+    @Test
+    public void testCachingGetExtensionPropertyValue() throws Exception {
+        // GIVEN
+
+        // We need to start with a clean slate
+        initializeScriptEvaluator();
+        InternalMonitor.reset();
+
+
+        assertScriptMonitor(0, 0, "init");
+
+        // WHEN, THEN
+        long etimeFirst = executeCachingScript("expression-string-variables.xml", "FOOBAR", "first");
+        assertScriptMonitor(1, 1, "first");
+
+        long etimeSecond = executeCachingScript("expression-string-variables.xml", "FOOBAR", "second");
+        assertScriptMonitor(1, 2, "second");
+        assertTrue("Einstein was wrong! " + etimeFirst + " -> " + etimeSecond, etimeSecond <= etimeFirst);
+
+        long etimeThird = executeCachingScript("expression-string-variables.xml", "FOOBAR", "second");
+        assertScriptMonitor(1, 3, "third");
+        assertTrue("Einstein was wrong again! " + etimeFirst + " -> " + etimeThird, etimeThird <= etimeFirst);
+
+        // Different script. Should compile.
+        long horatio1Time = executeCachingScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio");
+        assertScriptMonitor(2, 4, "horatio");
+
+        // Same script. No compilation.
+        long etimeFourth = executeCachingScript("expression-string-variables.xml", "FOOBAR", "fourth");
+        assertScriptMonitor(2, 5, "fourth");
+        assertTrue("Einstein was wrong all the time! " + etimeFirst + " -> " + etimeFourth, etimeFourth <= etimeFirst);
+
+        // Try this again. No compile.
+        long horatio2Time = executeCachingScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio2");
+        assertScriptMonitor(2, 6, "horatio2");
+        assertTrue("Even Horatio was wrong! " + horatio1Time + " -> " + horatio2Time, horatio2Time <= horatio1Time);
+    }
+
+    private long executeCachingScript(String filname, String expectedResult, String desc)
+            throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
+        // GIVEN
+        OperationResult result = createOperationResult(desc);
+        ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
+        ItemDefinition<?> outputDefinition =
+                getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
+
+        ScriptExpression scriptExpression = createCachingScriptExpression(scriptType, outputDefinition);
+
+        VariablesMap variables = VariablesMap.create(getPrismContext(),
+                "foo", "FOO", PrimitiveType.STRING,
+                "bar", "BAR", PrimitiveType.STRING
+        );
+
+        // WHEN
+        long startTime = System.currentTimeMillis();
+
+        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+        context.setVariables(variables);
+        context.setEvaluateNew(false);
+        context.setScriptExpression(scriptExpression);
+        context.setContextDescription(desc);
+        context.setResult(result);
+
+        List<PrismPropertyValue<String>> scripResults = scriptExpression.evaluate(context);
+        long endTime = System.currentTimeMillis();
+
+        // THEN
+        displayValue(
+                "Script results " + desc + ", etime: " + (endTime - startTime) + " ms",
+                scripResults);
+
+        String scriptResult = asScalarString(scripResults);
+        assertEquals("Wrong script " + desc + " result", expectedResult, scriptResult);
+
+        return (endTime - startTime);
+    }
+
+    private ScriptExpression createCachingScriptExpression(
+            ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
+        ScriptExpression expression = new ScriptExpression(
+                scriptExpressionfactory.getEvaluatorSimple(expressionType.getLanguage()),
+                expressionType);
+        expression.setOutputDefinition(outputDefinition);
+        expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
+        expression.setFunctionLibraryBindings(new ArrayList<>(scriptExpressionfactory.getBuiltInLibraryBindings()));
+        return expression;
+    }
+
+    private String asScalarString(List<PrismPropertyValue<String>> expressionResultList) {
+        if (expressionResultList.size() > 1) {
+            AssertJUnit.fail("Expression produces a list of " + expressionResultList.size() + " while only expected a single value: " + expressionResultList);
+        }
+        if (expressionResultList.isEmpty()) {
+            return null;
+        }
+        return expressionResultList.iterator().next().getValue();
+    }
+
+
 }

@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import java.io.Serial;
 import java.util.Collections;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,8 +53,8 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
     protected ItemHeaderPanel createHeaderPanel() {
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
         if (expressionWrapper != null && (expressionWrapper.isAssociationExpression() || expressionWrapper.isAttributeExpression())) {
-            return new ExpressionPropertyHeaderPanel(ID_HEADER, getModel()) {
-                private static final long serialVersionUID = 1L;
+            return new ExpressionPropertyHeaderPanel(ID_HEADER, getModel(), getSettings()) {
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void onExpandClick(AjaxRequestTarget target) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -45,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * "Sandboxing" based on type checking inspired by work of Cédric Champeau (http://melix.github.io/blog/2015/03/sandboxing.html)
  */
-public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<GroovyClassLoader, Class<?>> {
+public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<GroovyClassLoader, Class<?>, String> {
 
     public static final String LANGUAGE_NAME = "Groovy";
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
@@ -62,6 +62,11 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
         super(prismContext, protector, localizationService);
 
         // No initialization here. Compilers/interpreters are initialized on demand.
+    }
+
+    @Override
+    protected String getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context) {
+        return codeString;
     }
 
     @Override
@@ -83,7 +88,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     protected Class<?> compileScript(String codeString, ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, SecurityViolationException {
         try {
-            return getGroovyLoader(context).parseClass(codeString, context.getContextDescription());
+            return getInterpreter(context).parseClass(codeString, context.getContextDescription());
         } catch (MultipleCompilationErrorsException e) {
             String sandboxErrorMessage = getSandboxError(e);
             if (sandboxErrorMessage == null) {
@@ -104,17 +109,8 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
         }
     }
 
-    private GroovyClassLoader getGroovyLoader(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
-        GroovyClassLoader existingLoader = getScriptCache().getInterpreter(context.getExpressionProfile());
-        if (existingLoader != null) {
-            return existingLoader;
-        }
-        var newLoader = createGroovyLoader(context);
-        getScriptCache().putInterpreter(context.getExpressionProfile(), newLoader);
-        return newLoader;
-    }
-
-    private GroovyClassLoader createGroovyLoader(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+    @Override
+    protected GroovyClassLoader createInterpreter(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
         CompilerConfiguration compilerConfiguration = new CompilerConfiguration(CompilerConfiguration.DEFAULT);
         configureCompiler(compilerConfiguration, context);
         return new GroovyClassLoader(GroovyScriptEvaluator.class.getClassLoader(), compilerConfiguration);
@@ -183,7 +179,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
             throw new ExpressionEvaluationException("Expected groovy script class, but got " + compiledScriptClass);
         }
 
-        Binding binding = new Binding(prepareScriptVariablesValueMap(context));
+        Binding binding = new Binding(prepareUnifiedScriptVariablesValueMap(context));
         try {
             Script scriptResultObject = InvokerHelper.createScript(compiledScriptClass, binding);
 

@@ -25,6 +25,8 @@ import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +50,8 @@ import com.evolveum.midpoint.test.AbstractHigherUnitTest;
  * @author lazyman
  */
 public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
+
+    protected static final String TEST_WINDOW_ID = "testWindowId";
 
     protected ModelServiceLocator getServiceLocator() {
         return new ModelServiceLocator() {
@@ -106,6 +110,12 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
             @Override
             public ExpressionFactory getExpressionFactory() {
                 return null;
+            }
+
+
+            @Override
+            public BrowserTabSessionStorage getBrowserTabSessionStorage() {
+                return MidPointAuthWebSession.get().getBrowserTabSessionStorage(TEST_WINDOW_ID);
             }
 
             @Override

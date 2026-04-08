@@ -26,6 +26,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -179,7 +180,7 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     }
 
     @Override
-    public IModel<String> getName() {
+    public @NotNull IModel<String> getName() {
         return StringUtils.isNotEmpty(name.getObject()) ? name : Model.of();
     }
 
@@ -188,12 +189,12 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     }
 
     @Override
-    public IModel<String> getHelp() {
+    public @NotNull IModel<String> getHelp() {
         return StringUtils.isNotEmpty(help.getObject()) ? help : Model.of();
     }
 
     @Override
-    public IModel<String> getTitle() {
+    public @NotNull IModel<String> getTitle() {
         return Model.of();
     }
 

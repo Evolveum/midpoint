@@ -151,7 +151,7 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
         }
     }
 
-    protected void customizeTaskCreator(ResourceTaskCreator creator, boolean isSimulation) {
+    protected void customizeTaskCreator(ResourceTaskCreator<?> creator, boolean isSimulation) {
 
     }
 

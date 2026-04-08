@@ -294,13 +294,22 @@ Currently supported only for the subjects.
 Experimental.
 
 | `ri:posixAccount`
+| `explicitReferentialIntegrity`
+| Whether you require midPoint to provide referential integrity for this reference type.
+
+Used for resources that do not provide referential integrity by themselves
+(e.g., OpenDJ with the referential integrity plugin turned off).
+For resources that support referential integrity (e.g., Active Directory), set this parameter to `false`.
+
+Default is `true`.
+| `false`
 |===
 
 There can be zero, one, or more delineations.
 
 All delineations on the object side must share the same object class.
 
-The following example shows how to define `groupMembership` reference type that binds together accounts and groups (as subjects) and groups (as objects).
+The following example shows how to define `groupMembership` reference type that binds together accounts (as subjects) and groups (as objects).
 
 .An example of delineating reference type participants
 [source,xml]

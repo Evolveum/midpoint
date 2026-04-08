@@ -21,7 +21,13 @@
 
         <i class="text-center mb-1 font-weight-bold fa-xl" wicket:id="titleIcon"/>
         <h2 class="text-center mb-1 font-weight-bold" wicket:id="text"/>
-        <h5 class="text-center text-secondary mb-5 col-xxl-8 col-10 lh-2" wicket:id="subText"/>
+        <wicket:enclosure child="subText">
+            <div class="text-center text-secondary mb-5 col-xxl-8 col-10 lh-2 h5">
+                <span wicket:id="subText"/>
+                <a wicket:id="subTextMore"/>
+            </div>
+        </wicket:enclosure>
+
         <div class="col-12">
             <div wicket:id="feedbackContainer" class="feedbackContainer mx-auto p-0">
                 <div wicket:id="feedback" class="messagePanel"/>

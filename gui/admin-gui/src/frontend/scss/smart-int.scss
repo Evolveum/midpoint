@@ -55,6 +55,33 @@
   background-color: #{$secondary-light};
 }
 
+.info-badge.info-light {
+  --label-color: #{$info};
+  border-color: var(--label-color);
+  color: var(--label-color);
+  background-color: #{$info-light};
+}
+
+.info-badge.primary-light {
+  --label-color: #{$primary};
+  border-color: var(--label-color);
+  color: var(--label-color);
+  background-color: #{$primary-light};
+}
+
+.info-badge.purple-light {
+  --label-color: #{$purple};
+  border-color: var(--label-color);
+  color: var(--label-color);
+  background-color: #{$purple-light};
+}
+
+.info-badge.danger-light {
+  --label-color: #{$danger};
+  border-color: var(--label-color);
+  color: var(--label-color);
+  background-color: #{$danger-light};
+}
 .badge.badge-light-purple {
   --label-color: #{$purple-light};
   background-color: var(--label-color);
@@ -100,10 +127,50 @@
   background-color: #{$secondary-light} !important;
 }
 
+.bg.primary-light {
+  background-color: #{$primary-light} !important;
+}
+
 .alert.purple-light-alert {
   --label-color: #{$purple-light};
   background-color: var(--label-color);
   border-color: #{$purple};
+}
+
+.alert.danger-light-alert {
+  --label-color: #{$danger-light};
+  background-color: var(--label-color);
+  border-color: #{$danger};
+}
+
+.alert.warning-light-alert {
+  --label-color: #{$warning-light};
+  background-color: var(--label-color);
+  border-color: #{$warning};
+}
+
+.alert.info-light-alert {
+  --label-color: #{$info-light};
+  background-color: var(--label-color);
+  border-color: #{$info};
+}
+
+.alert.secondary-light-alert {
+  --label-color: #{$secondary-light};
+  background-color: var(--label-color);
+  border-color: #{$midpoint-secondary};
+}
+
+.alert.primary-light-alert {
+  --label-color: #{$primary-light};
+  background-color: var(--label-color);
+  border-color: #{$primary};
+}
+
+.alert.success-light-alert {
+  --label-color: #{$success-light};
+  background-color: var(--label-color);
+  border-color: #{$success};
 }
 
 /* AI Suggestion badge */
@@ -220,4 +287,15 @@
 
 .selected-bg-primary {
   background-color: rgba($primary, .1) !important;
+}
+
+.simulation-value-pill {
+  display: inline-block;
+  padding: 5px 8px;
+  border: 1px solid #bfc9d4;
+  border-radius: 6px;
+  color: #6C757D;
+  font-size:14px;
+  font-weight: 600;
+  line-height: 1;
 }

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -18,6 +18,7 @@
             <type>xsd:string</type>
         </parameter>
         <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
             <code>
                 com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom()
             </code>
@@ -27,6 +28,7 @@
         <name>anotherTrustedFunction</name>
         <documentation>Allowed by `little-trusted-variant` profile.</documentation>
         <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
             <code>
                 com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom()
             </code>

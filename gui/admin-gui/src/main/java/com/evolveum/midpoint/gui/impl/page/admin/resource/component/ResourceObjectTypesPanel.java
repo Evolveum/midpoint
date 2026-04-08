@@ -78,6 +78,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return "ResourceSchemaHandlingPanel.newObject";
     }
 
+
     @Override
     protected List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> createColumns() {
         List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> columns = new ArrayList<>();
@@ -175,12 +176,17 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
             AjaxRequestTarget target,
             StatusInfo<?> statusInfo,
             @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
-        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-        PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject = valueModel.getObject().getOldValue();
-        WebPrismUtil.cleanupEmptyContainerValue(originalObject);
 
-        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(originalObject);
-        onNewValue(suggestionToAdd, containerModel, target, false, postSaveHandler);
+        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
+
+        PrismContainerValue<ResourceObjectTypeDefinitionType> original =
+                valueModel.getObject().getNewValue().clone();
+        WebPrismUtil.cleanupEmptyContainerValue(original);
+
+        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestion =
+                processSuggestedContainerValue(original);
+
+        onNewValue(suggestion, containerModel, target, false, postSaveHandler);
     }
 
     @Override

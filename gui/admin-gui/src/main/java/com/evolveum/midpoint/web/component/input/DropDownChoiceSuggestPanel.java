@@ -11,8 +11,8 @@ import java.io.Serializable;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -20,8 +20,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
+import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog.ButtonHandlers;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -105,34 +109,17 @@ public class DropDownChoiceSuggestPanel<T> extends InputPanel implements Seriali
         suggestContainer.add(new VisibleBehaviour(this::isSuggestContainerVisible));
         add(suggestContainer);
 
-        AjaxIconButton suggestButton = new AjaxIconButton(
-                ID_SUGGEST,
-                () -> getSuggestButtonIcon().getObject(),
-                () -> getSuggestButtonLabel().getObject()) {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                onSuggestAction(ajaxRequestTarget);
-                ajaxRequestTarget.add(this);
-            }
+        final ButtonHandlers<DataAccessPermission> dataAccessPermissionButtonHandlers = new ButtonHandlers<>(
+                target -> {},
+                (target, confirmedOptions) -> onSuggestAction(target, confirmedOptions.getObject()));
+        AjaxIconButton suggestButton = SmartSuggestButtonWithConfirmation.forBlockingActionWithIndication(ID_SUGGEST,
+                getSuggestButtonLabel(), getSuggestButtonIcon(), getSuggestProcessingStateButtonIcon(),
+                getSuggestProcessingStateButtonLabel(),
+                List.of(ConfirmationOption.selectedOf(DataAccessPermission.SCHEMA_ACCESS)),
+                () -> dataAccessPermissionButtonHandlers,
+                getPageBase());
 
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-
-                String id = getMarkupId(true);
-                String beforeIconCss = getSuggestButtonIcon().getObject();
-                String afterIconCss = getSuggestProcessingStateButtonIcon().getObject();
-                String loadingText = getSuggestProcessingStateButtonLabel().getObject();
-
-                attributes.getAjaxCallListeners().add(new PreAjaxLoadingStateListener(id, beforeIconCss, afterIconCss, loadingText));
-            }
-
-            @Override
-            public AjaxIconButton showTitleAsLabel(boolean show) {
-                return super.showTitleAsLabel(show);
-            }
-        };
-
+        suggestButton.add(AttributeModifier.replace("class", "btn bg-purple"));
         suggestButton.setOutputMarkupId(true);
         suggestButton.showTitleAsLabel(true);
         suggestContainer.add(suggestButton);
@@ -144,7 +131,8 @@ public class DropDownChoiceSuggestPanel<T> extends InputPanel implements Seriali
         return (DropDownChoice<T>) get("input");
     }
 
-    protected void onSuggestAction(AjaxRequestTarget target) {
+    protected void onSuggestAction(AjaxRequestTarget target,
+            List<ConfirmationOption<DataAccessPermission>> confirmedOptions) {
 
     }
 

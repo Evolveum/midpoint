@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectTypeSuggestionTable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -24,12 +25,14 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
+import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -180,6 +183,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
     @SuppressWarnings("unchecked")
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
+        removeLastBreadcrumb();
         var suggestionValueWrapper = selectedModel.getObject();
         if (suggestionValueWrapper == null || suggestionValueWrapper.getRealValue() == null) {
             getPageBase().warn(getPageBase().createStringResource("Smart.suggestion.noSelection")
@@ -242,21 +246,21 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        AjaxIconButton refreshSuggestionButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of("fa fa-refresh"),
-                createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.refreshSuggestionButton.title")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                refreshSuggestionPerform(target);
-            }
-        };
-        refreshSuggestionButton.showTitleAsLabel(true);
-        refreshSuggestionButton.add(AttributeAppender.append("class", "btn btn-default"));
-        buttons.add(refreshSuggestionButton);
+        AjaxIconButton refreshButton = SmartSuggestButtonWithConfirmation.create(buttons.newChildId(),
+                createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.refreshSuggestionButton.title"),
+                () -> "fa fa-arrows-rotate",
+                ConfirmationOption.delineationPermissionsOptions(),
+                () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {},
+                        this::refreshSuggestionPerform),
+                getPageBase());
+
+        refreshButton.setOutputMarkupId(true);
+        refreshButton.showTitleAsLabel(true);
+        buttons.add(refreshButton);
     }
 
-    public abstract void refreshSuggestionPerform(AjaxRequestTarget target);
+    public abstract void refreshSuggestionPerform(AjaxRequestTarget target,
+            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions);
 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {

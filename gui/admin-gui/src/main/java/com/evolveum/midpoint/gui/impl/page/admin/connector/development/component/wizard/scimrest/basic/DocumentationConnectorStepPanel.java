@@ -294,7 +294,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                 };
 
                 addUrl.showTitleAsLabel(true);
-                addUrl.add(AttributeAppender.replace("class", "btn btn-default rounded-0 ml-auto"));
+                addUrl.add(AttributeAppender.replace("class", "btn btn-default rounded-0 ml-auto text-nowrap"));
                 addUrl.add(AttributeAppender.replace("style", "border-right: 0 !important;"));
                 buttons.add(addUrl);
 
@@ -310,7 +310,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                 };
 
                 uploadFile.showTitleAsLabel(true);
-                uploadFile.add(AttributeAppender.replace("class", "btn btn-default rounded-0"));
+                uploadFile.add(AttributeAppender.replace("class", "btn btn-default rounded-0 text-nowrap"));
                 buttons.add(uploadFile);
                 return buttons;
             }
@@ -470,10 +470,21 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         try {
+            // Let's check if user explicitly selected any documentation
+            // If no documentation is selected - we will use all documentation
+            // If any documentation is selected we will use only selected ones
+            var explicitSelection = valuesModel.getObject().stream().anyMatch(PrismContainerValueWrapper::isSelected);
+
             PrismContainerWrapper<ConnDevDocumentationSourceType> parentWrapper = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
             valuesModel.getObject().stream()
                     .filter(value -> value.getStatus() == ValueStatus.ADDED)
                     .forEach(value -> {
+                        // FIXME: Do not create duplicates via add
+                        if (explicitSelection && !value.isSelected()) {
+                            // If we are in explicit selection - skip adding items which are not selected.
+                            return;
+                        }
+
                         try {
                             //noinspection unchecked
                             parentWrapper.getItem().add(value.getRealValue().asPrismContainerValue());

@@ -178,6 +178,7 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_NONCE_VALUE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_NONCE,
             NonceType.F_VALUE);
 
+    public static final ItemPath PATH_OTPS = ItemPath.create(C_CREDENTIALS, CredentialsType.F_OTPS);
     public static final ItemPath PATH_SECURITY_QUESTIONS = ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS);
     public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER =
             ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
@@ -470,6 +471,8 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_STATISTICS = ItemName.from(NS_MODEL_EXTENSION, "statistics");
     public static final ItemName MODEL_EXTENSION_OBJECT_TYPE_STATISTICS = ItemName.from(NS_MODEL_EXTENSION, "objectTypeStatistics");
     public static final ItemName MODEL_EXTENSION_OBJECT_TYPE_SCHEMA_MATCH = ItemName.from(NS_MODEL_EXTENSION, "objectTypeSchemaMatch");
+    public static final ItemName MODEL_EXTENSION_FOCUS_OBJECT_TYPE_NAME = ItemName.from(NS_MODEL_EXTENSION, "focusObjectTypeName");
+    public static final ItemName MODEL_EXTENSION_FOCUS_OBJECT_STATISTICS = ItemName.from(NS_MODEL_EXTENSION, "focusObjectStatistics");
 
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ID = new ItemName(NS_MODEL_EXTENSION, "workItemId");
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTIONS = new ItemName(NS_MODEL_EXTENSION, "workItemActions");

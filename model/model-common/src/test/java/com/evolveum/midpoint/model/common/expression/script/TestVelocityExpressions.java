@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.common.expression.script;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -25,7 +26,7 @@ import java.io.File;
 public class TestVelocityExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
+    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
         return new VelocityScriptEvaluator(prismContext, protector, localizationService);
     }
 
@@ -38,10 +39,9 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionList() throws Exception {
         evaluateAndAssertStringScalarExpression(        // velocity has no support for output other than String
                 "expression-list.xml",
-                "testExpressionList",
                 createVariables(
                         "jack",
-                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
                         prismContext.definitionFactory()
                             .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
                 ),
@@ -52,7 +52,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals101() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals101",
                 createVariables(
                         "foo", "FOO", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -64,7 +63,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals102() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals102",
                 createVariables(
                         "foo", "FOOBAR", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -76,7 +74,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals111() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals111",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -88,7 +85,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals112() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals112",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -100,7 +96,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals121() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals121",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -112,7 +107,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals122() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
-                "testExpressionPolyStringEquals122",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -124,7 +118,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals201() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals201",
                 createVariables(
                         "foo", "FOO", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -136,7 +129,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals202() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals202",
                 createVariables(
                         "foo", "FOOBAR", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -148,7 +140,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals211() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals211",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -160,7 +151,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals212() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals212",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -172,7 +162,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals221() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals221",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -184,7 +173,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEquals222() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
-                "testExpressionPolyStringEquals222",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -196,7 +184,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify101() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify101",
                 createVariables(
                         "foo", "FOO", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -208,7 +195,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify102() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify102",
                 createVariables(
                         "foo", "FOOBAR", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -220,7 +206,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify111() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify111",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -232,7 +217,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify112() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify112",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -244,7 +228,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify121() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify121",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -256,7 +239,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify122() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
-                "testExpressionPolyStringEqualsStringify122",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -268,7 +250,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify201() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify201",
                 createVariables(
                         "foo", "FOO", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -280,7 +261,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify202() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify202",
                 createVariables(
                         "foo", "FOOBAR", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -292,7 +272,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify211() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify211",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -304,7 +283,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify212() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify212",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -316,7 +294,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify221() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify221",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -328,12 +305,24 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsStringify222() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
-                "testExpressionPolyStringEqualsStringify222",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
                 ),
                 Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionListLiteral() throws Exception {
+        // Nothing to do here, Velocity is not supposed to support list literals
+    }
+
+    @Test(enabled = false) // #11086
+    public void testUserAdministrativeStatus() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-administrative-status.xml",
+                createUserScriptVariables(),
+                "enabled");
     }
 
 }

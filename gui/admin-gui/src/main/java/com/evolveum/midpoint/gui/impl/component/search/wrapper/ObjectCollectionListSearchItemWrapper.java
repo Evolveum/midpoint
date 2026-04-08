@@ -67,7 +67,7 @@ public class ObjectCollectionListSearchItemWrapper extends FilterableSearchItemW
     }
 
     @Override
-    public IModel<String> getName() {
+    public @NotNull IModel<String> getName() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -77,12 +77,12 @@ public class ObjectCollectionListSearchItemWrapper extends FilterableSearchItemW
     }
 
     @Override
-    public IModel<String> getTitle() {
+    public @NotNull IModel<String> getTitle() {
         return Model.of();
     }
 
     @Override
-    public IModel<String> getHelp() {
+    public @NotNull IModel<String> getHelp() {
         return Model.of();
     }
 

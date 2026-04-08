@@ -52,7 +52,12 @@ public class SmartAssociationTileModel extends TemplateTile<PrismContainerValueW
         setValue(valueWrapper);
         ShadowAssociationTypeDefinitionType realValue = valueWrapper.getRealValue();
 
-        this.name = realValue.getDisplayName() != null ? realValue.getDisplayName() : "-";
+        String displayName = realValue.getDisplayName();
+        if(displayName == null && realValue.getName() != null) {
+            displayName = realValue.getName().getLocalPart();
+        }
+
+        this.name = displayName;
         this.description = realValue.getDescription() != null ? realValue.getDescription() : "-";
 
         this.cssTag = "system-badge";

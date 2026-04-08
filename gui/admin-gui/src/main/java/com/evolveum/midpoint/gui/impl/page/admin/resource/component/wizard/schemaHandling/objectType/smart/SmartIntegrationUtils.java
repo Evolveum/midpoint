@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareObjectDto;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartStatisticsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -117,65 +117,6 @@ public class SmartIntegrationUtils {
     }
 
     /**
-     * Formats the elapsed time between the suggestion's start and finish (or now if still running)
-     * into a human-readable string with days, hours, minutes, seconds, and milliseconds.
-     */
-    public static @NotNull String formatElapsedTime(StatusInfo<?> s) {
-        if (s == null || s.getRealizationStartTimestamp() == null) {
-            return "Elapsed time: unknown";
-        }
-
-        long startMillis = s.getRealizationStartTimestamp().toGregorianCalendar().getTimeInMillis();
-        long endMillis = (s.getRealizationEndTimestamp() != null
-                ? s.getRealizationEndTimestamp().toGregorianCalendar().getTimeInMillis()
-                : System.currentTimeMillis());
-
-        return formatElapsedTime(startMillis, endMillis);
-    }
-
-    public static @NotNull String formatElapsedTime(Long startMillis, Long endMillis) {
-        return formatElapsedTime(startMillis, endMillis, null);
-    }
-
-    public static @NotNull String formatElapsedTime(Long startMillis, Long endMillis, String prefix) {
-        if (endMillis == null) {
-            endMillis = System.currentTimeMillis();
-        }
-
-        long elapsedMillis = endMillis - startMillis;
-        if (elapsedMillis < 0) {elapsedMillis = 0;}
-
-        long days = elapsedMillis / 86_400_000;
-        elapsedMillis %= 86_400_000;
-        long hours = elapsedMillis / 3_600_000;
-        elapsedMillis %= 3_600_000;
-        long minutes = elapsedMillis / 60_000;
-        elapsedMillis %= 60_000;
-        long seconds = elapsedMillis / 1_000;
-        elapsedMillis %= 1_000;
-        long millis = elapsedMillis;
-
-        String timeDisplay;
-        if (days > 0) {
-            timeDisplay = String.format("%dd %02dh %02dm %02ds %03dms", days, hours, minutes, seconds, millis);
-        } else if (hours > 0) {
-            timeDisplay = String.format("%dh %02dm %02ds %03dms", hours, minutes, seconds, millis);
-        } else if (minutes > 0) {
-            timeDisplay = String.format("%dm %02ds %03dms", minutes, seconds, millis);
-        } else if (seconds > 0) {
-            timeDisplay = String.format("%ds %03dms", seconds, millis);
-        } else {
-            timeDisplay = millis + "ms";
-        }
-
-        if (prefix != null && !prefix.isEmpty()) {
-            return prefix + ": " + timeDisplay;
-        }
-
-        return "Elapsed time: " + timeDisplay;
-    }
-
-    /**
      * Executes an object type suggestion operation if no suggestion is currently available.
      * If suggestions exist, no background task is started.
      * Returns {@code true} if the task was executed, {@code false} otherwise.
@@ -186,7 +127,8 @@ public class SmartIntegrationUtils {
             @NotNull QName objectClassName,
             @NotNull AjaxRequestTarget target,
             @NotNull String operationName,
-            @NotNull Task task) {
+            @NotNull Task task,
+            @NotNull List<DataAccessPermissionType> permissions) {
         OperationResult opResult = task.getResult();
         StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
                 pageBase, resourceOid, objectClassName, task, opResult);
@@ -210,7 +152,7 @@ public class SmartIntegrationUtils {
                             .withHideInProgress(true))
                     .runVoid((activityTask, activityResult) -> {
                         var oid = pageBase.getSmartIntegrationService().submitSuggestObjectTypesOperation(
-                                resourceOid, objectClassName, activityTask, activityResult);
+                                resourceOid, objectClassName, permissions, activityTask, activityResult);
                         activityResult.setBackgroundTaskOid(oid);
                     });
         }
@@ -732,7 +674,7 @@ public class SmartIntegrationUtils {
                 target.add(pageBase.getFeedbackPanel());
                 return;
             }
-            statisticsRequired = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(latestStatistics);
+            statisticsRequired = ShadowObjectClassUtil.getStatisticsRequired(latestStatistics);
         } catch (SchemaException e) {
             throw new RuntimeException("Couldn't get statistics for "
                     + objectClass + " on resource " + resourceOid, e);

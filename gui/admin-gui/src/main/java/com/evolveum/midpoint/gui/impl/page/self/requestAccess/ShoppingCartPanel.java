@@ -10,8 +10,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -21,6 +19,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -88,7 +87,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
             List<Badge> badges = new ArrayList<>();
 
             long warnings = data.getWarningCount();
-            if (warnings > 0) {
+            if (warnings > 0 && data.areShoppingCartItemsRelatedToConflicts()) {
                 String key = warnings == 1 ? "ShoppingCartPanel.badge.oneWarning" : "ShoppingCartPanel.badge.multipleWarnings";
                 badges.add(new Badge("badge badge-warning", getString(key, warnings)));
             }
@@ -155,7 +154,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
             protected void solveConflictPerformed(AjaxRequestTarget target, IModel<Conflict> conflictModel, IModel<ConflictItem> itemToKeepModel) {
                 super.solveConflictPerformed(target, conflictModel, itemToKeepModel);
 
-                target.add(((WizardModelBasic)getWizard()).getHeader());
+                target.add(((WizardModelBasic) getWizard()).getHeader());
             }
         };
         conflictSolver.add(new VisibleBehaviour(() -> state.getObject() == State.CONFLICTS));
@@ -170,7 +169,8 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
 
     protected void submitPerformed(AjaxRequestTarget target) {
         RequestAccess requestAccess = getModelObject();
-        OperationResult result = requestAccess.submitRequest(page);
+        SubmissionResult submissionResult = requestAccess.submitRequest(page);
+        OperationResult result = submissionResult.result();
 
         if (result == null) {
             page.warn(getString("ShoppingCartPanel.nothingToSubmit"));
@@ -178,24 +178,35 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
             return;
         }
 
-        page.showResult(result);
+        boolean hasApprovals = hasBackgroundTaskOperation(result);
+        boolean hasExecutedChanges = submissionResult.hasNonEmptyChanges();
 
-        if (hasBackgroundTaskOperation(result)) {
-            result.setMessage(getString("ShoppingCartPanel.requestInProgress"));
-            requestAccess.clearCart();
-
-            setResponsePage(page.getMidpointApplication().getHomePage());
-            return;
+        String key = null;
+        if (hasApprovals && hasExecutedChanges) {
+            key = "ShoppingCartPanel.hasApprovalsAndExecutedChanges";
+        } else if (hasApprovals) {
+            key = "ShoppingCartPanel.hasApprovals";
+        } else if (hasExecutedChanges) {
+            key = "ShoppingCartPanel.hasExecutedChanges";
         }
+
+        String message = key != null ? getString(key) : null;
+
+        page.showResult(result);
 
         if (WebComponentUtil.isSuccessOrHandledError(result)
                 || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
-            result.setMessage(getString("ShoppingCartPanel.requestSuccess"));
+
             requestAccess.clearCart();
 
+            if (message != null) {
+                getSession().info(message);
+            }
             setResponsePage(page.getMidpointApplication().getHomePage());
         } else {
-            result.setMessage(getString("ShoppingCartPanel.requestError"));
+            if (message != null) {
+                page.info(message);
+            }
 
             target.add(page.getFeedbackPanel());
             target.add(getWizard().getPanel());

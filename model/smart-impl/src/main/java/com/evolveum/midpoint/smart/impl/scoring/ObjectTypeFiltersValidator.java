@@ -59,20 +59,18 @@ public class ObjectTypeFiltersValidator {
             SearchFilterType filterBean,
             Task task,
             OperationResult parentResult) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, FilterValidationException {
+
         var result = parentResult.subresult(ID_IS_FILTER_RUNNABLE)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
                 .build();
+
+        var resourceObj = SmartIntegrationBeans.get().modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+        var resource = Resource.of(resourceObj);
+        ResourceObjectDefinition objectDef = resource.getCompleteSchemaRequired().findObjectClassDefinitionRequired(objectClassName);
+
         try {
-            var resourceObj = SmartIntegrationBeans.get().modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-            var resource = Resource.of(resourceObj);
-            ResourceObjectDefinition objectDef = resource.getCompleteSchemaRequired().findObjectClassDefinitionRequired(objectClassName);
-
-            if (filterBean == null) {
-                throw new SchemaException("No suggested filter.");
-            }
-
             ObjectFilter parsed = ShadowQueryConversionUtil.parseFilter(filterBean, objectDef);
             if (parsed == null) {
                 throw new SchemaException("Cannot process suggested filter: " + filterBean);
@@ -81,6 +79,8 @@ public class ObjectTypeFiltersValidator {
             ObjectQuery query = resource.queryFor(objectClassName).maxSize(1).build();
             query.addFilter(parsed);
             provisioningService.searchShadows(query, null, task, result);
+        } catch (Exception e) {
+            throw new FilterValidationException("Filter validation failed: " + e.getMessage());
         } finally {
             result.close();
         }
@@ -95,20 +95,18 @@ public class ObjectTypeFiltersValidator {
             SearchFilterType baseContextFilterBean,
             Task task,
             OperationResult parentResult) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, FilterValidationException {
+
         var result = parentResult.subresult(ID_IS_BASE_CONTEXT_FILTER_RUNNABLE)
                 .addParam("resourceOid", resourceOid)
                 .addParam("baseContextObjectClassName", baseContextObjectClassName)
                 .build();
+
+        var resourceObj = SmartIntegrationBeans.get().modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+        var resource = Resource.of(resourceObj);
+        ResourceObjectDefinition objectDef = resource.getCompleteSchemaRequired().findObjectClassDefinitionRequired(baseContextObjectClassName);
+
         try {
-            var resourceObj = SmartIntegrationBeans.get().modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-            var resource = Resource.of(resourceObj);
-            ResourceObjectDefinition objectDef = resource.getCompleteSchemaRequired().findObjectClassDefinitionRequired(baseContextObjectClassName);
-
-            if (baseContextFilterBean == null) {
-                throw new SchemaException("No base context filter.");
-            }
-
             ObjectFilter parsed = ShadowQueryConversionUtil.parseFilter(baseContextFilterBean, objectDef);
             if (parsed == null) {
                 throw new SchemaException("Cannot process base context filter: " + baseContextFilterBean);
@@ -117,6 +115,8 @@ public class ObjectTypeFiltersValidator {
             ObjectQuery query = resource.queryFor(baseContextObjectClassName).maxSize(1).build();
             query.addFilter(parsed);
             provisioningService.searchShadows(query, null, task, result);
+        } catch (Exception e) {
+            throw new FilterValidationException("Filter validation failed: " + e.getMessage());
         } finally {
             result.close();
         }

@@ -17,12 +17,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.model.IModel;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.buildStatusRows;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.formatElapsedTime;
 
 /**
  * DTO backing the SmartGeneratingPanel.
@@ -46,16 +46,6 @@ public class SmartGeneratingDto implements Serializable {
         this.taskModel = taskModel;
     }
 
-    /**
-     * Elapsed time as a human-readable string, e.g., "12s elapsed".
-     */
-    public String getTimeElapsed() {
-        if (statusInfo == null || statusInfo.getObject() == null) {
-            return "-";
-        }
-        return formatElapsedTime(statusInfo.getObject());
-    }
-
     public LoadableModel<StatusInfo<?>> getStatusInfo() {
         return statusInfo;
     }
@@ -69,7 +59,7 @@ public class SmartGeneratingDto implements Serializable {
 
     /**
      * Builds a list of statusInfo rows for display in the UI.
-     * Each row has a label and a done/in-progress flag.
+     * Each row has a label and a realizationState/in-progress flag.
      */
     public List<StatusRowRecord> getStatusRows(PageBase pageBase) {
         if (statusInfo == null || statusInfo.getObject() == null) {
@@ -125,5 +115,19 @@ public class SmartGeneratingDto implements Serializable {
     public TaskExecutionStateType getTaskExecutionState() {
         TaskType task = getTaskObject();
         return task != null ? task.getExecutionState() : null;
+    }
+
+    public XMLGregorianCalendar getSuggestedObjectsStartTime() {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return null;
+        }
+        return statusInfo.getObject().getRealizationStartTimestamp();
+    }
+
+    public XMLGregorianCalendar getSuggestedObjectsEndTime() {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return null;
+        }
+        return statusInfo.getObject().getRealizationEndTimestamp();
     }
 }

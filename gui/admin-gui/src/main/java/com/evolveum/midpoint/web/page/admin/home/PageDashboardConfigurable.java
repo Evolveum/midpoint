@@ -16,6 +16,8 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.RefFilter;
 
+import com.evolveum.midpoint.web.page.admin.services.PageAllServices;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -62,7 +64,6 @@ import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.shadows.PageShadows;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -108,7 +109,7 @@ public class PageDashboardConfigurable extends PageDashboard {
         map.put(UserType.COMPLEX_TYPE.getLocalPart(), PageUsers.class);
         map.put(RoleType.COMPLEX_TYPE.getLocalPart(), PageRoles.class);
         map.put(OrgType.COMPLEX_TYPE.getLocalPart(), PageOrgs.class);
-        map.put(ServiceType.COMPLEX_TYPE.getLocalPart(), PageServices.class);
+        map.put(ServiceType.COMPLEX_TYPE.getLocalPart(), PageAllServices.class);
 
         LINKS_REF_COLLECTIONS = map;
     }

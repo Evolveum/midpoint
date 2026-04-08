@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.tile.column;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.ButtonBar;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.prism.Containerable;
@@ -27,16 +29,16 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -45,6 +47,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -55,6 +58,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.validation.ValidatorAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -365,10 +369,17 @@ public abstract class ColumnTileTable<O extends Serializable>
                     }
 
                     @Override
+                    protected boolean isYesButtonVisible() {
+                        return !selected.isEmpty() || !getMultiTableModel().isEmpty();
+                    }
+
+                    @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         if (selected.isEmpty()) {
                             deleteItemPerformed(target, getMultiTableModel());
+                            return;
                         }
+
                         deleteItemPerformed(target, selected);
                     }
                 };
@@ -388,8 +399,53 @@ public abstract class ColumnTileTable<O extends Serializable>
 
     }
 
-    public boolean isValidFormComponents() {
-        return true;
+    public boolean isValidFormComponents(@Nullable AjaxRequestTarget target) {
+        AtomicBoolean valid = new AtomicBoolean(true);
+
+        visitChildren(FormComponent.class, (component, visit) -> {
+            FormComponent<?> formComponent = (FormComponent<?>) component;
+
+            if(formComponent.hasErrorMessage()){
+                valid.set(false);
+                updateValidatorComponent(target, valid, formComponent);
+                return;
+            }
+            enableUseModelForNotNullValidators(formComponent);
+            formComponent.validate();
+
+            if (formComponent.hasErrorMessage()) {
+                valid.set(false);
+                updateValidatorComponent(target, valid, formComponent);
+            }
+        });
+
+        return valid.get();
+    }
+
+    private static void updateValidatorComponent(@Nullable AjaxRequestTarget target, AtomicBoolean valid, FormComponent<?> formComponent) {
+
+        if (target != null) {
+            target.add(formComponent);
+
+            InputPanel inputPanel = formComponent.findParent(InputPanel.class);
+            if (inputPanel != null) {
+                target.add(inputPanel);
+
+                if (inputPanel.getParent() != null) {
+                    target.addChildren(inputPanel.getParent(), FeedbackLabels.class);
+                }
+            }
+        }
+    }
+
+    private void enableUseModelForNotNullValidators(@NotNull FormComponent<?> formComponent) {
+        formComponent.getBehaviors().stream()
+                .filter(ValidatorAdapter.class::isInstance)
+                .map(ValidatorAdapter.class::cast)
+                .map(ValidatorAdapter::getValidator)
+                .filter(NotNullValidator.class::isInstance)
+                .map(NotNullValidator.class::cast)
+                .forEach(validator -> validator.setUseModel(true));
     }
 
     protected boolean noSelectedItemsWarn(PageBase pageBase, AjaxRequestTarget target,
@@ -397,7 +453,7 @@ public abstract class ColumnTileTable<O extends Serializable>
         if (toDelete == null || toDelete.isEmpty()) {
             pageBase.warn(pageBase.createStringResource(
                     "MultiSelectContainerActionTileTablePanel.message.noItemsSelected").getString());
-            target.add(pageBase.getFeedbackPanel().getParent());
+            target.add(pageBase.getFeedbackPanel());
             return true;
         }
         return false;
@@ -486,9 +542,13 @@ public abstract class ColumnTileTable<O extends Serializable>
         };
 
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-auto"));
+        newObjectButton.add(AttributeAppender.replace("class", getNewObjectButtonCssClass()));
         newObjectButton.add(new VisibleBehaviour(this::isNewObjectCreationEnabled));
         return newObjectButton;
+    }
+
+    protected String getNewObjectButtonCssClass() {
+        return "btn btn-outline-primary ml-auto";
     }
 
     protected StringResourceModel getNewObjectButtonTitle() {
@@ -541,8 +601,7 @@ public abstract class ColumnTileTable<O extends Serializable>
     }
 
     public void setDefaultPagingSize(Integer pageItemSize) {
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        UserProfileStorage userProfile = getBrowserTabSessionStorage().getUserProfile();
         userProfile.setPagingSize(getTableId(), pageItemSize);
     }
 

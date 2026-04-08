@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectClassStatisticsButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType;
@@ -39,6 +40,7 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
     private static final String ID_COUNT = "count";
     private static final String ID_VIEW_SCHEMA_LINK = "viewSchemaLink";
     private static final String ID_SELECT_CHECKBOX = "selectCheckbox";
+    private static final String ID_STATISTICS_BUTTON = "statisticsButton";
 
     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel;
 
@@ -52,12 +54,19 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        buildPanel();
     }
 
     @Override
     protected void initLayout() {
-        // No additional layout initialization needed
+        initDefaultCssStyle();
+
+        initName();
+        initDescription();
+        initCountTitle();
+        initCount();
+        initViewSchemaLink();
+        initSelectRadio();
+        initStatisticsButton();
     }
 
     @Override
@@ -69,17 +78,6 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
         }
 
         applySelectionStyling();
-    }
-
-    protected void buildPanel() {
-        initDefaultCssStyle();
-
-        initName();
-        initDescription();
-        initCountTitle();
-        initCount();
-        initViewSchemaLink();
-        initSelectRadio();
     }
 
     private void initSelectRadio() {
@@ -123,6 +121,13 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
         };
         viewSchemaLink.setOutputMarkupId(true);
         add(viewSchemaLink);
+    }
+
+    private void initStatisticsButton() {
+        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_STATISTICS_BUTTON,
+                () -> getModelObject().getObjectClassName(), getModelObject().getResourceOid());
+        statisticsButton.setOutputMarkupId(true);
+        add(statisticsButton);
     }
 
     private void initDefaultCssStyle() {

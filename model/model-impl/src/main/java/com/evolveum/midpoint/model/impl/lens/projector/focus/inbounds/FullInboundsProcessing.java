@@ -218,11 +218,6 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
     }
 
     @Override
-    void applyComputedDeltas(Collection<? extends ItemDelta<?, ?>> itemDeltas) throws SchemaException {
-        lensContext.getFocusContextRequired().swallowToSecondaryDelta(itemDeltas);
-    }
-
-    @Override
     @Nullable LensContext<?> getLensContextIfPresent() {
         return lensContext;
     }

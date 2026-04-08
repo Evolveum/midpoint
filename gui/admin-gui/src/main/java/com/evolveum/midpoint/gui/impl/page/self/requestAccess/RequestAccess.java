@@ -20,6 +20,12 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+
+import com.evolveum.midpoint.util.DebugDumpable;
+
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +74,7 @@ import org.apache.wicket.RestartResponseException;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RequestAccess implements Serializable {
+public class RequestAccess implements Serializable, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RequestAccess.class);
 
@@ -477,6 +483,19 @@ public class RequestAccess implements Serializable {
         return getConflicts().stream().filter(c -> c.isWarning() && c.getState() != ConflictState.SOLVED).count();
     }
 
+    public boolean areShoppingCartItemsRelatedToConflicts() {
+        final Set<String> shoppingCartItemsIds = getShoppingCartItems()
+                .stream().map(cardItem -> cardItem.getAssignment().getTargetRef().getOid())
+                .collect(Collectors.toSet());
+        for (Conflict conflict : getConflicts()) {
+            if (shoppingCartItemsIds.contains(conflict.getAdded().getAssignment().getTargetRef().getOid()) ||
+                    shoppingCartItemsIds.contains(conflict.getExclusion().getAssignment().getTargetRef().getOid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public long getErrorCount() {
         return getConflicts().stream().filter(c -> !c.isWarning() && c.getState() != ConflictState.SOLVED).count();
     }
@@ -767,7 +786,7 @@ public class RequestAccess implements Serializable {
         return getConflicts().stream().noneMatch(c -> c.getState() == ConflictState.UNRESOLVED);
     }
 
-    public OperationResult submitRequest(PageBase page) {
+    public SubmissionResult submitRequest(PageBase page) {
         int usersCount = requestItems.keySet().size();
         if (usersCount == 0) {
             return null;
@@ -780,7 +799,7 @@ public class RequestAccess implements Serializable {
         return submitMultiRequest(page);
     }
 
-    private OperationResult submitMultiRequest(PageBase page) {
+    private SubmissionResult submitMultiRequest(PageBase page) {
         ExplicitChangeExecutionWorkDefinitionType explicitChangeExecution = new ExplicitChangeExecutionWorkDefinitionType();
 
         for (ObjectReferenceType poiRef : requestItems.keySet()) {
@@ -827,25 +846,26 @@ public class RequestAccess implements Serializable {
             result.close();
         }
 
-        return result;
+        return new SubmissionResult(result, null, requestItems.size());
     }
 
-    private OperationResult submitSingleRequest(PageBase page) {
+    private SubmissionResult submitSingleRequest(PageBase page) {
         Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS_SINGLE);
         OperationResult result = task.getResult();
 
         ObjectReferenceType poiRef = requestItems.keySet().stream().findFirst().orElse(null);
 
-        ObjectDelta<UserType> delta;
+        Collection<ObjectDeltaOperation<? extends ObjectType>> changes = null;
         try {
             PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
-            delta = createUserDelta(user);
+            ObjectDelta<UserType> delta = createUserDelta(user);
 
             ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
             options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
             Boolean executeAfterApprovals = isDefaultExecuteAfterAllApprovals(page);
             options.executeImmediatelyAfterApproval(executeAfterApprovals != null ? !executeAfterApprovals : null);
-            page.getModelService().executeChanges(Collections.singletonList(delta), options, task, result);
+
+            changes = page.getModelService().executeChanges(Collections.singletonList(delta), options, task, result);
 
             result.recordSuccess();
         } catch (Exception e) {
@@ -856,7 +876,7 @@ public class RequestAccess implements Serializable {
             result.computeStatusIfUnknown();
         }
 
-        return result;
+        return new SubmissionResult(result, changes, requestItems.size());
     }
 
     private ModelExecuteOptions createSubmitModelOptions(PrismContext ctx) {
@@ -1162,5 +1182,40 @@ public class RequestAccess implements Serializable {
 
     public int getPoiCount() {
         return getPersonOfInterest().size();
+    }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("RequestAccess\n");
+
+        DebugUtil.debugDumpWithLabelLn(sb, "poiMyself", poiMyself, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "poiGroupSelectionIdentifier", poiGroupSelectionIdentifier, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "requestItems (POI -> assignments)", requestItems, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "requestItemsExistingToRemove", requestItemsExistingToRemove, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "existingPoiRoleMemberships", existingPoiRoleMemberships, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "templateAssignments", templateAssignments, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "relation", relation, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "defaultRelation", defaultRelation, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "selectedValidity", String.valueOf(selectedValidity), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "validityDuration", String.valueOf(validityDuration), indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "comment", comment, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "conflictsDirty", conflictsDirty, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "conflicts", conflicts, indent + 1);
+
+        return sb.toString();
     }
 }

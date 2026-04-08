@@ -122,7 +122,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         return true;
     }
 
-    AuthenticationSequenceModuleType getSequenceModule() {
+    protected AuthenticationSequenceModuleType getSequenceModule() {
         return sequenceModule;
     }
 

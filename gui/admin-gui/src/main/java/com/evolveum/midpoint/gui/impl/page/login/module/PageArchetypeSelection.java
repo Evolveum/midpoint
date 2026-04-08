@@ -210,10 +210,15 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
         var tilePanel = new TilePanel<>(ID_ARCHETYPE_PANEL, tileModel) {
             @Serial private static final long serialVersionUID = 1L;
 
-            @Override
             protected void onClick(AjaxRequestTarget target) {
                 archetypeSelected(tileModel, target);
-                target.add(getArchetypesContainer());
+
+                String currentId = getMarkupId();
+                boolean selected = getModelObject().isSelected();
+                target.appendJavaScript(String.format("MidPointTheme.updateStatusMessageForMenu('%s', '%s');",
+                        currentId, "" + selected));
+
+//                target.add(getArchetypesContainer());
                 target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
                 target.appendJavaScript("MidPointTheme.restoreFocus();");
                 updatePanelStatusLabel(tileModel, target);

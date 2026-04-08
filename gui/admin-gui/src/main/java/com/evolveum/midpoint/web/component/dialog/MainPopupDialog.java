@@ -136,6 +136,12 @@ public class MainPopupDialog extends ModalDialog {
         getDialogComponent().addOrReplace(titleComponent);
     }
 
+    public Component createDefaultTitleComponent() {
+        Label titleLabel = new Label("title", () -> title != null ? title.getObject() : null);
+        titleLabel.add(new VisibleBehaviour(this::isTitleVisible));
+        return titleLabel;
+    }
+
     @Override
     protected WebMarkupContainer newDialog(String dialogId) {
         return new MidpointForm<>(dialogId);

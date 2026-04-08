@@ -75,7 +75,7 @@ public record ValuesPairSample<S, F>(ItemPath focusPropertyPath, ItemPath shadow
     /**
      * Checks if all source values match their corresponding target values after type conversion.
      */
-    public boolean doAllConvertedSourcesMatchTargets(
+    public boolean allSourcesMatchTargets(
             PrismObjectDefinition<?> focusTypeDefinition,
             ResourceObjectTypeDefinition objectTypeDefinition,
             Protector protector) {
@@ -88,6 +88,6 @@ public record ValuesPairSample<S, F>(ItemPath focusPropertyPath, ItemPath shadow
     }
 
     public interface SampleOf {
-        ValuesPairSample<?, ?> from(Collection<OwnedShadow> ownedShadows);
+        ValuesPairSample<?, ?> from(Collection<ShadowWithOwner> shadowWithOwners);
     }
 }

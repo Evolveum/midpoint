@@ -1,0 +1,2 @@
+# Shell scripts in "dist" need to have LF line endings, even on Windows (when building Docker images, for example).
+dist/src/main/bin/*.sh text eol=lf

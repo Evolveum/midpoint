@@ -122,7 +122,8 @@ public class SearchableItemsDefinitions {
         SEARCHABLE_OBJECTS.put(ConnectorType.class, Arrays.asList(
                 ItemPath.create(ConnectorType.F_CONNECTOR_BUNDLE),
                 ItemPath.create(ConnectorType.F_CONNECTOR_VERSION),
-                ItemPath.create(ConnectorType.F_CONNECTOR_TYPE)
+                ItemPath.create(ConnectorType.F_CONNECTOR_TYPE),
+                ItemPath.create(ConnectorType.F_AVAILABLE)
         ));
         SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
                 ItemPath.create(AbstractRoleType.F_IDENTIFIER),

@@ -12,11 +12,15 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -59,6 +63,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
     @Autowired private SmartIntegrationService smartIntegrationService;
 
     private static DummyBasicScenario dummyForSuggestCorrelationAndMappings;
+    private static DummyBasicScenario dummyForSuggestCategoricalMappings;
 
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-object-types.xml", "0c59d761-bea9-4342-bbc7-ee0e199d275b",
@@ -76,6 +81,12 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
             resourceController -> dummyForSuggestCorrelationAndMappings = DummyBasicScenario.on(resourceController)
                     .initialize());
 
+    private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_CATEGORICAL_MAPPINGS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-for-suggest-categorical-mappings.xml", "a1b2c3d4-e5f6-7890-abcd-ef1234560001",
+            "for-suggest-categorical-mappings",
+            resourceController -> dummyForSuggestCategoricalMappings = DummyBasicScenario.on(resourceController)
+                    .initialize());
+
     private static final TestObject<?> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
     private static final TestObject<?> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
     private static final TestObject<?> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
@@ -91,10 +102,24 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_CATEGORICAL_MAPPINGS, initTask, initResult);
 
         initTestObjects(initTask, initResult,
                 USER_JACK, USER_JIM, USER_ALICE, USER_BOB);
         createAndLinkAccounts(initTask, initResult);
+        createUnlinkedCategoricalAccounts();
+    }
+
+    private void createUnlinkedCategoricalAccounts() throws Exception {
+        var a = dummyForSuggestCategoricalMappings.account;
+        a.add("worker1")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "active");
+        a.add("worker2")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "active");
+        a.add("worker3")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "inactive");
+        a.add("worker4")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "inactive");
     }
 
     private void createAndLinkAccounts(Task initTask, OperationResult initResult) throws Exception {
@@ -163,7 +188,9 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest object types' operation request");
         var token = smartIntegrationService.submitSuggestObjectTypesOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME,
+                List.of(DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.STATISTICS_ACCESS),
+                task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -217,7 +244,9 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest object types' operation request");
         var token = smartIntegrationService.submitSuggestObjectTypesOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME,
+                List.of(DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.STATISTICS_ACCESS),
+                task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -259,7 +288,9 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest focus type' operation request");
         var token = smartIntegrationService.submitSuggestFocusTypeOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, ACCOUNT_DEFAULT, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, ACCOUNT_DEFAULT,
+                List.of(DataAccessPermissionType.SCHEMA_ACCESS),
+                task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -299,7 +330,9 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest correlation' operation request");
         var token = smartIntegrationService.submitSuggestCorrelationOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT,
+                List.of(DataAccessPermissionType.SCHEMA_ACCESS),
+                false, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -342,7 +375,9 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest mappings' operation request");
         var token = smartIntegrationService.submitSuggestMappingsOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null, List.of(
+                        DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.RAW_DATA_ACCESS),
+                false, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -385,7 +420,9 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest mappings' operation request");
         var token = smartIntegrationService.submitSuggestMappingsOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null, List.of(
+                        DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.RAW_DATA_ACCESS),
+                false, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -408,6 +445,150 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         // Just to dump the details
         assertTask(token, "task after")
                 .display();
+    }
+
+    /**
+     * Tests categorical mapping suggestion for the lockout status attribute.
+     * Shadow 'status' has 2 unique values ("active", "inactive"); LockoutStatusType has 2 enum values → cardinality check passes.
+     */
+    @Test
+    public void test400SuggestMappingsCategorical() throws CommonException {
+        if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            // We'll go with the real service client. Hence, this test will not check the actual response in detail.
+        } else {
+            var mockClient = new MockServiceClientImpl(request -> {
+                if (request instanceof SiMatchSchemaRequestType) {
+                    return new SiMatchSchemaResponseType()
+                            .attributeMatch(new SiAttributeMatchSuggestionType()
+                                    .applicationAttribute(asStringSimple(
+                                            DummyBasicScenario.Account.AttributeNames.STATUS.path()))
+                                    .midPointAttribute(asStringSimple(
+                                            ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS))));
+                } else if (request instanceof SiSuggestCategoricalMappingRequestType) {
+                    return new SiSuggestMappingResponseType()
+                            .transformationScript(
+                                    "// Map status to lockoutStatus\n"
+                                            + "input == null ? null"
+                                            + " : input.equalsIgnoreCase(\"inactive\") ? \"locked\" : \"normal\"");
+                }
+                return null;
+            });
+            TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
+        }
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("submitting 'suggest mappings' operation for categorical lockout status attribute");
+        var token = smartIntegrationService.submitSuggestMappingsOperation(
+                RESOURCE_DUMMY_FOR_SUGGEST_CATEGORICAL_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null,
+                List.of(DataAccessPermissionType.SCHEMA_ACCESS,
+                        DataAccessPermissionType.STATISTICS_ACCESS,
+                        DataAccessPermissionType.RAW_DATA_ACCESS),
+                false, task, result);
+
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestMappingsOperationStatus(token, task, result),
+                TIMEOUT);
+
+        then("there are suggested mappings");
+        displayDumpable("response", response);
+        assertThat(response).isNotNull();
+        var attrMappings = response.getAttributeMappings();
+        assertThat(attrMappings).as("attribute mappings").isNotEmpty();
+
+        if (!DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            and("the status attribute mapping has a categorical transformation script");
+            var statusMapping = findStatusMapping(attrMappings);
+            assertThat(statusMapping).as("status attribute mapping").isNotNull();
+            var inbound = statusMapping.getDefinition().getInbound();
+            assertThat(inbound).as("inbound mappings for status").hasSize(1);
+            assertThat(inbound.get(0).getExpression())
+                    .as("transformation expression (categorical mapping script)")
+                    .isNotNull();
+
+            and("the categorical mapping has null expected quality");
+            assertThat(statusMapping.getExpectedQuality())
+                    .as("expected quality of categorical mapping should be null (LLM confidence not assessed)")
+                    .isNull();
+        }
+    }
+
+    /**
+     * Tests that categorical mapping is NOT triggered when RAW_DATA_ACCESS is absent.
+     * Without it, useAiService=false, so the categorical path is skipped and the mapping falls back to asIs (null expression).
+     */
+    @Test
+    public void test410SuggestMappingsCategoricalWithoutRawDataAccess() throws CommonException {
+        if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            // We'll go with the real service client. Hence, this test will not check the actual response in detail.
+        } else {
+            var mockClient = new MockServiceClientImpl(request -> {
+                if (request instanceof SiMatchSchemaRequestType) {
+                    return new SiMatchSchemaResponseType()
+                            .attributeMatch(new SiAttributeMatchSuggestionType()
+                                    .applicationAttribute(asStringSimple(
+                                            DummyBasicScenario.Account.AttributeNames.STATUS.path()))
+                                    .midPointAttribute(asStringSimple(
+                                            ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS))));
+                } else if (request instanceof SiSuggestCategoricalMappingRequestType) {
+                    throw new AssertionError(
+                            "SUGGEST_CATEGORICAL_MAPPING must not be called without RAW_DATA_ACCESS (useAiService=false)");
+                }
+                return null;
+            });
+            TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
+        }
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("submitting 'suggest mappings' operation without RAW_DATA_ACCESS");
+        var token = smartIntegrationService.submitSuggestMappingsOperation(
+                RESOURCE_DUMMY_FOR_SUGGEST_CATEGORICAL_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null,
+                List.of(DataAccessPermissionType.SCHEMA_ACCESS,
+                        DataAccessPermissionType.STATISTICS_ACCESS),
+                false, task, result);
+
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish");
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestMappingsOperationStatus(token, task, result),
+                TIMEOUT);
+
+        then("there are suggested mappings");
+        displayDumpable("response", response);
+        assertThat(response).isNotNull();
+        var attrMappings = response.getAttributeMappings();
+        assertThat(attrMappings).as("attribute mappings").isNotEmpty();
+
+        if (!DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            and("the status mapping has null expression — asIs, because useAiService was false");
+            var statusMapping = findStatusMapping(attrMappings);
+            assertThat(statusMapping).as("status attribute mapping").isNotNull();
+            var inbound = statusMapping.getDefinition().getInbound();
+            assertThat(inbound).as("inbound mappings for status").hasSize(1);
+            assertThat(inbound.get(0).getExpression())
+                    .as("expression should be null (asIs) — categorical mapping disabled without RAW_DATA_ACCESS")
+                    .isNull();
+        }
+    }
+
+    private AttributeMappingsSuggestionType findStatusMapping(List<AttributeMappingsSuggestionType> attrMappings) {
+        return attrMappings.stream()
+                .filter(m -> {
+                    var ref = m.getDefinition().getRef();
+                    return ref != null && ref.getItemPath().lastName().getLocalPart().equals(
+                            DummyBasicScenario.Account.AttributeNames.STATUS.local());
+                })
+                .findFirst()
+                .orElse(null);
     }
 
     private void skipIfRealService() {

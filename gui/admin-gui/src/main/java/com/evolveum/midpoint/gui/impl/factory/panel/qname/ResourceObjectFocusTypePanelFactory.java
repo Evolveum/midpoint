@@ -15,9 +15,12 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.validator.ResourceObjectFocusTypeValidator;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.DropDownChoiceSuggestPanel;
 
 import jakarta.annotation.PostConstruct;
@@ -93,9 +96,11 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
                         true) {
 
                     @Override
-                    protected void onSuggestAction(@NotNull AjaxRequestTarget target) {
+                    protected void onSuggestAction(@NotNull AjaxRequestTarget target,
+                            List<ConfirmationOption<DataAccessPermission>> confirmedOptions) {
                         DropDownChoice<QName> baseFormComponent = getBaseFormComponent();
                         executeSuggestFocusTypeOperation(
+                                confirmedOptions,
                                 getPageBase(),
                                 baseFormComponent,
                                 panelCtx,
@@ -110,7 +115,7 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
 
     //NOTE: If we decide to submit suggestion in the task, we should implement more complex panel with logicDto provider.
     private void executeSuggestFocusTypeOperation(
-            @NotNull PageBase pageBase,
+            List<ConfirmationOption<DataAccessPermission>> confirmedOptions, @NotNull PageBase pageBase,
             @NotNull DropDownChoice<QName> baseFormComponent,
             @NotNull PrismPropertyPanelContext<QName> panelCtx,
             @NotNull AjaxRequestTarget target) {
@@ -132,9 +137,14 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
         Task task = pageBase.createSimpleTask("Suggest focus type");
         OperationResult result = task.getResult();
 
+        final List<DataAccessPermissionType> permissions = confirmedOptions.stream()
+                .map(ConfirmationOption::option)
+                .map(DataAccessPermission::toSchemaType)
+                .toList();
         try {
             SmartIntegrationService sis = pageBase.getSmartIntegrationService();
-            FocusTypeSuggestionType suggestion = sis.suggestFocusType(resourceOid, objectTypeDef, task, result);
+            FocusTypeSuggestionType suggestion = sis.suggestFocusType(resourceOid, objectTypeDef, permissions, task,
+                    result);
             if (suggestion != null && suggestion.getFocusType() != null) {
                 QName focusType = suggestion.getFocusType();
                 baseFormComponent.setModelObject(focusType);
@@ -142,8 +152,8 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
             } else {
                 result.recordWarning("No suitable type suggestion was found.");
             }
-        } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException
-                | CommunicationException | ConfigurationException | ObjectNotFoundException e) {
+        } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException | CommunicationException |
+                 ConfigurationException | ObjectNotFoundException | InsufficientPermissionsException e) {
             result.recordFatalError("Couldn't suggest focus type: " + e.getMessage(), e);
         }
 

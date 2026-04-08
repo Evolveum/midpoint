@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -22,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
@@ -29,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObjectTypeSimulationTasks;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 
 /**
  * Button panel for managing simulation tasks on a resource object type.
@@ -101,7 +106,12 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
                         getExecutionMode()
                 );
 
-                SimulationActionFlow<T> flow = new SimulationActionFlow<>(params);
+                SimulationActionFlow<T> flow = new SimulationActionFlow<>(params){
+                    @Override
+                    public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+                        SimulationActionTaskButton.this.onShowResultProcess(target, task, pageBase);
+                    }
+                };
                 if(isSamplingEnabled()){
                     flow.enableSampling();
                 }
@@ -120,6 +130,16 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
         };
         simulationButton.setOutputMarkupId(true);
         return simulationButton;
+    }
+
+
+    protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+        ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
+        PageParameters params = new PageParameters();
+        if (simulationResultReference != null) {
+            params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, simulationResultReference.getOid());
+            pageBase.navigateToNext(PageSimulationResult.class, params);
+        }
     }
 
     protected boolean isSamplingEnabled(){

@@ -42,7 +42,7 @@ public class CollapsibleToggleColumn<T> extends AbstractColumn<T, String> {
         AjaxIconButton toggleButton = new AjaxIconButton(componentId, getIconModel(cellItem), getTitleModel(cellItem)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                CollapsableDataTable<?, ?>.CollapsableRowItem rowItem = findParent(CollapsableDataTable.CollapsableRowItem.class);
+                CollapsableDataTable<?>.CollapsableRowItem rowItem = findParent(CollapsableDataTable.CollapsableRowItem.class);
                 if (rowItem != null) {
                     rowItem.toggle(target);
                     target.add(rowItem);
@@ -75,7 +75,7 @@ public class CollapsibleToggleColumn<T> extends AbstractColumn<T, String> {
     }
 
     private boolean isRowExpanded(@NotNull Item<ICellPopulator<T>> cellItem) {
-        CollapsableDataTable<?, ?>.CollapsableRowItem rowItem =
+        CollapsableDataTable<?>.CollapsableRowItem rowItem =
                 cellItem.findParent(CollapsableDataTable.CollapsableRowItem.class);
         return rowItem != null && rowItem.isExpanded();
     }

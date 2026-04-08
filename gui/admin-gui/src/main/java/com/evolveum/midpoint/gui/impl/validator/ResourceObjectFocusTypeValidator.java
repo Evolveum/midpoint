@@ -68,5 +68,10 @@ public class ResourceObjectFocusTypeValidator implements INullAcceptingValidator
             error.setMessage(LocalizationUtil.translate("ResourceObjectFocusTypeValidator.nullValueDuringCreatingOfArchetype", new Object[] {value}));
             validatable.error(error);
         }
+        if(value == null) {
+            ValidationError error = new ValidationError();
+            error.setMessage(LocalizationUtil.translate("ResourceObjectFocusTypeValidator.focusRequired", new Object[] {value}));
+            validatable.error(error);
+        }
     }
 }

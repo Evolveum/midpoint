@@ -159,7 +159,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     }
 
     private ResourceContentStorage getContentStorage(ShadowKindType kind, String searchMode) {
-        return getObjectDetailsModels().getPageResource().getSessionStorage().getResourceContentStorage(kind, searchMode);
+        return getObjectDetailsModels().getPageResource().getBrowserTabSessionStorage().getResourceContentStorage(kind, searchMode);
     }
 
     protected void initLayout() {

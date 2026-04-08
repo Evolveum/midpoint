@@ -124,9 +124,9 @@ public abstract class ChoseSchemaPanel extends BasePanel<PrismObject<ResourceTyp
     }
 
     private PageStorage getStorage() {
-        PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(CREATE_SCHEMA_STORAGE_KEY);
+        PageStorage storage = getBrowserTabSessionStorage().getPageStorageMap().get(CREATE_SCHEMA_STORAGE_KEY);
         if (storage == null) {
-            storage = getSession().getSessionStorage().getObjectListStorage(CREATE_SCHEMA_STORAGE_KEY);
+            storage = getBrowserTabSessionStorage().getObjectListStorage(CREATE_SCHEMA_STORAGE_KEY);
         }
         return storage;
     }

@@ -41,6 +41,17 @@ For more details see xref:/midpoint/devel/gui/gui-development-guide.adoc#styles-
 Header color can be defined in system configuration object, part `deploymentInformation/headerColor`.
 This property can be combined with `skin`, however header color value will override default skin header color.
 
+=== Additional footer
+
+Additional footer can be defined in system configuration object, part `deploymentInformation/additionalFooter`.
+Value of `additionalFooter` must be base64 encoded string containing HTML fragment.
+This property can be used to add custom content to the footer of every page.
+
+WARNING: Content of this field will be not be escaped and rendered on page AS IS.
+Make sure that custom content is safe to be rendered on each page.
+This is an experimental feature and may be changed or removed in future versions.
+
+
 === AdminLTE skins
 
 Skins can be defined in system configuration object, part `deploymentInformation/skin`.

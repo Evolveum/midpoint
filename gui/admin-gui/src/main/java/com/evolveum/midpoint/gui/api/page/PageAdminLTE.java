@@ -8,64 +8,55 @@ package com.evolveum.midpoint.gui.api.page;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
-import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+import com.evolveum.midpoint.web.security.*;
 
-import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
-import com.evolveum.midpoint.model.common.MarkManager;
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
-
-import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
-import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-
-import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
-import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
-
-import com.evolveum.midpoint.smart.api.SmartIntegrationService;
-
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
+import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.*;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
@@ -81,14 +72,21 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
+import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -97,10 +95,12 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -109,13 +109,19 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Producer;
@@ -131,22 +137,21 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public abstract class PageAdminLTE extends WebPage implements ModelServiceLocator {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageAdminLTE.class.getName() + ".";
 
@@ -160,13 +165,32 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     private static final String ID_DUMP_PAGE_TREE = "dumpPageTree";
     private static final String ID_DEBUG_PANEL = "debugPanel";
 
-    private static final String ID_FOOTER_CONTAINER = "footerContainer";
+    protected static final String ID_FOOTER_CONTAINER = "footerContainer";
+    private static final String ID_LEGAL_FOOTER = "legalFooter";
     private static final String ID_VERSION = "version";
     private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
     private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
 
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
+
+    //used for the cases when no window identifier is found, e.g. in tests
+    private static final String SINGLE_SESSION_STORAGE_KEY = "singleSessionStorageKey";
+
+    /**
+     * See https://www.javadoc.io/doc/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer/20191001.1/org/owasp/html/HtmlPolicyBuilder.html
+     */
+    private static final PolicyFactory HTML_SANITIZER_POLICY =
+            Sanitizers.FORMATTING
+                    .and(Sanitizers.LINKS)
+                    .and(Sanitizers.BLOCKS)
+                    .and(Sanitizers.STYLES)
+                    .and(Sanitizers.IMAGES)
+                    .and(Sanitizers.TABLES)
+                    .and(new HtmlPolicyBuilder()
+                            .allowAttributes("style")
+                            .globally()
+                            .toFactory());
 
     // Strictly speaking following fields should be transient.
     // But making them transient is causing problems on some
@@ -308,6 +332,23 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         MidPointAuthWebSession.get().setClientCustomization();
 
         add(new NewWindowNotifyingBehavior());
+
+
+        add(new AbstractDefaultAjaxBehavior() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void renderHead(final Component component, final IHeaderResponse response) {
+                super.renderHead(component, response);
+                String js = "MidPointTheme.initWindowId();";
+                response.render(OnDomReadyHeaderItem.forScript(js));
+            }
+
+            @Override
+            protected void respond(AjaxRequestTarget target) {
+            }
+
+        });
     }
 
     @Override
@@ -325,7 +366,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     private void initLayout() {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
-        body.add(AttributeAppender.append("class", () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "dark-mode" : null));
+        body.add(AttributeAppender.append("class", () -> isDarkMode() ? "dark-mode" : null));
         // body.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getAccentCss()));
 
         addDefaultBodyStyle(body);
@@ -348,14 +389,43 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     }
 
+    /**
+     * Whether to show default footer (with version, copyright message, etc.) on the bottom of the page.
+     *
+     * @return True for all pages by default. False mostly for login/registration pages that
+     * doesn't have footer at the bottom of the page.
+     */
+    protected boolean hasDefaultFooter() {
+        return true;
+    }
+
+    private boolean isFooterVisible() {
+        if (!hasDefaultFooter()) {
+            // for all pages without footer on the bottom (registration, login, etc.)
+            return !isErrorPage() && isLegalFooterVisible();
+        }
+
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        if (info != null && info.getAdditionalFooter() != null) {
+            // don't show footer on error page
+            return !isErrorPage();
+        }
+
+        return !isErrorPage() && isLegalFooterVisible();
+    }
+
     private void addFooter() {
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage() && isFooterVisible()));
+        footerContainer.add(new VisibleBehaviour(() -> isFooterVisible()));
         add(footerContainer);
+
+        WebMarkupContainer legalFooter = new WebMarkupContainer(ID_LEGAL_FOOTER);
+        legalFooter.add(new VisibleBehaviour(() -> !isErrorPage() && isLegalFooterVisible()));
+        footerContainer.add(legalFooter);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Deprecated
             public String getDescribe() {
@@ -363,16 +433,16 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
             }
         };
         version.add(new VisibleBehaviour(() ->
-                isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
-        footerContainer.add(version);
+                isLegalFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
+        legalFooter.add(version);
 
         WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
         copyrightMessage.add(getFooterVisibleBehaviour());
-        footerContainer.add(copyrightMessage);
+        legalFooter.add(copyrightMessage);
 
         Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
                 new IModel<String>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public String getObject() {
@@ -383,7 +453,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
                         } else if (subscription.isInGracePeriod()) {
                             int daysToGracePeriodGone = subscription.getDaysToGracePeriodGone();
-                            if(daysToGracePeriodGone < 2) {
+                            if (daysToGracePeriodGone < 2) {
                                 return " " + createStringResource("PageBase.gracePeriodSubscriptionMessage.lastDay").getString();
                             }
                             return " " + createStringResource(
@@ -397,7 +467,42 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                 });
         subscriptionMessage.setOutputMarkupId(true);
         subscriptionMessage.add(getFooterVisibleBehaviour());
-        footerContainer.add(subscriptionMessage);
+        legalFooter.add(subscriptionMessage);
+    }
+
+    protected void addAdditionalFooter(MarkupContainer parent, String id) {
+        IModel<String> model = new LoadableDetachableModel<>() {
+
+            @Override
+            protected String load() {
+                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+                if (info == null) {
+                    return null;
+                }
+
+                byte[] additionalFooter = info.getAdditionalFooter();
+                if (additionalFooter == null) {
+                    return null;
+                }
+
+                try {
+                    String html = new String(additionalFooter, StandardCharsets.UTF_8);
+//                    return HTML_SANITIZER_POLICY.sanitize(html);
+                    return html;
+                } catch (Exception e) {
+                    LOGGER.debug("Couldn't sanitize additional data for id {}: {}", id, e.getMessage());
+
+                    return null;
+                }
+            }
+        };
+
+        Label additionalFooter = new Label(id, model);
+        additionalFooter.setRenderBodyOnly(true);
+        additionalFooter.setEscapeModelStrings(false);
+        additionalFooter.add(new VisibleBehaviour(() -> model.getObject() != null));
+
+        parent.add(additionalFooter);
     }
 
     public SubscriptionState getSubscriptionState() {
@@ -410,12 +515,12 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
             @Override
             public boolean isVisible() {
-                return isFooterVisible();
+                return isLegalFooterVisible();
             }
         };
     }
 
-    private boolean isFooterVisible() {
+    private boolean isLegalFooterVisible() {
         SubscriptionState subscription = getSubscriptionState();
         return subscription.isFooterVisible();
     }
@@ -1111,9 +1216,44 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return get(ID_FEEDBACK_CONTAINER);
     }
 
+    /**
+     * @return the storage information which is common all over browser windows/tabs
+     * e.g. request access data, midPoint light/dark mode etc.
+     */
     public SessionStorage getSessionStorage() {
         MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
         return session.getSessionStorage();
+    }
+
+    /**
+     * @return the storage information which is browser windows/tab specific,
+     * e.g. object list page search data, specific details page navigation menu data etc.
+     */
+    public BrowserTabSessionStorage getBrowserTabSessionStorage() {
+        String windowId = getWindowIdPageParameter();
+        if (windowId == null) {
+            windowId = SINGLE_SESSION_STORAGE_KEY;
+        }
+        return MidPointAuthWebSession.get().getBrowserTabSessionStorage(windowId);
+    }
+
+    private String getWindowIdPageParameter() {
+        org.apache.wicket.request.IRequestParameters parameters = RequestCycle.get().getRequest().getRequestParameters();
+        StringValue paramValue = parameters.getParameterValue(BrowserWindowIdentifierFilter.PARAM_WI);
+        String windowId = paramValue != null ? paramValue.toString() : null;
+        LOGGER.trace("Page Admin LTE: {}", windowId);
+
+        if (windowId == null) {
+            //try to get windowId from Referer header
+            String referer = ((ServletWebRequest)RequestCycle.get().getRequest()).getHeader("Referer");
+            if (referer != null) {
+                windowId = UriComponentsBuilder.fromUriString(referer)
+                        .build()
+                        .getQueryParams()
+                        .getFirst(BrowserWindowIdentifierFilter.PARAM_WI);
+            }
+        }
+        return windowId;
     }
 
     public SecretsProviderManager getSecretsProviderManager() {
@@ -1134,6 +1274,13 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     public void changeLocal(AjaxRequestTarget target) {
+        getBrowserTabSessionStorage().getPageStorageMap().values()
+                .forEach(pageStorage -> {
+                    if (pageStorage.getSearch() == null) {
+                        return;
+                    }
+                    pageStorage.getSearch().detachSearchItemWrappersModels();
+                });
     }
 
     public IModel<String> getSystemNameModel() {
@@ -1143,8 +1290,32 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         };
     }
 
+    protected boolean isDarkMode() {
+        return getSessionStorage().getMode() == SessionStorage.Mode.DARK;
+    }
+
     @Override
     public ConnectorDevelopmentService getConnectorService() {
         return connectorService;
+    }
+
+    /**
+     * Update page parameters with window id parameter so that the wicket
+     * can correctly find an existing page in the wicket page storage.
+     * @return
+     */
+    @Override
+    public PageParameters getPageParameters() {
+        PageParameters parameters = super.getPageParameters();
+
+        String windowId = getWindowIdPageParameter();
+        if (parameters == null) {
+            parameters = new PageParameters();
+        }
+        if (!parameters.contains(BrowserWindowIdentifierFilter.PARAM_WI) && windowId != null) {
+            parameters.add(BrowserWindowIdentifierFilter.PARAM_WI, windowId);
+        }
+
+        return parameters;
     }
 }

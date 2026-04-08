@@ -6,39 +6,46 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.component.otp.FocusOtpListPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.self.PageSelf;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
 import com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 
 @PageDescriptor(
         urls = {
@@ -50,13 +57,16 @@ import java.util.List;
                         description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
                         label = "PageSelfCredentials.auth.credentials.label",
-                        description = "PageSelfCredentials.auth.credentials.description")})
+                        description = "PageSelfCredentials.auth.credentials.description") })
 public class PageSelfCredentials extends PageSelf {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageSelfCredentials.class);
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
     private static final String OPERATION_LOAD_PRINCIPAL = DOT_CLASS + "loadPrincipalObject";
+    private static final String OPERATION_IS_OTP_AVAILABLE = DOT_CLASS + "isOtpAvailable";
 
     protected static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
@@ -85,38 +95,52 @@ public class PageSelfCredentials extends PageSelf {
 
     }
 
-    private Collection<? extends ITab> createTabs(){
+    private Collection<? extends ITab> createTabs() {
         List<ITab> tabs = new ArrayList<>();
-        tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {
+        tabs.add(createPasswordTab());
+        tabs.add(createSecurityQuestionsTab());
+        tabs.add(createOtpTab());
+
+        return tabs;
+    }
+
+    private LoadableDetachableModel<FocusType> createFocusModel() {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected FocusType load() {
+                MidPointPrincipal principal = getPrincipal();
+
+                if (principal == null) {
+                    return null;
+                }
+
+                Task task = createSimpleTask(OPERATION_LOAD_PRINCIPAL);
+                OperationResult result = task.getResult();
+                PrismObject<FocusType> principalReloaded = WebModelServiceUtils
+                        .loadObject(FocusType.class, principal.getOid(), PageSelfCredentials.this, task, result);
+                if (principalReloaded == null) {
+                    return null;
+                }
+
+                return principalReloaded.asObjectable();
+            }
+        };
+    }
+
+    private ITab createPasswordTab() {
+        return new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new PropagatePasswordPanel<>(panelId, new LoadableDetachableModel<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected FocusType load() {
-                        MidPointPrincipal principal = getPrincipal();
-
-                        if (principal == null) {
-                            return null;
-                        }
-
-                        Task task = createSimpleTask(OPERATION_LOAD_PRINCIPAL);
-                        OperationResult result = task.getResult();
-                        PrismObject<FocusType> principalReloaded = WebModelServiceUtils
-                                .loadObject(FocusType.class, principal.getOid(), PageSelfCredentials.this, task, result);
-                        if (principalReloaded == null) {
-                            return null;
-                        }
-                        return principalReloaded.asObjectable();
-                    }
-                });
+                return new PropagatePasswordPanel<>(panelId, createFocusModel());
             }
-        });
+        };
+    }
 
-        tabs.add(new PanelTab(createStringResource("PageSelfCredentials.tabs.securityQuestion"),
+    private ITab createSecurityQuestionsTab() {
+        return new PanelTab(createStringResource("PageSelfCredentials.tabs.securityQuestion"),
                 new VisibleBehaviour(this::showQuestions)) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -124,9 +148,7 @@ public class PageSelfCredentials extends PageSelf {
             public WebMarkupContainer createPanel(String panelId) {
                 return new SecurityQuestionsPanel(panelId, Model.of());
             }
-        });
-
-        return tabs;
+        };
     }
 
     private boolean showQuestions() {
@@ -148,4 +170,43 @@ public class PageSelfCredentials extends PageSelf {
         return secQuestAnsList != null && !secQuestAnsList.isEmpty();
     }
 
+    private ITab createOtpTab() {
+        return new PanelTab(
+                createStringResource("PageSelfCredentials.tabs.otp"),
+                new VisibleBehaviour(this::showOtp)) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                LoadableDetachableModel<FocusType> focusModel = createFocusModel();
+
+                return new FocusOtpListPanel(panelId, focusModel) {
+
+                    @Override
+                    protected void onSavePerformed(AjaxRequestTarget target) {
+                        super.onSavePerformed(target);
+
+                        focusModel.detach();
+                    }
+                };
+            }
+        };
+    }
+
+    private boolean showOtp() {
+        GuiProfiledPrincipal principal = getPrincipal();
+        if (principal == null) {
+            return false;
+        }
+
+        // check otp credentials policy existence and parameters if needed
+        // via principal.getApplicableSecurityPolicy().getCredentials();
+
+        OtpManager manager = MidPointApplication.get().getOtpManager();
+        Task task = createSimpleTask(OPERATION_IS_OTP_AVAILABLE);
+        OperationResult result = task.getResult();
+
+        return manager.isOtpAvailable(principal.getFocus().asPrismObject(), task, result);
+    }
 }

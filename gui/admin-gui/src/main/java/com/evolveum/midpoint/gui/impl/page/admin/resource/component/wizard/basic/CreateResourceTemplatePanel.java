@@ -139,9 +139,9 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
     }
 
     private PageStorage getStorage() {
-        PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(CREATE_RESOURCE_TEMPLATE_STORAGE_KEY);
+        PageStorage storage = getBrowserTabSessionStorage().getPageStorageMap().get(CREATE_RESOURCE_TEMPLATE_STORAGE_KEY);
         if (storage == null) {
-            storage = getSession().getSessionStorage().getObjectListStorage(CREATE_RESOURCE_TEMPLATE_STORAGE_KEY);
+            storage = getBrowserTabSessionStorage().getObjectListStorage(CREATE_RESOURCE_TEMPLATE_STORAGE_KEY);
         }
         return storage;
     }

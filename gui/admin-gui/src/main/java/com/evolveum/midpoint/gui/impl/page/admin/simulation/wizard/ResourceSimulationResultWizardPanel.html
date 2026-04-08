@@ -10,7 +10,11 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
     <wicket:extend>
-        <div class="card-body" wicket:id="panel"></div>
+        <div wicket:id="feedbackContainer" class="col-6 p-0 feedbackContainer">
+            <div wicket:id="feedback" class="messagePanel"></div>
+        </div>
+
+        <div class="card-body p-0" wicket:id="panel"></div>
     </wicket:extend>
 </body>
 </html>

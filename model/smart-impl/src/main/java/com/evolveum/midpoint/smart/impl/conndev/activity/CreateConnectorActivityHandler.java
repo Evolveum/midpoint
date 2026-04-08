@@ -97,8 +97,6 @@ public class CreateConnectorActivityHandler
             var targetDir = connDef.getGroupId() + "." + connDef.getArtifactId() + "." + connDef.getVersion();
 
             // Download template
-
-
             var template = beans.connectorService.writeConnector(targetDir + ".template", stream -> {
                 try {
                     beans.downloadFile(new URL(getWorkDefinition().templateUrl), stream);
@@ -106,6 +104,7 @@ public class CreateConnectorActivityHandler
                     throw new SystemException("Couldn't download connector template", e);
                 }
             });
+
             // Unpack template
             var editable = template.unpack(targetDir, result);
 
@@ -113,7 +112,8 @@ public class CreateConnectorActivityHandler
             // Rename template to connector
 
             try {
-                editable.asEditable().updateProperty("Messages.properties", "manifest.connector.display", backend.connectorDisplayName());
+                editable.asEditable().updateProperty(
+                        "Messages.properties", "manifest.connector.display", backend.connectorDisplayName());
             } catch (IOException e) {
                 // FIXME: Add proper exception
                 throw new SystemException(e);

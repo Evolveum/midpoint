@@ -688,15 +688,9 @@
             <xsd:element ref="tns:lifecycleState" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Lifecycle state of the object class or object type. First, it drives the visibility of the configuration
-                        for production-like or simulation tasks. Second, it influences the behavior of specific provisioning
-                        operations (like shadow classification).
-
-                        The lifecycle state is propagated downwards, from the level of a resource, down to the level
-                        of an object class, and finally to the level of an object type. If the state is evaluated
-                        as "non-matching" at a given level, all lower levels are ignored. For example, if an object class
-                        has a "proposed" lifecycle state, all its object types are considered to be in non-production
-                        development state, regardless of their own lifecycle state values.
+                        Defines how the object is treated during its lifetime (draft, proposed, active, deprecated, archived).
+                        The default “Proposed” state is a safe starting point that allows you to run simulations to test changes
+                        without impacting real data, and can be changed later.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>

@@ -43,6 +43,8 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
@@ -3990,6 +3992,9 @@ public final class WebComponentUtil {
         OperationResult result = task.getResult();
         try {
             return service.getCompiledGuiProfile(task, result);
+        } catch (SecurityViolationException e) {
+            // Authentication was lost during request processing (e.g. logout)
+            throw new RestartResponseException(PageLogin.class);
         } catch (Throwable e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
             if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
@@ -4183,6 +4188,7 @@ public final class WebComponentUtil {
         return BooleanUtils.isTrue(profile.isEnableExperimentalFeatures());
     }
 
+    @Deprecated //Use {@link com.evolveum.midpoint.gui.api.page.PageAdminLTE#isDarkMode()}
     public static boolean isDarkModeEnabled() {
         MidPointAuthWebSession session = MidPointAuthWebSession.get();
         return session.getSessionStorage().getMode() == SessionStorage.Mode.DARK;
@@ -4307,6 +4313,19 @@ public final class WebComponentUtil {
         String key = "trigger." + handler.getClass().getName();
 
         return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(key);
+    }
+
+    public static void updateAjaxLinkAttributesForCtrlClickRedirection(AjaxRequestAttributes attributes) {
+        attributes.getDynamicExtraParameters().add(
+                "return { ctrlKey: Wicket.Event.fix(attrs.event).ctrlKey };"
+        );
+
+        attributes.getAjaxCallListeners().add(new AjaxCallListener() {
+            @Override
+            public CharSequence getPrecondition(Component component) {
+                return "return MidPointTheme.handleCtrlClick(attrs.event);";
+            }
+        });
     }
 
     public static String getLabelForItemValue(PrismValueWrapper valueWrapper, PageBase pageBase){

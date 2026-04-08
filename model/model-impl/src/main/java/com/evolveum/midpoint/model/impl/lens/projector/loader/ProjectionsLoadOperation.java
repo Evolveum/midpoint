@@ -495,6 +495,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             if (acqResult.shadowSet) {
                 projectionContext.setFresh(projectionContext.getObjectOld() != null); // TODO reconsider
             } else {
+                projectionContext.setLoadedObject(shadow);
                 projectionContext.setFresh(true);
                 projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
                 if (ShadowUtil.isGone(shadow.asObjectable())) {

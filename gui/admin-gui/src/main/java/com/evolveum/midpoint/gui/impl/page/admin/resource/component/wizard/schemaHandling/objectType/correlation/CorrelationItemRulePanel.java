@@ -9,11 +9,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormCorrelationItemPanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -26,12 +31,15 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiEfficiencyBadgeModel;
 
-public class CorrelationItemRulePanel extends BasePanel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> implements Popupable {
+public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> implements Popupable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemRulePanel.class);
 
     private static final String ID_PANEL = "panel";
     private static final String ID_TABLE = "table";
@@ -43,22 +51,22 @@ public class CorrelationItemRulePanel extends BasePanel<PrismContainerValueWrapp
     private static final String ID_ALERT_BADGE = "badgeAlert";
 
     IModel<StatusInfo<CorrelationSuggestionsType>> statusInfoModel = Model.of();
-    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition;
+    IModel<PrismContainerValueWrapper<C>> parentContainerDefWrapperModel;
 
     public CorrelationItemRulePanel(String id,
             IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueWrapperIModel,
             IModel<StatusInfo<CorrelationSuggestionsType>> statusInfoModel,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition) {
+            IModel<PrismContainerValueWrapper<C>> resourceObjectTypeDefinition) {
         super(id, valueWrapperIModel);
         this.statusInfoModel = statusInfoModel;
-        this.resourceObjectTypeDefinition = resourceObjectTypeDefinition;
+        this.parentContainerDefWrapperModel = resourceObjectTypeDefinition;
     }
 
     public CorrelationItemRulePanel(String id,
             IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueWrapperIModel,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition) {
+            IModel<PrismContainerValueWrapper<C>> resourceObjectTypeDefinition) {
         super(id, valueWrapperIModel);
-        this.resourceObjectTypeDefinition = resourceObjectTypeDefinition;
+        this.parentContainerDefWrapperModel = resourceObjectTypeDefinition;
     }
 
     @Override
@@ -68,7 +76,6 @@ public class CorrelationItemRulePanel extends BasePanel<PrismContainerValueWrapp
         initAlertInfoPanel();
         initLayout();
     }
-
 
     private void initAlertInfoPanel() {
         WebMarkupContainer infoPanel = new WebMarkupContainer(ID_ALERT_CONTAINER);
@@ -129,24 +136,40 @@ public class CorrelationItemRulePanel extends BasePanel<PrismContainerValueWrapp
         add(panel);
         valueModel.getObject().getRealValue().asPrismContainerValue();
 
-        CorrelationItemRefsTable table = buildCorrelationitemRefsTable();
+        CorrelationItemRefsTable<C> table = buildCorrelationitemRefsTable();
         add(table);
     }
 
-    private @NotNull CorrelationItemRefsTable buildCorrelationitemRefsTable() {
-        CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getModel(), getConfiguration()) {
+    private @NotNull CorrelationItemRefsTable<C> buildCorrelationitemRefsTable() {
+        CorrelationItemRefsTable<C> table = new CorrelationItemRefsTable<>(ID_TABLE, getModel(), getConfiguration()) {
             @Override
             boolean isReadOnlyTable() {
                 return isSuggestionApplied() || isReadOnly();
             }
 
             @Override
-            public @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefModel() {
-                return CorrelationItemRulePanel.this.getResourceObjectTypeDefinitionModel();
+            public @NotNull IModel<PrismContainerValueWrapper<C>> getMappingContainerParent() {
+                return CorrelationItemRulePanel.this.getParentContainerWrapper();
+            }
+
+            @Override
+            protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings(ItemName fAttribute) {
+                return CorrelationItemRulePanel.this.getMappings();
             }
         };
         table.setOutputMarkupId(true);
         return table;
+    }
+
+    protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings() {
+        PrismContainerWrapper<ResourceAttributeDefinitionType> mappings = null;
+        try {
+            mappings = getParentContainerWrapper().getObject()
+                    .findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+        } catch (SchemaException e) {
+            LOGGER.warn("Couldn't find attribute container in resource object type definition.", e);
+        }
+        return mappings;
     }
 
     protected boolean isShowEmptyField() {
@@ -161,12 +184,12 @@ public class CorrelationItemRulePanel extends BasePanel<PrismContainerValueWrapp
         return getStatusInfo() != null;
     }
 
-    protected boolean isReadOnly(){
+    protected boolean isReadOnly() {
         return false;
     }
 
-    private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefinitionModel() {
-        return resourceObjectTypeDefinition;
+    private IModel<PrismContainerValueWrapper<C>> getParentContainerWrapper() {
+        return parentContainerDefWrapperModel;
     }
 
     private StatusInfo<CorrelationSuggestionsType> getStatusInfo() {

@@ -6,8 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.web.util.ExpressionValidator;
+import java.io.Serial;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
@@ -28,20 +32,24 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
+import com.evolveum.midpoint.gui.impl.util.GuiConfigUtil;
+import com.evolveum.midpoint.gui.impl.validation.ItemValidationContext;
+import com.evolveum.midpoint.gui.impl.validation.ValidatorFactoryRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import java.io.Serial;
-import java.util.HashMap;
-import java.util.Map;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 
 public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
 
@@ -203,6 +211,21 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             factory.configure(panelCtx, component);
             valueContainer.add(feedback);
 
+            ContainerPanelConfigurationType config = settings != null ? settings.getConfig() : null;
+            VirtualContainerItemSpecificationType spec =
+                    GuiConfigUtil.findItemSpecForPath(config, getModelObject().getParent().getPath());
+            List<String> validators = spec != null ? spec.getValidator() : List.of();
+
+            if (!validators.isEmpty() && component instanceof InputPanel ip) {
+                ValidatorFactoryRegistry registry = MidPointApplication.get().getValidatorRegistry();
+
+                ItemValidationContext context = new ItemValidationContext()
+                        .page(getPageBase())
+                        .type(getModelObject().getParent().findObjectWrapper().getTypeClass());
+
+                registry.attachValidators(validators, ip, context);
+            }
+
         } catch (Throwable e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
             getSession().error("Cannot create panel");
@@ -326,7 +349,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     protected boolean isRemoveButtonVisible() {
-        if(getSettings() != null && getSettings().isRemoveButtonVisible() != null){
+        if (getSettings() != null && getSettings().isRemoveButtonVisible() != null) {
             return getSettings().isRemoveButtonVisible();
         }
 

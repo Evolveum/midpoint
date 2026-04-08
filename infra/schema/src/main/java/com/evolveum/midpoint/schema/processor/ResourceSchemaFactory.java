@@ -224,6 +224,17 @@ public class ResourceSchemaFactory {
         return parseCompleteSchema(resource, ResourceSchemaFactory.getNativeSchema(resource), additions);
     }
 
+    /**
+     * Creates new schema extender for a given resource.
+     *
+     * @param resource The resource schema of which you would like to extend.
+     * @return The new instance of the schema extender
+     * @throws SchemaException When error occurs during parsing of resource native schema.
+     */
+    public static ResourceSchemaExtender schemaExtenderFor(ResourceType resource) throws SchemaException {
+        return new ResourceSchemaExtender(ResourceSchemaFactory.getNativeSchema(resource), resource);
+    }
+
     /** Parses the complete schema from the provided raw schema plus definitions in the resource. */
     @Contract("_, null -> null; _, !null -> !null")
     public static CompleteResourceSchema parseCompleteSchema(@NotNull ResourceType resource, NativeResourceSchema nativeSchema)

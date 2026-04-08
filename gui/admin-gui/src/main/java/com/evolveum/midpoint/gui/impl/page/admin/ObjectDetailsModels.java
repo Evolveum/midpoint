@@ -19,8 +19,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,10 +39,12 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ObjectDetailsModels<O extends ObjectType> implements Serializable, IDetachable {
 
@@ -518,5 +520,12 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
     public IModel<PrismContainerValueWrapper> getModelForSubmenu(String identifier) {
         return subMenuModels.get(identifier);
+    }
+
+    public void performAfterSavePerformed(
+            @Nullable Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
+            @NotNull AjaxRequestTarget target,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
     }
 }

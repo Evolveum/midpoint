@@ -9,8 +9,12 @@ package com.evolveum.midpoint.smart.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -21,12 +25,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.
@@ -65,15 +70,17 @@ public interface SmartIntegrationService {
             String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException;
 
+    /** Regenerates statistics for the given resource and object class. */
+    String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult result
+    ) throws CommonException;
+
+    /** Regenerates statistics for the given resource object type. */
+    String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Task task, OperationResult result
+    ) throws CommonException;
+
     /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
     GenericObjectType getLatestObjectTypeStatistics(
             String resourceOid, String kind, String intent, OperationResult parentResult)
-            throws SchemaException;
-
-
-    /** Deletes all statistics objects for the given resource and object class. */
-    void deleteStatisticsForResource(
-            String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException;
 
     /** Deletes all object type statistics for the given resource, kind, and intent. */
@@ -81,9 +88,42 @@ public interface SmartIntegrationService {
             String resourceOid, String kind, String intent, OperationResult result)
             throws SchemaException;
 
+    /** Deletes all statistics objects for the given resource and object class. */
+    void deleteStatisticsForResource(
+            String resourceOid, QName objectClassName, OperationResult result)
+            throws SchemaException;
+
+    /** Returns the object holding last known statistics for the given focus object type and resource/kind/intent. */
+    GenericObjectType getLatestFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult parentResult)
+            throws SchemaException;
+
+    /** Deletes all focus object statistics for the given object type and resource/kind/intent. */
+    void deleteFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            OperationResult result)
+            throws SchemaException;
+
+    /** Regenerates statistics for the given focus object type (e.g. UserType) filtered by resource/kind/intent. */
+    String regenerateFocusObjectStatistics(
+            QName objectTypeName,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            Task task,
+            OperationResult result)
+            throws CommonException;
+
     /** Returns the object holding last known schema match for the given resource, kind and intent. */
-    public GenericObjectType getLatestObjectTypeSchemaMatch(
-            String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+    GenericObjectType getLatestObjectTypeSchemaMatch(
+            String resourceOid, String kind, String intent, OperationResult parentResult)
             throws SchemaException;
 
     /** Computes schema match pairs for the given resource and object type. */
@@ -97,7 +137,12 @@ public interface SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException;
 
     /** Submits "suggest object types" request. Returns a token used to query the status. */
-    String submitSuggestObjectTypesOperation(String resourceOid, QName objectClassName, Task task, OperationResult result)
+    String submitSuggestObjectTypesOperation(
+            String resourceOid,
+            QName objectClassName,
+            List<DataAccessPermissionType> permissions,
+            Task task,
+            OperationResult result)
             throws CommonException;
 
     /**
@@ -117,7 +162,7 @@ public interface SmartIntegrationService {
      * Submits "suggest focus type" request. Returns a token used to query the status.
      */
     String submitSuggestFocusTypeOperation(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, List<DataAccessPermissionType> permissions, Task task, OperationResult result)
             throws CommonException;
 
     /**
@@ -145,15 +190,17 @@ public interface SmartIntegrationService {
 
     /** Suggests a discrete focus type for the application (resource) object type. */
     FocusTypeSuggestionType suggestFocusType(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification,
+            List<DataAccessPermissionType> permissions, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException;
 
     /** Suggests a discrete focus type for the application (resource) object type which is not yet defined in the resource. */
     FocusTypeSuggestionType suggestFocusType(
-            String resourceOid, ResourceObjectTypeDefinitionType typeDefBean, Task task, OperationResult result)
+            String resourceOid, ResourceObjectTypeDefinitionType typeDefBean,
+            List<DataAccessPermissionType> permissions, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException;
 
     /**
      * Suggests correlation rules for the given resource object type and focus type.
@@ -166,8 +213,8 @@ public interface SmartIntegrationService {
     CorrelationSuggestionsType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            ShadowObjectClassStatisticsType statistics,
             SchemaMatchResultType schemaMatch,
+            @Nullable List<ItemPath> targetPathsToIgnore,
             @Nullable Object interactionMetadata,
             Task task,
             OperationResult result)
@@ -180,7 +227,12 @@ public interface SmartIntegrationService {
      * Interaction metadata will be added later.
      */
     String submitSuggestCorrelationOperation(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            List<DataAccessPermissionType> permissions,
+            boolean forceRecomputeSchemaMatch,
+            Task task,
+            OperationResult result)
             throws CommonException;
 
     /**
@@ -213,7 +265,9 @@ public interface SmartIntegrationService {
             ResourceObjectTypeIdentification typeIdentification,
             SchemaMatchResultType schemaMatch,
             Boolean isInbound,
-            @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
+            Boolean useAiService,
+            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            @Nullable List<ItemPath> targetPathsToIgnore,
             @Nullable CurrentActivityState<?> activityState,
             Task task,
             OperationResult result)
@@ -221,13 +275,30 @@ public interface SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException;
 
     /**
-     * Submits "suggest mappings" request.
-     * Returns a token used to query the status.
+     * Submits a "suggest mappings" request.
+     * <p>
+     * Returns a token that can be used to query operation status.
+     *
+     * @param targetPathsToIgnore Item paths representing mapping targets that should be ignored
+     * when generating suggestions. The interpretation of these paths
+     * depends on the {@code isInbound} parameter:
+     * <p>
+     * <ul>
+     *     <li><b>Inbound mappings</b>: paths on the midpoint side
+     *         (i.e. where inbound mapping results would be stored)</li>
+     *     <li><b>Outbound mappings</b>: paths of resource attributes
+     *         (i.e. where outbound mapping results would be stored)</li>
+     * </ul>
+     * Any mapping whose target resolves to one of these paths will not
+     * be suggested.
      */
     String submitSuggestMappingsOperation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             Boolean isInbound,
+            List<ItemPathType> targetPathsToIgnore,
+            List<DataAccessPermissionType> permissions,
+            boolean forceRecomputeSchemaMatch,
             Task task,
             OperationResult result)
             throws CommonException;
@@ -316,4 +387,14 @@ public interface SmartIntegrationService {
     /** Builds synchronization reactions from TARGET scenario answers. */
     SynchronizationReactionsType buildTargetSynchronizationReactionsFromAnswers(
             TargetSynchronizationAnswers answers);
+
+    /**
+     * Returns suggestion tasks related to the given resource object type, filtered by activity types.
+     */
+    @NotNull SearchResultList<PrismObject<TaskType>> listObjectTypeRelatedSuggestionTasks(
+            @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
+            @NotNull String resourceOid,
+            @NotNull List<ItemName> activityTypes,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws CommonException;
 }

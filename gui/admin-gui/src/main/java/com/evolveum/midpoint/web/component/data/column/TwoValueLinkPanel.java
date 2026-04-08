@@ -6,13 +6,17 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -27,7 +31,16 @@ public class TwoValueLinkPanel<T extends Serializable> extends Panel {
     public TwoValueLinkPanel(String id, IModel<String> label, IModel<String> description) {
         super(id);
 
-        AjaxLink<Void> link = new AjaxLink<Void>(ID_LINK) {
+        AjaxLink<Void> link = new AjaxLink<>(ID_LINK) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+
+                WebComponentUtil.updateAjaxLinkAttributesForCtrlClickRedirection(attributes);
+            }
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -44,14 +57,9 @@ public class TwoValueLinkPanel<T extends Serializable> extends Panel {
 //                return null;
 //            }
         };
+        link.add(AttributeAppender.replace("href", urlForLinkRedirection()));
         link.add(new Label(ID_LABEL, label));
-        link.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isEnabled() {
-                return TwoValueLinkPanel.this.isEnabled();
-            }
-        });
+        link.add(new EnableBehaviour(this::isEnabled));
         add(link);
         add(new Label(ID_DESCRIPTION, description));
     }
@@ -61,5 +69,9 @@ public class TwoValueLinkPanel<T extends Serializable> extends Panel {
     }
 
     public void onClick(AjaxRequestTarget target) {
+    }
+
+    protected String urlForLinkRedirection() {
+        return null;
     }
 }

@@ -66,11 +66,6 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
         setOutputMarkupId(true);
     }
 
-    private String createTaskKindExpression() {
-        return "none"; // FIXME
-        //return SelectableBeanImpl.F_VALUE + "." + TaskType.F_WORK_MANAGEMENT.getLocalPart() + "." + TaskWorkManagementType.F_TASK_KIND.getLocalPart();
-    }
-
     protected void initLayout() {
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
         add(subtasksLabel);
@@ -90,16 +85,6 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             @Override
             protected List<IColumn<SelectableBean<TaskType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<TaskType>, String>> columns = super.createDefaultColumns();
-
-                // TODO add "task kind" column
-
-//                columns.add(2, new EnumPropertyColumn<>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
-//
-//                    @Override
-//                    protected String translate(Enum<?> en) {
-//                        return createStringResource(en).getString();
-//                    }
-//                });
                 return columns;
             }
 
@@ -111,6 +96,11 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             @Override
             protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
                 return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, getObjectDetailsModels().getRootTaskModelObject());
+            }
+
+            @Override
+            protected boolean isSubtasksPanel() {
+                return true;
             }
         };
 
@@ -144,6 +134,11 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             @Override
             protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
                 return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, getObjectDetailsModels().getRootTaskModelObject());
+            }
+
+            @Override
+            protected boolean isSubtasksPanel() {
+                return true;
             }
         };
         add(workerThreadsTable);
@@ -205,5 +200,4 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
     public Collection<Component> getComponentsToUpdate() {
         return Collections.singleton(this);
     }
-
 }

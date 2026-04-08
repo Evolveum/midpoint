@@ -10,6 +10,8 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.Strings;
 
+import java.io.Serial;
+
 /**
  * Simple button that toggles two states (on-off, alphasort-numericsort, etc).
  * The button changes the icon when pressed.
@@ -17,7 +19,7 @@ import org.apache.wicket.util.string.Strings;
  * @author semancik
  */
 public abstract class ToggleIconButton<T> extends AjaxLink<T> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private String cssClassOff;
     private String cssClassOn;

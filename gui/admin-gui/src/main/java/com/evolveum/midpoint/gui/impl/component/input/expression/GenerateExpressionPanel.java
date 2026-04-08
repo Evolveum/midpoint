@@ -55,6 +55,7 @@ public class GenerateExpressionPanel extends EvaluatorExpressionPanel {
         modePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                initializeExpressionValue();
                 GenerateExpressionEvaluatorModeType updatedValue = modePanel.getBaseFormComponent().getConvertedInput();
                 updateEvaluatorValue(updatedValue);
                 target.add(getFeedback());
@@ -71,6 +72,7 @@ public class GenerateExpressionPanel extends EvaluatorExpressionPanel {
             protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
                 super.choosePerformed(target, object);
                 getBaseFormComponent().validate();
+                initializeExpressionValue();
                 updateEvaluatorValue(
                         new ObjectReferenceType()
                                 .oid(object.getOid())
@@ -90,6 +92,12 @@ public class GenerateExpressionPanel extends EvaluatorExpressionPanel {
         };
         valuePolicyPanel.setOutputMarkupId(true);
         parent.add(valuePolicyPanel);
+    }
+
+    private void initializeExpressionValue() {
+        if(getModelObject() == null) {
+            getModel().setObject(new ExpressionType());
+        }
     }
 
     @Override

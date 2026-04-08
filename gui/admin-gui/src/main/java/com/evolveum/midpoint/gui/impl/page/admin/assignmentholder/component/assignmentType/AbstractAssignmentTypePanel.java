@@ -270,7 +270,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     @Override
     protected PageStorage getPageStorage(String storageKey) {
-        Map<String, PageStorage> storage = getSession().getSessionStorage().getPageStorageMap();
+        Map<String, PageStorage> storage = getBrowserTabSessionStorage().getPageStorageMap();
         PageStorage pageStorage = storage.get(storageKey);
         if (pageStorage != null) {
             return pageStorage;

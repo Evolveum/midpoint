@@ -1,0 +1,54 @@
+---
+midpoint-feature: expression-mel
+doc-type: intro
+---
+= MidPoint Expression Language TODO
+:page-nav-title: TODO
+:page-upkeep-status: green
+:page-toc: top
+
+* MEL introduction
+* MEL lang spec
+* MEL security
+
+* MEL and CEL
+** reasons and motivation
+** Prism instead of protobuf
+** CEL extensions
+** why do we call it MEL?
+
+* MEL and Groovy, unsecure code in libraries, authorizations, etc.
+
+* Guide: migrating Groovy to MEL
+** What happened to `basic` library?
+** Rewriting loops to filter/map
+** Use Groovy in function libraries as a last resort
+
+* Gotchas/FAQ
+
+`stringify` vs `str` vs `string`
+
+`Field selections must be performed on messages or maps.`
+This means that the value may be null.
+E.g. for code `input.orig`, variable `input` may be null.
+Solution: `input.?orig`
+
+`found no matching overload for '_?_:_' applied to ... (candidates: (bool, %A8, %A8))`
+Conditional must have the same data type in both branches.
+Use string() or stringify().
+
+`No matching overload for function '_+_'. Overload candidates: add_string`
+'Came from ' + input ->
+
+// TODO: has() function - tricky: do not use with conditionals
+
+range() function, which creates a list? e.g. [1,2,3,4,5]
+Could be used to construct a list of candidates, e.g.
+range(5).map(x, "user%s".format(x)).filter(x, checkUnique(x))
+
+== Differences from CEL
+
+* Better support for nullable types/values
+
+* substring() does not die when index is out of range.
+Empty string is returned instead.

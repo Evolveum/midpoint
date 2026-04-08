@@ -59,7 +59,8 @@ public abstract class AssociationTypeTableWizardPanel extends SchemaHandlingType
                     AjaxRequestTarget target,
                     boolean isDuplicate,
                     @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
-                AssociationTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
+                AssociationTypeTableWizardPanel.this.onNewValue(value, containerModel,
+                        getObjectDetailsModels().createWrapperContext(), target, isDuplicate, postSaveHandler);
             }
         };
         panel.setOutputMarkupId(true);

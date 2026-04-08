@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDelineation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ShadowQueryConversionUtil;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -24,7 +25,7 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_FOCUS
 
 /**
  * Implements "suggest focus type" operation when executing on existing type definition
- * ({@link #suggestFocusType()}) or on a new type definition ({@link #suggestFocusType(ResourceObjectTypeDefinitionType)}).
+ * ({@link #suggestFocusType(ResourceObjectTypeDefinitionType, List)}) or on a new type definition ({@link #suggestFocusType(ResourceObjectTypeDefinitionType)}).
  */
 class FocusTypeSuggestionOperation {
 
@@ -35,7 +36,9 @@ class FocusTypeSuggestionOperation {
     }
 
     /** Using existing type definition in the context. */
-    FocusTypeSuggestionType suggestFocusType() throws SchemaException {
+    FocusTypeSuggestionType suggestFocusType(List<DataAccessPermissionType> permissions)
+            throws SchemaException, InsufficientPermissionsException {
+        checkPermissions(permissions);
         var ctx = (TypeOperationContext) this.ctx;
         return suggestFocusType(
                 ctx.typeDefinition.getTypeIdentification(),
@@ -45,8 +48,9 @@ class FocusTypeSuggestionOperation {
     }
 
     /** Using a new type definition provided as a parameter. */
-    FocusTypeSuggestionType suggestFocusType(ResourceObjectTypeDefinitionType typeDefBean)
-            throws SchemaException, ConfigurationException {
+    FocusTypeSuggestionType suggestFocusType(ResourceObjectTypeDefinitionType typeDefBean, List<DataAccessPermissionType> permissions)
+            throws SchemaException, ConfigurationException, InsufficientPermissionsException {
+        checkPermissions(permissions);
         var typeIdentification = ResourceObjectTypeIdentification.of(typeDefBean);
         var delineation = ResourceObjectTypeDelineation.of(
                 typeDefBean.getDelineation(), ctx.objectClassDefinition.getObjectClassName(), List.of(), ctx.objectClassDefinition);
@@ -55,6 +59,14 @@ class FocusTypeSuggestionOperation {
                 ctx.objectClassDefinition,
                 delineation,
                 ctx.resource);
+    }
+
+    private static void checkPermissions(List<DataAccessPermissionType> permissions) throws
+            InsufficientPermissionsException {
+        if (!permissions.contains(DataAccessPermissionType.SCHEMA_ACCESS)) {
+            throw new InsufficientPermissionsException("Focus suggesting requires permission %s".formatted(
+                    DataAccessPermissionType.SCHEMA_ACCESS));
+        }
     }
 
     /** Calls the `suggestFocusType` method on the remote service. */

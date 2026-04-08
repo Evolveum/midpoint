@@ -27,9 +27,14 @@ public enum RetrieveOption {
     EXCLUDE;
 
     public static RetrieveOption fromRetrieveOptionType(RetrieveOptionType retrieveOptionType) {
+        // Null means the value was not specified in XML.
+        // We preserve it as null so later code can distinguish:
+        // - omitted <retrieve> (no override)
+        // - explicitly set <retrieve> value
         if (retrieveOptionType == null) {
-            return DEFAULT;
+            return null;
         }
+
         switch(retrieveOptionType) {
             case DEFAULT: return DEFAULT;
             case INCLUDE: return INCLUDE;

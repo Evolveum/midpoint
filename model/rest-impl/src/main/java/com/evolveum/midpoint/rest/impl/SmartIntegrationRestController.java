@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
+import java.util.List;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +56,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
 
         try {
             QName objectClassQName = QName.valueOf(objectClass);
-            var oid = smartIntegrationService.submitSuggestObjectTypesOperation(resourceOid, objectClassQName, task, result);
+            var oid = smartIntegrationService.submitSuggestObjectTypesOperation(resourceOid, objectClassQName, List.of(), task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestObjectTypesOperationStatus(oid, task, result);
@@ -63,7 +66,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 suggestionOperationStatus = smartIntegrationService.getSuggestObjectTypesOperationStatus(oid, task, result);
             } while (suggestionOperationStatus.isExecuting());
 
-            return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
+                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            } else {
+                throw new IllegalStateException();
+            }
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {
@@ -89,7 +96,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
                     ShadowKindType.fromValue(kind),
                     intent
             );
-            var oid = smartIntegrationService.submitSuggestCorrelationOperation(resourceOid, resourceObjectTypeIdentification, task, result);
+            var oid = smartIntegrationService.submitSuggestCorrelationOperation(resourceOid, resourceObjectTypeIdentification, List.of(), false, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestCorrelationOperationStatus(oid, task, result);
@@ -99,7 +106,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 suggestionOperationStatus = smartIntegrationService.getSuggestCorrelationOperationStatus(oid, task, result);
             } while (suggestionOperationStatus.isExecuting());
 
-            return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
+                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            } else {
+                throw new IllegalStateException();
+            }
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {
@@ -126,7 +137,9 @@ public class SmartIntegrationRestController extends AbstractRestController {
                     ShadowKindType.fromValue(kind),
                     intent
             );
-            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid, resourceObjectTypeIdentification, isInbound, task, result);
+            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid,
+                    resourceObjectTypeIdentification, isInbound, null, List.of(DataAccessPermissionType.SCHEMA_ACCESS,
+                            DataAccessPermissionType.RAW_DATA_ACCESS), false, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);
@@ -136,7 +149,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);
             } while (suggestionOperationStatus.isExecuting());
 
-            return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
+                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            } else {
+                throw new IllegalStateException();
+            }
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {
@@ -166,7 +183,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 suggestionOperationStatus = smartIntegrationService.getSuggestAssociationsOperationStatus(oid, task, result);
             } while (suggestionOperationStatus.isExecuting());
 
-            return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
+                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            } else {
+                throw new IllegalStateException();
+            }
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {
@@ -190,7 +211,8 @@ public class SmartIntegrationRestController extends AbstractRestController {
         var result = createSubresult(task, OPERATION_SUGGEST_FOCUS_TYPE);
         try {
             var typeIdentification = ResourceObjectTypeIdentification.of(ShadowKindType.fromValue(kind), intent);
-            var focusTypeName = smartIntegrationService.suggestFocusType(resourceOid, typeIdentification, task, result);
+            var focusTypeName = smartIntegrationService.suggestFocusType(resourceOid,
+                    typeIdentification, List.of(DataAccessPermissionType.SCHEMA_ACCESS), task, result);
             return createResponse(HttpStatus.OK, focusTypeName.getFocusType().getLocalPart(), result);
         } catch (Throwable t) {
             return handleException(result, t);

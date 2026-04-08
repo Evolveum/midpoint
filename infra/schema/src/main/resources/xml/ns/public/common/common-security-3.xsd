@@ -166,6 +166,7 @@
             <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="correlation" type="tns:CorrelationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="duo" type="tns:DuoAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="totp" type="tns:TOtpAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -226,6 +227,131 @@
             <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="OtpCredentialsPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Structure that specifies policy for OTP management.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CredentialPolicyType">
+                <xsd:sequence>
+                    <!-- Nothing special yet. Maybe in the future. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="TOtpAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TOTP authentication module.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:OtpAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="period" type="xsd:int" minOccurs="0" default="30">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The time step in seconds that a TOTP code is valid for.
+
+                                Default value is 30 seconds.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OtpAuthenticationModuleType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                OTP authentication module.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="issuer" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The issuer parameter is a string value indicating the provider or service
+                                this account is associated with.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="label" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The parameter is a string value from focus item that is used to identify the account
+                                the TOTP token is associated with. It is typically formatted as
+                                "issuer:account_name".
+
+                                Default value: name
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="algorithm" type="xsd:string" minOccurs="0" default="sha1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The algorithm used to generate the TOTP code.
+
+                                Supported algorithms are: sha1 (default), sha256, sha512.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="secretLength" type="xsd:int" minOccurs="0" default="20">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The length of the secret key used to generate the TOTP code.
+
+                                Default value is 20 bytes (160 bits) for SHA1, 32 bytes (256 bits) for SHA256
+                                and 64 bytes (512 bits) for SHA512.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="digits" type="xsd:int" minOccurs="0" default="6">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The number of digits to be used in the TOTP code.
+
+                                Currently supported 6 (default) or 8 digits.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="window" type="xsd:int" minOccurs="0" default="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The number of time steps that are allowed for the TOTP code to be valid.
+                                This allows for some clock skew between the server and the client.
+
+                                Default value is 1, which means that the TOTP code is valid for the current time step,
+                                the previous time step and the next time step.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental/>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractCredentialAuthenticationModuleType" abstract="true">
@@ -2271,6 +2397,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsPolicyType" minOccurs="0"/>
+            <xsd:element name="otp" type="tns:OtpCredentialsPolicyType" minOccurs="0"/>
             <!-- More credential types may come here in the future. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>

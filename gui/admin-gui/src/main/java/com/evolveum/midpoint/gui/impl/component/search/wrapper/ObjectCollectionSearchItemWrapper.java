@@ -48,7 +48,7 @@ public class ObjectCollectionSearchItemWrapper extends FilterableSearchItemWrapp
     }
 
     @Override
-    public IModel<String> getName() {
+    public @NotNull IModel<String> getName() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -86,7 +86,7 @@ public class ObjectCollectionSearchItemWrapper extends FilterableSearchItemWrapp
     }
 
     @Override
-    public IModel<String> getTitle() {
+    public @NotNull IModel<String> getTitle() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -105,7 +105,7 @@ public class ObjectCollectionSearchItemWrapper extends FilterableSearchItemWrapp
     }
 
     @Override
-    public IModel<String> getHelp() {
+    public @NotNull IModel<String> getHelp() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -134,5 +134,10 @@ public class ObjectCollectionSearchItemWrapper extends FilterableSearchItemWrapp
 
     public CompiledObjectCollectionView getObjectCollectionView() {
         return objectCollectionView;
+    }
+
+    @Override
+    public boolean canRemoveSearchItem() {
+        return false;
     }
 }

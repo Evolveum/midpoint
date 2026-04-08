@@ -81,12 +81,12 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
         this.env = env;
     }
 
-    /** Full processing, resulting in deltas being applied (to focus context or target object). */
-    public void executeToDeltas(OperationResult result)
+    /** Full processing, resulting in deltas being computed. */
+    public Collection<ItemDelta<?, ?>> executeToDeltas(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         executeToTriples(result);
-        consolidateTriples(result);
+        return consolidateTriples(result);
     }
 
     /** Partial processing that stops after triples are computed, i.e. just prepares and evaluates the mappings. */
@@ -180,7 +180,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
         }
     }
 
-    private void consolidateTriples(OperationResult result)
+    private Collection<ItemDelta<?, ?>> consolidateTriples(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException,
             SecurityViolationException, ExpressionEvaluationException {
 
@@ -203,7 +203,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
                 result);
         consolidation.computeItemDeltas();
 
-        applyComputedDeltas(consolidation.getItemDeltas());
+        return consolidation.getItemDeltas();
     }
 
     @NotNull private ItemDefinition<?> getItemDefinition(@NotNull ItemPath itemPath) {
@@ -228,8 +228,6 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     abstract @NotNull Function<ItemPath, Boolean> getFocusPrimaryItemDeltaExistsProvider();
 
     abstract @Nullable LensContext<?> getLensContextIfPresent();
-
-    abstract void applyComputedDeltas(Collection<? extends ItemDelta<?,?>> itemDeltas) throws SchemaException;
 
     public @NotNull DeltaSetTripleIvwoMap getOutputTripleMap() {
         return outputTripleMap;

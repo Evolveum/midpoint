@@ -14,16 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining.PageRoleSuggestions;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResults;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.web.page.admin.services.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -41,6 +32,7 @@ import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -48,10 +40,19 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining.PageRoleSuggestions;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResults;
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -81,6 +83,7 @@ import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
+import com.evolveum.midpoint.web.page.admin.resources.PageConnectors;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
 import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
@@ -91,8 +94,6 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class LeftMenuPanel extends BasePanel<Void> {
 
@@ -218,7 +219,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //TODO may be this should lead to customerUrl ?
                 Class<? extends Page> page = MidPointApplication.get().getHomePage();
                 setResponsePage(page);
             }
@@ -275,6 +275,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu = createMainNavigationMenu(experimentalFeaturesEnabled);
         addSidebarMenuItem(menus, menu);
 
+        menu = createIntegrationMenu(experimentalFeaturesEnabled);
+        addSidebarMenuItem(menus, menu);
+
         menu = createConfigurationMenu(experimentalFeaturesEnabled);
         addSidebarMenuItem(menus, menu);
 
@@ -318,9 +321,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createApplicationsItems());
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
-        menu.addMainMenuItem(createServicesItems());
+        menu.addMainMenuItem(createServicesItems());    // TODO get rid of applications (object collection view in sys config)
         menu.addMainMenuItem(createPoliciesItems());
-        menu.addMainMenuItem(createResourcesItems());
         if (getPageBase().getCaseManager().isEnabled()) {
             menu.addMainMenuItem(createWorkItemsItems());
         }
@@ -393,19 +395,52 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createApplicationsItems() {
-        MainMenuItem applicationMenu = createMainMenuItem("PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
-        createBasicAssignmentHolderMenuItems(applicationMenu, PageTypes.APPLICATION);
+        MainMenuItem menu = createMainMenuItem(
+                "PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
+        menu.addMenuItem(new MenuItem(
+                "PageAdmin.menu.top.applications.list", PageDefaultApplicationServices.class));
+        menu.addMenuItem(
+                new MenuItem(
+                        "PageAdmin.menu.top.applications.connect",
+                        GuiStyleConstants.CLASS_PLUS_CIRCLE,
+                        PageDefaultApplicationService.class));
+        return menu;
+    }
 
-        applicationMenu.addMenuItem(createObjectListPageMenuItem(PageTypes.CONNECTOR_DEVELOPMENT));
+    // "Integration" view of applications
+    private MainMenuItem createApplicationsIntegrationItems() {
+        MainMenuItem menu = createMainMenuItem(
+                "PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
+        menu.addMenuItem(new MenuItem(
+                "PageAdmin.menu.top.applications.list", PageIntegrationApplicationServices.class));
+        menu.addMenuItem(
+                new MenuItem(
+                        "PageAdmin.menu.top.applications.connect",
+                        GuiStyleConstants.CLASS_PLUS_CIRCLE,
+                        PageIntegrationApplicationService.class));
+        return menu;
+    }
 
+    private MainMenuItem createResourcesItems() {
+        MainMenuItem menu = createMainMenuItem(
+                "PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
+        createBasicAssignmentHolderMenuItems(menu, PageTypes.RESOURCE);
+        menu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
+        return menu;
+    }
+
+    private MainMenuItem createConnectorsItems() {
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.connectors", GuiStyleConstants.CLASS_OBJECT_CONNECTOR_ICON);
+        menu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectors.list", PageConnectors.class));
+        menu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
+        menu.addMenuItem(createObjectListPageMenuItem(PageTypes.CONNECTOR_DEVELOPMENT));
         boolean connectorGeneratorActive = classMatches(PageConnectorDevelopment.class);
 //        if (connectorGeneratorActive) {
-            MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
-                    GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
-            applicationMenu.addMenuItem(connectorGenerator);
+        MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
+                GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
+        menu.addMenuItem(connectorGenerator);
 //        }
-
-        return applicationMenu;
+        return menu;
     }
 
     //TODO AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL
@@ -458,17 +493,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem serviceMenu = createMainMenuItem("PageAdmin.menu.top.policies", GuiStyleConstants.CLASS_OBJECT_POLICY_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(serviceMenu, PageTypes.POLICY);
         return serviceMenu;
-    }
-
-    private MainMenuItem createResourcesItems() {
-        MainMenuItem resourceMenu = createMainMenuItem(
-                "PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
-
-        createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
-
-        resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
-        resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
-        return resourceMenu;
     }
 
     private MainMenuItem createWorkItemsItems() {
@@ -614,6 +638,20 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return menu;
     }
 
+    private SideBarMenuItem createIntegrationMenu(boolean experimentalFeaturesEnabled) {
+        SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.top.integration", experimentalFeaturesEnabled) {
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        };
+
+        menu.addMainMenuItem(createApplicationsIntegrationItems());
+        menu.addMainMenuItem(createResourcesItems());
+        menu.addMainMenuItem(createConnectorsItems());
+        return menu;
+    }
+
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
         SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled) {
             @Override
@@ -700,7 +738,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         addCollectionsMenuItems(mainMenuItem, pageDesc.getTypeName(), pageDesc.getListClass());
 
-        if (PageTypes.CASE != pageDesc) {
+        if (pageDesc != PageTypes.CASE && pageDesc != PageTypes.APPLICATION) {
             createFocusPageNewEditMenu(mainMenuItem, "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".new",
                     "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".edit", getDetailsPage(pageDesc));
         }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -66,10 +66,11 @@
                     <name>name</name>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 name + iterationToken
                             </code>
@@ -80,7 +81,7 @@
                     <!-- This avoids "kickback" of a name from account to a user. -->
                     <strength>weak</strength>
                     <target>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </target>
                 </inbound>
             </attribute>
@@ -102,17 +103,21 @@
                     <expression>
                         <allowEmptyValues>true</allowEmptyValues>
                         <script>
+                            <description>
+                                This is ugly. However, this kind of expression should not be common.
+                            </description>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                if (input?.contains('#')) {
-                                    return null
-                                } else {
-                                    return input
-                                }
+                                input == null
+                                    ? null
+                                    : input.contains('#')
+                                        ? null
+                                        : input
                             </code>
                         </script>
                     </expression>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -127,7 +132,7 @@
                     <name>locality</name>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/locality</path>
+                        <path>$focus/locality</path>
                     </source>
                 </outbound>
                 <inbound>
@@ -135,7 +140,8 @@
                     <expression>
                         <allowEmptyValues>false</allowEmptyValues>
                         <script>
-                            <code>'Came from ' + input</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>'Came from %s'.format(input)</code>
                         </script>
                     </expression>
                     <target>
@@ -150,12 +156,12 @@
                     <expression>
                         <allowEmptyValues>false</allowEmptyValues>
                         <script>
-                            <code>
-                                def evaluateNew = midpoint.isEvaluateNew()
-                                log.debug("Ship inbound evaluateNew: {} : {}", evaluateNew, input)
-                                assert evaluateNew != null : "null evaluateNew"
-                                'The crew of ' + input
-                            </code>
+                            <documentation>
+                                We are not doing the "assert midpoint.isEvaluateNew()" here.
+                                MEL cannot really do that, leaving that to the Groovy version of the resource.
+                            </documentation>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>'The crew of %s'.format(input)</code>
                         </script>
                     </expression>
                     <target>
@@ -163,7 +169,8 @@
                     </target>
                     <condition>
                         <script>
-                            <code>input != null</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(input)</code>
                         </script>
                     </condition>
                 </inbound>
@@ -177,6 +184,7 @@
                     <channel>http://pirates.net/avast</channel>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>9999 + 1</code>
                         </script>
                     </expression>
@@ -191,7 +199,7 @@
                     <source>
                         <path>
                             declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-                            $user/extension/piracy:weapon
+                            $focus/extension/piracy:weapon
                         </path>
                     </source>
                 </outbound>
@@ -248,7 +256,7 @@
                         <value>very FISHY</value>
                     </expression>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -292,10 +300,15 @@
                 <administrativeStatus>
                     <outbound/>
                     <inbound>
+                        <name>administrativeStatus-validFrom-validTo-m</name>
                         <strength>weak</strength>
                         <condition>
+                            <name>administrativeStatus-validFrom-validTo-c</name>
+                            <trace>true</trace>
                             <script>
-                                <code>focus?.getActivation()?.getValidFrom() == null &amp;&amp; focus?.getActivation()?.getValidTo() == null</code>
+                                <trace>true</trace>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                                <code>isNull(focus.?activation.?validFrom) &amp;&amp; isNull(focus.?activation.?validTo)</code>
                             </script>
                         </condition>
                     </inbound>
@@ -334,10 +347,11 @@
                 <outbound>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 'T' + name + iterationToken
                             </code>
@@ -349,13 +363,14 @@
                     <strength>weak</strength>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                input?.substring(1)
+                                input.substring(1)
                             </code>
                         </script>
                     </expression>
                     <target>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </target>
                 </inbound>
             </attribute>
@@ -363,10 +378,11 @@
                 <ref>ri:fullname</ref>
                 <outbound>
                     <source>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>fullName + ' (test)'</code>
                         </script>
                     </expression>
@@ -374,7 +390,7 @@
                 <inbound>
                     <strength>weak</strength>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -384,7 +400,7 @@
                     <strength>strong</strength>
                     <source>
                         <path>
-                            $user/locality
+                            $focus/locality
                         </path>
                     </source>
                 </outbound>
@@ -395,6 +411,7 @@
                 <inbound>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>'The crew of Titanicum ' + input + 'icum'</code>
                         </script>
                     </expression>
@@ -403,7 +420,8 @@
                     </target>
                     <condition>
                         <script>
-                            <code>input != null</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(input)</code>
                         </script>
                     </condition>
                 </inbound>
@@ -589,25 +607,28 @@
             <language>Logo</language>
             <argument>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                    'user: ' + user?.getName()
+                        'user: ' + default( focus.?name, 'null' )
                     </code>
                 </script>
                 <name>usr</name>
             </argument>
             <argument>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <!-- Note: We cannot test for account name as name is only assigned in provisioning -->
                     <code>
-                    'account: ' + account?.getActivation()?.getAdministrativeStatus()
+                    'account: ' + default( projection.?activation.?administrativeStatus, 'null' )
                     </code>
                 </script>
                 <name>acc</name>
             </argument>
             <argument>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                    'resource: ' + resource?.getName()
+                    'resource: %s'.format(resource.?name)
                     </code>
                 </script>
                 <name>res</name>
@@ -631,7 +652,7 @@ end
             <host>resource</host>
             <language>Gibberish</language>
             <argument>
-                <path>$user/costCenter</path>
+                <path>$focus/costCenter</path>
                 <name>howMuch</name>
             </argument>
             <argument>
@@ -639,11 +660,11 @@ end
                 <name>howLong</name>
             </argument>
             <argument>
-                <path>$user/name</path>
+                <path>$focus/name</path>
                 <name>who</name>
             </argument>
             <argument>
-                <path>$user/fullName</path>
+                <path>$focus/fullName</path>
                 <name>whatchacallit</name>
             </argument>
             <code>Beware the Jabberwock, my son!</code>
@@ -698,7 +719,8 @@ end
             <enabled>true</enabled>
             <condition>
                 <script>
-                    <code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>!projection.attributes.name.startsWith('T')</code>
                 </script>
             </condition>
             <correlation>
@@ -743,7 +765,8 @@ end
             <enabled>true</enabled>
             <condition>
                 <script>
-                    <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>projection.attributes.name.startsWith('T')</code>
                 </script>
             </condition>
             <correlation>
@@ -751,7 +774,8 @@ end
                     <q:path>name</q:path>
                     <expression>
                         <script>
-                            <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>projection.attributes.name.substring(1)</code>
                         </script>
                     </expression>
                 </q:equal>

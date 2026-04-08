@@ -93,6 +93,7 @@ public class ItemPanelSettings implements Serializable {
                 .mandatoryHandler(mandatoryHandler)
                 .displayedInColumn(displayedInColumn)
                 .isRemoveButtonVisible(removeButtonVisible)
+                .panelConfiguration(config)
                 .build();
     }
 }

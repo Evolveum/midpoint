@@ -6,11 +6,11 @@
 
 package com.evolveum.midpoint.web.component.data.table;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
@@ -24,15 +24,16 @@ import java.util.List;
 /**
  * Collapsable data table with collapsible content per row.
  */
-public abstract class CollapsableDataTable<T, S> extends DataTable<T, S> {
+public abstract class CollapsableDataTable<T> extends SelectableDataTable<T> {
 
     public CollapsableDataTable(String id,
-            List<? extends IColumn<T, S>> columns,
+            List<IColumn<T, String>> columns,
             IDataProvider<T> dataProvider,
-            long rowsPerPage) {
+            int rowsPerPage) {
         super(id, columns, dataProvider, rowsPerPage);
         setOutputMarkupId(true);
     }
+
 
     @Override
     protected Item<T> newRowItem(String id, int index, IModel<T> model) {
@@ -40,7 +41,7 @@ public abstract class CollapsableDataTable<T, S> extends DataTable<T, S> {
     }
 
     /** Row item class that maintains its own expanded/collapsed state. */
-    public class CollapsableRowItem extends Item<T> {
+    public class CollapsableRowItem extends SelectableRowItem<T> {
 
         private static final String COLLAPSIBLE_CONTAINER_ID = "collapseContainer";
         public static final String COLLAPSIBLE_CONTENT_ID = "collapsibleContent";
@@ -48,7 +49,7 @@ public abstract class CollapsableDataTable<T, S> extends DataTable<T, S> {
         @Serial private static final long serialVersionUID = 1L;
         private boolean expanded = false;
 
-        public CollapsableRowItem(String id, int index, IModel<T> model) {
+        public CollapsableRowItem(String id, int index, IModel<T> model)  {
             super(id, index, model);
             applyDefaultMarkupSetting();
         }

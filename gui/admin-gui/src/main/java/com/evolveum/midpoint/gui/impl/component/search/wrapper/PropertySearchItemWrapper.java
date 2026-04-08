@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T> {
 
@@ -93,7 +94,7 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
     }
 
     @Override
-    public IModel<String> getName() {
+    public @NotNull IModel<String> getName() {
         return name;
     }
 
@@ -102,7 +103,7 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
     }
 
     @Override
-    public IModel<String> getHelp() {
+    public @NotNull IModel<String> getHelp() {
         return help;
     }
 
@@ -120,7 +121,7 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
 
 
     @Override
-    public IModel<String> getTitle() {
+    public @NotNull IModel<String> getTitle() {
         return Model.of(""); //todo
     }
 

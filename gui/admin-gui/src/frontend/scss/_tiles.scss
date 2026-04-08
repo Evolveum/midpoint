@@ -293,3 +293,27 @@
   background-color: #e0cffc !important;
 }
 
+.tile-panel.disabled,
+.tile-panel.disabled:hover,
+.tile-panel.disabled:focus,
+.tile-panel.disabled:active,
+.tile-panel.disabled.active,
+.tile-panel.disabled.selected {
+  border-color: #dee2e6 !important;   /* neutral border */
+  box-shadow: none !important;        /* remove blue glow */
+  outline: none !important;
+}
+
+/* Allow tooltip interaction ONLY when disabled AND tooltip-enabled */
+.tile-panel.disabled.tile-panel-tooltip,
+.tile-panel-tooltip.disabled.tile-panel {
+  pointer-events: auto !important;
+  cursor: default !important;
+}
+
+.tile-panel.disabled i,
+.tile-panel.disabled .tile-title,
+.tile-panel.disabled h5 {
+  color: var(--bs-secondary-color, #adb5bd) !important;
+}
+

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultPanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion.SimulationCorrelationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping.SimulationMappingPanel;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -78,6 +79,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
     private void initLayout() {
 
         boolean isCorrelationSimulation = isCorrelationSimulation(this, resultModel);
+        boolean isMappingSimulation = isMappingSimulation(this, resultModel);
 
         NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
 
@@ -94,7 +96,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
             @Override
             protected @NotNull AjaxLink<?> createNextButton(String id, IModel<String> nextTitle) {
-                if(isCorrelationSimulation) {
+                if(isCorrelationSimulation || isMappingSimulation) {
                     AjaxIconButton export = new AjaxIconButton(id, () -> "fa fa-download mr-2",
                             () -> getString("PageSimulationResult.export")) {
                         @Override
@@ -129,6 +131,13 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             return;
         }
 
+        if (isMappingSimulation) {
+            var mappingPanel = new SimulationMappingPanel(PageSimulationResult.ID_RESULT_PANEL, resultModel);
+            mappingPanel.setOutputMarkupId(true);
+            add(mappingPanel);
+            return;
+        }
+
         SimulationResultPanel resultPanel = new SimulationResultPanel(PageSimulationResult.ID_RESULT_PANEL, resultModel);
         resultPanel.setOutputMarkupId(true);
         add(resultPanel);
@@ -151,6 +160,26 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                         TaskType.F_ACTIVITY,
                         ActivityDefinitionType.F_WORK,
                         WorkDefinitionsType.F_CORRELATION));
+
+        return container != null && !container.isEmpty();
+    }
+
+    public static boolean isMappingSimulation(PageBase pageBase, IModel<SimulationResultType> resultModel) {
+        SimulationResultType result = resultModel != null ? resultModel.getObject() : null;
+        if (result == null || result.getMetric() == null) {
+            return false;
+        }
+
+        PrismObject<ObjectType> task = WebModelServiceUtils.loadObject(resultModel.getObject().getRootTaskRef(), pageBase);
+        if (task == null) {
+            return false;
+        }
+
+        PrismContainer<WorkDefinitionsType> container =
+                task.findContainer(ItemPath.create(
+                        TaskType.F_ACTIVITY,
+                        ActivityDefinitionType.F_WORK,
+                        WorkDefinitionsType.F_MAPPINGS));
 
         return container != null && !container.isEmpty();
     }

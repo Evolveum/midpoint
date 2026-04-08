@@ -6,6 +6,11 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -16,8 +21,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordResetNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import java.util.List;
 
 @Component
 public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNotifierType> {
@@ -57,6 +62,9 @@ public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNot
         } else if (event.getFocusDeltas().isEmpty()) {
             LOGGER.trace("No user deltas in event, exiting.");
             return false;
+        } else if (!containsNonceDelta(event.getFocusDeltas())) {
+            LOGGER.trace("No nonce in event, exiting.");
+            return false;
         } else if (SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(event.getChannel())) {
             LOGGER.trace("Found change from reset password channel.");
             return true;
@@ -64,6 +72,20 @@ public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNot
             LOGGER.trace("No password reset present in delta. Skip sending notifications.");
             return false;
         }
+    }
+
+    private boolean containsNonceDelta(@NotNull List<ObjectDelta<AssignmentHolderType>> deltaList) {
+        return deltaList.stream()
+                .filter(d ->
+                        d.getModifications()
+                        .stream()
+                        .filter(m ->
+                                ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_NONCE, NonceType.F_VALUE).equivalent(
+                                        m.getPath()))
+                        .findFirst()
+                        .orElse(null) != null)
+                .findFirst()
+                .orElse(null) != null;
     }
 
     @Override

@@ -174,7 +174,6 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                 break;
             case AXIOM_QUERY:
                 PropertyModel<AxiomQueryWrapper> propModel = new PropertyModel<>(getModel(), Search.F_AXIOM_SEARCH);
-                propModel.getObject().setTypeClass(getModel().getObject().getTypeClass());
                 AxiomSearchPanel axiomSearchPanel = new AxiomSearchPanel(panelId, propModel);
                 axiomSearchPanel.setOutputMarkupId(true);
                 form.addOrReplace(axiomSearchPanel);

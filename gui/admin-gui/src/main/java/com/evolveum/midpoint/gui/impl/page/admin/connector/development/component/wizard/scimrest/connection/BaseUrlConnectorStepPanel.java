@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import java.util.List;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -51,7 +52,9 @@ import org.apache.wicket.model.IModel;
 public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
     private static final String PANEL_TYPE = "cdw-base-url";
-    public static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "baseAddress");
+    public static final ItemName BASE_ADDRESS_ITEM_NAME = ItemName.from("", "baseAddress");
+    public static final ItemName DEVELOPMENT_MODE_ITEM_NAME = ItemName.from("", "developmentMode");
+    public static final ItemName SCIM_BASE_URL_ITEM_NAME = ItemName.from("", "scimBaseUrl");
 
     private static final String ID_AI_ALERT = "aiAlert";
 
@@ -67,11 +70,11 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
             ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
 
             try {
-            PrismPropertyWrapper<Object> stateProperty = objectDetailsModel.getObjectWrapper().findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
-            stateProperty.getValue().setRealValue(AvailabilityStatusType.DOWN);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
+                PrismPropertyWrapper<Object> stateProperty = objectDetailsModel.getObjectWrapper().findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
+                stateProperty.getValue().setRealValue(AvailabilityStatusType.DOWN);
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+            }
 
             return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), path);
         } catch (SchemaException e) {
@@ -83,12 +86,14 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     protected void onInitialize() {
         super.onInitialize();
         try {
-            PrismPropertyValueWrapper<Object> suggestedValue = getDetailsModel().getObjectWrapper().findProperty(
-                    ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_BASE_API_ENDPOINT)).getValue();
-            if (StringUtils.isNotEmpty((String) suggestedValue.getRealValue())) {
-                PrismPropertyValueWrapper<String> configurationValue = (PrismPropertyValueWrapper<String>) getContainerFormModel().getObject().findProperty(PROPERTY_ITEM_NAME).getValue();
-                if (StringUtils.isEmpty(configurationValue.getRealValue())) {
-                    configurationValue.setRealValue((String) suggestedValue.getRealValue());
+            String suggestedUrl = (String) getDetailsModel().getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_BASE_API_ENDPOINT))
+                    .getValue().getRealValue();
+            if (StringUtils.isNotEmpty(suggestedUrl)) {
+                ItemName urlField = isScim() ? SCIM_BASE_URL_ITEM_NAME : BASE_ADDRESS_ITEM_NAME;
+                PrismPropertyValueWrapper<String> fieldValue = (PrismPropertyValueWrapper<String>) getContainerFormModel().getObject().findProperty(urlField).getValue();
+                if (StringUtils.isEmpty(fieldValue.getRealValue())) {
+                    fieldValue.setRealValue(suggestedUrl);
                 }
             }
         } catch (SchemaException e) {
@@ -186,8 +191,14 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     }
 
     protected boolean checkMandatory(ItemWrapper wrapper) {
-        if (QNameUtil.match(wrapper.getItemName(), PROPERTY_ITEM_NAME)) {
-            return true;
+        if (isScim()) {
+            if (QNameUtil.match(wrapper.getItemName(), SCIM_BASE_URL_ITEM_NAME)) {
+                return true;
+            }
+        } else {
+            if (QNameUtil.match(wrapper.getItemName(), BASE_ADDRESS_ITEM_NAME)) {
+                return true;
+            }
         }
         return wrapper.isMandatory();
     }
@@ -195,11 +206,31 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (QNameUtil.match(wrapper.getItemName(), PROPERTY_ITEM_NAME)) {
-                return ItemVisibility.AUTO;
+            if (isScim()) {
+                if (scimItemNames().stream().anyMatch(name -> QNameUtil.match(wrapper.getItemName(), name))) {
+                    return ItemVisibility.AUTO;
+                }
+            } else {
+                if (QNameUtil.match(wrapper.getItemName(), BASE_ADDRESS_ITEM_NAME)) {
+                    return ItemVisibility.AUTO;
+                }
             }
             return ItemVisibility.HIDDEN;
         };
+    }
+
+    private List<ItemName> scimItemNames() {
+        return List.of(SCIM_BASE_URL_ITEM_NAME, DEVELOPMENT_MODE_ITEM_NAME);
+    }
+
+    private boolean isScim() {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integrationType = getDetailsModel().getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            return ConnDevIntegrationType.SCIM.equals(integrationType.getValue().getRealValue());
+        } catch (SchemaException e) {
+            return false;
+        }
     }
 
     @Override
@@ -236,7 +267,8 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     @Override
     public boolean isCompleted() {
+        ItemName fieldToCheck = isScim() ? SCIM_BASE_URL_ITEM_NAME : BASE_ADDRESS_ITEM_NAME;
         return ConnectorDevelopmentWizardUtil.existTestingResourcePropertyValue(
-                getDetailsModel(), getPanelType(), PROPERTY_ITEM_NAME);
+                getDetailsModel(), getPanelType(), fieldToCheck);
     }
 }

@@ -2484,6 +2484,18 @@ footer.main-footer a {
   outline-offset: 2px;
 }
 
+.select2-selection__clear {
+  max-height: 20px;
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.select2-selection__clear:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffa836;
+}
+
 .btn.btn-tool > i {
   display: inline-flex;
   align-items: center;
@@ -2578,4 +2590,23 @@ footer.main-footer a {
 
 .font-weight-semibold {
   font-weight: 600 !important;
+}
+
+.text-help > p {
+  margin-bottom: .25rem;
+}
+
+.right-sidebar-help {
+  @extend .bg-white;
+  @extend .border-left;
+  width: 350px;
+
+  > .header {
+    @extend .border-bottom;
+    @extend .p-3;
+  }
+
+  > .body {
+    @extend .p-3;
+  }
 }

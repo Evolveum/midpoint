@@ -103,6 +103,11 @@ public class ScriptExpressionFactory {
     }
 
     @VisibleForTesting
+    public void replaceEvaluator(@NotNull ScriptEvaluator evaluator) {
+        evaluatorMap.put(evaluator.getLanguageUrl(), evaluator);
+    }
+
+    @VisibleForTesting
     public @NotNull ObjectResolver getObjectResolver() {
         return objectResolver;
     }

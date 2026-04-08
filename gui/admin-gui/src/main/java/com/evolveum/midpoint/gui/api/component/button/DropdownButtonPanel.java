@@ -150,6 +150,9 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
                 }
             };
         } else {
+            if (model.getObject().isDivider()) {
+                return new MenuDividerPanel(componentId);
+            }
             return new MenuLinkPanel<>(componentId, model) {
                 @Override
                 protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item) {

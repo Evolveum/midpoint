@@ -758,7 +758,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
             @NotNull IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
-        CollapsableDataTable<?, ?>.CollapsableRowItem rowItem = cellItem.findParent(CollapsableDataTable.CollapsableRowItem.class);
+        CollapsableDataTable<?>.CollapsableRowItem rowItem = cellItem.findParent(CollapsableDataTable.CollapsableRowItem.class);
 
         if (rowItem != null) {
             if (rowItem.isExpanded()) {

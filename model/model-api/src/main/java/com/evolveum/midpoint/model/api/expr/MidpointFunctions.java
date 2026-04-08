@@ -582,6 +582,52 @@ public interface MidpointFunctions {
 
     /**
      * <p>
+     * Search for objects.
+     * </p>
+     * <p>
+     * Searches through all object of a specified type. Returns a list of objects that match
+     * search criteria.
+     * </p>
+     * <p>
+     * Note that this method has a very limited scaling capability
+     * as all the results are stored in the memory. DO NOT USE on large datasets.
+     * Recommended usage is only when using queries that cannot return large number
+     * of results (e.g. queries for unique values) or when combined with paging capability.
+     * For other cases use searchObjectsIterative instead.
+     * </p>
+     * <p>
+     * Returns empty list if object type is correct but there are no objects of
+     * that type. Fails if object type is wrong. Should fail if unknown property is
+     * specified in the query.
+     * </p>
+     *
+     * @param type
+     *            (class) of an object to search
+     * @param filter
+     *            search filter in string form
+     * @return all objects of specified type that match search criteria (subject
+     *         to paging)
+     *
+     * @throws SchemaException
+     *             unknown property used in search query
+     * @throws ObjectNotFoundException
+     *             object required for a search was not found (e.g. resource definition)
+     * @throws CommunicationException
+     *                 Communication (network) error during retrieval. E.g. error communicating with the resource
+     * @throws SecurityViolationException
+     *                 Security violation during operation execution. May be caused either by midPoint internal
+     *                 security mechanism but also by external mechanism (e.g. on the resource)
+     * @throws ConfigurationException
+     *                 Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+     * @throws IllegalArgumentException
+     *             wrong query format
+     */
+    <T extends ObjectType> List<T> searchObjects(Class<T> type, String filter) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+
+    /**
+     * <p>
      * Search for objects in iterative fashion (using callback).
      * </p>
      * <p>

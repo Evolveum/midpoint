@@ -320,9 +320,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         if (tableId == null) {
             return UserProfileStorage.DEFAULT_PAGING_SIZE;
         }
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
-        return userProfile.getPagingSize(tableId);
+        return getUserProfileStorage().getPagingSize(tableId);
+    }
+
+    private UserProfileStorage getUserProfileStorage() {
+        return getBrowserTabSessionStorage().getUserProfile();
     }
 
     @Override
@@ -415,9 +417,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         if (tableId == null) {
             return;
         }
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
-        userProfile.setPagingSize(tableId, newValue);
+        getUserProfileStorage().setPagingSize(tableId, newValue);
     }
 
     protected String getPaginationCssClass() {

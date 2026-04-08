@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.smart.impl.scoring.FilterValidationException;
 import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -78,7 +79,7 @@ class ObjectTypesSuggestionOperation {
     ObjectTypesSuggestionType suggestObjectTypes(
             ShadowObjectClassStatisticsType shadowObjectClassStatistics,
             OperationResult parentResult)
-            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException {
         Collection<ObjectTypeWithFilters> suggestedObjectTypes = null;
         List<SiValidationErrorFeedbackEntryType> validationFeedback = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
@@ -164,7 +165,7 @@ class ObjectTypesSuggestionOperation {
     private Collection<ObjectTypeWithFilters> parseAndValidateFilters(
             List<SiSuggestedObjectTypeType> objectTypes,
             OperationResult parentResult)
-            throws SuggestObjectTypesValidationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+            throws SuggestObjectTypesValidationException, CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException {
 
         final List<ObjectTypeWithFilters> objectTypesWithFilters = new ArrayList<>();
         boolean hasAnyErrors = false;
@@ -181,7 +182,7 @@ class ObjectTypesSuggestionOperation {
                         clause = parseAndSerializeFilter(filterString, ctx.objectClassDefinition.getPrismObjectDefinition());
                         filtersValidator.testObjectTypeFilter(ctx.resource.getOid(), typeName, clause, ctx.task, parentResult);
                         parsedFilterWithError.add(new FilterClauseWithError(clause, null));
-                    } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException e) {
+                    } catch (SchemaException | FilterValidationException e) {
                         LOGGER.warn("Failed validating filter clause for suggested object type (kind={}, intent={}, displayName={}) for object class {}. Clause: {}",
                                 objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(), typeName, filterString, e);
                         if (clause == null) {
@@ -197,7 +198,7 @@ class ObjectTypesSuggestionOperation {
                 try {
                     baseCtx = parseBaseContext(objectType.getBaseContextObjectClassName(), objectType.getBaseContextFilter());
                     filtersValidator.testBaseContextFilter(ctx.resource.getOid(), baseCtx.classQName(), baseCtx.filter(), ctx.task, parentResult);
-                } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException | IllegalStateException e) {
+                } catch (SchemaException | IllegalStateException | FilterValidationException e) {
                     LOGGER.warn("Failed validating base context for suggested object type (kind={}, intent={}, displayName={}). Base context objectClass={}, filter={}",
                             objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(),
                             typeName, objectType.getBaseContextFilter(), e);

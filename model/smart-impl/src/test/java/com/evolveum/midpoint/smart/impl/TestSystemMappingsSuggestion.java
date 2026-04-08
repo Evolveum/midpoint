@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -17,13 +18,17 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
+import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,6 +58,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "smart/mappings-suggestion");
 
     private static DummyScenario dummyScenario;
+    private static DummyScenario dummyScenarioAd;
 
     private static final TestObject<UserType> USER1 =
             TestObject.file(TEST_DIR, "user1.xml", "00000000-0000-0000-0000-999000001001");
@@ -68,8 +74,17 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 dummyScenario.inetOrgPerson.initialize();
             });
 
+    private static final DummyTestResource RESOURCE_AD = new DummyTestResource(
+            TEST_DIR, "resource-ad-for-mappings-suggestion.xml", "10000000-0000-0000-0000-999000000004",
+            "ad-for-mappings-suggestion", c -> {
+                dummyScenarioAd = on(c);
+                dummyScenarioAd.initializeAd();
+            });
+
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
+    @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
+    @Autowired private CorrelationService correlationService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -84,21 +99,31 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 .addAttributeValues(SN.local(), "Doe")
                 .addAttributeValues(GIVEN_NAME.local(), "John")
                 .addAttributeValues(MAIL.local(), "john@example.com");
-        linkAccount(USER1, initTask, initResult);
+        linkAccount(USER1, RESOURCE_LDAP, initTask, initResult);
 
         dummyScenario.inetOrgPerson.add("user2")
                 .addAttributeValues(CN.local(), "Jane Smith")
                 .addAttributeValues(SN.local(), "Smith")
                 .addAttributeValues(GIVEN_NAME.local(), "Jane")
                 .addAttributeValues(MAIL.local(), "jane@example.com");
-        linkAccount(USER2, initTask, initResult);
+        linkAccount(USER2, RESOURCE_LDAP, initTask, initResult);
 
         dummyScenario.inetOrgPerson.add("user3")
                 .addAttributeValues(CN.local(), "Bob Johnson")
                 .addAttributeValues(SN.local(), "Johnson")
                 .addAttributeValues(GIVEN_NAME.local(), "Bob")
                 .addAttributeValues(MAIL.local(), "bob@example.com");
-        linkAccount(USER3, initTask, initResult);
+        linkAccount(USER3, RESOURCE_LDAP, initTask, initResult);
+
+        initAndTestDummyResource(RESOURCE_AD, initTask, initResult);
+
+        dummyScenarioAd.adUser.add("user1")
+                .addAttributeValues(DummyScenario.AdUser.AttributeNames.SAM_ACCOUNT_NAME.local(), "user1")
+                .addAttributeValues(DummyScenario.AdUser.AttributeNames.CN.local(), "John Doe")
+                .addAttributeValues(DummyScenario.AdUser.AttributeNames.SN.local(), "Doe")
+                .addAttributeValues(DummyScenario.AdUser.AttributeNames.GIVEN_NAME.local(), "John")
+                .addAttributeValues(DummyScenario.AdUser.AttributeNames.MAIL.local(), "john@example.com");
+        linkAccount(USER1, RESOURCE_AD, initTask, initResult);
     }
 
     private void refreshShadows() throws Exception {
@@ -109,9 +134,9 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 null, getTestTask(), getTestOperationResult());
     }
 
-    private void linkAccount(TestObject<?> user, Task task, OperationResult result) throws CommonException, IOException {
+    private void linkAccount(TestObject<?> user, DummyTestResource resource, Task task, OperationResult result) throws CommonException, IOException {
         var shadow = findShadowRequest()
-                .withResource(RESOURCE_LDAP.getObjectable())
+                .withResource(resource.getObjectable())
                 .withDefaultAccountType()
                 .withNameValue(user.getNameOrig())
                 .build().findRequired(task, result);
@@ -172,21 +197,23 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                task,
-                result);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
 
         assertThat(suggestion.getAttributeMappings())
                 .as("LDAP system mappings should be present")
@@ -206,7 +233,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
     }
 
     @Test
-    public void test110DuplicateDetectionSameTargetKeepsHigherQuality() throws Exception {
+    public void test110DuplicateDetectionSameTargetBoth() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -230,21 +257,23 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 null, null, null, null, null, null, null
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                task,
-                result);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
 
         var fullNameMappings = suggestion.getAttributeMappings().stream()
                 .filter(m -> m.getDefinition() != null
@@ -254,17 +283,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 .toList();
 
         assertThat(fullNameMappings)
-                .as("Should have exactly one fullName mapping (duplicate removed)")
-                .hasSize(1);
-
-        var fullNameMapping = fullNameMappings.get(0);
-        assertThat(fullNameMapping.getExpectedQuality())
-                .as("Should keep AI mapping with higher quality")
-                .isEqualTo(1.0f);
-
-        assertThat(SmartMetadataUtil.isMarkedAsAiProvided(fullNameMapping.asPrismContainerValue()))
-                .as("Should be AI-provided (higher quality wins)")
-                .isTrue();
+                .as("Should have two fullName mapping.s")
+                .hasSize(2);
     }
 
     @Test
@@ -273,7 +293,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER1.oid, UserType.F_FULL_NAME, PolyString.fromOrig("John Doe"));
-        modifyUserReplace(USER2.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Different"));
+        modifyUserReplace(USER2.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Different Value"));
         modifyUserReplace(USER3.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Another"));
 
         modifyShadowReplace("user1", CN, "John Doe");
@@ -288,21 +308,23 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 null, null, null, null, null, null, null
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                task,
-                result);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
 
         var cnMappings = suggestion.getAttributeMappings().stream()
                 .filter(m -> m.getDefinition() != null
@@ -319,5 +341,397 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
         assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(cnMapping.asPrismContainerValue()))
                 .as("System-provided should be preferred when quality is similar")
                 .isTrue();
+    }
+
+    @Test
+    public void test120DeduplicationAgainstAcceptedSuggestion() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, UserType.F_TELEPHONE_NUMBER, "123-456-7890");
+        modifyUserReplace(USER2.oid, UserType.F_TELEPHONE_NUMBER, "123-456-7891");
+        modifyUserReplace(USER3.oid, UserType.F_TELEPHONE_NUMBER, "123-456-7892");
+
+        modifyShadowReplace("user1", TELEPHONE_NUMBER, "123-456-7890");
+        modifyShadowReplace("user2", TELEPHONE_NUMBER, "123-456-7891");
+        modifyShadowReplace("user3", TELEPHONE_NUMBER, "123-456-7892");
+
+        refreshShadows();
+
+        var acceptedSuggestionPaths = List.of(ItemPath.create(UserType.F_TELEPHONE_NUMBER));
+
+        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                true,
+                true,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, acceptedSuggestionPaths);
+
+        var telephoneMappings = suggestion.getAttributeMappings().stream()
+                .filter(m -> m.getDefinition() != null
+                        && m.getDefinition().getRef() != null
+                        && m.getDefinition().getRef().toString().contains("telephoneNumber"))
+                .toList();
+
+        assertThat(telephoneMappings)
+                .as("Mapping for telephoneNumber should be excluded because it was already accepted in GUI")
+                .isEmpty();
+    }
+
+    @Test
+    public void test130OutboundDnMappingSuggestion() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyShadowReplace("user3", DISTINGUISHED_NAME, "uid=user3,ou=People,dc=example,dc=com");
+
+        refreshShadows();
+
+        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                false, // outbound
+                true,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, false, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("Outbound system mappings should be present")
+                .isNotEmpty();
+
+        var dnMapping = suggestion.getAttributeMappings().stream()
+                .filter(m -> m.getDefinition() != null
+                        && m.getDefinition().getRef() != null
+                        && m.getDefinition().getRef().toString().endsWith("dn"))
+                .findFirst();
+
+        assertThat(dnMapping)
+                .as("DN outbound mapping should be present")
+                .isPresent();
+
+        var outboundMapping = dnMapping.get().getDefinition().getOutbound();
+        assertThat(outboundMapping)
+                .as("DN mapping should have outbound configuration")
+                .isNotNull();
+
+        var expression = outboundMapping.getExpression();
+        assertThat(expression)
+                .as("DN mapping should have expression")
+                .isNotNull();
+
+        assertThat(expression.getDescription())
+                .as("DN mapping expression should have description")
+                .contains("Compose DN");
+
+        var scriptEvaluator = expression.getExpressionEvaluator().stream()
+                .filter(e -> e.getValue() instanceof ScriptExpressionEvaluatorType)
+                .map(e -> (ScriptExpressionEvaluatorType) e.getValue())
+                .findFirst();
+
+        assertThat(scriptEvaluator)
+                .as("DN mapping should have script expression evaluator")
+                .isPresent();
+
+        String script = scriptEvaluator.get().getCode();
+        assertThat(script)
+                .as("Script should use basic.composeDnWithSuffix function")
+                .contains("basic.composeDnWithSuffix");
+        assertThat(script)
+                .as("Script should use 'uid' as RDN type")
+                .contains("'uid'");
+        assertThat(script)
+                .as("Script should use 'name' as RDN value")
+                .contains("name");
+        assertThat(script)
+                .as("Script should use extracted suffix from sample DNs")
+                .contains("ou=People,dc=example,dc=com");
+        assertThat(script)
+                .as("Script should NOT use resource config fallback")
+                .doesNotContain("basic.getResourceIcfConfigurationPropertyValue");
+
+        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(dnMapping.get().asPrismContainerValue()))
+                .as("DN mapping should be marked as system-provided")
+                .isTrue();
+
+        assertThat(dnMapping.get().getExpectedQuality())
+                .as("DN mapping should have quality assessed (script executed successfully)")
+                .isNotNull()
+                .isEqualTo(1.0f);
+    }
+
+    @Test
+    public void test132OutboundDnMappingNotSuggestedWhenNoSamples() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyShadowReplace("user1", DISTINGUISHED_NAME);
+        modifyShadowReplace("user2", DISTINGUISHED_NAME);
+        modifyShadowReplace("user3", DISTINGUISHED_NAME);
+
+        refreshShadows();
+
+        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                false, // outbound
+                true,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, false, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        var dnMapping = suggestion.getAttributeMappings().stream()
+                .filter(m -> m.getDefinition() != null
+                        && m.getDefinition().getRef() != null
+                        && m.getDefinition().getRef().toString().endsWith("dn"))
+                .findFirst();
+
+        assertThat(dnMapping)
+                .as("DN mapping should NOT be suggested when no DN found in samples (no resource config fallback)")
+                .isEmpty();
+    }
+
+    @Test
+    public void test140OutboundAdDnMappingSuggestionWithCn() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, UserType.F_FULL_NAME, PolyString.fromOrig("John Doe"));
+
+        dummyScenarioAd.adUser.getByNameRequired("user1")
+                .replaceAttributeValues(DummyScenario.AdUser.AttributeNames.DISTINGUISHED_NAME.local(),
+                        "cn=John Doe,ou=Users,dc=example,dc=com");
+
+        provisioningService.searchShadows(
+                Resource.of(RESOURCE_AD.getObjectable())
+                        .queryFor(ACCOUNT_DEFAULT)
+                        .build(),
+                null, task, result);
+
+        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_AD.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                false, // outbound
+                true,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_AD.oid, ACCOUNT_DEFAULT, false, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        var dnMapping = suggestion.getAttributeMappings().stream()
+                .filter(m -> m.getDefinition() != null
+                        && m.getDefinition().getRef() != null
+                        && m.getDefinition().getRef().toString().endsWith("distinguishedName"))
+                .findFirst();
+
+        assertThat(dnMapping)
+                .as("AD distinguishedName outbound mapping should be present")
+                .isPresent();
+
+        var outboundMapping = dnMapping.get().getDefinition().getOutbound();
+        assertThat(outboundMapping).isNotNull();
+
+        var expression = outboundMapping.getExpression();
+        assertThat(expression).isNotNull();
+
+        var scriptEvaluator = expression.getExpressionEvaluator().stream()
+                .filter(e -> e.getValue() instanceof ScriptExpressionEvaluatorType)
+                .map(e -> (ScriptExpressionEvaluatorType) e.getValue())
+                .findFirst();
+
+        assertThat(scriptEvaluator).isPresent();
+
+        String script = scriptEvaluator.get().getCode();
+        assertThat(script)
+                .as("Script should use basic.composeDnWithSuffix function")
+                .contains("basic.composeDnWithSuffix");
+        assertThat(script)
+                .as("Script should use 'cn' as RDN type for AD")
+                .contains("'cn'");
+        assertThat(script)
+                .as("Script should use 'fullName' as RDN value")
+                .contains("fullName");
+        assertThat(script)
+                .as("Script should use extracted suffix from AD DN samples")
+                .contains("ou=Users,dc=example,dc=com");
+
+        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(dnMapping.get().asPrismContainerValue()))
+                .as("DN mapping should be marked as system-provided")
+                .isTrue();
+    }
+
+    @Test
+    public void test142OutboundAdDnMappingNotSuggestedWithoutSamples() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyScenarioAd.adUser.getByNameRequired("user1")
+                .replaceAttributeValues(DummyScenario.AdUser.AttributeNames.DISTINGUISHED_NAME.local());
+
+        provisioningService.searchShadows(
+                Resource.of(RESOURCE_AD.getObjectable())
+                        .queryFor(ACCOUNT_DEFAULT)
+                        .build(),
+                null, task, result);
+
+        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_AD.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                false, // outbound
+                true,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_AD.oid, ACCOUNT_DEFAULT, false, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        var dnMapping = suggestion.getAttributeMappings().stream()
+                .filter(m -> m.getDefinition() != null
+                        && m.getDefinition().getRef() != null
+                        && m.getDefinition().getRef().toString().endsWith("distinguishedName"))
+                .findFirst();
+
+        assertThat(dnMapping)
+                .as("AD DN mapping should NOT be suggested when no DN found in samples")
+                .isEmpty();
+    }
+
+    @Test
+    public void test150OutboundAdUserPrincipalNameMappingSuggestion() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, UserType.F_NAME, PolyString.fromOrig("user1"));
+
+        dummyScenarioAd.adUser.getByNameRequired("user1")
+                .replaceAttributeValues(DummyScenario.AdUser.AttributeNames.USER_PRINCIPAL_NAME.local(),
+                        "user1@example.com");
+
+        provisioningService.searchShadows(
+                Resource.of(RESOURCE_AD.getObjectable())
+                        .queryFor(ACCOUNT_DEFAULT)
+                        .build(),
+                null, task, result);
+
+        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_AD.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                false, // outbound
+                true,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_AD.oid, ACCOUNT_DEFAULT, false, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        var upnMapping = suggestion.getAttributeMappings().stream()
+                .filter(m -> m.getDefinition() != null
+                        && m.getDefinition().getRef() != null
+                        && m.getDefinition().getRef().toString().endsWith("userPrincipalName"))
+                .findFirst();
+
+        assertThat(upnMapping)
+                .as("AD userPrincipalName outbound mapping should be present")
+                .isPresent();
+
+        var outboundMapping = upnMapping.get().getDefinition().getOutbound();
+        assertThat(outboundMapping)
+                .as("UPN mapping should have outbound configuration")
+                .isNotNull();
+
+        var expression = outboundMapping.getExpression();
+        assertThat(expression)
+                .as("UPN mapping should have expression")
+                .isNotNull();
+
+        assertThat(expression.getDescription())
+                .as("UPN mapping expression should have description")
+                .contains("Compose UPN");
+
+        var scriptEvaluator = expression.getExpressionEvaluator().stream()
+                .filter(e -> e.getValue() instanceof ScriptExpressionEvaluatorType)
+                .map(e -> (ScriptExpressionEvaluatorType) e.getValue())
+                .findFirst();
+
+        assertThat(scriptEvaluator)
+                .as("UPN mapping should have script expression evaluator")
+                .isPresent();
+
+        String script = scriptEvaluator.get().getCode();
+        assertThat(script)
+                .as("Script should concatenate name with domain suffix")
+                .contains("name + '@example.com'");
+
+        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(upnMapping.get().asPrismContainerValue()))
+                .as("UPN mapping should be marked as system-provided")
+                .isTrue();
+
+        assertThat(upnMapping.get().getExpectedQuality())
+                .as("UPN mapping should have quality assessed (script executed successfully)")
+                .isNotNull()
+                .isEqualTo(1.0f);
     }
 }

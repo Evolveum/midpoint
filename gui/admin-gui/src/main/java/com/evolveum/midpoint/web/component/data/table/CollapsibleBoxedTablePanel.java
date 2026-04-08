@@ -6,6 +6,7 @@
 package com.evolveum.midpoint.web.component.data.table;
 
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -46,7 +47,7 @@ public class CollapsibleBoxedTablePanel<T> extends BoxedTablePanel<T> {
             int pageSize,
             @NotNull WebMarkupContainer tableContainer) {
 
-        DataTable<T, String> table = new CollapsableDataTable<>(BoxedTablePanel.ID_TABLE, columns, provider, pageSize) {
+        SelectableDataTable<T> table = new CollapsableDataTable<>(BoxedTablePanel.ID_TABLE, columns, provider, pageSize) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -88,8 +89,12 @@ public class CollapsibleBoxedTablePanel<T> extends BoxedTablePanel<T> {
     @Override
     protected void customizeColumns(@NotNull List<IColumn<T, String>> iColumns) {
         if (isCollapseToggleColumnVisible()) {
-            iColumns.add(0, new CollapsibleToggleColumn<>());
+            iColumns.add(getCollapsibleToggleColumnIndex(), new CollapsibleToggleColumn<>());
         }
+    }
+
+    public int getCollapsibleToggleColumnIndex() {
+        return 0;
     }
 
     protected boolean isCollapseToggleColumnVisible() {

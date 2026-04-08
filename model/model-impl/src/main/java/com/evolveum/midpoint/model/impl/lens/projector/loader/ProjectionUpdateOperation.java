@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.schema.util.ShadowUtil.getShadowCachedStatus
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.ItemCachedStatus;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
@@ -194,8 +195,11 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             return LoadingDepth.NORMAL;
         }
 
-        if (projectionContext.isDoReconciliation() && !projectionContext.isFullShadow()) {
-            LOGGER.trace("Will reload current object, because we are doing reconciliation and we do not have full shadow");
+        if (projectionContext.isDoReconciliation()
+                && !projectionContext.isFullShadow()
+                && !shadowIsFreshAndCanBeUsed()) {
+            LOGGER.trace("Will reload current object, because we are doing reconciliation and we do not have full "
+                    + "nor fresh+usable shadow");
             // Note that the loading options will ensure that the full object is loaded, unless cache is used.
             return LoadingDepth.NORMAL;
         }
@@ -324,6 +328,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             projectionContext.setReloadNotNeeded();
             updateFullShadowFlag(options);
             updateExistsAndGoneFlags();
+            projectionContext.refreshAuxiliaryObjectClassDefinitions();
 
         } catch (ObjectNotFoundException ex) {
 
@@ -502,9 +507,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
                 return true; // Let's make the regular code throw the exception as usually (when caching is not involved)
             }
         }
-        var cachedStatus = getShadowCachedStatus(
-                projectionObject.asPrismObject(),
-                ModelBeans.get().clock.currentTimeXMLGregorianCalendar());
+        var cachedStatus = getCurrentObjectCachedStatus();
         if (cachedStatus.isFresh()) {
             LOGGER.trace("Shadow is fresh ({}), no need to load it in full", cachedStatus);
             return false;
@@ -513,6 +516,30 @@ class ProjectionUpdateOperation<F extends ObjectType> {
                     cachedStatus, projectionObject.debugDumpLazily(1));
             return true;
         }
+    }
+
+    private @NotNull ItemCachedStatus getCurrentObjectCachedStatus() {
+        if (projectionObject == null) {
+            return ItemCachedStatus.NULL_OBJECT;
+        }
+        return getShadowCachedStatus(
+                projectionObject.asPrismObject(),
+                ModelBeans.get().clock.currentTimeXMLGregorianCalendar());
+    }
+
+    private boolean shadowIsFreshAndCanBeUsed() throws SchemaException, ConfigurationException {
+        LOGGER.trace("Can we use the shadow obtained from the repo cache?");
+        if (projectionContext.getCachedShadowsUse() == CachedShadowsUseType.USE_FRESH) {
+            LOGGER.trace("-> No, using fresh data is not allowed");
+            return false;
+        }
+        var isFresh = getCurrentObjectCachedStatus().isFresh();
+        if (isFresh) {
+            LOGGER.trace("-> Yes, the shadow is fresh");
+        } else {
+            LOGGER.trace("-> No, the shadow is not fresh");
+        }
+        return isFresh;
     }
 
     private void refreshContextAfterShadowNotFound(Collection<SelectorOptions<GetOperationOptions>> options,

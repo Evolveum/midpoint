@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 
 public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectReferenceType> {
 
@@ -43,7 +44,7 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
     }
 
     @Override
-    public IModel<String> getName() {
+    public @NotNull IModel<String> getName() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -56,7 +57,7 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
 
 
     @Override
-    public IModel<String> getHelp() {
+    public @NotNull IModel<String> getHelp() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -74,7 +75,7 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
     }
 
     @Override
-    public IModel<String> getTitle() {
+    public @NotNull IModel<String> getTitle() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {

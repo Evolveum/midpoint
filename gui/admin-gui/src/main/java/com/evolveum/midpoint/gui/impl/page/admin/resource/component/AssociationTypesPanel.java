@@ -6,8 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -35,9 +35,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -47,7 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -56,12 +55,10 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serial;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.createNewItemContainerValueWrapper;
 
 @PanelType(name = "associationTypes")
 @PanelInstance(identifier = "associationTypes", applicableForType = ResourceType.class,
@@ -125,39 +122,34 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             @Override
             public void refreshAndDetach(AjaxRequestTarget target) {
                 super.refreshAndDetach(target);
+                if (displayNoValuePanel()) {
+                    getSwitchSuggestionModel().setObject(Boolean.FALSE);
+                }
+                target.add(AssociationTypesPanel.this.getAiPanel());
                 target.add(AssociationTypesPanel.this);
             }
 
             @Override
-            protected List<Component> createNoValueButtonToolbar(String id) {
-                List<Component> noValueButtonToolbar = super.createNoValueButtonToolbar(id);
-                AjaxIconButton generateButton = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_MAGIC_WAND),
-                        () -> isSuggestionExists()
-                                ? createStringResource("Suggestion.button.showSuggest").getString()
-                                : createStringResource("Suggestion.button.suggest").getString()) {
+            public boolean displayNoValuePanel() {
+                return super.displayNoValuePanel() && !getSwitchSuggestionModel().getObject();
+            }
 
-                    @Serial private static final long serialVersionUID = 1L;
+            @Override
+            protected boolean isSuggestButtonVisible() {
+                return !isShowSuggestionsButtonVisible();
+            }
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        if (isSuggestionExists()) {
-                            getSwitchSuggestionModel().setObject(Boolean.TRUE);
-                            target.add(AssociationTypesPanel.this);
-                            refreshAndDetach(target);
-                            return;
-                        }
+            @Override
+            protected boolean isShowSuggestionsButtonVisible() {
+                return isSuggestionExists();
+            }
 
-                        getSwitchSuggestionModel().setObject(Boolean.TRUE);
-                        onSuggestValue(createContainerModel(), target);
-                    }
-                };
-                generateButton.add(new VisibleBehaviour(this::displayNoValuePanel));
-                generateButton.add(AttributeModifier.append("class", "btn btn-default text-ai"));
-                generateButton.setOutputMarkupId(true);
-                generateButton.showTitleAsLabel(true);
-
-                noValueButtonToolbar.add(generateButton);
-                return noValueButtonToolbar;
+            @Override
+            protected void onSuggestNewPerformed(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                onSuggestValue(target);
+                AssociationTypesPanel.this.restartTimer.accept(target);
+                refreshAndDetach(target);
             }
 
             @Override
@@ -174,10 +166,15 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             public void performAcceptOperationAction(
                     @NotNull AjaxRequestTarget target,
                     PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value) {
-                StatusInfo<?> statusInfo = getStatusInfoObject(value);
-                onAcceptValue(() -> value, target);
-                performOnDeleteSuggestion(getPageBase(), target, value, statusInfo);
-                refreshAndDetach(target);
+
+                PageBase pageBase = getPageBase();
+                onReviewValue(() -> value, target, getStatusInfoObject(value),
+                        ajaxRequestTarget -> performOnDeleteSuggestion(pageBase, ajaxRequestTarget,
+                                value, getStatusInfoObject(value)));
+//                StatusInfo<?> statusInfo = getStatusInfoObject(value);
+//                onAcceptValue(() -> value, target);
+//                performOnDeleteSuggestion(getPageBase(), target, value, statusInfo);
+//                refreshAndDetach(target);
             }
 
             @Override
@@ -273,14 +270,19 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         }
     }
 
-    @Override
-    protected void onSuggestValue(
-            IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> newWrapperModel,
-            AjaxRequestTarget target) {
+    private void onSuggestValue(AjaxRequestTarget target) {
         ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
         ResourceType resourceType = objectDetailsModels.getObjectType();
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
         runAssociationSuggestionAction(getPageBase(), resourceType.getOid(), target, OP_DEFINE_TYPES, task);
+        getSwitchSuggestionModel().setObject(Boolean.TRUE);
+    }
+
+    @Override
+    protected void onSuggestValue(
+            IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> newWrapperModel,
+            AjaxRequestTarget target) {
+        onSuggestValue(target);
     }
 
     @Override
@@ -319,15 +321,38 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
                         containerModel.getObject().getPath(), postSaveHandler);
     }
 
+    //TODO
     protected void onAcceptValue(
             @NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel,
             AjaxRequestTarget target) {
         IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel = createContainerModel();
-        PrismContainerValue<ShadowAssociationTypeDefinitionType> prismContainerValue =
-                prepareNewPrismContainerValue(valueModel, containerModel);
+        PrismContainerValue<ShadowAssociationTypeDefinitionType> prismContainerValue = prepareNewPrismContainerValue(valueModel, containerModel);
 
+        prismContainerValue.setId(null);
         prismContainerValue.setParent(containerModel.getObject().getItem());
-        createNewItemContainerValueWrapper(getPageBase(), prismContainerValue, containerModel.getObject(), target);
+//        WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
+//        if (!containerModel.getObject().getItem().contains(prismContainerValue)) {
+//            try {
+//                containerModel.getObject().getItem().add(prismContainerValue);
+//            } catch (SchemaException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+
+        try {
+            PrismContainerWrapper<ShadowAssociationTypeDefinitionType> container =
+                    getObjectDetailsModels().getObjectWrapper().findContainer(getTypesContainerPath());
+            WebPrismUtil.addNewValueToContainer(
+                    container,
+                    prismContainerValue,
+                    getPageBase(),
+                    getObjectDetailsModels().createWrapperContext());
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+
+//        prismContainerValue.setParent(containerModel.getObject().getItem());
+//        createNewItemContainerValueWrapper(getPageBase(), prismContainerValue, containerModel.getObject(), target);
     }
 
     protected PrismContainerValue<ShadowAssociationTypeDefinitionType> prepareNewPrismContainerValue(
@@ -362,23 +387,29 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(id,
                 () -> new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), switchToggleModel, getPageBase())) {
             @Override
-            protected void performSuggestOperation(AjaxRequestTarget target) {
+            protected void performSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
                 onSuggestValue(createContainerModel(), target);
             }
 
             @Override
-            protected void onFinishActionPerform(AjaxRequestTarget target) {
+            protected void performRegenerateSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                onSuggestValue(createContainerModel(), target);
+            }
+
+            @Override
+            protected void onSuggestionFinish(AjaxRequestTarget target) {
                 getTableComponent().refreshAndDetach(target);
             }
 
             @Override
-            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
-                return () -> new RequestDetailsRecordDto(null,
-                        RequestDetailsRecordDto.initDummyObjectTypePermissionData());
+            protected IModel<List<ConfirmationOption<DataAccessPermission>>> getConfirmationOptions() {
+                return Collections::emptyList;
             }
 
             @Override
-            protected void refreshAssociatedComponents(@NotNull AjaxRequestTarget target) {
+            protected void onRefresh(@NotNull AjaxRequestTarget target) {
                 AssociationTablePanel smartMappingTable = getTableComponent();
                 smartMappingTable.refreshAndDetach(target);
             }
@@ -386,7 +417,14 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
         aiPanel.setOutputMarkupId(true);
         aiPanel.setOutputMarkupPlaceholderTag(true);
-        aiPanel.add(new VisibleBehaviour(() -> switchToggleModel.getObject().equals(Boolean.TRUE)));
+        aiPanel.add(new VisibleBehaviour(() -> {
+            AssociationTablePanel table = getTableComponent();
+            if (table == null) {
+                return false;
+            }
+            return Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())
+                    && !table.displayNoValuePanel();
+        }));
         return aiPanel;
     }
 

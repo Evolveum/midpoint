@@ -8,8 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import java.time.Duration;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
-
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.TimerProgressPanel;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 public class ResourceTestPanel extends BasePanel<String> {
 
     private static final String ID_PANEL_CONTAINER = "panelContainer";
@@ -39,7 +41,7 @@ public class ResourceTestPanel extends BasePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTestPanel.class);
 
-    private Long startMillis = System.currentTimeMillis();
+    private final XMLGregorianCalendar startTimestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
     private State state = State.RUNNING;
     private AbstractAjaxTimerBehavior timerBehavior;
 
@@ -123,7 +125,7 @@ public class ResourceTestPanel extends BasePanel<String> {
     }
 
     private void initCorePart(@NotNull WebMarkupContainer bodyContainer) {
-        Label elapsedTime = new Label(ID_ELAPSED_TIME, () -> SmartIntegrationUtils.formatElapsedTime(startMillis, null));
+        TimerProgressPanel elapsedTime = new TimerProgressPanel(ID_ELAPSED_TIME, () -> startTimestamp);
         elapsedTime.setOutputMarkupId(true);
         elapsedTime.add(new VisibleBehaviour(() -> state == State.RUNNING));
         bodyContainer.add(elapsedTime);

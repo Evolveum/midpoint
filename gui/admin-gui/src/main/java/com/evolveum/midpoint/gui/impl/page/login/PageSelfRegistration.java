@@ -6,8 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
+import java.io.Serial;
+import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -20,10 +20,17 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.IRequestParameters;
+import org.apache.wicket.request.Request;
+import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.validation.validator.EmailAddressValidator;
 
+import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.gui.api.component.otp.OtpPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -42,28 +49,21 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.apache.wicket.request.IRequestParameters;
-import org.apache.wicket.request.Request;
-import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.validator.EmailAddressValidator;
-
-import java.util.List;
-
 @PageDescriptor(urls = { @Url(mountUrl = "/registration", matchUrlForSecurity = "/registration") },
         permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.MAIL_NONCE)
 public class PageSelfRegistration extends PageAbstractFlow {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSelfRegistration.class);
 
@@ -76,6 +76,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     private static final String ID_EMAIL_FEEDBACK = "emailFeedback";
     private static final String ID_PASSWORD = "password";
     private static final String ID_PASSWORD_FEEDBACK = "inputContainerFeedback";
+    private static final String ID_OTP = "otp";
     private static final String ID_STATIC_FORM = "staticForm";
     private final static String INVALID_FIELD_CLASS = "is-invalid";
 
@@ -102,7 +103,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
     @Override
     public void initializeModel() {
         userModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
+
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected UserType load() {
@@ -141,7 +143,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         TextPanel<String> firstName = new TextPanel<>(ID_FIRST_NAME,
                 new PropertyModel<>(getUserModel(), UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void setObject(String object) {
@@ -166,7 +168,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         TextPanel<String> lastName = new TextPanel<>(ID_LAST_NAME,
                 new PropertyModel<>(getUserModel(), UserType.F_FAMILY_NAME.getLocalPart() + ".orig") {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void setObject(String object) {
@@ -211,7 +213,58 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 AttributeAppender.replace("title", createStringResource("PageSelfRegistration.emailAddress.hint")));
 
         createPasswordPanel(staticRegistrationForm);
+
+        createOtpPanel(staticRegistrationForm);
+
         return staticRegistrationForm;
+    }
+
+    private void createOtpPanel(WebMarkupContainer staticRegistrationForm) {
+        IModel<OtpCredentialType> credentialModel = new LoadableModel<>(false) {
+
+            @Override
+            protected OtpCredentialType load() {
+                UserType user = getUserModel().getObject();
+
+                CredentialsType credentials = user.getCredentials();
+                if (credentials == null) {
+                    credentials = new CredentialsType();
+                    user.setCredentials(credentials);
+                }
+
+                OtpCredentialsType otpCredentials = credentials.getOtps();
+                if (otpCredentials == null) {
+                    otpCredentials = new OtpCredentialsType();
+                    credentials.setOtps(otpCredentials);
+                }
+
+                OtpManager manager = MidPointApplication.get().getOtpManager();
+
+                Task task = createSimpleTask("create otp credential");  // todo operation constant
+                OperationResult result = task.getResult();
+
+                OtpCredentialType credential = manager.createOtpCredential(user.asPrismObject(), task, result);
+                otpCredentials.getTotp().add(credential);
+
+                return credential;
+            }
+        };
+
+        OtpPanel<?> otp = OtpPanel.createPanel(ID_OTP, getUserModel(), credentialModel);
+        otp.add(new VisibleBehaviour(() -> {
+            if (1 == 1) {
+                // don't show OTP during registration, to be discussed
+                return false;
+            }
+
+            OtpManager manager = MidPointApplication.get().getOtpManager();
+
+            Task task = createSimpleTask("check otp availability"); // todo operation constant
+            OperationResult result = task.getResult();
+
+            return manager.isOtpAvailable(getUserModel().getObject().asPrismObject(), task, result);
+        }));
+        staticRegistrationForm.add(otp);
     }
 
     private void initInputProperties(InputPanel input, FeedbackAlerts feedback) {
@@ -222,7 +275,9 @@ public class PageSelfRegistration extends PageAbstractFlow {
         input.setRenderBodyOnly(true);
 
         input.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+
             boolean wasUpdated = false;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 if (!wasUpdated) {
@@ -331,7 +386,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
                         try {
                             userDelta = prepareUserDelta(task, lResult);
                             userDelta.setPrismContext(getPrismContext());
-                        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException |
+                                CommunicationException | ConfigurationException | SecurityViolationException e) {
                             lResult.recordFatalError(getString("PageSelfRegistration.message.createDelta.fatalError", e.getMessage()), e);
                             return null;
                         }
@@ -491,7 +547,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
     }
 
     protected IModel<String> getDescriptionModel() {
-        return new LoadableModel<String>() {
+        return new LoadableModel<>() {
+
             @Override
             protected String load() {
                 return isSubmitted ? createStringResource("PageSelfRegistration.registration.confirm.message").getString() :
@@ -504,8 +561,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     @Override
     protected void handleErrors(AjaxRequestTarget target) {
-       WebMarkupContainer form = (WebMarkupContainer) get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_STATIC_FORM));
-       form.visitChildren(FormComponent.class, (FormComponent<?> child, IVisit<FormComponent<?>> visit) -> {
+        WebMarkupContainer form = (WebMarkupContainer) get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_STATIC_FORM));
+        form.visitChildren(FormComponent.class, (FormComponent<?> child, IVisit<FormComponent<?>> visit) -> {
             if (child.hasErrorMessage()) {
                 target.add(child);
                 updateFeedbackAlert(form, child, target);

@@ -25,12 +25,16 @@ import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -39,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -157,8 +162,30 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(IModel<SelectableBean<O>> rowModel, AjaxRequestTarget target) {
-                onNameColumnPerform(rowModel, target);
+            protected AbstractLink getObjectNameLinkComponent(String id, IModel<SelectableBean<O>> rowModel) {
+                AbstractLink link = new AjaxLink<>(id) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                        super.updateAjaxAttributes(attributes);
+
+                        WebComponentUtil.updateAjaxLinkAttributesForCtrlClickRedirection(attributes);
+                    }
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onNameColumnPerform(rowModel, target);
+                    }
+                };
+                if (rowModel.getObject() != null && rowModel.getObject().getValue() != null && isClickable(rowModel)) {
+                    link.add(AttributeModifier.replace("href", urlForNameColumnLink(rowModel.getObject().getValue())));
+                }
+                return link;
+            }
+
+            private @NotNull String urlForNameColumnLink(@NotNull O obj) {
+                return DetailsPageUtil.getObjectDetailsLinkNavigationUrl(obj);
             }
 
             @Override
@@ -226,7 +253,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         buttonsList.add(createNewObjectButton(buttonId));
         buttonsList.add(createImportObjectButton(buttonId));
-        buttonsList.add(createDownloadButton(buttonId));
+        buttonsList.add(DropdownButtonUtil.createDownloadButtonPanel(buttonId, this, getType().getSimpleName()));
         buttonsList.add(createCreateReportButton(buttonId));
         buttonsList.add(createRefreshButton(buttonId));
         buttonsList.add(createPlayPauseButton(buttonId));
@@ -284,7 +311,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
-        createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        createNewObjectButton.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
         return createNewObjectButton;
     }
 
@@ -419,7 +446,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 createReportPerformed(target);
             }
         };
-        createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
+        createReport.add(AttributeAppender.append("class", "mx-2 btn btn-default btn-sm"));
         createReport.add(new VisibleBehaviour(this::isReportObjectButtonVisible));
         return createReport;
     }

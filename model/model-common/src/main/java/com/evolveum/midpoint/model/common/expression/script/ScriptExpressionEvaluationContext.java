@@ -11,6 +11,7 @@ import java.util.function.Function;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -56,7 +57,9 @@ public class ScriptExpressionEvaluationContext {
 
     private ScriptEvaluationTraceType trace;
 
-    ScriptExpressionEvaluatorType getScriptBean() {
+    private PrismNamespaceContext namespaceContext;
+
+    public ScriptExpressionEvaluatorType getScriptBean() {
         return scriptBean;
     }
 
@@ -208,5 +211,13 @@ public class ScriptExpressionEvaluationContext {
 
     public void setTrace(ScriptEvaluationTraceType trace) {
         this.trace = trace;
+    }
+
+    public PrismNamespaceContext getNamespaceContext() {
+        return namespaceContext;
+    }
+
+    public void setNamespaceContext(PrismNamespaceContext namespaceContext) {
+        this.namespaceContext = namespaceContext;
     }
 }

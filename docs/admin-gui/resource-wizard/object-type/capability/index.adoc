@@ -2,6 +2,7 @@
 :page-nav-title: Capabilities
 :page-toc: top
 :page-since: "4.9"
+:experimental:
 
 Capabilities panel informs you about the supported capabilities for the resource with selected connector and allows to override them.
 Capabilities can be simply _disabled_, e.g. disable operation can be disabled for this resource object type.

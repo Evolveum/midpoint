@@ -355,6 +355,7 @@ Used in the same way as "Protected" when you have different reasons than for the
 |Shadow object that has bad data and should be ignored by synchronization. Used in the same way as "Protected" but with a different semantic meaning.
 |===
 
+
 == Best practices
 
 * Use clear and descriptive names for marks, such as "inactive", "requires-approval", or "archived".
@@ -365,3 +366,4 @@ Too many marks can complicate management, while too few may not provide sufficie
 == See also
 
 * xref:/midpoint/reference/admin-gui/resource-wizard/object-type/policies[]
+* xref:/midpoint/reference/concepts/mark/use-marks-to-quarantine-objects[] - An example of using marks to quarantine objects that fail during reconciliation.

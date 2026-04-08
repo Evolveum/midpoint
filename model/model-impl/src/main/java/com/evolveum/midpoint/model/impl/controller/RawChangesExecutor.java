@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,10 +35,13 @@ import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -127,7 +132,7 @@ class RawChangesExecutor {
 
     private void auditRequest(OperationResult result) {
         AuditEventRecord originalRecord =
-                createAuditEventRecordRaw(AuditEventStage.REQUEST, ObjectDeltaOperation.cloneDeltaCollection(requestDeltas));
+                createAuditEventRecordRaw(AuditEventStage.REQUEST, cloneAndEnrichForAudit(requestDeltas, result));
         processAndAuditTheRecord(originalRecord, result);
     }
 
@@ -177,11 +182,63 @@ class RawChangesExecutor {
         return auditRecord;
     }
 
+    private Collection<ObjectDeltaOperation<? extends ObjectType>> cloneAndEnrichForAudit(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result) {
+        Collection<ObjectDeltaOperation<? extends ObjectType>> clones = ObjectDeltaOperation.cloneDeltaCollection(deltas);
+        for (ObjectDeltaOperation<? extends ObjectType> clone : clones) {
+            enrichDeltaWithEstimatedOldValues(clone.getObjectDelta(), null, result);
+        }
+        return clones;
+    }
+
+    private <T extends ObjectType> void enrichDeltaWithEstimatedOldValues(
+            ObjectDelta<T> delta, PrismObject<T> oldObject, OperationResult result) {
+        if (delta == null || !delta.isModify() || delta.getOid() == null) {
+            return;
+        }
+
+        if (oldObject == null) {
+            try {
+                oldObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), readOnly(), result);
+            } catch (ObjectNotFoundException e) {
+                return;
+            } catch (SchemaException e) {
+                LOGGER.debug("Couldn't read object {} to enrich raw audit delta", delta.getOid(), e);
+                return;
+            }
+        }
+
+        applyDefinitionsForAuditIfPossible(delta, oldObject.getDefinition(), result);
+        for (ItemDelta<?, ?> modification : delta.getModifications()) {
+            if (!CollectionUtils.isEmpty(modification.getEstimatedOldValues())) {
+                continue;
+            }
+            if (oldObject.findItem(modification.getPath()) == null) {
+                modification.setEstimatedOldValues(Collections.emptyList());
+            } else {
+                PrismUtil.setDeltaOldValueForAudit(oldObject, modification);
+            }
+        }
+    }
+
+    private <T extends ObjectType> void applyDefinitionsForAuditIfPossible(
+            ObjectDelta<T> delta, PrismObjectDefinition<T> objectDefinition, OperationResult result) {
+        if (objectDefinition != null) {
+            try {
+                delta.applyDefinition(objectDefinition, false);
+            } catch (SchemaException e) {
+                LOGGER.debug("Couldn't apply object definition while enriching raw audit delta {}", delta, e);
+            }
+        }
+        applyDefinitionsIfNeeded(delta, result);
+    }
+
     private void executeChangeRaw(ObjectDelta<? extends ObjectType> delta, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(EXECUTE_CHANGE);
         ObjectType objectToDetermineDetailsForAudit = null;
+        PrismObject<? extends ObjectType> oldObject = getOldObjectForAudit(delta, result);
         try {
             applyDefinitionsIfNeeded(delta, result);
             objectToDetermineDetailsForAudit = executeChangeRawInternal(delta, options, task, result);
@@ -190,8 +247,24 @@ class RawChangesExecutor {
             throw t;
         } finally { // to have a record with the failed delta as well
             result.close();
+            enrichDeltaWithEstimatedOldValues(delta, (PrismObject) oldObject, parentResult);
             executedDeltas.add(
                     prepareObjectDeltaOperation(delta, objectToDetermineDetailsForAudit, parentResult, result));
+        }
+    }
+
+    private PrismObject<? extends ObjectType> getOldObjectForAudit(
+            ObjectDelta<? extends ObjectType> delta, OperationResult result) {
+        if (delta == null || !delta.isModify() || delta.getOid() == null) {
+            return null;
+        }
+        try {
+            return cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), readOnly(), result);
+        } catch (ObjectNotFoundException e) {
+            return null;
+        } catch (SchemaException e) {
+            LOGGER.debug("Couldn't read object {} before executing raw change for audit", delta.getOid(), e);
+            return null;
         }
     }
 

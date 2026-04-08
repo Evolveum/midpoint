@@ -246,7 +246,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
             @Override
             public PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getResourceContentStorage(kind, searchMode);
+                return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(kind, searchMode);
             }
 
             @Override

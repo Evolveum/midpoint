@@ -318,7 +318,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
 
                     @Override
                     protected void onClickPerform(AjaxRequestTarget target) {
-                        CollapsableDataTable<?, ?>.CollapsableRowItem rowItem = findParent(CollapsableDataTable.CollapsableRowItem.class);
+                        CollapsableDataTable<?>.CollapsableRowItem rowItem = findParent(CollapsableDataTable.CollapsableRowItem.class);
                         if (rowItem != null) {
                             if (rowItem.isExpanded()) {
                                 rowItem.toggle(target);

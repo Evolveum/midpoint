@@ -12,5 +12,6 @@ public interface DownloadedConnector {
     DownloadedConnector unpack(String directory, OperationResult result);
 
     void remove();
+
     EditableConnector asEditable();
 }

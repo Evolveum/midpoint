@@ -131,6 +131,14 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         return basicQueryWrapper.getItemsList();
     }
 
+    public void detachSearchItemWrappersModels() {
+        getItems().forEach(searchItem -> {
+                searchItem.getTitle().detach();
+                searchItem.getName().detach();
+                searchItem.getHelp().detach();
+        });
+    }
+
     public SearchBoxModeType getSearchMode() {
         return defaultSearchBoxMode;
     }
@@ -176,7 +184,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
     }
 
     public void setDslQuery(String dslQuery) {
-        axiomQueryWrapper = new AxiomQueryWrapper(null);
+        axiomQueryWrapper = new AxiomQueryWrapper(null, getTypeClass());
         axiomQueryWrapper.setDslQuery(dslQuery);
     }
 
@@ -279,20 +287,13 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
 
     private QueryWrapper determineQueryWrapper() {
         SearchBoxModeType searchMode = getSearchMode();
-
-        switch (searchMode) {
-            case OID:
-                return oidSearchItemWrapper;
-            case ADVANCED:
-                return advancedQueryWrapper;
-            case AXIOM_QUERY:
-                return axiomQueryWrapper;
-            case FULLTEXT:
-                return fulltextQueryWrapper;
-            case BASIC:
-                return basicQueryWrapper;
-        }
-        return null;
+        return switch (searchMode) {
+            case OID -> oidSearchItemWrapper;
+            case ADVANCED -> advancedQueryWrapper;
+            case AXIOM_QUERY -> axiomQueryWrapper;
+            case FULLTEXT -> fulltextQueryWrapper;
+            case BASIC -> basicQueryWrapper;
+        };
     }
 
 //    private ObjectQuery createObjectQueryAdvanced(PageBase pageBase) {

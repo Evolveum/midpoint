@@ -25,6 +25,10 @@ public class ObjectClassWrapper extends Selectable<ObjectClassWrapper>
 
     @NotNull private final ResourceObjectClassDefinition definition;
 
+    /**
+     * TODO please describe what is this flag for; currently it seems that if it's false, the class cannot be removed
+     *  from generation constraints.
+     */
     private boolean enabled = true;
 
     public ObjectClassWrapper(@NotNull ResourceObjectClassDefinition definition) {

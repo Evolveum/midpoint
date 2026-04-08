@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Radovan Semancik
  */
-public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<ScriptEngine, CompiledScript> {
+public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<ScriptEngine, CompiledScript, String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(Jsr223ScriptEvaluator.class);
 
@@ -52,6 +52,17 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
                 engineName, System.currentTimeMillis() - initStartMs);
     }
 
+    // Not really used, but required by interface contract
+    @Override
+    protected ScriptEngine createInterpreter(ScriptExpressionEvaluationContext context) throws SecurityViolationException, ConfigurationException {
+        return scriptEngine;
+    }
+
+    @Override
+    protected String getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context) {
+        return codeString;
+    }
+
     @Override
     protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext evaluationContext)
             throws Exception {
@@ -68,7 +79,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         Bindings bindings = scriptEngine.createBindings();
-        bindings.putAll(prepareScriptVariablesValueMap(context));
+        bindings.putAll(prepareUnifiedScriptVariablesValueMap(context));
         return bindings;
     }
 

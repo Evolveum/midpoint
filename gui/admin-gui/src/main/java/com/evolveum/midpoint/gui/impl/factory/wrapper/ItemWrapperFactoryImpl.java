@@ -394,11 +394,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 //            return false;
 //        }
 
-        if (!context.isCreateIfEmpty()) {
-            return false;
-        }
-
-        return true;
+        return context.isCreateIfEmpty();
     }
 
     /**

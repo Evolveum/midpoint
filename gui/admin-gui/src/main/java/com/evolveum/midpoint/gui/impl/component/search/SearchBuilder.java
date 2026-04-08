@@ -251,7 +251,7 @@ public class SearchBuilder<C extends Serializable> {
     }
 
     private Search<C> createSearch(SearchBoxConfigurationType mergedConfig, BasicQueryWrapper basicSearchWrapper) {
-        AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper(getDefinitionOverride());
+        AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper(getDefinitionOverride(), type);
         AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper(null);
         FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper(null);
         if (AssignmentType.class.equals(type)) {

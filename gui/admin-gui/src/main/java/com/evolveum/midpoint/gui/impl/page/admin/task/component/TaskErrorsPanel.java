@@ -50,16 +50,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.OperationResultUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -74,7 +69,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPres
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImplOld;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -349,8 +343,8 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
             @Override
             protected Search<OperationExecutionType> load() {
-                getSessionStorage().clearTaskErrorsStorage(getObjectWrapper().getOid());
-                PageStorage storage = getSessionStorage().getOrCreatePageStorage(getSessionStorageKey());
+                getBrowserTabSessionStorage().clearTaskErrorsStorage(getObjectWrapper().getOid());
+                PageStorage storage = getBrowserTabSessionStorage().getOrCreatePageStorage(getSessionStorageKey());
                 Search<OperationExecutionType> search = storage != null ? storage.getSearch() : null;
                 if (search == null) {
                     SearchBuilder<OperationExecutionType> searchBuilder =

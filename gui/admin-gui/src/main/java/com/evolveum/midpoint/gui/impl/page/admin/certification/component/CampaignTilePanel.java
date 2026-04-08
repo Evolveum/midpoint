@@ -11,6 +11,11 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertCampaign;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkWithNewTabSupport;
+
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -53,6 +58,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
 public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -73,7 +82,6 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private static final String ID_ITERATION = "iteration";
     private static final String ID_ACTION_BUTTON = "actionButton";
     private static final String ID_DETAILS = "details";
-    private static final String ID_DETAILS_LABEL = "detailsLabel";
 
     String runningTaskOid;
     LoadableDetachableModel<String> runningTaskLabelModel;
@@ -279,20 +287,26 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         actionButton.add(AttributeModifier.append("class", getActionButtonCssModel()));
         add(actionButton);
 
-        AjaxLink<Void> details = new AjaxLink<>(ID_DETAILS) {
+        AjaxLinkWithNewTabSupport details = new AjaxLinkWithNewTabSupport(ID_DETAILS, getDetailsButtonLabelModel()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 detailsButtonClickPerformed(target);
             }
+
+            @Override
+            protected @NotNull String getNavigationUrl() {
+                return CampaignTilePanel.this.getDetailsLinkNavigationUrl();
+            }
+
+            @Override
+            protected String getLinkAdditionalStyle() {
+                return "btn btn-link text-lightblue mt-1";
+            }
         };
         details.setOutputMarkupId(true);
         add(details);
-
-        Label detailsLabel = new Label(ID_DETAILS_LABEL, getDetailsButtonLabelModel());
-        details.add(detailsLabel);
-
     }
 
     private LoadableModel<String> getActionButtonCssModel() {
@@ -418,5 +432,12 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
                 return createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()).getString();
             }
         };
+    }
+
+    protected String getDetailsLinkNavigationUrl() {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, getCampaign().getOid());
+        var url = RequestCycle.get().urlFor(PageCertCampaign.class, parameters);
+        return url != null ? url.toString() : "#";
     }
 }

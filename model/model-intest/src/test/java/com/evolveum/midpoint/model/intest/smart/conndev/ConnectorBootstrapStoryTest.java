@@ -284,7 +284,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
 
         when("waiting for the operation to finish successfully");
         var response = waitForFinish(
-                () -> connectorService.getDiscoverObjectClassDetailsStatus(detailsToken, task, result),
+                () -> connectorService.getDiscoverObjectClassAttributesStatus(detailsToken, task, result),
                 TIMEOUT);
 
         assertThat(response).isNotNull();

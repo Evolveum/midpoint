@@ -12,15 +12,18 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvTestResource;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests ID Match correlation in the most simple case:
@@ -122,15 +125,53 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         assertUserByUsername("smith1", "after import")
                 .display()
                 .assertLinks(1, 0); // The account should not be linked yet
+    }
+
+    /**
+     * Resolves the disputed case created in the previous test by selecting the existing owner.
+     *
+     * The resolution must fail in the real import/projector path, and the case must remain open.
+     */
+    @Test
+    public void test115ResolveDisputedCaseAsExistingOwnerFailsAndKeepsCaseOpen() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("previously created disputed case for SIS account #2");
+        PrismObject<ShadowType> a2Before = findShadowByPrismName("2", RESOURCE_SIS.get(), result);
+        CaseType aCaseBefore = correlationCaseManager.findCorrelationCase(a2Before.asObjectable(), true, result);
+        assertThat(aCaseBefore).as("correlation case before resolution").isNotNull();
+
+        String caseOid = aCaseBefore.getOid();
 
         when("resolving the case");
-        resolveCase(aCase, johnOid, task, result);
+        assertThatThrownBy(() -> resolveCase(aCaseBefore, johnOid, task, result))
+                .isInstanceOf(SystemException.class)
+                .hasMessageContaining("already exists in lens context");
 
-        then("error should be reported");
-        assertFailure(result);
+        then("error should be reported and the case should remain open");
+        assertResultTreeContainsMessage(result);
 
-        // May be fragile. Adapt as needed.
-        assertThat(result.getMessage()).as("error message").contains("already exists in lens context");
+        CaseType caseAfter = getCase(caseOid);
+        assertCase(caseAfter, "case after failed resolution")
+                .display()
+                .assertOpen()
+                .workItems()
+                    .single()
+                        .assertNotClosed();
+
+        PrismObject<ShadowType> a2After = findShadowByPrismName("2", RESOURCE_SIS.get(), result);
+        ShadowCorrelationStateType correlationState = a2After.asObjectable().getCorrelation();
+        assertThat(correlationState).as("correlation state").isNotNull();
+        assertThat(correlationState.getCorrelationCaseCloseTimestamp())
+                .as("correlation case close timestamp")
+                .isNull();
+        assertThat(correlationState.getPerformerRef())
+                .as("correlation performer refs")
+                .isEmpty();
+        assertThat(correlationState.getPerformerComment())
+                .as("correlation performer comments")
+                .isEmpty();
 
         assertUserByUsername("smith1", "after case resolution")
                 .display()
@@ -189,5 +230,15 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         assertUserByUsername("smith2", "after case resolution")
                 .display()
                 .assertLinks(1, 0);
+    }
+
+    private void assertResultTreeContainsMessage(OperationResult result) {
+        assertThat(
+                result.getResultStream()
+                        .map(OperationResult::getMessage)
+                        .filter(Objects::nonNull)
+                        .anyMatch(message -> message.contains("already exists in lens context")))
+                .as("operation result tree should contain message fragment '%s'", "already exists in lens context")
+                .isTrue();
     }
 }

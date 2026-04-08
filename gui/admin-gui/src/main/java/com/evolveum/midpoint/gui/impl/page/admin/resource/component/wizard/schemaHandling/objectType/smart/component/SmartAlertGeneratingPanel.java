@@ -6,16 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+
 import java.io.Serial;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
-import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
@@ -32,10 +35,9 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyMappingPermissionData;
 
 /**
  * Panel for monitoring and controlling a "smart generating" task.
@@ -98,12 +100,10 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
 
         initButtons(alertContainer);
 
-        Label suggestionInfo = new Label(ID_SUGGESTION_INFO,
-                LoadableDetachableModel.of(() -> createStringResource(
-                        "SmartGeneratingPanel.suggestion.last.update.info",
-                        getModelObject().getLastUpdatedDate()).getString()));
-        suggestionInfo.setOutputMarkupId(true);
-        suggestionInfo.add(new VisibleBehaviour(() -> getModelObject().getLastUpdatedDate() != null));
+        TimerProgressPanel suggestionInfo = new TimerProgressPanel(ID_SUGGESTION_INFO,
+                () -> getModelObject().getSuggestedObjectsStartTime(),
+                () -> getModelObject().getSuggestedObjectsEndTime());
+        suggestionInfo.add(new VisibleBehaviour(() -> getModelObject().suggestionExists()));
         alertContainer.add(suggestionInfo);
 
         initAjaxTimeBehaviour(alertContainer);
@@ -113,22 +113,11 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     private void initButtons(@NotNull WebMarkupContainer primaryPanel) {
         RepeatingView buttonsView = new RepeatingView(ID_BUTTONS);
 
-        AjaxIconButton suggestButton = new AjaxIconButton(buttonsView.newChildId(),
-                Model.of("mr-2 fa fa-wand-magic-sparkles "),
-                createStringResource("SmartGeneratingPanel.button.ai.suggestions.suggest")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showSuggestConfirmDialog(getPageBase(), target);
-            }
-        };
-        suggestButton.add(AttributeModifier.append(
-                "class", "bg-purple ml-auto"));
-        suggestButton.showTitleAsLabel(true);
-        suggestButton.add(new VisibleBehaviour(() -> getModelObject().isSuggestionButtonVisible()));
+        final AjaxIconButton suggestButton = createGenerateButton(buttonsView.newChildId());
         buttonsView.add(suggestButton);
 
         AjaxIconButton showSuggestionsButton = new AjaxIconButton(buttonsView.newChildId(),
-                Model.of("ml-2 fa fa-mouse-pointer "),
+                Model.of("ml-2 fa fa-mouse-pointer"),
                 createStringResource("SmartGeneratingPanel.button.ai.suggestions.show")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -141,22 +130,6 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         showSuggestionsButton.add(new VisibleBehaviour(() -> getModelObject().isShowSuggestionButtonVisible()));
         buttonsView.add(showSuggestionsButton);
 
-        AjaxIconButton refreshSuggestionButton = new AjaxIconButton(buttonsView.newChildId(),
-                Model.of("fa fa-arrows-rotate"),
-                createStringResource("SmartGeneratingPanel.button.ai.suggestions.refresh")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                performRefreshOperation(target);
-                target.add(SmartAlertGeneratingPanel.this);
-                refreshAssociatedComponents(target);
-                restartTimeBehavior(target);
-            }
-        };
-        refreshSuggestionButton.add(AttributeModifier.append("class", "bg-purple"));
-        refreshSuggestionButton.showTitleAsLabel(true);
-        refreshSuggestionButton.add(new VisibleBehaviour(() -> getModelObject().isRefreshButtonVisible()));
-        buttonsView.add(refreshSuggestionButton);
-
         AjaxIconButton stopSuggestionButton = new AjaxIconButton(buttonsView.newChildId(),
                 Model.of("fa fa-stop text-purple"),
                 createStringResource("SmartGeneratingPanel.button.stop")) {
@@ -165,7 +138,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                 SmartGeneratingAlertDto dto = SmartAlertGeneratingPanel.this.getModelObject();
                 dto.removeExistingSuggestionTask(getPageBase());
                 target.add(SmartAlertGeneratingPanel.this);
-                refreshAssociatedComponents(target);
+                onRefresh(target);
             }
         };
         stopSuggestionButton.showTitleAsLabel(true);
@@ -183,7 +156,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     }
 
     /** Restarts the polling timer if it exists. */
-    private void restartTimeBehavior(AjaxRequestTarget target) {
+    public void restartTimeBehavior(AjaxRequestTarget target) {
         if (timerBehavior != null) {
             try {
                 timerBehavior.restart(target);
@@ -196,12 +169,12 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     /** Initializes the timer polling behaviour. */
     private void initAjaxTimeBehaviour(WebMarkupContainer alertContainer) {
         this.timerBehavior = createSuggestionAjaxTimerBehavior(
-                alertContainer, getRefreshInterval(), getModel(), this::onFinishActionPerform);
+                alertContainer, getRefreshInterval(), getModel(), this::onSuggestionFinish);
         alertContainer.add(timerBehavior);
     }
 
     /** Creates the polling timer behavior. */
-    public @NotNull AbstractAjaxTimerBehavior createSuggestionAjaxTimerBehavior(
+    private @NotNull AbstractAjaxTimerBehavior createSuggestionAjaxTimerBehavior(
             @NotNull WebMarkupContainer bodyContainer,
             @NotNull Duration refreshDuration,
             @NotNull IModel<SmartGeneratingAlertDto> model,
@@ -246,30 +219,75 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         };
     }
 
-    private void showSuggestConfirmDialog(
-            @NotNull PageBase pageBase,
-            @NotNull AjaxRequestTarget target) {
-        RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(
-                pageBase.getMainPopupBodyId(),
-                getPermissionRecordDtoIModel()) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                performSuggestOperation(target);
-                target.add(SmartAlertGeneratingPanel.this);
-                refreshAssociatedComponents(target);
-                restartTimeBehavior(target);
-            }
-        };
-        pageBase.showMainPopup(dialog, target);
+    private void generatePerformed(AjaxRequestTarget target,
+            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+        performSuggestOperation(target, confirmedOptions);
+        target.add(this);
+        onRefresh(target);
+        restartTimeBehavior(target);
     }
 
-    protected IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
-        return Model.of(new RequestDetailsRecordDto(null, initDummyMappingPermissionData()));
+    private void regeneratePerformed(AjaxRequestTarget target,
+            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+        performRegenerateOperation(target, confirmedOptions);
+        target.add(SmartAlertGeneratingPanel.this);
+        onRefresh(target);
+        restartTimeBehavior(target);
+    }
+
+    protected AjaxIconButton createGenerateButton(String buttonId) {
+        final AjaxIconButton suggestButton;
+        if (getConfirmationOptions().getObject().isEmpty()) {
+            suggestButton = buttonWithoutDialog(buttonId);
+            suggestButton.add(AttributeModifier.append("class", "btn, rounded, bg-purple"));
+        } else {
+            suggestButton = buttonWithDialog(buttonId);
+        }
+        suggestButton.add(AttributeModifier.append("class", "ml-auto"));
+        suggestButton.showTitleAsLabel(true);
+        suggestButton.add(new VisibleBehaviour(() -> getModelObject().isSuggestionButtonVisible()
+                || getModelObject().isRefreshButtonVisible()));
+        return suggestButton;
+    }
+
+    private AjaxIconButton buttonWithoutDialog(String buttonId) {
+        return new AjaxIconButton(buttonId,
+                () -> getModelObject().isSuggestionButtonVisible()
+                        ? "mr-2 fa fa-wand-magic-sparkles"
+                        : "fa fa-arrows-rotate",
+                () -> getModelObject().isSuggestionButtonVisible()
+                        ? translate("SmartGeneratingPanel.button.ai.suggestions.suggest")
+                        : translate("SmartGeneratingPanel.button.ai.suggestions.refresh")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (SmartAlertGeneratingPanel.this.getModelObject().isSuggestionButtonVisible()) {
+                    generatePerformed(target, Collections::emptyList);
+                } else {
+                    regeneratePerformed(target, Collections::emptyList);
+                }
+            }
+        };
+    }
+
+    private @NotNull AjaxIconButton buttonWithDialog(String buttonId) {
+        return SmartSuggestButtonWithConfirmation.create(buttonId,
+                () -> getModelObject().isSuggestionButtonVisible()
+                        ? translate("SmartGeneratingPanel.button.ai.suggestions.suggest")
+                        : translate("SmartGeneratingPanel.button.ai.suggestions.refresh"),
+                () -> getModelObject().isSuggestionButtonVisible()
+                        ? "mr-2 fa fa-wand-magic-sparkles"
+                        : "fa fa-arrows-rotate",
+                getConfirmationOptions().getObject(),
+                () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
+                },
+                        getModelObject().isSuggestionButtonVisible()
+                                ? this::generatePerformed
+                                : this::regeneratePerformed),
+                getPageBase());
     }
 
     /** Called when task finishes successfully. Default no-op. */
-    protected void onFinishActionPerform(AjaxRequestTarget target) {
+    protected void onSuggestionFinish(AjaxRequestTarget target) {
         // default no-op
     }
 
@@ -282,18 +300,26 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     protected void performShowSuggestOperation(@NotNull AjaxRequestTarget target) {
         getModelObject().setSuggestionDisplayed(Boolean.TRUE);
         target.add(SmartAlertGeneratingPanel.this);
-        refreshAssociatedComponents(target);
+        onRefresh(target);
     }
-//TODO in some case we need to switch model to false "check it"
-    /** Refreshes suggestions (removes existing task and starts again). */
-    protected void performRefreshOperation(AjaxRequestTarget target) {
+
+    /** Regenerates suggestions (removes existing task and starts again). */
+    protected void performRegenerateOperation(AjaxRequestTarget target,
+            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
         getModelObject().removeExistingSuggestionTask(getPageBase());
-        performSuggestOperation(target);
+        performRegenerateSuggestOperation(target, confirmedOptions);
     }
 
     /** Must be implemented to trigger suggestion generation. */
-    protected abstract void performSuggestOperation(AjaxRequestTarget target);
+    protected abstract void performSuggestOperation(AjaxRequestTarget target,
+            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions);
 
-    /** Must be implemented to refresh related UI components. */
-    protected abstract void refreshAssociatedComponents(AjaxRequestTarget target);
+    /** Must be implemented to trigger suggestion regeneration (re-run after removing existing task). */
+    protected abstract void performRegenerateSuggestOperation(AjaxRequestTarget target,
+            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions);
+
+    /** Must be implemented to refresh UI components related to suggestions. */
+    protected abstract void onRefresh(AjaxRequestTarget target);
+
+    protected abstract IModel<List<ConfirmationOption<DataAccessPermission>>> getConfirmationOptions();
 }

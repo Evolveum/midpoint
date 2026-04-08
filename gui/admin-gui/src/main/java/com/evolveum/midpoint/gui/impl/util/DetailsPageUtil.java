@@ -30,12 +30,17 @@ import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.services.PageServiceHistory;
+import com.evolveum.midpoint.web.page.admin.services.PageAllServices;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.INamedParameters;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -59,8 +64,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
@@ -75,7 +78,6 @@ import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -126,7 +128,7 @@ public final class DetailsPageUtil {
         OBJECT_LIST_PAGE_MAP = new HashMap<>();
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(UserType.class, PageUsers.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(RoleType.class, PageRoles.class);
-        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageServices.class);
+        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageAllServices.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PolicyType.class, PagePolicies.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ApplicationType.class, PageApplications.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
@@ -196,6 +198,46 @@ public final class DetailsPageUtil {
         Validate.notNull(objectRef.getType(), "No type in objectRef");
         Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(objectRef.getType()).getClassDefinition();
         dispatchToObjectDetailsPage(targetClass, objectRef.getOid(), component, failIfUnsupported);
+    }
+
+    /**
+     * Navigation url is to be added to "href" attribute of the link component so that
+     * the browser can navigate to a new tab using this url.
+     *
+     * @param objectRef
+     */
+    public static String getObjectDetailsLinkNavigationUrl(Referencable objectRef) {
+        if (objectRef == null || objectRef.getOid() == null || objectRef.getType() == null) {
+            return null;
+        }
+        Class<? extends ObjectType> objectClass = (Class<? extends ObjectType>) WebComponentUtil.qnameToClass(objectRef.getType());
+        Class<? extends PageBase> objectPageClass = getObjectDetailsPage(objectClass);
+
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, objectRef.getOid());
+
+        var url = RequestCycle.get().urlFor(objectPageClass, parameters);
+        return url != null ? url.toString() : null;
+    }
+
+    /**
+     * Navigation url is to be added to "href" attribute of the link component so that
+     * the browser can navigate to a new tab using this url.
+     *
+     * @param obj
+     */
+    public static <O extends ObjectType> String getObjectDetailsLinkNavigationUrl(O obj) {
+        if (obj == null || obj.getOid() == null) {
+            return null;
+        }
+        Class<? extends ObjectType> objectClass = obj.getClass();
+        Class<? extends PageBase> objectPageClass = getObjectDetailsPage(objectClass);
+
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, obj.getOid());
+
+        var url = RequestCycle.get().urlFor(objectPageClass, parameters);
+        return url != null ? url.toString() : null;
     }
 
     public static void dispatchToObjectDetailsPage(PrismObject obj, Component component) {

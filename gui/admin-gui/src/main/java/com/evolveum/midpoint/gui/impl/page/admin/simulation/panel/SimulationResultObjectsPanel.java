@@ -25,6 +25,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -110,7 +111,7 @@ public abstract class SimulationResultObjectsPanel extends BasePanel<SimulationR
 
             @Override
             protected String getPredefinedMarkOid() {
-                String oid = getResultOid();
+                String oid = SimulationResultObjectsPanel.this.getPredefinedMarkOid();
                 if (oid != null && !Utils.isPrismObjectOidValid(oid)) {
                     throw new RestartResponseException(PageError404.class);
                 }
@@ -160,6 +161,12 @@ public abstract class SimulationResultObjectsPanel extends BasePanel<SimulationR
 
     private String getResultOid() {
         return getModelObject().getOid();
+    }
+
+    protected @Nullable String getPredefinedMarkOid() {
+        PageParameters pageParameters = getPageBase().getPageParameters();
+        StringValue parameterMarkOid = pageParameters.get(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID);
+        return parameterMarkOid != null && !parameterMarkOid.isEmpty() ? parameterMarkOid.toString() : null;
     }
 
     protected abstract ObjectProcessingStateType getStateQueryParameter();

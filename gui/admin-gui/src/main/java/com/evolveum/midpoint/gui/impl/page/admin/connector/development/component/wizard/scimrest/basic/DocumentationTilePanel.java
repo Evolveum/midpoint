@@ -102,5 +102,6 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
     }
 
     protected void onDelete(DocumentationTile modelObject, AjaxRequestTarget target) {
+        // FIXME: Implement delete operation
     }
 }

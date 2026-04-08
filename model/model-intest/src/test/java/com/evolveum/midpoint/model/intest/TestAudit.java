@@ -13,7 +13,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.prism.polystring.PolyString.fromOrig;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,7 +20,9 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.io.FileUtils;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -32,16 +33,16 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,10 +53,8 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -882,5 +881,63 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
             Assertions.assertThat(odo.getObjectDelta())
                     .isNotNull();
         }
+    }
+
+    /**
+     * MID-10027 Raw request audit should contain estimated old values as well.
+     */
+    @Test
+    public void test425RawAuditContainsEstimatedOldValues() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given();
+        dummyAuditService.clear();
+        UserType user = new UserType()
+                .name("test425-raw-audit")
+                .assignment(new AssignmentType()
+                        .targetRef(ROLE_RED_SAILOR_OID, RoleType.COMPLEX_TYPE));
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .replace(new AssignmentType().targetRef(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE))
+                .asObjectDelta(userOid);
+
+        when();
+        executeChanges(delta, ModelExecuteOptions.create().raw(), task, result);
+
+        then();
+        assertSuccess(result);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        assertRawAssignmentAuditDelta(
+                dummyAuditService.getRequestRecord().getDeltas().iterator().next());
+        assertRawAssignmentAuditDelta(
+                dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, UserType.class));
+    }
+
+    private void assertRawAssignmentAuditDelta(
+            ObjectDeltaOperation<? extends ObjectType> odo) {
+        assertThat(odo).isNotNull();
+        ObjectDelta<? extends ObjectType> objectDelta = odo.getObjectDelta();
+        assertThat(objectDelta).isNotNull();
+
+        ContainerDelta<AssignmentType> assignmentDelta = null;
+        for (ItemDelta<?, ?> modification : objectDelta.getModifications()) {
+            if (modification instanceof ContainerDelta<?> containerDelta
+                    && UserType.F_ASSIGNMENT.equals(containerDelta.getPath().firstToNameOrNull())) {
+                assignmentDelta = (ContainerDelta<AssignmentType>) containerDelta;
+                break;
+            }
+        }
+        assertThat(assignmentDelta).isNotNull();
+        assertThat(assignmentDelta.getEstimatedOldValues()).hasSize(1);
+
+        PrismContainerValue<AssignmentType> estimatedOldValue =
+                assignmentDelta.getEstimatedOldValues().iterator().next();
+        assertThat(estimatedOldValue.asContainerable().getTargetRef().getOid()).isEqualTo(ROLE_RED_SAILOR_OID);
+
+        assertThat(objectDelta.debugDump()).contains(ROLE_JUDGE_OID);
     }
 }

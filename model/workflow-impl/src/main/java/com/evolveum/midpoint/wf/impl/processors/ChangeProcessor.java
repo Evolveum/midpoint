@@ -99,6 +99,11 @@ public interface ChangeProcessor {
      */
     void enrichWorkItemDeletedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation);
 
+    /**
+     * Adds approval-specific information to the work-item-level audit record.
+     */
+    void enrichAutoClosingWorkItemAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation);
+
     // TODO consider removing
     MiscHelper getMiscHelper();
 }

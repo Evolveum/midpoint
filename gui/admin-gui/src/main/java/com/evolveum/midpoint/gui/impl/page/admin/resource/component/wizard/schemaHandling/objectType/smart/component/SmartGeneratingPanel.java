@@ -172,11 +172,10 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     }
 
     private void initCorePart(@NotNull WebMarkupContainer bodyContainer) {
-        Label elapsedTime = new Label(ID_ELAPSED_TIME, () -> {
-            SmartGeneratingDto dto = getModelObject();
-            return dto != null ? dto.getTimeElapsed() : "";
-        });
-        elapsedTime.setOutputMarkupId(true);
+
+        TimerProgressPanel elapsedTime = new TimerProgressPanel(ID_ELAPSED_TIME,
+                () -> getModelObject().getSuggestedObjectsStartTime(),
+                () -> getModelObject().getSuggestedObjectsEndTime());
         bodyContainer.add(elapsedTime);
 
         WebMarkupContainer listViewContainer = new WebMarkupContainer(ID_LIST_VIEW_CONTAINER);

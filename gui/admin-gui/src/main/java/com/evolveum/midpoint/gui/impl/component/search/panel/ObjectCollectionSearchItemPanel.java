@@ -17,7 +17,10 @@ import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
+import java.io.Serial;
+
 public class ObjectCollectionSearchItemPanel extends SingleSearchItemPanel<ObjectCollectionSearchItemWrapper> {
+    @Serial private static final long serialVersionUID = 1L;
 
     public ObjectCollectionSearchItemPanel(String id, IModel<ObjectCollectionSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);
@@ -34,7 +37,7 @@ public class ObjectCollectionSearchItemPanel extends SingleSearchItemPanel<Objec
         }
         String finalOid = oid;
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id, nameModel) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {

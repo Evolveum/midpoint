@@ -7,5 +7,5 @@
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#python</language>
-    <code>'foo' + 'bar'</code>
+    <code>'foo' + 'bar' + str(1)</code>
 </script>

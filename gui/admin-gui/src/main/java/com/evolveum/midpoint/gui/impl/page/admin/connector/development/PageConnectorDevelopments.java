@@ -17,7 +17,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
@@ -44,8 +43,6 @@ import java.util.List;
         display = @PanelDisplay(label = "PageAdmin.menu.top.connectorDevelopments.list", singularLabel = "ObjectType.connectorDevelopment", icon = GuiStyleConstants.CLASS_OBJECT_CONNECTOR_ICON))
 public class PageConnectorDevelopments extends PageAdmin {
     private static final long serialVersionUID = 1L;
-
-    private static final String DOT_CLASS = PageServices.class.getName() + ".";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";

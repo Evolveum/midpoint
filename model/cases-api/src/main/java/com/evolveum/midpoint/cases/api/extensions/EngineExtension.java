@@ -28,10 +28,24 @@ public interface EngineExtension {
     @NotNull Collection<String> getArchetypeOids();
 
     /**
-     * Called to finish case closing procedure. E.g. for approvals we may submit execution task here.
+     * Called before the case-closing state is persisted.
      *
-     * When called, the case should be in `closing` state. This may happen e.g. when approval execution task is submitted.
-     * After return, the case may be still in this state, or it may be `closed`.
+     * Implementations may execute retry-safe business logic required before the case
+     * may proceed to closing. If this method fails, the case remains open.
+     *
+     * Logic executed here must be safe under case-engine retries, e.g. in-memory,
+     * idempotent, or repository-transactional and repeatable.
+     */
+    default void prepareCaseClosing(@NotNull CaseEngineOperation operation, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SecurityViolationException {
+    }
+
+    /**
+     * Called after the case-closing state has been successfully persisted.
+     *
+     * This hook is intended for post-commit finalization. Failures here do not mean
+     * that the case should remain open.
      */
     void finishCaseClosing(@NotNull CaseEngineOperation operation, @NotNull OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,

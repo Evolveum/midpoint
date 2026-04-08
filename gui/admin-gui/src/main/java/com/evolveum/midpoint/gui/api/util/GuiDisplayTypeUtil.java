@@ -337,8 +337,11 @@ public class GuiDisplayTypeUtil {
             @Nullable String additionalCss) {
         PrismContainerValueWrapper<MappingType> mapping = rowModel.getObject();
         MappingType mappingBean = mapping.getRealValue();
-
         MappingStrengthType strength = mappingBean.getStrength();
+        return getDisplayTypeForStrengthOfMapping(additionalCss, strength);
+    }
+
+    public static DisplayType getDisplayTypeForStrengthOfMapping(@Nullable String additionalCss, @Nullable MappingStrengthType strength) {
         if (strength == null) {
             strength = MappingStrengthType.NORMAL;
         }

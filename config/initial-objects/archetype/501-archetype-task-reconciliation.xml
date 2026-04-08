@@ -74,7 +74,12 @@
                     <container id="12">
                         <identifier>resource-objects</identifier>
                         <display>
-                            <label>ReconciliationTask.resourceObjects</label>
+                            <label>
+                                <orig>Resource objects</orig>
+                                <translation>
+                                    <key>ReconciliationTask.resourceObjects</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="14">
                             <c:path>objectRef</c:path>
@@ -95,7 +100,12 @@
                     <container id="13">
                         <identifier>reconciliation-options</identifier>
                         <display>
-                            <label>ReconciliationTask.reconciliationOptions</label>
+                            <label>
+                                <orig>Reconciliation options</orig>
+                                <translation>
+                                    <key>ReconciliationTask.reconciliationOptions</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="19">
                             <c:path>extension/mext:workerThreads</c:path>

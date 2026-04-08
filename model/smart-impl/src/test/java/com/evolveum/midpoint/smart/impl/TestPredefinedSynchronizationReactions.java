@@ -142,7 +142,7 @@ public class TestPredefinedSynchronizationReactions extends AbstractSmartIntegra
     public void test540ReactionsFromAnswersForTarget() {
         var answers = TargetSynchronizationAnswers.of(
                 UnmatchedTargetChoice.DISABLE_RESOURCE_OBJECT,
-                DeletedTargetChoice.REMOVE_BROKEN_LINK,
+                DeletedTargetChoice.REMOVE_LINK_AND_SYNCHRONIZE,
                 DisputedTargetChoice.CREATE_CORRELATION_CASE);
 
         var reactions = smartIntegrationService.buildTargetSynchronizationReactionsFromAnswers(answers);

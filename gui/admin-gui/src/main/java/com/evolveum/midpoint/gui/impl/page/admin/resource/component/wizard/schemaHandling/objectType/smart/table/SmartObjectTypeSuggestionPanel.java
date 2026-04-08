@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
@@ -21,11 +20,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -44,10 +45,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serial;
@@ -343,53 +342,34 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
     }
 
     protected void performDeleteConfirmationAction(AjaxRequestTarget target) {
-        List<RequestDetailsRecordDto.RequestRecord> records = List.of(
-                new RequestDetailsRecordDto.RequestRecord(
-                        getString("RequestDetailsConfirmationPanel.request.details.title"),
-                        null,
+        List<ConfirmationOption<Describable>> options = List.of(
+                new ConfirmationOption<>(
                         forceDeleteEnabled,
+                        new RememberMySelection(),
                         null
                 )
         );
 
-        RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                () -> new RequestDetailsRecordDto(createStringResource("RequestDetailsConfirmationPanel.discard.suggestion"),
-                        records) {
-                    @Override
-                    public IModel<String> getRequestLabelModel(@NotNull PageBase pageBase) {
-                        return Model.of("");
-                    }
-                }) {
-            @Contract(pure = true)
-            @Override
-            protected @Nullable StringResourceModel getInfoMessageModel() {
-                return null;
-            }
+        final ConfirmationWithOptionsDto<Describable> confirmationPanelData =
+                ConfirmationWithOptionsDto.builder()
+                        .confirmationTitle(createStringResource("RequestDetailsConfirmationPanel.discard.suggestion"))
+                        .confirmationSubtitle(createStringResource("RequestDetailsConfirmationPanel.discard.suggestion.message"))
+                        .confirmationOptionsTitle(null)
+                        .confirmationInfoMessage(null)
+                        .confirmationButtonLabel(createStringResource("RequestDetailsConfirmationPanel.discard"))
+                        .titleIconCssClass("text-danger")
+                        .externalLinkUrl(null)
+                        .confirmationOptions(options)
+                        .build();
 
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getTitleIconAdditionalCssClass() {
-                return "text-danger";
-            }
+        ConfirmationWithOptionsPanel<Describable> dialog =
+                new ConfirmationWithOptionsPanel<>(getPageBase().getMainPopupBodyId(),
+                        () -> confirmationPanelData) {
 
             @Override
-            protected StringResourceModel getSubtitleModel() {
-                return createStringResource("RequestDetailsConfirmationPanel.discard.suggestion.message");
-            }
-
-            @Override
-            protected boolean isLearnMoreVisible() {
-                return false;
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
+            public void confirmationPerformed(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<Describable>>> confirmedOptions) {
                 performOnDelete(target);
-            }
-
-            @Override
-            protected IModel<String> createYesLabel() {
-                return createStringResource("RequestDetailsConfirmationPanel.discard");
             }
         };
         getPageBase().showMainPopup(dialog, target);
@@ -528,5 +508,19 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
      */
     protected abstract List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getExistingObjectTypeDefinitions(
             QName objectClassName);
+
+    private class RememberMySelection implements Describable {
+
+        @Override
+        public IModel<String> title() {
+            return createStringResource("RequestDetailsConfirmationPanel.request.details.option.hide.title");
+        }
+
+        @Override
+        public IModel<String> description() {
+            return Model.of("");
+        }
+
+    }
 
 }

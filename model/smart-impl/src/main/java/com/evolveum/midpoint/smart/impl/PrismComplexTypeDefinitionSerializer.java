@@ -94,16 +94,14 @@ class PrismComplexTypeDefinitionSerializer extends SchemaSerializer {
             if (ignoredPaths.contains(itemName)) {
                 continue;
             }
+            if (itemDef instanceof PrismContainerDefinition<?> && itemDef.isMultiValue() && !itemDef.getItemName().getLocalPart().equals("extension")) {
+                // ATTENTION - until we do not have complex attributes:
+                // Skip multivalue complex attributes except extension attributes
+                continue;
+            }
             var itemPath = prefix.append(itemName, itemDef.isMultiValue());
             var pathString = itemPath.asString();
             registerPathMapping(pathString, itemPath.getItemPath());
-            schema.getAttribute().add(
-                    new SiAttributeDefinitionType()
-                            .name(pathString)
-                            .type(fixTypeName(itemDef.getTypeName()))
-                            .description(itemDef.getDocumentation())
-                            .minOccurs(itemDef.getMinOccurs())
-                            .maxOccurs(itemDef.getMaxOccurs()));
             if (itemDef instanceof PrismContainerDefinition<?> pcd) {
                 ComplexTypeDefinition ctd = pcd.getComplexTypeDefinition();
                 if (typesSeen.contains(ctd.getTypeName())) {
@@ -119,6 +117,14 @@ class PrismComplexTypeDefinitionSerializer extends SchemaSerializer {
                             this.descriptiveToItemPath)
                             .addItemDefinitions(schema);
                 }
+            } else {
+                schema.getAttribute().add(
+                        new SiAttributeDefinitionType()
+                                .name(pathString)
+                                .type(fixTypeName(itemDef.getTypeName()))
+                                .description(itemDef.getDocumentation())
+                                .minOccurs(itemDef.getMinOccurs())
+                                .maxOccurs(itemDef.getMaxOccurs()));
             }
         }
     }

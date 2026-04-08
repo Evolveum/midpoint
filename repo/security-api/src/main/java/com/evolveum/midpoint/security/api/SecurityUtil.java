@@ -157,6 +157,43 @@ public class SecurityUtil {
         return invitationSequence.getIdentifier();
     }
 
+    public static <T extends CredentialPolicyType> T getEffectiveCredentialsPolicy(
+            SecurityPolicyType securityPolicy, Function<CredentialsPolicyType, T> policyGetter, T defaultValue) {
+
+        if (securityPolicy == null) {
+            return null;
+        }
+
+        CredentialsPolicyType credentialsPolicy = securityPolicy.getCredentials();
+        if (credentialsPolicy == null) {
+            return null;
+        }
+
+        if (credentialsPolicy.getDefault() == null) {
+            return policyGetter.apply(credentialsPolicy);
+        }
+
+        T policy = policyGetter.apply(credentialsPolicy);
+        if (policy == null) {
+            policy = defaultValue;
+        } else {
+            // noinspection unchecked
+            policy = (T) policy.clone();
+        }
+
+        copyDefaults(credentialsPolicy.getDefault(), policy);
+
+        return policy;
+    }
+
+    public static OtpCredentialsPolicyType getEffectiveOtpCredentialsPolicy(SecurityPolicyType securityPolicy) {
+        return getEffectiveCredentialsPolicy(securityPolicy, CredentialsPolicyType::getOtp, new OtpCredentialsPolicyType());
+    }
+
+    /**
+     * Use @link #getEffectiveCredentialsPolicy(SecurityPolicyType, Function, CredentialPolicyType)} instead.
+     */
+    @Deprecated
     public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {
         if (securityPolicy == null) {
             return null;
@@ -178,6 +215,10 @@ public class SecurityUtil {
         return securityQuestionsPolicy;
     }
 
+    /**
+     * Use @link #getEffectiveCredentialsPolicy(SecurityPolicyType, Function, CredentialPolicyType)} instead.
+     */
+    @Deprecated
     public static AttributeVerificationCredentialsPolicyType getEffectiveAttributeVerificationCredentialsPolicy(SecurityPolicyType securityPolicy) {
         if (securityPolicy == null) {
             return null;
@@ -403,7 +444,7 @@ public class SecurityUtil {
         if (authentication == null) {
             SecurityViolationException ex = new SecurityViolationException("No authentication");
             // TODO should we really log this? Usually the one who catches the exception does that.
-            LOGGER.error("No authentication", ex);
+            LOGGER.debug("No authentication", ex);
             throw ex;
         }
         Object principalObject = authentication.getPrincipal();

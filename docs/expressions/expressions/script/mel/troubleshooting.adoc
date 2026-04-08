@@ -1,0 +1,130 @@
+---
+midpoint-feature: expression-mel
+doc-type: config
+---
+= MidPoint Expression Language Troubleshooting
+:page-nav-title: Troubleshooting
+:page-upkeep-status: green
+:page-toc: top
+
+== Common Errors
+
+Expression written in midPoint expression language (MEL) are interpreted by common expression language (CEL) interpreter.
+CEL is a foundational language on which MEL expressions are built.
+However, the CEL compiler and runtime which is used to evaluate MEL expressions is very technical in nature.
+While we have made a lot of convenience improvements and extensions while creating MEL, we could not fundamentally change the nature of underlying CEL engine.
+
+The nature of CEL engine manifests itself mostly in cryptic and often confusing error messages.
+Below is a list mysterious of error messages that are likely to occur when constructing MEL expressions,
+together with explanation and tips on problem resolution.
+
+`Field selections must be performed on messages or maps.`::
+This error message probably indicates that a `null` value was used as a base for structured data resolution.
+E.g. for code `input.orig`, where variable `input` is `null`.
+The solution is to use `.?` operator for optional resolution, e.g. `input.?orig`.
+
+
+`Found no matching overload for '_?_:_' applied to ... (candidates: (bool, %A8, %A8))`::
+Conditional operator (`?:`) must have the same data type in both branches.
+E.g. both branches must evaluate to _string_.
+This error is usually raised when one of the branches evaluates to _string_, while the other evaluates to _polystring_.
+While _strings_ and _polystrings_ are functionally equivalent in most cases, conditional operator is an exception.
+The solution is to explicitly convert the _polystring_ branch to string using `str()` or `stringify()` function, e.g.:
++
+[source,mel]
+----
+isPresent(givenName) ? '%s %s'.format(givenName, familyName) : str(familyName)
+----
++
+Even better solution would be to replace the conditional with `default()` or `format.concatName()` function.
+
+
+`No matching overload for function '_+_'. Overload candidates: add_string`::
+This error indicates that the add operator (`+`) was invoked with an unexpected operand.
+Most likely situation is that one of the operands is `null`.
+This error often happens when addition operator (`+`) is used for string concatenation of optional values, e.g.:
++
+[source,mel]
+----
+'This is ' + input            // This code is fragile
+----
++
+The expression above fails if the `input` variable is `null`, producing the error message above.
+The code can be made more robust by using the `format()` function:
++
+[source,mel]
+----
+'This is %s'.format(input)    // Robust code
+----
++
+However, even such code may not be perfect, as the expression above would produce string `This is null` in case that the `input` variable is `null`.
+This is usually not the desired output.
+The expression can further be improved by using `default()` function:
++
+[source,mel]
+----
+'This is %s'.format(default(input,'nothing'))  // Correct code
+----
++
+Such expression would produce string `This is nothing` in case that the `input` variable is `null`, which is probably more acceptable output.
+
+
+== Null Value Checks
+
+Does your expression contain a check for `null` value which does not seem to work?
+
+To cut a very long story short:
+Never use equality operator to check for null:
+
+.Wrong
+[source,mel]
+----
+foo == null
+----
+
+Use `isNull()` or `isPresent()` function instead, and all will be fine.
+
+.Correct
+[source,mel]
+----
+isNull(foo)
+----
+
+These problems are caused by CEL engine using two different ways to represent value which is not present (_null_ and _emtpty optional_).
+Detailed explanation of this phenomenon is provided in See xref:../specification/#null-and-optional-values[Null and Optional Values section of MEL specification].
+
+
+== Common Problems
+
+My `"foo"` string does not work::
+Strings are delimited by apostrophes in MEL.
+Correct string literal is `'foo'`.
+
+Check for `isPresent(focus.fullName)` fails.::
+Of course it does.
+If focus does not have `fullName` property, then the code `focus.fullName` fails, and the `isPresent()` function is not executed.
+The correct form is using _optional selection_ (`.?`) to avoid failing on missing property: `isPresent(focus.?fullName)`.
+Alternatively, CEL `has()` macro could be used: `has(focus.fullName)`.
+However, the `has()` macro fails in case that the `focus` variable is `null`.
+The use of `isPresent(focus.?fullName)` is recommended.
+
+Variable `user` is not there!::
+That is right. Variable `user` is deprecated for many years, and it is not exposed to new expression environments such as MEL.
+Use variables such as `focus` and `projection` instead.
+
+String formatting: `'%s %s'.format(foo, bar)` does not work.::
+CEL does not support functions with variable number of arguments (vararg).
+Therefore you have to use list literal (`[]`) when passing multiple arguments to logging functions:
+`'%s %s'.format([ foo, bar ])`
+
+Logging: `log.error('{} - {}', foo, bar)` does not work.::
+CEL does not support functions with variable number of arguments (vararg).
+Therefore you have to use list literal (`[]`) when passing multiple arguments to logging functions:
+`log.error('{} - {}', [ foo, bar ])`
+
+
+== See Also
+
+* xref:../introduction/[MidPoint Expression Language Introduction]
+* xref:../specification/[MidPoint Expression Language Specification]
+* xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings]

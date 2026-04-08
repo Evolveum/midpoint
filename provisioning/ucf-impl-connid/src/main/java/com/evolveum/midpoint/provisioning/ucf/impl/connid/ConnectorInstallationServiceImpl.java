@@ -31,6 +31,9 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 @Component
 public class ConnectorInstallationServiceImpl implements ConnectorInstallationService {
 
@@ -140,7 +143,16 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
             if (connectorFile.getName().endsWith(TMP_SUFFIX)) {
                 var name = connectorFile.getName().substring(0, connectorFile.getName().length() - TMP_SUFFIX.length());
                 targetFile = new File(downloadDirectory, name);
-                connectorFile.renameTo(targetFile);
+                try {
+                    Files.move(
+                            connectorFile.toPath(),
+                            targetFile.toPath(),
+                            ATOMIC_MOVE,
+                            REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new SystemException(
+                            "Cannot move connector file to final location. From: " + connectorFile + " To: " + targetFile, e);
+                }
             }
             var connectors = factoryImpl.addLocalConnector(targetFile.toURI());
             return connectors.stream().map(ConnectorInstallationServiceImpl::toConnectorType).toList();
@@ -202,6 +214,7 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
                     }
                     zipEntry = zis.getNextEntry();
                 }
+                zis.close();
                 return new DownloadedDirectoryConnector(destDir);
             } catch (IOException e) {
                 throw new SystemException(e);
@@ -244,12 +257,12 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
                 var mainAttributes = manifest.getMainAttributes();
                 mainAttributes.put(MANIFEST_CONNECTOR_BUNDLE, bundleName);
                 mainAttributes.put(MANIFEST_CONNECTOR_VERSION, version);
-                manifest.write(new FileOutputStream(manifestFile));
-
+                try (var out = new FileOutputStream(manifestFile)) {
+                    manifest.write(out);
+                }
             } catch (IOException e) {
                 throw new SystemException(e);
             }
-
         }
 
         @Override
@@ -273,10 +286,12 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
         public void updateProperty(String filename, String key, String value) throws IOException {
             var file = newFile(connectorFile, filename);
             var props = new Properties();
-            props.load(new FileInputStream(file));
+            try (var inputStream = new FileInputStream(file)) {
+                props.load(inputStream);
+            }
             props.setProperty(key, value);
-            try (var stream = new FileOutputStream(file)) {
-                props.store(stream, null);
+            try (var outputStream = new FileOutputStream(file)) {
+                props.store(outputStream, null);
             }
         }
     }

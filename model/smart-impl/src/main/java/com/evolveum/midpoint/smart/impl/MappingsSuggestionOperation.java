@@ -7,31 +7,36 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_CATEGORICAL_MAPPING;
 import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPING;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
-import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
-import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
 import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.MissingSourceDataException;
-import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
+import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
+import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.smart.impl.scoring.ScriptValidationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -68,49 +73,77 @@ class MappingsSuggestionOperation {
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
     private final TypeOperationContext ctx;
     private final MappingsQualityAssessor qualityAssessor;
-    private final OwnedShadowsProvider ownedShadowsProvider;
+    private final MappingScriptValidator scriptValidator;
+    private final ShadowsWithOwnersProvider shadowsWithOwnersProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
+    private final HeuristicRuleMatcher heuristicRuleMatcher;
+    private final CategoricalAttributeRegistry categoricalAttributeRegistry;
     private final boolean isInbound;
+    private final boolean useAiService;
+    @Nullable private final ShadowObjectClassStatisticsType objectTypeStatistics;
+    private final int retryCount;
 
     private MappingsSuggestionOperation(
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
-            OwnedShadowsProvider ownedShadowsProvider,
+            ShadowsWithOwnersProvider shadowsWithOwnersProvider,
+            MappingScriptValidator scriptValidator,
             WellKnownSchemaService wellKnownSchemaService,
-            boolean isInbound) {
+            HeuristicRuleMatcher heuristicRuleMatcher,
+            CategoricalAttributeRegistry categoricalAttributeRegistry,
+            boolean isInbound,
+            boolean useAiService,
+            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            int retryCount) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
-        this.ownedShadowsProvider = ownedShadowsProvider;
+        this.scriptValidator = scriptValidator;
+        this.shadowsWithOwnersProvider = shadowsWithOwnersProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
+        this.heuristicRuleMatcher = heuristicRuleMatcher;
+        this.categoricalAttributeRegistry = categoricalAttributeRegistry;
         this.isInbound = isInbound;
+        this.useAiService = useAiService;
+        this.objectTypeStatistics = objectTypeStatistics;
+        this.retryCount = retryCount;
     }
 
     static MappingsSuggestionOperation init(
-            ServiceClient serviceClient,
-            String resourceOid,
-            ResourceObjectTypeIdentification typeIdentification,
-            @Nullable CurrentActivityState<?> activityState,
+            TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
-            OwnedShadowsProvider ownedShadowsProvider,
+            MappingScriptValidator scriptValidator,
+            ShadowsWithOwnersProvider shadowsWithOwnersProvider,
             WellKnownSchemaService wellKnownSchemaService,
+            HeuristicRuleMatcher heuristicRuleMatcher,
+            CategoricalAttributeRegistry categoricalAttributeRegistry,
             boolean isInbound,
-            Task task,
-            OperationResult result)
+            boolean useAiService,
+            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            int retryCount)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return new MappingsSuggestionOperation(
-                TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result),
+                ctx,
                 qualityAssessor,
-                ownedShadowsProvider,
+                shadowsWithOwnersProvider,
+                scriptValidator,
                 wellKnownSchemaService,
-                isInbound);
+                heuristicRuleMatcher,
+                categoricalAttributeRegistry,
+                isInbound,
+                useAiService,
+                objectTypeStatistics,
+                retryCount);
     }
 
     private MappingDirection resolveDirection() {
         return isInbound ? MappingDirection.INBOUND : MappingDirection.OUTBOUND;
     }
 
-    MappingsSuggestionType suggestMappings(OperationResult result, SchemaMatchResultType schemaMatch)
+    MappingsSuggestionType suggestMappings(
+            OperationResult result,
+            SchemaMatchResultType schemaMatch,
+            @Nullable List<ItemPath> targetPathsToIgnore)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         ctx.checkIfCanRun();
@@ -129,43 +162,66 @@ class MappingsSuggestionOperation {
         mappingsSuggestionState.setExpectedProgress(schemaMatch.getSchemaMatchResult().size());
         try {
             var suggestion = new MappingsSuggestionType();
-            var mappingCandidates = new AttributeMappingCandidateSet();
             var direction = resolveDirection();
+            var existingMappingPaths = collectExistingMappingTargetPaths();
+            var excludedMappingPaths = mergeExcludedPaths(existingMappingPaths, targetPathsToIgnore);
+            var mappingCandidates = new AttributeMappingCandidateSet(excludedMappingPaths);
 
-            collectSystemMappings(knownSchemaProvider, ownedList, result)
-                    .forEach(mappingCandidates::propose);
+            collectSystemMappings(knownSchemaProvider, shadowsForValidation, result)
+                    .forEach(mappingCandidates::proposeSystemMapping);
+
+            var mappingFutures = new ArrayList<CompletableFuture<Void>>();
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
-                var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
+                var op = mappingsSuggestionState.recordProcessingStart("test");
                 mappingsSuggestionState.flush(result);
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
+
+                if (shouldSkipReadOnlyAttribute(shadowAttrPath)) {
+                    LOGGER.debug("Skipping read-only attribute for {} mapping: {}", direction, shadowAttrPath);
+                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
+                    continue;
+                }
+
                 var valuePairsForLLM = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                         .from(shadowsForLLM);
                 var valuePairsForValidation = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                         .from(shadowsForValidation);
-                try {
-                    var aiMapping = suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, result);
-                    mappingCandidates.propose(aiMapping);
-                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
-                } catch (LowQualityMappingException e) {
-                    LOGGER.debug("Skipping mapping due to low quality: {}", e.getMessage());
-                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
-                } catch (MissingSourceDataException e) {
-                    LOGGER.debug("Skipping mapping due to missing source data: {}", e.getMessage());
-                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
-                } catch (Exception e) {
-                    // TODO Shouldn't we create an unfinished mapping with just error info?
-                    LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", e, matchPair.getShadowAttributePath());
-                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.FAILURE);
 
-                    // Normally, the activity framework makes sure that the activity result status is computed properly at the end.
-                    // But this is a special case where we must do that ourselves.
-                    // FIXME temporarily disabled, as GUI cannot deal with it anyway
-                    //mappingsSuggestionState.setResultStatus(OperationResultStatus.PARTIAL_ERROR);
-                }
-                ctx.checkIfCanRun();
+                final OperationResult mappingResult = result.createSubresult("Mapping suggestion for the pair of "
+                        + matchPair.getShadowAttributePath() + " and " + matchPair.getFocusPropertyPath());
+                var future = suggestMappingAsync(matchPair, valuePairsForLLM, valuePairsForValidation, mappingResult)
+                        .thenAccept(aiMapping -> {
+                            if (aiMapping != null) {
+                                mappingCandidates.propose(aiMapping);
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
+                            } else {
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
+                            }
+                        }).exceptionally(e -> {
+                            Throwable cause = e.getCause() != null // e = CompletionException
+                                    ? e.getCause().getCause() != null // e.getCause = RuntimeException
+                                        ? e.getCause().getCause() // e.getCause.getCause = Actual interesting exception
+                                        : e.getCause()
+                                    : e;
+                            if (cause instanceof LowQualityMappingException) {
+                                LOGGER.debug("Skipping mapping due to low quality: {}", cause.getMessage());
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
+                            } else if (cause instanceof MissingSourceDataException) {
+                                LOGGER.debug("Skipping mapping due to missing source data: {}", cause.getMessage());
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
+                            } else {
+                                LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", cause,
+                                        matchPair.getShadowAttributePath());
+                                mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.FAILURE);
+                            }
+                            return null;
+                        });
+                mappingFutures.add(future);
             }
+
+            CompletableFuture.allOf(mappingFutures.toArray(new CompletableFuture[]{})).join();
 
             mappingCandidates.best()
                     .forEach(suggestion.getAttributeMappings()::add);
@@ -179,19 +235,59 @@ class MappingsSuggestionOperation {
         }
     }
 
+    /**
+     * Collects target paths of existing mappings configured on the resource type.
+     * For inbound direction, collects focus property paths from inbound mapping targets.
+     * For outbound direction, collects shadow attribute paths that have outbound mappings.
+     */
+    private Collection<ItemPath> collectExistingMappingTargetPaths() {
+        var existingPaths = new ArrayList<ItemPath>();
+        for (var attrDef : ctx.typeDefinition.getAttributeDefinitions()) {
+            if (isInbound) {
+                for (var inbound : attrDef.getInboundMappingBeans()) {
+                    var target = inbound.getTarget();
+                    if (target != null && target.getPath() != null) {
+                        existingPaths.add(target.getPath().getItemPath());
+                    }
+                }
+            } else {
+                if (attrDef.hasOutboundMapping()) {
+                    existingPaths.add(attrDef.getStandardPath().rest());
+                }
+            }
+        }
+        LOGGER.trace("Collected {} existing {} mapping target paths for deduplication.", existingPaths.size(), isInbound ? "inbound" : "outbound");
+        return existingPaths;
+    }
+
+    /**
+     * Merges existing mapping paths and accepted suggestion paths into a single list of excluded paths.
+     * These paths should be excluded from new mapping suggestions.
+     */
+    private List<ItemPath> mergeExcludedPaths(
+            Collection<ItemPath> existingMappingPaths,
+            @Nullable List<ItemPath> acceptedSuggestionPaths) {
+        if (acceptedSuggestionPaths == null || acceptedSuggestionPaths.isEmpty()) {
+            return new ArrayList<>(existingMappingPaths);
+        }
+        var merged = new ArrayList<>(existingMappingPaths);
+        merged.addAll(acceptedSuggestionPaths);
+        LOGGER.trace("Merged {} existing mapping paths and {} accepted suggestion paths for exclusion.",
+                existingMappingPaths.size(), acceptedSuggestionPaths.size());
+        return merged;
+    }
+
     private List<AttributeMappingsSuggestionType> collectSystemMappings(
             WellKnownSchemaProvider knownSchemaProvider,
-            List<OwnedShadow> ownedList,
+            List<ShadowWithOwner> shadowsForValidation,
             OperationResult result) {
         if (knownSchemaProvider == null) {
             return List.of();
         }
-        var shadowsForValidation = ownedList.subList(
-                Math.max(0, ownedList.size() - Math.min(VALIDATION_EXAMPLES_COUNT, ownedList.size())),
-                ownedList.size());
-
-        var mappings = isInbound ? knownSchemaProvider.suggestInboundMappings() : knownSchemaProvider.suggestOutboundMappings();
-
+        var mappings = isInbound
+                ? knownSchemaProvider.suggestInboundMappings()
+                : knownSchemaProvider.suggestOutboundMappings(
+                        shadowsForValidation.stream().map(ShadowWithOwner::shadow).toList());
         return mappings.stream()
                 .map(systemMapping -> assessAndBuildSystemMapping(systemMapping, shadowsForValidation, result))
                 .flatMap(opt -> opt.stream())
@@ -200,7 +296,7 @@ class MappingsSuggestionOperation {
 
     private Optional<AttributeMappingsSuggestionType> assessAndBuildSystemMapping(
             SystemMappingSuggestion systemMapping,
-            List<OwnedShadow> shadowsForValidation,
+            List<ShadowWithOwner> shadowsForValidation,
             OperationResult result) {
         try {
             var direction = resolveDirection();
@@ -217,7 +313,7 @@ class MappingsSuggestionOperation {
                 }
             }
 
-            var mappingSuggestion = buildAttributeMappingSuggestion(valuePairs, quality, systemMapping.expression());
+            var mappingSuggestion = buildAttributeMappingSuggestion(valuePairs, quality, systemMapping.expression(), systemMapping.strength());
             SmartMetadataUtil.markContainerProvenance(
                     mappingSuggestion.asPrismContainerValue(),
                     SmartMetadataUtil.ProvenanceKind.SYSTEM);
@@ -228,20 +324,34 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private List<OwnedShadow> collectOwnedShadows(OperationResult result)
+    private List<ShadowWithOwner> collectOwnedShadows(OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
         state.setExpectedProgress(LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
         state.flush(result); // because finding an owned shadow can take a while
         try {
-            return ownedShadowsProvider.fetch(ctx, state, result, LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
+            return shadowsWithOwnersProvider.fetch(ctx, state, result, LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
         } catch (Exception e) {
             state.recordException(e);
             throw e;
         } finally {
             state.close(result);
         }
+    }
+
+    private CompletableFuture<AttributeMappingsSuggestionType> suggestMappingAsync(
+            SchemaMatchOneResultType matchPair,
+            ValuesPairSample<?, ?> valuePairsForLLM,
+            ValuesPairSample<?, ?> valuePairsForValidation,
+            OperationResult parentResult) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, parentResult);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private AttributeMappingsSuggestionType suggestMapping(
@@ -252,69 +362,35 @@ class MappingsSuggestionOperation {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, LowQualityMappingException,
             MissingSourceDataException {
 
-        LOGGER.trace("Going to suggest {} mapping between shadow attribute: {} and focus property: {}.", valuePairsForValidation.direction(),
-                matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
+        LOGGER.trace("Going to suggest {} mapping between shadow attribute: {} and focus property: {}.",
+                valuePairsForValidation.direction(),
+                matchPair.getShadowAttributePath(),
+                matchPair.getFocusPropertyPath());
 
-        ExpressionType expression = null;
-        MappingsQualityAssessor.AssessmentResult assessment = null;
-        boolean isSystemProvided = Boolean.TRUE.equals(matchPair.getIsSystemProvided());
+        // 1. Evaluate mapping strategy (as-is, heuristic, or AI)
+        MappingEvaluationResult result = evaluateMappingStrategy(
+                matchPair,
+                valuePairsForLLM,
+                valuePairsForValidation,
+                parentResult);
 
-        if (valuePairsForLLM.pairs().isEmpty() || valuePairsForValidation.pairs().isEmpty()) {
-            LOGGER.trace("No data pairs. We'll use 'asIs' mapping (no LLM call).");
-        } else if (valuePairsForValidation.isSourceDataMissing(MISSING_DATA_THRESHOLD)) {
-            throw new MissingSourceDataException(matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
-        } else if (valuePairsForValidation.isTargetDataMissing(MISSING_DATA_THRESHOLD)) {
-            LOGGER.trace("Target data missing. We'll use 'asIs' mapping (no LLM call).");
-        } else if (valuePairsForValidation.doAllConvertedSourcesMatchTargets(ctx.getFocusTypeDefinition(), ctx.typeDefinition, ctx.b.protector)) {
-            LOGGER.trace("AsIs {} mapping suffice according to the data (no LLM call).", valuePairsForValidation.direction());
-            assessment = this.qualityAssessor.assessMappingsQuality(
-                    valuePairsForValidation, expression, this.ctx.task, parentResult);
-        } else {
-            LOGGER.trace("Going to ask LLM about mapping script");
-            String errorLog = null;
-            String retryScript = null;
+        // 2. Validate quality threshold
+        validateQualityThreshold(result, matchPair);
 
-            for (int attempt = 1; attempt <= 2; attempt++) {
-                var mappingResponse = askMicroservice(matchPair, valuePairsForLLM, errorLog, retryScript);
-                retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
-                expression = buildScriptExpression(mappingResponse);
-                try {
-                    assessment = this.qualityAssessor.assessMappingsQuality(
-                            valuePairsForValidation, expression, this.ctx.task, parentResult);
-                    break;
-                } catch (ExpressionEvaluationException | SecurityViolationException e) {
-                    if (attempt == 1) {
-                        errorLog = e.getMessage();
-                        LOGGER.warn("Validation issues found on attempt 1; retrying.");
-                    } else {
-                        LOGGER.warn("Validation issues persist after retry; giving up.");
-                        throw e;
-                    }
-                }
-            }
-            isSystemProvided = false;
-        }
-
-        if (assessment != null && assessment.quality() < MINIMUM_QUALITY_THRESHOLD) {
-            throw new LowQualityMappingException(
-                    assessment.quality(),
-                    MINIMUM_QUALITY_THRESHOLD,
-                    matchPair.getShadowAttributePath(),
-                    matchPair.getFocusPropertyPath());
-        }
-
+        // 3. Build and annotate suggestion
         AttributeMappingsSuggestionType suggestion = buildAttributeMappingSuggestion(
-                valuePairsForValidation, assessment != null ? assessment.quality() : null, expression);
+                valuePairsForValidation,
+                result.expectedQuality() != null ? result.expectedQuality() : null,
+                result.expression(),
+                MappingStrengthType.STRONG);
 
-        if (isSystemProvided) {
-            SmartMetadataUtil.markContainerProvenance(
-                    suggestion.asPrismContainerValue(),
-                    SmartMetadataUtil.ProvenanceKind.SYSTEM);
-        } else {
-            SmartMetadataUtil.markContainerProvenance(
-                    suggestion.asPrismContainerValue(),
-                    SmartMetadataUtil.ProvenanceKind.AI);
-        }
+        // 4. Mark provenance
+        SmartMetadataUtil.markContainerProvenance(
+                suggestion.asPrismContainerValue(),
+                result.isSystemProvided()
+                        ? SmartMetadataUtil.ProvenanceKind.SYSTEM
+                        : SmartMetadataUtil.ProvenanceKind.AI);
+
         return suggestion;
     }
 
@@ -322,7 +398,8 @@ class MappingsSuggestionOperation {
     private static AttributeMappingsSuggestionType buildAttributeMappingSuggestion(
             ValuesPairSample<?, ?> pairSample,
             @Nullable Float expectedQuality,
-            @Nullable ExpressionType expression) {
+            @Nullable ExpressionType expression,
+            MappingStrengthType strength) {
         var sanitizedFocusPath = sanitizeFocusPathForTarget(pairSample.focusPropertyPath());
         var def = new ResourceAttributeDefinitionType()
                 .ref(pairSample.shadowAttributePath().rest().toBean()); // FIXME! what about activation, credentials, etc?
@@ -330,13 +407,13 @@ class MappingsSuggestionOperation {
         if (pairSample.direction() == MappingDirection.INBOUND) {
             def.inbound(new InboundMappingType()
                     .name(pairSample.shadowAttributePath().lastName().getLocalPart() + "-into-" + pairSample.focusPropertyPath())
-                    .strength(MappingStrengthType.STRONG)
+                    .strength(strength)
                     .target(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
                     .expression(expression));
         } else {
             def.outbound(new OutboundMappingType()
                     .name(pairSample.focusPropertyPath() + "-to-" + pairSample.shadowAttributePath().lastName().getLocalPart())
-                    .strength(MappingStrengthType.STRONG)
+                    .strength(strength)
                     .source(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
                     .expression(expression));
         }
@@ -363,7 +440,7 @@ class MappingsSuggestionOperation {
         }
         var script = suggestMappingResponse.getTransformationScript();
         String scriptDescription = suggestMappingResponse.getDescription();
-        if (script == null || "input".equals(script)) {
+        if (script == null || script.isEmpty() || "input".equals(script) || "null".equals(script)) {
             return null;
         }
         return new ExpressionType()
@@ -373,11 +450,11 @@ class MappingsSuggestionOperation {
                                 new ScriptExpressionEvaluatorType().code(script)));
     }
 
-    private SiSuggestMappingResponseType askMicroservice(
+    private SiSuggestMappingResponseType askMicroserviceAsync(
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuesPairs,
             @Nullable String errorLog,
-            @Nullable String retryScript) throws SchemaException {
+            @Nullable String retryScript) {
         var siRequest = new SiSuggestMappingRequestType()
                 .applicationAttribute(matchPair.getShadowAttribute())
                 .midPointAttribute(matchPair.getFocusProperty())
@@ -390,8 +467,262 @@ class MappingsSuggestionOperation {
                                 matchPair.getShadowAttribute().getName(),
                                 matchPair.getFocusProperty().getName())));
         return ctx.serviceClient
-                .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
+                .invokeAsync(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class)
+                .join();
     }
 
+    private MappingEvaluationResult evaluateMappingStrategy(
+            SchemaMatchOneResultType matchPair,
+            ValuesPairSample<?, ?> valuePairsForLLM,
+            ValuesPairSample<?, ?> valuePairsForValidation,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, MissingSourceDataException {
+
+        boolean isSystemProvided = Boolean.TRUE.equals(matchPair.getIsSystemProvided());
+
+        // Check if data is sufficient for evaluation
+        if (valuePairsForLLM.pairs().isEmpty() || valuePairsForValidation.pairs().isEmpty()) {
+            if (useAiService && isInbound) {
+                var categoricalResult = tryCategoricalMappingSuggestion(matchPair);
+                if (categoricalResult != null) {
+                    return categoricalResult;
+                }
+            }
+            LOGGER.trace("No data pairs. We'll use 'asIs' mapping (no LLM call).");
+            return MappingEvaluationResult.of(null, null, isSystemProvided);
+        }
+
+        // Check for missing source data. We don't want to suggest mapping if there is not enough data.
+        if (valuePairsForValidation.isSourceDataMissing(MISSING_DATA_THRESHOLD)) {
+            throw new MissingSourceDataException(matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
+        }
+
+        // Check for missing target data
+        if (valuePairsForValidation.isTargetDataMissing(MISSING_DATA_THRESHOLD)) {
+            if (useAiService && isInbound) {
+                var categoricalResult = tryCategoricalMappingSuggestion(matchPair);
+                if (categoricalResult != null) {
+                    return categoricalResult;
+                }
+            }
+            LOGGER.trace("Target data missing. We'll use 'asIs' mapping (no LLM call).");
+            return MappingEvaluationResult.of(null, null, isSystemProvided);
+        }
+
+        // Check if as-is mapping is sufficient
+        if (valuePairsForValidation.allSourcesMatchTargets(ctx.getFocusTypeDefinition(), ctx.typeDefinition, ctx.b.protector)) {
+            LOGGER.trace("AsIs {} mapping suffice according to the data (no LLM call).", valuePairsForValidation.direction());
+            return MappingEvaluationResult.of(null, 1.0F, isSystemProvided);
+        }
+
+        // Find best mapping by comparing as-is, heuristic, and AI options
+        return findBestMappingExpression(
+                matchPair,
+                valuePairsForLLM,
+                valuePairsForValidation,
+                isSystemProvided,
+                parentResult);
+    }
+
+    /**
+     * Attempts to suggest a categorical mapping when no correlated data pairs are available.
+     */
+    private @Nullable MappingEvaluationResult tryCategoricalMappingSuggestion(SchemaMatchOneResultType matchPair) {
+        if (objectTypeStatistics == null) {
+            return null;
+        }
+
+        var focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
+        var categoricalValues = categoricalAttributeRegistry.find(focusPropPath, ctx.getFocusClass());
+        if (categoricalValues.isEmpty()) {
+            return null;
+        }
+
+        var shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
+        var attrStats = findAttributeStatistics(shadowAttrPath);
+        if (attrStats.isEmpty()) {
+            LOGGER.trace("No statistics found for shadow attribute {}, skipping categorical mapping.",
+                    matchPair.getShadowAttributePath());
+            return null;
+        }
+
+        if (attrStats.get().getValueCount().isEmpty()) {
+            LOGGER.trace("No value distribution available for {}, skipping categorical mapping.",
+                    matchPair.getShadowAttributePath());
+            return null;
+        }
+
+        LOGGER.debug("Attempting categorical mapping suggestion for {} -> {}",
+                matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
+
+        var request = new SiSuggestCategoricalMappingRequestType()
+                .applicationAttribute(matchPair.getShadowAttribute())
+                .midPointAttribute(matchPair.getFocusProperty())
+                .inbound(isInbound);
+        attrStats.get().getValueCount().forEach(vc -> request.getApplicationAttributeValue().add(vc.getValue()));
+        categoricalValues.get().forEach(v -> request.getMidPointCategoryValue().add(v));
+
+        var response = ctx.serviceClient
+                .invokeAsync(SUGGEST_CATEGORICAL_MAPPING, request, SiSuggestMappingResponseType.class)
+                .join();
+
+        var expression = buildScriptExpression(response);
+        LOGGER.debug("Categorical mapping suggestion for {}: {}",
+                matchPair.getShadowAttributePath(), expression != null ? "script provided" : "null/as-is");
+
+        if (expression != null) {
+            try {
+                var result = new OperationResult("validateCategoricalMappingScript");
+                String variableName = isInbound ? ExpressionConstants.VAR_INPUT : matchPair.getFocusProperty().getName();
+                String testValue = attrStats.get().getValueCount().get(0).getValue();
+                scriptValidator.testCategoricalMappingScript(expression, variableName, testValue, ctx.task, result);
+            } catch (ScriptValidationException e) {
+                LOGGER.warn("Categorical mapping script validation failed for {}: {}",
+                        matchPair.getShadowAttributePath(), e.getMessage());
+                return MappingEvaluationResult.of(null, null, false);
+            }
+        }
+
+        return MappingEvaluationResult.of(expression, null, false);
+    }
+
+    /**
+     * Finds the statistics entry for the given shadow attribute path.
+     * Matches by the local part of the last path segment to avoid namespace sensitivity.
+     */
+    private Optional<ShadowAttributeStatisticsType> findAttributeStatistics(ItemPath shadowAttrPath) {
+        var attrLocalName = shadowAttrPath.lastName().getLocalPart();
+        return objectTypeStatistics.getAttribute().stream()
+                .filter(attr -> {
+                    var refPath = attr.getRef() != null ? attr.getRef().getItemPath() : null;
+                    return refPath != null && refPath.lastName().getLocalPart().equals(attrLocalName);
+                })
+                .findFirst();
+    }
+
+    private MappingEvaluationResult findBestMappingExpression(
+            SchemaMatchOneResultType matchPair,
+            ValuesPairSample<?, ?> valuePairsForLLM,
+            ValuesPairSample<?, ?> valuePairsForValidation,
+            boolean isSystemProvided,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
+
+        // Start with as-is mapping quality as baseline
+        float bestExpectedQuality = qualityAssessor.assessMappingsQuality(valuePairsForValidation, null, ctx.task, parentResult)
+                .quality();
+        ExpressionType bestExpression = null;
+
+        // Try heuristic mappings
+        var heuristicResult = heuristicRuleMatcher.findBestMatch(valuePairsForValidation, ctx.task, parentResult);
+        if (heuristicResult.isPresent()) {
+            var hr = heuristicResult.get();
+            if (hr.quality() > bestExpectedQuality) {
+                LOGGER.info("Found heuristic mapping '{}' with quality {}", hr.heuristicName(), hr.quality());
+                bestExpression = hr.expression();
+                bestExpectedQuality = hr.quality();
+            }
+        }
+
+        // Try AI service if enabled
+        if (useAiService) {
+            var aiExpression = evaluateAiMappingWithRetry(matchPair, valuePairsForLLM, valuePairsForValidation, parentResult);
+            if (aiExpression != null) {
+                var aiQuality = qualityAssessor.assessMappingsQuality(valuePairsForValidation, aiExpression, ctx.task, parentResult)
+                        .quality();
+                if (aiQuality > bestExpectedQuality) {
+                    LOGGER.info("AI mapping has better quality ({}) than current best ({})", aiQuality, bestExpectedQuality);
+                    bestExpression = aiExpression;
+                    bestExpectedQuality = aiQuality;
+                    isSystemProvided = false;
+                }
+            }
+        }
+
+        return MappingEvaluationResult.of(bestExpression, bestExpectedQuality, isSystemProvided);
+    }
+
+    private ExpressionType evaluateAiMappingWithRetry(
+            SchemaMatchOneResultType matchPair,
+            ValuesPairSample<?, ?> valuePairsForLLM,
+            ValuesPairSample<?, ?> valuePairsForValidation,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
+        LOGGER.trace("Going to ask LLM about mapping script");
+        String errorLog = null;
+        String retryScript = null;
+
+        for (int attempt = 0; attempt <= retryCount; attempt++) {
+            var mappingResponse = askMicroserviceAsync(matchPair, valuePairsForLLM, errorLog, retryScript);
+            retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
+            var aiExpression = buildScriptExpression(mappingResponse);
+            try {
+                var aiAssessment = qualityAssessor.assessMappingsQuality(
+                        valuePairsForValidation, aiExpression, ctx.task, parentResult);
+                if (aiAssessment != null && aiAssessment.status() == MappingsQualityAssessor.AssessmentStatus.OK) {
+                    return aiExpression;
+                }
+                break;
+            } catch (ExpressionEvaluationException | SecurityViolationException e) {
+                if (attempt < retryCount) {
+                    errorLog = e.getMessage();
+                    LOGGER.warn("Validation issues found on attempt {}; retrying.", attempt);
+                } else {
+                    LOGGER.warn("Validation issues found in mapping script; giving up.");
+                    throw e;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void validateQualityThreshold(
+            MappingEvaluationResult result,
+            SchemaMatchOneResultType matchPair) throws LowQualityMappingException {
+        if (result.expectedQuality() != null && result.expectedQuality() < MINIMUM_QUALITY_THRESHOLD) {
+            throw new LowQualityMappingException(
+                    result.expectedQuality(),
+                    MINIMUM_QUALITY_THRESHOLD,
+                    matchPair.getShadowAttributePath(),
+                    matchPair.getFocusPropertyPath());
+        }
+    }
+
+    /**
+     * Checks if the attribute should be skipped due to read-only status.
+     * For outbound mappings, skip read-only attributes (canModify = false).
+     * For inbound mappings, never skip (reading from resource is always allowed).
+     */
+    private boolean shouldSkipReadOnlyAttribute(ItemPath shadowAttrPath) {
+        if (isInbound) {
+            return false;
+        }
+
+        var attrName = shadowAttrPath.rest().asSingleNameOrFail();
+        var attrDef = ctx.typeDefinition.findSimpleAttributeDefinition(attrName);
+
+        if (attrDef == null) {
+            LOGGER.warn("Attribute definition not found for {}, will not skip", shadowAttrPath);
+            return false;
+        }
+
+        return !attrDef.canModify();
+    }
+
+    /**
+     * Result of mapping evaluation containing the expression, quality assessment, and provenance information.
+     */
+    private record MappingEvaluationResult(
+            @Nullable ExpressionType expression,
+            @Nullable Float expectedQuality,
+            boolean isSystemProvided
+    ) {
+        static MappingEvaluationResult of(
+                @Nullable ExpressionType expression,
+                @Nullable Float expectedQuality,
+                boolean isSystemProvided) {
+            return new MappingEvaluationResult(expression, expectedQuality, isSystemProvided);
+        }
+    }
 
 }

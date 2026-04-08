@@ -9,7 +9,12 @@
 <wicket:panel>
     <div class="d-flex flex-column align-items-center mt-5">
         <h2 class="mb-4 font-weight-bold text-center" wicket:id="text"/>
-        <div class="text-center text-secondary mb-5 lh-2 h5" wicket:id="subText"/>
+        <wicket:enclosure child="subText">
+            <div class="text-center text-secondary mb-5 lh-2 h5">
+                <span wicket:id="subText"/>
+                <a wicket:id="subTextMore"/>
+            </div>
+        </wicket:enclosure>
 
         <wicket:child/>
         <div class="d-flex gap-3 justify-content-center mt-5" wicket:id="buttonsStrip">

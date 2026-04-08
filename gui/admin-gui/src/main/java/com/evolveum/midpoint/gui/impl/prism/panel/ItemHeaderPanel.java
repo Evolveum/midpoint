@@ -6,7 +6,9 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString;
+
+import java.io.Serial;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -17,10 +19,12 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.util.GuiConfigUtil;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -30,8 +34,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-
-import java.io.Serial;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 
 /**
  * @author katka
@@ -41,6 +46,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     protected static final String ID_LABEL = "label";
     protected static final String ID_SR_ONLY_LABEL = "srOnlyLabel";
+    // todo rename to ID_TOOLTIP
     protected static final String ID_HELP = "help";
     private static final String ID_EXPERIMENTAL = "experimental";
     private static final String ID_DEPRECATED = "deprecated";
@@ -51,8 +57,11 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemHeaderPanel.class);
 
-    public ItemHeaderPanel(String id, IModel<IW> model) {
+    private final ItemPanelSettings itemPanelSettings;
+
+    public ItemHeaderPanel(String id, IModel<IW> model, ItemPanelSettings itemPanelSettings) {
         super(id, model);
+        this.itemPanelSettings = itemPanelSettings;
     }
 
     @Override
@@ -63,16 +72,15 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     private void initLayout() {
-
         setOutputMarkupId(true);
+
         initButtons();
         initHeaderLabel();
-
     }
 
     protected void initHeaderLabel() {
         createTitle();
-        createHelpText();
+        createTooltip();
         createExperimentalTooltip();
         createDeprecated();
         createRequired(ID_REQUIRED);
@@ -94,25 +102,72 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     public IModel<String> createLabelModel() {
-        return new PropertyModel<>(getModel(), "displayName");
+        return new LoadableDetachableModel<>() {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                DisplayType display = getDisplayFromSettings();
+                if (display != null && display.getLabel() != null) {
+                    return translatePolyString(display.getLabel());
+                }
+
+                return getModelObject() != null ? getModelObject().getDisplayName() : null;
+            }
+        };
     }
 
     protected abstract Component createTitle(IModel<String> model);
 
-    private void createHelpText() {
+    private void createTooltip() {
+        Label tooltip = new Label(ID_HELP);
+        IModel<String> helpModel = createTooltipModel();
+        tooltip.add(AttributeModifier.replace("title", () -> helpModel.getObject()));
+        tooltip.add(new InfoTooltipBehavior() {
 
-        Label help = new Label(ID_HELP);
-        IModel<String> helpModel = new PropertyModel<>(getModel(), "help");
-        help.add(AttributeModifier.replace("title", createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
-        help.add(new InfoTooltipBehavior() {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public IModel<String> createAriaLabelModel() {
-                return getParentPage().createStringResource("ItemHeaderPanel.helpTooltip", createLabelModel().getObject());
+                return createStringResource("ItemHeaderPanel.helpTooltip", createLabelModel().getObject());
             }
         });
-        help.add(new VisibleBehaviour(this::isHelpTextVisible));
-        add(help);
+        tooltip.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
+        add(tooltip);
+    }
+
+    private IModel<String> createTooltipModel() {
+        return new LoadableDetachableModel<>() {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                DisplayType display = getDisplayFromSettings();
+                if (display != null && display.getTooltip() != null) {
+                    return translatePolyString(display.getTooltip());
+                }
+
+                return getModelObject() != null ? getModelObject().getHelp() : null;
+            }
+        };
+    }
+
+    private DisplayType getDisplayFromSettings() {
+        if (getSettings() == null || getSettings().getConfig() == null) {
+            return null;
+        }
+
+        IW wrapper = getModelObject();
+        if (wrapper == null || wrapper.getPath() == null) {
+            return null;
+        }
+
+        ContainerPanelConfigurationType config = getSettings() != null ? getSettings().getConfig() : null;
+        VirtualContainerItemSpecificationType spec = GuiConfigUtil.findItemSpecForPath(config, wrapper.getPath());
+
+        return spec != null ? spec.getDisplay() : null;
     }
 
     protected boolean isHelpTextVisible() {
@@ -239,6 +294,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     protected abstract V createNewValue(IW parent);
+
     protected abstract void refreshPanel(AjaxRequestTarget target);
 
     protected boolean isAddButtonVisible() {
@@ -249,7 +305,19 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         return getModelObject() != null && !getModelObject().isReadOnly() && getModelObject().isMultiValue();
     }
 
+    protected ItemPanelSettings getSettings() {
+        return itemPanelSettings;
+    }
+
     public Component getLabelComponent() {
         return get(ID_LABEL);
+    }
+
+    protected Component createHelpPanel(String id) {
+        return ItemPanel.createHelpPanel(
+                id, () -> {
+                    ContainerPanelConfigurationType config = getSettings() != null ? getSettings().getConfig() : null;
+                    return GuiConfigUtil.findItemSpecForPath(config, getModelObject().getPath());
+                });
     }
 }

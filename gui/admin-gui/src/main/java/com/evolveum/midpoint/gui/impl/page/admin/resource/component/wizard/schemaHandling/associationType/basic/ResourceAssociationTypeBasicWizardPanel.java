@@ -292,8 +292,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             @Override
             protected ItemVisibilityHandler getVisibilityHandler() {
                 return wrapper -> {
-                    if (wrapper.getItemName().equals(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF)
-                            || wrapper.getItemName().equals(ShadowAssociationDefinitionType.F_REF)) {
+                    if (wrapper.getItemName().equals(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF)) {
                         return ItemVisibility.HIDDEN;
                     }
                     return ItemVisibility.AUTO;
