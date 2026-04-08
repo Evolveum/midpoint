@@ -65,8 +65,10 @@
 
 <wicket:fragment wicket:id="headerActionToolbarFragment">
     <div class="btn-group">
-        <a wicket:id="check"></a>
-        <a wicket:id="dropdown"></a>
+        <div class="btn btn-default">
+            <wicket:container wicket:id="check" />
+        </div>
+        <wicket:container wicket:id="dropdown"></wicket:container>
     </div>
 </wicket:fragment>
 </html>
