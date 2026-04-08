@@ -213,7 +213,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
 
             @Override
             protected @NotNull ResourceTaskFlavor<Void> getTaskFlavor() {
-                return ResourceTaskFlavors.IMPORT;
+                return ResourceTaskFlavors.RECONCILIATION;
             }
 
             @Override

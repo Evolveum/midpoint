@@ -269,7 +269,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             @Override
             protected List<Component> createToolbarButtonsList(String idButton) {
                 List<Component> buttonsList = new ArrayList<>();
-                buttonsList.add(createTableActionToolbar(idButton));
+                createTableActionToolbar(buttonsList, idButton);
                 return buttonsList;
             }
 

@@ -181,6 +181,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     @Override
                     public @NotNull List<InlineMenuItem> getInlineMenuItems() {
                         List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
+                        inlineMenuItems.add(createPreviewInlineMenu());
                         inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
                         inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
                         inlineMenuItems.add(createAcceptItemMenu());
@@ -192,7 +193,6 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         if (isSimulationSupported()) {
                             inlineMenuItems.add(createSimulationInlineMenu());
                         }
-                        inlineMenuItems.add(createPreviewInlineMenu());
                         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceObjectTypeDefinition = findResourceObjectTypeDefinition();
                         if (resourceObjectTypeDefinition != null && resourceObjectTypeDefinition.getRealValue() != null) {
                             inlineMenuItems.add(createResourceAttributeStatisticsMenu(resourceObjectTypeDefinition.getRealValue()));
@@ -1132,6 +1132,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         getPageBase().showMainPopup(previewMappingPanel, target);
                     }
                 })
+                .visibilityChecker(bySuggestion(true, this::getStatusInfo))
                 .buildInlineMenu();
     }
 

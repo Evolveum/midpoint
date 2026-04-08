@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
@@ -25,8 +28,6 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.AttributeModifier;
@@ -35,15 +36,15 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.model.util.ListModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Toggle;
@@ -68,11 +69,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
 
 public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable, T extends TemplateTile<PrismContainerValueWrapper<C>>>
         extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, T> {
@@ -125,7 +121,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        buttonsList.add(createTableActionToolbar(idButton));
+        createTableActionToolbar(buttonsList, idButton);
+
         buttonsList.addAll(createSuggestObjectButton(idButton));
         ToggleCheckBoxPanel toggleSuggestionButton = createToggleSuggestionButton(idButton, switchToggleModel);
         toggleSuggestionButton.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
@@ -133,7 +130,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(idButton, null);
         newObjectPerformButton.add(AttributeModifier.replace("class",
-                "text-nowrap btn btn-primary rounded"));
+                "text-nowrap btn btn-primary rounded ml-2"));
         newObjectPerformButton.add(new VisibleBehaviour(this::displayNoValuePanel));
         buttonsList.add(0, newObjectPerformButton);
         return buttonsList;
@@ -146,12 +143,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return headerContainer;
     }
 
-    protected RepeatingView createTableActionToolbar(String id) {
-        RepeatingView toolbar = new RepeatingView(id);
-        toolbar.add(createHeaderCheckBoxButton(toolbar.newChildId()));
-        toolbar.add(createDropDownActionButton(toolbar.newChildId()));
-        toolbar.setOutputMarkupId(true);
-        return toolbar;
+    protected void createTableActionToolbar(List<Component> buttonsList, String id) {
+        Fragment group = new Fragment(id, "headerActionToolbarFragment", this);
+        group.add(createHeaderCheckBoxButton("check"));
+        group.add(createDropDownActionButton("dropdown"));
+        buttonsList.add(group);
     }
 
     @Override
@@ -266,7 +262,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(AttributeAppender.replace("class",
-                "text-nowrap btn btn-primary rounded ml-auto text-nowrap mr-2"));
+                "text-nowrap btn btn-primary rounded text-nowrap ml-2"));
         return newObjectButton;
     }
 

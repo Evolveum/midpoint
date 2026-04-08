@@ -53,7 +53,11 @@ public final class DropdownButtonUtil {
             }
         };
         downloadFormatMenu.setRenderBodyOnly(true);
-        downloadFormatMenu.add(new VisibleBehaviour(() -> isAuthorizedCsv() || isAuthorizedXlsx()));
+        downloadFormatMenu.add(
+                new VisibleBehaviour(() ->
+                        !WebComponentUtil.hasPopupableParent(containerableListPanel)
+                                && (isAuthorizedCsv() || isAuthorizedXlsx()))
+        );
         return downloadFormatMenu;
     }
 
