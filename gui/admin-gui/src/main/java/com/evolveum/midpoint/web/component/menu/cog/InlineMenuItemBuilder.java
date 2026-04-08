@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -136,7 +137,10 @@ public class InlineMenuItemBuilder implements Serializable {
         return this;
     }
 
-    public InlineMenuItemBuilder icon(String basicIconCss) {
+    public InlineMenuItemBuilder icon(@Nullable String basicIconCss) {
+        if (basicIconCss == null) {
+            return this;
+        }
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(basicIconCss, IconCssStyle.IN_ROW_STYLE);
         this.iconBuilder = builder;
@@ -269,6 +273,12 @@ public class InlineMenuItemBuilder implements Serializable {
             public IModel<String> getAdditionalCssClass() {
                 return additionalCssClass != null ? additionalCssClass : super.getAdditionalCssClass();
             }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return iconBuilder;
+            }
+
         };
 
         item.setEnabled(enabled);

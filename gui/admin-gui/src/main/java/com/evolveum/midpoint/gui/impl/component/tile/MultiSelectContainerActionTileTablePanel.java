@@ -235,6 +235,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             protected @NotNull String getSpecialDropdownMenuClass() {
                 return "dropdown-menu-end";
             }
+
+            @Override
+            protected boolean showIcon() {
+                return true;
+            }
         };
 
         inlineMenu.setOutputMarkupPlaceholderTag(true);
