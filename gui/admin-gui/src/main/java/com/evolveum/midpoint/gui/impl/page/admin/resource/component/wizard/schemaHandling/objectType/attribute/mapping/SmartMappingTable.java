@@ -498,11 +498,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                 columnPanel.add(new AjaxEventBehavior("click") {
                                     @Override
                                     protected void onEvent(AjaxRequestTarget target) {
-                                        PreviewMappingPanel panel = new PreviewMappingPanel(
-                                                getPageBase().getMainPopupBodyId(),
-                                                Model.of(mappingWrapper),
-                                                getMappingDirectionType() == MappingDirection.INBOUND);
-
+                                        PreviewMappingPanel panel = buildPreviewMappingPanelPopup(() -> mappingWrapper);
                                         getPageBase().showMainPopup(panel, target);
                                     }
                                 });
@@ -1097,73 +1093,79 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         }
 
                         IModel<PrismContainerValueWrapper<MappingType>> mappingWrapper = getRowModel();
-
-                        PreviewMappingPanel previewMappingPanel = new PreviewMappingPanel(
-                                getPageBase().getMainPopupBodyId(),
-                                mappingWrapper,
-                                getMappingDirectionType() == MappingDirection.INBOUND) {
-
-                            @Override
-                            public void customizeFooterButtons(@NotNull RepeatingView repeater) {
-                                super.customizeFooterButtons(repeater);
-
-                                StatusInfo<?> statusInfo = getStatusInfo(mappingWrapper.getObject());
-                                if (statusInfo != null) {
-                                    AjaxIconButton discardSuggestionButton = buildDiscardButton(repeater, mappingWrapper);
-                                    discardSuggestionButton.add(AttributeModifier.replace("class",
-                                            "btn-link text-danger ml-auto"));
-                                    repeater.add(discardSuggestionButton);
-
-                                    AjaxIconButton acceptSuggestionButton =
-                                            buildAcceptButton(repeater, mappingWrapper, statusInfo);
-                                    acceptSuggestionButton.add(AttributeModifier.replace("class", "btn btn-primary"));
-                                    repeater.add(acceptSuggestionButton);
-                                }
-                            }
-
-                            private @NotNull AjaxIconButton buildAcceptButton(
-                                    @NotNull RepeatingView repeater,
-                                    IModel<PrismContainerValueWrapper<MappingType>> rowModel,
-                                    StatusInfo<?> statusInfo) {
-                                AjaxIconButton acceptSuggestionButton = new AjaxIconButton(
-                                        repeater.newChildId(),
-                                        Model.of("fa fa-check mr-2"),
-                                        createStringResource("SmartMappingTable.apply.suggestion")) {
-                                    @Override
-                                    public void onClick(AjaxRequestTarget target) {
-                                        acceptSuggestionItemPerformed(rowModel, statusInfo, target);
-                                        getPageBase().hideMainPopup(target);
-                                    }
-                                };
-                                acceptSuggestionButton.setOutputMarkupId(true);
-                                acceptSuggestionButton.showTitleAsLabel(true);
-                                return acceptSuggestionButton;
-                            }
-
-                            private @NotNull AjaxIconButton buildDiscardButton(
-                                    @NotNull RepeatingView repeater,
-                                    IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                                AjaxIconButton discardSuggestionButton = new AjaxIconButton(
-                                        repeater.newChildId(),
-                                        Model.of("fa fa-times mr-2"),
-                                        createStringResource("SmartMappingTable.dismiss")) {
-                                    @Override
-                                    public void onClick(AjaxRequestTarget target) {
-                                        deleteItemPerform(rowModel.getObject());
-                                        getPageBase().hideMainPopup(target);
-                                    }
-                                };
-                                discardSuggestionButton.setOutputMarkupId(true);
-                                discardSuggestionButton.showTitleAsLabel(true);
-                                return discardSuggestionButton;
-                            }
-                        };
-
+                        PreviewMappingPanel previewMappingPanel = buildPreviewMappingPanelPopup(mappingWrapper);
                         getPageBase().showMainPopup(previewMappingPanel, target);
                     }
                 })
                 .visibilityChecker(bySuggestion(true, this::getStatusInfo))
                 .buildInlineMenu();
+    }
+
+    private @NotNull PreviewMappingPanel buildPreviewMappingPanelPopup(IModel<PrismContainerValueWrapper<MappingType>> mappingWrapper) {
+        return new PreviewMappingPanel(
+                getPageBase().getMainPopupBodyId(),
+                mappingWrapper,
+                getMappingDirectionType() == MappingDirection.INBOUND) {
+
+            @Override
+            public void customizeFooterButtons(@NotNull RepeatingView repeater) {
+                super.customizeFooterButtons(repeater);
+
+                StatusInfo<?> statusInfo = getStatusInfo(mappingWrapper.getObject());
+                if (statusInfo != null) {
+                    AjaxIconButton discardSuggestionButton = buildDiscardButton(repeater, mappingWrapper);
+                    discardSuggestionButton.add(AttributeModifier.replace("class",
+                            "btn-link text-danger ml-auto"));
+                    repeater.add(discardSuggestionButton);
+
+                    AjaxIconButton acceptSuggestionButton =
+                            buildAcceptButton(repeater, mappingWrapper, statusInfo);
+                    acceptSuggestionButton.add(AttributeModifier.replace("class", "btn btn-primary"));
+                    repeater.add(acceptSuggestionButton);
+                }
+            }
+
+        };
+    }
+
+    private @NotNull AjaxIconButton buildAcceptButton(
+            @NotNull RepeatingView repeater,
+            IModel<PrismContainerValueWrapper<MappingType>> rowModel,
+            StatusInfo<?> statusInfo) {
+        AjaxIconButton acceptSuggestionButton = new AjaxIconButton(
+                repeater.newChildId(),
+                Model.of("fa fa-check mr-2"),
+                createStringResource("SmartMappingTable.apply.suggestion")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                var accepted = acceptSuggestionItemPerformed(rowModel, statusInfo, target);
+                getAcceptedSuggestionsCache().add(accepted);
+                refreshAndDetach(target);
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        acceptSuggestionButton.setOutputMarkupId(true);
+        acceptSuggestionButton.showTitleAsLabel(true);
+        return acceptSuggestionButton;
+    }
+
+    private @NotNull AjaxIconButton buildDiscardButton(
+            @NotNull RepeatingView repeater,
+            IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+        AjaxIconButton discardSuggestionButton = new AjaxIconButton(
+                repeater.newChildId(),
+                Model.of("fa fa-times mr-2"),
+                createStringResource("SmartMappingTable.dismiss")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteItemPerform(rowModel.getObject());
+                refreshAndDetach(target);
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        discardSuggestionButton.setOutputMarkupId(true);
+        discardSuggestionButton.showTitleAsLabel(true);
+        return discardSuggestionButton;
     }
 
     private @Nullable ItemPathType getRefPath(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {
