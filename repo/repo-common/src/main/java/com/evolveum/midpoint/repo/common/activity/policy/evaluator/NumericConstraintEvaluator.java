@@ -21,14 +21,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPoli
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
-        implements ActivityPolicyConstraintEvaluator<C, NumericConstraintTrigger<C>> {
+        implements ActivityPolicyConstraintEvaluator<C, EvaluatedNumericTrigger<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(NumericConstraintEvaluator.class);
 
     private static final String DEFAULT_CONSTRAINT_EVALUATOR_NAME = "Numeric value";
 
     @Override
-    public List<NumericConstraintTrigger<C>> evaluate(
+    public List<EvaluatedNumericTrigger<C>> evaluate(
             JAXBElement<C> element, ActivityPolicyRuleEvaluationContext context, OperationResult result) {
         C constraint = element.getValue();
 
@@ -100,8 +100,8 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
 
     protected abstract PolicyConstraintKindType getPolicyConstraintKind();
 
-    private NumericConstraintTrigger<C> createTrigger(C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
-        return new NumericConstraintTrigger<>(getPolicyConstraintKind(), constraint, message, shortMessage);
+    private EvaluatedNumericTrigger<C> createTrigger(C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
+        return new EvaluatedNumericTrigger<>(getPolicyConstraintKind(), constraint, message, shortMessage);
     }
 
     public abstract Integer getLocalValue(ActivityPolicyRuleEvaluationContext context);

@@ -9,18 +9,17 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
-public class DurationThresholdPolicyTrigger<C extends DurationThresholdPolicyConstraintType>
+public class EvaluatedNumericTrigger<C extends NumericThresholdPolicyConstraintType>
         extends EvaluatedActivityPolicyRuleTrigger<C> {
 
-    public DurationThresholdPolicyTrigger(
-            @NotNull PolicyConstraintKindType policyConstraintKind,
+    public EvaluatedNumericTrigger(
+            @NotNull PolicyConstraintKindType constraintKind,
             @NotNull C constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage) {
-
-        super(policyConstraintKind, constraint, message, shortMessage);
+        super(constraintKind, constraint, message, shortMessage);
     }
 }

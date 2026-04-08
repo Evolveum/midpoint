@@ -12,10 +12,10 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingResultPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
-public class EvaluatedItemProcessingResultPolicyTrigger
+public class EvaluatedItemProcessingResultTrigger
         extends EvaluatedActivityPolicyRuleTrigger<ItemProcessingResultPolicyConstraintType> {
 
-    public EvaluatedItemProcessingResultPolicyTrigger(
+    public EvaluatedItemProcessingResultTrigger(
             @NotNull ItemProcessingResultPolicyConstraintType constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage) {

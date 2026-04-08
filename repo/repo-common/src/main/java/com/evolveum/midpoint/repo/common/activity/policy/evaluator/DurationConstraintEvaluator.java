@@ -24,14 +24,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPolicyConstraintType;
 
 public abstract class DurationConstraintEvaluator<C extends DurationThresholdPolicyConstraintType>
-        implements ActivityPolicyConstraintEvaluator<C, DurationThresholdPolicyTrigger<C>> {
+        implements ActivityPolicyConstraintEvaluator<C, EvaluatedDurationTrigger<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DurationConstraintEvaluator.class);
 
     private static final String DEFAULT_CONSTRAINT_EVALUATOR_NAME = "Measured duration";
 
     @Override
-    public List<DurationThresholdPolicyTrigger<C>> evaluate(
+    public List<EvaluatedDurationTrigger<C>> evaluate(
             JAXBElement<C> element,
             ActivityPolicyRuleEvaluationContext context,
             OperationResult result) {
@@ -117,9 +117,9 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
 
     protected abstract PolicyConstraintKindType getPolicyConstraintKind();
 
-    protected DurationThresholdPolicyTrigger<C> createTrigger(
+    protected EvaluatedDurationTrigger<C> createTrigger(
             C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
-        return new DurationThresholdPolicyTrigger<>(getPolicyConstraintKind(), constraint, message, shortMessage);
+        return new EvaluatedDurationTrigger<>(getPolicyConstraintKind(), constraint, message, shortMessage);
     }
 
     /**

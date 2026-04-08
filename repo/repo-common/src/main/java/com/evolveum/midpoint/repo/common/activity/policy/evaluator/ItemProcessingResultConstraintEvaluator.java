@@ -27,12 +27,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 
 @Component
 public class ItemProcessingResultConstraintEvaluator
-        implements ActivityPolicyConstraintEvaluator<ItemProcessingResultPolicyConstraintType, EvaluatedItemProcessingResultPolicyTrigger> {
+        implements ActivityPolicyConstraintEvaluator<ItemProcessingResultPolicyConstraintType, EvaluatedItemProcessingResultTrigger> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemProcessingResultConstraintEvaluator.class);
 
     @Override
-    public List<EvaluatedItemProcessingResultPolicyTrigger> evaluate(
+    public List<EvaluatedItemProcessingResultTrigger> evaluate(
             JAXBElement<ItemProcessingResultPolicyConstraintType> element,
             ActivityPolicyRuleEvaluationContext context,
             OperationResult result) {
@@ -60,7 +60,7 @@ public class ItemProcessingResultConstraintEvaluator
                     new Object[] { constraint.getName(), status },
                     "Item state result status matched for constraint '%s' with '%s'".formatted(
                             constraint.getName(), status));
-            return List.of(new EvaluatedItemProcessingResultPolicyTrigger(constraint, message, message));
+            return List.of(new EvaluatedItemProcessingResultTrigger(constraint, message, message));
         }
 
         Throwable throwable = processingResult.exception();
@@ -78,7 +78,7 @@ public class ItemProcessingResultConstraintEvaluator
                     "Item state result error category matched for constraint '%s' with '%s'".formatted(
                             constraint.getName(), errorCategory));
 
-            return List.of(new EvaluatedItemProcessingResultPolicyTrigger(constraint, message, message));
+            return List.of(new EvaluatedItemProcessingResultTrigger(constraint, message, message));
         }
 
         return List.of();
