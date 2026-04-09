@@ -489,6 +489,105 @@ Tenant is applicable only to role members table.
 
 `ScopeSearchItemConfigurationType`, `ObjectTypeSearchItemConfigurationType`, `RelationSearchItemConfigurationType` and `IndirectSearchItemConfigurationType` are extension of `UserInterfaceFeatureType`, so we can configure _visibility_, _displayOrder_, _display/label_ and _display/help_. Also, these types contain _defaultValue_ element and `ObjectTypeSearchItemConfigurationType` and `RelationSearchItemConfigurationType` contains element for supported values.
 
+By default, search box items are displayed in alphabetical order. If no _searchBoxConfiguration_ is specified for an _objectCollectionView_ (e.g., default collections), only the default search items of that type are displayed by default (e.g., the default search items for UserType are Full name and Name). New search items can be added using the More button.
+
+If a custom _searchBoxConfiguration_ is specified for an _objectCollectionView_, the search box only contains search items from that _searchBoxConfiguration_. The display order of search items is the same as their order in the _searchBoxConfiguration_ by default. You can specify a custom display order by configuring the _displayOrder_ property of the search item. New search items added using the More button are added after the custom search items and displayed in alphabetical order.
+
+The example of search panel configuration for custom System Users page:
+
+[source,xml]
+----
+<objectCollectionView>
+    <identifier>system-users-view</identifier>
+    <display>
+        <label>System Users</label>
+    </display>
+    <searchBoxConfiguration>
+        <searchItems>
+            <searchItem>
+                <path>givenName</path>
+                <display>
+                    <label>Given Name</label>
+                </display>
+                <visibleByDefault>true</visibleByDefault>
+            </searchItem>
+            <searchItem>
+                <path>familyName</path>
+                <display>
+                    <label>Family Name</label>
+                </display>
+                <visibleByDefault>true</visibleByDefault>
+            </searchItem>
+            <searchItem>
+                <path>emailAddress</path>
+                <display>
+                    <label>Email Address</label>
+                </display>
+                <visibleByDefault>true</visibleByDefault>
+            </searchItem>
+        </searchItems>
+    </searchBoxConfiguration>
+    <type>UserType</type>
+    <collection>
+        <collectionRef oid="00000000-0000-0000-0000-000000000300" relation="org:default" type="c:ArchetypeType">
+            <!-- System user -->
+        </collectionRef>
+    </collection>
+</objectCollectionView>
+----
+
+image::SysUsers.png[100%]
+
+The example of search panel configuration for custom System Users page where we specified _displayOrder_ with equivalent output as above:
+
+[source,xml]
+----
+<objectCollectionView>
+    <identifier>system-users-view</identifier>
+    <display>
+        <label>System Users</label>
+    </display>
+    <searchBoxConfiguration>
+        <searchItems>
+            <searchItem>
+                <path>emailAddress</path>
+                <display>
+                    <label>Email Address</label>
+                </display>
+                <visibleByDefault>true</visibleByDefault>
+                <displayOrder>30</displayOrder>
+            </searchItem>
+            <searchItem>
+                <path>givenName</path>
+                <display>
+                    <label>Given Name</label>
+                </display>
+                <visibleByDefault>true</visibleByDefault>
+                <displayOrder>10</displayOrder>
+            </searchItem>
+            <searchItem>
+                <path>familyName</path>
+                <display>
+                    <label>Family Name</label>
+                </display>
+                <visibleByDefault>true</visibleByDefault>
+                <displayOrder>20</displayOrder>
+            </searchItem>
+        </searchItems>
+    </searchBoxConfiguration>
+    <type>UserType</type>
+    <collection>
+        <collectionRef oid="00000000-0000-0000-0000-000000000300" relation="org:default" type="c:ArchetypeType">
+            <!-- System user -->
+        </collectionRef>
+    </collection>
+</objectCollectionView>
+----
+
+You can also see in the image the new search items added using the More button. They are added after the custom search items and displayed in alphabetical order.
+
+image::SysUsersAdded.png[100%]
+
 The example of search panel configuration for Users list page:
 
 [source,xml]
