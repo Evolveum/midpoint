@@ -97,7 +97,8 @@ class ResourceUpdater {
             newCapabilities.setConfigured(existingConfigured.clone());
         }
         newCapabilities.setNative(CloneUtil.clone(nativeCapabilities));
-        newCapabilities.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata());
+        newCapabilities.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata(
+                beans.clock.currentTimeXMLGregorianCalendar()));
 
         if (updateRepository) {
             modifications.add(
@@ -113,7 +114,8 @@ class ResourceUpdater {
 
     void updateCapabilitiesCachingMetadata(@NotNull ConnectorSpec connectorSpec)
             throws SchemaException {
-        CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+        CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata(
+                beans.clock.currentTimeXMLGregorianCalendar());
         if (updateRepository) {
             modifications.add(
                     PrismContext.get().deltaFor(ResourceType.class)
@@ -145,7 +147,8 @@ class ResourceUpdater {
                 getSchemaRootElement(nativeResourceSchema));
 
         return new XmlSchemaType()
-                .cachingMetadata(MiscSchemaUtil.generateCachingMetadata())
+                .cachingMetadata(MiscSchemaUtil.generateCachingMetadata(
+                        beans.clock.currentTimeXMLGregorianCalendar()))
                 .definition(schemaDefinition)
                 .generationConstraints(getCurrentSchemaGenerationConstraints());
     }
@@ -175,7 +178,8 @@ class ResourceUpdater {
         modifications.add(
                 PrismContext.get().deltaFor(ResourceType.class)
                         .item(ResourceType.F_SCHEMA, CapabilitiesType.F_CACHING_METADATA)
-                        .replace(MiscSchemaUtil.generateCachingMetadata())
+                        .replace(MiscSchemaUtil.generateCachingMetadata(
+                                beans.clock.currentTimeXMLGregorianCalendar()))
                         .asItemDelta());
     }
 

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleTaskNotifierTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -27,6 +29,8 @@ import java.util.Date;
 public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, SimpleTaskNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleTaskNotifier.class);
+
+    @Autowired private Clock clock;
 
     @Override
     public @NotNull Class<TaskEvent> getEventType() {
@@ -80,7 +84,7 @@ public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, Simpl
         }
         body.append("Progress: ").append(event.getProgress()).append("\n");
         body.append("\n");
-        body.append("Notification created on: ").append(new Date()).append("\n\n");
+        body.append("Notification created on: ").append(new Date(clock.currentTimeMillis())).append("\n\n");
 
         PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
         if (taskOwner != null) {

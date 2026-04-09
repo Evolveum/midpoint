@@ -6,10 +6,9 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary;
 
-import java.util.Date;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -41,22 +40,22 @@ public class PcpStartInstruction extends StartInstruction {
 
     private ObjectTreeDeltas<?> deltasToApprove;
 
-    private PcpStartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
-        super(changeProcessor, archetypeOid);
+    private PcpStartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid, @NotNull Clock clock) {
+        super(changeProcessor, archetypeOid, clock);
         aCase.setApprovalContext(new ApprovalContextType());
     }
 
     public static PcpStartInstruction createItemApprovalInstruction(ChangeProcessor changeProcessor,
-            @NotNull ApprovalSchemaType approvalSchemaType, SchemaAttachedPolicyRulesType attachedPolicyRules) {
+            @NotNull ApprovalSchemaType approvalSchemaType, SchemaAttachedPolicyRulesType attachedPolicyRules, @NotNull Clock clock) {
         PcpStartInstruction instruction = new PcpStartInstruction(changeProcessor,
-                SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+                SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value(), clock);
         instruction.getApprovalContext().setApprovalSchema(approvalSchemaType);
         instruction.getApprovalContext().setPolicyRules(attachedPolicyRules);
         return instruction;
     }
 
-    static PcpStartInstruction createEmpty(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
-        return new PcpStartInstruction(changeProcessor, archetypeOid);
+    static PcpStartInstruction createEmpty(ChangeProcessor changeProcessor, @NotNull String archetypeOid, @NotNull Clock clock) {
+        return new PcpStartInstruction(changeProcessor, archetypeOid, clock);
     }
 
     public boolean isExecuteApprovedChangeImmediately() {
@@ -80,7 +79,7 @@ public class PcpStartInstruction extends StartInstruction {
         getApprovalContext().setChangeAspect(aspect.getClass().getName());
 
         CaseCreationEventType event = new CaseCreationEventType();
-        event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+        event.setTimestamp(getClock().currentTimeXMLGregorianCalendar());
         if (requester != null) {
             event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester));
             // attorney does not need to be set here (for now)

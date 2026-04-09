@@ -164,7 +164,7 @@ public class ReportManagerImpl implements ReportManager {
         if (duration.getSign() > 0) {
             duration = duration.negate();
         }
-        Date deleteReportOutputsTo = new Date();
+        Date deleteReportOutputsTo = new Date(reportService.getClock().currentTimeMillis());
         duration.addTo(deleteReportOutputsTo);
 
         LOGGER.info("Starting cleanup for report outputs deleting up to {} (duration '{}').",

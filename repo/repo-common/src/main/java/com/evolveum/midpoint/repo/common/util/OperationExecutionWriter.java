@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.repo.common.util;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -64,6 +65,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
     @Autowired private SchemaService schemaService;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private PrismContext prismContext;
+    @Autowired private Clock clock;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     public static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
@@ -102,7 +104,8 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
                 return;
             }
 
-            CleaningSpecification cleaningSpec = CleaningSpecification.createFrom(selectCleanupPolicy(currentRecordType));
+            CleaningSpecification cleaningSpec =
+                    CleaningSpecification.createFrom(selectCleanupPolicy(currentRecordType), clock.currentTimeMillis());
 
             boolean addingRecord;
             if (cleaningSpec.isKeepNone()) {
@@ -372,21 +375,21 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
             this.deleteBefore = deleteBefore;
         }
 
-        private static CleaningSpecification createFrom(OperationExecutionCleanupPolicyType policy) {
+        private static CleaningSpecification createFrom(OperationExecutionCleanupPolicyType policy, long now) {
             if (policy != null) {
                 return new CleaningSpecification(
                         ObjectUtils.defaultIfNull(policy.getMaxRecords(), Integer.MAX_VALUE),
                         ObjectUtils.defaultIfNull(policy.getMaxRecordsPerTask(), Integer.MAX_VALUE),
-                        computeDeleteBefore(policy));
+                        computeDeleteBefore(policy, now));
             } else {
                 return new CleaningSpecification(DEFAULT_NUMBER_OF_RESULTS_TO_KEEP, DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK, 0L);
             }
         }
 
-        private static long computeDeleteBefore(CleanupPolicyType cleanupPolicy) {
+        private static long computeDeleteBefore(CleanupPolicyType cleanupPolicy, long now) {
             if (cleanupPolicy.getMaxAge() != null) {
                 XMLGregorianCalendar limit = XmlTypeConverter.addDuration(
-                        XmlTypeConverter.createXMLGregorianCalendar(new Date()), cleanupPolicy.getMaxAge().negate());
+                        XmlTypeConverter.createXMLGregorianCalendar(new Date(now)), cleanupPolicy.getMaxAge().negate());
                 return XmlTypeConverter.toMillis(limit);
             } else {
                 return 0;

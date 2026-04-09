@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.common.Clock;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ public class SimpleReviewerNotifier extends AbstractGeneralNotifier<CertReviewEv
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleReviewerNotifier.class);
 
+    @Autowired private Clock clock;
     @Autowired private CertHelper certHelper;
 
     @Override
@@ -113,7 +115,7 @@ public class SimpleReviewerNotifier extends AbstractGeneralNotifier<CertReviewEv
                 body.append("\nEscalation level: ").append(ApprovalContextUtil.getEscalationLevelInfo(stage.getEscalationLevel()));
             }
             if (stage.getDeadline() != null) {
-                long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - System.currentTimeMillis();
+            long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - clock.currentTimeMillis();
                 if (delta > 0) {
                     if (event.isModify()) {
                         body.append("\n\nThis is to notify you that the stage ends in ");

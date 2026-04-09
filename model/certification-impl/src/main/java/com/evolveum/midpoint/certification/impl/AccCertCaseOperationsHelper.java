@@ -136,7 +136,7 @@ public class AccCertCaseOperationsHelper {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         PropertyDelta<XMLGregorianCalendar> remediedDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(F_CASE, caseId, AccessCertificationCaseType.F_REMEDIED_TIMESTAMP),
-                generalHelper.getCampaignObjectDefinition(), XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+                generalHelper.getCampaignObjectDefinition(), clock.currentTimeXMLGregorianCalendar());
 
         updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid,
                 Collections.singletonList(remediedDelta), task, parentResult);

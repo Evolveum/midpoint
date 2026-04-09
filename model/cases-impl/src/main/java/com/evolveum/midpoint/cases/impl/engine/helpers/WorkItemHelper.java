@@ -27,12 +27,13 @@ public class WorkItemHelper {
             WorkItemEventType event,
             MidPointPrincipal currentUser,
             WorkItemId workItemId,
-            CaseWorkItemType workItem) {
+            CaseWorkItemType workItem,
+            long now) {
         if (currentUser != null) {
             event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getFocus()));
             event.setAttorneyRef(ObjectTypeUtil.createObjectRef(currentUser.getAttorney()));
         }
-        event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+        event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date(now)));
         event.setExternalWorkItemId(workItemId.asString());
         event.setWorkItemId(workItemId.id);
         event.setOriginalAssigneeRef(workItem.getOriginalAssigneeRef());

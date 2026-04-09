@@ -85,10 +85,8 @@ public class MiscSchemaUtil {
         return options;
     }
 
-    public static CachingMetadataType generateCachingMetadata() {
+    public static CachingMetadataType generateCachingMetadata(@NotNull XMLGregorianCalendar xmlGregorianCalendarNow) {
         CachingMetadataType cmd = new CachingMetadataType();
-        XMLGregorianCalendar xmlGregorianCalendarNow =
-                XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         cmd.setRetrievalTimestamp(xmlGregorianCalendarNow);
         cmd.setSerialNumber(generateSerialNumber());
         return cmd;

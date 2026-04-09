@@ -134,7 +134,11 @@ class ColumnDataConverter<C> {
         }
         if (DefaultColumnUtils.isSpecialColumn(itemPath, record)) {
             return MiscUtil.singletonOrEmptyList(
-                    DefaultColumnUtils.processSpecialColumn(itemPath, record, reportService.getLocalizationService()));
+                    DefaultColumnUtils.processSpecialColumn(
+                            itemPath,
+                            record,
+                            reportService.getClock().currentTimeMillis(),
+                            reportService.getLocalizationService()));
         }
         return prettyPrintValues(dataValues);
     }

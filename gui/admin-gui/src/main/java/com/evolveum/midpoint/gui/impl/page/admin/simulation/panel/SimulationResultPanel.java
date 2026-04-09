@@ -146,7 +146,10 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
                 list.add(new DetailsTableItem(createStringResource("PageSimulationResult.endTimestamp"),
                         () -> LocalizationUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl<>(getModelObject().getEndTimestamp())))));
                 list.add(new DetailsTableItem(createStringResource("PageSimulationResult.finishedIn"),
-                        () -> createResultDurationText(getModelObject(), SimulationResultPanel.this)));
+                        () -> createResultDurationText(
+                                getModelObject(),
+                                SimulationResultPanel.this,
+                                getPageBase().getClock().currentTimeMillis())));
                 list.add(new DetailsTableItem(createStringResource("PageSimulationResult.rootTask"), null) {
 
                     @Override

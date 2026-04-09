@@ -175,7 +175,7 @@ public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> imp
         if (deadline == null) {
             return "";
         } else {
-            long delta = XmlTypeConverter.toMillis(deadline) - System.currentTimeMillis();
+            long delta = XmlTypeConverter.toMillis(deadline) - page.getClock().currentTimeMillis();
 
             // round to hours; we always round down
             long precision = 3600000L;      // 1 hour

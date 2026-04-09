@@ -7,8 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
 import java.io.Serial;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
@@ -153,7 +156,9 @@ public class DeadlinePanel extends BasePanel<XMLGregorianCalendar> {
                 deadline.getYear(),
                 deadline.getMonth(),
                 deadline.getDay());
-        LocalDate now = LocalDate.now();
+        LocalDate now = Instant.ofEpochMilli(getPageBase().getClock().currentTimeMillis())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
 
         return (int) ChronoUnit.DAYS.between(now, deadlineLocalDate);
     }

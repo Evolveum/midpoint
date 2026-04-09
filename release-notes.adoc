@@ -95,6 +95,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed modification of query of report fails when the query is defined using midPoint query language. See bug:MID-11093[]
 * Fixed access request shows unrelated conflicts. See bug:MID-10994[]
 * Fixed false replace updates in admin GUI dateTime comparison (seconds normalization issue). See bug:MID-11078[]
+* Fixed timestamp handling to use logical Clock where appropriate.. See bug:MID-11008[]
 
 === Releases Of Other Components
 

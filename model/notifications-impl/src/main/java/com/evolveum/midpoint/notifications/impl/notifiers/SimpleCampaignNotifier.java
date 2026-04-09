@@ -8,6 +8,7 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.Date;
 
+import com.evolveum.midpoint.common.Clock;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,8 +31,8 @@ public class SimpleCampaignNotifier extends AbstractGeneralNotifier<CertCampaign
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleCampaignNotifier.class);
 
-    @Autowired
-    private CertHelper certHelper;
+    @Autowired private Clock clock;
+    @Autowired private CertHelper certHelper;
 
     @Override
     public @NotNull Class<CertCampaignEvent> getEventType() {
@@ -92,7 +93,7 @@ public class SimpleCampaignNotifier extends AbstractGeneralNotifier<CertCampaign
         }
         body.append(".\n\n");
 
-        body.append("Time: ").append(new Date());     // the event is generated in the real time
+        body.append("Time: ").append(new Date(clock.currentTimeMillis()));  // the event is generated in the real time
         body.append("\nRequester: ").append(formatRequester(event, result));
         body.append("\nOperation status: ").append(certHelper.formatStatus(event));
 
