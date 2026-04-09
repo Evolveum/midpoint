@@ -39,6 +39,7 @@ podTemplate(
                         envVars: [
                                 envVar(key: 'ACCEPT_EULA', value: 'Y'),
                                 envVar(key: 'SA_PASSWORD', value: 'Pa55word!'),
+                                envVar(key: 'MSSQL_MEMORY_LIMIT_MB', value: '4096'),
                                 // TODO is separate mount for data necessary?
                         ],
                         // TODO needed? ports: [portMapping(name: 'mssql', containerPort: 5432)]
