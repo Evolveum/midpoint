@@ -331,16 +331,13 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             var scrapped = job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                 var ret = new ArrayList<ProcessedDocumentation>();
 
-                var savedPages = json.get("savedDocumentations");
+                var savedDocs = json.get("savedDocumentations");
 
-                if (savedPages instanceof ObjectNode pages) {
-                    for (var page : pages.properties()) {
-                        var uri = page.getKey();
-                        // FIXME: This does not work for string
-                        var content = ConnDevJsonMapper.toText(page.getValue().get("content"));
-
-                        var processed = new ProcessedDocumentation(UUID.randomUUID().toString(), uri);
-                        processed.write(content);
+                if (savedDocs != null && savedDocs.isArray()) {
+                    for (var doc : savedDocs) {
+                        var docId = doc.get("docId").asText();
+                        var processed = new ProcessedDocumentation(docId, docId);
+                        processed.write(doc.toString());
                         ret.add(processed);
                     }
                 }
