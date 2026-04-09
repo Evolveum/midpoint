@@ -234,6 +234,11 @@ public enum EndPointsUrlMapping {
      * This is the authorization that provides access to all the methods. However, it is possible to authorize selected
      * REST actions individually; see {@link RestAuthorizationAction} enum.
      */
+    MCP("/ws/mcp/**",
+            new AuthorizationActionValue(RestAuthorizationAction.GET_OBJECT.getUri(),
+                    "RestEndpoint.authRest.getObject.label", "RestEndpoint.authRest.getObject.description"),
+            new AuthorizationActionValue(RestAuthorizationAction.SEARCH_OBJECTS.getUri(),
+                    "RestEndpoint.authRest.searchObjects.label", "RestEndpoint.authRest.searchObjects.description")),
     REST("/ws/**",
             new AuthorizationActionValue(AUTZ_REST_ALL_URL,
                     "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),

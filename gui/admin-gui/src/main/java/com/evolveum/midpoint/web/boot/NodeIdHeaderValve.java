@@ -25,7 +25,9 @@ public class NodeIdHeaderValve extends ValveBase {
     private TaskManager taskManager;
 
     public NodeIdHeaderValve(TaskManager taskManager) {
-        super();
+        // MCP stream transport (SSE) requires Servlet async I/O.
+        // Tomcat checks async support per valve/filter/servlet chain element.
+        super(true);
 
         this.taskManager = taskManager;
     }

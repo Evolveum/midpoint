@@ -218,6 +218,17 @@ public class AbstractRestController {
         }
     }
 
+    /**
+     * Completes an operation that reuses the same HTTP authentication as the surrounding request (for example an MCP
+     * tool call). Unlike {@link #finishRequest(Task, OperationResult)}, this does not record a REST {@code TERMINATE_SESSION}
+     * audit or clear {@link SecurityContextHolder}; the servlet/filter chain owns the security context lifecycle.
+     */
+    protected void finishAuxiliaryRestOperation(Task task, OperationResult result) {
+        if (result != null) {
+            result.computeStatusIfUnknown();
+        }
+    }
+
     private void auditLogout(Task task, OperationResult result) {
         if (isAuditingSkipped(result)) {
             return;

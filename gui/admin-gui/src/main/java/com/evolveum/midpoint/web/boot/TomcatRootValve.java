@@ -36,7 +36,9 @@ public class TomcatRootValve extends ValveBase {
     private String servletPath;
 
     public TomcatRootValve(String servletPath) {
-        super();
+        // MCP stream transport (SSE) requires Servlet async I/O.
+        // Tomcat checks async support per valve/filter/servlet chain element.
+        super(true);
 
         this.servletPath = servletPath == null ? "" : servletPath;
     }
