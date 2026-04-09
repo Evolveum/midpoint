@@ -105,6 +105,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private static final String OP_SUBMIT_SUGGEST_CORRELATION_OPERATION = "suggestCorrelationOperation";
     private static final String OP_GET_SUGGEST_CORRELATION_OPERATION_STATUS = "getSuggestCorrelationOperationStatus";
     private static final String OP_LIST_SUGGEST_CORRELATION_OPERATION_STATUSES = "listSuggestCorrelationOperationStatuses";
+    private static final String OP_SUBMIT_SCHEMA_MATCH_PRELOAD = "submitSchemaMatchPreload";
     private static final String OP_SUGGEST_ASSOCIATIONS = CLASS_DOT + "suggestAssociations";
     private static final String OP_SUBMIT_SUGGEST_ASSOCIATIONS_OPERATION = "submitSuggestAssociationsOperation";
     private static final String OP_GET_SUGGEST_ASSOCIATIONS_OPERATION_STATUS = "getSuggestAssociationsOperationStatus";
@@ -383,6 +384,38 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.debug("Submitted suggest object types operation for resourceOid {}, objectClassName {}, permissions {}: {}",
                     resourceOid, objectClassName, permissions, oid);
             return oid;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    public void submitSchemaMatchPreload(
+            String resourceOid, QName objectClassName, List<DataAccessPermissionType> permissions,
+            Task task, OperationResult parentResult)
+            throws CommonException {
+        var result = parentResult.subresult(OP_SUBMIT_SCHEMA_MATCH_PRELOAD)
+                .addParam("resourceOid", resourceOid)
+                .addParam("objectClassName", objectClassName)
+                .build();
+        try {
+            var workDef = new SchemaMatchPreloadWorkDefinitionType()
+                    .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                    .objectclass(objectClassName)
+                    .sourceTaskRef(task.getOid(), TaskType.COMPLEX_TYPE);
+            workDef.getPermissions().addAll(permissions);
+            var oid = modelInteractionService.submit(
+                    new ActivityDefinitionType()
+                            .work(new WorkDefinitionsType()
+                                    .schemaMatchPreload(workDef)),
+                    ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
+                            .name("Schema match preload for " + resourceOid)
+                            .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
+                    task, result);
+            LOGGER.debug("Submitted schema match preload for resourceOid {}, objectClassName {}: {}",
+                    resourceOid, objectClassName, oid);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
