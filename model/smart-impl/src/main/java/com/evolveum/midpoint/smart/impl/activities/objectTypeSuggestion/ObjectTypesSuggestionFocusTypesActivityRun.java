@@ -80,6 +80,13 @@ class ObjectTypesSuggestionFocusTypesActivityRun
         parentState.flushPendingTaskModifications(result);
         LOGGER.debug("Suggestions written to the work state:\n{}", suggestedObjectTypesClone.debugDump(1));
 
+        try {
+            SmartIntegrationBeans.get().smartIntegrationService.submitSchemaMatchPreload(
+                    resourceOid, workDefinition.getObjectClassName(), permissions, task, result);
+        } catch (Exception e) {
+            LOGGER.debug("Failed to submit schema match preload for resource {}", resourceOid, e);
+        }
+
         return ActivityRunResult.success();
     }
 }
