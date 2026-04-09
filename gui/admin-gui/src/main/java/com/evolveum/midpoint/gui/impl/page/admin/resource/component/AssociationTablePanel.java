@@ -81,7 +81,7 @@ public abstract class AssociationTablePanel
 
     @Override
     protected String getTileCssStyle() {
-        return "min-height: 110px;";
+        return "";
     }
 
     @Override
@@ -296,7 +296,7 @@ public abstract class AssociationTablePanel
 
                         statusLabel.setOutputMarkupId(true);
                         statusLabel.add(AttributeModifier.append("class", style.badgeClass));
-
+                        statusLabel.add(new VisibleBehaviour(() -> !style.equals(SmartIntegrationUtils.SuggestionUiStyle.DEFAULT_AI)));
                         cellItem.add(statusLabel);
                     }
                 });
@@ -325,7 +325,7 @@ public abstract class AssociationTablePanel
 
                     @Override
                     public String getCssClass() {
-                        return "col-2 text-right";
+                        return "col-2 text-right text-nowrap";
                     }
                 });
 
@@ -447,7 +447,7 @@ public abstract class AssociationTablePanel
 
         accept.setOutputMarkupId(true);
         accept.showTitleAsLabel(true);
-        accept.add(AttributeModifier.append("class", "btn btn-outline-primary me-2 gap-2"));
+        accept.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary mr-2"));
         return accept;
     }
 
@@ -463,7 +463,7 @@ public abstract class AssociationTablePanel
 
         dismiss.setOutputMarkupId(true);
         dismiss.showTitleAsLabel(true);
-        dismiss.add(AttributeModifier.append("class", "btn btn-link text-danger me-2 gap-2"));
+        dismiss.add(AttributeModifier.append("class", "btn btn-sm btn-link link-danger"));
         return dismiss;
     }
 
@@ -478,7 +478,7 @@ public abstract class AssociationTablePanel
 
         edit.setOutputMarkupId(true);
         edit.showTitleAsLabel(true);
-        edit.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary me-2 gap-2 text-nowrap"));
+        edit.add(AttributeModifier.append("class", "btn btn-sm btn-link gap-2 text-nowrap"));
         return edit;
     }
 
