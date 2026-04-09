@@ -411,7 +411,7 @@ Therefore, some views may not even display object type selection at all.
 |
 
 | The list of searchable properties which should be displayed on the search panel.
-Search item is presented with a SearchItemType type, there is a possibility to configure search item path, filter, description and display name (pls, see the following example for more info)
+Search item is presented with a SearchItemType type, there is a possibility to configure search item path, filter, description, display order and display name (pls, see the following example for more info)
 |
 
 
@@ -487,7 +487,7 @@ Tenant is applicable only to role members table.
 
 |===
 
-`ScopeSearchItemConfigurationType`, `ObjectTypeSearchItemConfigurationType`, `RelationSearchItemConfigurationType` and `IndirectSearchItemConfigurationType` are extension of `UserInterfaceFeatureType`, so we can configure _visibility_, _display/label_ and _display/help_. Also, these types contain _defaultValue_ element and `ObjectTypeSearchItemConfigurationType` and `RelationSearchItemConfigurationType` contains element for supported values.
+`ScopeSearchItemConfigurationType`, `ObjectTypeSearchItemConfigurationType`, `RelationSearchItemConfigurationType` and `IndirectSearchItemConfigurationType` are extension of `UserInterfaceFeatureType`, so we can configure _visibility_, _displayOrder_, _display/label_ and _display/help_. Also, these types contain _defaultValue_ element and `ObjectTypeSearchItemConfigurationType` and `RelationSearchItemConfigurationType` contains element for supported values.
 
 The example of search panel configuration for Users list page:
 
@@ -497,19 +497,21 @@ The example of search panel configuration for Users list page:
     <searchBoxConfiguration>
         <searchItems>
             <searchItem>
+                <path>telephoneNumber</path>
+                <description>Search item for search by telephone number</description>
+                <display>
+                    <label>Tel. number</label>
+                </display>
+                <visibleByDefault>true</visibleByDefault>
+            </searchItem>
+            <searchItem>
                 <filter>
                     <q:text>emailAddress contains "emailtest"</q:text>
                 </filter>
                 <display>
                     <label>Email address filter</label>
                 </display>
-            </searchItem>
-            <searchItem>
-                <path>telephoneNumber</path>
-                <description>Search item for search by telephone number</description>
-                <display>
-                    <label>Tel. number</label>
-                </display>
+                <visibleByDefault>true</visibleByDefault>
             </searchItem>
         </searchItems>
     </searchBoxConfiguration>
@@ -518,7 +520,7 @@ The example of search panel configuration for Users list page:
 </objectCollectionView>
 ----
 
-image::search_config.png[100%]
+image::AllUsersTelEmail.png[100%]
 
 The example of search panel configuration for Org member panel:
 
