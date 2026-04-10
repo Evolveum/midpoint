@@ -40,8 +40,8 @@ podTemplate(
                         runAsUser: '0',
                         resourceRequestCpu: '1',
                         resourceLimitCpu: '1',
-                        resourceRequestMemory: '1Gi',
-                        resourceLimitMemory: '1Gi'),
+                        resourceRequestMemory: '2Gi',
+                        resourceLimitMemory: '2Gi'),
                 // kubectl container for controlling "side-car" Oracle pod
                 containerTemplate(
                         name: "kubectl",
