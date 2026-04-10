@@ -34,11 +34,12 @@ podTemplate(
                         ttyEnabled: true,
                         resourceRequestCpu: '2',
                         resourceLimitCpu: '2',
-                        resourceRequestMemory: '4Gi',
-                        resourceLimitMemory: '4Gi',
+                        resourceRequestMemory: '6Gi',
+                        resourceLimitMemory: '6Gi',
                         envVars: [
                                 envVar(key: 'ACCEPT_EULA', value: 'Y'),
                                 envVar(key: 'SA_PASSWORD', value: 'Pa55word!'),
+                                envVar(key: 'MSSQL_MEMORY_LIMIT_MB', value: '4096'),
                                 // TODO is separate mount for data necessary?
                         ],
                         // TODO needed? ports: [portMapping(name: 'mssql', containerPort: 5432)]

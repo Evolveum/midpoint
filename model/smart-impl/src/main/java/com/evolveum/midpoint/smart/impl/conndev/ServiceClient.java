@@ -31,9 +31,6 @@ public class ServiceClient {
     private static final String SESSION_PATTERN = "{sessionId}";
     private static final String RELATIVE_SESSION_ENDPOINT = "session/{sessionId}";
 
-    private static final long DOCUMENTATION_JOB_TIMEOUT_MS = 60_000;
-    private static final long DOCUMENTATION_JOB_POLL_INTERVAL_MS = 2_000;
-
 
 
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
@@ -297,35 +294,6 @@ public class ServiceClient {
                 return;
             }
             put(apiUri, entitySupplier);
-        }
-
-        public void waitForDocumentationJobs(String statusApiUri) throws IOException {
-            var uri = appendSession(apiBase + statusApiUri);
-            var deadline = System.currentTimeMillis() + DOCUMENTATION_JOB_TIMEOUT_MS;
-            while (System.currentTimeMillis() < deadline) {
-                try (var response = client.execute(new HttpGet(uri))) {
-                    var result = parseJson(response.getEntity().getContent());
-                    var allDone = true;
-                    for (var job : result.get("uploadJobs")) {
-                        var status = job.get("status").asText();
-                        if (status.equals("failed")) {
-                            throw new IOException("Documentation job failed: " + job.get("jobId").asText());
-                        }
-                        if (!status.equals("finished")) {
-                            allDone = false;
-                            break;
-                        }
-                    }
-                    if (allDone) return;
-                }
-                try {
-                    Thread.sleep(DOCUMENTATION_JOB_POLL_INTERVAL_MS);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new IOException("Interrupted while waiting for documentation jobs", e);
-                }
-            }
-            throw new IOException("Timed out waiting for documentation jobs at " + uri);
         }
 
     }

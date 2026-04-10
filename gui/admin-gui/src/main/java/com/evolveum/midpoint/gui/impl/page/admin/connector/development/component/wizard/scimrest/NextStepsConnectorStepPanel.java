@@ -92,6 +92,8 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
                 switch (action) {
                     case SCHEMA -> getController().editSchema(objectClassModel.getObject(), target);
                     case SEARCH_ALL -> getController().editSearchAll(objectClassModel.getObject(), target);
+                    case SEARCH_BY_ID -> getController().editSearchById(objectClassModel.getObject(), target);
+                    case SEARCH_FILTER -> getController().editSearchFilter(objectClassModel.getObject(), target);
                     case CREATE -> getController().editCreateOp(objectClassModel.getObject(), target);
                     case UPDATE -> getController().editUpdateOp(objectClassModel.getObject(), target);
                     case DELETE -> getController().editDeleteOp(objectClassModel.getObject(), target);
@@ -157,10 +159,10 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
                 "ObjectClassOperations.SCHEMA.description"),
         SEARCH_ALL("fa fa-search text-secondary bg-gray-100",
                 "ObjectClassOperations.SEARCH_ALL.description"),
-        //        GET_ONE("fa fa-search text-secondary bg-gray-100",
-//                "ObjectClassOperations.GET_ONE.description"),
-//        SEARCH_FILTERS("fa fa-search text-secondary bg-gray-100",
-//                "ObjectClassOperations.SEARCH_FILTERS.description"),
+        SEARCH_BY_ID("fa fa-fingerprint text-secondary bg-gray-100",
+                "ObjectClassOperations.SEARCH_BY_ID.description"),
+        SEARCH_FILTER("fa fa-filter text-secondary bg-gray-100",
+                "ObjectClassOperations.SEARCH_FILTER.description"),
         CREATE("fa fa-circle-plus text-secondary bg-gray-100",
                 "ObjectClassOperations.CREATE.description"),
         UPDATE("fa fa-pen-to-square text-secondary bg-gray-100",
