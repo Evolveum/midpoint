@@ -177,6 +177,7 @@ div[role="button"].btn, .btn {
   }
 }
 
+//Bootstrap badge extension for transparent variant
 .badge {
 font-weight: 600;
   &.badge-opaque {
@@ -188,4 +189,12 @@ font-weight: 600;
       }
     }
   }
+}
+
+//Font-awesome extension for width management
+.fa {
+  &.fa-fw-xs {
+    width: 0.875em;}
+  &.fa-fw-sm {
+    width: 1em;}
 }

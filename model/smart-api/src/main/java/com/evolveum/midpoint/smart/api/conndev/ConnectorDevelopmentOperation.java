@@ -85,6 +85,14 @@ public interface ConnectorDevelopmentOperation {
         return submitGenerateEndpointBasedScript(SEARCH_ALL_DEFINITION, objectClass, endpoints, task, result);
     }
 
+    default String submitGenerateSearchByIdScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(SEARCH_BY_ID_DEFINITION, objectClass, endpoints, task, result);
+    }
+
+    default String submitGenerateSearchFilterScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(SEARCH_FILTER_DEFINITION, objectClass, endpoints, task, result);
+    }
+
 
     default String submitGenerateRelationScript(ConnDevRelationInfoType relation, Task task, OperationResult result) {
         var safeClone = new ConnDevRelationInfoType()
@@ -162,6 +170,14 @@ public interface ConnectorDevelopmentOperation {
     void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
 
     default void saveSearchAllScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
+        saveArtifact(artifact, task, result);
+    }
+
+    default void saveGetByIdScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
+        saveArtifact(artifact, task, result);
+    }
+
+    default void saveSearchFilterScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);
     }
 
