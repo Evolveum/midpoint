@@ -5,8 +5,8 @@
 This guide describes how to resolve administrator access issues, such as unlocking a locked account or resetting its password.
 While the procedure is described for administrator user, it can be used for any user object in midPoint.
 
-Under normal circumstances, an an administrator, you can unlock your account or reset your password via midPoint GUI.
-However, if you are locked out of the system and cannot log in to the GUI, you can use Ninja to fix your user object directly in the repository.
+If an administrator is locked out of the midPoint GUI, an authorized administrator with access to the repository can recover the account by modifying the user object directly using Ninja.
+This is an emergency procedure and should not be used under normal circumstances.
 
 [NOTE]
 ====
