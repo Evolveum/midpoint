@@ -292,7 +292,7 @@
                 <xsd:sequence>
                     <xsd:element maxOccurs="unbounded" name="endpoint" type="tns:ConnDevHttpEndpointType"/>
                     <xsd:element maxOccurs="unbounded" name="attribute" type="tns:ConnDevAttributeInfoType"/>
-                    <xsd:element name="getOperation" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="searchIdOperation" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="searchAllOperation" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="searchFilterOperation" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="nativeSchemaScript" type="tns:ConnDevArtifactType"/>
@@ -510,6 +510,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="id">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation returns a single instance of specified object class identified by ID.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ID"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
