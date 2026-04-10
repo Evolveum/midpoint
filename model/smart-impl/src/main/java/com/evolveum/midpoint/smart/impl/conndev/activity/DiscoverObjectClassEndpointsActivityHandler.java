@@ -15,6 +15,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.exception.CommonException;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import java.util.Set;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,6 +50,11 @@ public class DiscoverObjectClassEndpointsActivityHandler
         handlerRegistry.unregister(
                 ConnDevDiscoverObjectClassEndpointsDefinitionType.COMPLEX_TYPE,
                 DiscoverObjectClassEndpointsActivityHandler.WorkDefinition.class);
+    }
+
+    @Override
+    public @NotNull Set<ItemName> getSiblingActivityTypes() {
+        return Set.of(WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_ATTRIBUTES);
     }
 
     @Override
@@ -85,7 +92,6 @@ public class DiscoverObjectClassEndpointsActivityHandler
             String connectorDevelopmentOid = getWorkDefinition().connectorDevelopmentOid;
 
             LOGGER.info("Discovering endpoints for object class '{}' in task {}", objectClass, getRunningTask().getName());
-
             try {
                 var backend = ConnectorDevelopmentBackend.backendFor(connectorDevelopmentOid, getRunningTask(), result);
                 backend.ensureDocumentationIsProcessed();
@@ -94,12 +100,12 @@ public class DiscoverObjectClassEndpointsActivityHandler
                 var endpoints = backend.discoverObjectClassEndpoints(objectClass);
                 backend.updateApplicationObjectClassEndpoints(objectClass, endpoints);
             } catch (CommonException | RuntimeException e) {
-                suspendSiblings(connectorDevelopmentOid, Set.of(WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_ATTRIBUTES), this, result);
+                getActivityHandler().suspendSiblings(connectorDevelopmentOid, this, result);
                 throw e;
             }
-
             LOGGER.info("Successfully discovered endpoints for object class '{}'", objectClass);
-            return ActivityRunResult.success();
+
+            return getActivityHandler().waitForSiblingByPolling(connectorDevelopmentOid, this, result);
         }
     }
 }
