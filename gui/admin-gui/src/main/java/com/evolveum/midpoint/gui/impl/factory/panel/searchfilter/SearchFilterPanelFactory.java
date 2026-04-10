@@ -93,7 +93,7 @@ public class SearchFilterPanelFactory extends AbstractInputGuiComponentFactory<S
         }
         var parentContainerValue = containerWrapper.getRealValue();
         if (parentContainerValue instanceof ObjectCollectionType oct) {
-            return oct.getType();
+            return oct.getType() == null ? ObjectCollectionType.COMPLEX_TYPE : oct.getType();
         } else if (parentContainerValue instanceof CollectionRefSpecificationType collectionRefSpecificationType) {
             try {
                 Task task = panelCtx.getPageBase().createSimpleTask("compileObjectCollectionView");
