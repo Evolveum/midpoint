@@ -164,7 +164,7 @@ Each item can be single-valued or multivalued.
 The former can have either zero to one value, while the latter can have zero, one, or more values.
 
 For example, LDAP `employeeNumber` attribute is a single-valued one.
-It can have zero or more values.
+It can have zero or one value.
 LDAP `telephoneNumber` attribute is a multivalued one.
 It can have zero, one, or more values.
 
