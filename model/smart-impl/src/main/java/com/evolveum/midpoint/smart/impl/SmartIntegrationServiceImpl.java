@@ -296,9 +296,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
+    public GenericObjectType getLatestObjectClassStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
             throws SchemaException {
-        return statisticsService.getLatestStatistics(resourceOid, objectClassName, parentResult);
+        return statisticsService.getLatestObjectClassStatistics(resourceOid, objectClassName, parentResult);
     }
 
     @Override

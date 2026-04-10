@@ -17,7 +17,7 @@ import com.evolveum.midpoint.util.exception.*;
 /**
  * Strategy interface for fetching owned shadows samples for mapping suggestion.
  */
-public interface ShadowsWithOwnersProvider {
+interface ShadowsWithOwnersProvider {
 
     List<ShadowWithOwner> fetch(
             TypeOperationContext ctx,

@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import com.evolveum.midpoint.prism.path.PathSet;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Implements "suggest mappings" operation.
+ *
  * - Collect representative owned shadows for training and testing.
  * - For each matched attribute pair, evaluate whether simple as-is mapping suffices or a script is needed.
  * - If needed, ask the microservice for a script, validate and (if necessary) retry once with error feedback.
@@ -148,14 +151,12 @@ class MappingsSuggestionOperation {
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         ctx.checkIfCanRun();
 
-        var knownSchemaProvider = wellKnownSchemaService.getProviderFromSchemaMatch(schemaMatch).orElse(null);
-
-        var ownedList = collectOwnedShadows(result);
-        int llmDataCount = Math.min(LLM_EXAMPLES_COUNT, ownedList.size());
-        int validationDataCount = Math.min(VALIDATION_EXAMPLES_COUNT, ownedList.size());
-        var shadowsForLLM = ownedList.subList(0, llmDataCount);
-        var shadowsForValidation = ownedList.subList(ownedList.size() - validationDataCount, ownedList.size());
-        LOGGER.trace("LLM data count = {}, Validation data count={}, Total={}.", llmDataCount, validationDataCount, ownedList.size());
+        var ownedShadows = collectOwnedShadows(result);
+        int llmDataCount = Math.min(LLM_EXAMPLES_COUNT, ownedShadows.size());
+        int validationDataCount = Math.min(VALIDATION_EXAMPLES_COUNT, ownedShadows.size());
+        var shadowsForLLM = ownedShadows.subList(0, llmDataCount);
+        var shadowsForValidation = ownedShadows.subList(ownedShadows.size() - validationDataCount, ownedShadows.size());
+        LOGGER.trace("LLM data count = {}, Validation data count={}, Total={}.", llmDataCount, validationDataCount, ownedShadows.size());
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
@@ -163,10 +164,11 @@ class MappingsSuggestionOperation {
         try {
             var suggestion = new MappingsSuggestionType();
             var direction = resolveDirection();
-            var existingMappingPaths = collectExistingMappingTargetPaths();
-            var excludedMappingPaths = mergeExcludedPaths(existingMappingPaths, targetPathsToIgnore);
-            var mappingCandidates = new AttributeMappingCandidateSet(excludedMappingPaths);
+            var existingTargetPaths = collectExistingMappingTargetPaths();
+            var excludedTargetPaths = mergeExcludedPaths(existingTargetPaths, targetPathsToIgnore);
+            var mappingCandidates = new AttributeMappingCandidateSet(excludedTargetPaths);
 
+            var knownSchemaProvider = wellKnownSchemaService.getProviderFromSchemaMatch(schemaMatch).orElse(null);
             collectSystemMappings(knownSchemaProvider, shadowsForValidation, result)
                     .forEach(mappingCandidates::proposeSystemMapping);
 
@@ -241,7 +243,7 @@ class MappingsSuggestionOperation {
      * For outbound direction, collects shadow attribute paths that have outbound mappings.
      */
     private Collection<ItemPath> collectExistingMappingTargetPaths() {
-        var existingPaths = new ArrayList<ItemPath>();
+        var existingPaths = new PathSet();
         for (var attrDef : ctx.typeDefinition.getAttributeDefinitions()) {
             if (isInbound) {
                 for (var inbound : attrDef.getInboundMappingBeans()) {
@@ -263,17 +265,19 @@ class MappingsSuggestionOperation {
     /**
      * Merges existing mapping paths and accepted suggestion paths into a single list of excluded paths.
      * These paths should be excluded from new mapping suggestions.
+     *
+     * Returned set is frozen.
      */
-    private List<ItemPath> mergeExcludedPaths(
-            Collection<ItemPath> existingMappingPaths,
-            @Nullable List<ItemPath> acceptedSuggestionPaths) {
-        if (acceptedSuggestionPaths == null || acceptedSuggestionPaths.isEmpty()) {
-            return new ArrayList<>(existingMappingPaths);
+    private PathSet mergeExcludedPaths(
+            Collection<ItemPath> existingTargetPaths,
+            @Nullable Collection<ItemPath> targetPathsToIgnore) {
+        var merged = new PathSet(existingTargetPaths);
+        if (targetPathsToIgnore != null && !targetPathsToIgnore.isEmpty()) {
+            merged.addAll(targetPathsToIgnore);
+            LOGGER.trace("Merged {} existing mapping paths and {} accepted suggestion paths for exclusion.",
+                    existingTargetPaths.size(), targetPathsToIgnore.size());
         }
-        var merged = new ArrayList<>(existingMappingPaths);
-        merged.addAll(acceptedSuggestionPaths);
-        LOGGER.trace("Merged {} existing mapping paths and {} accepted suggestion paths for exclusion.",
-                existingMappingPaths.size(), acceptedSuggestionPaths.size());
+        merged.freeze();
         return merged;
     }
 

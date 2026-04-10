@@ -76,7 +76,7 @@ public class ObjectTypesSuggestionActivityHandler
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
-                (context, result) -> new ObjectTypesSuggestionRemoteServiceCallActivityRun(context),
+                (context, result) -> new ObjectTypesSuggestionObjectTypesActivityRun(context),
                 null,
                 (i) -> ID_OBJECT_TYPES_SUGGESTION,
                 ActivityStateDefinition.normal(),

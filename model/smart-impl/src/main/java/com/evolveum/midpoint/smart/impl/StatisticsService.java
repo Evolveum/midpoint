@@ -88,7 +88,7 @@ public class StatisticsService {
      * Returns the object holding last known statistics for the given resource and object class.
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
-    public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
+    public GenericObjectType getLatestObjectClassStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_STATISTICS)
                 .addParam("resourceOid", resourceOid)

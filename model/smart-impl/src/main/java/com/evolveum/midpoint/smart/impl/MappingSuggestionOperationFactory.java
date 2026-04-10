@@ -45,7 +45,7 @@ public class MappingSuggestionOperationFactory {
         this.categoricalAttributeRegistry = categoricalAttributeRegistry;
     }
 
-    public MappingsSuggestionOperation create(ServiceClient client, String resourceOid,
+    MappingsSuggestionOperation create(ServiceClient client, String resourceOid,
             ResourceObjectTypeIdentification typeIdentification, CurrentActivityState<?> activityState,
             boolean isInbound, boolean useAiService,
             @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
