@@ -211,7 +211,7 @@ public class PageSelfDashboard extends PageSelf {
                 PrismObject<UserType> self = (PrismObject<UserType>) principal.getFocus().asPrismObject().clone();
                 DashboardWidgetRuntimeInspector.TrimPlan trimPlan = DashboardWidgetRuntimeInspector.deriveFocusTrimPlan(PageSelfDashboard.this, getCompiledGuiProfile().getHomePage());
                 if (trimPlan.enabled()) {
-                    DashboardWidgetRuntimeInspector.trimFocus(PageSelfDashboard.this, self.asObjectable(), trimPlan);
+                    trimPlan.trimFocus(PageSelfDashboard.this, self.asObjectable());
                 }
                 return self;
             }

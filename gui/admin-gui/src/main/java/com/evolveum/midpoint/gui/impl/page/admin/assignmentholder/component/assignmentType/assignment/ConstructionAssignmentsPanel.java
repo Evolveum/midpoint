@@ -10,9 +10,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.gui.impl.page.self.dashboard.AssignmentPanelRule;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -55,11 +53,6 @@ public class ConstructionAssignmentsPanel<AH extends AssignmentHolderType> exten
 
     @Override
     protected ObjectQuery getCustomizeQuery() {
-        return createAssignmentCustomizeQuery(getPageBase(), null);
-    }
-
-    public static ObjectQuery createAssignmentCustomizeQuery(PageBase pageBase, AssignmentPanelRule rule) {
-        return pageBase.getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_CONSTRUCTION).build();
+        return AssignmentPanelQueries.constructions();
     }
 }

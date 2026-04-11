@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
-import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_MODEL_SECURITY_POLICY_ORG_TREE_IN_OID_BATCH_SIZE_PROPERTY;
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY;
 import static com.evolveum.midpoint.model.impl.controller.ModelController.getObjectManager;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
@@ -64,13 +64,13 @@ public class ModelObjectResolver implements ObjectResolver {
 
     private static int getOrgTreeSearchWidthBatchSize() {
         int configuredValue = Integer.getInteger(
-                MIDPOINT_MODEL_SECURITY_POLICY_ORG_TREE_IN_OID_BATCH_SIZE_PROPERTY,
+                MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY,
                 DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE);
         if (configuredValue < 1) {
             Objects.requireNonNull(LOGGER).warn(
                     "Invalid value {} for system property {}; using default {}",
                     configuredValue,
-                    MIDPOINT_MODEL_SECURITY_POLICY_ORG_TREE_IN_OID_BATCH_SIZE_PROPERTY,
+                    MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY,
                     DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE);
             return DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE;
         }

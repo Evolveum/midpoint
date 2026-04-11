@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Evolveum and contributors
+ * Copyright (C) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -14,7 +14,6 @@ import java.util.Set;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment.AbstractAssignmentPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -29,6 +28,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 
+/**
+ * Derives and applies self-dashboard focus trimming for supported assignment-backed widgets.
+ *
+ * <p>The inspector looks at configured dashboard widgets, asks {@link DashboardWidgetTrimRegistry} for trim semantics
+ * of supported registered panels, and pre-trims {@link UserType#F_ASSIGNMENT} before expensive wrapper creation starts.
+ * Unsupported custom panels are intentionally ignored: the dashboard remains correct, only unoptimized.</p>
+ */
 public final class DashboardWidgetRuntimeInspector {
 
     private static final String LINK_WIDGET_IDENTIFIER = "linkWidget";
@@ -36,6 +42,9 @@ public final class DashboardWidgetRuntimeInspector {
     private DashboardWidgetRuntimeInspector() {
     }
 
+    /**
+     * Combined trimming plan derived from all supported widgets on the self dashboard.
+     */
     public static final class TrimPlan {
 
         final List<AssignmentPanelRule> assignmentPanelRules = new java.util.ArrayList<>();
@@ -44,8 +53,72 @@ public final class DashboardWidgetRuntimeInspector {
         public boolean enabled() {
             return !assignmentPanelRules.isEmpty() || keepAssignmentsMatchingRoleMembershipRef;
         }
+
+        /**
+         * Applies the derived trim plan to the cloned self object before wrapper creation.
+         */
+        public void trimFocus(PageBase pageBase, UserType user) {
+            if (user == null || !enabled()) {
+                return;
+            }
+
+            trimAssignments(pageBase, user);
+        }
+
+        private void trimAssignments(PageBase pageBase, UserType user) {
+            List<AssignmentType> assignments = user.getAssignment();
+            if (CollectionUtils.isEmpty(assignments)) {
+                return;
+            }
+
+            Set<AssignmentType> allowedAssignments = new LinkedHashSet<>();
+            for (AssignmentPanelRule rule : assignmentPanelRules) {
+                List<AssignmentType> filtered = filterAssignments(pageBase, assignments, rule);
+                if (rule.preserveAll()) {
+                    allowedAssignments.addAll(filtered);
+                } else {
+                    int effectiveLimit = Math.min(rule.limit(), filtered.size());
+                    allowedAssignments.addAll(filtered.subList(0, effectiveLimit));
+                }
+            }
+
+            if (keepAssignmentsMatchingRoleMembershipRef && CollectionUtils.isNotEmpty(user.getRoleMembershipRef())) {
+                addAssignmentsMatchingRoleMembershipRef(user, assignments, allowedAssignments);
+            }
+
+            if (allowedAssignments.isEmpty()) {
+                assignments.clear();
+                return;
+            }
+
+            assignments.removeIf(assignment -> !allowedAssignments.contains(assignment));
+        }
+
+        private void addAssignmentsMatchingRoleMembershipRef(
+                UserType user,
+                List<AssignmentType> assignments,
+                Set<AssignmentType> allowedAssignments) {
+            for (AssignmentType assignment : assignments) {
+                ObjectReferenceType targetRef = assignment.getTargetRef();
+                if (targetRef == null) {
+                    continue;
+                }
+                boolean match = user.getRoleMembershipRef().stream()
+                        .anyMatch(roleMembershipRef ->
+                                roleMembershipRef != null
+                                        && QNameUtil.match(roleMembershipRef.getType(), targetRef.getType())
+                                        && roleMembershipRef.getOid() != null
+                                        && roleMembershipRef.getOid().equals(targetRef.getOid()));
+                if (match) {
+                    allowedAssignments.add(assignment);
+                }
+            }
+        }
     }
 
+    /**
+     * Builds a trim plan for the current home page by inspecting only widgets backed by supported registered panels.
+     */
     public static TrimPlan deriveFocusTrimPlan(PageSelfDashboard page, HomePageType homePage) {
         TrimPlan trimPlan = new TrimPlan();
         if (homePage == null || CollectionUtils.isEmpty(homePage.getWidget())) {
@@ -82,11 +155,8 @@ public final class DashboardWidgetRuntimeInspector {
         if (panelClass == null) {
             return null;
         }
-        WidgetFocusTrimContribution contribution = new WidgetFocusTrimContribution();
-        try {
-            panelClass.getMethod("contributeFocusTrimPlan", WidgetFocusTrimContribution.class, String.class, int.class)
-                    .invoke(null, contribution, panelType, limit);
-        } catch (ReflectiveOperationException e) {
+        WidgetFocusTrimContribution contribution = DashboardWidgetTrimRegistry.createContribution(panelType, limit, panelClass);
+        if (contribution == null) {
             return null;
         }
         contribution.assignmentPanelRules.replaceAll(rule -> rule.withPanelClass(panelClass));
@@ -128,31 +198,16 @@ public final class DashboardWidgetRuntimeInspector {
         return WebComponentUtil.evaluateExpressionsInFilter(collectionView.getFilter(), result, page);
     }
 
-    public static void trimFocus(PageBase pageBase, UserType user, TrimPlan trimPlan) {
-        if (user == null || trimPlan == null || !trimPlan.enabled()) {
-            return;
-        }
-
-        trimAssignments(pageBase, user, trimPlan);
+    /**
+     * Creates the effective assignment query used for trim-time prefiltering.
+     */
+    public static ObjectQuery createAssignmentQuery(AssignmentPanelRule rule) {
+        return DashboardWidgetTrimRegistry.createAssignmentQuery(rule);
     }
 
-    public static ObjectQuery createAssignmentCustomizeQuery(PageBase pageBase, AssignmentPanelRule rule) {
-        if (rule.panelClass() != null) {
-            try {
-                return (ObjectQuery) rule.panelClass()
-                        .getMethod("createAssignmentCustomizeQuery", PageBase.class, AssignmentPanelRule.class)
-                        .invoke(null, pageBase, rule);
-            } catch (NoSuchMethodException e) {
-                // Panel does not provide a custom trim query hook; fall back to default assignment semantics.
-            } catch (ReflectiveOperationException e) {
-                throw new IllegalStateException(
-                        "Couldn't invoke createAssignmentCustomizeQuery on " + rule.panelClass().getName(), e);
-            }
-        }
-
-        return AbstractAssignmentPanel.createAssignmentCustomizeQuery(pageBase, rule);
-    }
-
+    /**
+     * Applies the same assignment query semantics used by supported runtime panels to the in-memory assignment list.
+     */
     public static List<AssignmentType> filterAssignments(
             PageBase pageBase,
             List<AssignmentType> assignments,
@@ -161,7 +216,7 @@ public final class DashboardWidgetRuntimeInspector {
             return List.of();
         }
 
-        ObjectQuery query = createAssignmentCustomizeQuery(pageBase, rule);
+        ObjectQuery query = createAssignmentQuery(rule);
         return AbstractAssignmentTypePanel.prefilterAssignmentsUsingQuery(pageBase, assignments, query).stream()
                 .filter(assignment -> AbstractAssignmentTypePanel.matchesQuery(pageBase, assignment, rule.additionalFilter()))
                 .toList();
@@ -201,58 +256,4 @@ public final class DashboardWidgetRuntimeInspector {
     private static String getFilterSignature(ObjectFilter filter) {
         return filter != null ? filter.debugDump(0) : null;
     }
-
-    private static void trimAssignments(PageBase pageBase, UserType user, TrimPlan trimPlan) {
-        List<AssignmentType> assignments = user.getAssignment();
-        if (CollectionUtils.isEmpty(assignments)) {
-            return;
-        }
-
-        Set<AssignmentType> allowedAssignments = new LinkedHashSet<>();
-        for (AssignmentPanelRule rule : trimPlan.assignmentPanelRules) {
-            List<AssignmentType> filtered = filterAssignments(pageBase, assignments, rule);
-            if (rule.preserveAll()) {
-                allowedAssignments.addAll(filtered);
-            } else {
-                int effectiveLimit = Math.min(rule.limit(), filtered.size());
-                allowedAssignments.addAll(filtered.subList(0, effectiveLimit));
-            }
-        }
-
-        if (trimPlan.keepAssignmentsMatchingRoleMembershipRef && CollectionUtils.isNotEmpty(user.getRoleMembershipRef())) {
-            addAssignmentsMatchingRoleMembershipRef(user, assignments, allowedAssignments);
-        }
-
-        if (CollectionUtils.isEmpty(trimPlan.assignmentPanelRules) && !trimPlan.keepAssignmentsMatchingRoleMembershipRef) {
-            return;
-        }
-        if (allowedAssignments.isEmpty()) {
-            assignments.clear();
-            return;
-        }
-
-        assignments.removeIf(assignment -> !allowedAssignments.contains(assignment));
-    }
-
-    private static void addAssignmentsMatchingRoleMembershipRef(
-            UserType user,
-            List<AssignmentType> assignments,
-            Set<AssignmentType> allowedAssignments) {
-        for (AssignmentType assignment : assignments) {
-            ObjectReferenceType targetRef = assignment.getTargetRef();
-            if (targetRef == null) {
-                continue;
-            }
-            boolean match = user.getRoleMembershipRef().stream()
-                    .anyMatch(roleMembershipRef ->
-                            roleMembershipRef != null
-                                    && QNameUtil.match(roleMembershipRef.getType(), targetRef.getType())
-                                    && roleMembershipRef.getOid() != null
-                                    && roleMembershipRef.getOid().equals(targetRef.getOid()));
-            if (match) {
-                allowedAssignments.add(assignment);
-            }
-        }
-    }
-
 }

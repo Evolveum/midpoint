@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Evolveum and contributors
+ * Copyright (C) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -11,6 +11,13 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import org.apache.wicket.markup.html.panel.Panel;
 
+/**
+ * Immutable trimming rule derived for a supported assignment-backed self-dashboard widget.
+ *
+ * <p>The rule is produced while {@link DashboardWidgetRuntimeInspector} inspects rendered dashboard widgets and
+ * determines which assignments must be kept on the pre-trimmed focus object before heavy wrapper creation starts.
+ * Rules are contributed only for panels registered in {@link DashboardWidgetTrimRegistry}.</p>
+ */
 public record AssignmentPanelRule(String panelType, int limit, QName targetType, ObjectFilter additionalFilter,
                                   Class<? extends Panel> panelClass, boolean preserveAll) {
 
