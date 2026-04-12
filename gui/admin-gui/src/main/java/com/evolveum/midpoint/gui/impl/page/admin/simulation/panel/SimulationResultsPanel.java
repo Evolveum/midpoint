@@ -273,7 +273,8 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     @Override
     protected List<IColumn<SelectableBean<SimulationResultType>, String>> createDefaultColumns() {
         List<IColumn<SelectableBean<SimulationResultType>, String>> columns = super.createDefaultColumns();
-        columns.add(new LambdaColumn<>(createStringResource("ProcessedObjectsPanel.duration"), row -> createResultDurationText(row.getValue(), this)));
+        columns.add(new LambdaColumn<>(createStringResource("ProcessedObjectsPanel.duration"),
+                row -> createResultDurationText(row.getValue(), this, getPageBase().getClock().currentTimeMillis())));
         columns.add(new AbstractColumn<>(createStringResource("ProcessedObjectsPanel.executionState")) {
 
             @Override

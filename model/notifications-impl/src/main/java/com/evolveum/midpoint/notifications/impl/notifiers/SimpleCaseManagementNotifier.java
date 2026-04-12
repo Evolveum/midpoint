@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.CaseEvent;
 import com.evolveum.midpoint.notifications.api.events.CaseManagementEvent;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -41,6 +43,8 @@ import java.util.stream.Collectors;
 public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseManagementEvent, SimpleWorkflowNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleCaseManagementNotifier.class);
+
+    @Autowired private Clock clock;
 
     @Override
     public @NotNull Class<CaseManagementEvent> getEventType() {
@@ -126,7 +130,7 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
                 String rv = "Work item will be automatically " + getOperationPastTenseVerb(event.getOperationKind());
                 if (event.getTimeBefore() != null) { // should always be
                     rv += " in " + DurationFormatUtils.formatDurationWords(
-                            event.getTimeBefore().getTimeInMillis(new Date()), true, true);
+                            event.getTimeBefore().getTimeInMillis(new Date(clock.currentTimeMillis())), true, true);
                 }
                 return rv;
             } else {
@@ -164,7 +168,7 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
         } else {
             appendResultInformation(body, event, true);
         }
-        body.append("\nNotification created on: ").append(new Date()).append("\n\n");
+        body.append("\nNotification created on: ").append(new Date(clock.currentTimeMillis())).append("\n\n");
 
         if (techInfo) {
             body.append("----------------------------------------\n");
@@ -225,7 +229,7 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
 
     private void appendDeadlineInformation(StringBuilder sb, AbstractWorkItemType workItem) {
         XMLGregorianCalendar deadline = workItem.getDeadline();
-        long before = XmlTypeConverter.toMillis(deadline) - System.currentTimeMillis();
+        long before = XmlTypeConverter.toMillis(deadline) - clock.currentTimeMillis();
         long beforeRounded = Math.round((double) before / 60000.0) * 60000L;
         String beforeWords = DurationFormatUtils.formatDurationWords(Math.abs(beforeRounded), true, true);
         String beforePhrase;

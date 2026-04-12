@@ -257,7 +257,7 @@ public class AccCertCloserHelper {
         if (maxAge.getSign() > 0) {
             maxAge = maxAge.negate();
         }
-        Date deleteCampaignsFinishedUpTo = new Date();
+        Date deleteCampaignsFinishedUpTo = new Date(clock.currentTimeMillis());
         maxAge.addTo(deleteCampaignsFinishedUpTo);
 
         LOGGER.debug("Starting cleanup for closed certification campaigns deleting up to {} (max age '{}').", deleteCampaignsFinishedUpTo, maxAge);

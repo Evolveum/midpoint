@@ -278,7 +278,7 @@ public class DefaultColumnUtils {
     }
 
     public static String processSpecialColumn(
-            ItemPath itemPath, Object object, LocalizationService localization) {
+            ItemPath itemPath, Object object, long now, LocalizationService localization) {
         if (itemPath == null) {
             return null;
         }
@@ -303,7 +303,7 @@ public class DefaultColumnUtils {
                 return "";
             } else if (itemPath.equivalent(TaskType.F_SCHEDULE)) {
                 List<Object> localizationObject = new ArrayList<>();
-                String key = TaskTypeUtil.createScheduledToRunAgain(task, localizationObject);
+                String key = TaskTypeUtil.createScheduledToRunAgain(task, now, localizationObject);
                 Object[] params = localizationObject.isEmpty() ? null : localizationObject.toArray();
                 return localization.translate(key, params, Locale.getDefault(), key);
             } else if (itemPath.equivalent(TaskType.F_PROGRESS)) {

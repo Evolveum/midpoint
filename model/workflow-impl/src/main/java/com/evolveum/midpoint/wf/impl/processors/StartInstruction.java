@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.wf.impl.processors;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -31,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 /**
@@ -46,26 +46,32 @@ public class StartInstruction implements DebugDumpable {
     protected final CaseType aCase;
 
     private final ChangeProcessor changeProcessor;
+    private final Clock clock;
 
     //region Constructors
-    protected StartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
+    protected StartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid, @NotNull Clock clock) {
         this.changeProcessor = changeProcessor;
+        this.clock = clock;
         aCase = new CaseType();
         ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE);
         aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
         aCase.beginAssignment().targetRef(approvalArchetypeRef).end();
         ValueMetadataTypeUtil.getOrCreateStorageMetadata(aCase)
-                .setCreateTimestamp(createXMLGregorianCalendar());
+                .setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
     }
 
-    public static StartInstruction create(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
-        return new StartInstruction(changeProcessor, archetypeOid);
+    public static StartInstruction create(ChangeProcessor changeProcessor, @NotNull String archetypeOid, @NotNull Clock clock) {
+        return new StartInstruction(changeProcessor, archetypeOid, clock);
     }
     //endregion
 
     // region Getters and setters
     private ChangeProcessor getChangeProcessor() {
         return changeProcessor;
+    }
+
+    protected Clock getClock() {
+        return clock;
     }
 
     public void setName(String name) {

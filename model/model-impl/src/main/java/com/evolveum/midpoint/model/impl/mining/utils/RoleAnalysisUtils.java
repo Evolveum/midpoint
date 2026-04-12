@@ -11,7 +11,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -38,6 +37,7 @@ public class RoleAnalysisUtils {
     public static @Nullable RoleAnalysisOperationStatusType updateRoleAnalysisOperationStatus(
             @NotNull RepositoryService repositoryService,
             @NotNull RoleAnalysisOperationStatusType status,
+            @NotNull XMLGregorianCalendar now,
             boolean isSession,
             @NotNull Trace logger,
             @NotNull OperationResult result) {
@@ -76,7 +76,7 @@ public class RoleAnalysisUtils {
         } else {
             status.setMessage(updateClusterStateMessage(taskType));
         }
-        status.setModifyTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+        status.setModifyTimestamp(now);
         status.setStatus(taskType.getResultStatus());
 
         return status;
@@ -133,12 +133,12 @@ public class RoleAnalysisUtils {
             String message,
             RoleAnalysisOperationType operationType,
             XMLGregorianCalendar createTimestamp,
+            @NotNull XMLGregorianCalendar now,
             @Nullable FocusType owner) {
         RoleAnalysisOperationStatusType operationExecutionType = new RoleAnalysisOperationStatusType();
-        XMLGregorianCalendar xmlGregorianCalendar = XmlTypeConverter.createXMLGregorianCalendar(new Date());
 
         if (createTimestamp == null) {
-            createTimestamp = xmlGregorianCalendar;
+            createTimestamp = now;
         }
 
         if (owner != null) {
@@ -149,7 +149,7 @@ public class RoleAnalysisUtils {
         }
 
         operationExecutionType.createTimestamp(createTimestamp);
-        operationExecutionType.modifyTimestamp(xmlGregorianCalendar);
+        operationExecutionType.modifyTimestamp(now);
         operationExecutionType.setStatus(operationResultStatusType);
         operationExecutionType.setOperationChannel(operationType);
         operationExecutionType.setTaskRef(
@@ -168,6 +168,7 @@ public class RoleAnalysisUtils {
             @NotNull String taskOid,
             @NotNull RoleAnalysisOperationType operationChannel,
             @NotNull FocusType initiator,
+            @NotNull XMLGregorianCalendar now,
             Trace logger,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -178,6 +179,7 @@ public class RoleAnalysisUtils {
                 null,
                 operationChannel,
                 null,
+                now,
                 initiator);
 
         try {
@@ -200,6 +202,7 @@ public class RoleAnalysisUtils {
             @NotNull PrismObject<RoleAnalysisSessionType> cluster,
             @NotNull String taskOid,
             @NotNull FocusType initiator,
+            @NotNull XMLGregorianCalendar now,
             @NotNull Trace logger,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -210,6 +213,7 @@ public class RoleAnalysisUtils {
                 null,
                 RoleAnalysisOperationType.CLUSTERING,
                 null,
+                now,
                 initiator);
 
         try {

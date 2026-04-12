@@ -889,7 +889,7 @@ public class BasicExpressionFunctions {
     }
 
     public XMLGregorianCalendar fromNow(String timeSpec) {
-        return XmlTypeConverter.fromNow(timeSpec);
+        return XmlTypeConverter.fromNow(clock.currentTimeMillis(), timeSpec);
     }
 
     public XMLGregorianCalendar addDuration(XMLGregorianCalendar now, Duration duration) {

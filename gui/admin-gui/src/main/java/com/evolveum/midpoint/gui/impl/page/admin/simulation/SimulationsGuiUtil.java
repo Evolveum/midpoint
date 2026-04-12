@@ -352,7 +352,8 @@ public class SimulationsGuiUtil {
         }
     }
 
-    public static @Nullable String createResultDurationText(@NotNull SimulationResultType result, Component panel) {
+    public static @Nullable String createResultDurationText(
+            @NotNull SimulationResultType result, Component panel, long now) {
         XMLGregorianCalendar start = result.getStartTimestamp();
         if (start == null) {
             return panel.getString("SimulationResultsPanel.notStartedYet");
@@ -360,7 +361,7 @@ public class SimulationsGuiUtil {
 
         XMLGregorianCalendar end = result.getEndTimestamp();
         if (end == null) {
-            end = MiscUtil.asXMLGregorianCalendar(new Date());
+            end = MiscUtil.asXMLGregorianCalendar(new Date(now));
         }
 
         long duration = (end != null ? end.toGregorianCalendar().getTimeInMillis() : 0) - start.toGregorianCalendar().getTimeInMillis();

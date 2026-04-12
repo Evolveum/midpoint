@@ -33,10 +33,10 @@ public class TaskTypeUtil {
      * Returns key for localization representing execution status of a task, additionally populates {@code localizationObject}
      * with additional parameters for the localization key.
      */
-    public static String createScheduledToRunAgain(TaskType task, List<Object> localizationObject) {
+    public static String createScheduledToRunAgain(TaskType task, long now, List<Object> localizationObject) {
         boolean runnable = task.getSchedulingState() == TaskSchedulingStateType.READY;
-        Long scheduledAfter = getScheduledToStartAgain(task);
-        Long retryAfter = runnable ? getRetryAfter(task) : null;
+        Long scheduledAfter = getScheduledToStartAgain(task, now);
+        Long retryAfter = runnable ? getRetryAfter(task, now) : null;
 
         if (scheduledAfter == null) {
             if (retryAfter == null || retryAfter <= 0) {
@@ -73,14 +73,12 @@ public class TaskTypeUtil {
         return key;
     }
 
-    private static Long getRetryAfter(TaskType task) {
+    private static Long getRetryAfter(TaskType task, long now) {
         XMLGregorianCalendar nextRun = task.getNextRetryTimestamp();
-        return nextRun != null ? (XmlTypeConverter.toMillis(nextRun) - System.currentTimeMillis()) : null;
+        return nextRun != null ? (XmlTypeConverter.toMillis(nextRun) - now) : null;
     }
 
-    public static Long getScheduledToStartAgain(TaskType task) {
-        long current = System.currentTimeMillis();
-
+    public static Long getScheduledToStartAgain(TaskType task, long now) {
         if (task.getNodeAsObserved() != null && task.getSchedulingState() != TaskSchedulingStateType.SUSPENDED) {
             if (!isTaskRecurring(task)) {
                 return null;
@@ -95,9 +93,9 @@ public class TaskTypeUtil {
             return null;
         }
 
-        if (nextRunStartTimeLong > current + 1000) {
-            return nextRunStartTimeLong - System.currentTimeMillis();
-        } else if (nextRunStartTimeLong < current - 60000) {
+        if (nextRunStartTimeLong > now + 1000) {
+            return nextRunStartTimeLong - now;
+        } else if (nextRunStartTimeLong < now - 60000) {
             return ALREADY_PASSED;
         } else {
             return NOW;

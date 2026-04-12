@@ -137,7 +137,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 
         WorkItemId workItemId = operation.createWorkItemId(workItem);
 
-        WorkItemHelper.fillInWorkItemEvent(event, operation.getPrincipal(), workItemId, workItem);
+        WorkItemHelper.fillInWorkItemEvent(event, operation.getPrincipal(), workItemId, workItem, beans.clock.currentTimeMillis());
         operation.addCaseHistoryEvent(event);
 
         ApprovalStageDefinitionType level = operation.getCurrentStageDefinition();

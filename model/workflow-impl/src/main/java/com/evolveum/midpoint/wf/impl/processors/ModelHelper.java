@@ -8,12 +8,15 @@ package com.evolveum.midpoint.wf.impl.processors;
 
 import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +51,7 @@ public class ModelHelper {
     @Autowired private LocalizationService localizationService;
     @Autowired private PrismContext prismContext;
     @Autowired private MiscHelper miscHelper;
+    @Autowired private Clock clock;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private static final String APPROVING_AND_EXECUTING_KEY = "ApprovingAndExecuting.";
@@ -68,7 +72,7 @@ public class ModelHelper {
             ModelContext<?> contextForRootCase,
             OperationResult result) throws SchemaException {
         StartInstruction instruction =
-                StartInstruction.create(changeProcessor, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
+                StartInstruction.create(changeProcessor, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value(), clock);
         instruction.setModelContext(contextForRootCase);
 
         LocalizableMessage rootCaseName = determineRootCaseName(ctx);
@@ -107,7 +111,9 @@ public class ModelHelper {
         ObjectType focus = ctx.getFocusObjectNewOrOld();
         String time = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
                 .withLocale(Locale.getDefault())
-                .format(ZonedDateTime.now());
+                .format(ZonedDateTime.ofInstant(
+                        Instant.ofEpochMilli(clock.currentTimeMillis()),
+                        ZoneId.systemDefault()));
 
         return new LocalizableMessageBuilder()
                 .key(APPROVING_AND_EXECUTING_KEY + operationKey)

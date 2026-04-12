@@ -8,7 +8,9 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.Date;
 
+import com.evolveum.midpoint.common.Clock;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
@@ -27,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<ResourceObjectEvent, SimpleResourceObjectNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleResourceObjectNotifier.class);
+
+    @Autowired private Clock clock;
 
     @Override
     public @NotNull Class<ResourceObjectEvent> getEventType() {
@@ -106,7 +110,7 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
                 body.append(userOrOwner).append(": unknown\n");
             }
         }
-        body.append("Notification created on: ").append(new Date()).append("\n\n");
+        body.append("Notification created on: ").append(new Date(clock.currentTimeMillis())).append("\n\n");
         body.append("Resource: ").append(event.getResourceName()).append(" (oid ").append(event.getResourceOid()).append(")\n");
         boolean named;
         if (rod.getCurrentShadow() != null && rod.getCurrentShadow().asObjectable().getName() != null) {

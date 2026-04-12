@@ -363,7 +363,7 @@ public class AssignmentPolicyAspectPart {
         PcpStartInstruction instruction =
                 PcpStartInstruction
                         .createItemApprovalInstruction(main.getChangeProcessor(),
-                                builderResult.schema, builderResult.attachedRules);
+                                builderResult.schema, builderResult.attachedRules, main.getChangeProcessor().getClock());
 
         instruction.prepareCommonAttributes(main, ctx.modelContext, requester);
         instruction.setDeltasToApprove(deltaToApprove);

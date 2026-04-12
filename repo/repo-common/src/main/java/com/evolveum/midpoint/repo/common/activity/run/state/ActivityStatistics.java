@@ -114,7 +114,7 @@ public class ActivityStatistics {
 
     public void startCollectingActionsExecuted(@NotNull Task task) {
         task.startCollectingActionsExecuted(
-                new ActionsExecutedCollectorImpl(actionsExecuted));
+                new ActionsExecutedCollectorImpl(actionsExecuted, activityState.getBeans().clock));
     }
 
     public void stopCollectingActionsExecuted(@NotNull Task task) {

@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignStageEvent;
 import com.evolveum.midpoint.notifications.impl.helpers.CertHelper;
@@ -33,6 +34,7 @@ public class SimpleCampaignStageNotifier extends AbstractGeneralNotifier<CertCam
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleCampaignStageNotifier.class);
 
+    @Autowired private Clock clock;
     @Autowired private CertHelper certHelper;
 
     @Override
@@ -91,13 +93,13 @@ public class SimpleCampaignStageNotifier extends AbstractGeneralNotifier<CertCam
         body.append("\nState: ");
         body.append(certHelper.formatState(event));
 
-        body.append("\n\nTime: ").append(new Date());     // the event is generated in the real time
+        body.append("\n\nTime: ").append(new Date(clock.currentTimeMillis()));  // the event is generated in the real time
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         if (stage != null) {
             body.append("\n\nStage start time: ").append(XmlTypeConverter.toDate(stage.getStartTimestamp()));
             body.append("\nStage deadline time: ").append(XmlTypeConverter.toDate(stage.getDeadline()));
             if (event.isModify() && stage.getDeadline() != null) {
-                long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - System.currentTimeMillis();
+                long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - clock.currentTimeMillis();
                 if (delta > 0) {
                     body.append("\n\nStage ends in ");
                     body.append(DurationFormatUtils.formatDurationWords(delta, true, true));

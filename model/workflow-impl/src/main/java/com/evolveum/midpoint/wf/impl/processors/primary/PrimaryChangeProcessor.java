@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.wf.impl.processors.primary.cases.CaseClosing;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 
@@ -75,6 +76,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
     @Autowired protected MiscHelper miscHelper;
 
     @Autowired private ApprovalBeans beans;
+    @Autowired private Clock clock;
 
     @Autowired private CaseEngineImpl caseEngine;
 
@@ -368,7 +370,8 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
     private PcpStartInstruction createInstruction0(ModelInvocationContext<?> ctx, ObjectTreeDeltas<?> changesWithoutApproval,
             CaseType rootCase) throws SchemaException {
         if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty()) {
-            PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(this, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+            PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(
+                    this, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value(), clock);
             instruction0.setName("Changes that do not require approval");
             instruction0.setObjectRef(ctx);
             instruction0.setDeltasToApprove(changesWithoutApproval);
@@ -397,6 +400,10 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
         return contextCopy;
     }
     //endregion
+
+    public Clock getClock() {
+        return clock;
+    }
 
     //region Processing process finish event
     /**

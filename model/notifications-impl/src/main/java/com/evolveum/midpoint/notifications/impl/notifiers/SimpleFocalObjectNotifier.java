@@ -10,8 +10,10 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Date;
 
+import com.evolveum.midpoint.common.Clock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -40,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEvent, SimpleFocalObjectNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleFocalObjectNotifier.class);
+
+    @Autowired private Clock clock;
 
     @Override
     public @NotNull Class<ModelEvent> getEventType() {
@@ -134,7 +138,7 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
 
         body.append("Notification about ").append(typeNameLower).append("-related operation (status: ").append(status).append(")\n\n");
         body.append(typeName).append(": ").append(fullName).append(" (").append(focus.getName()).append(", oid ").append(oid).append(")\n");
-        body.append("Notification created on: ").append(new Date()).append("\n\n");
+        body.append("Notification created on: ").append(new Date(clock.currentTimeMillis())).append("\n\n");
 
         boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration.value());
         final Task task = ctx.task();
