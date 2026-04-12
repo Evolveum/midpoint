@@ -44,14 +44,14 @@ public class XmlGregorianCalendarModel extends Model<Date> {
 
         XMLGregorianCalendar newValue = MiscUtil.asXMLGregorianCalendar(object);
 
-        GregorianCalendar current = cloneAndStripSeconds(model.getObject());
-        if (current != null) {
+        Long currentMinuteMillis = getNormalizedMinuteEpochMillis(model.getObject());
+        if (currentMinuteMillis != null) {
             // this check is done on UI side to prevent stripping of seconds and milliseconds when date was not changed
             // This happens because of the way how date picker works - it doesn't have seconds/miliseconds field therefore
             // those fields submitted via html form are always zeroed.
             // See MID-9733 for more info.
-            GregorianCalendar newCal = cloneAndStripSeconds(newValue);
-            if (current.equals(newCal)) {
+            Long newMinuteMillis = getNormalizedMinuteEpochMillis(newValue);
+            if (currentMinuteMillis.equals(newMinuteMillis)) {
                 return;
             }
         }
@@ -59,7 +59,7 @@ public class XmlGregorianCalendarModel extends Model<Date> {
         model.setObject(newValue);
     }
 
-    private GregorianCalendar cloneAndStripSeconds(XMLGregorianCalendar cal) {
+    private Long getNormalizedMinuteEpochMillis(XMLGregorianCalendar cal) {
         if (cal == null) {
             return null;
         }
@@ -67,6 +67,6 @@ public class XmlGregorianCalendarModel extends Model<Date> {
         c.set(Calendar.SECOND, 0);
         c.set(Calendar.MILLISECOND, 0);
 
-        return c;
+        return c.getTimeInMillis();
     }
 }

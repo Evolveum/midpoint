@@ -18,8 +18,11 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-public record ValuesPairSample<S, F>(ItemPath focusPropertyPath, ItemPath shadowAttributePath,
-        Collection<ValuesPair<S, F>> pairs, MappingDirection direction) {
+public record ValuesPairSample<S, F>(
+        ItemPath focusPropertyPath,
+        ItemPath shadowAttributePath,
+        Collection<ValuesPair<S, F>> pairs,
+        MappingDirection direction) {
 
     private static final Trace LOGGER = TraceManager.getTrace(ValuesPairSample.class);
 

@@ -30,15 +30,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * Later, we can create a variant of this activity that computes statistics for objects already present in the repository.
  */
-class ObjectTypesSuggestionRemoteServiceCallActivityRun
+class ObjectTypesSuggestionObjectTypesActivityRun
         extends LocalActivityRun<
             ObjectTypesSuggestionWorkDefinition,
             ObjectTypesSuggestionActivityHandler,
             ObjectTypesSuggestionWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesSuggestionRemoteServiceCallActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesSuggestionObjectTypesActivityRun.class);
 
-    ObjectTypesSuggestionRemoteServiceCallActivityRun(
+    ObjectTypesSuggestionObjectTypesActivityRun(
             ActivityRunInstantiationContext<ObjectTypesSuggestionWorkDefinition, ObjectTypesSuggestionActivityHandler> context) {
         super(context);
         setInstanceReady();
@@ -66,7 +66,7 @@ class ObjectTypesSuggestionRemoteServiceCallActivityRun
                     getBeans().repositoryService.getObject(GenericObjectType.class, statisticsOid, null, result));
             suggestedTypes = SmartIntegrationBeans.get().smartIntegrationService.suggestObjectTypes(
                     resourceOid, objectClassName, statistics, task, result);
-            LOGGER.debug("AI-based suggestions written to the work state:\n{}",
+            LOGGER.debug("AI-based suggestions to be written to the work state:\n{}",
                     suggestedTypes.debugDump(1));
         } else {
             LOGGER.debug("Cannot suggest object types for resource {} and object class {}: {} permission not granted",

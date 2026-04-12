@@ -11,15 +11,16 @@ podTemplate(
         activeDeadlineSeconds: 900,
         idleMinutes: 1,
         volumes: [ persistentVolumeClaim(claimName: "midpoint-compile-pipeline-m2repo", mountPath: "/root/.m2/repository")],
-        workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
+        //workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
+        workspaceVolume: persistentVolumeClaimWorkspaceVolume(claimName: "midpoint-compile-pipeline-workspace"),
         containers: [
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
                         runAsUser: '0',
                         resourceRequestCpu: '1',
                         resourceLimitCpu: '1',
-                        resourceRequestMemory: '1Gi',
-                        resourceLimitMemory: '1Gi'),
+                        resourceRequestMemory: '2Gi',
+                        resourceLimitMemory: '2Gi'),
                 containerTemplate(name: 'maven',
                         image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
                         runAsUser: '0',
@@ -40,10 +41,23 @@ podTemplate(
                         df -h
                     fi
                 """
-                retry(3) {
-                    git branch: params.BRANCH ?: 'master',
-                            url: 'https://github.com/Evolveum/midpoint.git'
+                def checkoutExtensions = [
+                    // Cleans up files not in Git, e.g. previous build
+                    [$class: 'CleanBeforeCheckout'],
+                    // Forces the local branch to match the remote exactly, in case the history is rewritten
+                    [$class: 'PruneStaleBranch'],
+                    [$class: 'CloneOption', honorRefspec: true, noTags: false, reference: '', shallow: false]
+                ]
+                if (params.CLEAN_WORKSPACE) {
+                    echo "CLEAN_WORKSPACE is true: Adding WipeWorkspace extension."
+                    checkoutExtensions.add([$class: 'WipeWorkspace'])
                 }
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: params.BRANCH ?: 'master']],
+                    userRemoteConfigs: scm.userRemoteConfigs,
+                    extensions: checkoutExtensions
+                ])
             }
             stage("compile") {
                 container('maven') {

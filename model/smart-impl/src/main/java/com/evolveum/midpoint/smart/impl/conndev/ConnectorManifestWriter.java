@@ -42,7 +42,7 @@ public class ConnectorManifestWriter {
             writeScript(schemas, objClass.getNativeSchemaScript());
             writeScript(schemas, objClass.getConnidSchemaScript());
             writeScript(operations, objClass.getSearchAllOperation());
-            writeScript(operations, objClass.getGetOperation());
+            writeScript(operations, objClass.getSearchIdOperation());
             writeScript(operations, objClass.getSearchFilterOperation());
             writeScript(operations, objClass.getCreateScript());
             writeScript(operations, objClass.getUpdateScript());
