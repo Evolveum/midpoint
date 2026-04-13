@@ -203,13 +203,11 @@ public class NotificationExpressionHelper {
         RecipientExpressionResultType result = new RecipientExpressionResultType();
         if (resultValue instanceof PrismObject<?> prismObj) {
             ObjectReferenceType ref = new ObjectReferenceType();
-            ref.setOid(prismObj.getOid());
             ref.asReferenceValue().setObject(prismObj); // it better be focus
             result.setRecipientRef(ref);
         } else if (resultValue instanceof FocusType focusObj) {
             ObjectReferenceType ref = new ObjectReferenceType();
-            ref.setOid(focusObj.getOid());
-            ref.asReferenceValue().setOriginObject(focusObj);
+            ref.asReferenceValue().setObject(focusObj.asPrismObject());
             result.setRecipientRef(ref);
         } else if (resultValue instanceof String) {
             // TODO OID check, if it's OID, just change it to ref
