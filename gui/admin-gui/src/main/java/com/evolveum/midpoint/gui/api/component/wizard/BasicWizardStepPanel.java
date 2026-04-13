@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -36,6 +38,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_SUBTEXT_MORE = "subTextMore";
+    private static final String ID_BACK_CONTAINER =  "backContainer";
     private static final String ID_BACK = "back";
     private static final String ID_BACK_LABEL = "backLabel";
     private static final String ID_EXIT = "exit";
@@ -93,6 +96,11 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
                 || getNextBehaviour().isVisible());
         add(buttonsStrip);
 
+        WebMarkupContainer backContainer = new WebMarkupContainer(ID_BACK_CONTAINER);
+        backContainer.add(createBackButtonContainerBehavior());
+        backContainer.add(getBackBehaviour());
+        buttonsStrip.add(backContainer);
+
         AjaxLink<?> back = new AjaxLink<>(ID_BACK) {
 
             @Override
@@ -100,12 +108,11 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
                 onBackPerformed(target);
             }
         };
-        back.add(getBackBehaviour());
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
         back.add(new Label(ID_BACK_LABEL, getBackLabelModel()));
         WebComponentUtil.addDisabledClassBehavior(back);
-        buttonsStrip.add(back);
+        backContainer.add(back);
 
         AjaxLink<?> exit = new AjaxLink<>(ID_EXIT) {
 
@@ -170,6 +177,12 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
         Label nextLabel = new Label(ID_NEXT_LABEL, createNextModel());
         next.add(nextLabel);
+    }
+
+    private Behavior createBackButtonContainerBehavior() {
+        return AttributeAppender.append("class", () -> {
+            return null; // todo figure out CSS classes when and which should be here??
+        });
     }
 
     private LoadableDetachableModel<String> createNextModel() {
