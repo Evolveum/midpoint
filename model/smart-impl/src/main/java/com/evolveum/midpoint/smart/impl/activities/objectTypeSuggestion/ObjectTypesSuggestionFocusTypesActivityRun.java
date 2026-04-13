@@ -63,8 +63,8 @@ class ObjectTypesSuggestionFocusTypesActivityRun
                     resourceOid, objectTypeBean.debugDumpLazily(1));
             try {
                 var focusType =
-                        SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(resourceOid, objectTypeBean,
-                                permissions, task, result);
+                        SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(
+                                resourceOid, objectTypeBean, permissions, task, result);
                 var resourceFocusSpecification = new ResourceObjectFocusSpecificationType()
                         .type(focusType.getFocusType());
                 //TODO marked as ai multiple times, should be generalized

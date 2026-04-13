@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.cxf.common.util.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -179,7 +180,7 @@ public class PageAuditLogDetails extends PageBase {
 
     private Long getRepoIdParameter() {
         StringValue param = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-        if (param == null) {
+        if (param == null || StringUtils.isEmpty(param.toString())) {
             return null;
         }
         return Long.valueOf(param.toString());

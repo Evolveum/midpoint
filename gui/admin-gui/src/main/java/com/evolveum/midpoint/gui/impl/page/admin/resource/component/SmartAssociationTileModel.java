@@ -6,9 +6,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import java.util.List;
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.findObjectTypeDefinition;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,10 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.findObjectTypeDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class SmartAssociationTileModel extends TemplateTile<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> {
 
@@ -60,8 +58,8 @@ public class SmartAssociationTileModel extends TemplateTile<PrismContainerValueW
         this.name = displayName;
         this.description = realValue.getDescription() != null ? realValue.getDescription() : "-";
 
-        this.cssTag = "system-badge";
-        this.cssIconTag = "fa fa-gear mr-1";
+        this.cssTag = "badge badge-blue badge-opaque d-inline-flex flex-nowrap";
+        this.cssIconTag = "fa fa-gear align-baseline";
         this.textTag = "System suggestion";
 
         List<ResourceObjectTypeIdentificationType> subjectList =

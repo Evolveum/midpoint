@@ -209,10 +209,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
             @RequestParam("intent") String intent) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_FOCUS_TYPE);
+
         try {
             var typeIdentification = ResourceObjectTypeIdentification.of(ShadowKindType.fromValue(kind), intent);
-            var focusTypeName = smartIntegrationService.suggestFocusType(resourceOid,
-                    typeIdentification, List.of(DataAccessPermissionType.SCHEMA_ACCESS), task, result);
+            var focusTypeName = smartIntegrationService.suggestFocusType(
+                    resourceOid, typeIdentification, List.of(DataAccessPermissionType.SCHEMA_ACCESS), task, result);
             return createResponse(HttpStatus.OK, focusTypeName.getFocusType().getLocalPart(), result);
         } catch (Throwable t) {
             return handleException(result, t);

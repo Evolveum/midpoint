@@ -165,6 +165,16 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                     }
 
                     @Override
+                    protected void editSearchByIdPerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editSearchById(objectClassName, target);
+                    }
+
+                    @Override
+                    protected void editSearchFilterPerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editSearchFilter(objectClassName, target);
+                    }
+
+                    @Override
                     protected void editSchemaPerformed(String objectClassName, AjaxRequestTarget target) {
                         getController().editSchema(objectClassName, target);
                     }
@@ -212,7 +222,7 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
         itemNames.put("ObjectClassesConnectorStepPanel.search",
                 List.of(
                         ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION,
-                        ConnDevObjectClassInfoType.F_GET_OPERATION,
+                        ConnDevObjectClassInfoType.F_SEARCH_ID_OPERATION,
                         ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION));
         itemNames.put("ObjectClassesConnectorStepPanel.create", List.of(ConnDevObjectClassInfoType.F_CREATE_SCRIPT));
         itemNames.put("ObjectClassesConnectorStepPanel.update", List.of(ConnDevObjectClassInfoType.F_UPDATE_SCRIPT));

@@ -9,17 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 import java.io.Serial;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.gui.impl.prism.panel.*;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,14 +16,22 @@ import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
 public abstract class SmartAssociationTilePanel
         extends TilePanel<SmartAssociationTileModel, PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> {
@@ -261,7 +258,7 @@ public abstract class SmartAssociationTilePanel
     private void initDetailsButton(@NotNull WebMarkupContainer tile) {
         AjaxIconButton details = new AjaxIconButton(
                 ID_DETAILS,
-                () -> isDetailedView ? "fa fa-chevron-down" : "fa fa-chevron-right",
+                () -> isDetailedView ? "fa fa-sm fa-fw-xs fa-chevron-down" : "fa fa-sm fa-fw-xs fa-chevron-right",
                 createStringResource("SmartAssociationTilePanel.details")) {
 
             @Override

@@ -48,6 +48,8 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         INIT_OBJECT_CLASS,
         OBJECT_CLASS_SCHEMA,
         OBJECT_CLASS_SEARCH_ALL,
+        OBJECT_CLASS_SEARCH_BY_ID,
+        OBJECT_CLASS_SEARCH_FILTER,
         OBJECT_CLASS_CREATE,
         OBJECT_CLASS_UPDATE,
         OBJECT_CLASS_DELETE,
@@ -87,6 +89,14 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
 
     public void editSearchAll(String objectClassName, AjaxRequestTarget target) {
         setPartItem(new SearchAllConnectorDevPartItem(getHelper()), objectClassName, target);
+    }
+
+    public void editSearchById(String objectClassName, AjaxRequestTarget target) {
+        setPartItem(new SearchByIdConnectorDevPartItem(getHelper()), objectClassName, target);
+    }
+
+    public void editSearchFilter(String objectClassName, AjaxRequestTarget target) {
+        setPartItem(new SearchFilterConnectorDevPartItem(getHelper()), objectClassName, target);
     }
 
     public void editCreateOp(String objectClassName, AjaxRequestTarget target) {
@@ -180,6 +190,8 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
 
                     if (isPartInProgress(new SchemaConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new SearchAllConnectorDevPartItem(getHelper()), list, objectClassName)
+                            || isPartInProgress(new SearchByIdConnectorDevPartItem(getHelper()), list, objectClassName)
+                            || isPartInProgress(new SearchFilterConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new CreateConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new UpdateConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new DeleteConnectorDevPartItem(getHelper()), list, objectClassName)) {
@@ -245,6 +257,8 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         if (oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.INIT_OBJECT_CLASS
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SCHEMA
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_ALL
+                || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_BY_ID
+                || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_FILTER
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_CREATE
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_UPDATE
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_DELETE) {

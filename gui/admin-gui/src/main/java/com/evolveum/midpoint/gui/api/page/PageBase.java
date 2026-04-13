@@ -10,6 +10,8 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.security.BrowserWindowIdentifierFilter;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -180,8 +182,22 @@ public abstract class PageBase extends PageAdminLTE {
 
     protected void createBreadcrumb() {
         PageParameters pageParameters = getPageParameters();
+
+        if (pageParameters == null) {
+            pageParameters = new PageParameters();
+        }
+        addWindowIdParameter(pageParameters);
         removePageParametersIfNeeded(pageParameters);
         addBreadcrumb(new Breadcrumb(getPageTitleModel(), this.getClass(), pageParameters));
+    }
+
+    private void addWindowIdParameter(@NotNull PageParameters pageParameters) {
+        //Adding window id parameter to the page parameters
+        //so that wicket can correctly find an existing page in the wicket page storage.
+        String windowId = getWindowIdPageParameter();
+        if (!pageParameters.contains(BrowserWindowIdentifierFilter.PARAM_WI) && windowId != null) {
+            pageParameters.add(BrowserWindowIdentifierFilter.PARAM_WI, windowId);
+        }
     }
 
     private void removePageParametersIfNeeded(PageParameters parameters) {

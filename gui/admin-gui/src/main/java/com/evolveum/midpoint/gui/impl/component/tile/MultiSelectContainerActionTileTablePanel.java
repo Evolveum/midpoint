@@ -6,28 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
-
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-
-import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
-import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
-
-import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -35,44 +19,52 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.model.util.ListModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
+import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable, T extends TemplateTile<PrismContainerValueWrapper<C>>>
         extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, T> {
@@ -125,7 +117,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        buttonsList.add(createTableActionToolbar(idButton));
+        createTableActionToolbar(buttonsList, idButton);
+
         buttonsList.addAll(createSuggestObjectButton(idButton));
         ToggleCheckBoxPanel toggleSuggestionButton = createToggleSuggestionButton(idButton, switchToggleModel);
         toggleSuggestionButton.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
@@ -133,7 +126,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(idButton, null);
         newObjectPerformButton.add(AttributeModifier.replace("class",
-                "text-nowrap btn btn-primary rounded"));
+                "text-nowrap btn btn-primary rounded ml-2"));
         newObjectPerformButton.add(new VisibleBehaviour(this::displayNoValuePanel));
         buttonsList.add(0, newObjectPerformButton);
         return buttonsList;
@@ -146,12 +139,15 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return headerContainer;
     }
 
-    protected RepeatingView createTableActionToolbar(String id) {
-        RepeatingView toolbar = new RepeatingView(id);
-        toolbar.add(createHeaderCheckBoxButton(toolbar.newChildId()));
-        toolbar.add(createDropDownActionButton(toolbar.newChildId()));
-        toolbar.setOutputMarkupId(true);
-        return toolbar;
+    protected void createTableActionToolbar(List<Component> buttonsList, String id) {
+        Fragment group = new Fragment(id, "headerActionToolbarFragment", this);
+        group.add(createHeaderCheckBoxButton("check"));
+        group.add(createDropDownActionButton("dropdown"));
+        group.setOutputMarkupPlaceholderTag(false);
+        group.setOutputMarkupId(true);
+        group.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
+        group.setRenderBodyOnly(true);
+        buttonsList.add(group);
     }
 
     @Override
@@ -239,9 +235,14 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             protected @NotNull String getSpecialDropdownMenuClass() {
                 return "dropdown-menu-end";
             }
+
+            @Override
+            protected boolean showIcon() {
+                return true;
+            }
         };
 
-        inlineMenu.setOutputMarkupPlaceholderTag(true);
+        inlineMenu.setOutputMarkupPlaceholderTag(false);
         inlineMenu.setOutputMarkupId(true);
         inlineMenu.add(AttributeAppender.append("class", "mr-2"));
         inlineMenu.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
@@ -266,7 +267,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(AttributeAppender.replace("class",
-                "text-nowrap btn btn-primary rounded ml-auto text-nowrap mr-2"));
+                "text-nowrap btn btn-primary rounded text-nowrap ml-2"));
         return newObjectButton;
     }
 
@@ -508,9 +509,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             }
         };
 
+        selectCheckbox.setOutputMarkupPlaceholderTag(false);
         selectCheckbox.setOutputMarkupId(true);
-        selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
         selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
+        selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
+        selectCheckbox.setRenderBodyOnly(true);
         return selectCheckbox;
     }
 
@@ -758,7 +761,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     @Override
     protected String getAdditionalHeaderContainerCssClasses() {
-        return isTileViewVisible() ? "border-0 p-0" : "p-3";
+        return isTileViewVisible() ? "border-0 p-0" : "";
     }
 
     @Override

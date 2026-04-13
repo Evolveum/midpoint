@@ -117,8 +117,8 @@ public class MappingScriptValidator {
                 parentResult);
     }
 
-
-    public static ExpressionProfile restrictedProfile() {
+    private static ExpressionProfile restrictedProfile() {
+        // TODO is this safe enough?
         final ExpressionPermissionProfile permissionsProfile = ExpressionPermissionProfile.closed(
                 "LLM scripts profile", AccessDecision.ALLOW, Collections.emptyList(),
                 List.of(new ExpressionPermissionClassProfileType()
@@ -129,11 +129,13 @@ public class MappingScriptValidator {
                                 .decision(AuthorizationDecisionType.DENY))));
         final ExpressionEvaluatorProfile evaluatorProfile = new ExpressionEvaluatorProfile(
                 SchemaConstantsGenerated.C_SCRIPT, AccessDecision.DENY,
-                List.of(new ScriptLanguageExpressionProfile(GROOVY_LANGUAGE, AccessDecision.ALLOW, true,
-                        permissionsProfile)));
+                List.of(new ScriptLanguageExpressionProfile(
+                        GROOVY_LANGUAGE, AccessDecision.ALLOW, true, permissionsProfile)));
         return new ExpressionProfile("LLM scripts profile",
                 new ExpressionEvaluatorsProfile(AccessDecision.DENY, List.of(evaluatorProfile)),
-                BulkActionsProfile.none(), FunctionLibrariesProfile.none(), AccessDecision.DENY);
+                BulkActionsProfile.none(),
+                FunctionLibrariesProfile.none(),
+                AccessDecision.DENY);
     }
 
 }

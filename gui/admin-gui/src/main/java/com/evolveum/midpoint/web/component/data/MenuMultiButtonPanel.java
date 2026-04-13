@@ -66,6 +66,11 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
             }
 
             @Override
+            protected boolean showIcon() {
+                return MenuMultiButtonPanel.this.showInlineMenuIcon();
+            }
+
+            @Override
             protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {
                 MenuMultiButtonPanel.this.onBeforeClickMenuItem(target, action, item);
             }
@@ -81,6 +86,10 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
             }
             return false;
         }));
+    }
+
+    protected boolean showInlineMenuIcon() {
+        return false;
     }
 
     protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {

@@ -117,7 +117,7 @@ public class FocusObjectStatisticsComputer {
             }
 
             Collection<?> realValues = property.getRealValues();
-            if (realValues == null || realValues.isEmpty()) {
+            if (realValues.isEmpty()) {
                 agg.missingCount++;
                 continue;
             }
