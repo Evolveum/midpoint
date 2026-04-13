@@ -94,9 +94,21 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         add(items);
 
         currentBiggestDisplayOrder = getModelObject().getItemsList().stream()
+                .peek(item -> {
+                    // it is needed to remove displayOrder for not visible search items, so they are properly sorted in More button alphabetically
+                    // this case occurs when you switch between Saved filters
+                    if (!item.isVisible() && item.getDisplayOrder() != null) {
+                        item.setDisplayOrder(null);
+                    }
+                })
                 .map(FilterableSearchItemWrapper::getDisplayOrder)
                 .filter(Objects::nonNull)
                 .reduce(0, Integer::max);
+
+        // it is needed to sort search items after removal of displayOrder for not visible search items,
+        // so they are properly sorted in More button alphabetically
+        // this case occurs when you switch between Saved filters
+        sortItems();
 
         WebMarkupContainer propertiesStatus = new WebMarkupContainer(ID_MORE_PROPERTIES_POPOVER_STATUS, Model.of(""));
         propertiesStatus.setOutputMarkupId(true);
