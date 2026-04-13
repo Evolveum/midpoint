@@ -1,0 +1,2149 @@
+= MidPoint standard functions
+:page-nav-title: Standard functions
+
+The `MidpointFunctions` interface defines the built‑in midPoint functions that you can use in scripts.
+These functions expose the core model operations (object creation, retrieval, modification, search, workflow, cryptography, etc.) as a concise, script‑friendly API.
+All functions are public members of the interface;
+they can be invoked directly from an expression code (e.g., Groovy, JavaScript, etc.) without importing any additional classes.
+
+*The functions are available in link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/expr/MidpointFunctions.java[MidpointFunctions.java]*. +
+The link leads to the `master` branch.
+Select the branch that corresponds to your midPoint version, e.g., `support-4.10`.
+
+[NOTE]
+====
+*Notes on generic placeholders and overloads*
+
+* Generic type parameters (`<T>` and `<F>`)
+    ** `<T extends ObjectType>` is used for methods that operate on any concrete midPoint object type (e.g., `UserType`, `RoleType`, `OrgType`).
+        The caller supplies the concrete class via a `Class<T>` argument, and the method returns a value of that same type, preserving compile‑time type safety.
+    ** `<F extends FocusType>` is a specialization of `<T>` for focus objects (objects that can have assignments, projections, and a lifecycle), such as users, org units, and services.
+        Methods that manipulate focus‑specific data (e.g., `recompute`, `isDirectlyAssigned`) use `<F>` to signal that the operation is only applicable to focus types.
+    ** The placeholder name (`T` or `F`) is irrelevant to the runtime;
+        it merely conveys the intended category of objects and enables the compiler to enforce correct usage.
+* Var‑args (`...`) versus collection overloads
+    ** Methods that accept a var‑args parameter (e.g., `executeChanges(ObjectDelta<? extends ObjectType>... deltas)`) allow callers to pass any number of arguments directly, without constructing a collection first.
+        Internally the compiler creates an array, so the call is convenient for a small, known number of deltas.
+    ** The corresponding collection overload (`executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas)`) is intended for scenarios where the deltas are already assembled in a `List`, `Set`, or another `Collection`. It avoids the extra array allocation that the var‑args version would incur and is more appropriate for bulk or dynamically built delta sets.
+    ** Both overloads perform the same operation; the choice is purely a matter of API ergonomics and performance considerations. The var‑args version is annotated with `@SuppressWarnings("unchecked")` because Java cannot create a generic array at runtime, while the collection version does not have that limitation.
+====
+
+Below is the list of all standard midPoint functions, grouped thematically.
+Some of the functions have multiple signatures with the same name;
+i.e., they are variants of the same function accepting different sets of parameters.
+These variant sets of acceptable parameters are listed under _parameters_ for each such function.
+
+== Create objects
+
+=== Create empty object
+
+Creates an empty prism object of the given type. The method constructs the object only in memory. If you intend to create an object in the repository or on the resource, populate this object with data and then invoke the `addObject()` or `executeChanges()` method.
+
+*`createEmptyObject()`*
+
+* parameters:
+** `Class<T> type`
+* returns:
+** `T`
+* throws:
+** `SchemaException`
+
+=== Create empty object with name
+
+Creates an empty prism object of the given type with a name. Same limitations as for `createEmptyObject()` apply.
+
+*`createEmptyObjectWithName()`*
+
+* parameters:
+** `Class<T> type, String name`
+** `Class<T> type, PolyString name`
+** `Class<T> type, PolyStringType name`
+* returns:
+** `T`
+* throws:
+** `SchemaException`
+
+== Search objects
+
+=== Simple search
+
+Searches for objects of the given type using the supplied query. Use `options` to influence retrieval and processing of the objects. This method has a very limited scaling capability as all the results are stored in memory. DO NOT USE on large datasets. Recommended usage is only when using queries that cannot return a large number of results (e.g., queries for unique values) or when combined with paging capability. For other cases use `searchObjectsIterative()`. The method also accepts a `TypedQuery<T>` as the query argument.
+
+*`searchObjects()`*
+
+* parameters:
+** `Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options`
+** `Class<T> type, ObjectQuery query`
+** `TypedQuery<T> query`
+** `TypedQuery<T> query, Collection<SelectorOptions<GetOperationOptions>> options`
+* returns:
+** `List<T>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Iterative search
+
+Iteratively processes matching objects, invoking the handler for each. Use `options` to influence retrieval and processing of the objects. The method also accepts a `TypedQuery<T>` as the query argument.
+
+*`searchObjectsIterative()`*
+
+* parameters:
+** `Class<T> type, ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options`
+** `Class<T> type, ObjectQuery query, ResultHandler<T> handler`
+** `TypedQuery<T> query, ResultHandler<T> handler`
+** `TypedQuery<T> query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options`
+* returns:
+** `void`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Search objects by name
+
+Searches for a single object of the given type with the exact name. Fails if more than one object is found; therefore, it cannot be used on types with non-unique names (e.g., shadows).
+
+*`searchObjectByName()`*
+
+* parameters:
+** `Class<T> type, String name`
+** `Class<T> type, PolyString name`
+** `Class<T> type, PolyStringType name`
+* returns:
+** `T`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Search shadow owner
+
+Finds the focus that owns the given shadow (account) OID.
+
+*`searchShadowOwner()`*
+
+* parameters:
+** `String accountOid`
+* returns:
+** `PrismObject<F>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Count objects
+
+Counts objects of the given type that satisfy the query.
+
+*`countObjects()`*
+
+* parameters:
+** `Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options`
+** `Class<T> type, ObjectQuery query`
+* returns:
+** `int`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Count accounts
+
+Counts accounts on the specified resource with the given attribute value. The resource can be specified by OID or as a `ResourceType` instance. When specified as a `ResourceType`, the attribute name can be a `QName` or a plain `String`, which is assumed to be in the `ri:` namespace.
+
+*`countAccounts()`*
+
+* parameters:
+** `String resourceOid, QName attributeName, T attributeValue`
+** `ResourceType resourceType, QName attributeName, T attributeValue`
+** `ResourceType resourceType, String attributeName, T attributeValue`
+* returns:
+** `Integer`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Create typed query
+
+Creates a typed query object for the given query string.
+
+*`queryFor()`*
+
+* parameters:
+** `Class<T> type, String query`
+* returns:
+** `TypedQuery<T>`
+* throws:
+** `SchemaException`
+
+=== Create prepared query
+
+Creates a prepared query for the given query string.
+
+*`preparedQueryFor()`*
+
+* parameters:
+** `Class<T> type, String query`
+* returns:
+** `PreparedQuery<T>`
+* throws:
+** `SchemaException`
+
+== Get objects
+
+=== Get object by OID
+
+Returns the object for the provided OID. It retrieves the object from an appropriate source for the given object type (e.g., internal repository, resource, or both), merging data as necessary and processing any policies and caching mechanisms. This can be influenced by using `options`.
+
+*`getObject()`*
+
+* parameters:
+** `Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options`
+** `Class<T> type, String oid`
+* returns:
+** `T`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get user by OID
+
+Fetches a user object by its OID. Uses the repository service directly, bypassing authorization checking.
+
+*`getUserByOid()`*
+
+* parameters:
+** `String oid`
+* returns:
+** `UserType`
+* throws:
+** `ObjectNotFoundException`
+** `SchemaException`
+
+=== Get org unit by OID
+
+Returns an organization object by its OID.
+
+*`getOrgByOid()`*
+
+* parameters:
+** `String oid`
+* returns:
+** `OrgType`
+* throws:
+** `SchemaException`
+
+=== Get org unit by name
+
+Returns an organization object by its name.
+
+*`getOrgByName()`*
+
+* parameters:
+** `String name`
+* returns:
+** `OrgType`
+* throws:
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get sequence counter
+
+Returns the current value of the specified sequence.
+
+*`getSequenceCounter()`*
+
+* parameters:
+** `String sequenceOid`
+* returns:
+** `long`
+* throws:
+** `ObjectNotFoundException`
+** `SchemaException`
+
+=== Get members
+
+Returns the list of user members belonging to the organization identified by OID.
+
+*`getMembers()`*
+
+* parameters:
+** `String orgOid`
+* returns:
+** `List<UserType>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get member references
+
+Returns references to the members of the organization identified by OID.
+
+*`getMembersAsReferences()`*
+
+* parameters:
+** `String orgOid`
+* returns:
+** `List<ObjectReferenceType>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get role member users
+
+Lists user members of the specified role for the given relation (e.g., owners, approvers).
+
+*`getRoleMemberUsers()`*
+
+* parameters:
+** `String roleOid, QName relation`
+* returns:
+** `List<UserType>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get service member users
+
+Lists user members of the specified service for the given relation (e.g., owners, approvers).
+
+*`getServiceMemberUsers()`*
+
+* parameters:
+** `String serviceOid, QName relation`
+* returns:
+** `List<UserType>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+== Get org structure
+
+=== Get org units
+
+Returns OIDs of organizational units the user belongs to. The results can be filtered by relation.
+
+*`getOrgUnits()`*
+
+* parameters:
+** `UserType user`
+** `UserType user, QName relation`
+* returns:
+** `Collection<String>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get parent orgs
+
+Returns parent orgs of the specified object. The results can be filtered by relation and org type.
+
+*`getParentOrgs()`*
+
+* parameters:
+** `ObjectType object`
+** `ObjectType object, String relation, String orgType`
+** `ObjectType object, QName relation, String orgType`
+* returns:
+** `Collection<OrgType>`
+* throws:
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get parent org by org type
+
+Returns a single parent org of the object that matches the specified org type.
+
+*`getParentOrgByOrgType()`*
+
+* parameters:
+** `ObjectType object, String orgType`
+* returns:
+** `OrgType`
+* throws:
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get parent org by archetype
+
+Returns a parent org of the object that has the specified archetype OID.
+
+*`getParentOrgByArchetype()`*
+
+* parameters:
+** `ObjectType object, String archetypeOid`
+* returns:
+** `OrgType`
+* throws:
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get parent orgs by relation
+
+Returns parent orgs of the object filtered by the given relation.
+
+*`getParentOrgsByRelation()`*
+
+* parameters:
+** `ObjectType object, QName relation`
+** `ObjectType object, String relation`
+* returns:
+** `Collection<OrgType>`
+* throws:
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get managers
+
+Returns the collection of users with the manager relation to the given user. May be filtered by organization type. If `allowSelf` is set to `true`, the result may include the specified user if it satisfies the manager-role criterion in the given org.
+
+*`getManagers()`*
+
+* parameters:
+** `UserType user`
+** `UserType user, String orgType, boolean allowSelf`
+* returns:
+** `Collection<UserType>`
+* throws:
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+*`getManagersByOrgType()`*
+
+* parameters:
+** `UserType user, String orgType`
+* returns:
+** `Collection<UserType>`
+* throws:
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get managers OIDs
+
+Returns OIDs of users that are managers of the specified user.
+
+*`getManagersOids()`*
+
+* parameters:
+** `UserType user`
+* returns:
+** `Collection<String>`
+* throws:
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get managers OIDs except the user
+
+Returns OIDs of users that are managers of the specified user, excluding the specified user. The user can be supplied directly or as a collection of object references.
+
+*`getManagersOidsExceptUser()`*
+
+* parameters:
+** `UserType user`
+** `Collection<ObjectReferenceType> userRefList`
+* returns:
+** `Collection<String>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get managers of org
+
+Returns a list of managers of the organization identified by OID.
+
+*`getManagersOfOrg()`*
+
+* parameters:
+** `String orgOid`
+* returns:
+** `Collection<UserType>`
+* throws:
+** `SchemaException`
+** `SecurityViolationException`
+
+== Check membership and management
+
+=== Check if manager of org
+
+Returns `true` if the given user is a manager of the specified organization unit.
+
+*`isManagerOf()`*
+
+* parameters:
+** `UserType user, String orgOid`
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check if manager
+
+Returns `true` if the given user is a manager of any organizational unit.
+
+*`isManager()`*
+
+* parameters:
+** `UserType user`
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check if manager of org type
+
+Returns `true` if the user is a manager of any organization of the given type.
+
+*`isManagerOfOrgType()`*
+
+* parameters:
+** `UserType user, String orgType`
+* returns:
+** `boolean`
+* throws:
+** `SchemaException`
+
+=== Check if member of org
+
+Returns `true` if the user is a member of the organization identified by OID.
+
+*`isMemberOf()`*
+
+* parameters:
+** `UserType user, String orgOid`
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+== Get linked shadows
+
+=== Get linked shadow
+
+Returns a shadow on the specified resource linked to the specified focus. The resource can be specified by OID or as a `ResourceType` instance. The search can optionally be restricted to repository objects only. When kind and intent are provided, only shadows matching those values are considered; both may be `null` to mean 'any'.
+
+*`getLinkedShadow()`*
+
+* parameters:
+** `FocusType focus, String resourceOid`
+** `FocusType focus, String resourceOid, boolean repositoryObjectOnly`
+** `FocusType focus, ResourceType resource`
+** `FocusType focus, ResourceType resource, boolean repositoryObjectOnly`
+** `FocusType focus, String resourceOid, ShadowKindType kind, String intent`
+** `FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly`
+* returns:
+** `ShadowType`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get linked shadows
+
+Returns shadows on the specified resource linked to the specified focus. The search can optionally be restricted to repository objects only.
+
+*`getLinkedShadows()`*
+
+* parameters:
+** `FocusType focus, String resourceOid`
+** `FocusType focus, String resourceOid, boolean repositoryObjectOnly`
+* returns:
+** `List<ShadowType>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Check for linked account
+
+Returns `true` if the current focus has a linked account on the specified resource.
+
+*`hasLinkedAccount()`*
+
+* parameters:
+** `String resourceOid`
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check if shadow is fully loaded
+
+Indicates whether the current shadow object is fully loaded.
+
+*`isFullShadow()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check if attribute is loaded
+
+Checks if the specified attribute is available for processing (loaded or cached with computations on cache allowed).
+
+*`isAttributeLoaded()`*
+
+* parameters:
+** `QName attrName`
+** `String attrName`
+* returns:
+** `boolean`
+* throws:
+** `ConfigurationException`
+** `SchemaException`
+
+=== Check if projection exists
+
+Returns `true` if a projection (shadow) exists for the current focus.
+
+*`isProjectionExists()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+== Check projection and focus status
+
+=== Check if projection being enabled
+
+Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to enabled. Not always precise — the original value may not be known.
+
+*`isCurrentProjectionBeingEnabled()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check if projection activated
+
+Returns `true` if the current operation brings the projection into existence and enables it (administrative state `null` or `ENABLED`). Loads the full shadow if necessary.
+
+*`isCurrentProjectionActivated()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `boolean`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Check if projection being disabled
+
+Returns `true` if the current clockwork operation will disable the administrative state of the current projection.
+
+*`isCurrentProjectionBeingDisabled()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check if projection deactivated
+
+Returns `true` if the current clockwork operation deletes the projection or effectively disables it.
+
+*`isCurrentProjectionDeactivated()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `boolean`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Check if focus activated
+
+Indicates whether the current clockwork operation brings the focus into existence and enables it.
+
+*`isFocusActivated()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check if focus deactivated
+
+Indicates whether the current clockwork operation disables or deletes the focus.
+
+*`isFocusDeactivated()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check if focus deleted
+
+Indicates whether the current clockwork operation deletes the focus.
+
+*`isFocusDeleted()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check if effectively enabled
+
+Returns `true` if the given object (or focus) is effectively enabled; `false` otherwise. If the object is not of the focus type, always returns `true` as there is no activation there. For focus types, the method expects that the object has undergone standard computation and that the effective status is set.
+
+*`isEffectivelyEnabled()`*
+
+* parameters:
+** `ObjectType object`
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+== Execute changes
+
+=== Execute changes
+
+Executes the provided object deltas. The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering. All deltas must relate to analogous objects (e.g., user and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation also implicitly links the objects if such a link is part of the data model. Only one delta per object is accepted. The OID provided in ADD deltas should be empty under usual circumstances. Use `options` to influence processing of the deltas.
+
+*`executeChanges()`*
+
+* parameters:
+** `Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options`
+** `Collection<ObjectDelta<? extends ObjectType>> deltas`
+** `ObjectDelta<? extends ObjectType>... deltas`
+* returns:
+** `void`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `PolicyViolationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Execute changes asynchronously
+
+Executes the given deltas asynchronously using the specified task template.
+
+*`executeChangesAsynchronously()`*
+
+* parameters:
+** `Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options, String templateTaskOid`
+** `Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options, String templateTaskOid, Task opTask, OperationResult result`
+* returns:
+** `TaskType`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `PolicyViolationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Add object
+
+Adds a new object; returns the OID of the added object. Use `options` to influence processing.
+
+*`addObject()`*
+
+* parameters:
+** `PrismObject<T> newObject, ModelExecuteOptions options`
+** `PrismObject<T> newObject`
+** `T newObject, ModelExecuteOptions options`
+** `T newObject`
+* returns:
+** `String`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `PolicyViolationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Modify object
+
+Modifies an existing object using the supplied delta. Use `options` to influence processing.
+
+*`modifyObject()`*
+
+* parameters:
+** `ObjectDelta<T> modifyDelta, ModelExecuteOptions options`
+** `ObjectDelta<T> modifyDelta`
+* returns:
+** `void`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `PolicyViolationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Delete object
+
+Deletes the specified object. Use `options` to influence processing.
+
+*`deleteObject()`*
+
+* parameters:
+** `Class<T> type, String oid, ModelExecuteOptions options`
+** `Class<T> type, String oid`
+* returns:
+** `void`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `PolicyViolationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Preview changes
+
+Previews the provided object deltas without committing them.
+
+*`previewChanges()`*
+
+* parameters:
+** `Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options`
+** `Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, OperationResult result`
+* returns:
+** `ModelContext<F>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `PolicyViolationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+== Recompute and triggers
+
+=== Recompute focus
+
+xref:/midpoint/reference/tasks/recompute-task/[Recomputes] a focus identified by OID.
+
+*`recompute()`*
+
+* parameters:
+** `Class<F> type, String oid`
+* returns:
+** `void`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `PolicyViolationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Add recompute trigger
+
+Adds a recompute trigger to the given object at the specified timestamp. Accepts either an `ObjectType` instance or a `PrismObject`. An optional `TriggerCustomizer` can be supplied for additional trigger configuration.
+
+*`addRecomputeTrigger()`*
+
+* parameters:
+** `Object object, Long timestamp`
+** `Object object, Long timestamp, TriggerCustomizer triggerCustomizer`
+** `PrismObject<O> object, Long timestamp`
+** `PrismObject<O> object, Long timestamp, TriggerCustomizer triggerCustomizer`
+* returns:
+** `void`
+* throws:
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `SchemaException`
+
+=== Create recompute trigger
+
+Creates a recompute trigger directly in the repository for the specified object OID.
+
+*`createRecomputeTrigger()`*
+
+* parameters:
+** `Class<? extends ObjectType> type, String oid`
+* returns:
+** `void`
+* throws:
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `SchemaException`
+
+=== Create optimizing trigger
+
+Creates an `OptimizingTriggerCreator` if not already present. The `fireAfter` and `safetyMargin` parameters control timing.
+
+*`getOptimizingTriggerCreator()`*
+
+* parameters:
+** `long fireAfter, long safetyMargin`
+* returns:
+** `OptimizingTriggerCreator`
+* throws:
+** The method does not throw any exceptions.
+
+=== Customize trigger
+
+Customizes a trigger.
+
+*`customize()`*
+
+* parameters:
+** `TriggerType trigger`
+* returns:
+** `void`
+* throws:
+** `SchemaException`
+
+== Resolve references and entitlements
+
+=== Resolve reference
+
+Resolves a reference to an object.
+
+*`resolveReference()`*
+
+* parameters:
+** `ObjectReferenceType reference`
+* returns:
+** `T`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Resolve reference if exists
+
+Resolves a reference if it exists. Returns `null` when the reference is not found.
+
+*`resolveReferenceIfExists()`*
+
+* parameters:
+** `ObjectReferenceType reference`
+* returns:
+** `T`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Resolve entitlement
+
+Returns the cached entitlement (target shadow) for the given association value, if present in the lens-context cache.
+
+*`resolveEntitlement()`*
+
+* parameters:
+** `ShadowAssociationValueType associationValue`
+* returns:
+** `ShadowType`
+* throws:
+** The method does not throw any exceptions.
+
+== Archetypes and marks
+
+=== Check archetype
+
+Checks whether the object is of the given archetype.
+
+*`hasArchetype()`*
+
+* parameters:
+** `ObjectType object, String archetypeOid`
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get archetype
+
+_(Deprecated.)_ Returns the archetype of the specified object. Throws an exception if the object has multiple archetypes.
+
+*`getArchetype()`*
+
+* parameters:
+** `Object object`
+* returns:
+** `ArchetypeType`
+* throws:
+** `SchemaException`
+
+=== Get structural archetype
+
+Returns the structural archetype of the object, or `null` if none.
+
+*`getStructuralArchetype()`*
+
+* parameters:
+** `AssignmentHolderType object`
+* returns:
+** `ArchetypeType`
+* throws:
+** `SchemaException`
+
+=== Get archetypes
+
+Returns all archetypes associated with the object.
+
+*`getArchetypes()`*
+
+* parameters:
+** `Object object`
+* returns:
+** `List<ArchetypeType>`
+* throws:
+** `SchemaException`
+
+=== Get archetype OID
+
+_(Deprecated.)_ Returns the OID of the single archetype of the object. Throws an exception if the object has multiple archetypes.
+
+*`getArchetypeOid()`*
+
+* parameters:
+** `Object object`
+* returns:
+** `String`
+* throws:
+** `SchemaException`
+
+=== Get archetype OIDs
+
+Returns a list of archetype OIDs for the given object. Currently, these OIDs are taken from archetype assignments; `ArchetypeRef` values are ignored.
+
+*`getArchetypeOids()`*
+
+* parameters:
+** `ObjectType object`
+* returns:
+** `List<String>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Check effective mark
+
+Returns `true` if the given object has an effective mark with the specified OID. Use only when you know the provided object has effective marks computed.
+
+*`hasEffectiveMark()`*
+
+* parameters:
+** `ObjectType object, String markOid`
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+== Assignments
+
+=== Check direct assignment
+
+Returns `true` if the object (or the given focus) is directly assigned to the specified target. No other conditions are checked (e.g., validity, assignment condition, lifecycle states).
+
+*`isDirectlyAssigned()`*
+
+* parameters:
+** `String targetOid`
+** `ObjectType target`
+** `FocusType focus, String targetOid`
+** `FocusType focus, ObjectType target`
+* returns:
+** `boolean`
+* throws:
+** The method does not throw any exceptions.
+
+=== Collect assigned focus mappings results
+
+Returns all non-negative values from all focus mappings targeted to the given path, collected from all non-negative evaluated assignments.
+
+*`collectAssignedFocusMappingsResults()`*
+
+* parameters:
+** `ItemPath path`
+* returns:
+** `Collection<PrismValue>`
+* throws:
+** `SchemaException`
+
+=== Find candidate owners
+
+Finds candidate owners using correlation rules for the given shadow.
+
+*`findCandidateOwners()`*
+
+* parameters:
+** `Class<F> focusType, ShadowType resourceObject, String resourceOid, ShadowKindType kind, String intent`
+* returns:
+** `List<F>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Find candidate owners (legacy)
+
+Legacy name for `findCandidateOwners()`. There are some slight semantic differences compared to midPoint 4.5: if `kind` is `null`, `ACCOUNT` is assumed; if `intent` is `null`, `default` is assumed. Instead of being limited to correlation/confirmation expressions, the method now invokes the standard correlation mechanism. The original method returns `null` for absent synchronization policies; this method preserves that behavior by treating all exceptions except `SchemaException` as `null`.
+
+*`getFocusesByCorrelationRule()`*
+
+* parameters:
+** `Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow`
+* returns:
+** `List<F>`
+* throws:
+** `SchemaException`
+
+== Passwords and cryptography
+
+=== Get plaintext user password
+
+Decrypts and returns the plaintext password of the given user focus.
+
+*`getPlaintextUserPassword()`*
+
+* parameters:
+** `FocusType user`
+* returns:
+** `String`
+* throws:
+** `EncryptionException`
+
+=== Get plaintext value
+
+Decrypts and returns the plaintext value of a protected string.
+
+*`getPlaintext()`*
+
+* parameters:
+** `ProtectedStringType user`
+* returns:
+** `String`
+* throws:
+** `EncryptionException`
+
+=== Get plaintext account password
+
+Decrypts and returns the plaintext password of the given account shadow.
+
+*`getPlaintextAccountPassword()`*
+
+* parameters:
+** `ShadowType account`
+* returns:
+** `String`
+* throws:
+** `EncryptionException`
+
+=== Get plaintext account password from delta
+
+Decrypts and returns the plaintext password contained in the supplied account delta.
+
+*`getPlaintextAccountPasswordFromDelta()`*
+
+* parameters:
+** `ObjectDelta<? extends ShadowType> delta`
+* returns:
+** `String`
+* throws:
+** `EncryptionException`
+
+=== Get plaintext user password from deltas
+
+Decrypts and returns the plaintext password from a list of focus-related deltas.
+
+*`getPlaintextUserPasswordFromDeltas()`*
+
+* parameters:
+** `List<ObjectDelta<? extends FocusType>> deltas`
+* returns:
+** `String`
+* throws:
+** `EncryptionException`
+
+=== Get protector
+
+Returns the cryptographic protector used for encrypting and decrypting protected strings.
+
+*`getProtector()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `Protector`
+* throws:
+** The method does not throw any exceptions.
+
+== Links and notifications
+
+=== Create registration confirmation link
+
+Builds a registration-confirmation URL for the given user.
+
+*`createRegistrationConfirmationLink()`*
+
+* parameters:
+** `UserType userType`
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+=== Create invitation link
+
+Builds an invitation URL for the given user.
+
+*`createInvitationLink()`*
+
+* parameters:
+** `UserType userType`
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+=== Create password reset link
+
+Builds a password-reset URL for the given user.
+
+*`createPasswordResetLink()`*
+
+* parameters:
+** `UserType userType`
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+=== Create work item completion link
+
+Creates a link that lets the user complete the specified work item. May return `null` if such a link cannot be created.
+
+*`createWorkItemCompletionLink()`*
+
+* parameters:
+** `WorkItemId workItemId`
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+=== Create account activation link
+
+Creates an account-activation URL for the given user.
+
+*`createAccountActivationLink()`*
+
+* parameters:
+** `UserType userType`
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+== Tasks and workflow
+
+=== Get current task
+
+Returns the current task.
+
+*`getCurrentTask()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `Task`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get current result
+
+Returns the current operation result, or the result of the specified operation.
+
+*`getCurrentResult()`*
+
+* parameters:
+** `String operationName`
+* returns:
+** `OperationResult`
+* throws:
+** The method does not throw any exceptions.
+
+NOTE: Calling `getCurrentResult()` with no parameters also returns the current operation result.
+
+=== Submit task from template
+
+Submits a task from a template. The template can be customized by supplying extension items, extension values, or an `ActivityCustomization` object. The first two parameter variants are deprecated.
+
+*`submitTaskFromTemplate()`*
+
+* parameters:
+** _(Deprecated)_ `String templateTaskOid, List<Item<?,?>> extensionItems`
+** _(Deprecated)_ `String templateTaskOid, Map<QName,Object> extensionValues`
+** `String templateOid, ActivityCustomization customization`
+* returns:
+** `TaskType` (deprecated variants) or `String` (OID of the new task)
+* throws:
+** `CommonException`
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `PolicyViolationException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get workflow service
+
+Returns the workflow (case) service.
+
+*`getWorkflowService()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `CaseService`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get shadows to activate
+
+Collects all shadows that are going to be activated. Used for the account activation notifier. Currently collects all accounts with `ShadowPurpose` equal to `INCOMPLETE`.
+
+*`getShadowsToActivate()`*
+
+* parameters:
+** `Collection<? extends ModelProjectionContext> projectionContexts`
+* returns:
+** `List<ShadowType>`
+* throws:
+** The method does not throw any exceptions.
+
+== Model context
+
+=== Get model context
+
+Returns the current model context.
+
+*`getModelContext()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `ModelContext<F>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get focus context
+
+Returns the current focus context.
+
+*`getFocusContext()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `ModelElementContext<F>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get projection context
+
+Returns the current projection context.
+
+*`getProjectionContext()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `ModelProjectionContext`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get mapping
+
+Returns the current mapping (generic over `PrismValue` and `ItemDefinition`).
+
+*`getMapping()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `Mapping<V,D>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Unwrap model context
+
+Converts a `LensContextType` into a full `ModelContext`, applying necessary schema checks.
+
+*`unwrapModelContext()`*
+
+* parameters:
+** `LensContextType lensContextType`
+* returns:
+** `ModelContext<?>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+
+=== Wrap model context
+
+Wraps a `ModelContext` back into a `LensContextType` representation.
+
+*`wrapModelContext()`*
+
+* parameters:
+** `ModelContext<?> lensContext`
+* returns:
+** `LensContextType`
+* throws:
+** `SchemaException`
+
+== Principal and channel
+
+=== Get principal
+
+Returns the principal representing the user executing the expression.
+
+*`getPrincipal()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `MidPointPrincipal`
+* throws:
+** `SecurityViolationException`
+
+=== Get principal OID
+
+Returns the OID of the current principal. After login is complete, the returned OID is the same as `getPrincipal().getOid()`. However, during the login process, this method returns the OID of the user that is being authenticated or logged in.
+
+*`getPrincipalOid()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get channel
+
+Returns the name of the channel in use.
+
+*`getChannel()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+== Resource operations
+
+=== Test resource
+
+Tests connectivity and basic functionality of the specified resource.
+
+*`testResource()`*
+
+* parameters:
+** `String resourceOid`
+* returns:
+** `OperationResult`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Execute provisioning script
+
+Executes an ad-hoc provisioning script on the given resource. The resource can be specified by OID or as a `ResourceType` instance.
+
+*`executeAdHocProvisioningScript()`*
+
+* parameters:
+** `ResourceType resource, String language, String code`
+** `String resourceOid, String language, String code`
+* returns:
+** `Object`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectAlreadyExistsException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get resource delta
+
+Returns the aggregated delta that would be applied to the specified resource within the given model context.
+
+*`getResourceDelta()`*
+
+* parameters:
+** `ModelContext<?> context, String resourceOid`
+* returns:
+** `ObjectDeltaType`
+* throws:
+** `SchemaException`
+
+=== Get attribute definition
+
+Obtains the definition of the given simple attribute for the given resource and object class. The object class and attribute name can each be specified as a `QName` or a plain `String`.
+
+*`getAttributeDefinition()`*
+
+* parameters:
+** `PrismObject<ResourceType> resource, QName objectClassName, QName attributeName`
+** `PrismObject<ResourceType> resource, String objectClassName, String attributeName`
+* returns:
+** `ShadowSimpleAttributeDefinition<T>`
+* throws:
+** `ConfigurationException`
+** `SchemaException`
+
+=== Describe resource object set (long)
+
+Produces a detailed, human-readable description of a resource object set.
+
+*`describeResourceObjectSetLong()`*
+
+* parameters:
+** `ResourceObjectSetType set`
+* returns:
+** `String`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Describe resource object set (short)
+
+Produces a concise description of a resource object set. Only one of the object type display name and type ID is shown; the object class is omitted when a type is present. `describeResourceObjectSet()` is a synonym for this method.
+
+*`describeResourceObjectSetShort()`* / *`describeResourceObjectSet()`*
+
+* parameters:
+** `ResourceObjectSetType set`
+* returns:
+** `String`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Compute default projection purpose
+
+Default function used to compute projection purpose. It is provided here so it can be explicitly invoked from a custom expression; the result can then be altered for special cases.
+
+*`computeDefaultProjectionPurpose()`*
+
+* parameters:
+** `F focus, ShadowType shadow, ResourceType resource`
+* returns:
+** `ShadowPurposeType`
+* throws:
+** The method does not throw any exceptions.
+
+== Delta operations
+
+=== Create delta builder
+
+Creates a delta builder entry for the specified container class.
+
+*`deltaFor()`*
+
+* parameters:
+** `Class<C> objectClass`
+* returns:
+** `S_ItemEntry`
+* throws:
+** `SchemaException`
+
+=== Apply definition
+
+Applies a schema definition to the given object.
+
+*`applyDefinition()`*
+
+* parameters:
+** `T object`
+* returns:
+** `void`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+
+== Metadata
+
+=== Get metadata
+
+Returns the metadata container from the given object or credential, if present.
+
+*`getMetadata()`*
+
+* parameters:
+** `ObjectType object`
+** `AbstractCredentialType credential`
+* returns:
+** `ValueMetadataType`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get creation timestamp
+
+Returns the creation timestamp for the given object or assignment.
+
+*`getCreateTimestamp()`*
+
+* parameters:
+** `ObjectType object`
+** `AssignmentType assignment`
+* returns:
+** `XMLGregorianCalendar`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get modification timestamp
+
+Returns the modification timestamp for the given object.
+
+*`getModifyTimestamp()`*
+
+* parameters:
+** `ObjectType object`
+* returns:
+** `XMLGregorianCalendar`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get last change timestamp
+
+Returns the timestamp of the last change for the given object.
+
+*`getLastChangeTimestamp()`*
+
+* parameters:
+** `ObjectType object`
+* returns:
+** `XMLGregorianCalendar`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get creation approver references
+
+Returns the list of creation approver references recorded in the creation metadata of the given object or assignment.
+
+*`getCreateApproverRefs()`*
+
+* parameters:
+** `ObjectType object`
+** `AssignmentType assignment`
+* returns:
+** `List<ObjectReferenceType>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get modification approver references
+
+Returns the list of assignment modification approver references recorded in the assignment's modification metadata.
+
+*`getModifyApproverRefs()`*
+
+* parameters:
+** `AssignmentType assignment`
+* returns:
+** `Collection<ObjectReferenceType>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get modification approval comments
+
+Returns any approval comments stored in the assignment's modification metadata.
+
+*`getModifyApprovalComments()`*
+
+* parameters:
+** `AssignmentType assignment`
+* returns:
+** `Collection<String>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get request timestamp
+
+Returns the request timestamp from the assignment's request metadata.
+
+*`getRequestTimestamp()`*
+
+* parameters:
+** `AssignmentType assignment`
+* returns:
+** `XMLGregorianCalendar`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get requestor references
+
+Returns the list of requestor references from the assignment's request metadata.
+
+*`getRequestorRefs()`*
+
+* parameters:
+** `AssignmentType assignment`
+* returns:
+** `Collection<ObjectReferenceType>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get requestor comments
+
+Returns any requestor comments from the assignment's request metadata.
+
+*`getRequestorComments()`*
+
+* parameters:
+** `AssignmentType assignment`
+* returns:
+** `Collection<String>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get certifier references
+
+Returns the list of certifier references from the assignment's certification metadata.
+
+*`getCertifierRefs()`*
+
+* parameters:
+** `AssignmentType assignment`
+* returns:
+** `Collection<ObjectReferenceType>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get certifier comments
+
+Returns any certifier comments from the assignment's certification metadata.
+
+*`getCertifierComments()`*
+
+* parameters:
+** `AssignmentType assignment`
+* returns:
+** `Collection<String>`
+* throws:
+** The method does not throw any exceptions.
+
+== Associations
+
+=== Get object reference for association
+
+Returns the object reference for a given association value. Assumes that the association has no content and that it references exactly one object; otherwise returns `null`.
+
+*`getObjectRef()`*
+
+* parameters:
+** `ShadowAssociationValueType associationValueBean`
+* returns:
+** `ObjectReferenceType`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get object OID for association
+
+Returns the OID of the object reference extracted by `getObjectRef()`.
+
+*`getObjectOid()`*
+
+* parameters:
+** `ShadowAssociationValueType associationValueBean`
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get object name for association
+
+Returns the name of the object of a given (no-content) association value, if present.
+
+*`getObjectName()`*
+
+* parameters:
+** `ShadowAssociationValueType associationValueBean`
+* returns:
+** `PolyStringType`
+* throws:
+** The method does not throw any exceptions.
+
+=== Select identity item values
+
+Selects values of a specific item from a collection of identities, optionally filtered by source. A `null` source means all sources. The source is currently matched using resource OID, kind, intent, and tag.
+
+*`selectIdentityItemValues()`*
+
+* parameters:
+** `Collection<FocusIdentityType> identities, FocusIdentitySourceType source, ItemPath itemPath`
+* returns:
+** `Collection<PrismValue>`
+* throws:
+** The method does not throw any exceptions.
+
+== Translation
+
+=== Translate message
+
+Translates a message key or a localizable message object using the current locale. The JVM default locale can optionally be forced.
+
+*`translate()`*
+
+* parameters:
+** `String key, Objects... args`
+** `LocalizableMessage message`
+** `LocalizableMessage message, boolean useDefaultLocale`
+** `LocalizableMessageType message`
+** `LocalizableMessageType message, boolean useDefaultLocale`
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+== Uniqueness checks
+
+=== Check unique property value
+
+Checks whether a property value is unique across objects of the same type.
+
+*`isUniquePropertyValue()`*
+
+* parameters:
+** `ObjectType objectType, String propertyPathString, T propertyValue`
+* returns:
+** `boolean`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Check unique account value
+
+Checks if the value of `attributeName` in the given shadow is unique on the given resource. A search on the resource is invoked and any occurrences except the one in `shadowType` are reported as violations.
+
+*`isUniqueAccountValue()`*
+
+* parameters:
+** `ResourceType resourceType, ShadowType shadowType, String attributeName, T attributeValue`
+* returns:
+** `boolean`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get conflicting objects
+
+Finds objects that conflict on a specific property value.
+
+*`getObjectsInConflictOnPropertyValue()`*
+
+* parameters:
+** `O objectType, String propertyPathString, T propertyValue, boolean getAllConflicting`
+* returns:
+** `List<O>`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+== Evaluation mode
+
+=== Check evaluation mode
+
+A stateful flag that tells a script whether it is currently handling a new value — one that will be written to the target object (e.g., values from the add/replace sections of an `ObjectDelta` or recomputed values slated for persistence) — or an old value that is being removed or read from the existing object (e.g., values from the delete section). Returns `true` for new, `false` for old, and `null` when the framework cannot determine the distinction or the context does not apply.
+
+*`isEvaluateNew()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `Boolean`
+* throws:
+** The method does not throw any exceptions.
+* example:
+** `if (midpoint.isEvaluateNew()) { /* prepare new value */ } else { /* handle old value */ }`
+
+=== Check evaluation mode (Groovy-friendly)
+
+A convenience method that allows writing `midpoint.evaluateNew` in Groovy. Functionally equivalent to `isEvaluateNew()`. Introduced to allow idiomatic Groovy property access after the Groovy upgrade in 4.8.
+
+*`getEvaluateNew()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `Boolean`
+* throws:
+** The method does not throw any exceptions.
+
+== Miscellaneous
+
+=== To list
+
+Converts a var-args array of strings into a mutable `List`.
+
+*`toList()`*
+
+* parameters:
+** `String... s`
+* returns:
+** `List<String>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get constant
+
+Looks up a constant value by its name.
+
+*`getConst()`*
+
+* parameters:
+** `String name`
+* returns:
+** `String`
+* throws:
+** The method does not throw any exceptions.
+
+=== Parse XML to map
+
+Returns a map of attribute-value pairs from the given XML string.
+
+*`parseXmlToMap()`*
+
+* parameters:
+** `String xml`
+* returns:
+** `Map<String,String>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Collect extensions
+
+Collects extensions from an assignment path starting at the given index.
+
+*`collectExtensions()`*
+
+* parameters:
+** `AssignmentPathType path, int startAt`
+* returns:
+** `ExtensionType`
+* throws:
+** `CommunicationException`
+** `ConfigurationException`
+** `ExpressionEvaluationException`
+** `ObjectNotFoundException`
+** `SchemaException`
+** `SecurityViolationException`
+
+=== Get correlation case for shadow
+
+Returns the correlation case (if any) associated with the given shadow.
+
+*`getCorrelationCaseForShadow()`*
+
+* parameters:
+** `ShadowType shadow`
+* returns:
+** `CaseType`
+* throws:
+** `SchemaException`
+
+=== Get operation options builder
+
+Creates a new builder for constructing selector/options structures.
+
+*`getOperationOptionsBuilder()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `GetOperationOptionsBuilder`
+* throws:
+** The method does not throw any exceptions.
+
+=== Only base object
+
+Returns a selector-options collection configured to retrieve only the base object.
+
+*`onlyBaseObject()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `Collection<SelectorOptions<GetOperationOptions>>`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get prism context
+
+Returns the `PrismContext`.
+
+*`getPrismContext()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `PrismContext`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get relation registry
+
+Returns the `RelationRegistry`.
+
+*`getRelationRegistry()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `RelationRegistry`
+* throws:
+** The method does not throw any exceptions.
+
+=== Get repository service
+
+Returns the `RepositoryService`.
+
+*`getRepositoryService()`*
+
+* parameters:
+** The function does not accept any parameters.
+* returns:
+** `RepositoryService`
+* throws:
+** The method does not throw any exceptions.
