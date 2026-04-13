@@ -289,7 +289,7 @@ class MappingsSuggestionOperation {
             return List.of();
         }
         var mappings = isInbound
-                ? knownSchemaProvider.suggestInboundMappings()
+                ? knownSchemaProvider.suggestInboundMappings(ctx.resource.getName().getOrig())
                 : knownSchemaProvider.suggestOutboundMappings(
                         shadowsForValidation.stream().map(ShadowWithOwner::shadow).toList());
         return mappings.stream()

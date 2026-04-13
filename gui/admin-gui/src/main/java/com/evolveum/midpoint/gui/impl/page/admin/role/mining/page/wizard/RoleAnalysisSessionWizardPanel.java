@@ -195,7 +195,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                RoleAnalysisSessionType session = getHelper().getDetailsModel().getObjectType();
+                var helper = RoleAnalysisSessionWizardPanel.this.getHelper();
+                RoleAnalysisSessionType session = helper.getDetailsModel().getObjectType();
 
                 RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
                 if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
