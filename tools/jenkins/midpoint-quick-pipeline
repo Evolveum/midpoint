@@ -42,10 +42,22 @@ podTemplate(
                         df -h
                     fi
                 """
+                def checkoutExtensions = [
+                    // Cleans up files not in Git, e.g. previous build
+                    [$class: 'CleanBeforeCheckout'],
+                    // Forces the local branch to match the remote exactly, in case the history is rewritten
+                    [$class: 'PruneStaleBranch'],
+                    [$class: 'CloneOption', honorRefspec: true, noTags: false, reference: '', shallow: false]
+                ]
+                if (params.CLEAN_WORKSPACE) {
+                    echo "CLEAN_WORKSPACE is true: Adding WipeWorkspace extension."
+                    checkoutExtensions.add([$class: 'WipeWorkspace'])
+                }
                 checkout([
-                  $class: 'GitSCM',
-                  branches: [[name: params.BRANCH ?: 'master']],
-                  userRemoteConfigs: scm.userRemoteConfigs
+                    $class: 'GitSCM',
+                    branches: [[name: params.BRANCH ?: 'master']],
+                    userRemoteConfigs: scm.userRemoteConfigs,
+                    extensions: checkoutExtensions
                 ])
             }
             stage("build") {
