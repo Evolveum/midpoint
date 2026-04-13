@@ -675,7 +675,7 @@
             <dependency>
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations</artifactId>
-                <version>21.0.1</version>
+                <version>26.0.2</version>
             </dependency>
             <dependency>
                 <groupId>javax.annotation</groupId>
@@ -1897,6 +1897,7 @@
                                 <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                             <ignoredNonTestScopedDependencies>
+                                <ignoredNonTestScopedDependency>com.evolveum.axiom:axiom</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>com.evolveum.midpoint.*:*</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>org.slf4j:slf4j-api</ignoredNonTestScopedDependency>
                                 <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/compile
@@ -1968,10 +1969,9 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
+                    <version>3.14.1</version>
                     <configuration>
-                        <source>${project.source.version}</source>
-                        <target>${project.source.version}</target>
+                        <release>${project.source.version}</release>
                     </configuration>
                 </plugin>
                 <plugin>
