@@ -155,31 +155,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
             public WebMarkupContainer createPanel(String panelId) {
                 IModel<PrismContainerWrapper<OrderConstraintsType>> orderConstraintModel =
                         PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_ORDER_CONSTRAINT);
-                return new SingleContainerPanel<>(panelId, orderConstraintModel, OrderConstraintsType.COMPLEX_TYPE) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-//                    @Override
-//                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
-//                        ItemPath itemPath = itemWrapper.getPath();
-//                        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP).equivalent(itemPath.namedSegmentsOnly())) {
-//                            return ItemVisibility.HIDDEN;
-//                        }
-//
-//                        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).equivalent(itemPath.namedSegmentsOnly())) {
-//                            return ItemVisibility.HIDDEN;
-//                        }
-//
-//                        if (ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP).equivalent(itemPath.namedSegmentsOnly())) {
-//                            return ItemVisibility.HIDDEN;
-//                        }
-//
-//                        if (ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).equivalent(itemPath.namedSegmentsOnly())) {
-//                            return ItemVisibility.HIDDEN;
-//                        }
-//
-//                        return super.getVisibility(itemWrapper);
-//                    }
-                };
+                return new SingleContainerPanel<>(panelId, orderConstraintModel, OrderConstraintsType.COMPLEX_TYPE);
             }
         };
     }
