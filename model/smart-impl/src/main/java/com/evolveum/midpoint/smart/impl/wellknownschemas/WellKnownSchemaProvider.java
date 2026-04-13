@@ -36,7 +36,7 @@ public interface WellKnownSchemaProvider {
     /**
      * Returns all predefined inbound mappings with their paths for quality assessment.
      */
-    List<SystemMappingSuggestion> suggestInboundMappings();
+    List<SystemMappingSuggestion> suggestInboundMappings(@Nullable String resourceName);
 
     /**
      * Returns all predefined outbound mappings with their paths for quality assessment.
