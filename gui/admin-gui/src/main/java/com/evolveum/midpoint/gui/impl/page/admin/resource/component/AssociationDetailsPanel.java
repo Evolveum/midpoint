@@ -6,6 +6,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
+
+import java.util.List;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -18,16 +29,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
 
 public class AssociationDetailsPanel extends BasePanel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> {
 
@@ -89,6 +90,16 @@ public class AssociationDetailsPanel extends BasePanel<PrismContainerValueWrappe
                     @Override
                     protected boolean isShowMoreButtonVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
                         return false;
+                    }
+
+                    @Override
+                    protected void populateNonContainer(ListItem<? extends ItemWrapper<?, ?>> item) {
+                        super.populateNonContainer(item);
+
+                        Component propertyPanel = item.get(ID_PROPERTY);
+                        if (propertyPanel != null) {
+                            propertyPanel.add(AttributeModifier.append("class", "mx-0 px-0"));
+                        }
                     }
                 };
 

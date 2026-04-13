@@ -13,13 +13,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
-public class IconMenuLinkPanel extends MenuLinkPanel<ButtonInlineMenuItem> {
+public class IconMenuLinkPanel<BM extends InlineMenuItem> extends MenuLinkPanel<BM> {
 
     private static final String ID_MENU_ITEM_ICON = "menuItemIcon";
 
     private static final String ID_MENU_ITEM_BADGE = "menuItemBadge";
 
-    public IconMenuLinkPanel(String id, IModel<ButtonInlineMenuItem> item) {
+    public IconMenuLinkPanel(String id, IModel<BM> item) {
         super(id, item);
     }
 
@@ -30,10 +30,11 @@ public class IconMenuLinkPanel extends MenuLinkPanel<ButtonInlineMenuItem> {
     }
 
     private void initLayout() {
-        ButtonInlineMenuItem dto = getModelObject();
+        BM dto = getModelObject();
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_MENU_ITEM_ICON);
-        icon.add(AttributeAppender.append("class", () -> dto.getIconCompositedBuilder().build().getBasicIcon()));
+        icon.add(AttributeAppender.append("class", () -> dto.getIconCompositedBuilder() != null
+                ? dto.getIconCompositedBuilder().build().getBasicIcon() : null));
         getLinkContainer().add(icon);
 
         Label badge = new Label(ID_MENU_ITEM_BADGE, () -> {
@@ -42,7 +43,13 @@ public class IconMenuLinkPanel extends MenuLinkPanel<ButtonInlineMenuItem> {
             }
             return "";
         });
-        badge.add(new VisibleBehaviour(dto::isBadgeVisible));
+        badge.add(new VisibleBehaviour(() -> {
+            if (dto instanceof ButtonInlineMenuItem) {
+                return ((ButtonInlineMenuItem) dto).isBadgeVisible();
+
+            }
+            return false;
+        }));
         getLinkContainer().add(badge);
     }
 }

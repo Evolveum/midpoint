@@ -66,17 +66,17 @@ public interface SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException;
 
     /** Returns the object holding last known statistics for the given resource and object class. */
-    GenericObjectType getLatestStatistics(
+    GenericObjectType getLatestObjectClassStatistics(
             String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException;
 
     /** Regenerates statistics for the given resource and object class. */
-    String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult result
-    ) throws CommonException;
+    String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult result)
+            throws CommonException;
 
     /** Regenerates statistics for the given resource object type. */
-    String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Task task, OperationResult result
-    ) throws CommonException;
+    String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Task task, OperationResult result)
+            throws CommonException;
 
     /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
     GenericObjectType getLatestObjectTypeStatistics(

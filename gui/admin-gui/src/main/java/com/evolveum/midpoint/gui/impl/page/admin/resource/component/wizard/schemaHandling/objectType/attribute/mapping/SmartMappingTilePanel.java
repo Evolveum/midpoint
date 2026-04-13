@@ -343,6 +343,11 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
             protected @NotNull String getSpecialButtonClass() {
                 return " px-1 py-0 ";
             }
+
+            @Override
+            protected boolean showIcon() {
+                return true;
+            }
         };
         buttonPanel.setOutputMarkupId(true);
         return buttonPanel;

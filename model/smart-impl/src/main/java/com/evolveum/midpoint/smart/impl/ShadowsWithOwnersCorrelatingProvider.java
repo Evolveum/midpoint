@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Default implementation that fetches owned shadows via ModelService from the resource.
  */
 @Component
-public class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider {
+class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider {
     private static final Trace LOGGER = TraceManager.getTrace(ShadowsWithOwnersCorrelatingProvider.class);
     private final CorrelationService correlationService;
 

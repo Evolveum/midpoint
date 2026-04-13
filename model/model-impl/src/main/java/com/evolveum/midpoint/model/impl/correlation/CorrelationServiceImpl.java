@@ -228,7 +228,9 @@ public class CorrelationServiceImpl implements CorrelationService {
                     .correlatorState(correlatorState)
                     .build();
         } else if (eligibleCandidates.isEmpty()) {
-            return CompleteCorrelationResult.builderForNoOwner(correlationStart, correlationEnd).build();
+            return CompleteCorrelationResult.builderForNoOwner(correlationStart, correlationEnd)
+                    .correlatorState(correlatorState)
+                    .build();
         } else {
             // Here we want to explicitly add also the option for no owner, because we are not sure that the
             // candidates are good enough. There is still a possibility, that the owner simply does not exist, and we

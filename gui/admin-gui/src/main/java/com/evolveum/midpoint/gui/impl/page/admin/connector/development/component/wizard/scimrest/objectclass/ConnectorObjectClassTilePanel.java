@@ -158,39 +158,40 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
                 };
             }
         });
-//
-//        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.get")) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public InlineMenuItemAction initAction() {
-//                return new ColumnMenuAction<>() {
-//                    @Serial private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public void onClick(AjaxRequestTarget target) {
-//                        editGetPerformed(target);
-//                    }
-//                };
-//            }
-//        });
-//
-//        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.searchFilter")) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public InlineMenuItemAction initAction() {
-//                return new ColumnMenuAction<>() {
-//                    @Serial private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public void onClick(AjaxRequestTarget target) {
-//                        editSearchFilterPerformed(target);
-//                    }
-//                };
-//            }
-//        });
-//
+
+        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.searchById")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        editSearchByIdPerformed(getObjectClassName(), target);
+                    }
+                };
+            }
+        });
+
+        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.searchFilter")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        editSearchFilterPerformed(getObjectClassName(), target);
+                    }
+                };
+            }
+        });
+
+
         actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.create")) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -280,6 +281,10 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
 //    protected abstract void editGetPerformed(AjaxRequestTarget target);
 
     protected abstract void editSearchAllPerformed(String objectClassName, AjaxRequestTarget target);
+
+    protected abstract void editSearchByIdPerformed(String objectClassName, AjaxRequestTarget target);
+
+    protected abstract void editSearchFilterPerformed(String objectClassName, AjaxRequestTarget target);
 
     protected abstract void editSchemaPerformed(String objectClassName, AjaxRequestTarget target);
 

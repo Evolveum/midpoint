@@ -115,7 +115,7 @@ public abstract class AbstractObjectClassStatisticsComputationActivityRun<
     }
 
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
-        var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestStatistics(
+        var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectClassStatistics(
                 getResourceOid(), getObjectClassName(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
