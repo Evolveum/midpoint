@@ -97,7 +97,7 @@ public class ObjectClassStatisticsButton extends BasePanel<QName> {
         try {
             if (!forceRegeneration()) {
                 GenericObjectType latestStatistics =
-                        smartIntegrationService.getLatestStatistics(resourceOid, objectClassName, task.getResult());
+                        smartIntegrationService.getLatestObjectClassStatistics(resourceOid, objectClassName, task.getResult());
 
                 if (latestStatistics != null) {
                     showStatisticsPopup(target, page, latestStatistics, objectClassName);
@@ -182,7 +182,7 @@ public class ObjectClassStatisticsButton extends BasePanel<QName> {
 
         try {
             GenericObjectType latestStatistics =
-                    smartIntegrationService.getLatestStatistics(resourceOid, objectClassName, task.getResult());
+                    smartIntegrationService.getLatestObjectClassStatistics(resourceOid, objectClassName, task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");

@@ -104,9 +104,10 @@ public class MappingsSuggestionStatisticsComputationActivityRun
         }
 
         LOGGER.debug("No suitable object type statistics found, will compute one");
-        var res = Resource.of(resource);
-        ResourceObjectTypeDefinition objectTypeDefinition = res.getCompleteSchemaRequired()
-                .getObjectTypeDefinition(getWorkDefinition().getTypeIdentification().getKind(), getWorkDefinition().getIntent());
+        ResourceObjectTypeDefinition objectTypeDefinition =
+                Resource.of(resource)
+                        .getCompleteSchemaRequired()
+                        .getObjectTypeDefinitionRequired(getWorkDefinition().getTypeIdentification());
         computer = new ObjectTypeStatisticsComputer(objectTypeDefinition);
         return true;
     }
@@ -125,7 +126,7 @@ public class MappingsSuggestionStatisticsComputationActivityRun
         return new SearchSpecification<>(
                 ShadowType.class,
                 Resource.of(resource)
-                        .queryFor(def.getTypeIdentification().getKind(), def.getIntent())
+                        .queryFor(def.getTypeIdentification())
                         .build(),
                 null,
                 false);

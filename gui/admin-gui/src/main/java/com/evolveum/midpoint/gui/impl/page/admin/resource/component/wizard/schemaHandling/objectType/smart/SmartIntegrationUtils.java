@@ -667,7 +667,7 @@ public class SmartIntegrationUtils {
         ShadowObjectClassStatisticsType statisticsRequired;
         try {
             GenericObjectType latestStatistics = smartIntegrationService
-                    .getLatestStatistics(resourceOid, objectClass, pageTask.getResult());
+                    .getLatestObjectClassStatistics(resourceOid, objectClass, pageTask.getResult());
             if (latestStatistics == null) {
                 pageBase.warn(pageBase.getString("SmartIntegrationUtils.noStatistics.available.for.on",
                         objectClass, resourceOid));

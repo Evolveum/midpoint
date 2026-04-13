@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * Activity run responsible for providing statistics used for object type suggestions.
  *
@@ -72,7 +74,7 @@ public class ObjectTypesSuggestionStatisticsComputationActivityRun
     }
 
     @Override
-    protected @NotNull javax.xml.namespace.QName getObjectClassName() {
+    protected @NotNull QName getObjectClassName() {
         return getWorkDefinition().getObjectClassName();
     }
 
