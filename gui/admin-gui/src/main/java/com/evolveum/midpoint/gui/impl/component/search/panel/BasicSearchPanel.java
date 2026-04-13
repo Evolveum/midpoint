@@ -95,6 +95,11 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
 
         currentBiggestDisplayOrder = getModelObject().getItemsList().stream()
                 .peek(item -> {
+                    // add displayOrder for default search items which are visible, so they are properly sorted before items added by More button
+                    // this case occurs when only default search items are in search box
+                    if (item.isVisible() && item.getDisplayOrder() == null) {
+                        item.setDisplayOrder(++currentBiggestDisplayOrder);
+                    }
                     // it is needed to remove displayOrder for not visible search items, so they are properly sorted in More button alphabetically
                     // this case occurs when you switch between Saved filters
                     if (!item.isVisible() && item.getDisplayOrder() != null) {
@@ -218,8 +223,11 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         itemList.forEach(item -> {
             if (item.isSelected()) {
                 item.setVisible(true);
-                item.setDisplayOrder(++currentBiggestDisplayOrder);// TODO case with max integer + log warning
                 item.setSelected(false);
+                // in corner case when currentBiggestDisplayOrder reaches Integer.MAX_VALUE,
+                // the variable will contains the smallest Integer values,
+                // so added items will be added from the beginning of the search box items
+                item.setDisplayOrder(++currentBiggestDisplayOrder);
             }
         });
         target.add(BasicSearchPanel.this);
