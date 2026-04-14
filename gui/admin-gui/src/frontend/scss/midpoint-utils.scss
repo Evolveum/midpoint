@@ -198,3 +198,137 @@ font-weight: 600;
   &.fa-fw-sm {
     width: 1em;}
 }
+
+//AI gradient style extension
+:root {
+  --mp-ai-gradient-0: linear-gradient(0deg, #{$indigo} 10%, #{$blue} 110%);
+  --mp-ai-gradient: linear-gradient(12deg, #{$indigo} 20%, #{$blue} 105%);
+
+  --mp-ai-gradient-hover: #{linear-gradient(12deg, mix(black, $indigo, 10%) 20%, mix(black, $blue, 10%) 105%)};
+
+  --mp-ai-gradient-text-emphasis: linear-gradient(12deg, #{$ai-text-emphasis} 20%, #{$blue-text-emphasis} 105%);
+  --mp-ai-gradient-bg-subtle: linear-gradient(12deg, #{$ai-bg-subtle} 20%, #{$blue-bg-subtle} 105%);
+  --mp-ai-gradient-border-subtle: linear-gradient(12deg, #{$ai-border-subtle} 20%, #{$blue-border-subtle} 105%);
+}
+
+.btn {
+  &.btn-ai-gradient {
+    --bs-btn-hover: var(--mp-ai-gradient-hover);
+
+    background: var(--mp-ai-gradient) padding-box, var(--mp-ai-gradient) border-box;
+    border: 1px solid transparent;
+    color: white;
+
+    &:hover {
+      background: var(--bs-btn-hover);
+      border: 1px solid transparent;
+      color: white;
+    }
+  }
+
+  &.btn-outline-ai-gradient {
+    --bs-btn-hover: var(--mp-ai-gradient);
+    --mp-ai-gradient-bg-calibration: white;
+
+    border: 1px solid transparent;
+    background: linear-gradient(var(--mp-ai-gradient-bg-calibration), var(--mp-ai-gradient-bg-calibration)) padding-box, var(--mp-ai-gradient) border-box;
+
+    & > i:first-of-type {
+      background: var(--mp-ai-gradient) text;
+      color: transparent;
+    }
+
+    &:hover {
+      background: var(--bs-btn-hover);
+      border: 1px solid transparent;
+      color: white;
+
+      & > i:first-of-type {
+        background: unset;
+        color: inherit;
+      }
+    }
+  }
+}
+
+.border-ai-gradient {
+  background: linear-gradient(white, white) padding-box, var(--mp-ai-gradient-0) border-box;
+  border: 1px solid transparent !important;
+
+  &.border-large-left::before {
+    background: var(--mp-ai-gradient-0) border-box;
+  }
+}
+
+.text-ai-gradient, fa.text-ai-gradient::before {
+  background: var(--mp-ai-gradient) text;
+  color: transparent;
+}
+  /* (Backup) Advanced version of ai border gradient
+  background-image: var(--mp-ai-gradient)
+  position: relative;
+  border: none !important;
+  z-index: 1;
+
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 8px;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    z-index: -1;
+    background: white;
+    border-radius: calc(0.25rem - 1px);
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+  }*/
+
+  .badge {
+    &.badge-ai-gradient {
+      color: white;
+      background: var(--mp-ai-gradient) padding-box, var(--mp-ai-gradient) border-box;
+
+      &.badge-opaque {
+        background: var(--mp-ai-gradient-text-emphasis) text, var(--mp-ai-gradient-bg-subtle) padding-box, var(--mp-ai-gradient-border-subtle) border-box;
+        border: 1px solid transparent;
+        color: transparent;
+      }
+    }
+  }
+
+//Bootstrap alert extension for transparent variant + AI gradient
+//NOTE: For BS5 upgrade purposes, main tags needs to be transferred to main class
+.alert {
+  &.alert-opaque {
+    @each $color, $value in $theme-colors {
+      &.alert-#{$color} {
+        --bs-alert-#{$color}-text-emphasis: var(--bs-#{$color}-text-emphasis);
+        --bs-alert-#{$color}-bg-subtle: var(--bs-#{$color}-bg-subtle);
+        --bs-alert-#{$color}-border-subtle: var(--bs-#{$color}-border-subtle);
+
+        color: var(--bs-alert-#{$color}-text-emphasis);
+        background-color: var(--bs-alert-#{$color}-bg-subtle);
+        border: 1px solid var(--bs-alert-#{$color}-border-subtle);
+
+        .alert-icon {
+          --mp-alert-icon-#{$color}: var(--#{$color});
+          color: var(--mp-alert-icon-#{$color});
+        }
+      }
+    }
+    &.alert-ai-gradient {
+      background: var(--mp-ai-gradient-text-emphasis) text, var(--mp-ai-gradient-bg-subtle) padding-box, var(--mp-ai-gradient-border-subtle) border-box;
+      border: 1px solid transparent;
+      color: transparent;
+
+      .alert-icon {
+        --mp-alert-icon-ai-gradient: var(--mp-ai-gradient);
+
+        background: var(--mp-alert-icon-ai-gradient) text;
+        color: transparent;
+      }
+    }
+  }
+}

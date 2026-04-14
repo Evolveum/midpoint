@@ -8,7 +8,7 @@
 
 package com.evolveum.midpoint.smart.impl.wellknownschemas;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -41,11 +41,11 @@ public class WellKnownSchemaService {
      * Attempts to detect known schema type for the given resource and object type.
      * Returns the detection with highest confidence if multiple schemas match.
      */
-    public Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition) {
+    public Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectClassDefinition objectClassDef) {
 
         for (WellKnownSchemaDetector detector : detectors) {
             try {
-                Optional<WellKnownSchemaType> result = detector.detectSchemaType(resource, typeDefinition);
+                Optional<WellKnownSchemaType> result = detector.detectSchemaType(resource, objectClassDef);
                 if (result.isPresent()) {
                     LOGGER.debug("Detected known schema: {}", result.get());
                     return result;

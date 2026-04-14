@@ -6,6 +6,11 @@
 
 def verbose = params.VERBOSE ?: '0'
 
+// Make the cpuLimit integer from String Jenkins job parameter
+def cpuLimit = (params.BUILDER_CPU ?: '4').toInteger()
+// Request half the limit to reduce reserved capacity, allowing more concurrent pods to be scheduled
+def cpuRequest = cpuLimit.intdiv(2)
+
 podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 7200,
@@ -18,8 +23,8 @@ podTemplate(
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
                         runAsUser: '0',
-                        resourceRequestCpu: '1',
-                        resourceLimitCpu: '1',
+                        resourceRequestCpu: '100m',
+                        resourceLimitCpu: '500m',
                         resourceRequestMemory: '2Gi',
                         resourceLimitMemory: '2Gi'),
                 containerTemplate(name: 'maven',
@@ -27,8 +32,8 @@ podTemplate(
                         runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
-                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
-                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
+                        resourceRequestCpu: "${cpuRequest}",
+                        resourceLimitCpu: "${cpuLimit}"
                         resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // by default -Xmx4g is set in main POM
         ]
@@ -42,10 +47,22 @@ podTemplate(
                         df -h
                     fi
                 """
+                def checkoutExtensions = [
+                    // Cleans up files not in Git, e.g. previous build
+                    [$class: 'CleanBeforeCheckout'],
+                    // Forces the local branch to match the remote exactly, in case the history is rewritten
+                    [$class: 'PruneStaleBranch'],
+                    [$class: 'CloneOption', honorRefspec: true, noTags: false, reference: '', shallow: false]
+                ]
+                if (params.CLEAN_WORKSPACE) {
+                    echo "CLEAN_WORKSPACE is true: Adding WipeWorkspace extension."
+                    checkoutExtensions.add([$class: 'WipeWorkspace'])
+                }
                 checkout([
-                  $class: 'GitSCM',
-                  branches: [[name: params.BRANCH ?: 'master']],
-                  userRemoteConfigs: scm.userRemoteConfigs
+                    $class: 'GitSCM',
+                    branches: [[name: params.BRANCH ?: 'master']],
+                    userRemoteConfigs: scm.userRemoteConfigs,
+                    extensions: checkoutExtensions
                 ])
             }
             stage("build") {

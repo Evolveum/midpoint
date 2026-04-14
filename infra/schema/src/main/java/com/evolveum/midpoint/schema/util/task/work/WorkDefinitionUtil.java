@@ -70,6 +70,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getCorrelationSuggestion());
         addTypedParameters(values, definitions.getMappingsSuggestion());
         addTypedParameters(values, definitions.getAssociationsSuggestion());
+        addTypedParameters(values, definitions.getSchemaMatchPreload());
         addTypedParameters(values, definitions.getCorrelation());
         addTypedParameters(values, definitions.getMappings());
         addTypedParameters(values, definitions.getObjectClassStatisticsComputation());

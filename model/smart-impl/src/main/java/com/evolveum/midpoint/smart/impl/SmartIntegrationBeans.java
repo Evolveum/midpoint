@@ -19,8 +19,6 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelService;
 
-import org.springframework.stereotype.Repository;
-
 /**
  * Commonly-used beans for smart-impl module.
  *
