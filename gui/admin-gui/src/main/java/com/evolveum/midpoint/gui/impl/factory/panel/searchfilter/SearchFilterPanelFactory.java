@@ -87,6 +87,16 @@ public class SearchFilterPanelFactory extends AbstractInputGuiComponentFactory<S
         return containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType;
     }
 
+    /**
+     * Resolves the object type for the search filter.
+     *
+     * <p>Returning {@code null} is intentional in some cases (e.g. delineation suggestion) — it prevents filter parsing
+     * and validation in {@code SearchFilterConfigurationPanel#createQueryModel(...)}.
+     *
+     * @param panelCtx context for the search filter
+     * @return resolved object type, {@link ObjectType#COMPLEX_TYPE} as a generic fallback,
+     * or {@code null} when parsing should be skipped
+     */
     private QName getFilterObjectType(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
         PrismPropertyWrapper<SearchFilterType> searchFilterItemWrapper = panelCtx.unwrapWrapperModel();
         PrismContainerValueWrapper<?> containerWrapper = searchFilterItemWrapper.getParent();
