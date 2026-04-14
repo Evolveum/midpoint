@@ -197,6 +197,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
                     LOGGER.error("Unable to create search filter from query: {}, {}", filter, e.getLocalizedMessage());
                 }
                 searchItem.setVisibleByDefault(true);
+                searchItem.setDisplayOrder(item.getDisplayOrder());
                 searchItems.add(searchItem);
                 //todo do later non property items - oid, type...
             }
