@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -71,16 +72,19 @@ public class SchemaMatchService {
     private final ServiceClientFactory clientFactory;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final SystemObjectCache systemObjectCache;
+    private final StatisticsService statisticsService;
 
     public SchemaMatchService(
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
             ServiceClientFactory clientFactory,
             WellKnownSchemaService wellKnownSchemaService,
-            SystemObjectCache systemObjectCache) {
+            SystemObjectCache systemObjectCache,
+            StatisticsService statisticsService) {
         this.repositoryService = repositoryService;
         this.clientFactory = clientFactory;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.systemObjectCache = systemObjectCache;
+        this.statisticsService = statisticsService;
     }
 
     public SchemaMatchResultType loadSchemaMatch(ObjectReferenceType schemaMatchRef, OperationResult result) {
@@ -136,6 +140,8 @@ public class SchemaMatchService {
                 processAttributeMatch(attributeMatch, matchingOp, ctx, focusTypeDefinition)
                         .ifPresent(schemaMatchResult.getSchemaMatchResult()::add);
             }
+            var objectTypeStatistics = loadObjectTypeStats(resourceOid, typeIdentification, ctx.resource, ctx.typeDefinition, result);
+            new PostSchemaMatchHeuristics(focusTypeDefinition, objectTypeStatistics).applyAll(schemaMatchResult);
             return schemaMatchResult;
         } catch (Throwable t) {
             result.recordException(t);
@@ -362,7 +368,36 @@ public class SchemaMatchService {
         return XmlTypeConverter.isBeforeNow(expirationTime);
     }
 
-    private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
+    private ShadowObjectClassStatisticsType loadObjectTypeStats(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            ResourceType resource,
+            ResourceObjectTypeDefinition typeDefinition,
+            OperationResult result) {
+        try {
+            var statsObj = statisticsService.getLatestObjectTypeStatistics(
+                    resourceOid,
+                    typeIdentification.getKind().value(),
+                    typeIdentification.getIntent(),
+                    result);
+            if (statsObj != null) {
+                return ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(statsObj);
+            }
+            LOGGER.info("No object type statistics found for {}/{}/{}; computing synchronously",
+                    resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent());
+            return statisticsService.computeObjectTypeStatisticsSync(
+                    resourceOid,
+                    resource.getName() != null ? resource.getName().getOrig() : null,
+                    typeIdentification,
+                    typeDefinition,
+                    result);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to load object type statistics for uniqueness filter: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    static QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
         if (propertyDefinition.isEnum()) {
             return DOMUtil.XSD_STRING;
         }
