@@ -38,7 +38,7 @@ public class GroupOfNamesLdapMappingProvider implements WellKnownSchemaProvider 
     @Override
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
-        matches.put(ItemPath.create("description"), RoleType.F_DESCRIPTION);
+        matches.put(SystemMappingSuggestion.riAttr("description"), RoleType.F_DESCRIPTION);
         return matches;
     }
 

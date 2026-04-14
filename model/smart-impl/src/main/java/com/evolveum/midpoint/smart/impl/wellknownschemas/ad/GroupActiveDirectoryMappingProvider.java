@@ -38,7 +38,7 @@ public class GroupActiveDirectoryMappingProvider implements WellKnownSchemaProvi
     @Override
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
-        matches.put(ItemPath.create("adminDescription"), RoleType.F_DESCRIPTION);
+        matches.put(SystemMappingSuggestion.riAttr("adminDescription"), RoleType.F_DESCRIPTION);
         return matches;
     }
 

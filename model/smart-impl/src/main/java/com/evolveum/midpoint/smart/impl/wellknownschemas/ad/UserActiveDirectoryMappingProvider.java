@@ -39,18 +39,18 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
     @Override
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
-        matches.put(ItemPath.create("sAMAccountName"), UserType.F_NAME);
-        matches.put(ItemPath.create("userPrincipalName"), UserType.F_NAME);
-        matches.put(ItemPath.create("cn"), UserType.F_FULL_NAME);
-        matches.put(ItemPath.create("givenName"), UserType.F_GIVEN_NAME);
-        matches.put(ItemPath.create("sn"), UserType.F_FAMILY_NAME);
-        matches.put(ItemPath.create("company"), UserType.F_ORGANIZATION);
-        matches.put(ItemPath.create("department"), UserType.F_ORGANIZATIONAL_UNIT);
-        matches.put(ItemPath.create("employeeNumber"), UserType.F_PERSONAL_NUMBER);
-        matches.put(ItemPath.create("mail"), UserType.F_EMAIL_ADDRESS);
-        matches.put(ItemPath.create("l"), UserType.F_LOCALITY);
-        matches.put(ItemPath.create("telephoneNumber"), UserType.F_TELEPHONE_NUMBER);
-        matches.put(ItemPath.create("title"), UserType.F_TITLE);
+        matches.put(SystemMappingSuggestion.riAttr("sAMAccountName"), UserType.F_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("userPrincipalName"), UserType.F_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("cn"), UserType.F_FULL_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("givenName"), UserType.F_GIVEN_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("sn"), UserType.F_FAMILY_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("company"), UserType.F_ORGANIZATION);
+        matches.put(SystemMappingSuggestion.riAttr("department"), UserType.F_ORGANIZATIONAL_UNIT);
+        matches.put(SystemMappingSuggestion.riAttr("employeeNumber"), UserType.F_PERSONAL_NUMBER);
+        matches.put(SystemMappingSuggestion.riAttr("mail"), UserType.F_EMAIL_ADDRESS);
+        matches.put(SystemMappingSuggestion.riAttr("l"), UserType.F_LOCALITY);
+        matches.put(SystemMappingSuggestion.riAttr("telephoneNumber"), UserType.F_TELEPHONE_NUMBER);
+        matches.put(SystemMappingSuggestion.riAttr("title"), UserType.F_TITLE);
         return matches;
     }
 
