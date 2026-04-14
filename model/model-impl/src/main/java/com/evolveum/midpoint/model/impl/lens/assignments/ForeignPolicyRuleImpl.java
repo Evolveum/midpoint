@@ -11,19 +11,17 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
-
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
 
 /**
  * A rule that has been "transplanted" onto new owner ({@link EvaluatedAssignment}) - currently, the other side
@@ -124,7 +122,7 @@ public class ForeignPolicyRuleImpl implements AssociatedPolicyRule {
     public void addToEvaluatedPolicyRuleBeans(
             @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
             @NotNull PolicyRuleExternalizationOptions options,
-            @Nullable Predicate<EvaluatedFocusPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
             @Nullable EvaluatedAssignment newOwner) {
         assert newOwner == null || newOwner == this.newOwner;
         evaluatedPolicyRule.addToEvaluatedPolicyRuleBeansInternal(ruleBeans, options, triggerSelector, this.newOwner);

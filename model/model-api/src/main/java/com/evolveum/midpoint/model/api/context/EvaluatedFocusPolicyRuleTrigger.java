@@ -86,20 +86,8 @@ public abstract class EvaluatedFocusPolicyRuleTrigger<CT extends AbstractPolicyC
         }
     }
 
-    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getInnerTriggers() {
-        return Collections.emptySet();
-    }
-
     public boolean isEnforcementOverride() {
         return enforcementOverride;
-    }
-
-    /**
-     * @return Target object(s) that were matched by constraint that produced this trigger.
-     * For example: target of the assignment that was added (and that matched "assignment" constraint).
-     */
-    public Collection<? extends PrismObject<?>> getTargetObjects() {
-        return Collections.emptyList();
     }
 
     /**

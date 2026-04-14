@@ -6,6 +6,18 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
+import static com.evolveum.midpoint.util.DebugUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.io.Serial;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
@@ -13,12 +25,19 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRu
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
-import com.evolveum.midpoint.schema.config.*;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.schema.config.AbstractPolicyRuleConfigItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -27,33 +46,17 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.TreeNode;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.Serial;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
-import static com.evolveum.midpoint.util.DebugUtil.*;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * @author semancik
  *
  */
 public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedPolicyRule {
+
     @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedPolicyRuleImpl.class);
@@ -61,7 +64,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     @NotNull private final AbstractPolicyRuleConfigItem<?> policyRuleCI;
     @NotNull private final PolicyRuleType policyRuleBean;
 
-    @NotNull private final Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+    @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
     /**
      * Information about exact place where the rule was found. This can be important for rules that are
@@ -229,7 +232,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
 
     @NotNull
     @Override
-    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getTriggers() {
+    public Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers() {
         return triggers;
     }
 
@@ -240,9 +243,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
 
     @NotNull
     @Override
-    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getAllTriggers() {
-        List<EvaluatedFocusPolicyRuleTrigger<?>> rv = new ArrayList<>();
-        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
+    public Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers() {
+        List<EvaluatedPolicyRuleTrigger<?>> rv = new ArrayList<>();
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedSituationTrigger) {
                 rv.addAll(((EvaluatedSituationTrigger) trigger).getAllTriggers());
             } else {
@@ -259,15 +262,15 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     }
 
     @Override
-    public <T extends EvaluatedFocusPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type) {
+    public <T extends EvaluatedPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type) {
         List<T> selectedTriggers = new ArrayList<>();
         collectTriggers(selectedTriggers, getAllTriggers(), type);
         return selectedTriggers;
     }
 
-    private <T extends EvaluatedFocusPolicyRuleTrigger<?>> void collectTriggers(Collection<T> collected,
-            Collection<EvaluatedFocusPolicyRuleTrigger<?>> all, Class<T> type) {
-        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : all) {
+    private <T extends EvaluatedPolicyRuleTrigger<?>> void collectTriggers(Collection<T> collected,
+            Collection<EvaluatedPolicyRuleTrigger<?>> all, Class<T> type) {
+        for (EvaluatedPolicyRuleTrigger<?> trigger : all) {
             if (type.isAssignableFrom(trigger.getClass())) {
                 //noinspection unchecked
                 collected.add((T) trigger);
@@ -282,7 +285,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         }
     }
 
-    public void trigger(Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
+    public void trigger(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         String ruleName = getName();
         LOGGER.debug("Policy rule {} triggered: {}", ruleName, triggers);
         LOGGER.trace("Policy rule {} triggered:\n{}", ruleName, DebugUtil.debugDumpLazily(triggers, 1));
@@ -309,7 +312,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         }
 
         if (!triggers.isEmpty()) {
-            EvaluatedFocusPolicyRuleTrigger<?> firstTrigger = triggers.iterator().next();
+            EvaluatedPolicyRuleTrigger<?> firstTrigger = triggers.iterator().next();
             if (firstTrigger instanceof EvaluatedSituationTrigger) {
                 Collection<EvaluatedPolicyRule> sourceRules = ((EvaluatedSituationTrigger) firstTrigger).getSourceRules();
                 if (!sourceRules.isEmpty()) {    // should be always the case
@@ -397,10 +400,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof EvaluatedPolicyRuleImpl that))
-            return false;
+        if (this == o) {return true;}
+        if (!(o instanceof EvaluatedPolicyRuleImpl that)) {return false;}
         return java.util.Objects.equals(policyRuleCI, that.policyRuleCI)
                 && Objects.equals(assignmentPath, that.assignmentPath)
                 && Objects.equals(triggers, that.triggers);
@@ -442,7 +443,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
             sb.append(" # {T:");
             sb.append(
                     getTriggers().stream()
-                            .map(EvaluatedFocusPolicyRuleTrigger::toDiagShortcut)
+                            .map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
                             .collect(Collectors.joining(", ")));
             sb.append("}");
         }
@@ -466,7 +467,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     public void addToEvaluatedPolicyRuleBeans(
             @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
             @NotNull PolicyRuleExternalizationOptions options,
-            @Nullable Predicate<EvaluatedFocusPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
             @Nullable EvaluatedAssignment newOwner) {
         addToEvaluatedPolicyRuleBeansInternal(ruleBeans, options, triggerSelector, newOwner);
     }
@@ -474,7 +475,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     public void addToEvaluatedPolicyRuleBeansInternal(
             @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
             @NotNull PolicyRuleExternalizationOptions options,
-            @Nullable Predicate<EvaluatedFocusPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
             @Nullable EvaluatedAssignment newOwner) {
         EvaluatedPolicyRuleType bean = new EvaluatedPolicyRuleType();
         bean.setRuleName(getName());
@@ -489,11 +490,16 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
                 bean.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
             }
         }
-        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (triggerSelector != null && !triggerSelector.test(trigger)) {
                 continue;
             }
-            if (!trigger.isRelevantForNewOwner(newOwner)) {
+
+            if (!(trigger instanceof EvaluatedFocusPolicyRuleTrigger focusTrigger)) {    // todo is this ok? [viliam]
+                continue;
+            }
+
+            if (!focusTrigger.isRelevantForNewOwner(newOwner)) {
                 continue;
             }
             if (trigger instanceof EvaluatedSituationTrigger && trigger.isHidden()) {
@@ -503,7 +509,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
                 }
             } else {
                 bean.getTrigger().add(
-                        trigger.toEvaluatedPolicyRuleTriggerBean(options, newOwner));
+                        focusTrigger.toEvaluatedPolicyRuleTriggerBean(options, newOwner));
             }
         }
         if (bean.getTrigger().isEmpty()) {
@@ -518,7 +524,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
             return null;
         }
         List<ObjectType> roots = assignmentPath.getFirstOrderChain();
-        return roots.isEmpty() ? null : roots.get(roots.size()-1);
+        return roots.isEmpty() ? null : roots.get(roots.size() - 1);
     }
 
     @NotNull

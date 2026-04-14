@@ -6,19 +6,20 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
+import java.util.Collection;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
 
 public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderType>
         extends PolicyRuleEvaluationContext<AH>
@@ -65,7 +66,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
 
     @Override
     boolean hasPolicyRuleExceptions(
-            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
+            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         return evaluatedAssignment.hasPolicyRuleException(policyRule, triggers);
     }
 
@@ -89,11 +90,11 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     @Override
     public String getShortDescription() {
         return evaluatedAssignment.getTarget() + " (" +
-                (isAdded ? "+":"") +
-                (isDeleted ? "-":"") +
-                (isKept ? "0":"") +
+                (isAdded ? "+" : "") +
+                (isDeleted ? "-" : "") +
+                (isKept ? "0" : "") +
                 ") " +
-                (isDirect() ? "directly":"indirectly") +
+                (isDirect() ? "directly" : "indirectly") +
                 " in " + ObjectTypeUtil.toShortString(elementContext.getObjectAny()) + " / " + state;
     }
 

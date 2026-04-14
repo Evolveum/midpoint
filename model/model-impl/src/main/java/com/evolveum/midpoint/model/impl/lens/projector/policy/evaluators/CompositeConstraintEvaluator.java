@@ -6,31 +6,29 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.*;
+
+import java.util.Collection;
+import java.util.List;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.xml.bind.JAXBElement;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
-import jakarta.xml.bind.JAXBElement;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.*;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 @Component
 public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<PolicyConstraintsType, EvaluatedCompositeTrigger> {
@@ -67,7 +65,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
             boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
             boolean isNot = QNameUtil.match(PolicyConstraintsType.F_NOT, constraint.getName());
             assert isAnd || isOr || isNot;
-            List<EvaluatedFocusPolicyRuleTrigger<?>> triggers =
+            List<EvaluatedPolicyRuleTrigger<?>> triggers =
                     policyConstraintsEvaluator.evaluateConstraints(constraint.getValue(), !isOr, rctx, result);
             EvaluatedCompositeTrigger rv;
             if (isNot) {
@@ -98,7 +96,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
     @NotNull
     private EvaluatedCompositeTrigger createTrigger(
             PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
-            List<EvaluatedFocusPolicyRuleTrigger<?>> triggers,
+            List<EvaluatedPolicyRuleTrigger<?>> triggers,
             PolicyRuleEvaluationContext<?> rctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {

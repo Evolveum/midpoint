@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.api.context.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +22,10 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
+import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -184,12 +187,14 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
             for (ApprovalActionWithRule actionWithRule : ps.actionsWithRules) {
                 AssociatedPolicyRule rule = actionWithRule.policyRule();
                 // We can take all (i.e. also irrelevant) triggers here, as the conversion to bean will select the relevant ones.
-                for (EvaluatedFocusPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getAllTriggers()) {
-                    // we don't care about options; these converted triggers will be thrown away - only messages are collected
-                    triggers.add(
-                            trigger.toEvaluatedPolicyRuleTriggerBean(
-                                    new PolicyRuleExternalizationOptions(), rule.getNewOwner()));
-                }
+                rule.getEvaluatedPolicyRule().getAllTriggers().stream()
+                        // todo is this filtering ok [viliam]
+                        .filter(t -> t instanceof EvaluatedFocusPolicyRuleTrigger<?>)
+                        .map(t -> (EvaluatedFocusPolicyRuleTrigger<?>) t)
+                        .forEach(t -> triggers.add(t.toEvaluatedPolicyRuleTriggerBean(
+                                // we don't care about options; these converted triggers will be thrown away - only messages are collected
+                                new PolicyRuleExternalizationOptions(), rule.getNewOwner()
+                        )));
             }
         } else {
             // For assignments we do not set processSpecification yet.

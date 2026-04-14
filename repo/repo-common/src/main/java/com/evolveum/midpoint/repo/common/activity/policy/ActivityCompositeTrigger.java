@@ -15,18 +15,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsTyp
 
 public class ActivityCompositeTrigger extends EvaluatedActivityPolicyRuleTrigger<PolicyConstraintsType> {
 
-    private final @NotNull Collection<EvaluatedActivityPolicyRuleTrigger<?>> innerTriggers;
+    private final @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
     public ActivityCompositeTrigger(
             @NotNull PolicyConstraintKindType constraintKind,
             @NotNull PolicyConstraintsType constraint,
-            @NotNull Collection<EvaluatedActivityPolicyRuleTrigger<?>> innerTriggers) {
+            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
         super(constraintKind, constraint, null, null);
 
         this.innerTriggers = innerTriggers;
     }
 
-    public @NotNull Collection<EvaluatedActivityPolicyRuleTrigger<?>> getInnerTriggers() {
+    public @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
         return innerTriggers;
     }
 }

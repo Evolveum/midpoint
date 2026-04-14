@@ -6,10 +6,10 @@
 
 package com.evolveum.midpoint.model.intest.rbac;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,8 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -35,6 +33,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -1303,7 +1303,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         UserType user = new UserType()
                 .name("test260")
                 .beginAssignment()
-                    .targetRef(ROLE_CONTROLLING_1_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_CONTROLLING_1_OID, RoleType.COMPLEX_TYPE)
                 .end();
         addObject(user, task, result);
 
@@ -1314,8 +1314,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertUserAfter(user.getOid())
                 .assertAssignments(2)
                 .assignments()
-                    .assertRole(ROLE_CONTROLLING_1_OID)
-                    .assertOrg(ORG_EXECUTIVE_RANDOM.oid);
+                .assertRole(ROLE_CONTROLLING_1_OID)
+                .assertOrg(ORG_EXECUTIVE_RANDOM.oid);
     }
 
     @Test
@@ -1564,10 +1564,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertUserAfter(USER_MARTIN.oid)
                 .assignments()
                 .assertAssignments(2)
-                    .assertRole(ROLE_APPLICATION_2.oid)
-                    .assertRole(ROLE_BUSINESS_2.oid);
+                .assertRole(ROLE_APPLICATION_2.oid)
+                .assertRole(ROLE_BUSINESS_2.oid);
     }
-
 
     /**
      * When previewing assignment addition with pruning action present, the pruning itself should not be executed.
@@ -1744,10 +1743,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         display("Evaluated policy rules", allTargetsPolicyRules);
         assertEquals("Wrong number of evaluated policy rules", 2, allTargetsPolicyRules.size());
         EvaluatedPolicyRule evaluatedSodPolicyRule = getEvaluatedPolicyRule(allTargetsPolicyRules, GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME);
-        EvaluatedFocusPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
+        EvaluatedPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
         displayDumpable("Own trigger", sodTrigger);
         assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
-        EvaluatedFocusPolicyRuleTrigger<?> situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
+        EvaluatedPolicyRuleTrigger<?> situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
         displayDumpable("Situation trigger", situationTrigger);
         PolicyActionsType sodActions = evaluatedSodPolicyRule.getActions();
         display("Actions", sodActions);
@@ -1877,18 +1876,18 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     }
 
     private void assertEvaluatedPolicyRuleTriggers(EvaluatedPolicyRule evaluatedPolicyRule,
-                                                   Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
         assertEquals("Wrong number of triggers in evaluated policy rule " + evaluatedPolicyRule.getName(), expectedNumberOfTriggers, triggers.size());
     }
 
-    private EvaluatedFocusPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
+    private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         assertEvaluatedPolicyRuleTriggers(evaluatedPolicyRule, triggers, 1);
         return triggers.iterator().next();
     }
 
     @SuppressWarnings("SameParameterValue")
-    private EvaluatedFocusPolicyRuleTrigger<?> getEvaluatedPolicyRuleTrigger(
-            Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers, PolicyConstraintKindType expectedConstraintType) {
+    private EvaluatedPolicyRuleTrigger<?> getEvaluatedPolicyRuleTrigger(
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, PolicyConstraintKindType expectedConstraintType) {
         return triggers.stream().filter(trigger -> expectedConstraintType.equals(trigger.getConstraintKind())).findFirst().get();
     }
 

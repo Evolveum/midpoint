@@ -20,6 +20,8 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -1290,8 +1292,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    private void dumpTriggersCollection(int indent, StringBuilder sb, Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
-        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
+    private void dumpTriggersCollection(int indent, StringBuilder sb, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent);
             sb.append("trigger: ").append(trigger);

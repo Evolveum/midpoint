@@ -6,44 +6,46 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedLogicalTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class EvaluatedCompositeTrigger extends EvaluatedFocusPolicyRuleTrigger<PolicyConstraintsType> {
 
-    @NotNull private final Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers;
+    @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
     public EvaluatedCompositeTrigger(
             @NotNull PolicyConstraintKindType kind,
             @NotNull PolicyConstraintsType constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage,
-            @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers) {
+            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
         super(kind, constraint, message, shortMessage, false);
         this.innerTriggers = innerTriggers;
     }
 
     @NotNull
-    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getInnerTriggers() {
+    public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
         return innerTriggers;
     }
 
     @Override
     public String toDiagShortcut() {
         return super.toDiagShortcut()
-            + innerTriggers.stream()
-                    .map(EvaluatedFocusPolicyRuleTrigger::toDiagShortcut)
-                    .distinct()
-                    .collect(Collectors.joining("+", "(", ")"));
+                + innerTriggers.stream()
+                .map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
+                .distinct()
+                .collect(Collectors.joining("+", "(", ")"));
     }
 
     @Override
@@ -78,6 +80,8 @@ public class EvaluatedCompositeTrigger extends EvaluatedFocusPolicyRuleTrigger<P
         fillCommonContent(rv);
         if (!isFinal()) {
             innerTriggers.stream()
+                    .filter(t -> t instanceof EvaluatedFocusPolicyRuleTrigger<?>)   // todo is this ok? [viliam]
+                    .map(t -> (EvaluatedFocusPolicyRuleTrigger<?>) t)
                     .filter(t -> t.isRelevantForNewOwner(newOwner))
                     .forEach(t ->
                             rv.getEmbedded().add(

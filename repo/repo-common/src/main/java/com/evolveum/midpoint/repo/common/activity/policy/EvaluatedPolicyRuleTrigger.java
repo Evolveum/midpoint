@@ -7,18 +7,22 @@
 package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
-
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintPresentationType;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedActivityPolicyTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintPresentationType;
 
 public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType> implements DebugDumpable, Serializable {
 
@@ -73,10 +77,9 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
         if (this == o) {
             return true;
         }
-        if (!(o instanceof EvaluatedPolicyRuleTrigger<?>)) {
+        if (!(o instanceof EvaluatedPolicyRuleTrigger<?> that)) {
             return false;
         }
-        EvaluatedPolicyRuleTrigger<?> that = (EvaluatedPolicyRuleTrigger<?>) o;
         return constraintKind == that.constraintKind
                 && Objects.equals(constraint, that.constraint)
                 && Objects.equals(message, that.message)
@@ -132,5 +135,34 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 
     public String toDiagShortcut() {
         return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
+    }
+
+    public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
+        return Collections.emptySet();
+    }
+
+    /**
+     * Used to create XML bean which is stored in activity state.
+     * It contains only the information that is needed for the state, so it is not a full representation of the trigger.
+     */
+    public EvaluatedActivityPolicyTriggerType toActivityPolicyTriggerType() {
+        EvaluatedActivityPolicyTriggerType state = new EvaluatedActivityPolicyTriggerType();
+        state.setConstraintKind(getConstraintKind());
+        state.setConstraintName(getConstraint().getName());
+        state.setMessage(LocalizationUtil.createLocalizableMessageType(getMessage()));
+
+        return state;
+    }
+
+    /**
+     * @return Target object(s) that were matched by constraint that produced this trigger.
+     * For example: target of the assignment that was added (and that matched "assignment" constraint).
+     */
+    public Collection<? extends PrismObject<?>> getTargetObjects() {
+        return Collections.emptyList();
+    }
+
+    public boolean isEnforcementOverride() {
+        return false;
     }
 }

@@ -98,7 +98,7 @@ public class ActivityPolicyRulesProcessor {
         state.setName(rule.getName());
 
         rule.getTriggers().stream()
-                .map(t -> t.toPolicyTriggerType())
+                .map(t -> t.toActivityPolicyTriggerType())
                 .forEach(t -> state.getTrigger().add(t));
 
         return state;

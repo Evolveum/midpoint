@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 
@@ -28,32 +28,32 @@ public class EvaluatedPolicyRuleAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public EvaluatedPolicyRuleAsserter<RA> assertName(String expected) {
-        assertEquals("Wrong name in "+desc(), expected, evaluatedPolicyRule.getName());
+        assertEquals("Wrong name in " + desc(), expected, evaluatedPolicyRule.getName());
         return this;
     }
 
     public EvaluatedPolicyRuleAsserter<RA> assertPolicySituation(String expected) {
-        assertEquals("Wrong policySituation in "+desc(), expected, evaluatedPolicyRule.getPolicySituation());
+        assertEquals("Wrong policySituation in " + desc(), expected, evaluatedPolicyRule.getPolicySituation());
         return this;
     }
 
     public EvaluatedPolicyRuleAsserter<RA> assertNotTriggered() {
-        assertTrue("Evaluated policy rule "+evaluatedPolicyRule.getName()+" was triggerd, while it was not expected; in "+desc(),
+        assertTrue("Evaluated policy rule " + evaluatedPolicyRule.getName() + " was triggerd, while it was not expected; in " + desc(),
                 evaluatedPolicyRule.getAllTriggers().isEmpty());
         return this;
     }
 
     public EvaluatedPolicyRuleAsserter<RA> assertTriggers(int expected) {
-        assertEquals("Unexpected number of triggers in evaluated policy rule "+evaluatedPolicyRule.getName()+" in "+desc(),
+        assertEquals("Unexpected number of triggers in evaluated policy rule " + evaluatedPolicyRule.getName() + " in " + desc(),
                 expected, evaluatedPolicyRule.getAllTriggers().size());
         return this;
     }
 
-    public <CT extends AbstractPolicyConstraintType> EvaluatedPolicyRuleTriggerAsserter<CT,EvaluatedPolicyRuleAsserter<RA>> singleTrigger() {
+    public <CT extends AbstractPolicyConstraintType> EvaluatedPolicyRuleTriggerAsserter<CT, EvaluatedPolicyRuleAsserter<RA>> singleTrigger() {
         assertTriggers(1);
-        EvaluatedPolicyRuleTriggerAsserter<CT,EvaluatedPolicyRuleAsserter<RA>> asserter =
-                new EvaluatedPolicyRuleTriggerAsserter<>((EvaluatedFocusPolicyRuleTrigger<CT>)evaluatedPolicyRule.getAllTriggers().iterator().next(), this,
-                        "trigger in policy rule "+evaluatedPolicyRule.getName()+" in "+desc());
+        EvaluatedPolicyRuleTriggerAsserter<CT, EvaluatedPolicyRuleAsserter<RA>> asserter =
+                new EvaluatedPolicyRuleTriggerAsserter<>((EvaluatedPolicyRuleTrigger<CT>) evaluatedPolicyRule.getAllTriggers().iterator().next(), this,
+                        "trigger in policy rule " + evaluatedPolicyRule.getName() + " in " + desc());
         copySetupTo(asserter);
         return asserter;
     }

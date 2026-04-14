@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -48,14 +49,14 @@ public class PolicyConstraintsEvaluator {
 
     // returns non-empty list if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
     @SuppressWarnings("unchecked")
-    @NotNull <O extends ObjectType> List<EvaluatedFocusPolicyRuleTrigger<?>> evaluateConstraints(
+    @NotNull <O extends ObjectType> List<EvaluatedPolicyRuleTrigger<?>> evaluateConstraints(
             PolicyConstraintsType constraints, boolean allMustApply, PolicyRuleEvaluationContext<O> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (constraints == null) {
             return Collections.emptyList();
         }
-        List<EvaluatedFocusPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+        List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
         for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false, false)) {
             PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
                     (PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) getConstraintEvaluator(constraint);

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.policy;
 
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleIdentifier;
@@ -38,9 +40,9 @@ public interface GenericEvaluatedPolicyRule extends DebugDumpable {
 
     @NotNull List<PolicyActionType> getActions();
 
-    @NotNull List<EvaluatedActivityPolicyRuleTrigger<?>> getTriggers();
+    @NotNull List<EvaluatedPolicyRuleTrigger<?>> getTriggers();
 
-    void setTriggers(List<EvaluatedActivityPolicyRuleTrigger<?>> triggers);
+    void setTriggers(List<EvaluatedPolicyRuleTrigger<?>> triggers);
 
     boolean isTriggered();
 

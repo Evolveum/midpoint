@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
@@ -17,6 +16,7 @@ import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -47,14 +47,14 @@ public abstract class PolicyRuleEvaluationContext<O extends ObjectType> {
 
     public abstract PolicyRuleEvaluationContext<O> cloneWithStateConstraints(ObjectState state);
 
-    void triggerRuleIfNoExceptions(Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
+    void triggerRuleIfNoExceptions(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         if (!hasPolicyRuleExceptions(policyRule, triggers)) {
             policyRule.trigger(triggers);
         }
     }
 
     boolean hasPolicyRuleExceptions(
-            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
+            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         return false; // FIXME not currently implemented for objects (only for assignments)
     }
 
@@ -86,5 +86,8 @@ public abstract class PolicyRuleEvaluationContext<O extends ObjectType> {
         return elementContext instanceof LensFocusContext<?> ? (LensFocusContext<?>) elementContext : null;
     }
 
-    @NotNull public Task getTask() { return task; }
+    @NotNull
+    public Task getTask() {
+        return task;
+    }
 }

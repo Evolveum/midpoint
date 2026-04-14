@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.*;
 
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 
 import org.apache.commons.lang3.Validate;
@@ -291,7 +292,7 @@ public class AssignmentPolicyAspectPart {
                 LOGGER.debug(" - Rule: {}", rule.toShortString());
                 LOGGER.debug("   - Approval actions: {}", rule.getEnabledActions(ApprovalPolicyActionType.class));
                 // TODO somehow distinguish own/foreign rules
-                for (EvaluatedFocusPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getTriggers()) {
+                for (EvaluatedPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getTriggers()) {
                     LOGGER.debug("   - Trigger: {}", trigger);
                 }
             }

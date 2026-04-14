@@ -11,12 +11,11 @@ import static com.evolveum.midpoint.util.DebugUtil.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -25,7 +24,7 @@ public class EvaluatedActivityPolicyRule implements GenericEvaluatedPolicyRule, 
 
     @NotNull private final ActivityPolicyRule policyRule;
 
-    @NotNull private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+    @NotNull private final List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
     public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyRule policyRule) {
         this.policyRule = policyRule;
@@ -67,11 +66,11 @@ public class EvaluatedActivityPolicyRule implements GenericEvaluatedPolicyRule, 
     }
 
     @NotNull
-    public List<EvaluatedActivityPolicyRuleTrigger<?>> getTriggers() {
+    public List<EvaluatedPolicyRuleTrigger<?>> getTriggers() {
         return triggers;
     }
 
-    public void setTriggers(List<EvaluatedActivityPolicyRuleTrigger<?>> triggers) {
+    public void setTriggers(List<EvaluatedPolicyRuleTrigger<?>> triggers) {
         this.triggers.clear();
 
         if (triggers != null) {

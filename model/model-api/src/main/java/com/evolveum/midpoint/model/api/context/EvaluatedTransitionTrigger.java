@@ -6,51 +6,51 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedTransitionTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
+
 public class EvaluatedTransitionTrigger extends EvaluatedFocusPolicyRuleTrigger<TransitionPolicyConstraintType> {
 
-    @NotNull private final Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers;
+    @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
     public EvaluatedTransitionTrigger(
             @NotNull PolicyConstraintKindType kind, @NotNull TransitionPolicyConstraintType constraint,
             LocalizableMessage message, LocalizableMessage shortMessage,
-            @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers) {
+            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
         super(kind, constraint, message, shortMessage, false);
         this.innerTriggers = innerTriggers;
     }
 
     @NotNull
-    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getInnerTriggers() {
+    public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
         return innerTriggers;
     }
 
     @Override
     public String toDiagShortcut() {
         return super.toDiagShortcut()
-            + innerTriggers.stream()
-                    .map(trigger -> trigger.toDiagShortcut())
-                    .distinct()
-                    .collect(Collectors.joining("+", "(", ")"));
+                + innerTriggers.stream()
+                .map(trigger -> trigger.toDiagShortcut())
+                .distinct()
+                .collect(Collectors.joining("+", "(", ")"));
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof EvaluatedTransitionTrigger))
-            return false;
-        if (!super.equals(o))
-            return false;
-        EvaluatedTransitionTrigger that = (EvaluatedTransitionTrigger) o;
+        if (this == o) {return true;}
+        if (!(o instanceof EvaluatedTransitionTrigger that)) {return false;}
+        if (!super.equals(o)) {return false;}
         return Objects.equals(innerTriggers, that.innerTriggers);
     }
 
@@ -71,6 +71,8 @@ public class EvaluatedTransitionTrigger extends EvaluatedFocusPolicyRuleTrigger<
         fillCommonContent(rv);
         if (!isFinal()) {
             innerTriggers.stream()
+                    .filter(t -> t instanceof EvaluatedFocusPolicyRuleTrigger<?>)   // todo is this ok? [viliam]
+                    .map(t -> (EvaluatedFocusPolicyRuleTrigger<?>) t)
                     .filter(t -> t.isRelevantForNewOwner(newOwner))
                     .forEach(t ->
                             rv.getEmbedded().add(

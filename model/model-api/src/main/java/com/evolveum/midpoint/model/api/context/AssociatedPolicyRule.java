@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -106,7 +107,7 @@ public interface AssociatedPolicyRule extends DebugDumpable, Serializable, Clone
     void addToEvaluatedPolicyRuleBeans(
             @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
             @NotNull PolicyRuleExternalizationOptions options,
-            @Nullable Predicate<EvaluatedFocusPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
             @Nullable EvaluatedAssignment newOwner);
 
     /**

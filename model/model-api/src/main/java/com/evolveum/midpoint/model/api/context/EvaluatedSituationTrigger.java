@@ -13,15 +13,15 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
-
-import org.jetbrains.annotations.Nullable;
 
 public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<PolicySituationPolicyConstraintType> {
 
@@ -46,7 +46,7 @@ public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<P
         List<EvaluatedPolicyRule> rv = new ArrayList<>();
         for (EvaluatedPolicyRule sourceRule : sourceRules) {
             rv.add(sourceRule);
-            for (EvaluatedFocusPolicyRuleTrigger<?> trigger : sourceRule.getTriggers()) {
+            for (EvaluatedPolicyRuleTrigger<?> trigger : sourceRule.getTriggers()) {
                 if (trigger instanceof EvaluatedSituationTrigger) {
                     rv.addAll(((EvaluatedSituationTrigger) trigger).getAllSourceRules());
                 }
@@ -55,8 +55,8 @@ public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<P
         return rv;
     }
 
-    public Collection<EvaluatedFocusPolicyRuleTrigger<?>> getAllTriggers() {
-        List<EvaluatedFocusPolicyRuleTrigger<?>> rv = new ArrayList<>();
+    public Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers() {
+        List<EvaluatedPolicyRuleTrigger<?>> rv = new ArrayList<>();
         rv.add(this);
         getAllSourceRules().forEach(r -> rv.addAll(r.getTriggers()));
         return rv;
@@ -65,21 +65,17 @@ public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<P
     @Override
     public String toDiagShortcut() {
         return super.toDiagShortcut()
-            + sourceRules.stream()
-                    .map(sr -> PolicyRuleTypeUtil.toShortString(sr.getPolicyConstraints()))
-                    .distinct()
-                    .collect(Collectors.joining("+", "(", ")"));
+                + sourceRules.stream()
+                .map(sr -> PolicyRuleTypeUtil.toShortString(sr.getPolicyConstraints()))
+                .distinct()
+                .collect(Collectors.joining("+", "(", ")"));
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof EvaluatedSituationTrigger))
-            return false;
-        if (!super.equals(o))
-            return false;
-        EvaluatedSituationTrigger that = (EvaluatedSituationTrigger) o;
+        if (this == o) {return true;}
+        if (!(o instanceof EvaluatedSituationTrigger that)) {return false;}
+        if (!super.equals(o)) {return false;}
         return Objects.equals(sourceRules, that.sourceRules);
     }
 

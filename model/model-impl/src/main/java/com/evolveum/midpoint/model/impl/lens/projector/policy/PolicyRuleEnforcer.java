@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.util.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -120,18 +121,18 @@ class PolicyRuleEnforcer<O extends ObjectType> {
     private void computeEnforcementForTriggeredRules(Collection<? extends EvaluatedPolicyRule> policyRules) {
         for (EvaluatedPolicyRule policyRule: policyRules) {
 
-            Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers = policyRule.getTriggers();
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers = policyRule.getTriggers();
             if (triggers.isEmpty()) {
                 continue;
             }
 
             boolean enforceAll = policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-            Collection<EvaluatedFocusPolicyRuleTrigger<?>> enforcingTriggers;
+            Collection<EvaluatedPolicyRuleTrigger<?>> enforcingTriggers;
             if (enforceAll) {
                 enforcingTriggers = triggers;
             } else {
                 enforcingTriggers = triggers.stream()
-                        .filter(EvaluatedFocusPolicyRuleTrigger::isEnforcementOverride)
+                        .filter(EvaluatedPolicyRuleTrigger::isEnforcementOverride)
                         .collect(Collectors.toList());
                 if (enforcingTriggers.isEmpty()) {
                     continue;

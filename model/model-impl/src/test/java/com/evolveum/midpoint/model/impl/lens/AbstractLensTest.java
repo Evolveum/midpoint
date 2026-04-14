@@ -12,33 +12,31 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
-import com.evolveum.midpoint.model.impl.controller.ModelController;
-import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
-
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
-import com.evolveum.midpoint.util.exception.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -204,7 +202,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 
     void assertTargetTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
         display("Asserting target triggers for selected constraint kind = " + selectedConstraintKind + ", expected count = " + expectedCount);
-        List<EvaluatedFocusPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+        List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
         forTriggeredTargetPolicyRule(context, null, trigger -> {
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
                 return;
@@ -218,7 +216,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     void assertTargetTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, String... expectedConstraintNames) {
         List<String> expectedNamesList = Arrays.asList(expectedConstraintNames);
         display("Asserting target triggers for selected constraint kind = " + selectedConstraintKind + ", expected names = " + expectedNamesList);
-        List<EvaluatedFocusPolicyRuleTrigger<?>> triggersFound = new ArrayList<>();
+        List<EvaluatedPolicyRuleTrigger<?>> triggersFound = new ArrayList<>();
         Set<String> namesFound = new HashSet<>();
         forTriggeredTargetPolicyRule(context, null, trigger -> {
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
@@ -233,7 +231,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     }
 
     void assertFocusTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
-        List<EvaluatedFocusPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+        List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
         display("Asserting focus triggers for selected constraint kind = " + selectedConstraintKind + ", expected count = " + expectedCount);
         forTriggeredFocusPolicyRule(context, trigger -> {
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
@@ -248,7 +246,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     void assertFocusTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, String... expectedConstraintNames) {
         List<String> expectedNamesList = Arrays.asList(expectedConstraintNames);
         display("Asserting focus triggers for selected constraint kind = " + selectedConstraintKind + ", expected names = " + expectedNamesList);
-        List<EvaluatedFocusPolicyRuleTrigger<?>> triggersFound = new ArrayList<>();
+        List<EvaluatedPolicyRuleTrigger<?>> triggersFound = new ArrayList<>();
         Set<String> namesFound = new HashSet<>();
         forTriggeredFocusPolicyRule(context, trigger -> {
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
@@ -264,13 +262,13 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 
     // exclusive=true : there can be no other triggers than 'expectedCount' of 'expectedConstraintKind'
     @SuppressWarnings("SameParameterValue")
-    EvaluatedFocusPolicyRuleTrigger<?> assertTriggeredTargetPolicyRule(
+    EvaluatedPolicyRuleTrigger<?> assertTriggeredTargetPolicyRule(
             LensContext<? extends FocusType> context,
             String targetOid,
             PolicyConstraintKindType expectedConstraintKind,
             int expectedCount,
             boolean exclusive) {
-        List<EvaluatedFocusPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+        List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
         forTriggeredTargetPolicyRule(context, targetOid, trigger -> {
             if (!exclusive && trigger.getConstraintKind() != expectedConstraintKind) {
                 return;
@@ -315,20 +313,20 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     }
 
     private void forTriggeredTargetPolicyRule(
-            LensContext<? extends FocusType> context, String targetOid, Consumer<EvaluatedFocusPolicyRuleTrigger<?>> handler) {
+            LensContext<? extends FocusType> context, String targetOid, Consumer<EvaluatedPolicyRuleTrigger<?>> handler) {
         forEvaluatedTargetPolicyRule(context, targetOid, rule -> {
-            Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers = rule.getTriggers();
-            for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers = rule.getTriggers();
+            for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
                 handler.accept(trigger);
             }
         });
     }
 
     private void forTriggeredFocusPolicyRule(
-            LensContext<? extends FocusType> context, Consumer<EvaluatedFocusPolicyRuleTrigger<?>> handler) {
+            LensContext<? extends FocusType> context, Consumer<EvaluatedPolicyRuleTrigger<?>> handler) {
         forEvaluatedFocusPolicyRule(context, rule -> {
-            Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers = rule.getTriggers();
-            for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers = rule.getTriggers();
+            for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
                 handler.accept(trigger);
             }
         });
@@ -402,7 +400,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
      */
     <O extends ObjectType> LensContext<O> runClockwork(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
-            throws CommonException{
+            throws CommonException {
         LensContext<O> context = contextFactory.createContext(deltas, options, task, result);
         clockwork.run(context, task, result);
         return context;

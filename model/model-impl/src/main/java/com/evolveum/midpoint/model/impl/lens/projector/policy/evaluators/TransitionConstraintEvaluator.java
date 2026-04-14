@@ -6,32 +6,27 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedTransitionTrigger;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jakarta.xml.bind.JAXBElement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.model.api.context.EvaluatedTransitionTrigger;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
 
 @Component
 public class TransitionConstraintEvaluator
@@ -57,7 +52,7 @@ public class TransitionConstraintEvaluator
                 .build();
         try {
             TransitionPolicyConstraintType trans = constraintElement.getValue();
-            List<EvaluatedFocusPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+            List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
             boolean match =
                     evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
                             && evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
@@ -82,14 +77,14 @@ public class TransitionConstraintEvaluator
     private <O extends ObjectType> boolean evaluateState(
             TransitionPolicyConstraintType trans,
             PolicyRuleEvaluationContext<O> rctx, ObjectState state, Boolean expected,
-            List<EvaluatedFocusPolicyRuleTrigger<?>> triggers, OperationResult result)
+            List<EvaluatedPolicyRuleTrigger<?>> triggers, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (expected == null) {
             return true;
         }
         PolicyRuleEvaluationContext<O> subContext = rctx.cloneWithStateConstraints(state);
-        List<EvaluatedFocusPolicyRuleTrigger<?>> subTriggers =
+        List<EvaluatedPolicyRuleTrigger<?>> subTriggers =
                 policyConstraintsEvaluator.evaluateConstraints(trans.getConstraints(), true, subContext, result);
         triggers.addAll(subTriggers);
         boolean real = !subTriggers.isEmpty();

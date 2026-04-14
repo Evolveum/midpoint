@@ -43,7 +43,7 @@ public class ActivityPolicyConstraintsEvaluator {
 
     @Autowired private ActivityCompositeConstraintEvaluator compositeEvaluator;
 
-    public List<EvaluatedActivityPolicyRuleTrigger<?>> evaluateConstraints(
+    public List<EvaluatedPolicyRuleTrigger<?>> evaluateConstraints(
             PolicyConstraintsType constraintsBean,
             boolean allMustApply,
             ActivityPolicyRuleEvaluationContext context,
@@ -53,7 +53,7 @@ public class ActivityPolicyConstraintsEvaluator {
             return List.of();
         }
 
-        List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+        List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
         for (JAXBElement<AbstractPolicyConstraintType> element : toConstraintList(constraintsBean)) {
             //noinspection unchecked

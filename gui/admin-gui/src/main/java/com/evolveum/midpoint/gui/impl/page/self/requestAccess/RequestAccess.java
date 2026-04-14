@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -672,13 +673,13 @@ public class RequestAccess implements Serializable, DebugDumpable {
     }
 
     private void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,
-                                 Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers, boolean warning) {
+                                 Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
 
-        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger evaluatedExclusionTrigger) {
                 createConflicts(userRef, conflicts, evaluatedAssignment, evaluatedExclusionTrigger, warning);
             } else if (trigger instanceof EvaluatedCompositeTrigger compositeTrigger) {
-                Collection<EvaluatedFocusPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
+                Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
                 createConflicts(userRef, conflicts, evaluatedAssignment, innerTriggers, warning);
             }
         }

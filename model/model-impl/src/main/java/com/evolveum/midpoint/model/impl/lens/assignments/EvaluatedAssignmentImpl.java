@@ -6,24 +6,33 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
+import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.*;
+
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.construction.*;
-import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
-import com.evolveum.midpoint.prism.*;
+import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.AssignedResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -36,15 +45,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
-import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
-import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
-import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
-
 /**
  * Evaluated assignment that contains all constructions and authorizations from the assignment
  * itself and all the applicable inducements from all the roles referenced from the assignment.
@@ -55,7 +55,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
-    @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+    @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi;
 
     /** Pre-allocated in the repository. */
     @Nullable private final Long externalAssignmentId;
@@ -85,7 +85,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     @NotNull private final Collection<AssignedFocusMappingEvaluationRequest> focusMappingEvaluationRequests = new ArrayList<>();
 
     /** Evaluated focus mappings. (These result from evaluation of {@link #focusMappingEvaluationRequests}.) */
-    @NotNull private final Collection<MappingImpl<?,?>> focusMappings = new ArrayList<>();
+    @NotNull private final Collection<MappingImpl<?, ?>> focusMappings = new ArrayList<>();
 
     @NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 
@@ -125,16 +125,16 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     /**
      * Is the primary (evaluated) assignment valid in the new focus state, i.e.
-     *  - active according to the activation and lifecycle state,
-     *  - condition evaluated to true in the new state.
+     * - active according to the activation and lifecycle state,
+     * - condition evaluated to true in the new state.
      */
     private boolean valid;
 
     /**
      * Was the first (evaluated) assignment valid in the old focus state, i.e.
-     *  - was it present in the old object at all,
-     *  - was it active according to the activation and lifecycle state,
-     *  - was condition evaluated to true in the old state (FIXME CURRENTLY NOT IMPLEMENTED)
+     * - was it present in the old object at all,
+     * - was it active according to the activation and lifecycle state,
+     * - was condition evaluated to true in the old state (FIXME CURRENTLY NOT IMPLEMENTED)
      *
      * TODO verify and fix the algorithms - MID-6404
      */
@@ -170,7 +170,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @NotNull
-    public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
+    public ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
         return assignmentIdi;
     }
 
@@ -237,7 +237,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
             }
         }
         //noinspection unchecked,rawtypes
-        return (DeltaSetTriple)rv;
+        return (DeltaSetTriple) rv;
     }
 
     @VisibleForTesting
@@ -334,7 +334,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     @Override
     @NotNull
-    public Collection<MappingImpl<?,?>> getFocusMappings() {
+    public Collection<MappingImpl<?, ?>> getFocusMappings() {
         return focusMappings;
     }
 
@@ -343,7 +343,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return focusMappingEvaluationRequests;
     }
 
-    public void addFocusMapping(MappingImpl<?,?> focusMapping) {
+    public void addFocusMapping(MappingImpl<?, ?> focusMapping) {
         this.focusMappings.add(focusMapping);
     }
 
@@ -389,8 +389,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * Evaluates constructions in this assignment.
      *
      * @param focusOdoAbsolute Absolute focus ODO. It must not be relative one, because constructions are applied on resource
-     *                         objects. And resource objects' old state is related to focus object old state. (These projections
-     *                         are _not_ changed iteratively, perhaps except for wave restarting.)
+     * objects. And resource objects' old state is related to focus object old state. (These projections
+     * are _not_ changed iteratively, perhaps except for wave restarting.)
      */
     public void evaluateConstructions(ObjectDeltaObject<AH> focusOdoAbsolute, Consumer<ResourceType> resourceConsumer,
             Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
@@ -490,13 +490,13 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     public boolean hasPolicyRuleException(
-            @NotNull EvaluatedPolicyRuleImpl rule, @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
+            @NotNull EvaluatedPolicyRuleImpl rule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
 
         if (hasDirectPolicyRuleException(rule, triggers)) {
             return true;
         }
 
-        for (EvaluatedFocusPolicyRuleTrigger<?> trigger : triggers) {
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger exclusionTrigger) {
                 EvaluatedAssignmentImpl<?> conflictingAssignment =
                         (EvaluatedAssignmentImpl<?>) exclusionTrigger.getConflictingAssignment();
@@ -511,8 +511,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     private boolean hasDirectPolicyRuleException(
             @NotNull EvaluatedPolicyRule rule,
-            @NotNull Collection<EvaluatedFocusPolicyRuleTrigger<?>> triggers) {
-        for (PolicyExceptionType policyException: getAssignment().getPolicyException()) {
+            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        for (PolicyExceptionType policyException : getAssignment().getPolicyException()) {
             String ruleName = rule.getName();
             if (policyException.getRuleName().equals(ruleName)) {
                 LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not triggering.", ruleName);
@@ -540,62 +540,62 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
         sb.append("\n");
         if (constructionTriple.isEmpty()) {
-            DebugUtil.debugDumpWithLabel(sb, "Constructions", "(empty)", indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "Constructions", "(empty)", indent + 1);
         } else {
-            DebugUtil.debugDumpWithLabel(sb, "Constructions", constructionTriple, indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "Constructions", constructionTriple, indent + 1);
         }
         if (!personaConstructionTriple.isEmpty()) {
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, "Persona constructions", personaConstructionTriple, indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "Persona constructions", personaConstructionTriple, indent + 1);
         }
         if (!roles.isEmpty()) {
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, "Roles", roles, indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "Roles", roles, indent + 1);
         }
         dumpRefList(indent, sb, "Orgs", orgRefVals);
         dumpRefList(indent, sb, "Membership", membershipRefVals);
         dumpRefList(indent, sb, "Delegation", delegationRefVals);
         if (!authorizations.isEmpty()) {
             sb.append("\n");
-            DebugUtil.debugDumpLabel(sb, "Authorizations", indent+1);
-            for (Authorization autz: authorizations) {
+            DebugUtil.debugDumpLabel(sb, "Authorizations", indent + 1);
+            for (Authorization autz : authorizations) {
                 sb.append("\n");
-                DebugUtil.indentDebugDump(sb, indent+2);
+                DebugUtil.indentDebugDump(sb, indent + 2);
                 sb.append(autz.toString());
             }
         }
         if (!focusMappingEvaluationRequests.isEmpty()) {
             sb.append("\n");
-            DebugUtil.debugDumpLabel(sb, "Focus mappings evaluation requests", indent+1);
+            DebugUtil.debugDumpLabel(sb, "Focus mappings evaluation requests", indent + 1);
             for (AssignedFocusMappingEvaluationRequest request : focusMappingEvaluationRequests) {
                 sb.append("\n");
-                DebugUtil.indentDebugDump(sb, indent+2);
+                DebugUtil.indentDebugDump(sb, indent + 2);
                 sb.append(request.shortDump());
             }
         }
         if (!focusMappings.isEmpty()) {
             sb.append("\n");
-            DebugUtil.debugDumpLabel(sb, "Focus mappings", indent+1);
-            for (PrismValueDeltaSetTripleProducer<?,?> mapping: focusMappings) {
+            DebugUtil.debugDumpLabel(sb, "Focus mappings", indent + 1);
+            for (PrismValueDeltaSetTripleProducer<?, ?> mapping : focusMappings) {
                 sb.append("\n");
-                DebugUtil.indentDebugDump(sb, indent+2);
+                DebugUtil.indentDebugDump(sb, indent + 2);
                 sb.append(mapping.toString());
             }
         }
         if (target != null) {
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent + 1);
         }
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(
-                sb, "objectPolicyRules " + ruleCountInfo(objectPolicyRules), objectPolicyRules, indent+1);
+                sb, "objectPolicyRules " + ruleCountInfo(objectPolicyRules), objectPolicyRules, indent + 1);
         Collection<EvaluatedPolicyRuleImpl> thisTargetRules = getThisTargetPolicyRules();
         DebugUtil.debugDumpWithLabelLn(
-                sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetRules), thisTargetRules, indent+1);
+                sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetRules), thisTargetRules, indent + 1);
         Collection<EvaluatedPolicyRuleImpl> otherTargetsRules = getOtherTargetsPolicyRules();
         DebugUtil.debugDumpWithLabelLn(
-                sb, "otherTargetsRules " + ruleCountInfo(otherTargetsRules), otherTargetsRules, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "origin", origin.toString(), indent+1);
+                sb, "otherTargetsRules " + ruleCountInfo(otherTargetsRules), otherTargetsRules, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "origin", origin.toString(), indent + 1);
         return sb.toString();
     }
 
@@ -606,10 +606,10 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     private void dumpRefList(int indent, StringBuilder sb, String label, Collection<PrismReferenceValue> referenceValues) {
         if (!referenceValues.isEmpty()) {
             sb.append("\n");
-            DebugUtil.debugDumpLabel(sb, label, indent+1);
-            for (PrismReferenceValue refVal: referenceValues) {
+            DebugUtil.debugDumpLabel(sb, label, indent + 1);
+            for (PrismReferenceValue refVal : referenceValues) {
                 sb.append("\n");
-                DebugUtil.indentDebugDump(sb, indent+2);
+                DebugUtil.indentDebugDump(sb, indent + 2);
                 sb.append(refVal.toString());
             }
         }
@@ -625,7 +625,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
                 + "; " + focusMappings.size() + " focus mappings"
                 + "; " + objectPolicyRules.size() + " rules"
                 + "; refs=" + membershipRefVals.size() + "m, " + delegationRefVals.size() + "d, " + archetypeRefVals.size() + "a"
-                +")";
+                + ")";
     }
 
     @Override

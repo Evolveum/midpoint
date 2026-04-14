@@ -57,7 +57,7 @@ public class ActivityCompositeConstraintEvaluator
             boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
             boolean isNot = QNameUtil.match(PolicyConstraintsType.F_NOT, constraint.getName());
             assert isAnd || isOr || isNot;
-            List<EvaluatedActivityPolicyRuleTrigger<?>> triggers =
+            List<EvaluatedPolicyRuleTrigger<?>> triggers =
                     activityPolicyConstraintsEvaluator.evaluateConstraints(constraint.getValue(), !isOr, context, result);
             ActivityCompositeTrigger rv;
             if (isNot) {
@@ -93,7 +93,7 @@ public class ActivityCompositeConstraintEvaluator
     private ActivityCompositeTrigger createTrigger(
             PolicyConstraintKindType kind,
             JAXBElement<PolicyConstraintsType> element,
-            List<EvaluatedActivityPolicyRuleTrigger<?>> triggers) {
+            List<EvaluatedPolicyRuleTrigger<?>> triggers) {
         return new ActivityCompositeTrigger(kind, element.getValue(), triggers);
     }
 }

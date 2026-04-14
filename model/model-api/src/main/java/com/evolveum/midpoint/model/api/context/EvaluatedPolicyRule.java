@@ -9,16 +9,19 @@ package com.evolveum.midpoint.model.api.context;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
 
 /**
  * TODO document this interface and its methods
@@ -28,19 +31,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public interface EvaluatedPolicyRule extends AssociatedPolicyRule {
 
     @NotNull
-    Collection<EvaluatedFocusPolicyRuleTrigger<?>> getTriggers();
+    Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
 
     /**
      * Returns all triggers, even those that were indirectly collected via situation policy rules.
      */
     @NotNull
-    Collection<EvaluatedFocusPolicyRuleTrigger<?>> getAllTriggers();
+    Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
 
     /**
      * Returns all triggers of given type, stepping down to situation policy rules and composite triggers.
      * An exception are composite "not" triggers: it is usually of no use to collect negated triggers.
      */
-    <T extends EvaluatedFocusPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type);
+    <T extends EvaluatedPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type);
 
     /** Name of the policy rule, as configured. */
     @Nullable String getName();

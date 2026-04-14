@@ -8968,6 +8968,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType"/>
             <xsd:element name="constraintName" type="xsd:string" minOccurs="0"/>
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
         </xsd:sequence>
