@@ -43,14 +43,17 @@ public class GroupActiveDirectoryMappingProvider implements WellKnownSchemaProvi
     }
 
     @Override
-    public List<SystemMappingSuggestion> suggestInboundMappings() {
+    public List<SystemMappingSuggestion> suggestInboundMappings(@Nullable String resourceName) {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", AbstractRoleType.F_IDENTIFIER));
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", RoleType.F_NAME, MappingStrengthType.STRONG));
+        String prefixScript = resourceName != null
+                ? "'" + resourceName.replace("'", "\\'") + "' + '-' + input"
+                : "'RESOURCE_NAME-' + input";
         mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                 "sAMAccountName",
                 RoleType.F_NAME,
-                "resource.name + '-' + input",
+                prefixScript,
                 "Inbound: group name with resource prefix (<resource>-<sAMAccountName>)",
                 MappingStrengthType.STRONG));
         return mappings;

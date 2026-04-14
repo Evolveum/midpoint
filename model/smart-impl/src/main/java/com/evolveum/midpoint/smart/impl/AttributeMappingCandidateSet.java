@@ -93,12 +93,6 @@ class AttributeMappingCandidateSet {
     // FIXME: Gartner hack to suggest uid-into-name mapping, even though data doesn't match
     void proposeSystemMapping(AttributeMappingsSuggestionType suggestion) {
         var mappingContext = MappingContext.extract(suggestion);
-
-        // Deduplicate against existing mappings by target path only
-        if (excludedTargetPaths.contains(mappingContext.targetPath())) {
-            return;
-        }
-
         candidates.add(new Candidate(mappingContext, suggestion));
     }
 

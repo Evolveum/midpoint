@@ -1237,7 +1237,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return MidPointAuthWebSession.get().getBrowserTabSessionStorage(windowId);
     }
 
-    private String getWindowIdPageParameter() {
+    protected String getWindowIdPageParameter() {
         org.apache.wicket.request.IRequestParameters parameters = RequestCycle.get().getRequest().getRequestParameters();
         StringValue paramValue = parameters.getParameterValue(BrowserWindowIdentifierFilter.PARAM_WI);
         String windowId = paramValue != null ? paramValue.toString() : null;
@@ -1297,25 +1297,5 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public ConnectorDevelopmentService getConnectorService() {
         return connectorService;
-    }
-
-    /**
-     * Update page parameters with window id parameter so that the wicket
-     * can correctly find an existing page in the wicket page storage.
-     * @return
-     */
-    @Override
-    public PageParameters getPageParameters() {
-        PageParameters parameters = super.getPageParameters();
-
-        String windowId = getWindowIdPageParameter();
-        if (parameters == null) {
-            parameters = new PageParameters();
-        }
-        if (!parameters.contains(BrowserWindowIdentifierFilter.PARAM_WI) && windowId != null) {
-            parameters.add(BrowserWindowIdentifierFilter.PARAM_WI, windowId);
-        }
-
-        return parameters;
     }
 }

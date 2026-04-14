@@ -2351,6 +2351,18 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="schemaMatchPreload" type="tns:SchemaMatchPreloadWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Pre-loads schema matching cache for object types in the background (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.schemaMatchPreload</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="correlationSuggestion" type="tns:CorrelationSuggestionWorkDefinitionType"
                         minOccurs="0">
                     <xsd:annotation>
@@ -10263,6 +10275,55 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="objectTypesSuggestionWorkDefinition" type="tns:ObjectTypesSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="SchemaMatchPreloadWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for schema match pre-loading activity (smart integration).
+                Used to pre-populate the schema matching cache in the background after object type suggestions are complete.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectclass" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Object class for which schema matching is to be pre-loaded.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>Data access permissions granted to the preload task.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="sourceTaskRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the object types suggestion task whose work state contains the
+                                suggested object types (with focus type assignments) to pre-load schema matching for.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="schemaMatchPreloadWorkDefinition" type="tns:SchemaMatchPreloadWorkDefinitionType"/>
 
     <xsd:complexType name="ObjectTypeRelatedSuggestionWorkDefinitionType">
         <xsd:annotation>
