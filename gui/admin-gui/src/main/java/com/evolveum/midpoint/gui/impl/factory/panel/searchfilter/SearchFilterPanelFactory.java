@@ -106,6 +106,6 @@ public class SearchFilterPanelFactory extends AbstractInputGuiComponentFactory<S
                 LOGGER.debug("Cannot get filter object type", e);
             }
         }
-        return ObjectType.COMPLEX_TYPE;
+        return null;
     }
 }
