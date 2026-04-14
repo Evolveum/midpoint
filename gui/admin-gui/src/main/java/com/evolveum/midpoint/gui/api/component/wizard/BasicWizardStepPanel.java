@@ -41,9 +41,11 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_BACK_CONTAINER =  "backContainer";
     private static final String ID_BACK = "back";
     private static final String ID_BACK_LABEL = "backLabel";
+    private static final String ID_EXIT_CONTAINER = "exitContainer";
     private static final String ID_EXIT = "exit";
 
     private static final String ID_BUTTONS_STRIP = "buttonsStrip";
+    private static final String ID_CUSTOM_BUTTONS_CONTAINER = "customButtonsContainer";
     private static final String ID_CUSTOM_BUTTONS = "customButtons";
 
     private static final String ID_SUBMIT = "submit";
@@ -90,6 +92,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
         WebMarkupContainer buttonsStrip = new WebMarkupContainer(ID_BUTTONS_STRIP);
         buttonsStrip.setOutputMarkupPlaceholderTag(true);
+        buttonsStrip.add(getButtonsStripClassBehavior());
         buttonsStrip.setVisible(isExitButtonVisible()
                 || isSubmitVisible()
                 || getBackBehaviour().isVisible()
@@ -97,7 +100,6 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         add(buttonsStrip);
 
         WebMarkupContainer backContainer = new WebMarkupContainer(ID_BACK_CONTAINER);
-        backContainer.add(createBackButtonContainerBehavior());
         backContainer.add(getBackBehaviour());
         buttonsStrip.add(backContainer);
 
@@ -108,11 +110,16 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
                 onBackPerformed(target);
             }
         };
+        back.add(getBackBehaviour());
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
         back.add(new Label(ID_BACK_LABEL, getBackLabelModel()));
         WebComponentUtil.addDisabledClassBehavior(back);
         backContainer.add(back);
+
+        WebMarkupContainer exitContainer = new WebMarkupContainer(ID_EXIT_CONTAINER);
+        exitContainer.add(getExitVisibility());
+        buttonsStrip.add(exitContainer);
 
         AjaxLink<?> exit = new AjaxLink<>(ID_EXIT) {
 
@@ -127,10 +134,16 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         exit.setOutputMarkupId(true);
         exit.setOutputMarkupPlaceholderTag(true);
         WebComponentUtil.addDisabledClassBehavior(exit);
-        buttonsStrip.add(exit);
+        exitContainer.add(exit);
+
+        WebMarkupContainer customButtonsContainer = new WebMarkupContainer(ID_CUSTOM_BUTTONS_CONTAINER);
+        //customButtonsContainer.add(getCustomButtonsVisibility());
+        customButtonsContainer.setVisible(isSubmitVisible()
+                || getNextBehaviour().isVisible());
+        buttonsStrip.add(customButtonsContainer);
 
         RepeatingView customButtons = new RepeatingView(ID_CUSTOM_BUTTONS);
-        buttonsStrip.add(customButtons);
+        customButtonsContainer.add(customButtons);
         initCustomButtons(customButtons);
 
         AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT) {
@@ -152,7 +165,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         submit.setOutputMarkupId(true);
         submit.setOutputMarkupPlaceholderTag(true);
         WebComponentUtil.addDisabledClassBehavior(submit);
-        buttonsStrip.add(submit);
+        customButtonsContainer.add(submit);
 
         Label submitLabel = new Label(ID_SUBMIT_LABEL, getSubmitLabelModel());
         submit.add(submitLabel);
@@ -173,16 +186,10 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         next.setOutputMarkupId(true);
         next.setOutputMarkupPlaceholderTag(true);
         WebComponentUtil.addDisabledClassBehavior(next);
-        buttonsStrip.add(next);
+        customButtonsContainer.add(next);
 
         Label nextLabel = new Label(ID_NEXT_LABEL, createNextModel());
         next.add(nextLabel);
-    }
-
-    private Behavior createBackButtonContainerBehavior() {
-        return AttributeAppender.append("class", () -> {
-            return null; // todo figure out CSS classes when and which should be here??
-        });
     }
 
     private LoadableDetachableModel<String> createNextModel() {
@@ -331,5 +338,13 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     protected final WebMarkupContainer getButtonContainer() {
         return (WebMarkupContainer) get(ID_BUTTONS_STRIP);
+    }
+
+    protected String getButtonsStripCssClass() {
+        return " col-8";
+    }
+
+    private Behavior getButtonsStripClassBehavior() {
+        return AttributeAppender.append("class", () -> getButtonsStripCssClass());
     }
 }
