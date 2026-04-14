@@ -1,4 +1,6 @@
 = MidPoint standard functions
+:page-toc: top
+:toclevels: 1
 :page-nav-title: Standard functions
 
 The `MidpointFunctions` interface defines the built‑in midPoint functions that you can use in scripts.
