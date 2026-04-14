@@ -5,6 +5,29 @@
  */
 package com.evolveum.midpoint.gui.impl.util;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.handleSuggestionSuspendResumeOperation;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.showSuggestionInfoPanelPopup;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiBadgeModel;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
@@ -25,29 +48,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.time.Duration;
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.handleSuggestionSuspendResumeOperation;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.showSuggestionInfoPanelPopup;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiBadgeModel;
 
 /**
  * Utility methods for handling {@link StatusInfo} in tables.
@@ -470,12 +470,12 @@ public class StatusInfoTableUtil {
 
             @Override
             protected String getDropDownButtonIcon() {
-                return "fa fa-ellipsis-h";
+                return "fa-ellipsis-h";
             }
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn btn-link btn-sm";
+                return "btn-tool m-0 h-100 align-self-center";
             }
 
             @Override

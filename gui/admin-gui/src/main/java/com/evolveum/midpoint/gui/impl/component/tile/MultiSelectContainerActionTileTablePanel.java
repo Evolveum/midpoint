@@ -761,7 +761,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     @Override
     protected String getAdditionalHeaderContainerCssClasses() {
-        return isTileViewVisible() ? "border-0 p-0" : "p-3";
+        return isTileViewVisible() ? "border-0 p-0" : "";
     }
 
     @Override

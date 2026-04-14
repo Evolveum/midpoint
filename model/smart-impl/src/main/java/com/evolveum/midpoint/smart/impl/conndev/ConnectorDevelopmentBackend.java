@@ -17,14 +17,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.apache.hc.client5.http.entity.EntityBuilder;
-import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
-import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -522,19 +519,17 @@ public abstract class ConnectorDevelopmentBackend {
             for (var documentation : getProcessedDocumentation()) {
                 client.putDocumentationIfMissing(
                         "session/{sessionId}/documentation/" + documentation.uuid(), () -> {
-                            final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-                            builder.setMode(HttpMultipartMode.EXTENDED);
                             try {
-                                builder.addBinaryBody("documentation", documentation.asInputStream(),
-                                        ContentType.create(documentation.contentType(), StandardCharsets.UTF_8),
-                                        filenameFrom(documentation));
-                            } catch (FileNotFoundException e) {
-                                throw new SystemException("Couldn't open documentation", e);
+                                var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                                return EntityBuilder.create()
+                                        .setText(body)
+                                        .setContentType(ContentType.APPLICATION_JSON)
+                                        .build();
+                            } catch (IOException e) {
+                                throw new SystemException("Couldn't build documentation upload body", e);
                             }
-                            return builder.build();
                         });
             }
-            client.waitForDocumentationJobs("session/{sessionId}/documentation/status");
         } catch (Exception e) {
             throw new SystemException("Couldn't upload documentation", e);
         }

@@ -188,6 +188,8 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             case CONNID_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
                     "connid", "ConnID mapping script");
             case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, input.getEndpoint());
+            case SEARCH_BY_ID_DEFINITION -> generateObjectClassScript(artifactSpec, "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()), "search by ID script");
+            case SEARCH_FILTER_DEFINITION -> generateObjectClassScript(artifactSpec, "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()), "search filter script");
             case CREATE -> generateObjectClassScript(artifactSpec, "create", "Create script");
             case UPDATE ->  generateObjectClassScript(artifactSpec, "update", "Update script");
             case DELETE -> generateObjectClassScript(artifactSpec, "delete", "Delete script");
@@ -331,16 +333,13 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             var scrapped = job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                 var ret = new ArrayList<ProcessedDocumentation>();
 
-                var savedPages = json.get("savedDocumentations");
+                var savedDocs = json.get("savedDocumentations");
 
-                if (savedPages instanceof ObjectNode pages) {
-                    for (var page : pages.properties()) {
-                        var uri = page.getKey();
-                        // FIXME: This does not work for string
-                        var content = ConnDevJsonMapper.toText(page.getValue().get("content"));
-
-                        var processed = new ProcessedDocumentation(UUID.randomUUID().toString(), uri);
-                        processed.write(content);
+                if (savedDocs != null && savedDocs.isArray()) {
+                    for (var doc : savedDocs) {
+                        var docId = doc.get("docId").asText();
+                        var processed = new ProcessedDocumentation(docId, docId);
+                        processed.write(doc.toString());
                         ret.add(processed);
                     }
                 }

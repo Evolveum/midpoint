@@ -95,6 +95,11 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed modification of query of report fails when the query is defined using midPoint query language. See bug:MID-11093[]
 * Fixed access request shows unrelated conflicts. See bug:MID-10994[]
 * Fixed false replace updates in admin GUI dateTime comparison (seconds normalization issue). See bug:MID-11078[]
+<<<<<<< fix/MID-10972
+* Improved login and self-dashboard performance. See bug:MID-10972[]
+=======
+* Fixed hide export button in the popup. See bug:MID-11160[]
+>>>>>>> master
 
 === Releases Of Other Components
 

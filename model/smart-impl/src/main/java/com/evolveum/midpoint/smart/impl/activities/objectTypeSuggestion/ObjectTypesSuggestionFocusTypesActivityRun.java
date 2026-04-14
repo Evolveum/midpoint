@@ -63,8 +63,8 @@ class ObjectTypesSuggestionFocusTypesActivityRun
                     resourceOid, objectTypeBean.debugDumpLazily(1));
             try {
                 var focusType =
-                        SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(resourceOid, objectTypeBean,
-                                permissions, task, result);
+                        SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(
+                                resourceOid, objectTypeBean, permissions, task, result);
                 var resourceFocusSpecification = new ResourceObjectFocusSpecificationType()
                         .type(focusType.getFocusType());
                 //TODO marked as ai multiple times, should be generalized
@@ -79,6 +79,13 @@ class ObjectTypesSuggestionFocusTypesActivityRun
         parentState.setWorkStateItemRealValues(ObjectTypesSuggestionWorkStateType.F_RESULT, suggestedObjectTypesClone);
         parentState.flushPendingTaskModifications(result);
         LOGGER.debug("Suggestions written to the work state:\n{}", suggestedObjectTypesClone.debugDump(1));
+
+        try {
+            SmartIntegrationBeans.get().smartIntegrationService.submitSchemaMatchPreload(
+                    resourceOid, workDefinition.getObjectClassName(), permissions, task, result);
+        } catch (Exception e) {
+            LOGGER.debug("Failed to submit schema match preload for resource {}", resourceOid, e);
+        }
 
         return ActivityRunResult.success();
     }

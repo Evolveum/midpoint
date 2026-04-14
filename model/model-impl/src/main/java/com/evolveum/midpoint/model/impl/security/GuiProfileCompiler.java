@@ -144,7 +144,9 @@ public class GuiProfileCompiler {
             profileDependencies.add(systemConfiguration.getOid());
         }
 
-        collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, options, task, result);
+        if (!reuseLoginGuiProfileInputs(adminGuiConfigurations, profileDependencies, principal, options)) {
+            collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, options, task, result);
+        }
 
         if (!options.isCompileGuiAdminConfiguration()) {
             return;
@@ -165,6 +167,25 @@ public class GuiProfileCompiler {
 
         guiProfileCompilerRegistry.invokeCompiler(compiledGuiProfile);
         principal.setCompiledGuiProfile(compiledGuiProfile);
+        principal.clearLoginGuiProfileInputs();
+    }
+
+    private boolean reuseLoginGuiProfileInputs(
+            List<AdminGuiConfigurationType> adminGuiConfigurations,
+            Set<String> profileDependencies,
+            GuiProfiledPrincipal principal,
+            ProfileCompilerOptions options) {
+        if (!options.isCompileGuiAdminConfiguration()) {
+            return false;
+        }
+        GuiProfiledPrincipal.LoginGuiProfileInputs loginGuiProfileInputs = principal.getLoginGuiProfileInputs();
+        if (loginGuiProfileInputs == null) {
+            return false;
+        }
+
+        adminGuiConfigurations.addAll(loginGuiProfileInputs.adminGuiConfigurations());
+        profileDependencies.addAll(loginGuiProfileInputs.profileDependencies());
+        return true;
     }
 
     private void collect(
@@ -193,6 +214,8 @@ public class GuiProfileCompiler {
 
         MidpointAuthentication auth = AuthUtil.getMidpointAuthenticationNotRequired();
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
+        boolean storeLoginGuiProfileInputs =
+                shouldStoreLoginGuiProfileInputs(options, channel);
 
         List<Authorization> collectedAuthorizationList = new ArrayList<>();
         OtherPrivilegesLimitations collectedOtherPrivilegesLimitations = new OtherPrivilegesLimitations();
@@ -206,7 +229,7 @@ public class GuiProfileCompiler {
 
         for (EvaluatedAssignment assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
-                if (options.isCompileGuiAdminConfiguration()) {
+                if (options.isCompileGuiAdminConfiguration() || storeLoginGuiProfileInputs) {
                     // TODO: Should we add also invalid assignments?
                     consideredOids.addAll(assignment.getAdminGuiDependencies());
                 }
@@ -214,7 +237,7 @@ public class GuiProfileCompiler {
                 if (options.isCollectAuthorization()) {
                     collectedAuthorizationList.addAll(collectAuthorizations(channel, assignment.getAuthorizations(), options));
                 }
-                if (options.isCompileGuiAdminConfiguration()) {
+                if (options.isCompileGuiAdminConfiguration() || storeLoginGuiProfileInputs) {
                     adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
                 }
             }
@@ -234,9 +257,28 @@ public class GuiProfileCompiler {
         //end of code restructuring due to #10781
 
         if (!options.isCompileGuiAdminConfiguration()) {
+            if (storeLoginGuiProfileInputs) {
+                addFocusAdminGuiConfiguration(adminGuiConfigurations, focus);
+                principal.setLoginGuiProfileInputs(
+                        new GuiProfiledPrincipal.LoginGuiProfileInputs(adminGuiConfigurations, consideredOids));
+            } else {
+                principal.clearLoginGuiProfileInputs();
+            }
             return;
         }
 
+        addFocusAdminGuiConfiguration(adminGuiConfigurations, focus);
+    }
+
+    private boolean shouldStoreLoginGuiProfileInputs(
+            ProfileCompilerOptions options, @Nullable AuthenticationChannel channel) {
+        return options.isCollectAuthorization()
+                && !options.isCompileGuiAdminConfiguration()
+                && (channel == null || channel.isSupportGuiConfigByChannel());
+    }
+
+    private void addFocusAdminGuiConfiguration(
+            List<AdminGuiConfigurationType> adminGuiConfigurations, FocusType focus) {
         if (focus instanceof UserType user && user.getAdminGuiConfiguration() != null) {
             // config from the user object should go last (to be applied as the last one)
             adminGuiConfigurations.add(user.getAdminGuiConfiguration());
