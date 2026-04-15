@@ -386,7 +386,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected boolean displayNoValuePanel() {
-        return getTable().getProvider().size() == 0 && !suggestionToggleModel.getObject();
+        return getTable().getProvider().size() == 0
+                && !suggestionToggleModel.getObject()
+                && mappingUsedForIModel.getObject().equals(MappingUsedFor.ALL);
     }
 
     @SuppressWarnings("unchecked")
