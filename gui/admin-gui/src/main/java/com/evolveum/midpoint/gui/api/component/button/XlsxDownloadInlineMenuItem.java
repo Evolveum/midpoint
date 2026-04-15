@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.gui.api.component.button;
 
 import java.io.OutputStream;
+import java.io.Serial;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.component.data.provider.StreamingXlsxDataExporter;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
@@ -25,7 +28,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 public class XlsxDownloadInlineMenuItem extends ExportDownloadInlineMenuItem {
 
     private static final Trace LOGGER = TraceManager.getTrace(XlsxDownloadInlineMenuItem.class);
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public XlsxDownloadInlineMenuItem(ContainerableListPanel component, String fileNamePrefix) {
         super(ColumnUtils.createStringResource("XlsxDownloadButtonPanel.export"), component, fileNamePrefix);
@@ -45,8 +48,8 @@ public class XlsxDownloadInlineMenuItem extends ExportDownloadInlineMenuItem {
 
     @Override
     protected AbstractDataExporter getDataExporter() {
-        return new XlsxDataExporter() {
-            private static final long serialVersionUID = 1L;
+        return new StreamingXlsxDataExporter(component.getPageBase()) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public <T> void exportData(IDataProvider<T> dataProvider,
