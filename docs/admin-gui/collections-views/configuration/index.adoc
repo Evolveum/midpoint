@@ -622,7 +622,7 @@ The example of search panel configuration for Users list page:
 image::AllUsersTelEmail.png[100%]
 
 The example of the search panel configuration which adds fulltext search item to the Basic search mode panel. Be aware that fulltext search must be enabled as well to make it work.
-Use case for such search configuration is described more detailed xref:../../admin-gui-config/admin-gui-config-examples.adoc/#configure-fulltext-search-item-on-the-members-basic-search-panel[here].
+Use case for such search configuration is described more detailed xref:../../admin-gui-config/admin-gui-config-examples/#configure-fulltext-search-item-on-the-members-basic-search-panel[here].
 
 [source,xml]
 ----
