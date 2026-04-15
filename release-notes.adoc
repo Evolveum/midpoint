@@ -28,6 +28,10 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.8.13
+
+* Improved Search Box in Object Collection View. See bug:MID-9476[]
+
 == Changes with Respect To Version 4.8.12
 
 * Improved login and self-dashboard performance. See bug:MID-10972[]
