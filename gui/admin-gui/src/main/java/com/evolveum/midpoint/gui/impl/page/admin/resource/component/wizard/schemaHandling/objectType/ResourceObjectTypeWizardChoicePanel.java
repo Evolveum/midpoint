@@ -92,6 +92,8 @@ public abstract class ResourceObjectTypeWizardChoicePanel
 
     @Override
     protected Component createTilePanel(String id, IModel<Tile<ResourceObjectTypePreviewTileType>> tileModel) {
+        ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
+
         return new WizardGuideTilePanel<>(id, tileModel) {
 
             private @NotNull Boolean getDescription() {
@@ -111,7 +113,8 @@ public abstract class ResourceObjectTypeWizardChoicePanel
             @Override
             protected IModel<Badge> getBadgeModel() {
                 ResourceObjectTypePreviewTileType tile = tileModel.getObject().getValue();
-                ResourceGuideObjectTypeTileState state = computeState(tile, getValueModel(),
+                ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
+                ResourceGuideObjectTypeTileState state = computeState(tile, resource, getValueModel(),
                         ResourceObjectTypeWizardChoicePanel.this);
                 return state.badgeModel(ResourceObjectTypeWizardChoicePanel.this);
             }
@@ -126,14 +129,14 @@ public abstract class ResourceObjectTypeWizardChoicePanel
                     return null;
                 }
 
-                String key = ResourceGuideObjectTypeTileState.getTooltipKey(tile, real);
+                String key = ResourceGuideObjectTypeTileState.getTooltipKey(tile, resource, real);
                 return key != null ? ResourceObjectTypeWizardChoicePanel.this.getPageBase().createStringResource(key) : null;
             }
 
             @Override
             protected boolean isLocked() {
                 ResourceObjectTypePreviewTileType tile = tileModel.getObject().getValue();
-                return computeState(tile, getValueModel(),
+                return computeState(tile, resource, getValueModel(),
                         ResourceObjectTypeWizardChoicePanel.this) == ResourceGuideObjectTypeTileState.TEMPORARY_LOCKED;
             }
 
