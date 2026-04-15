@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -685,13 +686,31 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     protected List<PrismContainerValueWrapper<AssignmentType>> prefilterUsingQuery(
             List<PrismContainerValueWrapper<AssignmentType>> list, ObjectQuery query) {
-        return list.stream().filter(valueWrapper -> {
-            try {
-                return ObjectQuery.match(valueWrapper.getRealValue(), query.getFilter(), getPageBase().getMatchingRuleRegistry());
-            } catch (SchemaException e) {
-                throw new TunnelException(e.getMessage());
-            }
-        }).collect(Collectors.toList());
+        return list.stream().filter(valueWrapper -> matchesQuery(getPageBase(), valueWrapper.getRealValue(), query.getFilter()))
+                .collect(Collectors.toList());
+    }
+
+    public static List<AssignmentType> prefilterAssignmentsUsingQuery(
+            PageBase pageBase,
+            List<AssignmentType> list,
+            ObjectQuery query) {
+        if (CollectionUtils.isEmpty(list)) {
+            return List.of();
+        }
+        return list.stream()
+                .filter(assignment -> matchesQuery(pageBase, assignment, query.getFilter()))
+                .collect(Collectors.toList());
+    }
+
+    public static boolean matchesQuery(PageBase pageBase, Containerable candidate, ObjectFilter filter) {
+        if (filter == null) {
+            return true;
+        }
+        try {
+            return ObjectQuery.match(candidate, filter, pageBase.getMatchingRuleRegistry());
+        } catch (SchemaException e) {
+            throw new TunnelException(e.getMessage());
+        }
     }
 
     @Override

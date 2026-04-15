@@ -6633,10 +6633,11 @@
             <xsd:element name="includeNullInputs" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true (which is the default) the script will be evaluated with null value
-                        as argument when the input is changed from or to an empty value. This generally works
-                        well for most cases. It may be set to false as an optimization.
-                        Note: default setting for this property may be overridden in specific expression evaluators.
+                        If set to true the script will be evaluated with null value as argument when the input is
+                        changed from or to an empty value. This generally works well for most cases. It may be set to
+                        false as an optimization.
+                        Note: default setting (true) for this property may be overridden in specific expression 
+                        evaluators.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

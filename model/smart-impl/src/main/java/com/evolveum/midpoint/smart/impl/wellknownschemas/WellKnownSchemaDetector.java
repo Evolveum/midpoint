@@ -8,7 +8,7 @@
 
 package com.evolveum.midpoint.smart.impl.wellknownschemas;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import java.util.Optional;
@@ -23,5 +23,5 @@ public interface WellKnownSchemaDetector {
     /**
      * Attempts to detect the schema type for the given resource and object type.
      */
-    Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition);
+    Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectClassDefinition objectClassDef);
 }

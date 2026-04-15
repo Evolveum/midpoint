@@ -413,11 +413,16 @@ public abstract class ColumnTileTable<O extends Serializable>
         visitChildren(FormComponent.class, (component, visit) -> {
             FormComponent<?> formComponent = (FormComponent<?>) component;
 
-            if(formComponent.hasErrorMessage()){
+            if (!formComponent.isVisibleInHierarchy() || !formComponent.isEnabledInHierarchy()) {
+                return;
+            }
+
+            if (formComponent.hasErrorMessage()) {
                 valid.set(false);
                 updateValidatorComponent(target, valid, formComponent);
                 return;
             }
+
             enableUseModelForNotNullValidators(formComponent);
             formComponent.validate();
 

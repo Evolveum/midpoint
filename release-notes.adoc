@@ -52,6 +52,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * bug:MID-10997[] Added support for additional footer.
 * bug:MID-11036[] Implemented export to XLSX.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
+* bug:MID-9476[] Improved Search Box in Object Collection View.
 
 === Major Bugfixes
 
@@ -95,6 +96,10 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed modification of query of report fails when the query is defined using midPoint query language. See bug:MID-11093[]
 * Fixed access request shows unrelated conflicts. See bug:MID-10994[]
 * Fixed false replace updates in admin GUI dateTime comparison (seconds normalization issue). See bug:MID-11078[]
+* Improved login and self-dashboard performance. See bug:MID-10972[]
+* Fixed hide export button in the popup. See bug:MID-11160[]
+* Delineation suggestions: filter parsing broken after recent GUI change. See bug:MID-11175[]
+
 
 === Releases Of Other Components
 

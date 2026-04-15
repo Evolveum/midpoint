@@ -60,6 +60,7 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -386,7 +387,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected boolean displayNoValuePanel() {
-        return getTable().getProvider().size() == 0 && !suggestionToggleModel.getObject();
+        return getTable().getProvider().size() == 0
+                && !suggestionToggleModel.getObject()
+                && mappingUsedForIModel.getObject().equals(MappingUsedFor.ALL);
     }
 
     @SuppressWarnings("unchecked")
@@ -686,11 +689,37 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         return InlineMenuItemBuilder.create()
                 .icon("fa fa-sync")
                 .label(createStringResource("AttributeMappingsTable.button.changeLifecycle"))
-                .action(createChangeLifecycleColumnAction(getPageBase(), this::refreshAndDetach,
-                        () -> getTable().getSelectedContainerItems()))
+                .action(new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        List<PrismContainerValueWrapper<MappingType>> selectedMappings =
+                                new ArrayList<>(getTable().getSelectedContainerItems());
+
+                        if (selectedMappings.isEmpty()) {
+                            getPageBase().warn(createStringResource(
+                                    "MultivalueContainerListPanel.message.noItemsSelected").getString());
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        ChangeLifecycleSelectedMappingsPopup changePopup =
+                                new ChangeLifecycleSelectedMappingsPopup(
+                                        getPageBase().getMainPopupBodyId(),
+                                        Model.ofList(selectedMappings)) {
+                                    @Override
+                                    protected void applyChanges(AjaxRequestTarget target) {
+                                        super.applyChanges(target);
+                                        refreshAndDetach(target);
+                                    }
+                                };
+
+                        getPageBase().showMainPopup(changePopup, target);
+                    }
+                })
                 .visibilityChecker((rowModel, isHeader) -> isHeader)
                 .buildInlineMenu();
     }
+
 
     private @NotNull InlineMenuItem createChangeMappingNameInlineMenu() {
         return InlineMenuItemBuilder.create()

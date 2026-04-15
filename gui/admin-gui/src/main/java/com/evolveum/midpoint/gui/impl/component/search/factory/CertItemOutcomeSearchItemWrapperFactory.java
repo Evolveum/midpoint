@@ -77,7 +77,9 @@ public class CertItemOutcomeSearchItemWrapperFactory  extends
                 }
             });
         }
-        merged.add(AccessCertificationResponseType.NO_RESPONSE);
+        if (!merged.contains(AccessCertificationResponseType.NO_RESPONSE)) {
+            merged.add(AccessCertificationResponseType.NO_RESPONSE);
+        }
         return merged;
     }
 
