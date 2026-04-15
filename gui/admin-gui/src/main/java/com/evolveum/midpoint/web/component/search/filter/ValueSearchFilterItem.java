@@ -95,6 +95,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         POLY_STRING_ORIG(PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME),
         POLY_STRING_NORM(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME),
         EXCHANGE_EMAIL_ADDRESSES(PrismConstants.EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME),
+        VARIABLE_BINDING_DEF(PrismConstants.VARIABLE_BINDING_DEF_MATCHING_RULE_NAME),
         DISTINGUISHED_NAME(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME),
         XML(PrismConstants.XML_MATCHING_RULE_NAME),
         UUID(PrismConstants.UUID_MATCHING_RULE_NAME),
@@ -315,6 +316,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         } else {
             matchingRules.add(MatchingRule.STRING_IGNORE_CASE);
             matchingRules.add(MatchingRule.EXCHANGE_EMAIL_ADDRESSES);
+            matchingRules.add(MatchingRule.VARIABLE_BINDING_DEF);
             matchingRules.add(MatchingRule.DISTINGUISHED_NAME);
             matchingRules.add(MatchingRule.XML);
             matchingRules.add(MatchingRule.UUID);

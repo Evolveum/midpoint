@@ -74,6 +74,20 @@ public class TestTask extends TestObject<TaskType> {
     }
 
     /**
+     * Create new test resource from the definition stored in a file.
+     *
+     * Unfortunately the method name can not simply be {@code file}, because it would overload the
+     * {@link TestObject#file(File, String)} which has different parameters' semantics.
+     *
+     * @param file The file which contain definition of the resource.
+     * @param oid The oid of the resource.
+     * @return The newly created test resource.
+     */
+    public static TestTask fromFile(@NotNull File file, @NotNull String oid) {
+        return new TestTask(new FileBasedTestObjectSource(file), oid, DEFAULT_TIMEOUT);
+    }
+
+    /**
      * Initializes the task - i.e. imports it into repository (via model).
      * This may or may not start the task, depending on the execution state in the file.
      *
@@ -81,6 +95,12 @@ public class TestTask extends TestObject<TaskType> {
      */
     public void init(AbstractIntegrationTest test, Task task, OperationResult result) throws CommonException {
         commonInit(test, task, result);
+        this.test = test;
+    }
+
+    @Override
+    public void initWithOverwrite(AbstractIntegrationTest test, Task task, OperationResult result) throws Exception {
+        super.initWithOverwrite(test, task, result);
         this.test = test;
     }
 

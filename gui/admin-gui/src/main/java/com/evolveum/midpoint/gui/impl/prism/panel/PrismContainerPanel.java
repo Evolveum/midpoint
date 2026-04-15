@@ -76,7 +76,7 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
 
     @Override
     protected ItemHeaderPanel createHeaderPanel() {
-        PrismContainerHeaderPanel<C, PCW> header = new PrismContainerHeaderPanel(ID_HEADER, getModel()) {
+        PrismContainerHeaderPanel<C, PCW> header = new PrismContainerHeaderPanel(ID_HEADER, getModel(), getSettings()) {
             @Override
             protected void onExpandClick(AjaxRequestTarget target) {
                 PrismContainerWrapper<C> wrapper = PrismContainerPanel.this.getModelObject();

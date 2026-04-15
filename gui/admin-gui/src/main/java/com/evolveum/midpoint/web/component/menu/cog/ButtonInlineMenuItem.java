@@ -17,6 +17,8 @@ import org.apache.wicket.model.IModel;
  */
 public abstract class ButtonInlineMenuItem extends InlineMenuItem {
 
+    boolean isLabelVisible = false;
+
     public ButtonInlineMenuItem(IModel<String> labelModel) {
         super(labelModel);
     }
@@ -25,20 +27,21 @@ public abstract class ButtonInlineMenuItem extends InlineMenuItem {
         super(labelModel, isSubmit);
     }
 
-    public abstract CompositedIconBuilder getIconCompositedBuilder();
-
-    protected CompositedIconBuilder getDefaultCompositedIconBuilder(String basicIcon) {
-        CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setBasicIcon(basicIcon, IconCssStyle.IN_ROW_STYLE);
-        return builder;
-    }
-
     protected boolean isBadgeVisible() {
         return false;
     }
 
+    public abstract CompositedIconBuilder getIconCompositedBuilder();
+
     public boolean isLabelVisible() {
-        return false;
+        return isLabelVisible;
     }
 
+    public void setLabelVisible(boolean visible) {
+        this.isLabelVisible = visible;
+    }
+
+    public IModel<String> getButtonLabelModel() {
+        return getLabel();
+    }
 }

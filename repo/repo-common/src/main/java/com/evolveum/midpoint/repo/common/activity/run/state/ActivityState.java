@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Objects;
 
 /**
  * Used to manipulate {@link ActivityStateType} objects in a task:
@@ -154,6 +155,16 @@ public abstract class ActivityState implements DebugDumpable {
     }
     //endregion
 
+    //region Other specific getters/setters
+    public ActivityState setDisplayOrder(@Nullable Integer value) throws ActivityRunException {
+        return setItemRealValues(ActivityStateType.F_DISPLAY_ORDER, value);
+    }
+
+    public @Nullable Integer getDisplayOrder() {
+        return getPropertyRealValue(ActivityStateType.F_DISPLAY_ORDER, Integer.class);
+    }
+    //endregion
+
     //region Bucketing
     public void setBucketProcessingRole(BucketsProcessingRoleType role) throws ActivityRunException {
         setItemRealValues(BUCKET_PROCESSING_ROLE_PATH, role);
@@ -217,9 +228,10 @@ public abstract class ActivityState implements DebugDumpable {
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
      */
-    public void setItemRealValues(ItemPath path, Object... values) throws ActivityRunException {
+    public ActivityState setItemRealValues(ItemPath path, Object... values) throws ActivityRunException {
         convertException(
                 () -> setItemRealValuesInternal(path, isSingleNull(values) ? List.of() : Arrays.asList(values)));
+        return this;
     }
 
     /**

@@ -128,7 +128,8 @@ public class FocusMappingMappingsTable extends AbstractMappingsTable<MappingsTyp
             @Override
             protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
 
-                IModel<Collection<VariableBindingDefinitionType>> multiselectModel = createSourceMultiselectModel(rowModel);
+                IModel<Collection<VariableBindingDefinitionType>> multiselectModel = createSourceMultiselectModel(rowModel,
+                        FocusMappingMappingsTable.this.getPageBase());
 
                 SourceOfFocusMappingProvider provider = new SourceOfFocusMappingProvider(
                         (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);

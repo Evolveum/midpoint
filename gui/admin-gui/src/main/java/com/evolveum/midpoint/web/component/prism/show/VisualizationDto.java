@@ -15,6 +15,10 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -29,7 +33,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
-public class VisualizationDto implements Serializable {
+public class VisualizationDto implements Serializable, DebugDumpable {
 
     @NotNull private final Visualization visualization;
     private boolean minimized;
@@ -167,7 +171,7 @@ public class VisualizationDto implements Serializable {
     }
 
     public boolean hasNonOperationalContent() {
-        if (getVisualization().isOperational()){
+        if (getVisualization().isOperational()) {
             return false;
         }
 
@@ -230,5 +234,14 @@ public class VisualizationDto implements Serializable {
         result = 31 * result + (items != null ? items.hashCode() : 0);
         result = 31 * result + (partialVisualizations != null ? partialVisualizations.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.debugDumpLabelLn(sb, "VisualizationDto", indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "visualization", visualization, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "items", items, indent + 1);
+        return sb.toString();
     }
 }

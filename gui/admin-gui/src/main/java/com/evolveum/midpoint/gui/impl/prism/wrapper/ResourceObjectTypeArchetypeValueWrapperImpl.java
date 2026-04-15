@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -72,8 +74,7 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
                                 .visibility(UserInterfaceElementVisibilityType.VISIBLE)))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-archetype-display")
-                        .display(new DisplayType()
-                                .label("ArchetypePolicyType.display"))
+                        .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("ArchetypePolicyType.display"))
                         .expanded(false)
                         .item(new VirtualContainerItemSpecificationType()
                                 .path(new ItemPathType(
@@ -130,8 +131,8 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
     }
 
     @Override
-    protected <O extends ObjectType> PrismObject<O> createNewPrismObject(OperationResult result) throws SchemaException {
-        PrismObject<O> newObject = super.createNewPrismObject(result);
+    protected <O extends ObjectType> PrismObject<O> createNewPrismObject(OperationResult result, PageAdminLTE pageAdminLTE) throws SchemaException {
+        PrismObject<O> newObject = super.createNewPrismObject(result, pageAdminLTE);
         PrismContainerDefinition<O> def = newObject.getDefinition().clone();
         PrismContainerDefinition<Containerable> iconContainerDefinition = def.findContainerDefinition(ItemPath.create(
                 ArchetypeType.F_ARCHETYPE_POLICY,

@@ -46,4 +46,9 @@ public interface AuditingExtension {
             @NotNull CaseEngineOperation operation,
             @NotNull OperationResult result);
 
+    void enrichAutoClosingWorkItemAuditRecord(
+            @NotNull AuditEventRecord auditEventRecord,
+            @NotNull CaseEngineOperation operation,
+            @NotNull OperationResult result);
+
 }

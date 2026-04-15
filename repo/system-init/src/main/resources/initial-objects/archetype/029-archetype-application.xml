@@ -106,7 +106,12 @@
                                 <key>classifications.panel.label</key>
                             </translation>
                         </label>
-                        <tooltip>Information classifications (labels)</tooltip>
+                        <tooltip>
+                            <orig>Information classifications (labels)</orig>
+                            <translation>
+                                <key>classifications.panel.tooltip</key>
+                            </translation>
+                        </tooltip>
                         <icon>
                             <cssClass>fa fa-tags</cssClass>
                         </icon>

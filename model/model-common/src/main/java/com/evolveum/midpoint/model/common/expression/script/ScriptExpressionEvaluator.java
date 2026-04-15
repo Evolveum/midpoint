@@ -82,6 +82,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefin
         sCtx.setAdditionalConvertor(eeCtx.getAdditionalConvertor());
         sCtx.setTask(eeCtx.getTask());
         sCtx.setResult(result);
+        sCtx.setNamespaceContext(eeCtx.getNamespaceContext());
 
         return scriptExpression.evaluate(sCtx);
     }

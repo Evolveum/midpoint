@@ -226,7 +226,7 @@ Steps without order value go last.
 | all steps
 | Technical documentation for the step.
 
-| `configuration`
+| `connection`
 | `polyString`
 | Configuration of xref:/midpoint/reference/schema/polystring-normalization/[`PolyString` normalizer].
 If not specified, the one defined at the system level is used.

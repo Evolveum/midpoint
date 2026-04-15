@@ -21,7 +21,7 @@ public interface ConnectorOperationHook {
      * May be called multiple times within one call, if there are embedded objects being created.
      * (But once for each particular object.)
      */
-    void afterCreateOperation(DummyObject object);
+    default void afterCreateOperation(DummyObject object) {};
 
     /**
      * Called right after an object is successfully modified on the dummy resource via connector `update` operation.
@@ -31,5 +31,10 @@ public interface ConnectorOperationHook {
      * The actual type of the `modifications` parameter depends on ConnId API, so it cannot be specified here.
      * Either we have to live with this, or we must move the hook registry to the `dummy-connector` project somehow.
      */
-    void afterModifyOperation(DummyObject object, Collection<?> modifications);
+    default void afterModifyOperation(DummyObject object, Collection<?> modifications) {};
+
+    /**
+     * Called right before an object is returned from the dummy resource via connector `search` operation through result handler.
+     */
+    default void beforeHandleResultObject(DummyObject object) {};
 }

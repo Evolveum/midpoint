@@ -133,12 +133,25 @@ public class ObjectTypeUtil {
         if (object == null) {
             return "null";
         } else {
-            return getShortTypeName(object)
-                    + ": "
-                    + object.getName()
-                    + " (OID:"
-                    + object.getOid()
-                    + ")";
+            return getShortTypeName(object) + ": " + getNameAndOid(object);
+        }
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static String getNameAndOid(ObjectType object) {
+        if (object != null) {
+            return "%s (OID: %s)".formatted(object.getName(), object.getOid());
+        } else {
+            return null;
+        }
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static String getQuotedNameAndOid(ObjectType object) {
+        if (object != null) {
+            return "'%s' (OID: %s)".formatted(object.getName(), object.getOid());
+        } else {
+            return null;
         }
     }
 

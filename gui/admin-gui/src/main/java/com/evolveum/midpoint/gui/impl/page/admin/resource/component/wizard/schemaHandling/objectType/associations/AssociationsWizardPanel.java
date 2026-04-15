@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssoci
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -45,7 +45,7 @@ public class AssociationsWizardPanel extends AbstractWizardPanel<ResourceObjectT
             protected void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> value, AjaxRequestTarget target) {
                 showWizardFragment(target, new WizardPanel(
                         getIdOfWizardPanel(),
-                        new WizardModel(createAssociationsSteps(value))));
+                        new WizardModelBasic(createAssociationsSteps(value))));
             }
         };
     }

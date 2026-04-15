@@ -20,6 +20,7 @@
             <mapping id="333">
                 <condition>
                     <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                         <code>
                             costCenter == 'safe'
                         </code>

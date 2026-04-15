@@ -6,26 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.prism.panel.*;
-import com.evolveum.midpoint.prism.Containerable;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisAttributeSettingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeSettingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+import java.io.Serial;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -41,7 +23,28 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.prism.panel.DefaultContainerablePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisAttributeSettingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeSettingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
 /**
  * @author lskublik
@@ -70,6 +73,11 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         propertiesLabel.setOutputMarkupId(true);
         add(propertiesLabel);
 
+        PrismContainerValueWrapper<C> model = getModel().getObject();
+        if (!isShowEmptyButtonVisible()) {
+            model.setShowEmpty(true);
+        }
+
         IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = new PropertyModel<>(getModel(), "nonContainers");
 
         WebMarkupContainer formContainer = new WebMarkupContainer(ID_FORM_CONTAINER);
@@ -87,14 +95,12 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         properties.setOutputMarkupId(true);
         formContainer.add(properties);
 
-        AjaxButton labelShowEmpty = createShowEmptyButton(ID_SHOW_EMPTY_BUTTON);
-        labelShowEmpty.setOutputMarkupId(true);
-        labelShowEmpty.add(AttributeAppender.append("style", "cursor: pointer;"));
+        Component labelShowEmpty = createShowEmptyButton(ID_SHOW_EMPTY_BUTTON);
         labelShowEmpty.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
         formContainer.add(labelShowEmpty);
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_VALUE) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -226,26 +232,28 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     }
 
     @Override
-    protected AjaxButton createShowEmptyButton(String id) {
-        AjaxButton button = super.createShowEmptyButton(id);
-        AjaxButton buttonContainer = new AjaxButton(ID_SHOW_EMPTY_BUTTON_CONTAINER) {
-            private static final long serialVersionUID = 1L;
+    protected Component createShowEmptyButton(String id) {
+        AjaxIconButton button = new AjaxIconButton(
+                ID_SHOW_EMPTY_BUTTON,
+                () -> "fas fa-eye mr-2 mt-1",
+                () -> createShowEmptyButtonLabel().getObject()) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                button.onClick(target);
-            }
-
-            @Override
-            public boolean isVisible() {
-                return isShowEmptyButtonVisible();
+                showEmptyButtonPerformed(target);
             }
         };
-        buttonContainer.add(button);
-        return buttonContainer;
+        button.showTitleAsLabel(true);
+        button.add(new VisibleBehaviour(this::isShowEmptyButtonVisible));
+
+        return button;
     }
 
     protected boolean isShowEmptyButtonVisible() {
+        return true;
+    }
+
+    protected boolean isShowEmptyButtonContainerVisible() {
         return true;
     }
 
@@ -260,6 +268,32 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
             return new VerticalFormAnalysisAttributesPanel("container", (IModel) wrapperModel, settings);
         }
         return new VerticalFormPrismContainerPanel<>("container", (IModel) wrapperModel, settings) {
+
+            @Override
+            protected boolean isHeaderVisible() {
+                return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainerHeader(wrapperModel.getObject());
+            }
+
+            @Override
+            protected String getCssClassForFormContainer() {
+                if (getCssClassForFormSubContainer() != null) {
+                    return getCssClassForFormSubContainer();
+                }
+                return super.getCssClassForFormContainer();
+            }
+
+            @Override
+            protected boolean isShowEmptyButtonVisible() {
+                return isShowEmptyButtonContainerVisible();
+            }
+
+            @Override
+            protected String getCssClassForFormContainerOfValuePanel() {
+                if (getCssClassForFormSubContainerOfValuePanel() != null) {
+                    return getCssClassForFormSubContainerOfValuePanel();
+                }
+                return super.getCssClassForFormContainerOfValuePanel();
+            }
 
             @Override
             protected IModel<String> getTitleModel() {
@@ -290,5 +324,17 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainer(c);
             }
         };
+    }
+
+    protected boolean isVisibleSubContainerHeader(PrismContainerWrapper<? extends Containerable> c) {
+        return true;
+    }
+
+    protected String getCssClassForFormSubContainer() {
+        return null;
+    }
+
+    protected String getCssClassForFormSubContainerOfValuePanel() {
+        return null;
     }
 }

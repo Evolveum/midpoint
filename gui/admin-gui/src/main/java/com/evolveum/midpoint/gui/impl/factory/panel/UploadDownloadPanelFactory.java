@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,8 +24,11 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
 
 /**
  * @author katkav
@@ -93,10 +95,15 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
                 ItemPath path = panelCtx.getValueWrapperModel().getObject().getParent().getPath();
 
                 if (Objects.equals(path, ItemPath.create(FocusType.F_JPEG_PHOTO))) {
-                    return Arrays.asList("image/*");
+                    return FileValidatorUtil.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES;
                 }
 
                 return super.getAllowedUploadContentTypes();
+            }
+
+            @Override
+            public String getDownloadContentType() {
+                return MIME_IMAGE_JPEG;
             }
         };
 

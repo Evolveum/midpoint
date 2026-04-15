@@ -50,7 +50,7 @@ public abstract class AbstractTemplateChoicePanel<T extends Serializable> extend
 
             @Override
             protected WebMarkupContainer createIconPanel(String idIcon) {
-                return AbstractTemplateChoicePanel.this.createIconPanel(tileModel, idIcon);
+                return AbstractTemplateChoicePanel.this.createTemplateIconPanel(tileModel, idIcon);
             }
 
             protected VisibleEnableBehaviour getDescriptionBehaviour() {
@@ -59,18 +59,22 @@ public abstract class AbstractTemplateChoicePanel<T extends Serializable> extend
 
             @Override
             protected void onClick(AjaxRequestTarget target) {
-                Tile<T> selectedTile = tileModel.getObject();
-                if (isSelectable()) {
-                    getTilesModel().getObject().forEach(tile -> tile.setSelected(false));
-                    selectedTile.setSelected(true);
-                    target.add(AbstractTemplateChoicePanel.this);
-                }
-                onTemplateChosePerformed(selectedTile.getValue(), target);
+                onClickPerformed(target, tileModel);
             }
         };
     }
 
-    protected abstract WebMarkupContainer createIconPanel(IModel<Tile<T>> tileModel, String idIcon);
+    protected void onClickPerformed(AjaxRequestTarget target, IModel<Tile<T>> tileModel) {
+        Tile<T> selectedTile = tileModel.getObject();
+        if (isSelectable()) {
+            getTilesModel().getObject().forEach(tile -> tile.setSelected(false));
+            selectedTile.setSelected(true);
+            target.add(AbstractTemplateChoicePanel.this);
+        }
+        onTemplateChosePerformed(selectedTile.getValue(), target);
+    }
+
+    protected abstract WebMarkupContainer createTemplateIconPanel(IModel<Tile<T>> tileModel, String idIcon);
 
     protected boolean isSelectable() {
         return false;

@@ -14,7 +14,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.SchemaHandlingObjectsPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -23,12 +22,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -37,7 +38,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlingTypesTableWizardPanel.class);
 
-    private static final String ID_TABLE = "table";
+    private static final String ID_PANEL = "panel";
 
     public SchemaHandlingTypesTableWizardPanel(String id, ResourceDetailsModel model) {
         super(id, model);
@@ -46,46 +47,84 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
-        getTable().getTable().setShowAsCard(false);
+        applyShowAsCard();
+    }
+
+    private void applyShowAsCard() {
+        if (getPanel() != null) {
+            getPanel().getTable().setShowAsCard(false);
+        }
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initTable(ID_TABLE);
+
+        initPanel(ID_PANEL);
     }
 
-    protected abstract void initTable(String tableId);
+    protected abstract void initPanel(String panelId);
 
     protected final void onNewValue(
             PrismContainerValue<C> value,
-            IModel<PrismContainerWrapper<C>> containerModel,
+            @NotNull IModel<PrismContainerWrapper<C>> containerModel,
             WrapperContext context,
             AjaxRequestTarget target,
-            boolean isDeprecate) {
+            boolean isDeprecate,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
+
+        if(value != null){
+            useNewValue(value, containerModel, context, target, isDeprecate, postSaveHandler);
+            return;
+        }
+
         PageBase pageBase = getPageBase();
         PrismContainerWrapper<C> container = containerModel.getObject();
-        PrismContainerValue<C> newValue = value;
-        if (newValue == null) {
-            newValue = container.getItem().createNewValue();
-        }
-        PrismContainerValueWrapper newWrapper = null;
+        PrismContainerValue<C> newValue = container.getItem().createNewValue();
+        PrismContainerValueWrapper<C> newWrapper = null;
         try {
             newWrapper = WebPrismUtil.createNewValueWrapper(
                     container, newValue, pageBase, context);
             container.getValues().add(newWrapper);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't create new value for container " + container, e);
+            LOGGER.error("Couldn't create new value for container {}", container, e);
         }
         IModel<PrismContainerValueWrapper<C>> model = Model.of(newWrapper);
-        onCreateValue(model, target, isDeprecate);
+        onCreateValue(model, target, isDeprecate, postSaveHandler);
     }
 
-    public MultivalueContainerListPanel getTable() {
-        return ((SchemaHandlingObjectsPanel) get(ID_TABLE)).getTable();
+
+    protected final void useNewValue(
+            @NotNull PrismContainerValue<C> newValue,
+            @NotNull IModel<PrismContainerWrapper<C>> containerModel,
+            WrapperContext context,
+            AjaxRequestTarget target,
+            boolean isDeprecate,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
+        PageBase pageBase = getPageBase();
+        PrismContainerWrapper<C> container = containerModel.getObject();
+
+        PrismContainerValueWrapper<C> newWrapper = null;
+        try {
+            newWrapper = WebPrismUtil.addNewValueToContainer(
+                    container,
+                    newValue,
+                    pageBase,
+                    context);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't create new value for container {}", container, e);
+        }
+
+        IModel<PrismContainerValueWrapper<C>> model = Model.of(newWrapper);
+        onCreateValue(model, target, isDeprecate, postSaveHandler);
     }
 
-    protected final ContainerPanelConfigurationType getConfiguration(){
+    @SuppressWarnings("rawtypes")
+    public MultivalueContainerListPanel getPanel() {
+        return ((SchemaHandlingObjectsPanel) get(ID_PANEL)).getTable();
+    }
+
+    protected final ContainerPanelConfigurationType getConfiguration() {
         return WebComponentUtil.getContainerConfiguration(
                 getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
                 getPanelType());
@@ -95,7 +134,8 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target);
 
-    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target, boolean isDuplicate);
+    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target,
+            boolean isDuplicate, @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler);
 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
@@ -108,7 +148,10 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     }
 
     protected boolean isValid(AjaxRequestTarget target) {
-        return getTable().isValidFormComponents(target);
+        if (getPanel() == null) {
+            return true; // no table, no validation
+        }
+        return getPanel().isValidFormComponents(target);
     }
 
     @Override

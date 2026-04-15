@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import java.io.Serial;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,7 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
  */
 public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismPropertyValue<ExpressionType>, PrismProperty<ExpressionType>,
         PrismPropertyDefinition<ExpressionType>, PrismPropertyWrapper<ExpressionType>> {
-    private static final long serialVersionUID = 1L;
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_REMOVE_BUTTON = "removeButton";
@@ -38,15 +40,15 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
 
     private boolean isExpanded;
 
-    public ExpressionPropertyHeaderPanel(String id, IModel<PrismPropertyWrapper<ExpressionType>> model) {
-        super(id, model);
+    public ExpressionPropertyHeaderPanel(String id, IModel<PrismPropertyWrapper<ExpressionType>> model, ItemPanelSettings itemPanelSettings) {
+        super(id, model, itemPanelSettings);
         isExpanded = model.getObject() != null && CollectionUtils.isNotEmpty(model.getObject().getValues());
     }
 
     @Override
     protected void initButtons() {
         AjaxLink<Void> addButton = new AjaxLink<>(ID_ADD_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -57,7 +59,7 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
         add(addButton);
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -70,7 +72,7 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
         ToggleIconButton<?> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
                 GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -89,7 +91,7 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
     @Override
     protected Component createTitle(IModel<String> label) {
         AjaxButton labelComponent = new AjaxButton(ID_LABEL, label) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {

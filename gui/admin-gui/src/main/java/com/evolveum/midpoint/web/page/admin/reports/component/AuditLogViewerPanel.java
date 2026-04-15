@@ -20,7 +20,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -32,15 +31,15 @@ import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonUtil;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconWithLabelColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -197,22 +196,8 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(idButton) {
 
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String getFilename() {
-                return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-            }
-
-            @Override
-            protected DataTable<?, ?> getDataTable() {
-                return getTable().getDataTable();
-            }
-        };
-        exportDataLink.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI)));
-        buttonsList.add(exportDataLink);
+        buttonsList.add(DropdownButtonUtil.createDownloadButtonPanel(idButton, this, "AuditLogViewer"));
 
         AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(idButton, WebComponentUtil.createCreateReportIcon(),
                 getPageBase().createStringResource("MainObjectListPanel.createReport")) {
@@ -224,7 +209,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                 createReportPerformed(target);
             }
         };
-        createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
+        createReport.add(AttributeAppender.append("class", "mx-2 btn btn-default btn-sm"));
         createReport.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI)));
         buttonsList.add(createReport);
         return buttonsList;
@@ -471,7 +456,8 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
     @Override
     protected IColumn<SelectableBean<AuditEventRecordType>, String> createCustomExportableColumn(
-            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
+            IModel<String> displayModel, GuiObjectColumnType
+                    guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
 
         ItemPath path = WebComponentUtil.getPath(guiObjectColumn);
 
@@ -546,7 +532,8 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     }
 
     private IColumn<SelectableBean<AuditEventRecordType>, String> createDeltaColumn(
-            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
+            IModel<String> displayModel, GuiObjectColumnType
+                    guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
 
         boolean changedItemVisible = getColumnTypeConfigContext().isChangedItemSearchItemVisible();
 

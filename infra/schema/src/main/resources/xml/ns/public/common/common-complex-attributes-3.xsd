@@ -1,0 +1,115 @@
+<!-- ====================================================================== -->
+<!-- complex_pairing / Coarse BK matching -->
+<!-- ====================================================================== -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        jaxb:version="3.0">
+
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
+
+    <!-- Request: list of pairs -->
+    <xsd:complexType name="SiComplexPairingRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request payload for coarse, benevolent BK matching across N aligned samples (pairs).
+                Each 'pair' contains 1..N records on the midPoint side and 1..N records on the application side.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="pair" type="tns:SiComplexPairingPairType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- One aligned sample containing both sides (each side can contain 1..N records) -->
+    <xsd:complexType name="SiComplexPairingPairType">
+        <xsd:annotation>
+            <xsd:documentation>
+                One aligned sample containing both sides (each side can contain 1..N records).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="midPoint" type="tns:SiComplexPairingRecordType" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="application" type="tns:SiComplexPairingRecordType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- One record on a side, identified by a stable identifier -->
+    <xsd:complexType name="SiComplexPairingRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                One record on a side (midPoint/application), identified by a stable identifier.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string"/>
+            <xsd:element name="content" type="tns:SiComplexPairingAttributeValueType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Single attribute-value item within one record -->
+    <xsd:complexType name="SiComplexPairingAttributeValueType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Single attribute-value item within one record (instance).
+                Missing value is represented by either no 'value' elements or an empty list.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attribute" type="xsd:string"/>
+            <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Response: verdict, rationale, and identifier-to-identifier mappings -->
+    <xsd:complexType name="SiComplexPairingResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Verdict (similar), rationale, and MidPoint → Application identifier pairs.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="similar" type="xsd:boolean"/>
+            <xsd:element name="rationale" type="xsd:string"/>
+            <xsd:element name="mapping" type="tns:SiComplexPairingIdMappingType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Mapping from one MidPoint record ID to one Application record ID -->
+    <xsd:complexType name="SiComplexPairingIdMappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Mapping from one MidPoint record ID to one Application record ID.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="midPointIdentifier" type="xsd:string"/>
+            <xsd:element name="applicationIdentifier" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

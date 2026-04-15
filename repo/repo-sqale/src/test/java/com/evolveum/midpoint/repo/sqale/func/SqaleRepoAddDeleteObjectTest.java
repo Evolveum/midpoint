@@ -1726,7 +1726,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorHostRefTargetOid).isNull();
     }
 
-    @Test
+    @Test(enabled = false) // MID-10973
     public void test813NonUniqueConnector() {
         OperationResult result = createOperationResult();
 

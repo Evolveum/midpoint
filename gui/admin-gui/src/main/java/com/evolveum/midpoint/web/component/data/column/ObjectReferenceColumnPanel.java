@@ -19,17 +19,17 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
 import java.util.Collection;
@@ -92,13 +92,33 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
         add(iconPanel);
 
         IModel<String> labelModel = createLabelModel();
-        AjaxButton name = new AjaxButton(ID_NAME, labelModel) {
+        AjaxLinkWithNewTabSupport name = new AjaxLinkWithNewTabSupport(ID_NAME, labelModel) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                DetailsPageUtil.dispatchToObjectDetailsPage(ObjectReferenceColumnPanel.this.getModelObject(), ObjectReferenceColumnPanel.this, false);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ObjectReferenceColumnPanel.this.getModelObject(),
+                        ObjectReferenceColumnPanel.this, false);
+            }
+
+            @Override
+            protected @NotNull String getNavigationUrl() {
+                ObjectReferenceType rowValue = getModelObject();
+                String url = DetailsPageUtil.getObjectDetailsLinkNavigationUrl(rowValue);
+                if (url == null) {
+                    var obj = target.getObject() != null ? target.getObject().asObjectable() : null;
+                    url = DetailsPageUtil.getObjectDetailsLinkNavigationUrl(obj);
+                }
+                return url != null ? url : "#";
+            }
+
+            public boolean isEnabled() {
+                return ObjectReferenceColumnPanel.this.isLinkEnabled();
+            }
+
+            protected String getLinkDescriptiveTitle() {
+                return ObjectReferenceColumnPanel.this.getLinkDescriptiveTitle();
             }
         };
         name.setVisible(labelModel.getObject() != null);
@@ -123,6 +143,9 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
                 object = target.getObject();
             }
             if (object != null) {
+                if (showDisplayNameAndName()) {
+                    return WebComponentUtil.getDisplayNameAndName(object);
+                }
                 return useNameAsLabel() ?
                         WebComponentUtil.getName(object) : WebComponentUtil.getDisplayNameOrName(object);
             }
@@ -132,6 +155,10 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
     }
 
     protected boolean useNameAsLabel() {
+        return false;
+    }
+
+    protected boolean showDisplayNameAndName() {
         return false;
     }
 
@@ -157,6 +184,32 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
             iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
             return iconBuilder.build();
         };
+    }
+
+    protected boolean isLinkEnabled() {
+        PrismObject<? extends ObjectType> object = getReferencePrismObject();
+        // Do not generate link if the object has not been created yet.
+        // Check the version to see if it has not been created.
+        return object != null && object.getOid() != null && object.getVersion() != null;
+    }
+
+    private String getLinkDescriptiveTitle() {
+        PrismObject<? extends ObjectType> object = getReferencePrismObject();
+        return object != null ? object.asObjectable().getDescription() : null;
+    }
+
+    private PrismObject<? extends ObjectType> getReferencePrismObject() {
+        ObjectReferenceType ref = getModelObject();
+        if (ref == null) {
+            return null;
+        }
+
+        PrismObject<? extends ObjectType> object = ref.getObject();
+
+        if (object == null) {
+            object = target.getObject();
+        }
+        return object;
     }
 
     @Override

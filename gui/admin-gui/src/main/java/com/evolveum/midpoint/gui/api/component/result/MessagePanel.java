@@ -72,7 +72,7 @@ public class MessagePanel<T extends Serializable> extends BasePanel<T> {
         initHeader(detailsBox);
     }
 
-    private IModel<String> createHeaderCss() {
+    protected IModel<String> createHeaderCss() {
         return () -> {
             switch (type.getObject()) {
                 case INFO:
@@ -88,22 +88,19 @@ public class MessagePanel<T extends Serializable> extends BasePanel<T> {
         };
     }
 
+    protected Object getIconTypeCss() {
+        return switch (type.getObject()) {
+            case INFO -> "fa-info";
+            case SUCCESS -> "fa-check";
+            case ERROR -> "fa-ban";
+            default -> "fa-exclamation-triangle";
+        };
+    }
+
     private void initHeader(WebMarkupContainer box) {
         WebMarkupContainer iconType = new WebMarkupContainer(ID_ICON_TYPE);
         iconType.setOutputMarkupId(true);
-        iconType.add(AttributeAppender.append("class", () -> {
-            switch (type.getObject()) {
-                case INFO:
-                    return "fa-info";
-                case SUCCESS:
-                    return "fa-check";
-                case ERROR:
-                    return "fa-ban";
-                case WARN:
-                default:
-                    return "fa-exclamation-triangle";
-            }
-        }));
+        iconType.add(AttributeAppender.append("class", () -> getIconTypeCss()));
 
         box.add(iconType);
 

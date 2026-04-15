@@ -65,6 +65,7 @@ public class CredentialsProcessor implements ProjectorProcessor {
         processFocusPassword(context, now, task, result);
         processFocusNonce(context, now, task, result);
         processFocusSecurityQuestions(context, now, task, result);
+        processOtps(context, now, task, result);
     }
 
     private <F extends FocusType> void processFocusPassword(LensContext<F> context, XMLGregorianCalendar now,
@@ -85,6 +86,13 @@ public class CredentialsProcessor implements ProjectorProcessor {
             Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
         createEvaluator(new SecurityQuestionsPolicyEvaluator.Builder<>(), context, now, task, result)
+                .process();
+    }
+
+    private <F extends FocusType> void processOtps(LensContext<F> context, XMLGregorianCalendar now,
+            Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        createEvaluator(new OtpPolicyEvaluator.Builder<>(), context, now, task, result)
                 .process();
     }
 

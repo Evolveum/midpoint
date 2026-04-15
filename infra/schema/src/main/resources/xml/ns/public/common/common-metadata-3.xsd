@@ -91,10 +91,34 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="validation" type="tns:ValidationMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Validation state associated with the value (e.g., validation failure reason).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="valueMetadata" type="tns:ValueMetadataType"/>
+
+    <xsd:complexType name="ValidationMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Validation state for the value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="validationError" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="validationMetadata" type="tns:ValidationMetadataType"/>
 
     <xsd:complexType name="StorageMetadataType">
         <xsd:annotation>

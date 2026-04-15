@@ -6,36 +6,44 @@
 
 package com.evolveum.midpoint.web.component.menu.cog;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author lazyman
  */
 public class MenuDividerPanel extends Panel {
-
-    private static final String ID_MENU_ITEM_LABEL = "menuItemLabel";
-
-    public MenuDividerPanel(String id, IModel<InlineMenuItem> item) {
+    public MenuDividerPanel(String id) {
         super(id);
-
-        initLayout(item);
     }
 
-    private void initLayout(IModel<InlineMenuItem> item) {
-        final InlineMenuItem menuItem = item.getObject();
+    public static @NotNull InlineMenuItem createSectionDivider(InlineMenuItem.VisibilityChecker... checkers) {
 
-        Label menuItemLabel = new Label(ID_MENU_ITEM_LABEL, menuItem.getLabel());
-        menuItemLabel.add(new VisibleEnableBehaviour() {
+        return InlineMenuItemBuilder.create()
+                .divider(true)
+                .visibilityChecker(anyVisibleOrNull(checkers))
+                .buildInlineMenu();
+    }
 
-            @Override
-            public boolean isVisible() {
-                return menuItem.isMenuHeader();
-            }
-        });
+    public static  @NotNull InlineMenuItem createSectionDivider() {
 
-        add(menuItemLabel);
+        return InlineMenuItemBuilder.create()
+                .divider(true)
+                .buildInlineMenu();
+    }
+
+    /**
+     * Returns a visibility checker that checks if any of the provided checkers returns true.
+     * If no checkers are provided, it returns a checker that always returns true.
+     */
+    public static  @NotNull InlineMenuItem.VisibilityChecker anyVisibleOrNull(
+            InlineMenuItem.VisibilityChecker... checkers) {
+
+        return (rowModel, isHeader) -> Arrays.stream(checkers)
+                .filter(Objects::nonNull)
+                .anyMatch(checker -> checker.isVisible(rowModel, isHeader));
     }
 }

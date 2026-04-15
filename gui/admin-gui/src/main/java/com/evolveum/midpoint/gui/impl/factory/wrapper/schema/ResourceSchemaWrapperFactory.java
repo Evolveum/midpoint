@@ -7,22 +7,19 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper.schema;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismSchemaWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import org.springframework.stereotype.Component;
+
+import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
 
 /**
  * @author katka
@@ -52,16 +49,5 @@ public class ResourceSchemaWrapperFactory
         setReadOnlyRecursively(wrapper);
         wrapper.setReadOnly(true);
         return wrapper;
-    }
-
-    private void setReadOnlyRecursively(PrismContainerWrapper wrapper) {
-        wrapper.getValues().forEach(value -> {
-            ((PrismContainerValueWrapper)value).getItems().forEach(item -> {
-                ((ItemWrapper)item).setReadOnly(true);
-                if (item instanceof PrismContainerWrapper containerWrapper) {
-                    setReadOnlyRecursively(containerWrapper);
-                }
-            });
-        });
     }
 }

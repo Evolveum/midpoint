@@ -6,9 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractTemplateChoicePanel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import java.io.Serializable;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -20,12 +18,12 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractTemplateChoicePanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
-
-import java.io.Serializable;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class TaskCreationPopup<T extends Serializable> extends BasePanel<T> implements Popupable {
 
@@ -35,7 +33,7 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_CLOSE = "close";
 
-    private IModel<SynchronizationTaskFlavor> flavorModel = Model.of();
+    private IModel<ResourceTaskFlavor<?>> flavorModel = Model.of();
 
     private Fragment footer;
 
@@ -101,7 +99,7 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
         createNewTaskPerformed(flavorModel.getObject(), toggleCheckBoxPanel.getValue(), target);
     }
 
-    protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean simulate, AjaxRequestTarget target) {
+    protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate, AjaxRequestTarget target) {
 
     }
 
@@ -140,17 +138,17 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
         return footer;
     }
 
-    protected final IModel<SynchronizationTaskFlavor> getFlavorModel() {
+    protected final IModel<ResourceTaskFlavor<?>> getFlavorModel() {
         return flavorModel;
     }
 
-    protected SynchronizationTaskFlavor determineTaskFlavour(String archetypeOid) {
+    protected ResourceTaskFlavor<?> determineTaskFlavour(String archetypeOid) {
         SystemObjectsType taskType = SystemObjectsType.fromValue(archetypeOid);
         return switch (taskType) {
-            case ARCHETYPE_RECONCILIATION_TASK -> SynchronizationTaskFlavor.RECONCILIATION;
-            case ARCHETYPE_LIVE_SYNC_TASK -> SynchronizationTaskFlavor.LIVE_SYNC;
-            case ARCHETYPE_IMPORT_TASK -> SynchronizationTaskFlavor.IMPORT;
-            case ARCHETYPE_SHADOW_RECLASSIFICATION_TASK -> SynchronizationTaskFlavor.SHADOW_RECLASSIFICATION;
+            case ARCHETYPE_RECONCILIATION_TASK -> ResourceTaskFlavors.RECONCILIATION;
+            case ARCHETYPE_LIVE_SYNC_TASK -> ResourceTaskFlavors.LIVE_SYNC;
+            case ARCHETYPE_IMPORT_TASK -> ResourceTaskFlavors.IMPORT;
+            case ARCHETYPE_SHADOW_RECLASSIFICATION_TASK -> ResourceTaskFlavors.SHADOW_RECLASSIFICATION;
             default -> null;
         };
     }

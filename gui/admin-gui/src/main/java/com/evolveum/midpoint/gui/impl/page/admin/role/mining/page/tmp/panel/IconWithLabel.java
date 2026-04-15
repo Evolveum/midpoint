@@ -47,12 +47,15 @@ public class IconWithLabel extends BasePanel<String> {
         iconContainer.setOutputMarkupId(true);
         iconContainer.add(AttributeModifier.replace(CLASS_CSS, getIconContainerCssClass()));
         iconContainer.add(AttributeModifier.replace(STYLE_CSS, getIconContainerCssStyle()));
-        iconContainer.add(new VisibleBehaviour(() -> !getIconCssClass().isEmpty()));
+        iconContainer.add(new VisibleBehaviour(() -> getIconCssClass() != null && !getIconCssClass().isEmpty()));
         add(iconContainer);
 
         Label image = new Label(ID_ICON);
-        image.add(AttributeModifier.replace(CLASS_CSS, getIconCssClass() + " fa-sm"));
-        image.add(AttributeModifier.replace(STYLE_CSS, getIconComponentCssStyle()));
+        image.add(AttributeModifier.replace(CLASS_CSS, (IModel<String>) () -> {
+            String icon = getIconCssClass();
+            return icon == null || icon.isEmpty() ? "" : icon + " fa-sm";
+        }));
+        image.add(AttributeModifier.replace(STYLE_CSS, (IModel<String>) this::getIconComponentCssStyle));
         image.setOutputMarkupId(true);
         iconContainer.add(image);
 
@@ -82,7 +85,7 @@ public class IconWithLabel extends BasePanel<String> {
     }
 
     protected void onClickPerform(AjaxRequestTarget target) {
-    //override in subclass
+        //override in subclass
     }
 
     protected boolean isLink() {

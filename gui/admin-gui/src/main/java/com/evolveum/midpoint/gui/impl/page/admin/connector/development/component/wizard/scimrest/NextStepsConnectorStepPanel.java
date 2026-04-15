@@ -1,0 +1,196 @@
+/*
+ * Copyright (C) 2010-2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
+
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+
+/**
+ * @author lskublik
+ */
+@PanelType(name = "cdw-next-steps")
+@PanelInstance(identifier = "cdw-next-steps",
+        applicableForType = ConnectorDevelopmentType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.nextSteps", icon = "fa fa-wrench"),
+        containerPath = "empty")
+public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardParentStep {
+
+    private static final String PANEL_TYPE = "cdw-next-steps";
+
+    private static final String ID_OBJECT_CLASS = "objectClass";
+    private static final String ID_OBJECT_CLASS_NAME = "objectClassName";
+    private static final String ID_OBJECT_CLASS_POSSIBILITIES = "objectClassPossibilities";
+    private static final String ID_CONNECTOR_ACTION = "connectorAction";
+
+    private IModel<String> objectClassModel;
+
+    public NextStepsConnectorStepPanel(
+            WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
+            IModel<String> objectClassModel) {
+        super(helper);
+        this.objectClassModel = objectClassModel;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+
+    private void initLayout() {
+        add(AttributeAppender.replace("class", "col-12"));
+        getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+
+        WebMarkupContainer objectClassContainer = new WebMarkupContainer(ID_OBJECT_CLASS);
+        objectClassContainer.setOutputMarkupId(true);
+        add(objectClassContainer);
+
+        Label name = new Label(ID_OBJECT_CLASS_NAME, objectClassModel);
+        name.setOutputMarkupId(true);
+        objectClassContainer.add(name);
+
+        EnumTileChoicePanel<ObjectClassOperation> objectClassPanel = new EnumTileChoicePanel<>(ID_OBJECT_CLASS_POSSIBILITIES, ObjectClassOperation.class) {
+            @Override
+            protected String getDescriptionForTile(ObjectClassOperation type) {
+                return getString(type.getDescription());
+            }
+
+            @Override
+            protected void onTemplateChosePerformed(ObjectClassOperation action, AjaxRequestTarget target) {
+                switch (action) {
+                    case SCHEMA -> getController().editSchema(objectClassModel.getObject(), target);
+                    case SEARCH_ALL -> getController().editSearchAll(objectClassModel.getObject(), target);
+                    case SEARCH_BY_ID -> getController().editSearchById(objectClassModel.getObject(), target);
+                    case SEARCH_FILTER -> getController().editSearchFilter(objectClassModel.getObject(), target);
+                    case CREATE -> getController().editCreateOp(objectClassModel.getObject(), target);
+                    case UPDATE -> getController().editUpdateOp(objectClassModel.getObject(), target);
+                    case DELETE -> getController().editDeleteOp(objectClassModel.getObject(), target);
+                }
+            }
+        };
+        objectClassPanel.setOutputMarkupId(true);
+        objectClassContainer.add(objectClassPanel);
+
+        NextStepsActionsPanel connectorActionPanel = new NextStepsActionsPanel(
+                ID_CONNECTOR_ACTION, getDetailsModel(), (ConnectorDevelopmentController) getWizard());
+        connectorActionPanel.setOutputMarkupId(true);
+        add(connectorActionPanel);
+    }
+
+    private ConnectorDevelopmentController getController() {
+        return (ConnectorDevelopmentController) getWizard();
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return createStringResource("PageConnectorDevelopment.wizard.step.nextSteps");
+    }
+
+    @Override
+    protected IModel<?> getTextModel() {
+        return createStringResource("PageConnectorDevelopment.wizard.step.nextSteps.text");
+    }
+
+    @Override
+    protected IModel<?> getSubTextModel() {
+        return createStringResource("PageConnectorDevelopment.wizard.step.nextSteps.subText");
+    }
+
+    @Override
+    public String getStepId() {
+        return PANEL_TYPE;
+    }
+
+    @Override
+    public String appendCssToWizard() {
+        return "col-12";
+    }
+
+    @Override
+    protected boolean isSubmitVisible() {
+        return false;
+    }
+
+    @Override
+    public VisibleEnableBehaviour getBackBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    public enum ObjectClassOperation implements TileEnum {
+
+        SCHEMA(GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA + " text-secondary bg-gray-100",
+                "ObjectClassOperations.SCHEMA.description"),
+        SEARCH_ALL("fa fa-search text-secondary bg-gray-100",
+                "ObjectClassOperations.SEARCH_ALL.description"),
+        SEARCH_BY_ID("fa fa-fingerprint text-secondary bg-gray-100",
+                "ObjectClassOperations.SEARCH_BY_ID.description"),
+        SEARCH_FILTER("fa fa-filter text-secondary bg-gray-100",
+                "ObjectClassOperations.SEARCH_FILTER.description"),
+        CREATE("fa fa-circle-plus text-secondary bg-gray-100",
+                "ObjectClassOperations.CREATE.description"),
+        UPDATE("fa fa-pen-to-square text-secondary bg-gray-100",
+                "ObjectClassOperations.UPDATE.description"),
+        DELETE("fa fa-trash-can text-secondary bg-gray-100",
+                "ObjectClassOperations.DELETE.description");
+
+        private final String icon;
+        private final String descriptionKey;
+
+        ObjectClassOperation(String icon, String descriptionKey) {
+            this.icon = icon;
+            this.descriptionKey = descriptionKey;
+        }
+
+        @Override
+        public String getIcon() {
+            return icon;
+        }
+
+        @Override
+        public String getDescription() {
+            return descriptionKey;
+        }
+    }
+
+    @Override
+    public boolean isStatusStep() {
+        return true;
+    }
+}

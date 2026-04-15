@@ -340,6 +340,10 @@ export default class MidPointTheme {
                 });
             });
 
+            $(document).on("focusout mouseleave", "[data-toggle='tooltip']", function () {
+                clearTimeout($(this).data("tooltipShowDelayTimer"));
+            });
+
             $.fn.showTooltip = function (setFocus = false) {
                 const $el = $(this);
                 if (typeof $el.tooltip === "function") {
@@ -368,8 +372,14 @@ export default class MidPointTheme {
                         trigger: 'manual'
                     });
 
-                    $el.tooltip("show");
-                    $el.removeAttr("aria-describedby");
+                    // "tooltipShowDelayTimer" is used to prevent tooltip from showing when user quickly moves mouse
+                    // over multiple icons with tooltips or quickly tabs through them. Tooltip will be shown only for
+                    // the last hovered/focused element after 1 second delay.
+                    clearTimeout($el.data("tooltipShowDelayTimer"));
+                    $el.data("tooltipShowDelayTimer", setTimeout(() => {
+                        $el.tooltip("show");
+                        $el.removeAttr("aria-describedby");
+                    }, 1000));
 
                     setTimeout(() => {
                         const $tooltip = $('.tooltip:visible').last();
@@ -523,6 +533,42 @@ export default class MidPointTheme {
                 }
             }
         });
+    }
+
+    initWindowId() {
+        let isFirstLoad = false;
+        if (!sessionStorage.getItem('w')) {
+            const windowId = encodeURIComponent(crypto.randomUUID().substring(0, 8));
+            console.log('windowId initialized:', windowId);
+            isFirstLoad = true;
+            sessionStorage.setItem('w', windowId);
+        }
+
+        var windowId = sessionStorage.getItem('w');
+
+        // === Add windowId to page URL if not already present ===
+        var url = new URL(window.location.href);
+        var wParam = url.searchParams.get('w');
+
+        if (isFirstLoad) {
+           url.searchParams.set('w', windowId);
+           window.location.replace(url);
+           return;
+        }
+
+        if (!url.searchParams.has('w')  || wParam !== windowId) {
+            url.searchParams.set('w', windowId);
+            window.history.replaceState({}, '', url);
+        }
+
+        if (window.Wicket && Wicket.Event) {
+            // Subscribe to all Wicket Ajax calls before they are sent
+            Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attrs, jqXHR, settings) {
+                if (!attrs) return;
+                attrs.ep = attrs.ep || {};
+                attrs.ep.w = windowId;
+            });
+        }
     }
 
     keydownForMenuItems(sideBar, self) {
@@ -1868,6 +1914,41 @@ export default class MidPointTheme {
             setTimeout(() => {
                 selectedItem.focus();
             }, 200);
+        }
+    }
+
+    /**
+     * Used for rendering strengthMeter and passwordFieldValidatorPopover for each new PasswordPanel component on page
+     *
+     * @param options contains information for strengthMeter in following format:
+     *          {
+     *          container: $('#idStrengthMeter'),
+     *          hierarchy: {
+     *                  '0': ['progress-bar-danger', 'Very weak'],
+     *                  ...
+     *                  }
+     *           }
+     * @param idInput id of the first input field for password in the PasswordPanel
+     */
+    initPasswordValidation(options, idInput) {
+        $(idInput).removeAttr("onfocus");
+
+        $(document).ready(function () {
+            $(idInput).strengthMeter('progressBar', options);
+        });
+
+        $(document).ready(function () {
+            $(idInput).passwordFieldValidatorPopover(idInput, ".password-validator-popover");
+        });
+    };
+
+    handleCtrlClick(event) {
+        if (event.ctrlKey || event.which === 2) {
+            event.preventDefault(); // stop browser navigation
+            window.open(event.currentTarget.href, '_blank', 'noopener=true');
+            return false; // cancel AJAX
+        } else {
+            return true; // normal click → AJAX
         }
     }
 }

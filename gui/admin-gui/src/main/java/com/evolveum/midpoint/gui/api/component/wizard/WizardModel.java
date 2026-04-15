@@ -1,16 +1,13 @@
 /*
- * Copyright (c) 2022 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -18,25 +15,17 @@ import org.apache.wicket.util.io.IClusterable;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by Viliam Repan (lazyman).
- */
-public class WizardModel implements IClusterable {
+import java.util.ArrayList;
+import java.util.List;
 
+public abstract class WizardModel implements IClusterable {
     private static final long serialVersionUID = 1L;
 
     public static final String PARAM_STEP = "step";
 
     private List<WizardListener> wizardListeners = new ArrayList<>();
 
-    private WizardPanel panel;
-
-    private List<WizardStep> steps;
-    private int activeStepIndex;
-
-    public WizardModel(@NotNull List<WizardStep> steps) {
-        this.steps = steps;
-    }
+    private Component panel;
 
     public void addWizardListener(@NotNull WizardListener listener) {
         wizardListeners.add(listener);
@@ -46,8 +35,13 @@ public class WizardModel implements IClusterable {
         wizardListeners.remove(listener);
     }
 
-    public final void fireActiveStepChanged(final WizardStep step) {
+    public void fireActiveStepChanged(final WizardStep step) {
         wizardListeners.forEach(listener -> listener.onStepChanged(step));
+    }
+
+    public final void fireActiveStepChanged() {
+        WizardStep step = getActiveStep();
+        fireActiveStepChanged(step);
     }
 
     protected final void fireWizardCancelled() {
@@ -58,27 +52,9 @@ public class WizardModel implements IClusterable {
         wizardListeners.forEach(listener -> listener.onFinish());
     }
 
-    public void init(Page page) {
-        steps.forEach(s -> s.init(this));
+    public abstract void init(Page page);
 
-        String stepId = getStepIdFromParams(page);
-        if (stepId != null) {
-            setActiveStepById(stepId);
-        } else {
-            for (int i = 0; i < steps.size(); i++) {
-                WizardStep step = steps.get(i);
-
-                if (BooleanUtils.isTrue(step.isStepVisible().getObject())) {
-                    activeStepIndex = i;
-                    break;
-                }
-            }
-        }
-
-        fireActiveStepChanged(getActiveStep());
-    }
-
-    private String getStepIdFromParams(Page page) {
+    public final String getStepIdFromParams(Page page) {
         if (page == null) {
             return null;
         }
@@ -92,118 +68,31 @@ public class WizardModel implements IClusterable {
         return step != null ? step.toString() : null;
     }
 
-    public Component getPanel() {
+    public final Component getPanel() {
         return panel;
     }
 
-    public Component getHeader() {
-        return panel.getHeader();
-    }
-
-    public void setPanel(WizardPanel panel) {
+    public final void setPanel(Component panel) {
         this.panel = panel;
     }
 
-    public List<WizardStep> getSteps() {
-        return steps;
-    }
+    public abstract List<? extends WizardStep> getSteps();
 
-    public WizardStep getActiveStep() {
-        return steps.get(activeStepIndex);
-    }
+    public abstract WizardStep getActiveStep();
 
-    public void setActiveStepById(String id) {
-        if (id == null) {
-            return;
-        }
+    public abstract void setActiveStepById(String id);
 
-        for (int i = 0; i < steps.size(); i++) {
-            WizardStep step = steps.get(i);
+    public abstract int getActiveStepIndex();
 
-            if (Objects.equals(id, step.getStepId()) && BooleanUtils.isTrue(step.isStepVisible().getObject())) {
-                activeStepIndex = i;
-                break;
-            }
-        }
-    }
+    public abstract boolean hasNext();
 
-    public int getActiveStepIndex() {
-        int index = 0;
-        for (int i = 0; i < activeStepIndex; i++) {
-            if (BooleanUtils.isTrue(steps.get(i).isStepVisible().getObject())) {
-                index++;
-            }
-        }
-        return index;
-    }
+    public abstract void next();
 
-    public boolean hasNext() {
-        return findNextStep() != null;
-    }
+    public abstract boolean hasPrevious();
 
-    private WizardStep findNextStep() {
-        for (int i = activeStepIndex + 1; i < steps.size(); i++) {
-            if (i >= steps.size()) {
-                return null;
-            }
+    public abstract WizardStep findPreviousStep();
 
-            if (BooleanUtils.isTrue(steps.get(i).isStepVisible().getObject())) {
-                return steps.get(i);
-            }
-        }
+    public abstract void previous();
 
-        return null;
-    }
-
-    public void next() {
-        int index = activeStepIndex;
-
-        WizardStep next = findNextStep();
-        if (next == null) {
-            return;
-        }
-
-        activeStepIndex = steps.indexOf(next);
-
-        if (index != activeStepIndex) {
-            fireActiveStepChanged(getActiveStep());
-        }
-    }
-
-    public boolean hasPrevious() {
-        return findPreviousStep() != null;
-    }
-
-    public WizardStep findPreviousStep() {
-        for (int i = activeStepIndex - 1; i >= 0; i--) {
-            if (i < 0) {
-                return null;
-            }
-
-            if (BooleanUtils.isTrue(steps.get(i).isStepVisible().getObject())) {
-                return steps.get(i);
-            }
-        }
-
-        return null;
-    }
-
-    public void previous() {
-        int index = activeStepIndex;
-
-        WizardStep previous = findPreviousStep();
-        if (previous == null) {
-            return;
-        }
-
-        activeStepIndex = steps.indexOf(previous);
-
-        if (index != activeStepIndex) {
-            fireActiveStepChanged(getActiveStep());
-        }
-    }
-
-    public WizardStep getNextPanel() {
-        return findNextStep();
-    }
+    public abstract WizardStep getNextPanel();
 }

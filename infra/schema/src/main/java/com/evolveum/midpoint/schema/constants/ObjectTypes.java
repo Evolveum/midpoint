@@ -33,6 +33,9 @@ public enum ObjectTypes {
     CONNECTOR(SchemaConstants.C_CONNECTOR_TYPE, SchemaConstants.C_CONNECTOR,
             ConnectorType.class, ObjectManager.PROVISIONING, "connectors"),
 
+    CONNECTOR_DEVELOPMENT(SchemaConstants.C_CONNECTOR_DEVELOPMENT_TYPE, SchemaConstants.C_CONNECTOR_DEVELOPMENT,
+            ConnectorDevelopmentType.class, ObjectManager.MODEL, "connectorDevelopments"),
+
     CONNECTOR_HOST(SchemaConstants.C_CONNECTOR_HOST_TYPE,
             SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, ObjectManager.PROVISIONING, "connectorHosts"),
 
@@ -132,6 +135,10 @@ public enum ObjectTypes {
     SCHEMA(
             SchemaType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SCHEMA, SchemaType.class,
             ObjectManager.MODEL, "schemas"),
+
+    APPLICATION(
+            ApplicationType.COMPLEX_TYPE, SchemaConstantsGenerated.C_APPLICATION, ApplicationType.class,
+            ObjectManager.MODEL, "applications"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");

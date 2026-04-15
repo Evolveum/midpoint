@@ -72,8 +72,7 @@ public class RelatedTasksPanel extends BasePanel {
 
     private StatisticListBoxPanel<TaskType> initRelatedTasksPanel(String id, boolean allowViewAll) {
         IModel<List<StatisticBoxDto<TaskType>>> tasksModel = getRelatedTasksModel(allowViewAll);
-        DisplayType relatedTasksDisplay = new DisplayType()
-                .label("RelatedTasksPanel.title");
+        DisplayType relatedTasksDisplay = GuiDisplayTypeUtil.createDisplayTypeWithLabel("RelatedTasksPanel.title");
         return new StatisticListBoxPanel<>(id, Model.of(relatedTasksDisplay),
                 tasksModel) {
             @Serial private static final long serialVersionUID = 1L;

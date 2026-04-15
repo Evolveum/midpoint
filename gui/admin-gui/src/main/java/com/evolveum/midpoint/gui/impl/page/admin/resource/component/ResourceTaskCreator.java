@@ -6,6 +6,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
@@ -16,30 +21,23 @@ import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.NotLoggedInException;
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-
-import java.util.Objects;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
- * Creates resource-related tasks: import, reconciliation, live sync, and maybe others in the future.
+ * Creates resource-related tasks: import, reconciliation, live sync, and others.
  *
+ * @param <T> The type of optional task configuration.
  * @see MemberOperationsTaskCreator
  */
-public class ResourceTaskCreator {
+public class ResourceTaskCreator<T> {
 
-    @NotNull private final ResourceType resource;
-    @NotNull private final PageBase pageBase;
+    private final ResourceType resource;
+    private final PageBase pageBase;
+    private final ResourceTaskFlavor<T> specifiedFlavor;
 
-    private String specifiedArchetypeOid;
-    private SynchronizationTaskFlavor specifiedFlavor;
+    private T workDefinitionConfiguration;
 
     private ShadowKindType kind;
     private String intent;
@@ -50,6 +48,7 @@ public class ResourceTaskCreator {
     private SimulationDefinitionType simulationDefinition;
 
     private SelectorQualifiedGetOptionsType searchOptions;
+    private QueryType query;
 
     /** Options provided by the caller. See {@link #submissionOptions()}. */
     private ActivitySubmissionOptions submissionOptions;
@@ -57,37 +56,24 @@ public class ResourceTaskCreator {
     /** Owner provided by the caller. If set, it has precedence over the owner specified in the options. */
     private FocusType owner;
 
-    private ResourceTaskCreator(@NotNull ResourceType resource, @NotNull PageBase pageBase) {
+    private ResourceTaskCreator(@NotNull PageBase pageBase, @NotNull ResourceType resource,
+            ResourceTaskFlavor<T> flavor) {
         this.resource = resource;
         this.pageBase = pageBase;
+        this.specifiedFlavor = flavor;
     }
 
-    public static @NotNull ResourceTaskCreator forResource(@NotNull ResourceType resource, @NotNull PageBase pageBase) {
-        return new ResourceTaskCreator(resource, pageBase);
-    }
-
-    /** Assuming not used along with {@link #ofFlavor(SynchronizationTaskFlavor)} */
-    @SuppressWarnings("WeakerAccess")
-    public ResourceTaskCreator withArchetype(@Nullable String archetypeOid) {
-        stateCheck(specifiedFlavor == null, "Cannot specify both flavor and archetype");
-        specifiedArchetypeOid = archetypeOid;
-        return this;
-    }
-
-    /** Assuming not used along with {@link #withArchetype(String)} */
-    public ResourceTaskCreator ofFlavor(SynchronizationTaskFlavor flavor) {
-        stateCheck(specifiedArchetypeOid == null, "Cannot specify both flavor and archetype");
-        specifiedFlavor = flavor;
-        return this;
+    public static <T> FlavoredResourceTaskCreator<T> of(ResourceTaskFlavor<T> flavor, PageBase pageBase) {
+        return resource -> new ResourceTaskCreator<>(pageBase, resource, flavor);
     }
 
     @SuppressWarnings("WeakerAccess")
-    public ResourceTaskCreator ownedByCurrentUser() throws NotLoggedInException {
+    public ResourceTaskCreator<T> ownedByCurrentUser() throws NotLoggedInException {
         this.owner = AuthUtil.getPrincipalObjectRequired();
         return this;
     }
 
-    public ResourceTaskCreator withCoordinates(ShadowKindType kind, String intent, QName objectClass) {
+    public ResourceTaskCreator<T> withCoordinates(ShadowKindType kind, String intent, QName objectClass) {
         this.kind = kind;
         this.intent = intent;
         this.objectClass = objectClass;
@@ -95,34 +81,44 @@ public class ResourceTaskCreator {
     }
 
     @SuppressWarnings({"WeakerAccess"})
-    public ResourceTaskCreator withCoordinates(QName objectClass) {
+    public ResourceTaskCreator<T> withCoordinates(QName objectClass) {
         this.objectClass = objectClass;
         return this;
     }
 
-    public ResourceTaskCreator withExecutionMode(ExecutionModeType executionMode) {
+    public ResourceTaskCreator<T> withExecutionMode(ExecutionModeType executionMode) {
         this.executionMode = executionMode;
         return this;
     }
 
-    public ResourceTaskCreator withPredefinedConfiguration(PredefinedConfigurationType predefinedConfiguration) {
+    public ResourceTaskCreator<T> withPredefinedConfiguration(PredefinedConfigurationType predefinedConfiguration) {
         this.predefinedConfiguration = predefinedConfiguration;
         return this;
     }
 
     @SuppressWarnings("WeakerAccess")
-    public ResourceTaskCreator withSubmissionOptions(ActivitySubmissionOptions options) {
+    public ResourceTaskCreator<T> withSubmissionOptions(ActivitySubmissionOptions options) {
         this.submissionOptions = options;
         return this;
     }
 
-    public ResourceTaskCreator withSimulationResultDefinition(SimulationDefinitionType simulationDefinition) {
+    public ResourceTaskCreator<T> withSimulationResultDefinition(SimulationDefinitionType simulationDefinition) {
         this.simulationDefinition = simulationDefinition;
         return this;
     }
 
-    public ResourceTaskCreator withSearchOptions(SelectorQualifiedGetOptionsType searchOptions) {
+    public ResourceTaskCreator<T> withSearchOptions(SelectorQualifiedGetOptionsType searchOptions) {
         this.searchOptions = searchOptions;
+        return this;
+    }
+
+    public ResourceTaskCreator<T> withQuery(QueryType query) {
+        this.query = query;
+        return this;
+    }
+
+    public ResourceTaskCreator<T> withConfiguration(T workConfiguration) {
+        this.workDefinitionConfiguration = workConfiguration;
         return this;
     }
 
@@ -145,10 +141,8 @@ public class ResourceTaskCreator {
     }
 
     private WorkDefinitionsType workDefinitions() {
-        for (SynchronizationTaskFlavor flavorToCheck : SynchronizationTaskFlavor.values()) {
-            if (flavorToCheck == specifiedFlavor || flavorToCheck.getArchetypeOid().equals(specifiedArchetypeOid)) {
-                return flavorToCheck.createWorkDefinitions(objectSetBean());
-            }
+        if (this.specifiedFlavor != null) {
+            return this.specifiedFlavor.createWorkDefinitions(objectSetBean(), this.workDefinitionConfiguration);
         }
         return new WorkDefinitionsType(); // probably will not work much, but let us try; TODO or should we signal a problem?
     }
@@ -161,6 +155,7 @@ public class ResourceTaskCreator {
         var bean = new ResourceObjectSetType()
                 .resourceRef(ObjectTypeUtil.createObjectRef(resource));
         bean.searchOptions(searchOptions);
+        bean.query(query);
         if (kind != null && intent != null) {
             // the most recommended case
             return bean
@@ -204,5 +199,14 @@ public class ResourceTaskCreator {
                 activityDefinition(),
                 submissionOptions(),
                 task, result);
+    }
+
+    /**
+     * Creates resource task creator for given resource.
+     *
+     * @param <T> The type of optional task configuration
+     */
+    public interface FlavoredResourceTaskCreator<T> {
+        ResourceTaskCreator<T> forResource(ResourceType resource);
     }
 }

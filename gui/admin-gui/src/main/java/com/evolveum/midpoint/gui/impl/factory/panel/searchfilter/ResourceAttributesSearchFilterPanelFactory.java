@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -52,20 +53,22 @@ public class ResourceAttributesSearchFilterPanelFactory extends SearchFilterPane
     }
 
     @Override
-    protected InputPanel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
-        return new SearchFilterConfigurationPanel(
+    protected InputPanel getPanel(@NotNull PrismPropertyPanelContext<SearchFilterType> panelCtx) {
+        return new SearchFilterConfigurationPanel<>(
                 panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(), null) {
+
+            @SuppressWarnings({ "rawtypes", "unchecked" })
             @Override
-            protected SearchFilterTypeForQueryModel createQueryModel(IModel model, LoadableModel filterTypeModel, boolean useParsing) {
+            protected SearchFilterTypeForQueryModel<?> createQueryModel(IModel model, LoadableModel filterTypeModel, boolean useParsing) {
                 ItemRealValueModel<QName> objectClassModel = new ItemRealValueModel<>((IModel<? extends PrismValueWrapper<QName>>) () -> {
                     try {
-
-                        PrismContainerValueWrapper parent = getItemModelObject().getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+                        PrismContainerValueWrapper<?> parent = getItemModelObject()
+                                .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
                         if (parent != null) {
                             PrismPropertyWrapper<QName> objectClass = parent.findProperty(ItemPath.create(
                                     ResourceObjectTypeDefinitionType.F_DELINEATION,
                                     ResourceObjectTypeDelineationType.F_OBJECT_CLASS));
-                            return objectClass.getValue();
+                            return objectClass != null ? objectClass.getValue() : null;
                         }
                         return null;
 

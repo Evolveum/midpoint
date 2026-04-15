@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="5f627d94-c4b1-46ff-b848-16df52b7597e">
+    <name>Item value added</name>
+    <description>Item value has been added</description>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+
+    <displayOrder>590</displayOrder>
+
+    <display>
+        <label>
+            <orig>Added attribute items</orig>
+            <translation>
+                <key>SimulationMappingPanel.added.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of attribute items that were added by the simulated mapping.</orig>
+            <translation>
+                <key>SimulationMappingPanel.added.help</key>
+            </translation>
+        </help>
+        <icon>
+            <cssClass>fa-solid fa-plus metric-icon success</cssClass>
+        </icon>
+    </display>
+
+    <!-- No policy rule. This is set explicitly by the correlation simulation. -->
+</mark>

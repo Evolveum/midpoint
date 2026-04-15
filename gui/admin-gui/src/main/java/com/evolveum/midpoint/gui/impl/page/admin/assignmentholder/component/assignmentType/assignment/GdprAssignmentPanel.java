@@ -97,12 +97,7 @@ public class GdprAssignmentPanel extends AbstractAssignmentPanel<UserType> {
 //    }
 
     protected ObjectQuery getCustomizeQuery() {
-        return getPrismContext().queryFor(AssignmentType.class)
-                .block()
-                .item(AssignmentType.F_TARGET_REF)
-                .refRelation(SchemaConstants.ORG_CONSENT)
-                .endBlock()
-                .build();
+        return AssignmentPanelQueries.gdprAssignments();
     }
 
     @Override

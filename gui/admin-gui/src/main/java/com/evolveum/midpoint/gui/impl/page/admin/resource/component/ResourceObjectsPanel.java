@@ -11,19 +11,14 @@ import static com.evolveum.midpoint.common.LocalizationTestUtil.getLocalizationS
 import java.io.Serial;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
-import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
-import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.web.session.ResourceContentStorage;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -43,8 +38,11 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.RepositoryShadowBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -54,10 +52,14 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardChoicePanel;
+import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -65,7 +67,9 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
@@ -83,13 +87,16 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
+
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
@@ -414,7 +421,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         items.add(menu);
 
         menu = new ButtonInlineMenuItem(
-                createStringResource("ResourceObjectsPanel.button.association.inbound")) {
+                createStringResource("ResourceObjectsPanel.button.association")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -440,7 +447,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                             }
 
                             if (associations.size() == 1) {
-                                showAssociationInboundWizard(associations.iterator().next(), target);
+                                showAssociationWizard(associations.iterator().next(), target);
                             } else {
                                 ChoiceAssociationPopupPanel popup = new ChoiceAssociationPopupPanel(
                                         getPageBase().getMainPopupBodyId(),
@@ -448,7 +455,9 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                                         associations) {
                                     @Override
                                     protected void onTileClickPerformed(AssociationDefinitionWrapper value, AjaxRequestTarget target) {
-                                        showAssociationInboundWizard(value.getSourceValue(), target);
+                                        if (value != null && value.getSourceValue() != null) {
+                                            showAssociationWizard(value.getSourceValue(), target);
+                                        }
                                     }
                                 };
                                 getPageBase().showMainPopup(popup, target);
@@ -468,65 +477,9 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         };
         menu.setVisible(createAssociationMenuItemVisibilityModel());
         items.add(menu);
-
-        menu = new ButtonInlineMenuItem(
-                createStringResource("ResourceObjectsPanel.button.association.outbound")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        ResourceObjectTypeDefinition selectedObjectType = getSelectedObjectTypeDefinition();
-                        if (selectedObjectType == null) {
-                            getPageBase().warn(LocalizationUtil.translate("PageResource.objectTypeIsNullForAssociation"));
-                            target.add(getPageBase().getFeedbackPanel());
-                            return;
-                        }
-
-                        try {
-                            List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> associations =
-                                    AssociationChildWrapperUtil.findAssociationDefinitions(getObjectWrapper(), selectedObjectType);
-
-                            if (associations.isEmpty()) {
-                                return;
-                            }
-
-                            if (associations.size() == 1) {
-                                showAssociationOutboundWizard(associations.iterator().next(), target);
-                            } else {
-                                ChoiceAssociationPopupPanel popup = new ChoiceAssociationPopupPanel(
-                                        getPageBase().getMainPopupBodyId(),
-                                        getObjectDetailsModels(),
-                                        associations) {
-                                    @Override
-                                    protected void onTileClickPerformed(AssociationDefinitionWrapper value, AjaxRequestTarget target) {
-                                        showAssociationOutboundWizard(value.getSourceValue(), target);
-                                    }
-                                };
-                                getPageBase().showMainPopup(popup, target);
-                            }
-
-                        } catch (SchemaException e) {
-                            LOGGER.error("Couldn't load association for " + selectedObjectType);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa fa-arrow-right-from-bracket");
-            }
-        };
-        menu.setVisible(createAssociationMenuItemVisibilityModel());
-        items.add(menu);
     }
 
-    private IModel<Boolean> createAssociationMenuItemVisibilityModel() {
+    private @NotNull IModel<Boolean> createAssociationMenuItemVisibilityModel() {
         return () -> {
             ResourceObjectTypeDefinition selectedObjectType = getSelectedObjectTypeDefinition();
             if (selectedObjectType == null) {
@@ -543,56 +496,17 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         };
     }
 
-    private void showAssociationInboundWizard(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper, AjaxRequestTarget target) {
+    private void showAssociationWizard(
+            @NotNull PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper,
+            AjaxRequestTarget target) {
+        PageResource page = getObjectDetailsModels().getPageResource();
         ShadowAssociationTypeDefinitionType association = associationWrapper.getRealValue();
         if (association == null) {
             return;
         }
 
-        if (association.getSubject() == null || association.getSubject().getAssociation() == null) {
-            return;
-        }
-
-        PageResource page = getObjectDetailsModels().getPageResource();
-        if (association.getSubject().getAssociation().getInbound().size() == 1) {
-            ItemPath path = association.getSubject().getAssociation().getInbound().iterator().next().asPrismContainerValue().getPath();
-
-            page.showAssociationInboundWizard(target, path, association, createExitLabelModel());
-        } else {
-            ItemPath path = association.asPrismContainerValue().getPath()
-                    .append(ShadowAssociationTypeDefinitionType.F_SUBJECT)
-                    .append(ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION);
-
-            page.showAssociationInboundsWizard(target, path, association, createExitLabelModel());
-        }
-    }
-
-    private IModel<String> createExitLabelModel() {
-        return new StringResourceModel("ResourceObjectsPanel.associationWizard.exitLabel." + getKind());
-    }
-
-    private void showAssociationOutboundWizard(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper, AjaxRequestTarget target) {
-        ShadowAssociationTypeDefinitionType association = associationWrapper.getRealValue();
-        if (association == null) {
-            return;
-        }
-
-        if (association.getSubject() == null || association.getSubject().getAssociation() == null) {
-            return;
-        }
-
-        PageResource page = getObjectDetailsModels().getPageResource();
-        if (association.getSubject().getAssociation().getOutbound().size() == 1) {
-            ItemPath path = association.getSubject().getAssociation().getOutbound().iterator().next().asPrismContainerValue().getPath();
-
-            page.showAssociationOutboundWizard(target, path, association, createExitLabelModel());
-        } else {
-            ItemPath path = association.asPrismContainerValue().getPath()
-                    .append(ShadowAssociationTypeDefinitionType.F_SUBJECT)
-                    .append(ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION);
-
-            page.showAssociationOutboundsWizard(target, path, association, createExitLabelModel());
-        }
+        ItemPath path = association.asPrismContainerValue().getPath();
+        page.showResourceAssociationTypePreviewWizard(target, path);
     }
 
     private ButtonInlineMenuItem createWizardItemPanel(
@@ -621,7 +535,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                                         ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
                                                 .append(selectedObjectType.asPrismContainerValue().getPath()));
                             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                                LOGGER.error("Couldn't invoke method " + methodName + " in PageResource class");
+                                LOGGER.error("Couldn't invoke method " + methodName + " in PageResource class", e);
                             }
                         }
                     }
@@ -747,9 +661,11 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             }
 
             @Override
-            protected List<Component> createToolbarButtonsList(String buttonId) {
+            protected @NotNull List<Component> createToolbarButtonsList(String buttonId) {
                 List<Component> buttonsList = new ArrayList<>();
-                buttonsList.add(createReloadButton(buttonId));
+                buttonsList.add(createReloadButton(buttonId, getPageBase(), getShadowTable(),
+                        getObjectDetailsModels().getObjectType(),
+                        () -> getSelectedObjectTypeDefinition(), () -> getKind(), true, null));
                 buttonsList.addAll(super.createToolbarButtonsList(buttonId));
                 return buttonsList;
             }
@@ -759,7 +675,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private ResourceContentStorage getPageStorage() {
-        return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
+        return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(getKind());
     }
 
     @Override
@@ -823,16 +739,6 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                     false,
                     ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
             filter = filter.endBlock();
-        } else {
-            filter = addSimulationRule(
-                    filter.and(),
-                    true,
-                    ExecutionModeType.PREVIEW);
-            filter = addSimulationRule(
-                    filter.and(),
-                    true,
-                    ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
-
         }
 
         return filter.build();
@@ -843,7 +749,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         return new TaskCreationFoCategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
 
             @Override
-            protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean simulate, AjaxRequestTarget target) {
+            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate, AjaxRequestTarget target) {
                 ResourceObjectsPanel.this.createNewTaskPerformed(flavor, simulate, target);
             }
         };
@@ -899,26 +805,44 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         return null;
     }
 
-    private ReloadableButton createReloadButton(String buttonId) {
+    public static @NotNull ReloadableButton createReloadButton(
+            @NotNull String buttonId,
+            @NotNull PageBase pageBase,
+            @NotNull ShadowTablePanel associatedTable,
+            @NotNull ResourceType resource,
+            @NotNull IModel<ResourceObjectTypeDefinition> objectTypeModel,
+            @NotNull IModel<ShadowKindType> kindType,
+            boolean reloadEveryPoll,
+            @Nullable String buttonCssClass) {
 
         ReloadableButton reload = new ReloadableButton(
-                buttonId, getPageBase()) {
+                buttonId, pageBase) {
 
             @Override
-            protected void refresh(AjaxRequestTarget target) {
-                target.add(getShadowTable());
+            protected void refresh(@NotNull AjaxRequestTarget target) {
+                target.add(associatedTable);
+            }
+
+            @Override
+            protected String getButtonCssClass() {
+                return buttonCssClass != null ? buttonCssClass : super.getButtonCssClass();
+            }
+
+            @Override
+            protected boolean reloadComponentEveryPoll() {
+                return reloadEveryPoll;
             }
 
             @Override
             protected ActivityDefinitionType createActivityDefinition() {
 
-                ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
                 ShadowKindType kind;
                 String resourceOid;
                 String intent = null;
+                ResourceObjectTypeDefinition objectType = objectTypeModel.getObject();
                 if (objectType == null) {
-                    resourceOid = getObjectDetailsModels().getObjectType().getOid();
-                    kind = getKind();
+                    resourceOid = resource.getOid();
+                    kind = kindType.getObject();
                 } else {
                     resourceOid = objectType.getResourceOid();
                     kind = objectType.getKind();
@@ -936,11 +860,11 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             }
 
             @Override
-            protected String getTaskName() {
-                return "Reload objects on " + getObjectWrapperObject().asObjectable();
+            protected @NotNull String getTaskName() {
+                return "Reload objects on " + resource;
             }
         };
-        reload.add(new VisibleBehaviour(() -> getSelectedObjectTypeDefinition() != null));
+        reload.add(new VisibleBehaviour(() -> objectTypeModel.getObject() != null));
         return reload;
     }
 

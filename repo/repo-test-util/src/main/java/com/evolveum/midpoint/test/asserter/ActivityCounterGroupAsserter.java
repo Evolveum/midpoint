@@ -8,12 +8,15 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCounterGroupType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCounterType;
+
+import org.assertj.core.api.Assertions;
 
 /**
  * Asserter that checks activity counters (e.g. for thresholds implementation).
@@ -54,10 +57,21 @@ public class ActivityCounterGroupAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     private int getValue(String identifier) {
-        return information.getCounter().stream()
+        List<Integer> values = information.getCounter().stream()
                 .filter(c -> Objects.equals(c.getIdentifier(), identifier))
                 .map(ActivityCounterType::getValue)
                 .filter(Objects::nonNull)
+                .toList();
+
+        Assertions.assertThat(values)
+                .withFailMessage("Counter '%s' not found or has no value", identifier)
+                .isNotEmpty();
+
+        Assertions.assertThat(values)
+                .withFailMessage("Counter '%s' found multiple times in %s", identifier, values.size())
+                .hasSize(1);
+
+        return values.stream()
                 .mapToInt(Integer::intValue)
                 .sum(); // there should be at most one occurrence
     }

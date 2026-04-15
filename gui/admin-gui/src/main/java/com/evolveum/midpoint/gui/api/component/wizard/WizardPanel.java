@@ -45,30 +45,34 @@ public class WizardPanel extends BasePanel implements WizardListener {
     public static final String ID_CONTENT_BODY = "contentBody";
     private static final String ID_STEP_STATUS = "stepStatus";
 
-    private final WizardModel wizardModel;
+    private WizardModelBasic wizardModelBasic;
     private boolean enableBackTitleModel = false;
 
-    public WizardPanel(String id, WizardModel wizardModel, boolean enableBackTitleModel) {
+    public WizardPanel(String id, WizardModelBasic wizardModelBasic, boolean enableBackTitleModel) {
         super(id);
 
-        this.wizardModel = wizardModel;
-        this.wizardModel.setPanel(this);
+        this.wizardModelBasic = wizardModelBasic;
+        this.wizardModelBasic.setPanel(this);
         this.enableBackTitleModel = enableBackTitleModel;
 
-        wizardModel.addWizardListener(this);
+        wizardModelBasic.addWizardListener(this);
 
         initLayout();
     }
 
-    public WizardPanel(String id, WizardModel wizardModel) {
-        this(id, wizardModel, false);
+    public WizardPanel(String id, WizardModelBasic wizardModelBasic) {
+        this(id, wizardModelBasic, false);
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
 
-        this.wizardModel.init(getPage());
+        this.wizardModelBasic.init(getPage());
+    }
+
+    public WizardModelBasic getWizardModel() {
+        return wizardModelBasic;
     }
 
     @Override
@@ -82,10 +86,10 @@ public class WizardPanel extends BasePanel implements WizardListener {
     protected void onBeforeRender() {
         super.onBeforeRender();
 
-        String stepId = wizardModel.getActiveStep().getStepId();
+        String stepId = wizardModelBasic.getActiveStep().getStepId();
         if (StringUtils.isNotEmpty(stepId)) {
             PageParameters params = getPage().getPageParameters();
-            params.set(WizardModel.PARAM_STEP, stepId);
+            params.set(WizardModelBasic.PARAM_STEP, stepId);
         }
     }
 
@@ -93,11 +97,15 @@ public class WizardPanel extends BasePanel implements WizardListener {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
+        customizeHeader(response);
+    }
+
+    private void customizeHeader(IHeaderResponse response) {
         response.render(OnDomReadyHeaderItem.forScript(
-                "MidPointTheme.updatePageUrlParameter('" + WizardModel.PARAM_STEP + "', '" + wizardModel.getActiveStep().getStepId() + "');"));
+                "MidPointTheme.updatePageUrlParameter('" + WizardModelBasic.PARAM_STEP + "', '" + wizardModelBasic.getActiveStep().getStepId() + "');"));
 
         String stepStatusId = get(ID_HEADER + ":" + ID_STEP_STATUS).getMarkupId();
-        String stepPage = getString("WizardPanel.stepStatus", wizardModel.getActiveStep().getTitle().getObject());
+        String stepPage = getString("WizardPanel.stepStatus", wizardModelBasic.getActiveStep().getTitle().getObject());
         response.render(OnDomReadyHeaderItem.forScript(
                 String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", stepStatusId, stepPage, 400)));
     }
@@ -111,12 +119,12 @@ public class WizardPanel extends BasePanel implements WizardListener {
     }
 
     private IModel<List<IModel<String>>> createStepsModel() {
-        return () -> wizardModel.getSteps().stream().filter(
+        return () -> wizardModelBasic.getSteps().stream().filter(
                 s -> BooleanUtils.isTrue(
                         s.isStepVisible().getObject())).map(WizardStep::getTitle).collect(Collectors.toList());
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         add(AttributeAppender.prepend("class", "bs-stepper"));
         add(AttributeAppender.append("class", () -> "w-100"));
 
@@ -136,7 +144,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
 
             @Override
             protected void populateItem(ListItem<IModel<String>> listItem) {
-                WizardHeaderStepHelper wizardHeaderStepHelper = new WizardHeaderStepHelper(wizardModel.getActiveStepIndex(),
+                WizardHeaderStepHelper wizardHeaderStepHelper = new WizardHeaderStepHelper(wizardModelBasic.getActiveStepIndex(),
                         stepsModel.getObject().size(), WizardPanel.this);
                 WizardHeaderStepPanel step = new WizardHeaderStepPanel(
                         ID_STEP, listItem.getIndex(), listItem.getModelObject(), wizardHeaderStepHelper);
@@ -151,7 +159,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
         };
         header.add(steps);
 
-        WizardHeader contentHeader = new WizardHeader(ID_CONTENT_HEADER, wizardModel) {
+        WizardHeader contentHeader = new WizardHeader(ID_CONTENT_HEADER, wizardModelBasic) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -161,15 +169,15 @@ public class WizardPanel extends BasePanel implements WizardListener {
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                boolean executeDefaultBehaviour = wizardModel.getActiveStep().onBackPerformed(target);
+                boolean executeDefaultBehaviour = wizardModelBasic.getActiveStep().onBackPerformed(target);
                 if (!executeDefaultBehaviour) {
                     return;
                 }
 
-                if (!wizardModel.hasPrevious()) {
+                if (!wizardModelBasic.hasPrevious()) {
                     getPageBase().redirectBack();
                 } else {
-                    wizardModel.previous();
+                    wizardModelBasic.previous();
                 }
 
                 target.add(WizardPanel.this);
@@ -177,26 +185,26 @@ public class WizardPanel extends BasePanel implements WizardListener {
 
             @Override
             protected void onNextPerformed(AjaxRequestTarget target) {
-                boolean executeDefaultBehaviour = wizardModel.getActiveStep().onNextPerformed(target);
+                boolean executeDefaultBehaviour = wizardModelBasic.getActiveStep().onNextPerformed(target);
                 if (!executeDefaultBehaviour) {
                     return;
                 }
 
-                wizardModel.next();
+                wizardModelBasic.next();
 
                 target.add(WizardPanel.this);
             }
 
             @Override
             protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
-                return wizardModel.getActiveStep().getNextBehaviour();
+                return wizardModelBasic.getActiveStep().getNextBehaviour();
             }
 
             @Override
             protected IModel<String> createBackTitleModel() {
                 if (enableBackTitleModel) {
                     return () -> {
-                        WizardStep step = wizardModel.findPreviousStep();
+                        WizardStep step = wizardModelBasic.findPreviousStep();
                         return step != null ? getString("WizardHeader.backTo", step.getTitle().getObject()) : getString("WizardHeader.back");
                     };
                 }
@@ -211,7 +219,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
     }
 
     private String getCssForStepsHeader() {
-        int steps = wizardModel.getSteps().size();
+        int steps = wizardModelBasic.getSteps().size();
         if (steps == 2) {
             return "col-xxl-5 col-xl-7 col-lg-9 col-md-9 col-sm-12 m-auto";
         }
@@ -232,7 +240,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
     }
 
     public WizardStep getActiveStep() {
-        return wizardModel.getActiveStep();
+        return wizardModelBasic.getActiveStep();
     }
 
     public Component getHeader() {

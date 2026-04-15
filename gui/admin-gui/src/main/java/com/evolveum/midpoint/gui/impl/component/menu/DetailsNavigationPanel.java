@@ -9,11 +9,17 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -38,6 +44,10 @@ import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List<ContainerPanelConfigurationType>> {
 
@@ -80,12 +90,13 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     }
 
     private void initLayout() {
-        ListView<ContainerPanelDto> listView = new ListView<>(ID_NAV, getContainerPanelListModel()) {
+        IModel<List<ContainerPanelDto>> containerListModel = getContainerPanelListModel();
+        ListView<ContainerPanelDto> listView = new ListView<>(ID_NAV, containerListModel) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<ContainerPanelDto> item) {
-                populateNavigationMenuItem(item);
+                populateNavigationMenuItem(item, containerListModel);
             }
         };
         listView.setOutputMarkupId(true);
@@ -99,13 +110,14 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                         .toList());
     }
 
-    private void populateNavigationMenuItem(ListItem<ContainerPanelDto> item) {
+    private void populateNavigationMenuItem(ListItem<ContainerPanelDto> item,
+            IModel<List<ContainerPanelDto>> containerListModel) {
         ContainerPanelDto containerPanelDto = item.getModelObject();
         ContainerPanelConfigurationType panelConfig = containerPanelDto.getContainerPanelConfig();
         WebMarkupContainer navigationDetails = createNavigationItemParentPanel(containerPanelDto);
         item.add(navigationDetails);
 
-        AjaxSubmitLink link = createNavigationLink(containerPanelDto);
+        AjaxLink<?> link = createNavigationLink(containerPanelDto, containerListModel);
         navigationDetails.add(link);
 
         addParentMenuItemDescription(link, panelConfig);
@@ -154,8 +166,9 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     }
 
     private ContainerPanelConfigurationType getConfigurationFromStorage() {
-        ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectDetailsModel.getObjectWrapperModel().getObject().getCompileTimeClass().getSimpleName());
-        return storage.getDefaultConfiguration();
+        ObjectDetailsStorage storage = getPageBase().getBrowserTabSessionStorage().getObjectDetailsStorage(
+                "details" + objectDetailsModel.getObjectWrapperModel().getObject().getCompileTimeClass().getSimpleName());
+        return storage != null ? storage.getDefaultConfiguration() : new ContainerPanelConfigurationType();
     }
 
     private boolean isMenuActive(ContainerPanelConfigurationType storageConfig, ContainerPanelConfigurationType itemModelObject) {
@@ -171,28 +184,47 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         return false;
     }
 
-    private AjaxSubmitLink createNavigationLink(ContainerPanelDto panelConfigDto) {
+    private AjaxLink<?> createNavigationLink(ContainerPanelDto panelConfigDto,
+            IModel<List<ContainerPanelDto>> containerListModel) {
         ContainerPanelConfigurationType panelConfig = panelConfigDto.getContainerPanelConfig();
-        AjaxSubmitLink link = new AjaxSubmitLink(ID_NAV_ITEM_LINK) {
+        var submenuExist = doesSubMenuExist(panelConfig);
+
+        AjaxLink<?> link = new AjaxLink<>(ID_NAV_ITEM_LINK) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onSubmit(AjaxRequestTarget target) {
-                super.onSubmit(target);
-
-                target.add(DetailsNavigationPanel.this);
-                onClickPerformed(panelConfig, target);
-                clickedMenuItemName = createButtonLabel(panelConfig).getObject();
-                panelConfigDto.setExpanded(!panelConfigDto.isExpanded());
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                //CTRL+click should work only for the items without submenu
+                //parent items (which have submenus) should only expand/collapse on click
+                if (!submenuExist) {
+                    WebComponentUtil.updateAjaxLinkAttributesForCtrlClickRedirection(attributes);
+                }
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target) {
-                super.onError(target);
+            public void onClick(AjaxRequestTarget target) {
+                target.add(DetailsNavigationPanel.this);
+                onClickPerformed(panelConfig, target);
+                clickedMenuItemName = createButtonLabel(panelConfig).getObject();
 
-                target.add(getPageBase().getFeedbackPanel());
+                containerListModel
+                        .getObject()
+                        .stream()
+                        .filter(dto -> dto != panelConfigDto)
+                        .forEach(c -> c.setExpanded(false));
+                panelConfigDto.setExpanded(!panelConfigDto.isExpanded());
             }
+
+            //todo fix
+//            @Override
+//            protected void onError(AjaxRequestTarget target) {
+//                super.onError(target);
+//
+//                target.add(getPageBase().getFeedbackPanel());
+//            }
         };
+        link.add(AttributeModifier.replace("href", urlForNavItemLink(panelConfig)));
 
         link.add(AttributeModifier.append(
                 "aria-current",
@@ -213,7 +245,24 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         return link;
     }
 
-    private void addSrCurrentMessage(AjaxSubmitLink link, ContainerPanelDto panelConfigDto) {
+    private String urlForNavItemLink(ContainerPanelConfigurationType panelConfig) {
+        PageParameters parameters = new PageParameters();
+        if (objectDetailsModel.getObjectWrapper().getOid() != null) {
+            parameters.add(OnePageParameterEncoder.PARAMETER, objectDetailsModel.getObjectWrapper().getOid());
+        }
+
+        var panelId = panelConfig.getIdentifier();
+        if (panelId != null) {
+            parameters.add("panelId", panelId.toString());
+        }
+
+        Class<? extends PageBase> detailsPageClass = getPageBase().getClass();
+        var url = RequestCycle.get().urlFor(detailsPageClass, parameters);
+
+        return url != null ? url.toString() : "#";
+    }
+
+    private void addSrCurrentMessage(@NotNull AjaxLink<?> link, ContainerPanelDto panelConfigDto) {
         ContainerPanelConfigurationType panelConfig = panelConfigDto.getContainerPanelConfig();
         Label srCurrentMessage = new Label(ID_NAV_ITEM_SR_CURRENT_MESSAGE, () -> {
             ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
@@ -245,31 +294,31 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         link.add(srCurrentMessage);
     }
 
-    private void addIcon(AjaxSubmitLink link, ContainerPanelConfigurationType panelConfig) {
+    private void addIcon(@NotNull AjaxLink<?> link, ContainerPanelConfigurationType panelConfig) {
         WebMarkupContainer icon = new WebMarkupContainer(ID_NAV_ITEM_ICON);
         icon.setOutputMarkupId(true);
         icon.add(AttributeAppender.append("class", getMenuItemIconClass(panelConfig)));
         link.add(icon);
     }
 
-    private void addLabel(AjaxSubmitLink link, ContainerPanelConfigurationType panelConfig) {
+    private void addLabel(@NotNull AjaxLink<?> link, ContainerPanelConfigurationType panelConfig) {
         Label buttonLabel = new Label(ID_NAV_ITEM, createButtonLabel(panelConfig));
         link.add(buttonLabel);
     }
 
-    private void addCount(AjaxSubmitLink link, ContainerPanelConfigurationType panelConfig) {
+    private void addCount(@NotNull AjaxLink<?> link, ContainerPanelConfigurationType panelConfig) {
         Label label = new Label(ID_COUNT, createCountModel(panelConfig));
         label.add(new VisibleBehaviour(() -> getCounterProvider(panelConfig) != null));
         link.add(label);
     }
 
-    private void addSubmenuLink(AjaxSubmitLink link, ContainerPanelDto containerPanelDto) {
+    private void addSubmenuLink(@NotNull AjaxLink<?> link, ContainerPanelDto containerPanelDto) {
         WebMarkupContainer submenuLink = new WebMarkupContainer(ID_SUBMENU_LINK);
         submenuLink.add(new VisibleBehaviour(() -> doesSubMenuExist(containerPanelDto.getContainerPanelConfig())));
         link.add(submenuLink);
     }
 
-    private void addParentMenuItemDescription(AjaxSubmitLink link, ContainerPanelConfigurationType panelConfig) {
+    private void addParentMenuItemDescription(@NotNull AjaxLink<?> link, ContainerPanelConfigurationType panelConfig) {
         // in case there is parent menu item (e.g. Assignments is parent for Role menu item)
         // we want to add a description for a screen reader to describe this parent item
         DetailsNavigationPanel<?> parentPanel = link.findParent(DetailsNavigationPanel.class);

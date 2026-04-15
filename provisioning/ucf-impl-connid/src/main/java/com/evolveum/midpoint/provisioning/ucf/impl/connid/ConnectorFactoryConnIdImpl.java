@@ -333,7 +333,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
         ConnectorType connectorType = new ConnectorType();
         ConnectorKey key = cinfo.getConnectorKey();
-        UcfUtil.addConnectorNames(connectorType, "ConnId", key.getConnectorName(), key.getBundleVersion(), hostType);
+
+        var displayName = cinfo.getConnectorDisplayName();
+        displayName = displayName == null ? key.getConnectorName() : displayName;
+        UcfUtil.addConnectorNames(connectorType, "ConnId", displayName, key.getBundleVersion(), hostType);
         String stringID = keyToNamespaceSuffix(key);
         connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
         connectorType.setConnectorType(key.getConnectorName());
@@ -478,7 +481,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * @return ICF connector info manager that manages local connectors
      */
 
-    private ConnectorInfoManager getLocalConnectorInfoManager() {
+    DirectoryScanningInfoManager getLocalConnectorInfoManager() {
         return localConnectorInfoManager;
     }
 
@@ -637,6 +640,16 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             if (isThisJarFileBundle(dirEntry)) {
                 addBundleIfEligible(bundleUris, dirEntry);
             }
+            if (dirEntry.isDirectory() && new File(dirEntry, "META-INF/MANIFEST.MF").exists()) {
+                try {
+                    var uri = dirEntry.toURI();
+                    if (isThisBundleCompatible(uri.toURL())) {
+                        bundleUris.add(uri);
+                    }
+                } catch (MalformedURLException e) {
+                    throw new SystemException(e);
+                }
+            }
         }
     }
 
@@ -690,6 +703,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * @return boolean
      */
     static Boolean isThisJarFileBundle(File file) {
+        return isThisJarFileBundle(file, true);
+    }
+
+    static Boolean isThisJarFileBundle(File file, boolean skipTmp) {
         // Startup tests
         if (null == file) {
             throw new IllegalArgumentException("No file is provided for bundle test.");
@@ -699,6 +716,19 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         if (!file.isFile()) {
             LOGGER.debug("This {} is not a file", file.getAbsolutePath());
             return false;
+        }
+
+        if (skipTmp) {
+            // We check the whole path for entries ending with ".tmp", because the scanner iterates over subdirectories as well.
+            // FIXME but we must stop crawling upwards at midPoint home level, because what if it's e.g. in /var/opt.tmp/midpoint?
+            var current = file;
+            do {
+                if (current.getName().endsWith(".tmp")) {
+                    LOGGER.debug("{} is a temporary file", current.getAbsolutePath());
+                    return false;
+                }
+                current = current.getParentFile();
+            } while (current != null);
         }
 
         Properties prop = new Properties();
@@ -766,7 +796,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         return getRemoteConnectorInfoManager(host.asObjectable()).findConnectorInfo(key);
     }
 
-    private ConnectorKey getConnectorKey(ConnectorType connectorType) {
+    static ConnectorKey getConnectorKey(ConnectorType connectorType) {
         return new ConnectorKey(
                 connectorType.getConnectorBundle(),
                 connectorType.getConnectorVersion(),
@@ -892,5 +922,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         for (ConnectorDiscoveryListener listener : listeners) {
             listener.newConnectorDiscovered(null);
         }
+    }
+
+    public List<ConnectorInfo> addLocalConnector(URI file) {
+        var connectors = localConnectorInfoManager.registerConnector(file);
+        if (!connectors.isEmpty()) {
+            notifyConnectorAdded();
+        }
+        return connectors;
     }
 }

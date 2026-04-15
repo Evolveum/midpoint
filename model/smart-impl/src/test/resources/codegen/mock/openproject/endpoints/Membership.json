@@ -1,0 +1,158 @@
+{
+  "endpoints": [
+    {
+      "path": "/api/v3/memberships",
+      "method": "GET",
+      "description": "Retrieve membership collection",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/memberships",
+      "method": "POST",
+      "description": "Create a new membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/memberships/form",
+      "method": "POST",
+      "description": "Form for creating a Membership",
+      "responseContentType": "application/json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/memberships/{id}",
+      "method": "GET",
+      "description": "Get specific membership details",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/memberships/{id}",
+      "method": "PATCH",
+      "description": "Update an existing membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/memberships/{id}",
+      "method": "DELETE",
+      "description": "Delete a membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/principals",
+      "method": "GET",
+      "description": "List principals filtered by membership in projects",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/principals",
+      "method": "POST",
+      "description": "Create a principal (user/group) with membership management",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/principals/{id}/memberships",
+      "method": "GET",
+      "description": "Get collection of a principal's memberships",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/projects/{id}/available_assignees",
+      "method": "GET",
+      "description": "List users available for assignment based on project membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/projects/{id}/memberships",
+      "method": "GET",
+      "description": "Get collection of project memberships",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/roles",
+      "method": "GET",
+      "description": "List roles selectable for membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/roles/{id}",
+      "method": "GET",
+      "description": "View role details for membership assignment",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/users",
+      "method": "GET",
+      "description": "List users for membership management",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/users",
+      "method": "POST",
+      "description": "Create a new user for membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/users/{id}",
+      "method": "GET",
+      "description": "Retrieve user details for membership context",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/users/{id}",
+      "method": "PATCH",
+      "description": "Update user attributes related to membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/users/{id}",
+      "method": "DELETE",
+      "description": "Delete a user from membership context",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/users/{id}/memberships",
+      "method": "GET",
+      "description": "Get memberships for a user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/projects/{id}/memberships",
+      "method": "GET",
+      "description": "Retrieve memberships for a project",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/projects/{id}/memberships",
+      "method": "POST",
+      "description": "Create a new membership in a project",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/projects/{id}/memberships/{membership_id}",
+      "method": "DELETE",
+      "description": "Delete a specific membership from a project",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    }
+  ]
+}

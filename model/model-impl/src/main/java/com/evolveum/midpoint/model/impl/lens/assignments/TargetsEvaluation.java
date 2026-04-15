@@ -232,11 +232,22 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     private List<PrismObject<? extends ObjectType>> resolveTargets()
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
+        boolean oidBasedRef = targetRef.getOid() != null && targetRef.getType() != null;
+        if (oidBasedRef) {
+            PrismObject<? extends ObjectType> cachedTarget = ctx.ae.getCachedTarget(targetRef);
+            if (cachedTarget != null) {
+                return List.of(cachedTarget);
+            }
+        }
         var filterExpressionEvaluator =
                 createFilterExpressionEvaluator(segment.assignmentOrigin.child(AssignmentType.F_TARGET_REF));
-        return ctx.ae.referenceResolver.resolve(
+        List<PrismObject<? extends ObjectType>> resolvedTargets = ctx.ae.referenceResolver.resolve(
                 targetRef, readOnly(), REPOSITORY,
                 filterExpressionEvaluator, ctx.task, result);
+        if (oidBasedRef && resolvedTargets.size() == 1) {
+            ctx.ae.cacheResolvedTarget(targetRef, resolvedTargets.get(0));
+        }
+        return resolvedTargets;
     }
 
     private @NotNull FilterExpressionEvaluator createFilterExpressionEvaluator(

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -75,8 +76,20 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
             }
 
             @Override
-            protected boolean isShadowDetailsEnabled() {
+            protected boolean isObjectClassFieldVisible() {
                 return false;
+            }
+
+            @Override
+            protected ResourceObjectTypeIdentification getResourceObjectTypeIdentification() {
+                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = resourceObjectType.getObject();
+                ResourceObjectTypeDefinitionType realValue = object.getRealValue();
+                return ResourceObjectTypeIdentification.of(realValue.getKind(), realValue.getIntent());
+            }
+
+            @Override
+            protected boolean showPopupShadowDetailsOnClick() {
+                return true;
             }
 
             @Override
@@ -102,17 +115,21 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
             protected Consumer<Task> createProviderSearchTaskCustomizer() {
                 return (Consumer<Task> & Serializable) (task) -> task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
             }
+
+            @Override
+            protected boolean isTaskButtonVisible() {
+                return false;
+            }
         };
         table.setOutputMarkupId(true);
         form.add(table);
     }
 
-    private ContainerPanelConfigurationType getConfiguration(){
+    private ContainerPanelConfigurationType getConfiguration() {
         return WebComponentUtil.getContainerConfiguration(
                 getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
                 PANEL_TYPE);
     }
-
 
     protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectType() {
         return resourceObjectType;
@@ -123,7 +140,7 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         return getPageBase().createStringResource("PreviewResourceObjectTypeDataWizardPanel.title");
     }
 
-        @Override
+    @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("PreviewResourceObjectTypeDataWizardPanel.subText");
     }

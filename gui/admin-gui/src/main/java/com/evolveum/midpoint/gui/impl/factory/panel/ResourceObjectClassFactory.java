@@ -8,15 +8,20 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.qname.AbstractObjectClassFactory;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeParticipantDelineationType;
 
+import org.apache.wicket.validation.ValidationError;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
+
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
@@ -27,7 +32,6 @@ public class ResourceObjectClassFactory extends AbstractObjectClassFactory {
     public void register() {
         getRegistry().addToRegistry(this);
     }
-
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
@@ -40,7 +44,7 @@ public class ResourceObjectClassFactory extends AbstractObjectClassFactory {
         if (!(object instanceof ResourceType)) {
             return false;
         }
-        return ResourceObjectTypeDefinitionType.F_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
+        return ResourceObjectTypeDelineationType.F_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
                 || ResourceObjectTypeDefinitionType.F_AUXILIARY_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
                 || SimulatedReferenceTypeParticipantDelineationType.F_AUXILIARY_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
                 || SimulatedReferenceTypeParticipantDelineationType.F_OBJECT_CLASS.equivalent(wrapper.getPath().lastName());
@@ -65,5 +69,33 @@ public class ResourceObjectClassFactory extends AbstractObjectClassFactory {
             }
         }
         return panel;
+    }
+
+    @Override
+    public void configure(PrismPropertyPanelContext<QName> panelCtx, org.apache.wicket.Component component) {
+        super.configure(panelCtx, component);
+
+        if (!isDelineationObjectClassField(panelCtx)) {
+            return;
+        }
+
+        InputPanel panel = (InputPanel) component;
+        panel.getValidatableComponent().setRequired(true);
+        panel.getValidatableComponent().add(validatable -> {
+            if (validatable.getValue() == null) {
+                ValidationError error = new ValidationError();
+                error.setMessage(LocalizationUtil.translate("ResourceObjectClassFactory.objectClass.required"));
+                validatable.error(error);
+
+            }
+        });
+    }
+
+    private boolean isDelineationObjectClassField(@NotNull PrismPropertyPanelContext<QName> panelCtx) {
+        ItemPath path = panelCtx.unwrapWrapperModel().getPath();
+        return path.endsWith(
+                ItemPath.create(
+                        ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_OBJECT_CLASS));
     }
 }

@@ -12,7 +12,7 @@
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint.testing</groupId>
-        <version>4.10.3-SNAPSHOT</version>
+        <version>4.11-SNAPSHOT</version>
     </parent>
 
     <artifactId>story</artifactId>
@@ -297,7 +297,7 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <version>9.1.0</version>
+            <version>9.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

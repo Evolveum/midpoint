@@ -1,0 +1,69 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <wicket:enclosure child="qr">
+        <div class="form-group">
+            <div class="border p-3 rounded mx-auto" style="width: 200px; height: 200px">
+                <span wicket:id="qr"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="d-flex flex-column gap-2 align-middle">
+                <span class="text-secondary text-sm m-auto w-auto">
+                    <wicket:message key="OtpPanel.enterManually"/>
+                </span>
+                <input wicket:id="secret" class="form-control m-auto w-auto" size="32" disabled/>
+            </div>
+        </div>
+    </wicket:enclosure>
+    <div class="form-group">
+        <label>
+            <wicket:message key="OtpPanel.name.label"/>
+        </label>
+        <input class="form-control" wicket:message="placeholder:OtpPanel.name.placeholder" wicket:id="name"/>
+    </div>
+    <wicket:enclosure child="codeGroup">
+        <div class="form-group" wicket:id="codeGroup">
+            <label>
+                <wicket:message key="OtpPanel.code.label"/>
+            </label>
+            <input class="form-control" wicket:message="placeholder:OtpPanel.code.placeholder" wicket:id="code"
+                    autocomplete="off" type="text"/>
+            <div wicket:id="codeFeedback"/>
+            <small wicket:id="codeHelp" class="form-text text-muted">
+                <wicket:message key="OtpPanel.code.help"/>
+            </small>
+        </div>
+        <div class="card bg-light">
+            <div class="card-body">
+                <div class="mb-2">
+                    <i class="fa fa-mobile-screen mr-2"/>
+                    <span><wicket:message key="OtpPanel.instructions"/></span>
+                </div>
+                <ul class="list-unstyled ml-4 text-sm gap-1 d-flex flex-column">
+                    <li>
+                        <wicket:message key="OtpPanel.instructions.1"/>
+                    </li>
+                    <li>
+                        <wicket:message key="OtpPanel.instructions.2"/>
+                    </li>
+                    <li>
+                        <wicket:message key="OtpPanel.instructions.3"/>
+                    </li>
+                    <li>
+                        <wicket:message key="OtpPanel.instructions.4"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </wicket:enclosure>
+</wicket:panel>
+</body>
+</html>

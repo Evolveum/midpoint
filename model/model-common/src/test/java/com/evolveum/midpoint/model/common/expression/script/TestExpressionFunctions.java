@@ -43,7 +43,6 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -373,14 +372,14 @@ public class TestExpressionFunctions extends AbstractUnitTest {
 
     @Test
     public void testToAscii() {
-        assertEquals("foo", basic.toAscii("foo"));
-        assertEquals("foo", basic.toAscii(poly("foo")));
-        assertEquals("foo", basic.toAscii(PrismTestUtil.createPolyStringType("foo")));
-        assertEquals("Cortuv hrad, tam Strasa!", basic.toAscii("Čórtův hrád, tam Strašá!"));
-        assertEquals("hrabe Teleke z Toloko", basic.toAscii(poly("hrabě Teleke z Tölökö")));
-        assertEquals("Vedeckotechnicka revoluce neni zadna idyla!", basic.toAscii(PrismTestUtil.createPolyStringType("Vědeckotechnická revoluce není žádná idyla!")));
-        assertNull(basic.toAscii(null));
-        assertEquals("", basic.toAscii(""));
+        assertEquals("foo", basic.ascii("foo"));
+        assertEquals("foo", basic.ascii(poly("foo")));
+        assertEquals("foo", basic.ascii(PrismTestUtil.createPolyStringType("foo")));
+        assertEquals("Cortuv hrad, tam Strasa!", basic.ascii("Čórtův hrád, tam Strašá!"));
+        assertEquals("hrabe Teleke z Toloko", basic.ascii(poly("hrabě Teleke z Tölökö")));
+        assertEquals("Vedeckotechnicka revoluce neni zadna idyla!", basic.ascii(PrismTestUtil.createPolyStringType("Vědeckotechnická revoluce není žádná idyla!")));
+        assertNull(basic.ascii(null));
+        assertEquals("", basic.ascii(""));
     }
 
     @Test

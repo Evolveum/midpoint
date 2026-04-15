@@ -20,7 +20,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
@@ -92,7 +92,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                     showChoiceFragment(target, buildProcessModeChoiceStep(idOfChoicePanel));
                 } else {
                     isProcessModeStepEnable = false;
-                    showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
+                    showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createBasicSteps())));
                 }
                 super.onSubmitPerformed(target);
             }
@@ -125,7 +125,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
+                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createBasicSteps())));
                 super.onSubmitPerformed(target);
             }
 
@@ -195,11 +195,12 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                RoleAnalysisSessionType session = getHelper().getDetailsModel().getObjectType();
+                var helper = RoleAnalysisSessionWizardPanel.this.getHelper();
+                RoleAnalysisSessionType session = helper.getDetailsModel().getObjectType();
 
                 RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
                 if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
-                    showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
+                    showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createBasicSteps())));
                     super.onSubmitPerformed(target);
                 }
                 finalSubmitPerform(target, processModeTask);

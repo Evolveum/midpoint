@@ -30,12 +30,15 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import java.util.Locale;
 
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +57,8 @@ public interface ModelServiceLocator {
     ModelService getModelService();
 
     ModelInteractionService getModelInteractionService();
+
+    SmartIntegrationService getSmartIntegrationService();
 
     DashboardService getDashboardService();
 
@@ -75,6 +80,8 @@ public interface ModelServiceLocator {
     SecurityContextManager getSecurityContextManager();
 
     ExpressionFactory getExpressionFactory();
+
+    BrowserTabSessionStorage getBrowserTabSessionStorage();
 
     /**
      * Returns currently applicable user profile, compiled for efficient use in the user interface.
@@ -115,4 +122,6 @@ public interface ModelServiceLocator {
     RoleAnalysisService getRoleAnalysisService();
 
     TriggerHandlerRegistry getTriggerHandlerRegistry();
+
+    ConnectorDevelopmentService getConnectorService();
 }

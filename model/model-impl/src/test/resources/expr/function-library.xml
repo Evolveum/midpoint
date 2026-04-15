@@ -12,6 +12,30 @@
     <name>functionLibrary</name>
 
     <function>
+        <name>hello0</name>
+        <returnType>xsd:string</returnType>
+        <script>
+            <code>
+                'Hello world!'
+            </code>
+        </script>
+    </function>
+
+    <function>
+        <name>hello1</name>
+        <parameter>
+            <name>who</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>xsd:string</returnType>
+        <script>
+            <code>
+                'Hello ' + who
+            </code>
+        </script>
+    </function>
+
+    <function>
         <name>custom</name>
         <parameter>
             <name>customValue</name>
@@ -29,8 +53,8 @@
                 log.info('customValue = {} ({})', customValue, customValue?.getClass())
                 log.info('extra = {}', extra)
                 customValue?.findProperty(ItemPath.create('stringValue'))?.getRealValue() + '-' +
-                        customValue?.findProperty(ItemPath.create('intValue'))?.getRealValue() + '-' +
-                        extra
+                customValue?.findProperty(ItemPath.create('intValue'))?.getRealValue() + '-' +
+                extra
             </code>
         </script>
     </function>

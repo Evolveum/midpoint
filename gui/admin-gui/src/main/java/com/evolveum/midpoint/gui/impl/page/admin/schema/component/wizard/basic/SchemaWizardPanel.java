@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -92,7 +92,7 @@ public class SchemaWizardPanel extends AbstractWizardPanel<SchemaType, Assignmen
                 switch (value) {
                     case ADD_TO_EXISTING_SCHEMA -> showChoiceFragment(target, createTemplatePanel());
                     case NEW_SCHEMA_TYPE -> showWizardFragment(target, new WizardPanel(
-                            getIdOfWizardPanel(), new WizardModel(createBasicSteps(false))));
+                            getIdOfWizardPanel(), new WizardModelBasic(createBasicSteps(false))));
                 }
             }
         };
@@ -105,7 +105,7 @@ public class SchemaWizardPanel extends AbstractWizardPanel<SchemaType, Assignmen
             protected void onTemplateSelectionPerformed(PrismObject<SchemaType> existObject, AjaxRequestTarget target) {
                 reloadObjectDetailsModel(existObject);
                 showWizardFragment(target, new WizardPanel(
-                        getIdOfWizardPanel(), new WizardModel(createBasicSteps(true))));
+                        getIdOfWizardPanel(), new WizardModelBasic(createBasicSteps(true))));
             }
 
             @Override

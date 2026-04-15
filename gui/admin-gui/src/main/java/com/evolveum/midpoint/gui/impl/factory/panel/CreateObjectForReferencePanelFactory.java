@@ -49,7 +49,7 @@ public class CreateObjectForReferencePanelFactory
         if (wrapper != null && wrapper.isColumn()) {
             return false;
         }
-        return valueWrapper instanceof CreateObjectForReferenceValueWrapper<?>;
+        return valueWrapper instanceof CreateObjectForReferenceValueWrapper;
     }
 
     @Override

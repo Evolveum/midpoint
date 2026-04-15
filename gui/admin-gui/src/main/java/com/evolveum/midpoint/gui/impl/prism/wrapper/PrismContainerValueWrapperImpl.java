@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.checkerframework.checker.units.qual.Volume;
 
 /**
  * @author katka
@@ -515,12 +516,14 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     private void addVirtualContainers(List<PrismContainerWrapper<?>> containers) {
-        if (this instanceof PrismContainerValueWrapper<?>) {
-            addVirtualContainersFrom(this, containers);
-            if (!containers.isEmpty() || this instanceof PrismObjectValueWrapper) {
-                return;
-            }
+        addVirtualContainersFrom(this, containers);
+        if (!containers.isEmpty() || this instanceof PrismObjectValueWrapper) {
+            return;
         }
+
+        // This part seem to be wrong on multiple levels.
+        // We're currently in recursive search, called from findContainer() and following code just jumps to "root" object
+        // wrapper to add virtual containers from there.
 
         if (getParent() == null) {
             return;
@@ -533,13 +536,16 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         addVirtualContainersFrom(objectValue, containers);
     }
 
-    private void addVirtualContainersFrom(PrismContainerValueWrapper<?> objectValue, List<PrismContainerWrapper<?>> containers) {
-        for (ItemWrapper<?, ?> itemWrapper : objectValue.getItems()) {
-            if (itemWrapper instanceof PrismContainerWrapper
-                    && ((PrismContainerWrapper) itemWrapper).isVirtual()
-                    && (((PrismContainerWrapper<?>) itemWrapper).getIdentifier() == null
-                    || containers.stream().noneMatch(c -> ((PrismContainerWrapper<?>) itemWrapper).getIdentifier().equals(c.getIdentifier())))) {
-                containers.add((PrismContainerWrapper<?>) itemWrapper);
+    private void addVirtualContainersFrom(PrismContainerValueWrapper<?> containerValue, List<PrismContainerWrapper<?>> containers) {
+        for (ItemWrapper<?, ?> itemWrapper : containerValue.getItems()) {
+            if (!(itemWrapper instanceof PrismContainerWrapper<?> containerWrapper)) {
+                continue;
+            }
+
+            String identifier = containerWrapper.getIdentifier();
+            if (containerWrapper.isVirtual()
+                    && (identifier == null || containers.stream().noneMatch(c -> identifier.equals(c.getIdentifier())))) {
+                containers.add(containerWrapper);
             }
         }
     }

@@ -1,0 +1,53 @@
+= Localization configuration
+
+This page explains how to tailor the midPoint user interface’s language and regional settings so they match your preferences and workflow.
+
+== Localization project
+
+The source for all translation resources is kept in a public Git repository on GitHub: https://github.com/Evolveum/midpoint-localization/[midpoint-localization]
+
+A Transifex project manages the translation workflow: https://www.transifex.com/evolveum/midpoint/[midpoint]
+
+In every distribution build the translations are packed into a single JAR: `midpoint-localization.jar`
+
+== Language list
+
+List of flags and languages displayed on login page and after login is loaded from file `localization/locale.properties`.
+
+This behaviour can be customized by creating a new `locale.properties` file in `${midpoint.home}/localization/` directory.
+New locale can be added by adding new entries to this file. Each locale must have the following properties:
+
+* `<locale>.name` - Display name of the language.
+* `<locale>.flag` - Country code for the flag icon (based on https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2[ISO 3166-1 alpha-2]).
+* `<locale>.default` - (optional, default=false) If set to `true`, this locale will be selected by default on the login page.
+
+.Example of locale.properties file
+[source,properties]
+----
+en.name=English
+en.flag=us
+en.default=true
+
+de.name=Deutsch
+de.flag=de
+----
+
+== Custom translations
+
+Custom translation keys can be added without the need to build custom midPoint distribution.
+
+Custom translations can be placed inside `${midpoint.home}/localization` directory.
+
+Files should be named according to the locale they are intended for, e.g., `Midpoint_en.properties` for English or `Midpoint_fr.properties` for French.
+`Midpoint.properties` can be used for default values.
+
+MidPoint loads these resource bundles during startup:
+
+* `schema.properties` - default schema-related terms.
+* `schema_<LOCALE>.properties` - for localization of schema-related terms.
+* `Midpoint.properties` - default midPoint-specific terms.
+* `Midpoint_<LOCALE>.properties` - for localization of midPoint-specific terms.
+
+== See also
+
+* xref:localization.adoc[]

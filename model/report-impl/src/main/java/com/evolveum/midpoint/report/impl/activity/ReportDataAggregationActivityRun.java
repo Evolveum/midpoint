@@ -71,7 +71,10 @@ final class ReportDataAggregationActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
         ensureNoParallelism();
 
         support.beforeRun(result);
@@ -81,6 +84,8 @@ final class ReportDataAggregationActivityRun
                 FileFormatTypeType.CSV, // default type
                 getActivityHandler().reportService,
                 support.getCompiledCollectionView(result));
+
+        return true;
     }
 
     @Override

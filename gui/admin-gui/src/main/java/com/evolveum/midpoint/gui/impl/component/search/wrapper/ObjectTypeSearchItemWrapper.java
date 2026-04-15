@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -36,7 +38,7 @@ public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QNa
     private boolean typeChanged;
     private boolean allowAllTypesSearch;
 
-    private List<Class<?>> supportedTypeList = new ArrayList<>();
+    private List<Class<? extends ObjectType>> supportedTypeList = new ArrayList<>();
     private IModel<String> name = Model.of();
     private IModel<String> help = Model.of();
     private boolean visible = true;
@@ -51,7 +53,7 @@ public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QNa
         help = resolveHelp(config);
     }
 
-    public ObjectTypeSearchItemWrapper(List<Class<?>> supportedTypeList, QName defaultObjectType) {
+    public ObjectTypeSearchItemWrapper(List<Class<? extends ObjectType>> supportedTypeList, QName defaultObjectType) {
         this.supportedTypeList = supportedTypeList;
         this.defaultObjectType = defaultObjectType;
     }
@@ -61,7 +63,7 @@ public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QNa
             return;
         }
         this.supportedTypeList = supportedTypeList.stream()
-                .map(qName -> WebComponentUtil.qnameToAnyClass(PrismContext.get(), qName))
+                .map(qName -> (Class<? extends ObjectType>) WebComponentUtil.qnameToClass(qName))
                 .collect(Collectors.toList());
     }
 
@@ -88,7 +90,7 @@ public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QNa
         return new SearchValue(getDefaultObjectType());
     }
 
-    public List<Class<?>> getSupportedTypeList() {
+    public List<Class<? extends ObjectType>> getSupportedTypeList() {
         return supportedTypeList;
     }
 
@@ -186,5 +188,23 @@ public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QNa
                 return GuiDisplayTypeUtil.getHelp(config.getDisplay());
             }
         };
+    }
+
+    public void resetDefaultTypeIfNull(Class resetToValue) {
+        if (defaultObjectType != null) {
+            return;
+        }
+        if (resetToValue != null && supportedTypeList.contains(resetToValue)) {
+            QName resetToQname = WebComponentUtil.classToQName(resetToValue);
+            defaultObjectType = resetToQname;
+            return;
+        }
+        if (isAllowAllTypesSearch()) {
+            return;
+        }
+        if (supportedTypeList.isEmpty()) {
+            return;
+        }
+        defaultObjectType = WebComponentUtil.classToQName(supportedTypeList.get(0));
     }
 }

@@ -6,12 +6,30 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -23,6 +41,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -35,26 +54,12 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 @PanelType(name = "resourceUncategorized")
 @PanelInstance(identifier = "resourceUncategorized", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
@@ -65,6 +70,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
     private static final String ID_TASKS = "tasks";
+    private static final String ID_STATISTICS = "statistics";
 
     public ResourceUncategorizedPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -87,7 +93,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     protected TaskCreationPopup<?> createNewTaskPopup() {
         return new TaskCreationForUncategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
             @Override
-            protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean simulate, AjaxRequestTarget target) {
+            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate, AjaxRequestTarget target) {
                 ResourceUncategorizedPanel.this.createNewTaskPerformed(flavor, simulate, target);
             }
         };
@@ -136,7 +142,25 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         createPanelTitle();
         createObjectTypeChoice();
         createTasksButton(ID_TASKS);
+        createStatisticsButton();
         createShadowTable();
+    }
+
+    private void createStatisticsButton() {
+        //TODO add ObjectTypeStatisticsButton after merge from object-type-statistics branch
+        if(getResourceObjectTypeIdentification() != null){
+            EmptyPanel statisticsPanel = new EmptyPanel(ID_STATISTICS);
+            statisticsPanel.setOutputMarkupId(true);
+            add(statisticsPanel);
+            return;
+        }
+        ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
+        ResourceType resource = objectDetailsModels.getObjectType();
+
+        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_STATISTICS,
+                this::getObjectClass, resource.getOid());
+        statisticsButton.setOutputMarkupId(true);
+        add(statisticsButton);
     }
 
     private void createPanelTitle() {
@@ -173,12 +197,17 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
                 table.resetTable(target);
             }
         });
+        objectTypes.add(new VisibleBehaviour(this::isObjectClassFieldVisible));
         objectTypes.setOutputMarkupId(true);
         add(objectTypes);
     }
 
+    protected boolean isObjectClassFieldVisible() {
+        return true;
+    }
+
     private void resetSearch(QName currentObjectClass) {
-        ResourceContentStorage storage = getPageBase().getSessionStorage().getResourceContentStorage(null);
+        ResourceContentStorage storage = getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
 
         QName storedObjectClass = storage.getContentSearch().getObjectClass();
         String storedResourceOid = storage.getContentSearch().getResourceOid();
@@ -194,7 +223,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     protected QName getDefaultObjectClass() {
-        ResourceContentStorage storage = getPageBase().getSessionStorage().getResourceContentStorage(null);
+        ResourceContentStorage storage = getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
         if (getObjectWrapper().getOid() != null
                 && getObjectWrapper().getOid().equals(storage.getContentSearch().getResourceOid())
                 && storage.getContentSearch().getObjectClass() != null) {
@@ -212,13 +241,18 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             }
 
             @Override
+            protected boolean showPopupShadowDetailsOnClick() {
+                return ResourceUncategorizedPanel.this.showPopupShadowDetailsOnClick();
+            }
+
+            @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
             }
 
             @Override
             public PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getResourceContentStorage(null);
+                return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
             }
 
             @Override
@@ -274,9 +308,31 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             protected boolean isFulltextEnabled() {
                 return false;
             }
+
+            @Override
+            protected boolean isHeaderVisible() {
+                return ResourceUncategorizedPanel.this.isHeaderVisible();
+            }
+
+            @Override
+            protected void processErrorResult(OperationResult errorResult) {
+                ResourceUncategorizedPanel.this.processErrorResult(errorResult);
+            }
+
+            @Override
+            public Component getFeedbackPanel() {
+                return ResourceUncategorizedPanel.this.getPageBase().getFeedbackPanel();
+            }
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
+    }
+
+    protected void processErrorResult(OperationResult errorResult) {
+    }
+
+    protected boolean isHeaderVisible() {
+        return true;
     }
 
     protected Consumer<Task> createProviderSearchTaskCustomizer() {
@@ -309,6 +365,11 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     private ObjectQuery getResourceContentQuery() {
+        var objectTypeIdentification = getResourceObjectTypeIdentification();
+        if (objectTypeIdentification != null) {
+            return ObjectQueryUtil.createResourceAndKindIntent(
+                    getObjectWrapper().getOid(), objectTypeIdentification.getKind(), objectTypeIdentification.getIntent());
+        }
         return ObjectQueryUtil.createResourceAndObjectClassQuery(getObjectWrapper().getOid(), getSelectedObjectClass());
     }
 
@@ -319,9 +380,17 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     @Override
-    protected void customizeTaskCreator(ResourceTaskCreator creator, boolean isSimulation) {
+    protected void customizeTaskCreator(ResourceTaskCreator<?> creator, boolean isSimulation) {
         if (isSimulation) {
             creator.withExecutionMode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
         }
+    }
+
+    protected ResourceObjectTypeIdentification getResourceObjectTypeIdentification() {
+        return null;
+    }
+
+    protected boolean showPopupShadowDetailsOnClick(){
+        return false;
     }
 }

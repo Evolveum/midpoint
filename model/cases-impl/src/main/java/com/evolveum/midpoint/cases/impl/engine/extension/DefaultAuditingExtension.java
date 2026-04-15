@@ -42,4 +42,12 @@ public class DefaultAuditingExtension implements AuditingExtension {
         // nothing to do here
     }
 
+    @Override
+    public void enrichAutoClosingWorkItemAuditRecord(
+            @NotNull AuditEventRecord auditEventRecord,
+            @NotNull CaseEngineOperation operation,
+            @NotNull OperationResult result) {
+        // nothing to do here
+    }
+
 }

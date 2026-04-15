@@ -563,8 +563,12 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     }
 
     private void assertAssignmentMetadata(
-            PrismObject<? extends FocusType> object, String targetOid, Set<String> createApproverOids,
-            Set<String> createApprovalComments, Set<String> modifyApproverOids, Set<String> modifyApprovalComments) {
+            PrismObject<? extends FocusType> object,
+            String targetOid,
+            Set<String> createApproverOids,
+            Set<String> createApprovalComments,
+            Set<String> modifyApproverOids,
+            Set<String> modifyApprovalComments) {
         AssignmentType assignment = findAssignmentByTargetRequired(object, targetOid);
         PrismAsserts.assertReferenceOids(
                 "Wrong create approvers", createApproverOids, ValueMetadataTypeUtil.getCreateApproverRefs(assignment));
@@ -1466,6 +1470,71 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         assertThat(xml.startsWith("<role"))
                 .withFailMessage("Expected that created role object xml starts with <role> tag.")
                 .isEqualTo(true);
+    }
+
+    /**
+     * Attempt to request the same assignment twice should not change the assignments metadata
+     *
+     * MID-10979
+     */
+    @Test
+    public void test970MetadataImmutabilityAfterDuplicateAssignmentRequest() throws Exception {
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+        var userName = getTestNameShort();
+
+        given("a user");
+        var user = new UserType()
+                .name(userName);
+        var userOid = addObject(user.asPrismObject(), task, result);
+
+        when("request for an assignment");
+        ObjectDelta<UserType> delta = prismContext
+                .deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType()
+                        .targetRef(ROLE_BEING_ENABLED.oid, RoleType.COMPLEX_TYPE, null))
+                .asObjectDelta(userOid);
+        executeChanges(delta.clone(), executeOptions().executeImmediatelyAfterApproval(), task, result);
+
+        then("approval case is created");
+        String rootCaseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        assertThat(rootCaseOid).isNotNull();
+        List<CaseType> subcases = getSubcases(rootCaseOid, null, result);
+        displayCollection("subcases", subcases);
+
+        when("case is approved");
+        var openCase = getOpenCaseRequired(subcases);
+        approveCase(openCase, task, result);
+        waitForCaseClose(openCase);
+
+        then("createTimestamp is written down into metadata");
+        UserType userWithAssignment = assertUserAfter(userOid)
+                .displayXml()
+                .getObjectable();
+        AssignmentType assignment = findAssignmentByTargetRequired(userWithAssignment.asPrismObject(), ROLE_BEING_ENABLED.oid);
+        XMLGregorianCalendar assignmentCreated1 = ValueMetadataTypeUtil.getCreateTimestamp(assignment);
+
+        assertAssignmentMetadata(
+                userWithAssignment.asPrismObject(),
+                ROLE_BEING_ENABLED.oid,
+                singleton(USER_ADMINISTRATOR_OID),
+                emptySet(),
+                emptySet(),
+                emptySet());
+
+        when("the same role is requested again");
+        executeChanges(delta, executeOptions().executeImmediatelyAfterApproval(), task, result);
+        userWithAssignment = assertUserAfter(userOid)
+                .displayXml()
+                .getObjectable();
+        assignment = findAssignmentByTargetRequired(userWithAssignment.asPrismObject(), ROLE_BEING_ENABLED.oid);
+        XMLGregorianCalendar assignmentCreated2 = ValueMetadataTypeUtil.getCreateTimestamp(assignment);
+
+        then("createTimestamp should not be changed");
+        assertEquals("The assignment create timestamp is changed though it shoudn't be.",
+                assignmentCreated1, assignmentCreated2);
     }
 
     // returns root case after the test

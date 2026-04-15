@@ -23,8 +23,18 @@
     <superArchetypeRef oid="00000000-0000-0000-0000-000000000701"/>
     <archetypePolicy>
         <display>
-            <label>Shadow Policy Mark</label>
-            <pluralLabel>Shadow Policy Marks</pluralLabel>
+            <label>
+                <orig>Shadow Policy Mark</orig>
+                <translation>
+                    <key>ShadowPolicyMark.archetype.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Shadow Policy Marks</orig>
+                <translation>
+                    <key>ShadowPolicyMark.archetype.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-tag</cssClass> <!-- TODO -->
                 <color>blue</color>  <!-- TODO -->

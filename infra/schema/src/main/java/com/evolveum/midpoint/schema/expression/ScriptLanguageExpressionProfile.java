@@ -81,4 +81,15 @@ public class ScriptLanguageExpressionProfile implements Serializable {
         }
         return permissionDecision;
     }
+
+    public @NotNull AccessDecision decidePackageAccess(String packageName) {
+        if (permissionProfile == null) {
+            return defaultDecision;
+        }
+        AccessDecision permissionDecision = permissionProfile.decidePackageAccess(packageName);
+        if (permissionDecision == AccessDecision.DEFAULT) {
+            return defaultDecision;
+        }
+        return permissionDecision;
+    }
 }

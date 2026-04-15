@@ -88,7 +88,12 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO)
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                ItemPath.create(FocusType.F_COST_CENTER),
+                ItemPath.create(FocusType.F_EMAIL_ADDRESS),
+                ItemPath.create(FocusType.F_TELEPHONE_NUMBER),
+                ItemPath.create(FocusType.F_LOCALITY),
+                ItemPath.create(FocusType.F_PREFERRED_LANGUAGE)
         ));
         SEARCHABLE_OBJECTS.put(UserType.class, Arrays.asList(
                 ItemPath.create(UserType.F_TITLE),
@@ -96,12 +101,12 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(UserType.F_FAMILY_NAME),
                 ItemPath.create(UserType.F_FULL_NAME),
                 ItemPath.create(UserType.F_ADDITIONAL_NAME),
-                ItemPath.create(UserType.F_COST_CENTER),
-                ItemPath.create(UserType.F_EMAIL_ADDRESS),
-                ItemPath.create(UserType.F_TELEPHONE_NUMBER),
                 ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
                 ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
-                ItemPath.create(UserType.F_LOCALITY),
+                ItemPath.create(UserType.F_ORGANIZATION),
+                ItemPath.create(UserType.F_HONORIFIC_PREFIX),
+                ItemPath.create(UserType.F_HONORIFIC_SUFFIX),
+                ItemPath.create(UserType.F_NICK_NAME),
                 ItemPath.create(UserType.F_PERSONAL_NUMBER)
         ));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
@@ -109,8 +114,7 @@ public class SearchableItemsDefinitions {
 
         ));
         SEARCHABLE_OBJECTS.put(ServiceType.class, Arrays.asList(
-                ItemPath.create(ServiceType.F_NAME),
-                ItemPath.create(ServiceType.F_URL)
+                ItemPath.create(ServiceType.F_NAME)
         ));
         SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
                 ItemPath.create(ConnectorHostType.F_HOSTNAME)
@@ -118,7 +122,8 @@ public class SearchableItemsDefinitions {
         SEARCHABLE_OBJECTS.put(ConnectorType.class, Arrays.asList(
                 ItemPath.create(ConnectorType.F_CONNECTOR_BUNDLE),
                 ItemPath.create(ConnectorType.F_CONNECTOR_VERSION),
-                ItemPath.create(ConnectorType.F_CONNECTOR_TYPE)
+                ItemPath.create(ConnectorType.F_CONNECTOR_TYPE),
+                ItemPath.create(ConnectorType.F_AVAILABLE)
         ));
         SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
                 ItemPath.create(AbstractRoleType.F_IDENTIFIER),
@@ -252,6 +257,12 @@ public class SearchableItemsDefinitions {
 
         SEARCHABLE_OBJECTS.put(OperationExecutionType.class, List.of(
                 ItemPath.create(OperationExecutionType.F_TIMESTAMP)
+        ));
+
+        SEARCHABLE_OBJECTS.put(MappingType.class, List.of(
+                ItemPath.create(MappingType.F_NAME),
+                ItemPath.create(MappingType.F_TARGET),
+                ItemPath.create(MappingType.F_SOURCE)
         ));
     }
 

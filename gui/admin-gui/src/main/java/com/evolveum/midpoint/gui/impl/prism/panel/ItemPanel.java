@@ -11,11 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismValue;
-
-import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,14 +20,28 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.HelpTextPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumnPanel;
+import com.evolveum.midpoint.gui.impl.util.GuiConfigUtil;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author katka
@@ -49,7 +59,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
     private static final String ID_VALUES = "values";
 
     private ItemPanelSettings itemPanelSettings;
-
 
     public ItemPanel(String id, IModel<IW> model, ItemPanelSettings itemPanelSettings) {
         super(id, model);
@@ -76,7 +85,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
         Component valuesPanel = createValuesPanel();
         add(valuesPanel);
-
     }
 
     protected boolean getHeaderVisibility() {
@@ -100,7 +108,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
             @Override
             protected void populateItem(ListItem<VW> item) {
 
-
                 Component panel = createValuePanel(item);
                 panel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible()));
             }
@@ -110,7 +117,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
         return valueContainer;
     }
-
 
     protected String getCssClassForValueContainer() {
         if (getSettings() != null && getSettings().isDisplayedInColumn()) {
@@ -132,35 +138,34 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
     // VALUE REGION
 
-     protected abstract Component createValuePanel(ListItem<VW> item);
-
+    protected abstract Component createValuePanel(ListItem<VW> item);
 
     protected abstract <PV extends PrismValue> PV createNewValue(IW itemWrapper);
 
-        public ItemVisibilityHandler getVisibilityHandler() {
-            if (itemPanelSettings == null) {
-                return null;
-            }
-            return itemPanelSettings.getVisibilityHandler();
+    public ItemVisibilityHandler getVisibilityHandler() {
+        if (itemPanelSettings == null) {
+            return null;
+        }
+        return itemPanelSettings.getVisibilityHandler();
+    }
+
+    public ItemEditabilityHandler getEditabilityHandler() {
+        if (itemPanelSettings == null) {
+            return null;
+        }
+        return itemPanelSettings.getEditabilityHandler();
+    }
+
+    protected boolean isHeaderVisible() {
+        if (itemPanelSettings == null) {
+            return true;
         }
 
-        public ItemEditabilityHandler getEditabilityHandler() {
-            if (itemPanelSettings == null) {
-                return null;
-            }
-            return itemPanelSettings.getEditabilityHandler();
-        }
-
-        protected boolean isHeaderVisible() {
-             if (itemPanelSettings == null) {
-                 return true;
-            }
-
-             return itemPanelSettings.isHeaderVisible();
-        }
+        return itemPanelSettings.isHeaderVisible();
+    }
 
     public ItemPanelSettings getSettings() {
-         return itemPanelSettings;
+        return itemPanelSettings;
     }
 
     @Override
@@ -169,6 +174,43 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
     }
 
     protected final ListView<VW> getValuesContainer() {
-            return (ListView<VW>) get(createComponentPath(ID_VALUES_CONTAINER, ID_VALUES));
+        return (ListView<VW>) get(createComponentPath(ID_VALUES_CONTAINER, ID_VALUES));
+    }
+
+    public static Component createHelpPanel(String id, SerializableSupplier<VirtualContainerItemSpecificationType> supplier) {
+        IModel<String> helpModel = new LoadableDetachableModel<>() {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                VirtualContainerItemSpecificationType spec = supplier.get();
+                if (spec == null) {
+                    return null;
+                }
+
+                DisplayType display = spec.getDisplay();
+                if (display == null) {
+                    return null;
+                }
+
+                PolyStringType help = display.getHelp();
+                if (help == null) {
+                    return null;
+                }
+
+                return LocalizationUtil.translatePolyString(help);
+            }
+        };
+
+        return new HelpTextPanel(id, helpModel);
+    }
+
+    protected Component createHelpPanel(String id) {
+        return createHelpPanel(
+                id, () -> {
+                    ContainerPanelConfigurationType config = getSettings() != null ? getSettings().getConfig() : null;
+                    return GuiConfigUtil.findItemSpecForPath(config, getModelObject().getPath());
+                });
     }
 }

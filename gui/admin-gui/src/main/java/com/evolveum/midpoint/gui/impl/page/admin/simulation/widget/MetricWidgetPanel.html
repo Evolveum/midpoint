@@ -20,16 +20,13 @@
                 <h3 class="mb-0" wicket:id="value"/>
                 <small wicket:id="valueDescription" class="text-secondary"/>
             </div>
-            <div class="d-flex align-items-end justify-content-end flex-fill">
+            <div class="d-flex justify-content-end flex-fill" wicket:id="displayContainer">
                 <div wicket:id="icon" class="rounded p-1"/>
                 <div wicket:id="chartContainer" class="d-flex align-items-end justify-content-end flex-fill"/>
             </div>
         </div>
     </div>
-    <a class="rounded-bottom text-center p-1 border-top" wicket:id="moreInfo">
-        <span><wicket:message key="MetricWidgetPanel.open"/></span>
-        <i class="ml-1 fa-solid fa-circle-arrow-right"></i>
-    </a>
+    <a class="rounded-bottom text-center p-1 border-top" wicket:id="moreInfo"></a>
 </wicket:panel>
 </body>
 </html>

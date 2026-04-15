@@ -33,6 +33,7 @@
 
         <icfc:configurationProperties>
             <icfi:instanceId/> <!-- Default instance. -->
+            <icfi:uselessString>somehow useful</icfi:uselessString>
         </icfc:configurationProperties>
 
     </connectorConfiguration>

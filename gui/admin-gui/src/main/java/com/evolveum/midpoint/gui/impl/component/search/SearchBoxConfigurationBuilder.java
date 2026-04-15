@@ -98,6 +98,12 @@ public class SearchBoxConfigurationBuilder {
         FIXED_SEARCH_ITEMS.put(OperationExecutionType.class, List.of(
                 OperationExecutionType.F_TIMESTAMP
         ));
+
+        FIXED_SEARCH_ITEMS.put(MappingType.class, List.of(
+                ItemPath.create(MappingType.F_NAME),
+                ItemPath.create(MappingType.F_TARGET),
+                ItemPath.create(MappingType.F_SOURCE)
+        ));
     }
 
     private Class<?> type;
@@ -360,7 +366,7 @@ public class SearchBoxConfigurationBuilder {
             return null;
         }
         UserInterfaceFeatureType parameterSearchItem = new UserInterfaceFeatureType();
-        DisplayType tenantDisplay = GuiDisplayTypeUtil.createDisplayTypeWith(label, labelKey, null);
+        DisplayType tenantDisplay = GuiDisplayTypeUtil.createDisplayTypeWithLabel(label, labelKey);
         parameterSearchItem.setDisplay(tenantDisplay);
         return parameterSearchItem;
     }

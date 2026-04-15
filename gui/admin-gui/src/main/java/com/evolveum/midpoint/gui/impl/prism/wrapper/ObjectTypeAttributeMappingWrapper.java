@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -278,10 +279,70 @@ public class ObjectTypeAttributeMappingWrapper extends PrismContainerWrapperImpl
         }
     }
 
+    //TODO this is nasty hack for gartner demo, remove later.
+    private void ensureLimitationsMaxOccursOneForLDAP(
+            @NotNull PrismContainerValue<ResourceAttributeDefinitionType> attributeValue) throws SchemaException {
+
+        ResourceType resource = findResource();
+        if (resource == null) {
+            return;
+        }
+
+        ObjectReferenceType connectorRef = resource.getConnectorRef();
+        if (connectorRef == null) {
+            return;
+        }
+
+        ConnectorType connector = null;
+        if (connectorRef.getObject() != null && connectorRef.getObject().getRealValue() instanceof ConnectorType) {
+            connector = (ConnectorType) connectorRef.getObject().getRealValue();
+        }
+
+        if (connector == null) {
+            return;
+        }
+
+        String bundle = connector.getConnectorBundle();
+        String type = connector.getConnectorType();
+
+        boolean isLdap =
+                (bundle != null && bundle.contains("ldap")) ||
+                        (type != null && type.toLowerCase().contains("ldap"));
+
+        if (!isLdap) {
+            return;
+        }
+
+        PrismContainer<PropertyLimitationsType> lim =
+                attributeValue.findOrCreateContainer(ResourceAttributeDefinitionType.F_LIMITATIONS);
+
+        if (lim.isEmpty()) {
+            PropertyLimitationsType l = new PropertyLimitationsType();
+            l.setMaxOccurs("1");
+            lim.add(l.asPrismContainerValue());
+        }
+    }
+
+    @Nullable
+    private ResourceType findResource() {
+        if (getParent() != null
+                && getParent().getParent() != null
+                && getParent().getParent().getParent() != null
+                && getParent().getParent().getParent().getParent() != null
+                && getParent().getParent().getParent().getParent().getParent() != null) {
+            if (getParent().getParent().getParent().getParent().getParent().getRealValue() instanceof ResourceType resource) {
+                return resource;
+            }
+        }
+        return null;
+    }
+
     private <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> void processAddDeltaWrapper(
             PrismContainerValue<ResourceAttributeDefinitionType> newValue,
             DeltaWrapper deltaWrapper,
             Collection<D> deltas) throws SchemaException {
+
+        ensureLimitationsMaxOccursOneForLDAP(newValue);
 
         PrismContainer inboundContainer = newValue.findOrCreateContainer(ResourceAttributeDefinitionType.F_INBOUND);
         PrismContainer outboundContainer = newValue.findOrCreateContainer(ResourceAttributeDefinitionType.F_OUTBOUND);

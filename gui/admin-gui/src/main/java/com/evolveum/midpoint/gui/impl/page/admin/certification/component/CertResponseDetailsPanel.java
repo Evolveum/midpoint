@@ -9,12 +9,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.component.action.ActionsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconWithLabelPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -44,7 +45,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.IResource;
-import org.checkerframework.checker.units.qual.C;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -216,7 +216,8 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
                         }
                     });
             if (list.isEmpty()) {
-                list.add(new ChatMessageItem(Model.of(new DisplayType().label("CertResponseDetailsPanel.noActionsLabel")),
+                list.add(new ChatMessageItem(
+                        Model.of(GuiDisplayTypeUtil.createDisplayTypeWithLabel("CertResponseDetailsPanel.noActionsLabel")),
                         Model.of("")));
             }
             return list;
@@ -226,7 +227,8 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
     private ChatMessageItem createChatMessageItem(AccessCertificationWorkItemType workItem) {
         ObjectReferenceType userRef = getPerformerOrAssigneeRef(workItem);
         if (userRef == null || StringUtils.isEmpty(userRef.getOid())) {
-            return new ChatMessageItem(Model.of(new DisplayType().label("CertResponseDetailsPanel.unavailablePerformer")),
+            return new ChatMessageItem(
+                    Model.of(GuiDisplayTypeUtil.createDisplayTypeWithLabel("CertResponseDetailsPanel.unavailablePerformer")),
                     Model.of());
         }
 
@@ -257,8 +259,7 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
     private IModel<DisplayType> createMessageDisplayTypeModel(PrismObject<UserType> performer,
             AccessCertificationWorkItemType workItem) {
         if (performer == null) {
-            return Model.of(new DisplayType()
-                    .label("CertResponseDetailsPanel.unavailablePerformer")
+            return Model.of(GuiDisplayTypeUtil.createDisplayTypeWithLabel("CertResponseDetailsPanel.unavailablePerformer")
                     .icon(new IconType()
                             .cssClass("fa fa-user-circle")));
         }

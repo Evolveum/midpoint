@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.Correlat
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
+import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,7 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,13 +45,18 @@ import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.io.Serial;
+
 @PanelType(name = "correlationContext")
 @PanelInstance(identifier = "correlationContext",
         display = @PanelDisplay(label = "PageCase.correlationContextPanel", order = 1))
 public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, CaseDetailsModels> {
 
+    @Serial private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);
 
+    private static final String ID_NO_CORRELATION_CONTEXT_MESSAGE = "noCorrelationContextMessage";
+    private static final String ID_CORRELATION_CONTEXT_PANEL = "correlationContextPanel";
     private static final String ID_ACTION_CONTAINER = "actionContainer";
     private static final String ID_ACTIONS = "actions";
     private static final String ID_ACTION = "action";
@@ -88,7 +94,19 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     @Override
     protected void initLayout() {
         IModel<CorrelationContextDto> correlationCtxModel = createCorrelationContextModel();
+        boolean correlationCtxExists = correlationCtxModel.getObject() != null;
         CaseType correlationCase = getObjectDetailsModels().getObjectType();
+
+        Label noCorrelationContextMessage = new Label(ID_NO_CORRELATION_CONTEXT_MESSAGE,
+                createStringResource("CorrelationContextPanel.noCorrelationContextMessage"));
+        noCorrelationContextMessage.add(new VisibleBehaviour(() -> !correlationCtxExists));
+        noCorrelationContextMessage.setOutputMarkupId(true);
+        add(noCorrelationContextMessage);
+
+        WebMarkupContainer correlationContextPanel = new WebMarkupContainer(ID_CORRELATION_CONTEXT_PANEL);
+        correlationContextPanel.add(new VisibleBehaviour(() -> correlationCtxExists));
+        correlationContextPanel.setOutputMarkupId(true);
+        add(correlationContextPanel);
 
         // 1. The header row contain the "object being correlated" and "correlation candidate XXX" labels
         ListView<CorrelationOptionDto> headers =
@@ -105,19 +123,21 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                         }));
                     }
                 };
-        add(headers);
+        correlationContextPanel.add(headers);
 
         // 2. The optional "action" row contains buttons to use particular candidate, or to create a new owner.
         WebMarkupContainer actionContainer = new WebMarkupContainer(ID_ACTION_CONTAINER);
         actionContainer.add(new VisibleBehaviour(() -> CaseTypeUtil.isClosed(correlationCase) || isPanelForItemWork()));
-        add(actionContainer);
+        correlationContextPanel.add(actionContainer);
 
         ListView<CorrelationOptionDto> actions = new ListView<>(ID_ACTIONS,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> item) {
                 AjaxButton actionButton = new AjaxButton(ID_ACTION) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -171,6 +191,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         // 3. "Candidate references" row contains the names (and clickable links) to individual candidates
         ListView<CorrelationOptionDto> candidateReferences = new ListView<>(ID_CANDIDATE_REFERENCES,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> item) {
@@ -186,16 +207,17 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                         new LinkedReferencePanel<>(ID_CANDIDATE_REFERENCE, candidateReferenceModel));
             }
         };
-        add(candidateReferences);
+        correlationContextPanel.add(candidateReferences);
 
         // 4. "Match confidence" row contains the match confidence values for individual candidates
         // TODO we should make visible/invisible the whole row, not the individual components
         Label matchLabel = new Label(ID_MATCH_NAME, createStringResource("CorrelationContextPanel.matchConfidence"));
         matchLabel.add(new VisibleBehaviour(() -> correlationCtxModel.getObject().hasConfidences()));
-        add(matchLabel);
+        correlationContextPanel.add(matchLabel);
 
         ListView<CorrelationOptionDto> matchConfidences = new ListView<>(ID_CONFIDENCES,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> item) {
@@ -214,11 +236,12 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                 item.add(explanationLabel);
             }
         };
-        add(matchConfidences);
+        correlationContextPanel.add(matchConfidences);
 
         // 5. A set of rows for individual correlation properties (given name, family name, and so on).
         ListView<CorrelationPropertyDefinition> rows = new ListView<>(ID_ROWS,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_PROPERTIES_DEFINITIONS)) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<CorrelationPropertyDefinition> item) {
@@ -233,7 +256,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                         createColumnsForCorrelationPropertyRow(correlationCtxModel, item));
             }
         };
-        add(rows);
+        correlationContextPanel.add(rows);
     }
 
     private boolean isPanelForItemWork() {
@@ -242,6 +265,8 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
     private IModel<CorrelationContextDto> createCorrelationContextModel() {
         return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected CorrelationContextDto load() {
                 CaseType aCase = getObjectDetailsModels().getObjectType();
@@ -269,6 +294,8 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
             IModel<CorrelationContextDto> contextModel, ListItem<CorrelationPropertyDefinition> rowItem) {
 
         return new ListView<>(ID_COLUMNS, new PropertyModel<>(contextModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> columnItem) {
 

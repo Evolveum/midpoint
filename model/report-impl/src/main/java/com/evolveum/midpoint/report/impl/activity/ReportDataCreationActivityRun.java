@@ -97,9 +97,13 @@ public final class ReportDataCreationActivityRun
      * Here is the place to pre-process the report definition.
      */
     @Override
-    public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
         support.beforeRun(result);
         initializeController(result);
+        return true;
     }
 
     private void initializeController(OperationResult result) throws CommonException {

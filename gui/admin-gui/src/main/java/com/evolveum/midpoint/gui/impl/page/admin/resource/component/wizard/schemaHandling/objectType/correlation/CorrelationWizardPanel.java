@@ -6,23 +6,20 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.*;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-
-import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -41,16 +38,124 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
         return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
 
             @Override
-            protected void showTableForItemRefs(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
-                WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderDetailsModel(), rowModel) {
+            protected boolean isAssociationView() {
+                return CorrelationWizardPanel.this.isAssociationTypeWizardPanel();
+            }
+
+            @Override
+            protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+                SimulationWizardPanel<?> simulationResultPanel = buildSimulationResultWizard(simulationResultTypeIModel);
+                showChoiceFragment(target, simulationResultPanel);
+            }
+
+            @Override
+            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                SimulationWizardPanel<?> simulationWizardPanel = buildSimulationTaskWizard();
+                showChoiceFragment(target, simulationWizardPanel);
+            }
+
+            @Override
+            protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
+                CorrelationWizardPanel.this.navigateToSynchronizationPanel(target);
+            }
+
+            @Override
+            protected void postProcessAddSuggestion(AjaxRequestTarget target) {
+                showUnsavedChangesToast(target);
+                showChoiceFragment(target, createTablePanel());
+            }
+
+            @Override
+            protected <C extends Containerable> void showTableForItemRefs(
+                    @NotNull AjaxRequestTarget target,
+                    @NotNull IModel<PrismContainerValueWrapper<C>> parentContainerDefWrapper,
+                    @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
+                    @Nullable StatusInfo<CorrelationSuggestionsType> statusInfo) {
+                WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(
+                        getAssignmentHolderDetailsModel(), rowModel) {
                     @Override
                     public void onExitPerformed(AjaxRequestTarget target) {
                         showUnsavedChangesToast(target);
                         showChoiceFragment(target, createTablePanel());
                     }
                 };
-                showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), helper));
+
+                showChoiceFragment(target, new CorrelationItemRuleWizardPanel<>(getIdOfChoicePanel(),
+                        parentContainerDefWrapper, helper, () -> statusInfo) {
+                    @Override
+                    protected void acceptSuggestionPerformed(
+                            @NotNull AjaxRequestTarget target,
+                            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
+                        PrismContainerValueWrapper<? extends Containerable> parent = parentContainerDefWrapper.getObject();
+                        if (parent == null || parent.getRealValue() == null) {
+                            return;
+                        }
+
+                        if (parent.getRealValue() instanceof ResourceObjectTypeDefinitionType) {
+                            @SuppressWarnings("unchecked")
+                            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> rotWrapper =
+                                    (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) parent;
+
+                            acceptSuggestionItemPerformed(getPageBase(), target, valueModel, () -> rotWrapper, statusInfo);
+                        }
+                    }
+
+                    @Override
+                    protected void onDiscardButtonClick(
+                            @NotNull PageBase pageBase,
+                            @NotNull AjaxRequestTarget target,
+                            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
+                            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
+                        performDiscard(pageBase, target, valueModel, statusInfo);
+                    }
+
+                });
             }
         };
+    }
+
+    private @NotNull SimulationWizardPanel<?> buildSimulationTaskWizard() {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper()) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel());
+            }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("SimulationTaskWizardPanel.correlationWizardPanel.back");
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel());
+            }
+        };
+    }
+
+    private @NotNull SimulationWizardPanel<?> buildSimulationResultWizard(IModel<SimulationResultType> simulationResultTypeIModel) {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper(), simulationResultTypeIModel) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel());
+            }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("SimulationWizardPanel.correlationWizardPanel.back");
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel());
+            }
+        };
+    }
+
+    protected boolean isAssociationTypeWizardPanel() {
+        return false;
+    }
+
+    protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
     }
 }

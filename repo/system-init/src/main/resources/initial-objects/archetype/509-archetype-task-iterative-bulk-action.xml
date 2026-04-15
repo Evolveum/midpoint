@@ -75,7 +75,12 @@
                     <container id="12">
                         <identifier>objects-to-process</identifier>
                         <display>
-                            <label>IterativeActionTask.objectsToProcess</label>
+                            <label>
+                                <orig>Objects to process</orig>
+                                <translation>
+                                    <key>IterativeActionTask.objectsToProcess</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="14">
                             <c:path>extension/mext:objectType</c:path>
@@ -93,7 +98,12 @@
                     <container id="13">
                         <identifier>bulk-action</identifier>
                         <display>
-                            <label>IterativeActionTask.action</label>
+                            <label>
+                                <orig>Action</orig>
+                                <translation>
+                                    <key>IterativeActionTask.action</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="18">
                             <c:path>extension/scext:executeScript</c:path>

@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -38,26 +39,26 @@ public class CampaignStateHelper implements Serializable {
 
     public enum CampaignActionConfirmation {
         START_CAMPAIGN_CONFIRMATION(new DisplayType()
-                .singularLabel("PageCertCampaigns.message.startCampaignConfirmSingle")
-                .pluralLabel("PageCertCampaigns.message.startCampaignConfirmMultiple")),
+                .singularLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.startCampaignConfirmSingle"))
+                .pluralLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.startCampaignConfirmMultiple"))),
         OPEN_NEXT_STAGE_CONFIRMATION(new DisplayType()
-                .singularLabel("PageCertCampaigns.message.startCampaignConfirmSingle")
-                .pluralLabel("PageCertCampaigns.message.openNextStageConfirmMultiple")),
+                .singularLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.startCampaignConfirmSingle"))
+                .pluralLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.openNextStageConfirmMultiple"))),
         CLOSE_STAGE_CONFIRMATION(new DisplayType()
-                .singularLabel("PageCertCampaigns.message.closeStageConfirmSingle")
-                .pluralLabel("PageCertCampaigns.message.closeStageConfirmMultiple")),
+                .singularLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.closeStageConfirmSingle"))
+                .pluralLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.closeStageConfirmMultiple"))),
         START_REMEDIATION_CONFIRMATION(new DisplayType()
-                .singularLabel("PageCertCampaigns.message.remediationConfirmSingle")
-                .pluralLabel("PageCertCampaigns.message.remediationConfirmMultiple")),
+                .singularLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.remediationConfirmSingle"))
+                .pluralLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.remediationConfirmMultiple"))),
         REITERATE_CAMPAIGN_CONFIRMATION(new DisplayType()
-                .singularLabel("PageCertCampaigns.message.reiterateCampaignConfirmSingle")
-                .pluralLabel("PageCertCampaigns.message.reiterateCampaignConfirmMultiple")),
+                .singularLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.reiterateCampaignConfirmSingle"))
+                .pluralLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.reiterateCampaignConfirmMultiple"))),
         CLOSE_CAMPAIGN_CONFIRMATION(new DisplayType()
-                .singularLabel("PageCertCampaigns.message.closeCampaignConfirmSingle")
-                .pluralLabel("PageCertCampaigns.message.closeCampaignConfirmMultiple")),
+                .singularLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.closeCampaignConfirmSingle"))
+                .pluralLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.closeCampaignConfirmMultiple"))),
         REMOVE_CAMPAIGN_CONFIRMATION(new DisplayType()
-                .singularLabel("PageCertCampaigns.message.deleteCampaignConfirmSingle")
-                .pluralLabel("PageCertCampaigns.message.deleteCampaignConfirmMultiple"));
+                .singularLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.deleteCampaignConfirmSingle"))
+                .pluralLabel(GuiDisplayTypeUtil.createPolyStringType("PageCertCampaigns.message.deleteCampaignConfirmMultiple")));
 
         private final DisplayType confirmationDisplayType;
 
@@ -66,53 +67,53 @@ public class CampaignStateHelper implements Serializable {
         }
 
         public String getSingleConfirmationMessageKey() {
-            return confirmationDisplayType.getSingularLabel().getOrig();
+            return confirmationDisplayType.getSingularLabel().getTranslation().getKey();
         }
 
         public String getMultipleConfirmationMessageKey() {
-            return confirmationDisplayType.getPluralLabel().getOrig();
+            return confirmationDisplayType.getPluralLabel().getTranslation().getKey();
         }
     }
 
     public enum CampaignAction {
         START_CAMPAIGN(new DisplayType()
-                .label("CampaignAction.startCampaign")
+                .label(GuiDisplayTypeUtil.createPolyStringType("CampaignAction.startCampaign"))
                 .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-play")),
                 true,
                 CampaignActionConfirmation.START_CAMPAIGN_CONFIRMATION),
         OPEN_NEXT_STAGE(new DisplayType()
-                .label("CampaignAction.openNextStage")
+                .label(GuiDisplayTypeUtil.createPolyStringType("CampaignAction.openNextStage"))
                 .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-play")),
                 false,
                 CampaignActionConfirmation.OPEN_NEXT_STAGE_CONFIRMATION),
         CLOSE_STAGE(new DisplayType()
-                .label("CampaignAction.closeStage")
+                .label(GuiDisplayTypeUtil.createPolyStringType("CampaignAction.closeStage"))
                 .cssClass("btn-default")
                 .icon(new IconType().cssClass("fa fa-regular fa-circle-xmark")),
                 false,
                 CampaignActionConfirmation.CLOSE_STAGE_CONFIRMATION),
         START_REMEDIATION(new DisplayType()
-                .label("CampaignAction.startRemediation")
+                .label(GuiDisplayTypeUtil.createPolyStringType("CampaignAction.startRemediation"))
                 .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-solid fa-badge-check")),
                 false,
                 CampaignActionConfirmation.START_REMEDIATION_CONFIRMATION),
         REITERATE_CAMPAIGN(new DisplayType()
-                .label("CampaignAction.reiterateCampaign")
+                .label(GuiDisplayTypeUtil.createPolyStringType("CampaignAction.reiterateCampaign"))
                 .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-rotate-right")),
                 true,
                 CampaignActionConfirmation.REITERATE_CAMPAIGN_CONFIRMATION),
         CLOSE_CAMPAIGN(new DisplayType()
-                .label("CampaignAction.closeCampaign")
+                .label(GuiDisplayTypeUtil.createPolyStringType("CampaignAction.closeCampaign"))
                 .cssClass("btn-default")
                 .icon(new IconType().cssClass("fa fa-solid fa-circle-xmark")),
                 true,
                 CampaignActionConfirmation.CLOSE_CAMPAIGN_CONFIRMATION),
         REMOVE_CAMPAIGN(new DisplayType()
-                .label("CampaignAction.removeCampaign")
+                .label(GuiDisplayTypeUtil.createPolyStringType("CampaignAction.removeCampaign"))
                 .cssClass("btn-danger")
                 .icon(new IconType().cssClass("fa fa-minus-circle")),
                 true,
@@ -129,7 +130,7 @@ public class CampaignStateHelper implements Serializable {
         }
 
         public String getActionLabelKey() {
-            return displayType.getLabel().getOrig();
+            return displayType.getLabel().getTranslation().getKey();
         }
 
         public String getActionCssClass() {

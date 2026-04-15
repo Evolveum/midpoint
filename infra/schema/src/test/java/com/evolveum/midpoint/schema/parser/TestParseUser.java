@@ -11,7 +11,6 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -64,6 +63,10 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
         processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION).serialize(v), "s2");        // misleading item name
         processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).serializeRealValue(v.asContainerable()), "s3");
         processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serializeAnyData(v.asContainerable()), "s4");
+        if (isJson()) {
+            // Ugly hack for deserialization: we have no "parseValueContent" method yet
+            processParsingsPCV(v -> "{ \"user\": " + getPrismContext().serializerFor(language).options(o).serializeRealValueContent(v.asContainerable()) + "}", "s5");
+        }
     }
 
     @Test

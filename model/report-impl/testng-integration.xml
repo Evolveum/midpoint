@@ -17,6 +17,7 @@
             <class name="com.evolveum.midpoint.report.TestCsvReportAllAssignments"/>
             <class name="com.evolveum.midpoint.report.TestCsvSimulationReport"/>
             <class name="com.evolveum.midpoint.report.TestMiscellaneous"/>
+            <class name="com.evolveum.midpoint.report.TestDeltaPrinter"/>
         </classes>
     </test>
 </suite>

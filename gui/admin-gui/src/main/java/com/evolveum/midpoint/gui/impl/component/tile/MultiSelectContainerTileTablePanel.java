@@ -18,7 +18,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
@@ -28,7 +27,6 @@ public abstract class MultiSelectContainerTileTablePanel<E extends Serializable,
         extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, TemplateTile<PrismContainerValueWrapper<C>>> {
 
     private final IModel<List<PrismContainerValueWrapper<C>>> model;
-
 
     public MultiSelectContainerTileTablePanel(
             String id,
@@ -102,5 +100,9 @@ public abstract class MultiSelectContainerTileTablePanel<E extends Serializable,
                 add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
             }
         };
+    }
+
+    protected IModel<List<PrismContainerValueWrapper<C>>> getMultiTableModel() {
+        return model;
     }
 }

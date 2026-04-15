@@ -70,6 +70,7 @@
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>name + iterationToken</code>
                         </script>
                     </expression>
@@ -135,20 +136,12 @@
                     <strength>strong</strength>
                     <!-- organization is NOT a source here - by purpose -->
                     <source>
-                        <path>$user/organizationalUnit</path>
+                        <path>$focus/organizationalUnit</path>
                     </source>
                     <expression>
                         <script>
-                            <code>
-if (focus == null) {
-    return null;
-}
-if (focus.getOrganization().size() == 0) {
-    return organizationalUnit;
-} else {
-    return focus.getOrganization().get(0).getOrig()+' / '+organizationalUnit;
-}
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isEmpty(focus.?organization) ? str(organizationalUnit) : '%s / %s'.format([focus.organization[0], organizationalUnit])</code>
                         </script>
                     </expression>
                 </outbound>
@@ -164,7 +157,8 @@ if (focus.getOrganization().size() == 0) {
                     </source>
                     <expression>
                         <script>
-                            <code>description + " -- " + basic.getResourceIcfConfigurationPropertyValue(resource, 'instanceId') + ' resource'</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>'%s -- %s resource'.format([description, single(resource.connectorConfiguration('instanceId'))])</code>
                         </script>
                     </expression>
                 </outbound>
@@ -245,7 +239,8 @@ if (focus.getOrganization().size() == 0) {
                         </expression>
                         <condition>
                             <script>
-                                <code>validFrom != null</code>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                                <code>isPresent(validFrom)</code>
                             </script>
                         </condition>
                     </outbound>
@@ -268,13 +263,11 @@ if (focus.getOrganization().size() == 0) {
                         </expression>
                         <condition>
                             <script>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-                                    import com.evolveum.midpoint.schema.constants.SchemaConstants;
-                                    administrativeStatus == ActivationStatusType.DISABLED &amp;&amp;
-                                        // do not delete explicitly disabled accounts
-                                        (disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION ||
-                                         disableReason == SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                                <code>administrativeStatus == 'disabled' &amp;&amp;
+                                    // do not delete explicitly disabled accounts
+                                      (disableReason == 'http://midpoint.evolveum.com/xml/ns/public/model/disableReason#deprovision' ||
+                                       disableReason == 'http://midpoint.evolveum.com/xml/ns/public/model/disableReason#mapped')
                                 </code>
                             </script>
                         </condition>
@@ -285,14 +278,8 @@ if (focus.getOrganization().size() == 0) {
                         <strength>strong</strength>
                         <expression>
                             <script>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-                                    if (legal) {
-                                        input;
-                                    } else {
-                                        ActivationStatusType.DISABLED;
-                                    }
-                                </code>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                                <code>legal ? input : 'disabled'</code>
                             </script>
                         </expression>
                     </outbound>

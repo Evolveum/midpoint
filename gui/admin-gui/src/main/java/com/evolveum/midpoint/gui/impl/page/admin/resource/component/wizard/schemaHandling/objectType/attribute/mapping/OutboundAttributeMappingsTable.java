@@ -126,7 +126,9 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
             @Override
             protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
 
-                IModel<Collection<VariableBindingDefinitionType>> multiselectModel = createSourceMultiselectModel(rowModel);
+                IModel<Collection<VariableBindingDefinitionType>> multiselectModel = createSourceMultiselectModel
+                        (rowModel,
+                        OutboundAttributeMappingsTable.this.getPageBase());
 
                 FocusDefinitionsMappingProvider provider;
                 if (isMappingForAssociation()) {

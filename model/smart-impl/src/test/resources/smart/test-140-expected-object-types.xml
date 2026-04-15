@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTypesSuggestion
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:type="c:ObjectTypesSuggestionType">
+    <objectType>
+        <kind>account</kind>
+        <intent>employee</intent>
+        <delineation>
+            <objectClass>ri:account</objectClass>
+            <baseContext>
+                <objectClass>ri:organizationalUnit</objectClass>
+                <filter>
+                    <q:text>attributes/cn = 'evolveum'</q:text>
+                </filter>
+            </baseContext>
+            <filter>
+                <q:text>attributes/type = 'employee1'</q:text>
+            </filter>
+        </delineation>
+    </objectType>
+</objectTypesSuggestion>

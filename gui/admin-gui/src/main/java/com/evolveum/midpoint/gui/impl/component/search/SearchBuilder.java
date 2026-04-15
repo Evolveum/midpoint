@@ -261,6 +261,7 @@ public class SearchBuilder<C extends Serializable> {
         ObjectTypeSearchItemWrapper objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper(mergedConfig.getObjectTypeConfiguration());
         objectTypeSearchItemWrapper.setAllowAllTypesSearch(isAllowedAllTypesSearch());
         objectTypeSearchItemWrapper.setValueForNull(getValueRepresentingAllTypes());
+        objectTypeSearchItemWrapper.resetDefaultTypeIfNull(type);
         Search<C> search = new Search<>(objectTypeSearchItemWrapper, mergedConfig);
 
         OidSearchItemWrapper oidSearchItemWrapper = new OidSearchItemWrapper();
@@ -292,7 +293,7 @@ public class SearchBuilder<C extends Serializable> {
 
         // isViewForDashboard == true && collectionView == null can happen when
         // we're opening popup (different list of objects) and don't want to use collection ref
-        // from underyling page
+        // from underlying page
         if (isViewForDashboard && collectionView != null) {
             basicSearchWrapper.getItemsList().add(new ObjectCollectionSearchItemWrapper(collectionView));
         }
@@ -318,13 +319,10 @@ public class SearchBuilder<C extends Serializable> {
             viewListItem.setVisible(true);
             basicSearchWrapper.getItemsList().add(viewListItem);
         }
-
     }
 
     private void sortItems(BasicQueryWrapper basicSearchWrapper) {
-        basicSearchWrapper.getItemsList().sort((i1, i2) -> String.CASE_INSENSITIVE_ORDER.compare(
-                StringUtils.isEmpty(i1.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i1.getName().getObject()).getString(),
-                StringUtils.isEmpty(i2.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i2.getName().getObject()).getString()));
+        basicSearchWrapper.getItemsList().sort(new SearchItemWrapperComparator<>());
 
         basicSearchWrapper.getItemsList().sort(Comparator.comparing(i -> i instanceof PropertySearchItemWrapper));
     }

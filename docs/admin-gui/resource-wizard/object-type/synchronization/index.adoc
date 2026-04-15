@@ -3,61 +3,98 @@
 :page-toc: top
 :page-since: "4.9"
 :experimental:
+:page-keywords: synchronization, synchronization reactions, synchronization rules, reactions to synchronization situations
+:page-description: This describes how to set up synchronization reactions in the resource wizard.
 
-You can use the synchronization rules wizard to define xref:/midpoint/reference/synchronization/situations/[reactions to synchronization situations].
+This describes how to set up synchronization reactions in the resource wizard.
+
+== Introduction
+
+Synchronization in midPoint is the mechanism that keeps identity data consistent between midPoint and connected systems.
+It reacts to changes based on the defined synchronization reactions.
+
+You can use the synchronization wizard to define xref:/midpoint/reference/synchronization/situations/[reactions to synchronization situations].
 These situation–action pairs represent the state of resource objects (e.g., accounts) in relation to midPoint and appropriate actions to be executed by midPoint in the particular situation.
 
-image::./sync-rules-setup-accounts-configure-menu.webp[Configuration menu in resource accounts list as an entry point to the synchronization rules wizard]
+image::./sync-rules-setup-accounts-configure-menu.webp[Configuration menu in resource accounts list as an entry point to the synchronization wizard]
 
-== Set up synchronization rules
+For more technical details, refer to xref:/midpoint/reference/resources/resource-configuration/schema-handling/synchronization/[].
 
-. In icon:database[] Resources > icon:database[] All Resources, select your resource.
-. In icon:male[] Accounts, click icon:cog[] Configure > icon:arrows-rotate[] Synchronization.
-. Click icon:circle-plus[] btn:[Add reaction] and set up the name, situation, action, and lifecycle state for each situation–action pair.
-. Click icon:check[] btn:[Save synchronization settings] when done.
+[[setup-synchronization-reactions]]
+== Set up synchronization reactions
 
-You can delete a reaction using the icon:trash-alt[] btn:[Delete] button.
+. In [.nowrap]#icon:database[]  *Resources*# > [.nowrap]#icon:database[] *All Resources*#, select your resource.
+. In [.nowrap]#icon:male[] *Accounts*#, click [.nowrap]#icon:cog[] btn:[Configure]# > [.nowrap]#icon:arrows-rotate[] *Synchronization*#.
+. You can:
+    ** Add synchronization reactions manually by clicking [.nowrap]#icon:circle-plus[] btn:[Add reaction]# and setting up <<situations-and-actions, situations and actions>>.
+    ** Generate synchronization reactions as described in <<generate-reactions>>.
+. Click [.nowrap]#icon:check[] btn:[Save synchronization settings]# when done.
 
-image::./sync-rules-setup-rules-list.webp[Configured synchronization rules]
+You can delete a reaction using the [.nowrap]#icon:trash-alt[] btn:[Delete]# button.
 
-You can access a more complex configurations for each reaction using the icon:edit[] btn:[Edit] button:
+image::./sync-rules-setup-rules-list.webp[Configured synchronization reactions]
+
+You can access a more complex configuration for each reaction using the [.nowrap]#icon:edit[] btn:[Edit]# button:
 
 [%autowidth, cols="a,a,a", frame=none, grid=none, role=center]
 |===
-| image::step-3-synch-detail-basic.png[100%, title=Basic configuration of synchronizatio rule]
-| image::step-3-synch-detail-action.png[100%, title=Action for synchronization rule]
-| image::step-3-synch-detail-optional.png[100%, title=Optional attributes for synchronization rule]
+| image::step-3-synch-detail-basic.png[100%, title=Basic configuration of a synchronization reaction]
+| image::step-3-synch-detail-action.png[100%, title=Action for a synchronization reaction]
+| image::step-3-synch-detail-optional.png[100%, title=Optional attributes for a synchronization reaction]
 |===
 
-== Possible situations and actions
+[[situations-and-actions]]
+== Situations and actions
 
-For each reaction rule, you need to configure its name, situation, action, and the lifecycle state of the rule:
+For each reaction, you need to configure the following options:
 
-* *Name* of the reaction rule configuration. This is technically not mandatory but helps a lot during troubleshooting and when using resource template inheritance.
-* *Situation* can be the following:
+* *Name* of the reaction configuration. This is not mandatory but it helps when troubleshooting and using resource template inheritance.
+* *Situation* contains the following options:
 ** *Linked*: The resource object is linked to its midPoint owner (focus object).
 ** *Unlinked*: A new resource object has been found and its owner (focus) can be determined but there is no link between them.
 ** *Deleted*: There is a focus in midPoint for the resource object but the resource object no longer exists.
 ** *Unmatched*: A new resource object has been found but midPoint cannot determine any owner (focus) for the account.
-** *Disputed*: The midPoint has determined multiple potential midPoint owners (foci) for a single resource account. Alternatively, this may be a result of a xref:/midpoint/reference/correlation/[correlation] with an outcome that isn't fully trusted.
+** *Disputed*: MidPoint has determined multiple potential midPoint owners (foci) for a single resource account. Alternatively, this may be a result of a xref:/midpoint/reference/correlation/[correlation] with an outcome that is not fully trusted.
 * *Action* defines what to do in a particular situation:
 ** *Add focus*: Create a new object in midPoint based on the resource data.
-** *Synchronize*: Synchronize data between midPoint object (focus) and resource data based on xref:../mapping[object type mappings]. Typically used for the _linked_ situation.
+** *Synchronize*: Synchronize data between midPoint object (focus) and resource data based on xref:../mapping[object type mapping]. Typically used for the _linked_ situation.
 ** *Link*: Link previously not linked resource object to focus.
 ** *Delete resource object*: Delete resource object.
 ** *Inactivate resource object*: Inactivate (disable) resource object.
 ** *Inactivate focus*: Inactivate (disable) midPoint object.
 ** *Delete focus*: Delete midPoint object.
 ** *Create correlation case*: Create a case to let midPoint administrator resolve the situation interactively (useful for the _Disputed_ situation).
-* *Lifecycle state* defines the lifecycle state of the reaction rule. Useful for xref:/midpoint/reference/admin-gui/simulations/[simulations].
+* *Lifecycle state* defines the lifecycle state of the reaction. Useful for xref:/midpoint/reference/admin-gui/simulations/[simulations].
 
 [TIP]
 ====
-The setup of reactions to situations is up to you.
-For example, it's perfectly fine to have the action _Add focus_ for the _Unmatched_ situation when the resource is authoritative.
-For non-authoritative target systems, though, you would probably want to use the _Inactivate resource object_ action in such a situation.
+For example, for authoritative resources, you can set action to _Add focus_ for the _Unmatched_ situation.
+For non-authoritative target systems, you would then use the _Inactivate resource object_ action for the same situation.
 ====
 
-Refer to xref:/midpoint/reference/schema/focus-and-projections/[] for an explanation of the term _focus_. In the most basic scenarios when synchronizing users and their accounts, _focus_ corresponds to the user object in midPoint.
+Refer to xref:/midpoint/reference/schema/focus-and-projections/[] for an explanation of the term _focus_.
+In the most basic scenarios, when synchronizing users and their accounts, _focus_ corresponds to the user object in midPoint.
+
+[[generate-reactions]]
+== Generate synchronization reactions
+
+For higher efficiency, you can generate synchronization reactions as opposed to creating them manually.
+
+image::synchronization-generate-reactions.webp[title="Generate synchronization reactions"]
+
+. Click [.nowrap]#icon:gears[] btn:[Generate reactions]# button to generate synchronization reactions.
+. Select the synchronization direction:
+** *Source* - If a resource provides data to midPoint.
++
+image::synchronization-source.webp[title="Synchronization direction: Source"]
+
+** *Target* - If midPoint provides data to a resource.
++
+image::synchronization-target.webp[title="Synchronization direction: Target"]
+
+. Answer the questions for the given synchronization direction to help the midPoint understand your requirements and generate appropriate synchronization reactions.
+. Click [.nowrap]#icon:check[] btn:[Confirm and generate]#.
+. Review the generated synchronization reactions and make any necessary adjustments as described in <<setup-synchronization-reactions>>.
+. Click [.nowrap]#icon:check[] btn:[Save synchronization settings]# when done.
 
 include::../../see-also.adoc[]

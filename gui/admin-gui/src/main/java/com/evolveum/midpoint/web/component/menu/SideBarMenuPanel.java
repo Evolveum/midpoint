@@ -15,6 +15,8 @@ import java.util.Map;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -37,7 +39,6 @@ import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.session.SessionStorage;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -229,7 +230,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     private void onMenuClick(IModel<SideBarMenuItem> model, Component headerStateDescr, AjaxRequestTarget target) {
         SideBarMenuItem mainMenu = model.getObject();
 
-        SessionStorage storage = getPageBase().getSessionStorage();
+        BrowserTabSessionStorage storage = getPageBase().getBrowserTabSessionStorage();
         Map<String, Boolean> menuState = storage.getMainMenuState();
 
         String menuLabel = mainMenu.getName();
@@ -247,7 +248,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     }
 
     private boolean isMenuExpanded(SideBarMenuItem mainMenu) {
-        SessionStorage storage = getPageBase().getSessionStorage();
+        BrowserTabSessionStorage storage = getPageBase().getBrowserTabSessionStorage();
         Map<String, Boolean> menuState = storage.getMainMenuState();
 
         String menuLabel = mainMenu.getName();

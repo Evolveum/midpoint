@@ -17,6 +17,15 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
+/**
+ * Factory responsible for creating {@link PropertySearchItemWrapper} instances
+ * based on registered {@link AbstractSearchItemWrapperFactory} implementations.
+ * <p>
+ * The order of factories in the {@code factories} list is important —
+ * the first factory that matches the {@link SearchItemContext} is used.
+ * If no previous factory matches, {@link TextSearchItemWrapperFactory} is applied
+ * as the default fallback.
+ */
 public class SearchConfigurationWrapperFactory {
 
     private static List<AbstractSearchItemWrapperFactory> factories = new ArrayList<>();
@@ -32,8 +41,9 @@ public class SearchConfigurationWrapperFactory {
         factories.add(new ReferenceSearchItemWrapperFactory());
         factories.add(new ObjectClassSearchItemWrapperFactory());
         factories.add(new ItemPathSearchItemWrapperFactory());
+        factories.add(new VariableBindingDefSearchItemWrapperFactory());
         factories.add(new DateSearchItemWrapperFactory());
-        factories.add(new TextSearchItemWrapperFactory());
+        factories.add(new TextSearchItemWrapperFactory()); //must be last as the default fallback
     }
 
     public static PropertySearchItemWrapper createPropertySearchItemWrapper(

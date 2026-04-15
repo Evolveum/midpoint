@@ -16,13 +16,11 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 
 /**
@@ -46,7 +44,7 @@ public class PageRequestAccess extends PageSelf {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD = "wizard";
 
-    private WizardModel model;
+    private WizardModelBasic model;
 
     public PageRequestAccess() {
         this(new PageParameters());
@@ -56,7 +54,7 @@ public class PageRequestAccess extends PageSelf {
         this(parameters,null);
     }
 
-    public PageRequestAccess(PageParameters parameters, WizardModel model) {
+    public PageRequestAccess(PageParameters parameters, WizardModelBasic model) {
         super(parameters);
 
         this.model = model;
@@ -74,7 +72,7 @@ public class PageRequestAccess extends PageSelf {
         add(mainForm);
 
         if (model == null) {
-            model = new WizardModel(createSteps());
+            model = new WizardModelBasic(createSteps());
         }
         WizardPanel wizard = new WizardPanel(ID_WIZARD, model, true);
         wizard.setOutputMarkupId(true);

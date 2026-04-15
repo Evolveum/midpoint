@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -23,12 +24,13 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -105,6 +107,10 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType, M extends Ob
         return WebComponentUtil.getPageBase(this);
     }
 
+    public Component getFeedbackPanel() {
+        return getPageBase().getFeedbackPanel();
+    }
+
     protected PrismContext getPrismContext() {
         return getPageBase().getPrismContext();
     }
@@ -172,8 +178,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType, M extends Ob
         return null;
     }
 
-    protected final SessionStorage getSessionStorage() {
-        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
-        return session.getSessionStorage();
+    protected final BrowserTabSessionStorage getBrowserTabSessionStorage() {
+        return getPageBase().getBrowserTabSessionStorage();
     }
 }

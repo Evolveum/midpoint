@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 
 import org.apache.wicket.Component;
@@ -19,7 +20,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
@@ -73,9 +74,9 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     protected void onBeforeRender() {
         if (getModelObject().getPersonOfInterest().size() == 0) {
             PageParameters params = new PageParameters();
-            params.set(WizardModel.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
+            params.set(WizardModelBasic.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
 
-            throw new RestartResponseException(new PageRequestAccess(params, getWizard()));
+            throw new RestartResponseException(new PageRequestAccess(params, (WizardModelBasic) getWizard()));
         }
 
         super.onBeforeRender();

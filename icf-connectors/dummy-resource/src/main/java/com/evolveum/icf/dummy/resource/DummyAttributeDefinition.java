@@ -20,20 +20,28 @@ public class DummyAttributeDefinition {
     private boolean isReturnedAsIncomplete;
     // setting to sensitive will cause this attr to be presented as GuardedString
     private boolean sensitive;
+    private String description;
 
     public DummyAttributeDefinition(String attributeName, Class<?> attributeType) {
         this.attributeName = attributeName;
         this.attributeType = attributeType;
         isRequired = false;
         isMulti = false;
+        this.description = null;
     }
 
     public DummyAttributeDefinition(
             String attributeName, Class<?> attributeType, boolean isRequired, boolean isMulti) {
+        this(attributeName, attributeType, isRequired, isMulti, null);
+    }
+
+    public DummyAttributeDefinition(
+            String attributeName, Class<?> attributeType, boolean isRequired, boolean isMulti, String description) {
         this.attributeName = attributeName;
         this.attributeType = attributeType;
         this.isRequired = isRequired;
         this.isMulti = isMulti;
+        this.description = description;
     }
 
     public String getAttributeName() {
@@ -90,5 +98,13 @@ public class DummyAttributeDefinition {
 
     public void setSensitive(boolean sensitive) {
         this.sensitive = sensitive;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

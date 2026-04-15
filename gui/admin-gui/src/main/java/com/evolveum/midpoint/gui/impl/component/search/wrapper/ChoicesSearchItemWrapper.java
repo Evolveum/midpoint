@@ -43,6 +43,9 @@ public class ChoicesSearchItemWrapper<T extends Serializable> extends PropertySe
 
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
+        if (getFilterExpression() != null) {
+             return super.createFilter(type, pageBase, variables);
+        }
         if (getValue().getValue() == null) {
             return null;
         }

@@ -50,10 +50,13 @@ final class TriggerScanActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) {
-        super.beforeRun(result);
+    public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
         ensureNoDryRun();
         itemProcessor = new TriggerScanItemProcessor(this);
+        return true;
     }
 
     @Override

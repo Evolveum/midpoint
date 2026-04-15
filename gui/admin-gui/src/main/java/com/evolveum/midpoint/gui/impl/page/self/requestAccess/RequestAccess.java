@@ -17,9 +17,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+
+import com.evolveum.midpoint.util.DebugDumpable;
+
+import com.evolveum.midpoint.util.DebugUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -69,7 +74,7 @@ import org.apache.wicket.RestartResponseException;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RequestAccess implements Serializable {
+public class RequestAccess implements Serializable, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RequestAccess.class);
 
@@ -84,16 +89,16 @@ public class RequestAccess implements Serializable {
     public static final List<ValidityPredefinedValueType> DEFAULT_VALIDITY_PERIODS = Arrays.asList(
             new ValidityPredefinedValueType()
                     .duration(XmlTypeConverter.createDuration("P1D"))
-                    .display(new DisplayType().label("RequestAccess.validity1Day")),
+                    .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("RequestAccess.validity1Day")),
             new ValidityPredefinedValueType()
                     .duration(XmlTypeConverter.createDuration("P7D"))
-                    .display(new DisplayType().label("RequestAccess.validity1Week")),
+                    .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("RequestAccess.validity1Week")),
             new ValidityPredefinedValueType()
                     .duration(XmlTypeConverter.createDuration("P1M"))
-                    .display(new DisplayType().label("RequestAccess.validity1Month")),
+                    .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("RequestAccess.validity1Month")),
             new ValidityPredefinedValueType()
                     .duration(XmlTypeConverter.createDuration("P1Y"))
-                    .display(new DisplayType().label("RequestAccess.validity1Year"))
+                    .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("RequestAccess.validity1Year"))
     );
 
     public static final String VALIDITY_CUSTOM_LENGTH = "validityCustomLength";
@@ -476,6 +481,19 @@ public class RequestAccess implements Serializable {
 
     public long getWarningCount() {
         return getConflicts().stream().filter(c -> c.isWarning() && c.getState() != ConflictState.SOLVED).count();
+    }
+
+    public boolean areShoppingCartItemsRelatedToConflicts() {
+        final Set<String> shoppingCartItemsIds = getShoppingCartItems()
+                .stream().map(cardItem -> cardItem.getAssignment().getTargetRef().getOid())
+                .collect(Collectors.toSet());
+        for (Conflict conflict : getConflicts()) {
+            if (shoppingCartItemsIds.contains(conflict.getAdded().getAssignment().getTargetRef().getOid()) ||
+                    shoppingCartItemsIds.contains(conflict.getExclusion().getAssignment().getTargetRef().getOid())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public long getErrorCount() {
@@ -1164,5 +1182,40 @@ public class RequestAccess implements Serializable {
 
     public int getPoiCount() {
         return getPersonOfInterest().size();
+    }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("RequestAccess\n");
+
+        DebugUtil.debugDumpWithLabelLn(sb, "poiMyself", poiMyself, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "poiGroupSelectionIdentifier", poiGroupSelectionIdentifier, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "requestItems (POI -> assignments)", requestItems, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "requestItemsExistingToRemove", requestItemsExistingToRemove, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "existingPoiRoleMemberships", existingPoiRoleMemberships, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "templateAssignments", templateAssignments, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "relation", relation, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "defaultRelation", defaultRelation, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "selectedValidity", String.valueOf(selectedValidity), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "validityDuration", String.valueOf(validityDuration), indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "comment", comment, indent + 1);
+
+        DebugUtil.debugDumpWithLabelLn(sb, "conflictsDirty", conflictsDirty, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "conflicts", conflicts, indent + 1);
+
+        return sb.toString();
     }
 }

@@ -17,7 +17,7 @@
         elementFormDefault="qualified"
         xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
         jaxb:extensionBindingPrefixes="xjc"
-        jaxb:version="3.0">
+        jaxb:version="3.0" xmlns:xsdS="http://www.w3.org/2001/XMLSchema" xmlns:xas="http://www.w3.org/2001/XMLSchema">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -32,9 +32,11 @@
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" />
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3"/>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-connector-dev-3"/>
 
     <xsd:complexType name="TaskType">
         <xsd:annotation>
@@ -897,7 +899,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityProgress" type="tns:ActivityProgressType" />
+    <xsd:element name="activityProgress" type="tns:ActivityProgressType"/>
 
     <!-- If needed, please create subtypes of this for particular uses. -->
     <xsd:complexType name="OutcomeKeyedCounterType">
@@ -928,7 +930,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="outcomeKeyedCounter" type="tns:OutcomeKeyedCounterType" />
+    <xsd:element name="outcomeKeyedCounter" type="tns:OutcomeKeyedCounterType"/>
 
     <xsd:complexType name="OperationStatsType">
         <xsd:annotation>
@@ -1013,7 +1015,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="operationStats" type="tns:OperationStatsType" />
+    <xsd:element name="operationStats" type="tns:OperationStatsType"/>
 
     <xsd:complexType name="ActivityStatisticsType">
         <xsd:annotation>
@@ -1047,7 +1049,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityStatistics" type="tns:ActivityStatisticsType" />
+    <xsd:element name="activityStatistics" type="tns:ActivityStatisticsType"/>
 
     <xsd:complexType name="RepositoryPerformanceInformationType">
         <xsd:annotation>
@@ -1075,15 +1077,15 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="invocationCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="executionCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="invocationCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="executionCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minWastedTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1111,14 +1113,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="invocationCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="ownTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minOwnTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxOwnTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="invocationCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="ownTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minOwnTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxOwnTime" type="xsd:long" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1185,7 +1187,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="operation" type="tns:BucketManagementOperationStatisticsType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="operation" type="tns:BucketManagementOperationStatisticsType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1222,8 +1224,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
             <xsd:element name="conflictCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1240,8 +1242,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minWastedTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0"/>
             <xsd:element name="bucketWaitCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1265,8 +1267,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="minWaitTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxWaitTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minWaitTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxWaitTime" type="xsd:long" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1294,12 +1296,12 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="hitCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="weakHitCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="missCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="passCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="notAvailableCount" type="xsd:int" minOccurs="0" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="hitCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="weakHitCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="missCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="passCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="notAvailableCount" type="xsd:int" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -2271,7 +2273,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType" />
+            <xsd:extension base="tns:ActivityPolicyActionType"/>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="skipActivityPolicyAction" type="tns:SkipActivityPolicyActionType"/>
@@ -2345,7 +2347,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType" />
+            <xsd:extension base="tns:ActivityPolicyActionType"/>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="suspendTaskActivityPolicyAction" type="tns:SuspendTaskActivityPolicyActionType"/>
@@ -2669,6 +2671,208 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="focusTypeSuggestion" type="tns:FocusTypeSuggestionWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests focus type for a resource object type (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.focusTypeSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="objectTypesSuggestion" type="tns:ObjectTypesSuggestionWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests object types for an object class (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.objectTypesSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="schemaMatchPreload" type="tns:SchemaMatchPreloadWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Pre-loads schema matching cache for object types in the background (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.schemaMatchPreload</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="correlationSuggestion" type="tns:CorrelationSuggestionWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests correlation rules for an object type (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.correlationSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="correlation" type="tns:CorrelationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Correlates Shadows with Focuses using configured correlators. The 'shadows' container must specify a query to select shadows to process.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.shadowCorrelation</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="mappings" type="tns:MappingWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Simulates a mapping on a selected sample of shadows.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.mapping</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="mappingsSuggestion" type="tns:MappingsSuggestionWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests mappings for an object class (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.mappingsSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="associationsSuggestion" type="tns:AssociationSuggestionWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests association type definitions for resource object types (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.associationsSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="objectClassStatisticsComputation" type="tns:ObjectClassStatisticsComputationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Computes statistics for object classes on a resource.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="objectTypeStatisticsComputation" type="tns:ObjectTypeStatisticsComputationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Computes statistics for object types on a resource.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="focusObjectStatisticsComputation" type="tns:FocusObjectStatisticsComputationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Computes statistics for focus objects of a given type (e.g. UserType, RoleType).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="createConnector" type="tns:ConnDevCreateConnectorWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="installConnector" type="tns:ConnDevDownloadConnectorWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="discoverDocumentation" type="tns:ConnDevDiscoverDocumentationWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="processDocumentation" type="tns:ConnDevProcessDocumentationWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="discoverGlobalInformation" type="tns:ConnDevDiscoverGlobalInformationWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="discoverObjectClassInformation" type="tns:ConnDevDiscoverObjectClassInformationDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="discoverObjectClassAttributes" type="tns:ConnDevDiscoverObjectClassAttributesDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="discoverObjectClassEndpoints" type="tns:ConnDevDiscoverObjectClassEndpointsDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="generateConnectorArtifact" type="tns:ConnDevGenerateArtifactDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
             </xsd:choice>
             <xsd:element name="extension" type="tns:ExtensionType" minOccurs="0">
                 <xsd:annotation>
@@ -2774,7 +2978,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityBeforeAfterType" />
+            <xsd:extension base="tns:ActivityBeforeAfterType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -2790,7 +2994,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityBeforeAfterType" />
+            <xsd:extension base="tns:ActivityBeforeAfterType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -3497,6 +3701,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display order of the activity. Optional.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0"/>
             <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0" default="1"/>
             <xsd:element name="realizationState" type="tns:ActivityRealizationStateType" minOccurs="0">
@@ -3518,6 +3732,18 @@
                     <xsd:documentation>
                         Operation result status of this activity.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Explanation of the status, especially if it indicates an error. Optional.
+                        Avoid use for distributed activities.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="realizationStartTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -4881,7 +5107,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="boundarySpecification" type="tns:BoundarySpecificationType" />
+    <xsd:element name="boundarySpecification" type="tns:BoundarySpecificationType"/>
 
     <xsd:complexType name="OidWorkSegmentationType">
         <xsd:annotation>
@@ -5754,11 +5980,11 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="provisioningStatistics" type="tns:ProvisioningStatisticsType" minOccurs="0" />
-            <xsd:element name="mappingsStatistics" type="tns:MappingsStatisticsType" minOccurs="0" />
-            <xsd:element name="notificationsStatistics" type="tns:NotificationsStatisticsType" minOccurs="0" />
-            <xsd:element name="lastMessageTimestamp" type="xsd:dateTime" minOccurs="0" />
-            <xsd:element name="lastMessage" type="xsd:string" minOccurs="0" />
+            <xsd:element name="provisioningStatistics" type="tns:ProvisioningStatisticsType" minOccurs="0"/>
+            <xsd:element name="mappingsStatistics" type="tns:MappingsStatisticsType" minOccurs="0"/>
+            <xsd:element name="notificationsStatistics" type="tns:NotificationsStatisticsType" minOccurs="0"/>
+            <xsd:element name="lastMessageTimestamp" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="lastMessage" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -5905,7 +6131,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" />
+            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0"/>
             <xsd:element name="operation" type="tns:ProvisioningStatisticsOperationEntryType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5982,7 +6208,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="entry" type="tns:MappingsStatisticsEntryType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="entry" type="tns:MappingsStatisticsEntryType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -5993,12 +6219,12 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="object" type="xsd:string" minOccurs="0" />
-            <xsd:element name="count" type="xsd:int" />
-            <xsd:element name="averageTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" />
+            <xsd:element name="object" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="count" type="xsd:int"/>
+            <xsd:element name="averageTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="totalTime" type="xsd:long"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6009,7 +6235,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="entry" type="tns:NotificationsStatisticsEntryType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="entry" type="tns:NotificationsStatisticsEntryType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6020,13 +6246,13 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="transport" type="xsd:string" minOccurs="0" />
-            <xsd:element name="countSuccess" type="xsd:int" />
-            <xsd:element name="countFailure" type="xsd:int" />
-            <xsd:element name="averageTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" />
+            <xsd:element name="transport" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="countSuccess" type="xsd:int"/>
+            <xsd:element name="countFailure" type="xsd:int"/>
+            <xsd:element name="averageTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="totalTime" type="xsd:long"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6211,7 +6437,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="transition" type="tns:SynchronizationSituationTransitionType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="transition" type="tns:SynchronizationSituationTransitionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -6227,10 +6453,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="onProcessingStart" type="tns:SynchronizationSituationType" minOccurs="0" />
-            <xsd:element name="onSynchronizationStart" type="tns:SynchronizationSituationType" minOccurs="0" />
-            <xsd:element name="onSynchronizationEnd" type="tns:SynchronizationSituationType" minOccurs="0" />
-            <xsd:element name="exclusionReason" type="tns:SynchronizationExclusionReasonType" minOccurs="0" />
+            <xsd:element name="onProcessingStart" type="tns:SynchronizationSituationType" minOccurs="0"/>
+            <xsd:element name="onSynchronizationStart" type="tns:SynchronizationSituationType" minOccurs="0"/>
+            <xsd:element name="onSynchronizationEnd" type="tns:SynchronizationSituationType" minOccurs="0"/>
+            <xsd:element name="exclusionReason" type="tns:SynchronizationExclusionReasonType" minOccurs="0"/>
             <xsd:element name="counter" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -6280,20 +6506,20 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectType" type="xsd:QName" />
-            <xsd:element name="operation" type="t:ChangeTypeType" />
-            <xsd:element name="channel" type="xsd:string" minOccurs="0" />
-            <xsd:element name="totalSuccessCount" type="xsd:int" />
-            <xsd:element name="lastSuccessObjectName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastSuccessObjectDisplayName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastSuccessObjectOid" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastSuccessTimestamp" type="xsd:dateTime" minOccurs="0" />
-            <xsd:element name="totalFailureCount" type="xsd:int"  />
-            <xsd:element name="lastFailureObjectName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastFailureObjectDisplayName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastFailureObjectOid" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastFailureExceptionMessage" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastFailureTimestamp" type="xsd:dateTime" minOccurs="0" />
+            <xsd:element name="objectType" type="xsd:QName"/>
+            <xsd:element name="operation" type="t:ChangeTypeType"/>
+            <xsd:element name="channel" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="totalSuccessCount" type="xsd:int"/>
+            <xsd:element name="lastSuccessObjectName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastSuccessObjectDisplayName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastSuccessObjectOid" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastSuccessTimestamp" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="totalFailureCount" type="xsd:int"/>
+            <xsd:element name="lastFailureObjectName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastFailureObjectDisplayName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastFailureObjectOid" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastFailureExceptionMessage" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastFailureTimestamp" type="xsd:dateTime" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6694,7 +6920,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="qualifiedItemProcessingOutcome" type="tns:QualifiedItemProcessingOutcomeType" />
+    <xsd:element name="qualifiedItemProcessingOutcome" type="tns:QualifiedItemProcessingOutcomeType"/>
 
     <xsd:complexType name="ActivityReportingDefinitionType">
         <xsd:annotation>
@@ -6787,7 +7013,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityReportingDefinition" type="tns:ActivityReportingDefinitionType" />
+    <xsd:element name="activityReportingDefinition" type="tns:ActivityReportingDefinitionType"/>
 
     <xsd:complexType name="ActivityItemCountingDefinitionType">
         <xsd:annotation>
@@ -7151,7 +7377,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityReportsDefinition" type="tns:ActivityReportsDefinitionType" />
+    <xsd:element name="activityReportsDefinition" type="tns:ActivityReportsDefinitionType"/>
 
     <xsd:complexType name="AbstractActivityReportDefinitionType">
         <xsd:annotation>
@@ -7214,7 +7440,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="bucketsProcessingReportDefinition" type="tns:BucketsProcessingReportDefinitionType" />
+    <xsd:element name="bucketsProcessingReportDefinition" type="tns:BucketsProcessingReportDefinitionType"/>
 
     <xsd:complexType name="ItemsProcessingReportDefinitionType">
         <xsd:annotation>
@@ -7232,7 +7458,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="itemsProcessingReportDefinition" type="tns:ItemsProcessingReportDefinitionType" />
+    <xsd:element name="itemsProcessingReportDefinition" type="tns:ItemsProcessingReportDefinitionType"/>
 
     <xsd:complexType name="ConnIdOperationsReportDefinitionType">
         <xsd:annotation>
@@ -7264,7 +7490,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="connIdOperationsReportDefinition" type="tns:ConnIdOperationsReportDefinitionType" />
+    <xsd:element name="connIdOperationsReportDefinition" type="tns:ConnIdOperationsReportDefinitionType"/>
 
     <xsd:complexType name="InternalOperationsReportDefinitionType">
         <xsd:annotation>
@@ -7316,7 +7542,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="internalOperationsReportDefinition" type="tns:InternalOperationsReportDefinitionType" />
+    <xsd:element name="internalOperationsReportDefinition" type="tns:InternalOperationsReportDefinitionType"/>
 
     <xsd:complexType name="InternalOperationRecordFastFilterType">
         <xsd:annotation>
@@ -7475,7 +7701,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityLoggingOptions" type="tns:ActivityLoggingOptionsType" />
+    <xsd:element name="activityLoggingOptions" type="tns:ActivityLoggingOptionsType"/>
 
     <xsd:simpleType name="ActivityEventLoggingOptionType">
         <xsd:annotation>
@@ -7575,7 +7801,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0" >
+            <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Archetype of objects to be processed.
@@ -7745,6 +7971,9 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.4</a:since>
+                <a:schemaContext>
+                    <a:algorithm>ResourceObjectSetContextResolver</a:algorithm>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -7899,7 +8128,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="queryStyle" type="tns:ValidityScanQueryStyleType" minOccurs="0" >
+                    <xsd:element name="queryStyle" type="tns:ValidityScanQueryStyleType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 How to execute validation scan queries.
@@ -8079,7 +8308,7 @@
                     <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Delta(s) to be processed. They must pertain to a single clockwork  operation;
+                                Delta(s) to be processed. They must pertain to a single clockwork operation;
                                 e.g. referring to a user and his accounts.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -8130,7 +8359,6 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="repartitioningWorkDefinition" type="tns:RepartitioningWorkDefinitionType"/>
-
 
 
     <xsd:complexType name="ObjectSetBasedWorkDefinitionType">
@@ -8411,7 +8639,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="classicReportExportWorkDefinition" type="tns:ClassicReportExportWorkDefinitionType" />
+    <xsd:element name="classicReportExportWorkDefinition" type="tns:ClassicReportExportWorkDefinitionType"/>
 
     <xsd:complexType name="DistributedReportExportWorkDefinitionType">
         <xsd:annotation>
@@ -8428,7 +8656,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="distributedReportExportWorkDefinition" type="tns:DistributedReportExportWorkDefinitionType" />
+    <xsd:element name="distributedReportExportWorkDefinition" type="tns:DistributedReportExportWorkDefinitionType"/>
 
     <xsd:complexType name="ClassicReportImportWorkDefinitionType">
         <xsd:annotation>
@@ -8458,7 +8686,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="classicReportImportWorkDefinition" type="tns:ClassicReportImportWorkDefinitionType" />
+    <xsd:element name="classicReportImportWorkDefinition" type="tns:ClassicReportImportWorkDefinitionType"/>
 
     <xsd:complexType name="AbstractWorkDefinitionType">
         <xsd:annotation>
@@ -8473,7 +8701,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="abstractWorkDefinition" type="tns:AbstractWorkDefinitionType" />
+    <xsd:element name="abstractWorkDefinition" type="tns:AbstractWorkDefinitionType"/>
 
     <xsd:complexType name="ResourceWorkDefinitionType">
         <xsd:annotation>
@@ -8493,7 +8721,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="resourceWorkDefinition" type="tns:ResourceWorkDefinitionType" />
+    <xsd:element name="resourceWorkDefinition" type="tns:ResourceWorkDefinitionType"/>
 
     <xsd:complexType name="PropagationWorkDefinitionType">
         <xsd:annotation>
@@ -8590,7 +8818,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="abstractActivityWorkState" type="tns:AbstractActivityWorkStateType" />
+    <xsd:element name="abstractActivityWorkState" type="tns:AbstractActivityWorkStateType"/>
 
     <xsd:complexType name="PureCompositeWorkStateType">
         <xsd:annotation>
@@ -8610,7 +8838,7 @@
             <xsd:extension base="tns:AbstractActivityWorkStateType"/>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="pureCompositeWorkState" type="tns:PureCompositeWorkStateType" />
+    <xsd:element name="pureCompositeWorkState" type="tns:PureCompositeWorkStateType"/>
 
     <xsd:complexType name="CustomCompositeWorkStateType">
         <xsd:annotation>
@@ -8627,7 +8855,7 @@
             <xsd:extension base="tns:AbstractActivityWorkStateType"/>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="customCompositeWorkState" type="tns:CustomCompositeWorkStateType" />
+    <xsd:element name="customCompositeWorkState" type="tns:CustomCompositeWorkStateType"/>
 
     <xsd:complexType name="ScanWorkStateType">
         <xsd:annotation>
@@ -8642,12 +8870,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="lastScanTimestamp" type="xsd:dateTime" minOccurs="0" />
+                    <xsd:element name="lastScanTimestamp" type="xsd:dateTime" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="scanWorkState" type="tns:ScanWorkStateType" />
+    <xsd:element name="scanWorkState" type="tns:ScanWorkStateType"/>
 
     <xsd:complexType name="ObjectIntegrityCheckWorkDefinitionType">
         <xsd:annotation>
@@ -8695,7 +8923,7 @@
                     <xsd:element name="diagnose" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="fix" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="checkDuplicatesOnPrimaryIdentifiersOnly" type="xsd:boolean" minOccurs="0" default="false"/>
-                    <xsd:element name="duplicateShadowsResolver" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="duplicateShadowsResolver" type="xsd:string" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8809,7 +9037,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="delegationWorkState" type="tns:DelegationWorkStateType" />
+    <xsd:element name="delegationWorkState" type="tns:DelegationWorkStateType"/>
 
     <xsd:complexType name="ReconciliationWorkStateType">
         <xsd:annotation>
@@ -8837,7 +9065,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="reconciliationWorkState" type="tns:ReconciliationWorkStateType" />
+    <xsd:element name="reconciliationWorkState" type="tns:ReconciliationWorkStateType"/>
 
     <xsd:complexType name="LiveSyncWorkStateType">
         <xsd:annotation>
@@ -8866,7 +9094,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="liveSyncWorkState" type="tns:LiveSyncWorkStateType" />
+    <xsd:element name="liveSyncWorkState" type="tns:LiveSyncWorkStateType"/>
 
     <xsd:complexType name="ReportExportWorkStateType">
         <xsd:annotation>
@@ -8895,7 +9123,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="reportExportWorkStateType" type="tns:ReportExportWorkStateType" />
+    <xsd:element name="reportExportWorkStateType" type="tns:ReportExportWorkStateType"/>
 
     <xsd:complexType name="WorkersReconciliationResultType">
         <xsd:annotation>
@@ -8998,10 +9226,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" />
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="workersReconciliationResult" type="tns:WorkersReconciliationResultType" />
+    <xsd:element name="workersReconciliationResult" type="tns:WorkersReconciliationResultType"/>
 
     <xsd:complexType name="AutoScalingDefinitionType">
         <xsd:annotation>
@@ -9047,7 +9275,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="activityPoliciesState" type="tns:ActivityPoliciesStateType" />
+    <xsd:element name="activityPoliciesState" type="tns:ActivityPoliciesStateType"/>
 
     <xsd:complexType name="ActivityPolicyStateType">
         <xsd:annotation>
@@ -9083,7 +9311,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="activityPolicyState" type="tns:ActivityPolicyStateType" />
+    <xsd:element name="activityPolicyState" type="tns:ActivityPolicyStateType"/>
 
     <xsd:complexType name="EvaluatedActivityPolicyTriggerType">
         <xsd:annotation>
@@ -9100,7 +9328,7 @@
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="evaluatedActivityPolicyTrigger" type="tns:EvaluatedActivityPolicyTriggerType" />
+    <xsd:element name="evaluatedActivityPolicyTrigger" type="tns:EvaluatedActivityPolicyTriggerType"/>
 
     <xsd:complexType name="ActivityCounterGroupsType">
         <xsd:annotation>
@@ -9131,7 +9359,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityCounterGroups" type="tns:ActivityCounterGroupsType" />
+    <xsd:element name="activityCounterGroups" type="tns:ActivityCounterGroupsType"/>
 
     <xsd:complexType name="ActivityCounterGroupType">
         <xsd:annotation>
@@ -9155,7 +9383,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityCounterGroup" type="tns:ActivityCounterGroupType" />
+    <xsd:element name="activityCounterGroup" type="tns:ActivityCounterGroupType"/>
 
     <xsd:complexType name="ActivityCounterType">
         <xsd:annotation>
@@ -9187,7 +9415,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityCounter" type="tns:ActivityCounterType" />
+    <xsd:element name="activityCounter" type="tns:ActivityCounterType"/>
 
     <xsd:complexType name="TaskAutoScalingType">
         <xsd:annotation>
@@ -9398,7 +9626,7 @@
                 <xsd:sequence>
                     <xsd:element name="steps" type="xsd:int" minOccurs="0"/>
                     <xsd:element name="delay" type="xsd:int" minOccurs="0"/>
-                    <xsd:element name="stepInterruptibility" type="tns:NoOpActivityStepInterruptibilityType" minOccurs="0" default="none" />
+                    <xsd:element name="stepInterruptibility" type="tns:NoOpActivityStepInterruptibilityType" minOccurs="0" default="none"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -9766,7 +9994,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" />
+                    <xsd:element name="objectClass" type="xsd:QName" minOccurs="0"/>
                     <xsd:element name="operation" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -10283,4 +10511,1191 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="certificationReiterateCampaignWorkDefinition" type="tns:CertificationReiterateCampaignWorkDefinitionType"/>
+
+    <xsd:complexType name="FocusTypeSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest focus type for a resource object type" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource against which we want to execute the activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ResourceObjectSetType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Denotes the kind of the resource object to be processed by the activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Denotes the intent of the resource object to be processed by the activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Data access permissions given to the suggest task.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusTypeSuggestionWorkDefinition" type="tns:FocusTypeSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="ObjectTypesSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest object types for an object class" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource against which we want to execute the activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ResourceObjectSetType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectclass" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Denotes the object class to be processed by the activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, the particular statistics file should be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypesSuggestionWorkDefinitionType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Data access permissions given to the suggest task.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypesSuggestionWorkDefinition" type="tns:ObjectTypesSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="SchemaMatchPreloadWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for schema match pre-loading activity (smart integration).
+                Used to pre-populate the schema matching cache in the background after object type suggestions are complete.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectclass" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Object class for which schema matching is to be pre-loaded.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>Data access permissions granted to the preload task.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="sourceTaskRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the object types suggestion task whose work state contains the
+                                suggested object types (with focus type assignments) to pre-load schema matching for.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="schemaMatchPreloadWorkDefinition" type="tns:SchemaMatchPreloadWorkDefinitionType"/>
+
+    <xsd:complexType name="ObjectTypeRelatedSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest correlation" and "suggest mappings" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource against which we want to execute the activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ResourceObjectSetType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object type for which to define the mappings.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="schemaMatchRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, the particular schema match file should be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypesRelatedSuggestionWorkDefinitionType.schemaMatchRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="forceRecomputeSchemaMatch" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, forces recomputation of the schema match even if a valid (non-expired) schema
+                                match object already exists. Typically set when the user explicitly triggers a regenerate
+                                action from the GUI.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypeRelatedSuggestionWorkDefinitionType.forceRecomputeSchemaMatch</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypeRelatedSuggestionWorkDefinition" type="tns:ObjectTypeRelatedSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="AssociationSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest associations" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource against which we want to execute the activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AssociationsSuggestionWorkDefinitionType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="associationSuggestionWorkDefinition" type="tns:AssociationSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="CorrelationSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest correlation" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectTypeRelatedSuggestionWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="targetPathsToIgnore" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Focus item paths that should be ignored when generating correlation suggestions.
+                                Any correlation whose target resolves to one of these paths will not be suggested.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Data access permissions given to the suggest task.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="correlationSuggestionWorkDefinition" type="tns:CorrelationSuggestionWorkDefinitionType"/>
+
+    <!-- Shadow correlation: correlate Shadows with Focuses using correlators.
+         The 'shadows' ObjectSet MUST include a 'query' to define selection. -->
+    <xsd:complexType name="CorrelationWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for shadow-focus correlation activity. Selects shadows to be correlated and
+                specifies source of correlators (resource reference or/and inline correlators). Please note,
+                that activity implementing this work definition only supports PREVIEW execution mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ResourceWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="correlators" type="tns:SimulatedCorrelatorsType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specify what correlators should be used for the correlation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="correlationWorkDefinition" type="tns:CorrelationWorkDefinitionType"/>
+
+    <xsd:complexType name="MappingWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for mapping simulation activity. Selects shadows to be processed and
+                specifies the mappings to be simulated on them. Please note, that activity
+                implementing this work definition only supports PREVIEW execution mode.
+
+                Also note that if the `includeExistingCorrelators` is set to false (default), then at least one
+                mapping has to be specified in the `inlineMappings`.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ResourceWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="includeExistingMappings" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Use mappings derived from the resource of given shadows.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <!-- If the value of `includeExistingMappings` is "false" then bellow element has to be present. -->
+
+                    <xsd:element name="inlineMappings" type="tns:InlineMappingDefinitionType" minOccurs="0"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Inline definition of correlators. It can be used to explicitly define the correlator, for
+                                example in case when we want to simulate suggested correlation (which is not stored yet).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="mappingWorkDefinition" type="tns:MappingWorkDefinitionType"/>
+
+    <xsd:complexType name="InlineMappingDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the mapping (either inbound or outbound) of particular item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item that this additional mapping uses. It must point to an attribute in the
+                        resource schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how the attribute values are used (assigned) in case of information flow from
+                        resource to IDM.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceItemDefinitionType.inbound</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outbound" type="tns:OutboundMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how the attribute values are used (assigned) in case of information flow from IDM to
+                        resource.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceItemDefinitionType.outbound</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="inlineMappings" type="tns:InlineMappingDefinitionType"/>
+
+    <xsd:complexType name="SimulatedCorrelatorsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specify what correlators to use for correlation. Note that if the `includeExistingCorrelators` is set
+                to false (default), then at least one correlator has to be specified in the `inlineCorrelators`.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="includeExistingCorrelators" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Use correlators derived from the resource of given shadows.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <!-- If the value of `includeExistingCorrelators` is "false" then bellow element has to be present. -->
+
+            <xsd:element name="inlineCorrelators" type="c:CorrelationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Inline definition of correlators. It can be used to explicitly define the correlator, for
+                        example in case when we want to simulate suggested correlation (which is not stored yet).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="additionalItemsMappings" type="c:AdditionalCorrelationItemMappingType" minOccurs="0"
+                    maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of additional item inbound mappings, which could be used from the explicitly
+                        defined correlators (see above), but which are not stored yet.
+
+                        The example usage is when the smart service suggests some new correlator. In such case the
+                        new correlator often uses also some newly suggested mapping. Neither of these is stored in
+                        repository yet, thus they need to be explicitly defined in the simulation task work definition.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="simulatedCorrelators" type="tns:SimulatedCorrelatorsType"/>
+
+    <xsd:complexType name="ObjectClassStatisticsComputationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>Resource OID for which the statistics are computed.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectClassName" type="xsd:QName">
+                        <xsd:annotation>
+                            <xsd:documentation>Object class name for which the statistics are computed.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectClassStatisticsComputationWorkDefinition" type="tns:ObjectClassStatisticsComputationWorkDefinitionType"/>
+
+    <xsd:complexType name="ObjectTypeStatisticsComputationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>Resource OID for which the statistics are computed.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Kind of the object type for which the statistics are computed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Intent of the object type for which the statistics are computed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, the particular statistics file should be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypeStatisticsComputationWorkDefinitionType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypeStatisticsComputationWorkDefinition" type="tns:ObjectTypeStatisticsComputationWorkDefinitionType"/>
+
+    <xsd:complexType name="ObjectTypeStatisticsComputationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the statistics object used or created by this activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypeStatisticsComputationWorkState" type="tns:ObjectTypeStatisticsComputationWorkStateType"/>
+
+    <xsd:complexType name="ObjectClassStatisticsComputationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the statistics object used or created by this activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="FocusObjectStatisticsComputationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                QName of the focus object type for which the statistics are computed (e.g. UserType, RoleType).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource reference to filter focuses. Only focuses that have shadows
+                                on this resource will be processed.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>FocusObjectStatisticsComputationWorkDefinitionType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="kind" type="tns:ShadowKindType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Shadow kind to filter focuses. Only focuses that have shadows of this kind will be processed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="intent" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Shadow intent to filter focuses. Only focuses that have shadows with this intent will be processed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, the particular statistics object should be reused for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>FocusObjectStatisticsComputationWorkDefinitionType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusObjectStatisticsComputationWorkDefinition" type="tns:FocusObjectStatisticsComputationWorkDefinitionType"/>
+
+    <xsd:complexType name="FocusObjectStatisticsComputationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the statistics object used or created by this activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusObjectStatisticsComputationWorkState" type="tns:FocusObjectStatisticsComputationWorkStateType"/>
+
+    <xsd:complexType name="MappingsSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest mappings" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectTypeRelatedSuggestionWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="inbound" type="xsd:boolean">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Determines direction of the mapping (inbound/outbound).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="targetPathsToIgnore" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Mapping target paths that should be ignored when generating suggestions.
+                                The meaning of a target path depends on the mapping direction.
+                                Inbound mappings: paths on the midpoint side where inbound mapping results would be stored.
+                                Outbound mappings: paths of resource attributes where outbound mapping results would be stored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Data access permissions given to the suggest task.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestionWorkDefinition" type="tns:MappingsSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="FocusTypeSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest focus type for a resource object type" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:FocusTypeSuggestionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested focus type.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusTypeSuggestionWorkState" type="tns:FocusTypeSuggestionWorkStateType"/>
+
+    <xsd:complexType name="ObjectTypesSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest object types for an object class" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The statistics file to be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypesSuggestionWorkDefinitionType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="result" type="tns:ObjectTypesSuggestionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested object types.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypesSuggestionWorkState" type="tns:ObjectTypesSuggestionWorkStateType"/>
+
+    <xsd:complexType name="CorrelationSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest correlation" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="schemaMatchRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The schema match file to be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CorrelationSuggestionWorkDefinitionType.schemaMatchRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="schemaMatch" type="tns:SchemaMatchResultType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The schema match object from workstate to be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingsSuggestionWorkDefinitionType.schemaMatch</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="result" type="tns:CorrelationSuggestionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested correlation rules (possibly multiple versions).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="correlationSuggestionWorkState" type="tns:CorrelationSuggestionWorkStateType"/>
+
+    <xsd:complexType name="AssociationSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest associations" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:AssociationsSuggestionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested associations (possibly multiple versions).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="associationSuggestionWorkState" type="tns:AssociationSuggestionWorkStateType"/>
+
+    <xsd:complexType name="MappingsSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest mappings" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the object type statistics object computed before the mapping suggestion.
+                                Used for categorical mapping suggestions when no correlated data is available.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingsSuggestionWorkStateType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="schemaMatchRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The schema match file to be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingsSuggestionWorkDefinitionType.schemaMatchRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="schemaMatch" type="tns:SchemaMatchResultType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The schema match object from workstate to be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingsSuggestionWorkDefinitionType.schemaMatch</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="result" type="tns:MappingsSuggestionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested mappings.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestionWorkState" type="tns:MappingsSuggestionWorkStateType"/>
+
+
+    <xsd:complexType name="ConnDevBaseWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="connectorDevelopmentRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:ConnectorDevelopmentType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!-- Create Connector -->
+
+    <xsd:complexType name="ConnDevCreateConnectorWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="baseTemplateUrl" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevCreateConnectorWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevCreateConnectorResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevCreateConnectorResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="ConnDevDownloadConnectorWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="connectorUrl" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDownloadConnectorWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDownloadConnectorResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDownloadConnectorResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover documentation -->
+
+    <xsd:complexType name="ConnDevDiscoverDocumentationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverDocumentationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverDocumentationResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverDocumentationResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentation" type="tns:ConnDevDocumentationSourceType" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Process Documentation -->
+
+    <xsd:complexType name="ConnDevProcessDocumentationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="baseTemplateUrl" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevProcessDocumentationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevProcessDocumentationResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevProcessDocumentationResultType">
+        <xsd:sequence>
+            <!-- xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover General Information -->
+
+    <xsd:complexType name="ConnDevDiscoverGlobalInformationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="baseTemplateUrl" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverGlobalInformationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverGlobalInformationResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverGlobalInformationResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover Object-Class specific information -->
+    <xsd:complexType name="ConnDevDiscoverObjectClassInformationDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="baseTemplateUrl" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassInformationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassInformationResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassInformationResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover Object-Class attributes -->
+    <xsd:complexType name="ConnDevDiscoverObjectClassAttributesDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objectClass" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassAttributesWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassAttributesResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassAttributesResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover Object-Class endpoints -->
+    <xsd:complexType name="ConnDevDiscoverObjectClassEndpointsDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objectClass" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassEndpointsWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassEndpointsResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassEndpointsResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Generate Global Artifact -->
+
+    <xsd:complexType name="ConnDevGenerateArtifactDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="artifact" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="endpoint" type="tns:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="relation" type="tns:ConnDevRelationInfoType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevGenerateArtifactWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevGenerateArtifactResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevGenerateArtifactResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="artifact" type="tns:ConnDevArtifactType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
 </xsd:schema>

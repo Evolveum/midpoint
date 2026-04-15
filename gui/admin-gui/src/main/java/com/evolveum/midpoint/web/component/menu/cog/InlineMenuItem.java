@@ -6,15 +6,18 @@
 
 package com.evolveum.midpoint.web.component.menu.cog;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
 /**
  * TODO: update to better use with DropdownButtonPanel. Move away from depreated com.evolveum.midpoint.web.component.menu.cog.
- * TODO: Create a builder for this.
- *
+ * Use {@link InlineMenuItemBuilder} to create instances.
  * @author lazyman
  */
 public abstract class InlineMenuItem implements Serializable {
@@ -22,6 +25,8 @@ public abstract class InlineMenuItem implements Serializable {
     private IModel<String> label;
     private IModel<Boolean> enabled = Model.of(true);
     private IModel<Boolean> visible = Model.of(true);
+    private final IModel<String> additionalCssClass = Model.of("");
+    private CompositedIconBuilder iconCompositedBuilder;
     private boolean submit = false;
     private InlineMenuItemAction action;
     private int id = -1;
@@ -80,6 +85,10 @@ public abstract class InlineMenuItem implements Serializable {
         return label != null && action == null;
     }
 
+    public IModel<String> getAdditionalCssClass() {
+        return additionalCssClass;
+    }
+
     /**
      * visible behavior for menu item in the header
      */
@@ -108,6 +117,24 @@ public abstract class InlineMenuItem implements Serializable {
     }
 
    public boolean showConfirmationDialog() {
+        return true;
+    }
+
+    protected CompositedIconBuilder getDefaultCompositedIconBuilder(String basicIcon) {
+        CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon(basicIcon, IconCssStyle.IN_ROW_STYLE);
+        return builder;
+    }
+
+    public @Nullable CompositedIconBuilder getIconCompositedBuilder() {
+        return iconCompositedBuilder;
+    }
+
+    public void setIconCompositedBuilder(CompositedIconBuilder iconCompositedBuilder) {
+        this.iconCompositedBuilder = iconCompositedBuilder;
+    }
+
+    protected boolean isMenuLinkVisible(){
         return true;
     }
 

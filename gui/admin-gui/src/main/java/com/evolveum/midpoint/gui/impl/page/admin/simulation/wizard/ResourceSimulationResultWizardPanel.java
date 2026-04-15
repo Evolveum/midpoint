@@ -1,0 +1,203 @@
+/*
+ * Copyright (C) 2010-2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
+
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardNavigationBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRefsTable;
+
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion.SimulationCorrelationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping.SimulationMappingPanel;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult.isCorrelationSimulation;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult.isMappingSimulation;
+
+@PanelType(name = "rw-simulation-result")
+@PanelInstance(identifier = "rw-simulation-result",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "ResourceSimulationResultWizardPanel.headerLabel", icon = "fa fa-bars-progress"))
+public abstract class ResourceSimulationResultWizardPanel extends AbstractWizardNavigationBasicPanel<ResourceDetailsModel> {
+
+    private static final String PANEL_TYPE = "rw-simulation-result";
+    private static final String ID_PANEL = "panel";
+
+    IModel<SimulationResultType> simulationResultModel;
+
+    public ResourceSimulationResultWizardPanel(
+            @NotNull String id,
+            @NotNull ResourceDetailsModel detailsModel,
+            @NotNull IModel<SimulationResultType> simulationResultModel) {
+        super(id, detailsModel);
+        this.simulationResultModel = simulationResultModel;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
+
+        if(isMappingSimulation(getPageBase(), simulationResultModel)) {
+            var mappingPanel = new SimulationMappingPanel(ID_PANEL, simulationResultModel){
+                @Override
+                protected void navigateToSimulationResultObject(
+                        @NotNull String simulationResultOid,
+                        @Nullable String markOid,
+                        @NotNull SimulationResultProcessedObjectType object,
+                        @NotNull AjaxRequestTarget target) {
+                    ResourceSimulationResultWizardPanel.this.navigateToSimulationResultObject(simulationResultOid, markOid, object, target);
+                }
+            };
+            mappingPanel.setOutputMarkupId(true);
+            add(mappingPanel);
+            return;
+        }
+
+        if (isCorrelationSimulation(getPageBase(), simulationResultModel)) {
+            var correlationPanel = new SimulationCorrelationPanel(ID_PANEL, simulationResultModel){
+                @Override
+                protected void navigateToSimulationResultObject(
+                        @NotNull String simulationResultOid,
+                        @Nullable String markOid,
+                        @NotNull SimulationResultProcessedObjectType object,
+                        @NotNull AjaxRequestTarget target) {
+                    ResourceSimulationResultWizardPanel.this.navigateToSimulationResultObject(simulationResultOid, markOid, object, target);
+                }
+            };
+            correlationPanel.setOutputMarkupId(true);
+            add(correlationPanel);
+            return;
+        }
+
+        SimulationResultPanel resultPanel = new SimulationResultPanel(ID_PANEL, simulationResultModel) {
+            @Override
+            protected void navigateToSimulationResultObjects(
+                    @NotNull String resultOid,
+                    @Nullable ObjectReferenceType markRef,
+                    @Nullable ObjectProcessingStateType state,
+                    @NotNull AjaxRequestTarget target) {
+                ResourceSimulationResultWizardPanel.this.navigateToSimulationResultObjects(resultOid, markRef, state, target);
+            }
+        };
+        resultPanel.setOutputMarkupId(true);
+        add(resultPanel);
+    }
+
+    protected abstract void navigateToSimulationResultObjects(
+            @NotNull String resultOid,
+            @Nullable ObjectReferenceType ref,
+            @Nullable ObjectProcessingStateType state,
+            @NotNull AjaxRequestTarget target);
+
+    protected abstract void navigateToSimulationResultObject(
+            @NotNull String simulationResultOid,
+            @Nullable String markOid,
+            @NotNull SimulationResultProcessedObjectType object,
+            @NotNull AjaxRequestTarget target);
+
+    protected boolean isBackButtonVisible() {
+        return true;
+    }
+
+    @Override
+    protected IModel<String> getBackLabel() {
+        return createStringResource("ResourceSimulationResultWizardPanel.buttonBack");
+    }
+
+    @Override
+    protected void addCustomButtons(@NotNull RepeatingView buttons) {
+
+        if (isCorrelationSimulation(getPageBase(), simulationResultModel)) {
+            AjaxIconButton export = new AjaxIconButton(buttons.newChildId(), () -> "fa fa-download mr-2",
+                    () -> getString("PageSimulationResult.export")) {
+                @Override
+                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                    // TODO implement export
+                }
+            };
+            export.showTitleAsLabel(true);
+            export.add(AttributeAppender.append("class", "btn btn-default ml-auto"));
+            export.setOutputMarkupId(true);
+            buttons.add(export);
+            return;
+        }
+
+        AjaxIconButton button = new AjaxIconButton(buttons.newChildId(), () -> "fa-solid fa-magnifying-glass mr-2",
+                () -> getString("PageSimulationResult.viewProcessedObjects")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                navigateToSimulationResultObjects(
+                        simulationResultModel.getObject().getOid(),
+                        null,
+                        null,
+                        ajaxRequestTarget
+                );
+            }
+        };
+        button.showTitleAsLabel(true);
+        button.add(AttributeAppender.append("class", "btn btn-primary ml-auto"));
+        button.setOutputMarkupId(true);
+        buttons.add(button);
+    }
+
+    @Override
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
+        return createStringResource("ResourceSimulationResultWizardPanel.breadcrumb");
+    }
+
+    @Override
+    public boolean isEnabledInHierarchy() {
+        return super.isEnabledInHierarchy();
+    }
+
+    @Override
+    protected IModel<String> getTextModel() {
+        return createStringResource("ResourceSimulationResultWizardPanel.text");
+    }
+
+    @Override
+    protected IModel<String> getSubTextModel() {
+        return isSubTextVisible() ? createStringResource("ResourceSimulationResultWizardPanel.subText")
+                : null;
+    }
+
+    protected boolean isSubTextVisible() {
+        return false;
+    }
+
+    protected CorrelationItemRefsTable getTable() {
+        return (CorrelationItemRefsTable) get(ID_PANEL);
+    }
+
+    protected String getPanelType() {
+        return PANEL_TYPE;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+}

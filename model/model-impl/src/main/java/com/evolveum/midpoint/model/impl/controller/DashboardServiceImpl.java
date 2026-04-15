@@ -351,7 +351,9 @@ public class DashboardServiceImpl implements DashboardService {
 
             CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
                     collectionSpec, null, task, task.getResult());
-            CollectionStats collStats = modelInteractionService.determineCollectionStats(compiledCollection, task, result);
+
+            // For ShadowType collections, use repository-only counting. Provisioning-based counting returns UNKNOWN for dashboard widgets.
+            CollectionStats collStats = modelInteractionService.determineCollectionStats(adjustCollectionForShadowCounting(compiledCollection), task, result);
 
             Integer value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
             Integer domainValue = collStats.getDomainCount();
@@ -377,6 +379,25 @@ public class DashboardServiceImpl implements DashboardService {
             LOGGER.error("CollectionRefSpecificationType is null in widget " + widget.getIdentifier());
         }
         return null;
+    }
+
+    private CompiledObjectCollectionView adjustCollectionForShadowCounting(CompiledObjectCollectionView compiledCollection) {
+        Class<?> targetClass = compiledCollection.getTargetClass();
+        if (targetClass == null || !ShadowType.class.isAssignableFrom(targetClass)) {
+            return compiledCollection;
+        }
+
+        CompiledObjectCollectionView adjustedCollection = compiledCollection.clone();
+        adjustedCollection.setOptions(withNoFetch(adjustedCollection.getOptions()));
+        adjustedCollection.setDomainOptions(withNoFetch(adjustedCollection.getDomainOptions()));
+        return adjustedCollection;
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> withNoFetch(
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        GetOperationOptionsBuilder builder = schemaService.getOperationOptionsBuilder().setFrom(options);
+        builder.root().noFetch();
+        return builder.build();
     }
 
     private static VariablesMap createVariables(PrismObject<? extends ObjectType> object,

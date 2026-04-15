@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -34,7 +35,7 @@ public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTy
                 getSortedAvailableData(),
                 new QNameObjectTypeChoiceRenderer(), getModelObject().isAllowAllTypesSearch()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String getNullValidDisplayValue() {
@@ -49,7 +50,6 @@ public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTy
             protected void onUpdate(AjaxRequestTarget target) {
                 getModelObject().setTypeChanged(true);
                 SearchPanel panel = findParent(SearchPanel.class);
-//                panel.displayedSearchItemsModelReset();
                 panel.searchPerformed(target);
             }
         });

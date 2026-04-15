@@ -32,6 +32,8 @@ public interface MidpointConfiguration {
     String MIDPOINT_URL_PROPERTY = "midpoint.url";
     String MIDPOINT_HOST_NAME_PROPERTY = "midpoint.hostName";
     String MIDPOINT_HTTP_PORT_PROPERTY = "midpoint.httpPort";
+    String MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY =
+            "midpoint.model.orgTreeSearchWidthBatchSize";
 
     // Names of configuration sections
     String AUDIT_CONFIGURATION = "midpoint.audit";
@@ -49,6 +51,14 @@ public interface MidpointConfiguration {
     String INTERNALS_CONFIGURATION = "midpoint.internals";
 
     String ADMINISTRATOR_INITIAL_PASSWORD = "midpoint.administrator.initialPassword";
+
+    /**
+     * System property for Smart Integration service URL override. To be used mainly for testing purposes.
+     *
+     * Accessed via {@link System#getProperty(String)}, not via configuration subsystem
+     * (this is to be reconsidered in the future).
+     */
+    String SMART_INTEGRATION_SERVICE_URL_OVERRIDE = "midpoint.smartIntegration.serviceUrlOverride";
 
     /**
      * Reference to midpoint-system.properties generated in system-init component.

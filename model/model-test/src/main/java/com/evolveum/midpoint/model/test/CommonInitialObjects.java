@@ -69,6 +69,10 @@ public interface CommonInitialObjects {
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_UTILITY_TASK = TestObject.classPath(
+            ARCHETYPES, "528-archetype-task-util.xml",
+            SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_CLASSIFICATION = TestObject.classPath(
             ARCHETYPES, "062-archetype-classification.xml",
             SystemObjectsType.ARCHETYPE_CLASSIFICATION.value());
@@ -157,6 +161,38 @@ public interface CommonInitialObjects {
     TestObject<MarkType> MARK_SHADOW_CORRELATION_STATE_CHANGED = TestObject.classPath(
             MARKS, "737-mark-shadow-correlation-state-changed.xml",
             SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
+
+    TestObject<MarkType> MARK_SHADOW_CORRELATION_OWNER_FOUND = TestObject.classPath(
+            MARKS, "739-mark-shadow-correlation-owner-found.xml",
+            SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value());
+
+    TestObject<MarkType> MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND = TestObject.classPath(
+            MARKS, "740-mark-shadow-correlation-owner-not-found.xml",
+            SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value());
+
+    TestObject<MarkType> MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN = TestObject.classPath(
+            MARKS, "741-mark-shadow-correlation-owner-not-certain.xml",
+            SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_ADDED = TestObject.classPath(
+            MARKS, "742-mark-item-value-added.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_ADDED.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_REMOVED = TestObject.classPath(
+            MARKS, "743-mark-item-value-removed.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_MODIFIED = TestObject.classPath(
+            MARKS, "744-mark-item-value-modified.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_NOT_CHANGED = TestObject.classPath(
+            MARKS, "745-mark-item-value-not-changed.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_CHANGE_NOT_APPLIED = TestObject.classPath(
+            MARKS, "746-mark-item-value-change-not-applied.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value());
 
     TestObject<MarkType> MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED = TestObject.classPath(
             MARKS, "738-mark-projection-resource-object-affected.xml",
@@ -301,6 +337,17 @@ public interface CommonInitialObjects {
             "00000000-0000-0000-0000-000000000600"
     );
 
+    TestObject<ServiceType> SERVICE_ORIGIN_ARTIFICIAL_INTELLIGENCE = TestObject.classPath(
+            SERVICES,
+            "602-origin-artificial-intelligence.xml",
+            SystemObjectsType.ORIGIN_ARTIFICIAL_INTELLIGENCE.value());
+
+    TestObject<ServiceType> SERVICE_ORIGIN_SYSTEM_INTELLIGENCE = TestObject.classPath(
+            SERVICES,
+            "603-origin-system-intelligence.xml",
+            SystemObjectsType.ORIGIN_SYSTEM_INTELLIGENCE.value());
+
+
     static void addCertificationTasks(AbstractModelIntegrationTest test, Task task, OperationResult result) throws CommonException, IOException{
         try {
             test.initTestObjects(
@@ -345,6 +392,14 @@ public interface CommonInitialObjects {
                     MARK_PROJECTION_PASSWORD_CHANGED,
                     MARK_SHADOW_CLASSIFICATION_CHANGED,
                     MARK_SHADOW_CORRELATION_STATE_CHANGED,
+                    MARK_SHADOW_CORRELATION_OWNER_FOUND,
+                    MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND,
+                    MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN,
+                    MARK_ITEM_VALUE_ADDED,
+                    MARK_ITEM_VALUE_MODIFIED,
+                    MARK_ITEM_VALUE_REMOVED,
+                    MARK_ITEM_VALUE_NOT_CHANGED,
+                    MARK_ITEM_VALUE_CHANGE_NOT_APPLIED,
                     MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED,
                     MARK_PROTECTED,
                     MARK_DECOMMISSION_LATER,

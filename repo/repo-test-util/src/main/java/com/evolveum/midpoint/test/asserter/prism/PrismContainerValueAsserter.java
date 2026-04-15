@@ -14,6 +14,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.Holder;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -160,6 +162,11 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         } catch (CommonException e) {
             throw new SystemException(e);
         }
+        return this;
+    }
+
+    public PrismContainerValueAsserter<C, RA> emitId(Holder<Long> idHolder) {
+        idHolder.setValue(getPrismValue().getId());
         return this;
     }
 

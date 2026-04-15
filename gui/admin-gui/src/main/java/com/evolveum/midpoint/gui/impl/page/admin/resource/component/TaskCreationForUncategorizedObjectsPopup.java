@@ -7,27 +7,20 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-
-import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
-
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Popup panel for creating task for unrecognized resource object (work with object class).
@@ -45,7 +38,7 @@ public class TaskCreationForUncategorizedObjectsPopup extends TaskCreationPopup<
             @Override
             protected void onInitialize() {
                 super.onInitialize();
-                getFlavorModel().setObject(SynchronizationTaskFlavor.SHADOW_RECLASSIFICATION);
+                getFlavorModel().setObject(ResourceTaskFlavors.SHADOW_RECLASSIFICATION);
             }
 
             @Override

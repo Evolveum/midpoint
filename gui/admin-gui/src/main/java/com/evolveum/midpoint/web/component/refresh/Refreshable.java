@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.web.component.refresh;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 /**

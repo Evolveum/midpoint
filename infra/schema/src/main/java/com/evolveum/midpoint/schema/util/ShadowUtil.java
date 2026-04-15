@@ -58,11 +58,13 @@ public class ShadowUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowUtil.class);
 
-    public static Collection<ShadowSimpleAttribute<?>> getPrimaryIdentifiers(ShadowType shadowType) {
+    @Nullable
+    public static Collection<ShadowSimpleAttribute<?>> getPrimaryIdentifiers(@NotNull ShadowType shadowType) {
         return getPrimaryIdentifiers(shadowType.asPrismObject());
     }
 
-    public static Collection<ShadowSimpleAttribute<?>> getPrimaryIdentifiers(PrismObject<? extends ShadowType> shadow) {
+    @Nullable
+    public static Collection<ShadowSimpleAttribute<?>> getPrimaryIdentifiers(@NotNull PrismObject<? extends ShadowType> shadow) {
         ShadowAttributesContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
             return null;
@@ -70,11 +72,13 @@ public class ShadowUtil {
         return attributesContainer.getPrimaryIdentifiers();
     }
 
-    public static Collection<ShadowSimpleAttribute<?>> getSecondaryIdentifiers(ShadowType shadowType) {
+    @Nullable
+    public static Collection<ShadowSimpleAttribute<?>> getSecondaryIdentifiers(@NotNull ShadowType shadowType) {
         return getSecondaryIdentifiers(shadowType.asPrismObject());
     }
 
-    public static Collection<ShadowSimpleAttribute<?>> getSecondaryIdentifiers(PrismObject<? extends ShadowType> shadow) {
+    @Nullable
+    public static Collection<ShadowSimpleAttribute<?>> getSecondaryIdentifiers(@NotNull PrismObject<? extends ShadowType> shadow) {
         ShadowAttributesContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
             return null;
@@ -82,7 +86,7 @@ public class ShadowUtil {
         return attributesContainer.getSecondaryIdentifiers();
     }
 
-    public static @NotNull Collection<ShadowSimpleAttribute<?>> getAllIdentifiers(PrismObject<? extends ShadowType> shadow) {
+    public static @NotNull Collection<ShadowSimpleAttribute<?>> getAllIdentifiers(@NotNull PrismObject<? extends ShadowType> shadow) {
         ShadowAttributesContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
             return List.of();
@@ -90,7 +94,7 @@ public class ShadowUtil {
         return attributesContainer.getAllIdentifiers();
     }
 
-    public static @NotNull Collection<ShadowSimpleAttribute<?>> getAllIdentifiers(ShadowType shadow) {
+    public static @NotNull Collection<ShadowSimpleAttribute<?>> getAllIdentifiers(@NotNull ShadowType shadow) {
         return getAllIdentifiers(shadow.asPrismObject());
     }
 
@@ -165,7 +169,7 @@ public class ShadowUtil {
                 "No attributes container in %s", shadow);
     }
 
-    public static @Nullable ShadowAttributesContainer getAttributesContainer(PrismObject<? extends ShadowType> shadow) {
+    public static @Nullable ShadowAttributesContainer getAttributesContainer(@NotNull PrismObject<? extends ShadowType> shadow) {
         return castShadowContainer(shadow.getValue(), ShadowType.F_ATTRIBUTES, ShadowAttributesContainer.class);
     }
 

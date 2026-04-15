@@ -265,6 +265,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult);
 
         repoAdd(CommonInitialObjects.SERVICE_ORIGIN_INTERNAL, initResult);
+        repoAdd(CommonInitialObjects.SERVICE_ORIGIN_ARTIFICIAL_INTELLIGENCE, initResult);
 
     }
 

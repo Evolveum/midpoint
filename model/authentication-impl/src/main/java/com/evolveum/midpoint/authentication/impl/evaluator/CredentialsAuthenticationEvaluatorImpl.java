@@ -91,7 +91,8 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
                 throw new DisabledException("web.security.flexAuth.invalid.required.assignment");
             }
         } else {
-            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, "password mismatch");
+            String reason = createModuleAuthenticationFailureMessage(principal, connEnv);
+            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, reason);
             throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
 
@@ -108,6 +109,10 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
                 throw new DisabledException("web.security.provider.access.denied");
             }
         }
+    }
+
+    protected String createModuleAuthenticationFailureMessage(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+        return "password mismatch";
     }
 
     private boolean checkCredentials(MidPointPrincipal principal, T authnCtx, ConnectionEnvironment connEnv) {

@@ -190,7 +190,7 @@ This is usually the account.
 It may be currently logged-in user (for synchronous operations) or owner of the task (for asynchronous operations).
 
 
-| `configuration`
+| `connection`
 | `SystemConfigurationType`
 | everywhere
 |

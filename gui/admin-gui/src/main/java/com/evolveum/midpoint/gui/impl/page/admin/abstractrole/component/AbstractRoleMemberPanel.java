@@ -20,8 +20,6 @@ import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.dialog.*;
 
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -97,7 +95,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -196,9 +193,14 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (panelConfig != null) {
             CompiledObjectCollectionView view = WebComponentUtil.getCompiledObjectCollectionView(panelConfig.getListView(),
                     panelConfig, getPageBase());
-            if (view != null && view.getTargetClass() != null
-                    && AssignmentHolderType.class.isAssignableFrom(view.getTargetClass())) {
-                return view.getTargetClass();
+            if (view != null) {
+                if (view.getTargetClass() != null && AssignmentHolderType.class.isAssignableFrom(view.getTargetClass())) {
+                    return view.getTargetClass();
+                }
+                var defaultObjectTypeFromSearchBoxConfig = getDefaultValueFromSearchBoxConfig(view.getSearchBoxConfiguration());
+                if (defaultObjectTypeFromSearchBoxConfig != null) {
+                    return (Class<AH>) defaultObjectTypeFromSearchBoxConfig;
+                }
             }
         }
         return (Class<AH>) UserType.class;
@@ -1080,6 +1082,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         return membershipAvailableRelations;
                     }
 
+                    @Override
+                    protected QName getDefaultObjectType() {
+                        return getMemberSearchType();
+                    }
+
+                    @Override
                     protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
                         unassignMembersPerformed(
                                 rowModel,
@@ -1629,13 +1637,13 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         PageStorage storage = getPageStorage(storageKey);
         if (storage == null) {
-            storage = getSessionStorage().initMemberStorage(storageKey);
+            storage = getBrowserTabSessionStorage().initMemberStorage(storageKey);
         }
         return (MemberPanelStorage) storage;
     }
 
     private PageStorage getPageStorage(String storageKey) {
-        return getSessionStorage().getPageStorageMap().get(storageKey);
+        return getBrowserTabSessionStorage().getPageStorageMap().get(storageKey);
     }
 
     protected String getStorageKeyTabSuffix() {
@@ -1735,5 +1743,22 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         String typeClass = getModelObject().getClass().getSimpleName();
         // remove "Type" suffix
         return "." + typeClass.substring(0, typeClass.length() - 4).toLowerCase();
+    }
+
+    private <AH extends AssignmentHolderType> Class<? extends AssignmentHolderType>  getDefaultValueFromSearchBoxConfig(SearchBoxConfigurationType config) {
+        if (config == null || config.getObjectTypeConfiguration() == null) {
+            return null;
+        }
+        QName defaultValue = null;
+        if (config.getObjectTypeConfiguration().getDefaultValue() != null) {
+            defaultValue = config.getObjectTypeConfiguration().getDefaultValue();
+        }
+        if (config.getDefaultObjectType() != null) {
+            defaultValue = config.getObjectTypeConfiguration().getDefaultValue();
+        }
+        if (defaultValue != null) {
+            return (Class<AH>) WebComponentUtil.qnameToClass(defaultValue);
+        }
+        return null;
     }
 }

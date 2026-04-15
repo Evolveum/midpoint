@@ -6,13 +6,28 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.qname;
 
+import java.io.Serializable;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.validator.ResourceObjectFocusTypeValidator;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
+import com.evolveum.midpoint.web.component.input.DropDownChoiceSuggestPanel;
+
 import jakarta.annotation.PostConstruct;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -21,24 +36,24 @@ import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katkav
  */
 @Component
-public class ResourceObjectFocusTypePanelFactory extends DropDownChoicePanelFactory {
+public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiComponentFactory<QName> implements Serializable {
+
+    @PostConstruct
+    public void register() {
+        getRegistry().addToRegistry(this);
+    }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        if (!super.match(wrapper, valueWrapper)) {
-            return false;
-        }
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(@NotNull IW wrapper, VW valueWrapper) {
+
         if (wrapper.getPath() == null) {
             return false;
         }
@@ -67,4 +82,81 @@ public class ResourceObjectFocusTypePanelFactory extends DropDownChoicePanelFact
         return 9999;
     }
 
+    @Override
+    protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
+        List<QName> types = getTypesList(panelCtx);
+        WebComponentUtil.sortObjectTypeList(types);
+
+        DropDownChoiceSuggestPanel<QName> typePanel =
+                new DropDownChoiceSuggestPanel<>(
+                        panelCtx.getComponentId(),
+                        panelCtx.getRealValueModel(),
+                        Model.ofList(types),
+                        new QNameObjectTypeChoiceRenderer(),
+                        true) {
+
+                    @Override
+                    protected void onSuggestAction(@NotNull AjaxRequestTarget target,
+                            List<ConfirmationOption<DataAccessPermission>> confirmedOptions) {
+                        DropDownChoice<QName> baseFormComponent = getBaseFormComponent();
+                        executeSuggestFocusTypeOperation(
+                                confirmedOptions,
+                                getPageBase(),
+                                baseFormComponent,
+                                panelCtx,
+                                target);
+                    }
+                };
+
+        typePanel.setOutputMarkupId(true);
+
+        return typePanel;
+    }
+
+    //NOTE: If we decide to submit suggestion in the task, we should implement more complex panel with logicDto provider.
+    private void executeSuggestFocusTypeOperation(
+            List<ConfirmationOption<DataAccessPermission>> confirmedOptions, @NotNull PageBase pageBase,
+            @NotNull DropDownChoice<QName> baseFormComponent,
+            @NotNull PrismPropertyPanelContext<QName> panelCtx,
+            @NotNull AjaxRequestTarget target) {
+        var itemWrapper = panelCtx.getItemWrapperModel().getObject();
+
+        ResourceObjectTypeDefinitionType objectTypeDef =
+                (ResourceObjectTypeDefinitionType) itemWrapper
+                        .getParent().getParent().getParent()
+                        .getRealValue();
+
+        ResourceType resource =
+                (ResourceType) itemWrapper
+                        .getParent().getParent().getParent()
+                        .getParent().getParent().getParent().getParent()
+                        .getRealValue();
+
+        final String resourceOid = resource != null ? resource.getOid() : null;
+
+        Task task = pageBase.createSimpleTask("Suggest focus type");
+        OperationResult result = task.getResult();
+
+        final List<DataAccessPermissionType> permissions = confirmedOptions.stream()
+                .map(ConfirmationOption::option)
+                .map(DataAccessPermission::toSchemaType)
+                .toList();
+        try {
+            SmartIntegrationService sis = pageBase.getSmartIntegrationService();
+            FocusTypeSuggestionType suggestion = sis.suggestFocusType(resourceOid, objectTypeDef, permissions, task,
+                    result);
+            if (suggestion != null && suggestion.getFocusType() != null) {
+                QName focusType = suggestion.getFocusType();
+                baseFormComponent.setModelObject(focusType);
+                target.add(baseFormComponent);
+            } else {
+                result.recordWarning("No suitable type suggestion was found.");
+            }
+        } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException | CommunicationException |
+                 ConfigurationException | ObjectNotFoundException | InsufficientPermissionsException e) {
+            result.recordFatalError("Couldn't suggest focus type: " + e.getMessage(), e);
+        }
+
+        pageBase.showResult(result);
+    }
 }

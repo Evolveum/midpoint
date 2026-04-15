@@ -8,24 +8,32 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.synchronization.ConfigureSynchronizationConfirmationPanel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
@@ -83,10 +91,90 @@ public abstract class SynchronizationReactionTableWizardPanel<C extends Abstract
         add(info);
     }
 
+    protected IModel<PrismContainerWrapper<SynchronizationReactionType>> getReactionContainerModel() {
+        return PrismContainerWrapperModel.fromContainerValueWrapper(
+                getValueModel(),
+                SynchronizationReactionsType.F_REACTION);
+    }
+
     private boolean isDeprecatedContainerInfoVisible() {
         PrismContainerValue depSynch = getAssignmentHolderDetailsModel().getObjectType().getSynchronization().clone().asPrismContainerValue();
         depSynch = WebPrismUtil.cleanupEmptyContainerValue(depSynch);
         return depSynch != null && !depSynch.hasNoItems();
+    }
+
+    @Override
+    protected void addCustomButtons(@NotNull RepeatingView buttons) {
+        AjaxIconButton generateButton = new AjaxIconButton(
+                buttons.newChildId(),
+                Model.of("fa fa-gears"),
+                createStringResource("SynchronizationReactionTableWizardPanel.generateSynchronizationReactions.button")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+
+                ConfigureSynchronizationConfirmationPanel confirmPanel =
+                        new ConfigureSynchronizationConfirmationPanel(
+                                getPageBase().getMainPopupBodyId(),
+                                getPageBase().createStringResource(
+                                        "CorrelationWizardPanelWizardPanel.configureSynchronizationConfirmationPanel.info")) {
+
+                            @Override
+                            protected void performSynchronizationConfiguration(
+                                    AjaxRequestTarget target,
+                                    @NotNull SynchronizationReactionsType generatedReactions) {
+
+                                PrismContainerWrapper<SynchronizationReactionType> containerWrapper =
+                                        getReactionContainerModel().getObject();
+
+                                if (containerWrapper == null) {
+                                    warn("No synchronization container available.");
+                                    return;
+                                }
+
+                                generatedReactions.getReaction().stream()
+                                        .map(reaction -> reaction.asPrismContainerValue().clone())
+                                        .forEach(newValue -> {
+
+                                            newValue.setParent(containerWrapper.getItem());
+                                            var newWrapper = SmartIntegrationWrapperUtils.createNewItemContainerValueWrapper(
+                                                    getPageBase(),
+                                                    newValue,
+                                                    containerWrapper,
+                                                    target
+                                            );
+                                            try {
+                                                containerWrapper.getItem().add(newWrapper.getNewValue());
+                                            } catch (SchemaException e) {
+                                                error(getPageBase().createStringResource(
+                                                        "Cannot add generated synchronization reaction %s: %s",
+                                                        newValue.toString(),
+                                                        e.getMessage()).getString());
+                                            }
+                                        });
+
+                                target.add(getTablePanel());
+                            }
+                        };
+
+                getPageBase().showMainPopup(confirmPanel, target);
+            }
+        };
+        generateButton.setOutputMarkupId(true);
+        generateButton.showTitleAsLabel(true);
+        generateButton.add(AttributeAppender.append("class", "btn btn-primary"));
+        generateButton.add(new VisibleBehaviour(() -> {
+            PrismContainerWrapper<SynchronizationReactionType> container =
+                    getReactionContainerModel().getObject();
+
+            if (container == null || container.getValues() == null) {
+                return false;
+            }
+
+            return container.getValues().isEmpty();
+        }));
+
+        buttons.add(generateButton);
     }
 
     public SynchronizationReactionTable getTablePanel() {

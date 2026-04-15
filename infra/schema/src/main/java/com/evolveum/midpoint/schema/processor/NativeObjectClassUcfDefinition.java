@@ -45,7 +45,7 @@ public interface NativeObjectClassUcfDefinition {
      */
     boolean isAuxiliary();
 
-    /** Is this an embedded object? These are meant to be passed "by value" in reference attributes. */
+    /** Is this an embedded object class? These are meant to be passed "by value" in reference and complex attributes. */
     boolean isEmbedded();
 
     /**
@@ -101,6 +101,12 @@ public interface NativeObjectClassUcfDefinition {
 
     QName getSecondaryIdentifierName();
 
+    /**
+     * Returns the description of the object class.
+     * Can be used to determine the potential use of the object class.
+     */
+    String getDescription();
+
     interface Delegable extends NativeObjectClassUcfDefinition {
 
         NativeObjectClassUcfDefinition ucfData();
@@ -149,6 +155,11 @@ public interface NativeObjectClassUcfDefinition {
         default QName getSecondaryIdentifierName() {
             return ucfData().getSecondaryIdentifierName();
         }
+
+        @Override
+        default String getDescription() {
+            return ucfData().getDescription();
+        }
     }
 
     interface Mutable {
@@ -162,6 +173,7 @@ public interface NativeObjectClassUcfDefinition {
         void setDescriptionAttributeName(QName value);
         void setPrimaryIdentifierName(QName value);
         void setSecondaryIdentifierName(QName value);
+        void setDescription(String value);
 
         interface Delegable extends Mutable {
 
@@ -202,9 +214,15 @@ public interface NativeObjectClassUcfDefinition {
             default void setPrimaryIdentifierName(QName value) {
                 ucfData().setPrimaryIdentifierName(value);
             }
+
             @Override
             default void setSecondaryIdentifierName(QName value) {
                 ucfData().setSecondaryIdentifierName(value);
+            }
+
+            @Override
+            default void setDescription(String value) {
+                ucfData().setDescription(value);
             }
         }
     }
@@ -224,6 +242,7 @@ public interface NativeObjectClassUcfDefinition {
 
         private QName primaryIdentifierName;
         private QName secondaryIdentifierName;
+        private String description;
 
         @Override
         public String getNativeObjectClassName() {
@@ -315,9 +334,20 @@ public interface NativeObjectClassUcfDefinition {
         }
 
         @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
         public void setSecondaryIdentifierName(QName value) {
             checkMutable();
             this.secondaryIdentifierName = value;
+        }
+
+        @Override
+        public void setDescription(String value) {
+            checkMutable();
+            this.description = value;
         }
 
         void copyFrom(NativeObjectClassUcfDefinition source) {
@@ -330,6 +360,7 @@ public interface NativeObjectClassUcfDefinition {
             this.descriptionAttributeName = source.getDescriptionAttributeName();
             this.primaryIdentifierName = source.getPrimaryIdentifierName();
             this.secondaryIdentifierName = source.getSecondaryIdentifierName();
+            this.description = source.getDescription();
         }
 
         @Override
@@ -343,7 +374,8 @@ public interface NativeObjectClassUcfDefinition {
             DebugUtil.debugDumpWithLabelLn(sb, "displayNameAttributeName", displayNameAttributeName, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "descriptionAttributeName", descriptionAttributeName, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierName", primaryIdentifierName, indent + 1);
-            DebugUtil.debugDumpWithLabel(sb, "secondaryIdentifierName", secondaryIdentifierName, indent + 1);
+            DebugUtil.debugDumpWithLabelLn(sb, "secondaryIdentifierName", secondaryIdentifierName, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
             return sb.toString();
         }
     }

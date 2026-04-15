@@ -17,8 +17,8 @@ podTemplate(
                         runAsUser: '0',
                         resourceRequestCpu: '1',
                         resourceLimitCpu: '1',
-                        resourceRequestMemory: '1Gi',
-                        resourceLimitMemory: '1Gi'),
+                        resourceRequestMemory: '2Gi',
+                        resourceLimitMemory: '2Gi'),
                 containerTemplate(name: 'maven',
                         image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
                         runAsUser: '0',
@@ -49,9 +49,13 @@ podTemplate(
                     withCredentials([usernamePassword(
                             credentialsId:"dependencyTrack",
                             usernameVariable:"DTRACK_URL",
-                            passwordVariable: "DTRACK_TOKEN"
-                            )]) {
+                            passwordVariable: "DTRACK_TOKEN"),
+                            file(credentialsId: 'evolveum-root-ca', variable: 'EVOLVEUM_ROOT_CA')
+                            ]) {
                         sh """#!/bin/bash -ex
+                            # Import internal CA into Java truststore for DependencyTrack HTTPS
+                            keytool -importcert -noprompt -cacerts -storepass changeit -alias evolveum-root-ca -file \$EVOLVEUM_ROOT_CA
+
                             if [ "${verbose}" -ge 1 ]
                             then
                                 id

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -33,8 +34,8 @@ import java.util.List;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound.optional", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
-public class OutboundMappingOptionalConfigurationStepPanel<ODM extends ObjectDetailsModels>
-        extends AbstractValueFormResourceWizardStepPanel<MappingType, ODM> {
+public class OutboundMappingOptionalConfigurationStepPanel<AHDM extends AssignmentHolderDetailsModel>
+        extends AbstractValueFormResourceWizardStepPanel<MappingType, AHDM> {
 
     public static final String PANEL_TYPE = "rw-attributes-outbound-optional";
 
@@ -46,7 +47,7 @@ public class OutboundMappingOptionalConfigurationStepPanel<ODM extends ObjectDet
             MappingType.F_EXCEPT_CHANNEL
     );
 
-    public OutboundMappingOptionalConfigurationStepPanel(ODM model,
+    public OutboundMappingOptionalConfigurationStepPanel(AHDM model,
                                                          IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
         super(model, newValueModel);
     }

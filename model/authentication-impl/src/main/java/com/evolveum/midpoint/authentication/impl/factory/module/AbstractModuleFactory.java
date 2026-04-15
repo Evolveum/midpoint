@@ -95,8 +95,6 @@ public abstract class AbstractModuleFactory<
         HttpSecurity http =  moduleConfigurer.getNewHttpSecurity(sharedObjects);
         http.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
 
-
-
         http.addFilterBefore(getObjectObjectPostProcessor().postProcess(new FinishAuthenticationFilter()), FilterSecurityInterceptor.class);
 
         SecurityFilterChain filter = http.build();

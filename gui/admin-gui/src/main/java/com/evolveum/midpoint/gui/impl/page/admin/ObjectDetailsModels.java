@@ -18,7 +18,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,10 +39,12 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ObjectDetailsModels<O extends ObjectType> implements Serializable, IDetachable {
 
@@ -48,6 +52,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
     private static final String DOT_CLASS = ObjectDetailsModels.class.getName() + ".";
     protected static final String OPERATION_LOAD_PARENT_ORG = DOT_CLASS + "loadParentOrgs";
+    private static final String OP_LOAD_CONNECTOR = DOT_CLASS + "loadConnector";
 
     private ModelServiceLocator modelServiceLocator;
     private LoadableDetachableModel<PrismObject<O>> prismObjectModel;
@@ -210,6 +215,13 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         validationErrors = null;
         PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
         delta = objectWrapper.getObjectDelta();
+
+//        delta.getModifications().forEach(mod -> {
+//            cleanupEmptyValue(mod.getValuesToAdd());
+//            cleanupEmptyValue(mod.getValuesToReplace());
+//            cleanupEmptyValue(mod.getValuesToDelete());
+//        });
+
         WebComponentUtil.encryptCredentials(delta, true, modelServiceLocator);
         switch (objectWrapper.getStatus()) {
             case ADDED:
@@ -351,6 +363,18 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
             return prismObjectModel.getObject();
         }
         return getObjectWrapper().getObject();
+    }
+
+    public void reloadPrismObjectByOid() {
+        String oid = getObjectWrapper().getOid();
+        if (oid == null) {
+            return;
+        }
+        Task task = getPageBase().createSimpleTask(OP_LOAD_CONNECTOR);
+
+        reset();
+        reloadPrismObjectModel((PrismObject<O>) WebModelServiceUtils.loadObject(
+                getObjectType().getClass(), oid, getPageBase(), task, task.getResult()));
     }
 
     public void reloadPrismObjectModel() {
@@ -496,5 +520,12 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
     public IModel<PrismContainerValueWrapper> getModelForSubmenu(String identifier) {
         return subMenuModels.get(identifier);
+    }
+
+    public void performAfterSavePerformed(
+            @Nullable Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
+            @NotNull AjaxRequestTarget target,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
     }
 }

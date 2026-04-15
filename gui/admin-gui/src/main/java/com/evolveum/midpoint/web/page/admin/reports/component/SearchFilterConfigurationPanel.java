@@ -24,7 +24,6 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.searchfilter.SearchFilterTypeForQueryModel;
 import com.evolveum.midpoint.gui.impl.factory.panel.searchfilter.SearchFilterTypeForXmlModel;
@@ -37,7 +36,6 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.search.BasicSearchFilterModel;
 import com.evolveum.midpoint.web.component.search.SearchPropertiesConfigPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -66,7 +64,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
 
     private LoadableModel<Class<O>> filterTypeModel;
 
-    private PrismContainerValueWrapper<ObjectCollectionType> containerWrapper;
+    private QName filterObjectType;
 
     private FieldType fieldType;
 
@@ -74,11 +72,11 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
     private final IModel<SearchFilterType> beanModel;
 
     public SearchFilterConfigurationPanel(String id, IModel<PrismPropertyWrapper<SearchFilterType>> itemModel,
-            IModel<SearchFilterType> model, PrismContainerValueWrapper<ObjectCollectionType> containerWrapper) {
+            IModel<SearchFilterType> model, QName filterObjectType) {
         super(id);
         this.beanModel = model;
         this.itemModel = itemModel;
-        this.containerWrapper = containerWrapper;
+        this.filterObjectType = filterObjectType;
         // todo why resolving model in constructor?
         if (model.getObject() == null || StringUtils.isNotBlank(model.getObject().getText())) {
             fieldType = FieldType.QUERY;
@@ -101,9 +99,8 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
             @Override
             public Class<O> load() {
                 QName filterType = null;
-                if (containerWrapper != null) {
-                    ObjectCollectionType collectionObj = containerWrapper.getRealValue();
-                    filterType = collectionObj.getType() != null ? collectionObj.getType() : ObjectType.COMPLEX_TYPE;
+                if (filterObjectType != null) {
+                    filterType = filterObjectType;
                 } else if (itemModel != null && itemModel.getObject() != null ) {
                     var item = itemModel.getObject().getItem();
                     if (item != null && item.getValue() != null) {
@@ -128,13 +125,13 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
         aceEditorField.add(new VisibleBehaviour(() -> FieldType.XML.equals(fieldType)));
         container.add(aceEditorField);
 
-        SearchFilterTypeForQueryModel queryModel = createQueryModel(getModel(), filterTypeModel, containerWrapper != null);
+        SearchFilterTypeForQueryModel queryModel = createQueryModel(getModel(), filterTypeModel, filterObjectType != null);
         TextPanel textPanel = new TextPanel(ID_TEXT_FIELD, queryModel);
         textPanel.add(new VisibleBehaviour(() -> FieldType.QUERY.equals(fieldType)));
         if (addEmptyBlumBehaviourToTextField()) {
             textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
-        textPanel.getBaseFormComponent().add(new ParseAxiomQueryValidator(queryModel));
+        initValidation(textPanel, queryModel);
         container.add(textPanel);
 
         AjaxButton searchConfigurationButton = new AjaxButton(ID_CONFIGURE_BUTTON) {
@@ -145,7 +142,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
                 searchConfigurationPerformed(target);
             }
         };
-        searchConfigurationButton.add(new VisibleBehaviour(() -> containerWrapper != null));
+        searchConfigurationButton.add(new VisibleBehaviour(() -> filterObjectType != null));
         add(searchConfigurationButton);
 
         IModel<String> labelModel = () -> {
@@ -173,6 +170,10 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
         fieldTypeButton.add(buttonLabel);
         fieldTypeButton.add(new VisibleBehaviour(() -> FieldType.XML.equals(fieldType)));
         add(fieldTypeButton);
+    }
+
+    protected void initValidation(TextPanel textPanel, SearchFilterTypeForQueryModel queryModel) {
+        textPanel.getBaseFormComponent().add(new ParseAxiomQueryValidator(queryModel));
     }
 
     private void switchToFieldType(FieldType newFieldType, AjaxRequestTarget target) {
@@ -220,7 +221,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
     }
 
     private void updateModelToMidpointQuery() {
-        if (containerWrapper == null || getModel().getObject() == null) {
+        if (filterObjectType == null || getModel().getObject() == null) {
             return;
         }
         SearchFilterTypeForQueryModel queryModel = createQueryModel(getModel(), filterTypeModel, true);

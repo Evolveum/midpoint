@@ -1,0 +1,40 @@
+= TOTP
+
+WARNING:  `totp` module can't be the first module in the sequence.
+Before `totp` module, we need to use authentication module for identification of the user, for example `focusIdentification`.
+
+Definition of "totp" module.
+The module is used for MFA authentication of a user by using Time-based One-Time Password (TOTP) algorithm.
+
+.Example of totp module configuration
+[source,xml]
+----
+<totp>
+    <identifier>my otp</identifier>
+    <issuer>local midpoint</issuer>
+
+    <!-- following properties are optional, default values are shown -->
+
+    <!-- item path to FocusType property used as label in auth URI -->
+    <label>name</label>
+    <!-- Time step in seconds. -->
+    <period>30</period>
+    <!--
+        Number of digits in generated OTP, default is 6, supported values are 6 and 8.
+        Most of the authenticator apps support only 6 digits.
+    -->
+    <digits>6</digits>
+    <!-- Supported algorithms are: sha1, sha256, sha512 -->
+    <algorithm>sha1</algorithm>
+    <!-- Secret length in bytes, defaults are specified for all supported algorithms -->
+    <secretLength>20</secretLength>
+    <!--
+        The number of time steps that are allowed for the TOTP code to be valid.
+        This allows for some clock skew between the server and the client.
+    -->
+    <window>1</window>
+</totp>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

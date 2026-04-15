@@ -10,6 +10,8 @@ import static org.testng.Assert.assertNotNull;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
 
+import com.evolveum.midpoint.gui.api.component.otp.OtpListPanel;
+
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -132,7 +134,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test014renderHistoryTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(6);
+        clickOnDetailsMenu(7);
         tester.assertComponent(MAIN_PANEL, FocusHistoryPanel.class);
     }
 
@@ -140,7 +142,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test015renderCasesTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(7);
+        clickOnDetailsMenu(8);
         tester.assertComponent(MAIN_PANEL, FocusCasesPanel.class);
     }
 
@@ -148,7 +150,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test016renderPersonasTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(8);
+        clickOnDetailsMenu(9);
         tester.assertComponent(MAIN_PANEL, UserPersonasPanel.class);
     }
 
@@ -156,7 +158,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test017renderDelegationsTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(9);
+        clickOnDetailsMenu(10);
         tester.assertComponent(MAIN_PANEL, UserDelegationsPanel.class);
     }
 
@@ -164,7 +166,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test018renderDelegatedToMeTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(10);
+        clickOnDetailsMenu(11);
         tester.assertComponent(MAIN_PANEL, DelegatedToMePanel.class);
     }
 
@@ -172,8 +174,16 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test019renderTriggersTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(11);
+        clickOnDetailsMenu(12);
         tester.assertComponent(MAIN_PANEL, FocusTriggersPanel.class);
+    }
+
+    @Test
+    public void test020renderHistoryTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(6);
+        tester.assertComponent(MAIN_PANEL, OtpListPanel.class);
     }
 
     private void clickOnDetailsMenu(int order) {

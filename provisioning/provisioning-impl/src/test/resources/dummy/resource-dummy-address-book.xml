@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>Dummy Resource</name>
+    <documentation>
+        Dummy resource with the Address Book scenario (for testing complex attributes).
+    </documentation>
+    <connectorRef oid="will-be-supplied-by-the-test-code"/>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId/>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>person</intent>
+            <delineation>
+                <objectClass>ri:person</objectClass>
+            </delineation>
+        </objectType>
+        <complexAttributeType>
+            <name>ri:address</name>
+            <delineation>
+                <objectClass>ri:address</objectClass>
+            </delineation>
+            <focus>
+                <type>PhysicalMailingAddressType</type>
+            </focus>
+        </complexAttributeType>
+        <complexAttributeType>
+            <name>ri:email</name>
+            <delineation>
+                <objectClass>ri:email</objectClass>
+            </delineation>
+            <focus>
+                <type>EmailAddressType</type>
+            </focus>
+        </complexAttributeType>
+    </schemaHandling>
+</resource>

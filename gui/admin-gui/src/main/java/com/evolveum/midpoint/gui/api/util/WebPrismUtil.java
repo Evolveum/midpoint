@@ -10,6 +10,9 @@ import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.common.cleanup.ObjectCleaner;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemWrapperComparator;
@@ -66,6 +69,7 @@ public class WebPrismUtil {
 
     private static final String DOT_CLASS = WebPrismUtil.class.getName() + ".";
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
+    private static final String OPERATION_CREATE_WRAPPER = DOT_CLASS + "createWrapper";
 
     public static final ItemName PRISM_SCHEMA = new ItemName(PrismSchemaType.F_COMPLEX_TYPE.getNamespaceURI(), "prismSchema");
 
@@ -289,6 +293,15 @@ public class WebPrismUtil {
         return value;
     }
 
+    public static void cleanupEmptyValue(Collection<? extends PrismValue> values) {
+        if (values == null || values.isEmpty()) {return;}
+        for (PrismValue v : values) {
+            if (v != null) {
+                WebPrismUtil.cleanupValueMetadata(v);
+            }
+        }
+    }
+
     public static void cleanupValueMetadata(PrismValue value) {
         if (value.hasValueMetadata()) {
             cleanupEmptyValues(value.getValueMetadata());
@@ -454,10 +467,13 @@ public class WebPrismUtil {
         return allAttributes;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static ItemPanel createVerticalPropertyPanel(String id, IModel<? extends ItemWrapper<?, ?>> model, ItemPanelSettings origSettings) {
         ItemPanel propertyPanel;
         ItemPanelSettings settings = origSettings != null ? origSettings.copy() : null;
-        if (model.getObject().getParent() != null && AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING.equivalent(model.getObject().getParent().getDefinition().getItemName())) {
+        PrismContainerValueWrapper<?> parent = model.getObject().getParent();
+        if (parent != null && parent.getDefinition() != null
+                && AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING.equivalent(parent.getDefinition().getItemName())) {
             propertyPanel = new VerticalFormRoleAnalysisAttributeSettingPanel(id, (IModel<PrismPropertyWrapper<ItemPathType>>) model, settings);
         } else if (model.getObject() instanceof ProtectedStringTypeWrapperImpl) {
             propertyPanel = new VerticalFormPasswordPropertyPanel(
@@ -651,7 +667,7 @@ public class WebPrismUtil {
                 PrismPropertyWrapper<String> nameProperty = containerValue.findProperty(AbstractMappingType.F_NAME);
                 String name = nameProperty.getValue().getRealValue();
 
-                if (StringUtils.equals(value, name)) {
+                if (StringUtils.equals(StringUtils.trim(value), StringUtils.trim(name))) {
                     numberOfSameRef++;
                 }
             } catch (SchemaException e) {
@@ -701,4 +717,97 @@ public class WebPrismUtil {
         return numberOfSameRef;
     }
 
+    /**
+     * Set read-only all items in the container and its sub-containers.
+     * Force to use LabelPanelFactory for all items.
+     *
+     * @param wrapper container value to be set read-only
+     */
+    public static void setReadOnlyRecursively(@NotNull PrismContainerValueWrapper<?> wrapper) {
+        wrapper.getItems().forEach(item -> {
+            item.setReadOnly(true);
+            if (item instanceof PrismContainerWrapper<?> containerWrapper) {
+                setReadOnlyRecursively(containerWrapper);
+            }
+        });
+    }
+
+    /**
+     * Set read-only all items in the container and its sub-containers.
+     * Force to use LabelPanelFactory for all items.
+     *
+     * @param wrapper container to be set read-only
+     */
+    public static void setReadOnlyRecursively(@NotNull PrismContainerWrapper<?> wrapper) {
+        wrapper.getValues().forEach(WebPrismUtil::setReadOnlyRecursively);
+    }
+
+    /**
+     * Create a container value wrapper for the given container object.
+     */
+    public static <C extends Containerable> @Nullable PrismContainerValueWrapper<C> createContainerValueWrapper(
+            @NotNull PageBase pageBase,
+            @Nullable C object) {
+
+        if (object == null) {
+            LOGGER.error("Cannot create container value wrapper for null object.");
+            return null;
+        }
+
+        Task task = pageBase.createSimpleTask(OPERATION_CREATE_WRAPPER);
+        OperationResult result = task.getResult();
+
+        @SuppressWarnings("unchecked")
+        PrismContainerValue<C> prismContainerValue = (PrismContainerValue<C>) object.asPrismContainerValue();
+        WrapperContext context = new WrapperContext(task, result);
+        context.setObjectStatus(ItemStatus.NOT_CHANGED);
+
+        PrismContainerWrapperFactory<C> factory = pageBase.findContainerWrapperFactory(prismContainerValue.getDefinition());
+        try {
+            return factory.createValueWrapper(null, prismContainerValue, ValueStatus.NOT_CHANGED, context);
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot create container value wrapper for object: {}", object, e);
+            result.recordFatalError(pageBase.createStringResource("WebPrismUtil.message.createWrapper.fatalError",
+                    object, e.getMessage()).getString(), e);
+            return null;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    /**
+     * Add new container value to the given container wrapper and create a wrapper for it.
+     *
+     * @param containerWrapper the container wrapper to which the new value will be added
+     * @param newValue the new container value to be added
+     * @param pageBase the page base for creating the wrapper
+     * @param wrapperContext the wrapper context for creating the wrapper
+     * @return the created wrapper for the new container value
+     * @throws SchemaException if there is an error during schema processing
+     */
+    public static <C extends Containerable> PrismContainerValueWrapper<C> addNewValueToContainer(
+            @NotNull PrismContainerWrapper<C> containerWrapper,
+            @NotNull PrismContainerValue<C> newValue,
+            @NotNull PageBase pageBase,
+            @NotNull WrapperContext wrapperContext) throws SchemaException {
+        PrismContainerValue<C> stored = newValue.clone();
+        stored.setParent(null);
+
+        ObjectCleaner cleaner = new ObjectCleaner();
+        cleaner.setRemoveContainerIds(true);
+        cleaner.process(stored);
+
+        PrismContainer<C> parent = containerWrapper.getItem();
+        parent.add(stored);
+
+        PrismContainerValueWrapper<C> newWrapper =
+                WebPrismUtil.createNewValueWrapper(
+                        containerWrapper,
+                        stored,
+                        pageBase,
+                        wrapperContext);
+
+        containerWrapper.getValues().add(newWrapper);
+        return newWrapper;
+    }
 }

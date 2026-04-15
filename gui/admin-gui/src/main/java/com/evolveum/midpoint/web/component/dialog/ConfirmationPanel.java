@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -68,7 +70,6 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
         AjaxButton noButton = new AjaxButton(ID_NO, createNoLabel()) {
             @Serial private static final long serialVersionUID = 1L;
 
-
             @Override
             public void onClick(AjaxRequestTarget target) {
                 noPerformed(target);
@@ -93,7 +94,12 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
             }
         };
         yesButton.add(AttributeAppender.append("class", getYesButtonCssClass()));
+        yesButton.add(new VisibleBehaviour(this::isYesButtonVisible));
         return yesButton;
+    }
+
+    protected boolean isYesButtonVisible() {
+        return true;
     }
 
     @Override
@@ -104,7 +110,8 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
     /**
      * this is not good way to extend confirmation panel.
      * whole html of parent panel has to be copied and maintained (it should be "internal" thing).
-     * @param panel
+     *
+     * @param panel panel to add custom components
      */
     @Deprecated
     protected void customInitLayout(WebMarkupContainer panel) {

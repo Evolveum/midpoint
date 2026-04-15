@@ -26,7 +26,11 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -123,11 +127,14 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     public static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "value-policy.xml");
     protected static final String SECURITY_POLICY_OID = "00000000-0000-0000-0000-000000000120";
 
+    protected static final String TEST_WINDOW_ID = "testWindowId";
+
     @Autowired private MidPointApplication application;
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected GuiComponentRegistry registry;
+    @Autowired protected SmartIntegrationService smartIntegrationService;
 
     protected WicketTester tester;
 
@@ -188,6 +195,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
             }
 
             @Override
+            public SmartIntegrationService getSmartIntegrationService() {
+                return smartIntegrationService;
+            }
+
+            @Override
             public DashboardService getDashboardService() {
                 return dashboardService;
             }
@@ -235,6 +247,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
             @Override
             public ExpressionFactory getExpressionFactory() {
                 return expressionFactory;
+            }
+
+            @Override
+            public BrowserTabSessionStorage getBrowserTabSessionStorage() {
+                return MidPointAuthWebSession.get().getBrowserTabSessionStorage(TEST_WINDOW_ID);
             }
 
             @Override
@@ -299,6 +316,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public TriggerHandlerRegistry getTriggerHandlerRegistry() {
+                return null;
+            }
+
+            @Override
+            public ConnectorDevelopmentService getConnectorService() {
                 return null;
             }
         };

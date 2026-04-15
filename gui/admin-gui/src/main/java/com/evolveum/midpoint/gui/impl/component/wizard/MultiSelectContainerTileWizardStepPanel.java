@@ -17,7 +17,8 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -31,15 +32,15 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.Containerable;
 
-public abstract class MultiSelectContainerTileWizardStepPanel<E extends Serializable, C extends Containerable, ODM extends ObjectDetailsModels>
-        extends SelectTileWizardStepPanel<PrismContainerValueWrapper<C>, ODM> {
+public abstract class MultiSelectContainerTileWizardStepPanel<E extends Serializable, C extends Containerable, AHDM extends AssignmentHolderDetailsModel>
+        extends SelectTileWizardStepPanel<PrismContainerValueWrapper<C>, AHDM> {
 
-    public MultiSelectContainerTileWizardStepPanel(ODM model) {
+    public MultiSelectContainerTileWizardStepPanel(AHDM model) {
         super(model);
     }
 
@@ -114,7 +115,7 @@ public abstract class MultiSelectContainerTileWizardStepPanel<E extends Serializ
                     }
 
                     @Override
-                    protected void customizeNewRowItem(PrismContainerValueWrapper<C> value) {
+                    protected void customizeNewRowItem(PrismContainerValueWrapper<C> value, Item<PrismContainerValueWrapper<C>> item) {
                         MultiSelectContainerTileWizardStepPanel.this.customizeRow(value);
                     }
 

@@ -1,0 +1,228 @@
+{
+  "endpoints": [
+    {
+      "path": "/api/v3/memberships",
+      "method": "GET",
+      "description": "List memberships for users",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/memberships",
+      "method": "POST",
+      "description": "Create a membership for a user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/memberships/available_projects",
+      "method": "GET",
+      "description": "List projects available for user memberships",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/memberships/form",
+      "method": "POST",
+      "description": "Form create membership for user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/memberships/{id}",
+      "method": "GET",
+      "description": "Get a user membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/memberships/{id}",
+      "method": "PATCH",
+      "description": "Update a user membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/memberships/{id}",
+      "method": "DELETE",
+      "description": "Delete a user membership",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/memberships/{id}/form",
+      "method": "POST",
+      "description": "Form update membership for user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/my_preferences",
+      "method": "GET",
+      "description": "Show current user's preferences",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/my_preferences",
+      "method": "PATCH",
+      "description": "Update current user's preferences",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/principals",
+      "method": "GET",
+      "description": "List principals filtered by type (including User)",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/projects/{id}/available_assignees",
+      "method": "GET",
+      "description": "List available assignees (users) for a project",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/users",
+      "method": "GET",
+      "description": "Retrieve user collection",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/users",
+      "method": "POST",
+      "description": "Create a new user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/users/{id}",
+      "method": "GET",
+      "description": "Retrieve a user (author, assignee, or responsible)",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/users/{id}",
+      "method": "POST",
+      "description": "Update user immediately",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/users/{id}",
+      "method": "PATCH",
+      "description": "Update a user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/users/{id}",
+      "method": "DELETE",
+      "description": "Delete a user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/users/{id}/lock",
+      "method": "POST",
+      "description": "Lock a user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/users/{id}/lock",
+      "method": "DELETE",
+      "description": "Unlock user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/api/v3/users/{id}/preferences",
+      "method": "PATCH",
+      "description": "Update user preferences",
+      "responseContentType": "application/json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/users/{id}/unlock",
+      "method": "POST",
+      "description": "Unlock a user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/wiki_pages/{id}/attachments",
+      "method": "POST",
+      "description": "Add attachment to wiki page",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/work_packages/{id}/available_assignees",
+      "method": "GET",
+      "description": "Work Package Available assignees",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/work_packages/{id}/available_watchers",
+      "method": "GET",
+      "description": "List available users for adding as watchers to a work package",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/api/v3/work_packages/{id}/watchers",
+      "method": "POST",
+      "description": "Add a user to the watchers of a work package",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/api/v3/work_packages/{id}/watchers/{user_id}",
+      "method": "DELETE",
+      "description": "Remove a user from the watchers of a work package",
+      "responseContentType": "application/hal+json",
+      "requestContentType": null
+    },
+    {
+      "path": "/users/{id}",
+      "method": "GET",
+      "description": "Retrieve user details",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/users/{id}",
+      "method": "PUT",
+      "description": "Update user's attributes immediately",
+      "responseContentType": "application/hal+json",
+      "requestContentType": "application/json"
+    },
+    {
+      "path": "/users/{id}",
+      "method": "DELETE",
+      "description": "Permanently remove a user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/users/{id}/lock",
+      "method": "POST",
+      "description": "Lock the user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    },
+    {
+      "path": "/users/{id}/unlock",
+      "method": "POST",
+      "description": "Unlock the user",
+      "responseContentType": "application/hal+json",
+      "requestContentType": ""
+    }
+  ]
+}

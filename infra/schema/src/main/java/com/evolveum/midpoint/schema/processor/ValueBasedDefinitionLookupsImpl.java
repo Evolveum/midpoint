@@ -29,6 +29,8 @@ import javax.xml.namespace.QName;
 import java.util.Map;
 import java.util.Set;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+
 @Component
 public class ValueBasedDefinitionLookupsImpl {
 
@@ -128,6 +130,36 @@ public class ValueBasedDefinitionLookupsImpl {
                 }
                 try {
                     ResourceObjectDefinition resourceObjectDefinition = provisioning.getDefinitionForKindIntent(resource.getOid(), rotd.getKind(), rotd.getIntent());
+                    if (resourceObjectDefinition != null) {
+                        return new SchemaContextImpl(resourceObjectDefinition.toPrismObjectDefinition());
+                    }
+                } catch (SchemaException e) {
+                    // NOOP?
+                }
+            }
+            return new SchemaContextImpl(prismValue.schemaLookup().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+        }
+    }
+
+    class ResourceObjectSetContextResolver implements SchemaContextResolver {
+
+        SchemaContextDefinition schemaContextDefinition;
+
+        public ResourceObjectSetContextResolver(SchemaContextDefinition schemaContextDefinition) {
+            this.schemaContextDefinition = schemaContextDefinition;
+        }
+
+        @Override
+        public SchemaContext computeContext(PrismValue prismValue) {
+            if (prismValue instanceof PrismContainerValue<?> container) {
+                var setBean = (ResourceObjectSetType) container.asContainerable();
+                var resourceOid = getOid(setBean.getResourceRef());
+                if (resourceOid == null) {
+                    return null;
+                }
+                try {
+                    ResourceObjectDefinition resourceObjectDefinition = provisioning.getDefinitionForKindIntent(
+                            resourceOid, setBean.getKind(), setBean.getIntent(), setBean.getObjectclass());
                     if (resourceObjectDefinition != null) {
                         return new SchemaContextImpl(resourceObjectDefinition.toPrismObjectDefinition());
                     }

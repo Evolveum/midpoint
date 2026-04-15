@@ -54,7 +54,12 @@
                     <container id="7">
                         <identifier>cleanup-options</identifier>
                         <display>
-                            <label>CleanupTask.cleanupOptions</label>
+                            <label>
+                                <orig>Cleanup options</orig>
+                                <translation>
+                                    <key>CleanupTask.cleanupOptions</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="8">
                             <c:path>extension/mext:cleanupPolicies</c:path>

@@ -12,7 +12,7 @@
     <parent>
         <artifactId>midpoint</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.10.3-SNAPSHOT</version>
+        <version>4.11-SNAPSHOT</version>
     </parent>
 
     <groupId>com.evolveum.midpoint.model</groupId>
@@ -39,6 +39,8 @@
         <module>certification-impl</module>
         <module>authentication-api</module>
         <module>authentication-impl</module>
+        <module>smart-api</module>
+        <module>smart-impl</module>
         <!-- TODO separate rest-api after PoC is finished -->
         <module>rest-impl</module>
     </modules>

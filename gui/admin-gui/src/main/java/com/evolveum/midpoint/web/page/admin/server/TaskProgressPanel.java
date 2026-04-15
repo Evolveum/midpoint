@@ -25,6 +25,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
 
     private static final String ID_PROGRESS = "progress";
@@ -64,7 +66,7 @@ public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
         };
 
         ProgressBarPanel progress = new ProgressBarPanel(ID_PROGRESS, progressModel);
-        progress.add(new VisibleBehaviour(() -> showProgressBar()));
+        progress.add(new VisibleBehaviour(this::showProgressBar));
         add(progress);
 
         IModel<GuiTaskResultStatus> resultStatusModel = new LoadableDetachableModel<>() {
@@ -125,7 +127,7 @@ public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
         return OperationResultStatusPresentationProperties.parseOperationalResultStatus(status).getIcon();
     }
 
-    private String getIconColor(OperationResultStatus status) {
+    private @NotNull String getIconColor(OperationResultStatus status) {
         if (status == null) {
             return "text-secondary";
         }

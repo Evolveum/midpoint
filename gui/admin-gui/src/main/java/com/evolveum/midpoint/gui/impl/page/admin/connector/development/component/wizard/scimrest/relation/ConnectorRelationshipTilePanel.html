@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-row pb-2 border-bottom mb-2">
+        <div class="d-flex flex-column w-100">
+            <div class="d-flex flex-row">
+                <span class="font-weight-bold w-100 clamp-1-lines" wicket:id="title"/>
+                <a class="ml-auto btn btn-link py-0 d-flex" wicket:id="modifyButton">
+                    <span>
+                        <i class="fa fa-pen-to-square pr-1"></i>
+                    </span>
+                    <wicket:message key="ConnectorRelationshipTilePanel.modify"/>
+                </a>
+                <a class="btn text-danger py-0" wicket:id="deleteButton"></a>
+            </div>
+            <span class="mt-1 text-secondary clamp-2-lines" wicket:id="description"/>
+        </div>
+
+    </div>
+    <div class="w-100 d-flex flex-row pt-3">
+        <div class="d-lex flex-column pr-2">
+            <div class="text-secondary">
+                <wicket:message key="RelationshipTilePanel.subject"/>
+            </div>
+            <div class="font-weight-bold" wicket:id="subject"/>
+            <div class="m-auto border rounded px-2">
+                <div wicket:id="subjectAttribute"/>
+            </div>
+        </div>
+        <div class="w-100 border-bottom my-auto" style="height:1px;"></div>
+        <div class="d-lex flex-column pl-2 text-right">
+            <div class="text-secondary">
+                <wicket:message key="RelationshipTilePanel.object"/>
+            </div>
+            <div class="font-weight-bold" wicket:id="object"/>
+            <div class="m-auto border rounded px-2">
+                <div wicket:id="objectAttribute"/>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>

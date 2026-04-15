@@ -8,8 +8,12 @@ package com.evolveum.midpoint.web.component.data;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 
+import java.io.Serial;
+import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoValuePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoValuePanelDto;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import org.apache.wicket.Component;
@@ -39,17 +43,26 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
+
 /**
  * @author Viliam Repan (lazyman)
  */
 public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
+
+    private static final String ID_NO_VALUE_PANEL = "noValuePanel";
 
     private static final String ID_HEADER = "header";
     private static final String ID_FOOTER = "footer";
-    private static final String ID_TABLE = "table";
+    protected static final String ID_TABLE = "table";
     private static final String ID_TABLE_CONTAINER = "tableContainer";
+
+    private static final String ID_SEARCH_RESULT_INFO = "searchResultInfo";
 
     private static final String ID_PAGING_FOOTER = "pagingFooter";
     private static final String ID_PAGING = "paging";
@@ -65,7 +78,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private boolean showPaging;
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
-    private List<IColumn<T, String>> columns;
+    protected List<IColumn<T, String>> columns;
 
     //interval in seconds
     private static final int DEFAULT_REFRESH_INTERVAL = 60;
@@ -84,6 +97,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         super(id);
         this.tableId = tableId;
         this.isRefreshEnabled = isRefreshEnabled;
+        customizeColumns(columns);
         initLayout(columns, provider);
     }
 
@@ -108,33 +122,21 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initResponsiveTable();"));
     }
 
-    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider) {
+    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T, String> provider) {
         setOutputMarkupId(true);
         add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
-        add(AttributeAppender.append("class", () -> getAdditionalBoxCssClasses()));
+        add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
+        tableContainer.add(AttributeAppender.append("class", getTableContainerAdditionalCssClasses()));
         tableContainer.setOutputMarkupId(true);
 
+
+        Component panelForNoValue = createPanelForNoValue();
+        tableContainer.add(panelForNoValue);
+
         int pageSize = getItemsPerPage(tableId);
-        DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, pageSize) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {
-                Item<T> item = super.newRowItem(id, index, rowModel);
-                return customizeNewRowItem(item, rowModel);
-            }
-
-            @Override
-            protected void onPageChanged() {
-                super.onPageChanged();
-
-                BoxedTablePanel.this.onPageChanged();
-            }
-        };
-        table.setOutputMarkupId(true);
-        table.add(new VisibleBehaviour(this::isDataTableVisible));
+        @NotNull DataTable<?, ?> table = createDataTableComponent(columns, provider, pageSize, tableContainer);
         tableContainer.add(table);
         add(tableContainer);
 
@@ -161,9 +163,55 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         header.setOutputMarkupId(true);
         add(header);
         add(AttributeAppender.append("aria-labelledby", () -> header.isVisible() ? header.getMarkupId() : null));
+
+        Label searchResultInfo = new Label(ID_SEARCH_RESULT_INFO, () -> CountToolbar.totalCountString(table));
+        searchResultInfo.setOutputMarkupId(true);
+        searchResultInfo.add(new VisibleBehaviour(this::isSearchResultInfoVisible));
+        add(searchResultInfo);
+
         WebMarkupContainer footer = createFooter(ID_FOOTER);
-        footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
+        footer.add(AttributeAppender.append("class", getAdditionalFooterCssClasses()));
+        footer.add(new VisibleBehaviour(() -> isFooterVisible(provider, pageSize)));
         add(footer);
+    }
+
+    protected boolean isSearchResultInfoVisible() {
+        return false;
+    }
+
+    protected @NotNull DataTable<T, String> createDataTableComponent(
+            List<IColumn<T, String>> columns,
+            ISortableDataProvider<T, String> provider,
+            int pageSize,
+            @NotNull WebMarkupContainer tableContainer) {
+        DataTable<T, String> table = new SelectableDataTable<T>(BoxedTablePanel.ID_TABLE, columns, provider, pageSize) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {
+                Item<T> item = super.newRowItem(id, index, rowModel);
+                return customizeNewRowItem(item, rowModel);
+            }
+
+            @Override
+            protected void onPageChanged() {
+                super.onPageChanged();
+
+                BoxedTablePanel.this.onPageChanged();
+            }
+        };
+        table.setOutputMarkupId(true);
+        table.add(AttributeAppender.append("class", this::getTableAdditionalCssClasses));
+        table.add(new VisibleBehaviour(() -> isDataTableVisible() && !displayIsolatedNoValuePanel()));
+
+        return table;
+    }
+
+    protected void customizeColumns(List<IColumn<T, String>> columns) {
+    }
+
+    protected String getAdditionalFooterCssClasses() {
+        return null;
     }
 
     //used only for debug pages, to refresh search properly when type is changed.
@@ -200,6 +248,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         Integer size = safeLongToInteger(itemsPerPage);
 
         return PrismContext.get().queryFactory().createPaging(o * size, size);
+    }
+
+    public String getTableContainerAdditionalCssClasses() {
+        return null;
+    }
+
+    public String getTableAdditionalCssClasses() {
+        return null;
     }
 
     public int getAutoRefreshInterval() {
@@ -264,9 +320,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         if (tableId == null) {
             return UserProfileStorage.DEFAULT_PAGING_SIZE;
         }
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
-        return userProfile.getPagingSize(tableId);
+        return getUserProfileStorage().getPagingSize(tableId);
+    }
+
+    private UserProfileStorage getUserProfileStorage() {
+        return getBrowserTabSessionStorage().getUserProfile();
     }
 
     @Override
@@ -309,6 +367,16 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
 
             @Override
+            protected boolean isNavigatorPanelVisible() {
+                return BoxedTablePanel.this.isNavigatorPanelVisible();
+            }
+
+            @Override
+            protected boolean isPagingSizePanelVisible() {
+                return BoxedTablePanel.this.isPagingSizePanelVisible();
+            }
+
+            @Override
             protected List<Integer> getPagingSizes() {
                 return BoxedTablePanel.this.getPagingSizes();
             }
@@ -329,6 +397,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return true;
     }
 
+    protected boolean isNavigatorPanelVisible() {
+        return true;
+    }
+
+    protected boolean isPagingSizePanelVisible() {
+        return true;
+    }
+
     protected List<Integer> getPagingSizes() {
         return null;
     }
@@ -341,9 +417,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         if (tableId == null) {
             return;
         }
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
-        userProfile.setPagingSize(tableId, newValue);
+        getUserProfileStorage().setPagingSize(tableId, newValue);
     }
 
     protected String getPaginationCssClass() {
@@ -378,6 +452,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     protected WebMarkupContainer createButtonToolbar(String id) {
         return new WebMarkupContainer(id);
+    }
+
+    protected boolean isFooterVisible(ISortableDataProvider<T, String> provider, int pageSize) {
+        return !hideFooterIfSinglePage() || provider.size() > pageSize;
     }
 
     private static class PagingFooter extends Fragment {
@@ -422,6 +500,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                     return PagingFooter.this.getPaginationCssClass();
                 }
             };
+            nb2.add(new VisibleBehaviour(() -> isNavigatorPanelVisible()));
             footerContainer.add(nb2);
 
             Form form = new MidpointForm(ID_FORM);
@@ -453,6 +532,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             };
             // todo nasty hack, we should decide whether paging should be normal or "small"
             menu.setSmall(getPaginationCssClass() != null);
+            menu.add(new VisibleBehaviour(() -> isPagingSizePanelVisible()));
             form.add(menu);
             add(footerContainer);
         }
@@ -481,6 +561,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             return true;
         }
 
+        protected boolean isNavigatorPanelVisible() {
+            return true;
+        }
+
+        protected boolean isPagingSizePanelVisible() {
+            return true;
+        }
+
         protected List<Integer> getPagingSizes() {
             return null;
         }
@@ -492,5 +580,52 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         protected void setPageSize(Integer newPageSize) {
 
         }
+    }
+
+    /**
+     * Determines whether the panel should display a special UI component
+     * (e.g. {@link NoValuePanel}) when there are no values
+     * present in the container.
+     */
+    public boolean displayIsolatedNoValuePanel() {
+        return false;
+    }
+
+    /**
+     * Creates a fallback UI panel to be displayed when the container model has no values.
+     * <p>
+     * This method constructs a {@link NoValuePanel} that visually indicates the
+     * absence of configured resource object types and provides a set of actionable toolbar buttons
+     * (e.g., create new or suggest type).
+     * </p>
+     *
+     * @return A {@link Component} instance to be used as the panel when no values are present.
+     */
+    protected Component createPanelForNoValue() {
+        NoValuePanel components = new NoValuePanel(ID_NO_VALUE_PANEL, () -> new NoValuePanelDto("result")) {
+
+            @Contract("_ -> new")
+            @Override
+            protected @NotNull @Unmodifiable List<Component> createToolbarButtons(String buttonsId) {
+                return Collections.singletonList(createButtonToolbar(buttonsId));
+            }
+
+            @Override
+            protected StringResourceModel getCustomSubTitleModel() {
+                return getNoValuePanelCustomSubTitleModel();
+            }
+        };
+        components.setOutputMarkupId(true);
+        components.setOutputMarkupPlaceholderTag(true);
+        components.add(new VisibleBehaviour(this::displayIsolatedNoValuePanel));
+        return components;
+    }
+
+    protected Component getNoValuePanel() {
+        return get(ID_NO_VALUE_PANEL);
+    }
+
+    protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
+        return null;
     }
 }

@@ -141,7 +141,7 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
         IModel<? extends PrismContainerWrapper> model = super.getContainerFormModel();
         PrismContainerWrapper container = null;
         try {
-            container =model.getObject().findContainer(
+            container = model.getObject().findContainer(
                     ItemPath.create("connectorConfiguration", "configurationProperties"));
         } catch (SchemaException e) {
             //ignore it

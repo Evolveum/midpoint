@@ -454,12 +454,21 @@ If you find out the problem is somewhere inside a xref:/midpoint/reference/expre
 MidPoint has xref:/midpoint/reference/expressions/expressions/script/functions/[script expression functions] that can be used to log messages from the scripting code.
 It works like this:
 
+.Logging in MEL
+[source,mel]
+----
+log.error('The {} is broken, {} is to blame', [ resource, reason ])
+----
+
+.Logging in Groovy
 [source,groovy]
 ----
 log.error('The {} is broken, {} is to blame', resource, reason)
 ----
 
-See xref:/midpoint/reference/expressions/expressions/script/functions/[Script Expression Functions] page for more details.
+
+For MEL expressions, see xref:/midpoint/reference/expressions/expressions/script/mel/specification/[MEL Specification].
+For Groovy see xref:/midpoint/reference/expressions/expressions/script/functions/[Script Expression Functions] page for more details.
 
 
 == Provisioning Branch
@@ -634,6 +643,8 @@ This will log all the deltas that are requested to execute from the user interfa
 Sometimes the problem is in the request delta.
 The audit is the easiest way to check that.
 
+* Errors produced by CEL engine which evaluates MEL expressions can be very cryptic and confusing.
+See xref:/midpoint/reference/expressions/expressions/script/mel/migration/[Troubleshooting MEL Expressions] guide for a list of common errors, their explanation and remediation tips.
 
 == See Also
 
@@ -646,3 +657,5 @@ The audit is the easiest way to check that.
 * xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps]
 
 * xref:/midpoint/devel/bugfixing/[Bugfixing and Support]
+
+* xref:/midpoint/reference/expressions/expressions/script/mel/migration/[Troubleshooting MEL Expressions]

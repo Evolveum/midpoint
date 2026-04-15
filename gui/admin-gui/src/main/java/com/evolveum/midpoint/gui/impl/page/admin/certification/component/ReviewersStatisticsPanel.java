@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
@@ -393,8 +394,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
     private IModel<DisplayType> getReviewersPanelDisplayModel(int reviewersCount) {
         String reviewersCountKey = reviewersCount == 1 ? "CampaignStatisticsPanel.reviewersPanel.singleReviewerCount" :
                 "CampaignStatisticsPanel.reviewersPanel.reviewersCount";
-        return () -> new DisplayType()
-                .label("CampaignStatisticsPanel.reviewersPanel.title")
+        return () -> GuiDisplayTypeUtil.createDisplayTypeWithLabel("CampaignStatisticsPanel.reviewersPanel.title")
                 .help(createStringResource(reviewersCountKey, reviewersCount).getString());
     }
 

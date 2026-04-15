@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.basic;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -33,7 +34,7 @@ public class FocusResourceObjectTypeStepPanel
     private final IModel<PrismContainerValueWrapper<ResourceObjectFocusSpecificationType>> valueModel;
 
     public FocusResourceObjectTypeStepPanel(ResourceDetailsModel model,
-                                            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
         super(model, null, null);
         this.valueModel = createNewValueModel(newValueModel, ResourceObjectTypeDefinitionType.F_FOCUS);
     }
@@ -71,4 +72,10 @@ public class FocusResourceObjectTypeStepPanel
             return ItemVisibility.AUTO;
         };
     }
+
+    @Override
+    protected ItemMandatoryHandler getMandatoryHandler() {
+        return wrapper -> wrapper.getItemName().equals(ResourceObjectFocusSpecificationType.F_TYPE);
+    }
+
 }

@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.web.page.admin.resources.ResourceContentPane
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
@@ -20,7 +21,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -41,6 +41,8 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -104,15 +106,21 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
                                                 .withHideSuccess(true)
                                                 .withHideInProgress(true))
                                 .runVoid((task, result) -> {
-                                    @Nullable var finalCollectionView =
-                                            collectionView != null ? collectionView : getObjectCollectionView();
                                     PrismObject<ResourceType> resource = ResourceTasksPanel.this.getObjectWrapper().getObject();
-                                    var newTask = ResourceTaskCreator.forResource(resource.asObjectable(), getPageBase())
-                                            .withArchetype(finalCollectionView != null ? finalCollectionView.getArchetypeOid() : null)
+
+                                    final ResourceTaskFlavor<?> workDefinitionsFactory =
+                                            Optional.ofNullable(collectionView)
+                                                    .or(() -> Optional.ofNullable(getObjectCollectionView()))
+                                                    .map(CompiledObjectCollectionView::getArchetypeOid)
+                                                    .map(ResourceTaskFlavors::forArchetype)
+                                                    .orElse(null);
+
+                                    TaskType newTask = ResourceTaskCreator.of(workDefinitionsFactory, getPageBase())
+                                            .forResource(resource.asObjectable())
                                             .withCoordinates(
                                                     getKind(), // FIXME not static
                                                     getIntent(), // FIXME not static
-                                                    getObjectClass()) // FIXME not static
+                                                    getObjectClass())
                                             .create(task, result);
 
                                     DetailsPageUtil.dispatchToNewObject(newTask, getPageBase());

@@ -9,7 +9,6 @@
 <wicket:panel>
     <div wicket:id="valueForm">
         <div class="prism-header mb-3" wicket:id="header">
-            <span wicket:id="deleteStatusMessage" role="status" class="sr-only" aria-live="polite"></span>
             <button type="button" data-toggle="collapse" class="btn btn-tool" aria-live="polite" wicket:id="expandableLabelContainer">
                 <i wicket:id="expandCollapseButton" class="expand-collapse-button"/>
                 <span class="prism-title" wicket:id="label"/>
@@ -37,6 +36,14 @@
                     <i class="fa fa-tag"></i>
                 </button>
             </wicket:enclosure>
+
+            <wicket:enclosure child="deleteStatusMessage">
+                <span wicket:id="deleteStatusMessage" role="status" class="sr-only" aria-live="polite"></span>
+            </wicket:enclosure>
+
+            <div class="ml-5">
+                <span wicket:id="longHelp"/>
+            </div>
         </div>
         <div class="mb-3 ml-3" wicket:id="metadata"/>
 

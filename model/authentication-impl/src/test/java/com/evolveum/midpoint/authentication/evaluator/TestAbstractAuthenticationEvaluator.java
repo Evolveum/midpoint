@@ -14,25 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
-import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
-import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
-import com.evolveum.midpoint.authentication.impl.channel.GuiAuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.evaluator.CredentialsAuthenticationEvaluatorImpl;
-
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
-import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.TestTask;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -46,19 +27,36 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
+import com.evolveum.midpoint.authentication.impl.channel.GuiAuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.evaluator.CredentialsAuthenticationEvaluatorImpl;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
+import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -78,8 +76,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     private static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
     private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 
-    private static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
-    protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+    protected static final TestObject<UserType> USER_JACK =
+            TestObject.file(COMMON_DIR, "user-jack.xml", "c0c010c0-d34d-b33f-f00d-111111111111");
+    protected static final String USER_JACK_OID = USER_JACK.oid;
     private static final String USER_JACK_USERNAME = "jack";
     static final String USER_JACK_PASSWORD = "deadmentellnotales";
 
@@ -96,8 +95,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     private static final TestObject<RoleType> ROLE_BLUE = TestObject.file(
             COMMON_DIR, "role-blue.xml", "8eed0da1-e949-4d0d-b154-0a81167e287b");
 
-    private static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");
-    static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+    protected static final TestObject<UserType> USER_GUYBRUSH = TestObject.file(
+            COMMON_DIR, "user-guybrush.xml", "c0c010c0-d34d-b33f-f00d-111111111116");
+    static final String USER_GUYBRUSH_OID = USER_GUYBRUSH.oid;
     private static final String USER_GUYBRUSH_USERNAME = "guybrush";
     static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 
@@ -166,8 +166,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         // Users
         addObject(USER_PAINTER, initTask, initResult); // using model because of assignments
 
-        repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
-        repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
+        addObject(USER_JACK.get(), ModelExecuteOptions.create().raw(), initTask, initResult);
+        addObject(USER_GUYBRUSH.get(), ModelExecuteOptions.create().raw(), initTask, initResult);
 
         TASK_TRIGGER_SCANNER_ON_DEMAND.init(this, initTask, initResult);
 
@@ -737,7 +737,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         clock.overrideDuration("PT30M");
         TASK_TRIGGER_SCANNER_ON_DEMAND.rerun(result);
         clock.resetOverride();
-
 
         then("user is unlocked");
 

@@ -6,6 +6,8 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-10-22T08:59:42.348+02:00
 :page-upkeep-status: yellow
+:page-keywords: [ "port", "http", "https", "apache", "tomcat", "nginx", "80", "443" ]
+:page-search-alias: change listening port
 
 MidPoint is often deployed as a xref:/midpoint/reference/deployment/stand-alone-deployment/[stand-alone server] with an embedded Apache Tomcat container.
 It is expected that such a server will listen on ports 80 (HTTP) and 443 (HTTPS).

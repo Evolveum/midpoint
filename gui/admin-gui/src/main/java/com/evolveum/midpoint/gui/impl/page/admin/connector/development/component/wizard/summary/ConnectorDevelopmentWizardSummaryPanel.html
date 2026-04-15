@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column">
+        <div class="mb-3 h4 w-100">
+            <wicket:message key="ConnectorDevelopmentWizardSummaryPanel.title"/>
+        </div>
+        <div class="card d-flex flex-row p-3">
+            <div class="pr-3 d-flex flex-column justify-content-center">
+                <i class="fa fa-check-double text-primary"/>
+            </div>
+            <div class="d-flex flex-column">
+                <span class="font-weight-bold w-100 clamp-1-lines">
+                    <wicket:message key="ConnectorDevelopmentWizardSummaryPanel.readOnlyTitle"/>
+                </span>
+                <span class="mt-1 text-secondary clamp-2-lines">
+                    <wicket:message key="ConnectorDevelopmentWizardSummaryPanel.readOnlyDescription"/>
+                </span>
+            </div>
+            <div class="ml-auto my-auto" wicket:id="readOnlyProgressBar"/>
+            <wicket:enclosure child="readOnlyFinish">
+                <div class="ml-auto my-auto">
+                    <div class="text-success" wicket:id="readOnlyFinish">
+                        <span>
+                            <i class="fa fa-plus-circle"/>
+                        </span>
+                        <wicket:message key="ConnectorDevelopmentWizardSummaryPanel.readOnlyFinish"/>
+                    </div>
+                </div>
+            </wicket:enclosure>
+        </div>
+        <div class="d-flex flex-row mr-n3">
+            <div class="col-4 p-0 pr-3" wicket:id="statusWidgets">
+                <div class="h-100 pb-3" wicket:id="statusWidget"/>
+            </div>
+        </div>
+        <div class="d-flex flex-row mr-n3">
+            <div class="col-6 p-0 pr-3" wicket:id="numberOfObjectsWidgets">
+                <div wicket:id="numberOfObjectsWidget"/>
+            </div>
+        </div>
+        <div wicket:id="connectorAction"/>
+    </div>
+</wicket:panel>
+</html>

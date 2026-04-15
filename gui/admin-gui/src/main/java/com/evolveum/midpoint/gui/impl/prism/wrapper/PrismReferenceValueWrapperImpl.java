@@ -7,9 +7,11 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.form.CreateObjectForReferencePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -54,6 +57,13 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 
     private boolean editEnabled = true;
     private boolean isLink = false;
+
+    @Override
+    protected <V extends PrismValue> V getNewValueWithMetadataApplied() throws SchemaException {
+        V value = super.getNewValueWithMetadataApplied();
+        WebPrismUtil.cleanupValueMetadata(value);
+        return value;
+    }
 
     @Override
     public void setRealValue(T realValueReferencable) {
@@ -135,12 +145,18 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     @Override
     public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
             ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
-        if (!isNewObjectModelCreated()) {
+        if (!isNewObjectModelCreated() || isObjectEmpty()) {
             return super.getPreconditionDeltas(serviceLocator, result);
         }
         processBeforeCreatingPreconditionDelta(newObjectModel, serviceLocator);
         return Collections.singletonList(new ReferenceExecutedDeltaProcessor(
                 newObjectModel.collectDeltas(result), PrismReferenceValueWrapperImpl.this));
+    }
+
+    private boolean isObjectEmpty() {
+        PrismObject<? extends ObjectType> clone = newObjectModel.getObjectWrapper().getObject().copy();
+        WebPrismUtil.cleanupEmptyContainers(clone);
+        return clone.isEmpty();
     }
 
     /**
@@ -152,21 +168,21 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     /**
      * Return details model for new object that will be added to reference value.
      */
-    public <O extends ObjectType> ObjectDetailsModels<O> getNewObjectModel(
-            ContainerPanelConfigurationType config, ModelServiceLocator serviceLocator, OperationResult result) {
+    public <ODM extends ObjectDetailsModels<O>, O extends ObjectType> ObjectDetailsModels<O> getNewObjectModel(
+            ContainerPanelConfigurationType config, PageAdminLTE pageAdminLTE, OperationResult result) {
         if (!isNewObjectModelCreated()) {
 
-            newObjectModel = createNewObjectModel(config, serviceLocator, result);
+            newObjectModel = createNewObjectModel(config, pageAdminLTE, result);
         }
         return (ObjectDetailsModels<O>) newObjectModel;
     }
 
     private  <O extends ObjectType> ObjectDetailsModels<O> createNewObjectModel(
-            ContainerPanelConfigurationType config, ModelServiceLocator serviceLocator, OperationResult result) {
+            ContainerPanelConfigurationType config, PageAdminLTE pageAdminLTE, OperationResult result) {
         if (newPrismObject == null) {
 
             try {
-                newPrismObject = createNewPrismObject(result);
+                newPrismObject = createNewPrismObject(result, pageAdminLTE);
 
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot create wrapper for new object in reference \nReason: {]", e, e.getMessage());
@@ -179,10 +195,18 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
                 return (PrismObject<O>) newPrismObject;
             }
         };
+        return createObjectDetailsModels(config, pageAdminLTE, prismObjectModel);
+    }
+
+    protected  <O extends ObjectType> @NotNull ObjectDetailsModels<O> createObjectDetailsModels(
+            ContainerPanelConfigurationType config, ModelServiceLocator serviceLocator, LoadableDetachableModel<PrismObject<O>> prismObjectModel) {
         return new ObjectDetailsModels<>(prismObjectModel, serviceLocator) {
             @Override
             public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
-                return Collections.singletonList(config);
+                if (config != null) {
+                    return Collections.singletonList(config);
+                }
+                return Collections.emptyList();
             }
 
             @Override
@@ -199,7 +223,7 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     /**
      * Create new object that will be added to reference value.
      */
-    protected <O extends ObjectType> PrismObject<O> createNewPrismObject(OperationResult result) throws SchemaException {
+    protected <O extends ObjectType> PrismObject<O> createNewPrismObject(OperationResult result, PageAdminLTE pageAdminLTE) throws SchemaException {
         PrismReferenceWrapper<T> parent = getParent();
         List<QName> types = parent.getTargetTypes();
         if (types.size() != 1) {

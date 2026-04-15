@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -303,9 +304,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     private boolean allModulesAreSuccessful() {
-        return sequence.getModule()
-                .stream()
-                .allMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
+        return sequence.getModule().stream()
+                .allMatch(m -> isModuleAuthenticationSuccessful(m));
     }
 
     private boolean allProcessedModulesWithNecessityAreSuccessful() {
@@ -338,9 +338,26 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType moduleNecessity) {
         List<AuthenticationSequenceModuleType> modules = sequence.getModule();
         return modules.stream()
-                .anyMatch(m -> moduleNecessity.equals(m.getNecessity())
-                        && (getAuthenticationByIdentifier(m) == null
-                        || !AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState())));
+                .filter(m -> moduleNecessity.equals(m.getNecessity()))
+                .anyMatch(m -> !isModuleAuthenticationSuccessful(m));
+    }
+
+    private boolean isModuleAuthenticationSuccessful(AuthenticationSequenceModuleType m) {
+        ModuleAuthentication ma = getAuthenticationByIdentifier(m);
+        if (ma == null) {
+            return false;
+        }
+
+        if (AuthenticationModuleState.SUCCESSFULLY == ma.getState()) {
+            return true;
+        }
+
+        if (AuthenticationModuleState.CALLED_OFF == ma.getState() && BooleanUtils.isTrue(m.isAcceptEmpty())) {
+            // authentication was called off, but sequence module configuration allows "empty" auth via acceptEmpty = true
+            return true;
+        }
+
+        return false;
     }
 
     private ModuleAuthentication getAuthenticationByIdentifier(AuthenticationSequenceModuleType module) {

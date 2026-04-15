@@ -657,11 +657,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         display("getObject resource", resource);
         result.computeStatus();
         display("getObject result", result);
-        assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+        assertSuccess(result); // empty configuration is now allowed
 
         OperationResultType fetchResult = resource.asObjectable().getFetchResult();
         display("resource.fetchResult", fetchResult);
-        assertEquals("Expected partial error in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+        assertThat(fetchResult).as("resource.fetchResult").isNull(); // null means success
 
         // TODO: better asserts
         assertNotNull("Null resource", resource);

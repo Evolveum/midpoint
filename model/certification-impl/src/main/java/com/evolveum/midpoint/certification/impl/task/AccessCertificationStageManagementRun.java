@@ -80,7 +80,7 @@ public abstract class AccessCertificationStageManagementRun<
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
         // HANDLERS
         computationHelper = getActivityHandler().getComputationHelper();
         updateHelper = getActivityHandler().getUpdateHelper();
@@ -98,7 +98,7 @@ public abstract class AccessCertificationStageManagementRun<
 
         query = prepareObjectQuery();
 
-        super.beforeRun(result);
+        return super.beforeRun(result);
     }
 
     @Override

@@ -1,66 +1,68 @@
 = Administrator unlock
+:page-keywords: administrator, unlock, password reset, administrator lockout, user lockout, user unlock, password reset, user password reset
+:page-description: This guide describes how to resolve administrator access issues, such as unlocking a locked account or resetting its password.
 
-Ninja does not provide unlock or password reset operations explicitly.
-Normally administrator can do this via GUI.
-It may happen that administrator locks out itself from the system, in which case we recommend to reinitialize the object:
+This guide describes how to resolve administrator access issues, such as unlocking a locked account or resetting its password.
+While the procedure is described for administrator user, it can be used for any user object in midPoint.
 
-.Administrator object refresh from the initial object
-[source,bash]
-----
-ninja.sh import --input <midpoint>/doc/config/initial-objects/050-user-administrator.xml --overwrite
-----
-
-Now, this is rather a drastic measure - let's modify the existing user instead.
-First we need to export it.
+If an administrator is locked out of the midPoint GUI, an authorized administrator with access to the repository can recover the account by modifying the user object directly using Ninja.
+This is an emergency procedure and should not be used under normal circumstances.
 
 [NOTE]
-Ninja can be used while midPoint is running.
+====
+With the exception of H2 database, you can use Ninja to modify user objects while midPoint is running as other databases have dedicated servers.
+With an H2 database, you need to stop midPoint before using Ninja to modify user objects.
+====
 
-.Exporting administrator user by OID
+Unlock your administrator account or reset your password:
+
+. Export the administrator user object (in XML) from the repository. +
+In the following code example, we are exporting the administrator user by its OID (object identifier):
+
++
 [source,bash]
 ----
 ninja.sh export --oid 00000000-0000-0000-0000-000000000002 --output admin.xml
 ----
 
-Alternatively, you can use type option and filter to specify name
-(don't forget the `--overwrite` option, if the file already exists):
++
+Alternatively, you can use the `type` option, and `filter` to specify the user name:
 
-.Exporting user by name
++
 [source,bash]
 ----
 ninja.sh export --type user --filter '% name = "administrator"' --output admin.xml
 ----
 
-Now is the time to carefully edit the object XML.
-If a single object is in the XML (which is our case), you can remove the `<objects>` wrapper element.
-This may actually help with code completion if xref:/midpoint/tools/studio/[midPoint Studio] is used.
+. Edit the exported XML to fix the problem. +
+Typical scenarios are:
 
-Typical fixes to shape up the uncooperative user object are:
-
-* Remove `administrativeStatus` and `effectiveStatus` elements from the top-level `activation`
+* Fixing issues related to user disabling by removing the `administrativeStatus` and `effectiveStatus` elements from the top-level `activation`
 element (be sure not to modify `activation` under `assignments` inadvertently).
-This should fix any problems with disabled user.
-* If you forgot the password, change the whole content of the `credentials/password/value` element
-to this snippet (must be inside the `value` element):
+* Resetting a forgotten password by changing the whole content of the `credentials/password/value` element
+to the following snippet, i.e., replacing the `<t:encryptedData>...</t:encryptedData>` element in the `<value>` element with:
+
 +
 [source,xml]
 ----
-<t:clearValue>asdf1234</t:clearValue>
+<t:clearValue>defineYourNewPasswordHere</t:clearValue>
 ----
 
-After the fixes, it's time to push the object back into the repository.
-Import process can handle both plain object or objects inside `<object>` container.
-Use the following command:
++
+Note that the password you enter into the `<t:clearValue>` element is not checked for compliance with the password policy requirements.
+Make sure you either use a password that meets the policy requirements, or change your password once you log into midPoint.
 
-.Importing the fixed user object
++
+If you are using xref:/midpoint/tools/studio/[midPoint Studio], you may improve code completion by removing the `<objects>` wrapper element.
+Note that this is not required, and it is only possible as we are updating a single object, i.e., the administrator user.
+
+. Import the updated user object back into the repository. +
+The import process can handle both a plain object or objects inside the `<object>` container.
+Use the `--overwrite` option as the file already exists.
+
++
+.Importing the updated user object
 [source,bash]
 ----
 ./bin/ninja.sh import --input admin.xml --overwrite
 ----
-
-Now you should enjoy easy administrator login.
-Of course, this works for any user object, but using the GUI with working administrator is the way to go.
-
-[IMPORTANT]
-If you changed the password in this way, don't forget to change it immediately to something more solid.
-This will also properly encrypt it in the object representation, as expected.

@@ -154,6 +154,8 @@ In case of top-level translation the behavior is different: if the key cannot be
 . The `orig` value of the polystring is used as default value.
 It will be used in case that there is no suitable `lang` for a particular language, there is no `translation` or that the translation does not provide meaningful result (e.g. the translation key cannot be found).
 
+IMPORTANT: _orig_ value of the polystring is never treated as a translation key. Therefore, it cannot be translated, but it is always used as it is. To make a polystring value localized, please, configure it in a right way using translation keys or languages within polystring.
+
 == Future
 
 See xref:/midpoint/features/planned/polystring/[PolyString Improvements] page to learn about planned improvements to polystrings.

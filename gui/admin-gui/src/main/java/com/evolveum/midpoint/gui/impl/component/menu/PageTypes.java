@@ -10,8 +10,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplication;
+import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplications;
 import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertItems;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopments;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
 import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
@@ -25,11 +29,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMarks;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResults;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -42,7 +45,8 @@ import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.services.PageAllServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -51,7 +55,7 @@ public enum PageTypes {
 
     USER("users", GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class, PageUser.class, UserType.COMPLEX_TYPE),
     ROLE("roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, PageRoles.class, PageRole.class, RoleType.COMPLEX_TYPE),
-    SERVICE("services", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageServices.class, PageService.class, ServiceType.COMPLEX_TYPE),
+    SERVICE("services", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageAllServices.class, PageService.class, ServiceType.COMPLEX_TYPE),
     POLICY("policies", GuiStyleConstants.CLASS_OBJECT_POLICY_ICON, PagePolicies.class, PagePolicy.class, PolicyType.COMPLEX_TYPE),
     ORG("orgs", GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgs.class, PageOrg.class, OrgType.COMPLEX_TYPE),
     TASK("tasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON, PageTasks.class, PageTask.class, TaskType.COMPLEX_TYPE),
@@ -66,7 +70,9 @@ public enum PageTypes {
     MARK("marks", GuiStyleConstants.CLASS_MARK, PageMarks.class, PageMark.class, MarkType.COMPLEX_TYPE),
     SCHEMA("schemas", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA, PageSchemas.class, PageSchema.class, SchemaType.COMPLEX_TYPE),
     ACCESS_CERT_ITEM_TYPE("certItems", GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, PageCertItems.class, null, AccessCertificationWorkItemType.COMPLEX_TYPE),
-    ANALYTICS("analytics", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageRoleAnalysis.class, PageRoleAnalysis.class, RoleAnalysisSessionType.COMPLEX_TYPE);
+    ANALYTICS("analytics", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageRoleAnalysis.class, PageRoleAnalysis.class, RoleAnalysisSessionType.COMPLEX_TYPE),
+    APPLICATION("applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON, PageApplications.class, PageApplication.class, ApplicationType.COMPLEX_TYPE),
+    CONNECTOR_DEVELOPMENT("connectorDevelopments", GuiStyleConstants.CLASS_OBJECT_CONNECTOR_ICON, PageConnectorDevelopments.class, PageConnectorDevelopment.class, ConnectorDevelopmentType.COMPLEX_TYPE);
 
 
     private String identifier;

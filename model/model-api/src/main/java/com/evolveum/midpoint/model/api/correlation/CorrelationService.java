@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -15,11 +16,11 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Contains correlation-related methods that should be accessible from the outside of `model` module.
@@ -36,6 +37,16 @@ public interface CorrelationService {
             @Nullable String archetypeOid,
             @NotNull Set<String> candidateOids,
             @NotNull CorrelatorDiscriminator discriminator,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    @NotNull CompleteCorrelationResult correlate(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceType resource,
+            @NotNull ResourceObjectTypeDefinition resourceObjectTypeDefinition,
+            @NotNull CorrelationDefinitionType correlationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -81,13 +92,44 @@ public interface CorrelationService {
             ConfigurationException, ObjectNotFoundException;
 
     /**
+     * Executes retry-safe business logic required before a correlation case may be
+     * persisted as closing. If this method fails, the case remains open.
+     */
+    default void prepareCorrelationCaseClosing(
+            @NotNull CaseType currentCase,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+    }
+
+    /**
      * Instantiates a correlator
      */
-//    CorrelatorConfiguration determineCorrelatorConfiguration(@NotNull ObjectTemplateType objectTemplate,
-//            SystemConfigurationType systemConfiguration);
-
     PathSet determineCorrelatorConfiguration(@NotNull CorrelatorDiscriminator discriminator, String archetypeOid, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
 
+    /**
+     * Find focus, which is either linked or correlated with given shadow.
+     *
+     * This method firstly tries to find focus, which is linked. If no such focus is found, it tries to find focus,
+     * which is at least correlated with the shadow. If not even that exists, it tries to run actual correlation
+     * process.
+     *
+     * NOTE: Implementations may decide to write the results of the correlation (if run) to the shadow. Consult
+     * implementation documentation to check it.
+     *
+     * @param shadow The shadow, whose linked or correlated focus you want to find.
+     * @param resource The resource, which will be used for correlation if there is no linked or correlated focus yet.
+     * @param typeDef The object type definition for the purposes of correlation.
+     * @param correlationDef The definition of correlation for the purposes of correlation.
+     *
+     * @return The found focus or empty Optional if no linked/correlated focus was found.
+     */
+    Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, @NotNull ResourceType resource,
+            @NotNull ResourceObjectTypeDefinition typeDef, @NotNull CorrelationDefinitionType correlationDef,
+            @NotNull Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
     @FunctionalInterface
     interface CaseCloser {

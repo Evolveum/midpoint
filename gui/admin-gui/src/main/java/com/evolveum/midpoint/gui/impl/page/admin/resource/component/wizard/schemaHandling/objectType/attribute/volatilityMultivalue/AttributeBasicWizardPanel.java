@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDef
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
@@ -40,7 +40,7 @@ public class AttributeBasicWizardPanel extends AbstractWizardPanel<ResourceAttri
     protected void initLayout() {
         add(createWizardFragment(new WizardPanel(
                 getIdOfWizardPanel(),
-                new WizardModel(createNewAttributeOverrideSteps()))));
+                new WizardModelBasic(createNewAttributeOverrideSteps()))));
     }
 
     private List<WizardStep> createNewAttributeOverrideSteps() {

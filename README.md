@@ -1,5 +1,5 @@
-MidPoint 4.10 Support Branch
-----------------------------
+MidPoint 4.11 Development Branch
+-------------------------------
 
 General information:
 

@@ -12,20 +12,20 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.volatilityMultivalue.AttributeTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.LimitationsStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.MainConfigurationStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.MappingOverridesTableWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.SimulationWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -34,6 +34,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -55,6 +57,16 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
         return new AttributeMappingsTableWizardPanel<>(getIdOfChoicePanel(), getHelper(), initialTab) {
 
             @Override
+            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                showChoiceFragment(target, buildSimulationWizard(initialTab));
+            }
+
+            @Override
+            protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+                showChoiceFragment(target, buildSimulationWizard(simulationResultTypeIModel));
+            }
+
+            @Override
             protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
                 showOutboundAttributeMappingWizardFragment(target, value);
             }
@@ -65,13 +77,17 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             }
 
             @Override
-            protected ItemName getItemNameOfContainerWithMappings() {
-                return AttributeMappingWizardPanel.this.getItemNameOfContainerWithMappings();
-            }
-
-            @Override
             protected void onShowOverrides(AjaxRequestTarget target, MappingDirection selectedTable) {
                 showAttributeOverrides(target, selectedTable);
+            }
+        };
+    }
+
+    private @NotNull SimulationWizardPanel<?> buildSimulationWizard(IModel<SimulationResultType> simulationResultTypeIModel) {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper(), simulationResultTypeIModel) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel(MappingDirection.INBOUND));
             }
         };
     }
@@ -117,7 +133,7 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
 
                         showWizardFragment(
                                 target,
-                                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeOverrideSteps(value, selectedTable))));
+                                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createNewAttributeOverrideSteps(value, selectedTable))));
                     }
                 });
     }
@@ -131,7 +147,7 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createInboundAttributeMappingSteps(valueModel))));
+                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createInboundAttributeMappingSteps(valueModel))));
     }
 
     private List<WizardStep> createInboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
@@ -156,7 +172,7 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createOutboundAttributeMappingSteps(valueModel))));
+                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createOutboundAttributeMappingSteps(valueModel))));
     }
 
     private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
@@ -198,4 +214,19 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
     private void showTableFragment(AjaxRequestTarget target, MappingDirection initialTab) {
         showChoiceFragment(target, createTablePanel(initialTab));
     }
+
+    private @NotNull SimulationWizardPanel<?> buildSimulationWizard(MappingDirection direction) {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper()) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel(direction));
+            }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("SimulationTaskWizardPanel.attributeMappingWizardPanel.back");
+            }
+        };
+    }
+
 }

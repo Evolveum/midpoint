@@ -1,0 +1,125 @@
+{
+  "attributes": {
+    "id": {
+      "type": "integer",
+      "format": "int64",
+      "description": "ID of the project",
+      "mandatory": true,
+      "updatable": false,
+      "creatable": false,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "name": {
+      "type": "string",
+      "format": "",
+      "description": "Name of the project",
+      "mandatory": true,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "identifier": {
+      "type": "string",
+      "format": "",
+      "description": "Identifier of the project",
+      "mandatory": true,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "description": {
+      "type": "object",
+      "format": "embedded",
+      "description": "Description of the project",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "public": {
+      "type": "boolean",
+      "format": "",
+      "description": "Whether the project is public",
+      "mandatory": true,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "active": {
+      "type": "boolean",
+      "format": "",
+      "description": "Whether the project is active",
+      "mandatory": true,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Created on",
+      "mandatory": true,
+      "updatable": false,
+      "creatable": false,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Updated on",
+      "mandatory": true,
+      "updatable": false,
+      "creatable": false,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "parent": {
+      "type": "reference Project",
+      "format": "reference",
+      "description": "Parent project",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "status": {
+      "type": "reference ProjectStatus",
+      "format": "reference",
+      "description": "Status of the project",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "statusExplanation": {
+      "type": "object",
+      "format": "embedded",
+      "description": "Status explanation",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    }
+  }
+}

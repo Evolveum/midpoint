@@ -48,4 +48,12 @@ public class ApprovalsAuditingExtension implements AuditingExtension {
             @NotNull OperationResult result) {
         primaryChangeProcessor.enrichWorkItemDeletedAuditRecord(auditEventRecord, operation);
     }
+
+    @Override
+    public void enrichAutoClosingWorkItemAuditRecord(
+            @NotNull AuditEventRecord auditEventRecord,
+            @NotNull CaseEngineOperation operation,
+            @NotNull OperationResult result) {
+        primaryChangeProcessor.enrichAutoClosingWorkItemAuditRecord(auditEventRecord, operation);
+    }
 }

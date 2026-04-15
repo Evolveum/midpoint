@@ -19,6 +19,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -86,7 +87,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
             List<Badge> badges = new ArrayList<>();
 
             long warnings = data.getWarningCount();
-            if (warnings > 0) {
+            if (warnings > 0 && data.areShoppingCartItemsRelatedToConflicts()) {
                 String key = warnings == 1 ? "ShoppingCartPanel.badge.oneWarning" : "ShoppingCartPanel.badge.multipleWarnings";
                 badges.add(new Badge("badge badge-warning", getString(key, warnings)));
             }
@@ -121,7 +122,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
         panelStatusLabel.setOutputMarkupId(true);
         add(panelStatusLabel);
 
-        CartSummaryPanel cartSummary = new CartSummaryPanel(ID_CART_SUMMARY, getWizard(), getModel(), page) {
+        CartSummaryPanel cartSummary = new CartSummaryPanel(ID_CART_SUMMARY, (WizardModelBasic) getWizard(), getModel(), page) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -153,7 +154,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
             protected void solveConflictPerformed(AjaxRequestTarget target, IModel<Conflict> conflictModel, IModel<ConflictItem> itemToKeepModel) {
                 super.solveConflictPerformed(target, conflictModel, itemToKeepModel);
 
-                target.add(getWizard().getHeader());
+                target.add(((WizardModelBasic) getWizard()).getHeader());
             }
         };
         conflictSolver.add(new VisibleBehaviour(() -> state.getObject() == State.CONFLICTS));

@@ -165,6 +165,11 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertComplexAttributeType(QName expected) {
+        assertKind(ShadowKindType.ASSOCIATION);
+        return assertIntent(expected.getLocalPart());
+    }
+
     /** Let's be strict here wrt namespaces. */
     public ShadowAsserter<RA> assertAuxiliaryObjectClasses(QName... expected) {
         assertThat(getObjectable().getAuxiliaryObjectClass())
