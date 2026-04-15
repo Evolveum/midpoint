@@ -95,7 +95,9 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
         tabs.add(createActivationTab());
         tabs.add(createConditionTab());
-        tabs.add(createOrderConstraintTab());
+        if (isInducement()) {
+            tabs.add(createOrderConstraintTab());
+        }
         return tabs;
     }
 
