@@ -183,14 +183,15 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                 }
 
                                 @Override
-                                protected void onDeletePerform(IModel<PrismContainerValueWrapper<MappingType>> selectedRowModel) {
+                                protected void onDeletePerform(IModel<PrismContainerValueWrapper<MappingType>> selectedRowModel, AjaxRequestTarget target) {
                                     deleteItemPerform(selectedRowModel.getObject());
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override
                                 protected void refresh(AjaxRequestTarget target) {
                                     super.refresh(target);
-                                    refreshAndDetach(target);
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override
@@ -198,7 +199,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                     var accepted = SmartMappingTable.this.acceptSuggestionItemPerformed(() -> selected, target);
                                     getAcceptedSuggestionsCache().add(accepted);
                                     tileModel.getColumnsValues().forEach(SmartMappingTable.this::deleteItemPerform);
-                                    refreshAndDetach(target);
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override

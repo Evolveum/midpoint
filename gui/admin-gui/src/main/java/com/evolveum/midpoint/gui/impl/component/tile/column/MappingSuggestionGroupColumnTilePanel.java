@@ -79,7 +79,8 @@ public class MappingSuggestionGroupColumnTilePanel<
     public MappingSuggestionGroupColumnTilePanel(String id, IModel<T> model) {
         super(id, model);
     }
-    protected boolean isInbound(){
+
+    protected boolean isInbound() {
         return true;
     }
 
@@ -356,7 +357,7 @@ public class MappingSuggestionGroupColumnTilePanel<
                 .action(new InlineMenuItemAction() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        MappingSuggestionGroupColumnTilePanel.this.onDeletePerform(selectedRowModel);
+                        MappingSuggestionGroupColumnTilePanel.this.onDeletePerform(selectedRowModel, target);
                         refresh(target);
                     }
                 })
@@ -373,7 +374,7 @@ public class MappingSuggestionGroupColumnTilePanel<
                     public void onClick(AjaxRequestTarget target) {
                         group.getColumnsValues().forEach(value -> {
                             IModel<PV> model = Model.of(value);
-                            MappingSuggestionGroupColumnTilePanel.this.onDeletePerform(model);
+                            MappingSuggestionGroupColumnTilePanel.this.onDeletePerform(model, target);
                         });
                         refresh(target);
                     }
@@ -381,7 +382,7 @@ public class MappingSuggestionGroupColumnTilePanel<
                 .buildInlineMenu();
     }
 
-    protected void onDeletePerform(IModel<PV> selectedRowModel) {
+    protected void onDeletePerform(IModel<PV> selectedRowModel, AjaxRequestTarget target) {
 
     }
 
