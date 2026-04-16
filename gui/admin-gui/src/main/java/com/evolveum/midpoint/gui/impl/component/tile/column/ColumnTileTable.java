@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.ButtonBar;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.GroupedMappingDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -23,22 +24,21 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
-
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -51,50 +51,63 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.validation.ValidatorAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class ColumnTileTable<O extends Serializable>
-        extends TileTablePanel<ColumnTile<O>, O> {
+/**
+ * Column-based tile table that separates:
+ *
+ * <ul>
+ *   <li><b>O</b> - the primary row object handled by the table, selection, paging and actions</li>
+ *   <li><b>PV</b> - the delegated value rendered by reusable Wicket columns</li>
+ * </ul>
+ *
+ * <p>The primary row object must implement {@link ColumnValueProvider}, which provides
+ * the delegated value used when rendering tile columns.</p>
+ *
+ * @param <O> primary row object type
+ * @param <PV> delegated value type rendered by columns
+ */
+public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV extends Serializable>
+        extends TileTablePanel<ColumnTile<O, PV>, O> {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_COLUMN_HEADER = "columnHeader";
-
     private static final String ID_PANEL_TOOLBAR = "panelToolbar";
     private static final String ID_PANEL_TOOLBAR_BUTTONS = "panelToolbarButtons";
     private static final String ID_BUTTON_BAR = "buttonBar";
     private static final String ID_BUTTON = "button";
 
-    private final IModel<List<IColumn<O, String>>> columnsModel;
+    private final IModel<List<IColumn<PV, String>>> columnsModel;
 
     public ColumnTileTable(
             String id,
             IModel<ViewToggle> viewToggle,
             UserProfileStorage.TableId tableId,
-            IModel<List<IColumn<O, String>>> columnsModel) {
+            IModel<List<IColumn<PV, String>>> columnsModel) {
         super(id, viewToggle, tableId);
         this.columnsModel = columnsModel;
     }
 
     @Override
-    protected void customizeTileItemCss(Component tile, @NotNull ColumnTile<O> item) {
-        if (item.getValue() instanceof PrismContainerValueWrapper<?> pcvw) {
+    protected void customizeTileItemCss(Component tile, @NotNull ColumnTile<O, PV> item) {
+        PV columnValue = item.getValue().getColumnValue();
+
+        if (columnValue instanceof PrismContainerValueWrapper<?> pcvw) {
             switch (pcvw.getStatus()) {
-                case DELETED -> tile.add(AttributeModifier.append("class",
-                        "border border-danger border-large-left" + applyIfSelectedCssClass(item.getValue())));
-                case ADDED -> tile.add(AttributeModifier.append("class",
-                        "border border-success border-large-left" + applyIfSelectedCssClass(item.getValue())));
-                default ->
-                        applyDefaultRowCss(tile, item.getValue(), applyIfSelectedCssClass(item.getValue()), this::getStatusInfo);
+                case DELETED -> tile.add(AttributeModifier.append(
+                        "class", "border border-danger border-large-left" + applyIfSelectedCssClass(item.getValue())));
+                case ADDED -> tile.add(AttributeModifier.append(
+                        "class", "border border-success border-large-left" + applyIfSelectedCssClass(item.getValue())));
+                default -> applyDefaultRowCss(
+                        tile,
+                        item.getValue(),
+                        applyIfSelectedCssClass(item.getValue()),
+                        this::getStatusInfoFromObject);
             }
         }
     }
@@ -106,7 +119,8 @@ public abstract class ColumnTileTable<O extends Serializable>
     @Override
     protected Fragment createHeaderFragment(String id) {
         Fragment fragment = super.createHeaderFragment(id);
-        var columnTileHeaderPanel = new ColumnTileHeaderPanel<>(ID_COLUMN_HEADER, this::getDefaultColumns) {
+
+        var columnTileHeaderPanel = new ColumnTileHeaderPanel<O, PV>(ID_COLUMN_HEADER, this::getDefaultColumns) {
             @Override
             protected void addToolbarButtons(@NotNull RepeatingView repeatingView) {
                 if (isCheckboxSelectionEnabled()) {
@@ -118,9 +132,10 @@ public abstract class ColumnTileTable<O extends Serializable>
         columnTileHeaderPanel.setOutputMarkupId(true);
         fragment.add(columnTileHeaderPanel);
 
-        var panelToolbar = createPanelToolbar();
+        Component panelToolbar = createPanelToolbar();
         panelToolbar.setOutputMarkupId(true);
         fragment.add(panelToolbar);
+
         return fragment;
     }
 
@@ -141,9 +156,7 @@ public abstract class ColumnTileTable<O extends Serializable>
         return selectCheckbox;
     }
 
-    private @NotNull IModel<Boolean> buildHeaderCheckboxModel(
-            @NotNull IModel<List<O>> currentPageModel) {
-
+    private @NotNull IModel<Boolean> buildHeaderCheckboxModel(@NotNull IModel<List<O>> currentPageModel) {
         return new IModel<>() {
             @Override
             public @NotNull Boolean getObject() {
@@ -181,8 +194,9 @@ public abstract class ColumnTileTable<O extends Serializable>
     }
 
     @Override
-    protected Component createTile(String id, IModel<ColumnTile<O>> model) {
-        return new ColumnTilePanel<>(id, model) {
+    protected Component createTile(String id, @NotNull IModel<ColumnTile<O, PV>> model) {
+        O tileModel = model.getObject().getValue();
+        return new ColumnTilePanel<>(id, model, tileModel::getColumnValue) {
             @Override
             protected boolean isCheckboxVisible() {
                 return ColumnTileTable.this.isCheckboxSelectionEnabled();
@@ -191,40 +205,32 @@ public abstract class ColumnTileTable<O extends Serializable>
     }
 
     @Override
-    protected ColumnTile<O> createTileObject(O object) {
+    protected ColumnTile<O, PV> createTileObject(O object) {
         return new ColumnTile<>(object, getDefaultColumns());
     }
 
-    public IModel<List<IColumn<O, String>>> getColumnsModel() {
+    public IModel<List<IColumn<PV, String>>> getColumnsModel() {
         return columnsModel;
     }
 
-    public List<IColumn<O, String>> getDefaultColumns() {
-        List<IColumn<O, String>> columnsModel = new ArrayList<>();
-
-        if (isCheckboxSelectionEnabled() && isTableVisible()) {
-            columnsModel.add(0, new CheckBoxHeaderColumn<>());
-        }
-
-        columnsModel.addAll(getColumnsModel().getObject());
+    public List<IColumn<PV, String>> getDefaultColumns() {
+        List<IColumn<PV, String>> result = new ArrayList<>(getColumnsModel().getObject());
 
         if (isActionsColumnEnabled()) {
-            initActionColumn(columnsModel);
+            initActionColumn(result);
         }
-        return columnsModel;
+
+        return result;
     }
 
-    private void initActionColumn(List<IColumn<O, String>> columnsModel) {
-        IColumn<O, String> linkStyleActionsColumn = createLinkStyleActionsColumn(getPageBase(), getInlineMenuItems());
-        if (linkStyleActionsColumn != null) {
-            columnsModel.add(linkStyleActionsColumn);
+    private void initActionColumn(List<IColumn<PV, String>> columns) {
+        IColumn<PV, String> actionsColumn = createLinkStyleActionsColumn(getPageBase(), getInlineMenuItems());
+        if (actionsColumn != null) {
+            columns.add(actionsColumn);
         }
     }
 
-    /**
-     * Creates an actions column with inline menu buttons with link style and ellipsis action button.
-     */
-    public @Nullable IColumn<O, String> createLinkStyleActionsColumn(
+    public @Nullable IColumn<PV, String> createLinkStyleActionsColumn(
             @NotNull PageBase pageBase,
             @NotNull List<InlineMenuItem> allItems) {
         return !allItems.isEmpty() ? new InlineMenuButtonColumn<>(allItems, pageBase) {
@@ -249,7 +255,7 @@ public abstract class ColumnTileTable<O extends Serializable>
             }
 
             @Override
-            protected String getInlineMenuItemCssClass(IModel<O> rowModel) {
+            protected String getInlineMenuItemCssClass(IModel<PV> rowModel) {
                 return ColumnTileTable.this.getInlineMenuItemCssClass(rowModel);
             }
 
@@ -326,16 +332,29 @@ public abstract class ColumnTileTable<O extends Serializable>
                 .buildInlineMenu();
     }
 
-    private @NotNull ColumnMenuAction<O> createEditColumnAction() {
+    private @NotNull ColumnMenuAction<PV> createEditColumnAction() {
         return new ColumnMenuAction<>() {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (getRowModel() == null) {
                     return;
                 }
-                editItemPerformed(target, getRowModel());
+
+                O rowObject = findRowObject(getRowModel().getObject());
+                if (rowObject != null) {
+                    editItemPerformed(target, Model.of(rowObject));
+                }
             }
         };
+    }
+
+    protected @Nullable O findRowObject(@NotNull PV columnValue) {
+        for (O row : getCurrentPageItems()) {
+            if (Objects.equals(row.getColumnValue(), columnValue)) {
+                return row;
+            }
+        }
+        return null;
     }
 
     public void editItemPerformed(AjaxRequestTarget target, IModel<O> rowModel) {
@@ -352,14 +371,15 @@ public abstract class ColumnTileTable<O extends Serializable>
         return selected;
     }
 
-    public ColumnMenuAction<O> createDeleteColumnAction() {
+    public ColumnMenuAction<PV> createDeleteColumnAction() {
         return new ColumnMenuAction<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (getRowModel() != null) {
-                    deleteItemPerformed(target, List.of(getRowModel().getObject()));
+                    deleteItemPerformed(getRowModel().getObject());
+                    refreshAndDetach(target);
                     return;
                 }
 
@@ -387,7 +407,6 @@ public abstract class ColumnTileTable<O extends Serializable>
                             deleteItemPerformed(target, getMultiTableModel());
                             return;
                         }
-
                         deleteItemPerformed(target, selected);
                     }
                 };
@@ -397,14 +416,19 @@ public abstract class ColumnTileTable<O extends Serializable>
         };
     }
 
-    private void deleteItemPerformed(AjaxRequestTarget target, List<O> toDelete) {
-        if (noSelectedItemsWarn(getPageBase(), target, toDelete)) {return;}
-        toDelete.forEach(this::deleteItemPerformed);
+    public void deleteItemPerformed(AjaxRequestTarget target, List<O> toDelete) {
+        if (noSelectedItemsWarn(getPageBase(), target, toDelete)) {
+            return;
+        }
+        for (O o : toDelete) {
+            List<PV> columnsValues = o.getColumnsValues();
+            columnsValues.forEach(this::deleteItemPerformed);
+        }
+
         refreshAndDetach(target);
     }
 
-    protected void deleteItemPerformed(@NotNull O value) {
-
+    protected void deleteItemPerformed(@NotNull PV value) {
     }
 
     public boolean isValidFormComponents(@Nullable AjaxRequestTarget target) {
@@ -435,8 +459,10 @@ public abstract class ColumnTileTable<O extends Serializable>
         return valid.get();
     }
 
-    private static void updateValidatorComponent(@Nullable AjaxRequestTarget target, AtomicBoolean valid, FormComponent<?> formComponent) {
-
+    private static void updateValidatorComponent(
+            @Nullable AjaxRequestTarget target,
+            AtomicBoolean valid,
+            FormComponent<?> formComponent) {
         if (target != null) {
             target.add(formComponent);
 
@@ -461,8 +487,7 @@ public abstract class ColumnTileTable<O extends Serializable>
                 .forEach(validator -> validator.setUseModel(true));
     }
 
-    protected boolean noSelectedItemsWarn(PageBase pageBase, AjaxRequestTarget target,
-            List<O> toDelete) {
+    protected boolean noSelectedItemsWarn(PageBase pageBase, AjaxRequestTarget target, List<O> toDelete) {
         if (toDelete == null || toDelete.isEmpty()) {
             pageBase.warn(pageBase.createStringResource(
                     "MultiSelectContainerActionTileTablePanel.message.noItemsSelected").getString());
@@ -497,14 +522,31 @@ public abstract class ColumnTileTable<O extends Serializable>
         return allItems;
     }
 
-    /**
-     * Retrieves the {@link StatusInfo} for the given container value.
-     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Nullable
-    public StatusInfo<?> getStatusInfo(@NotNull O value) {
-        if (getProvider() instanceof StatusAwareDataProvider<?> sap) {
-            return sap.getSuggestionInfo((PrismContainerValueWrapper) value);
+    public StatusInfo<?> getStatusInfoFromObject(@NotNull O value) {
+        PV columnValue = value.getColumnValue();
+
+        if (!(columnValue instanceof PrismContainerValueWrapper<?> wrapper)) {
+            return null;
+        }
+
+        if (getProvider() instanceof StatusAwareDataProvider sap) {
+            return sap.getSuggestionInfo(wrapper);
+        }
+
+        if (getProvider() instanceof GroupedMappingDataProvider gmdp) {
+            return gmdp.getSuggestionInfo(wrapper);
+        }
+
+        return null;
+    }
+
+    @Nullable
+    public StatusInfo<?> getStatusInfo(@Nullable PV value) {
+        if (value instanceof PrismContainerValueWrapper<?> wrapper
+                && getProvider() instanceof GroupedMappingDataProvider gmdp) {
+            return gmdp.getSuggestionInfo(wrapper);
         }
         return null;
     }
@@ -515,33 +557,31 @@ public abstract class ColumnTileTable<O extends Serializable>
             provider.detach();
         }
 
-        if (provider instanceof MultivalueContainerListDataProvider<?> mvProvider) {
+        if (provider instanceof MultivalueContainerListDataProvider mvProvider) {
             mvProvider.getModel().detach();
         }
     }
 
-    /**
-     * Applies default CSS class to the tile including the base CSS and the status-based CSS.
-     */
     public <T> void applyDefaultRowCss(
             @NotNull Component tile,
             @NotNull O value,
             @NotNull String baseCss,
             @NotNull SerializableFunction<O, @Nullable StatusInfo<T>> getStatusInfoFn) {
-        if (value instanceof PrismContainerValueWrapper<?>) {
+        PV columnValue = value.getColumnValue();
+        if (columnValue instanceof PrismContainerValueWrapper<?> wrapper) {
             StatusInfo<T> statusInfo = getStatusInfoFn.apply(value);
             if (statusInfo != null && statusInfo.getStatus() != null) {
-                SmartIntegrationUtils.SuggestionUiStyle uiStyle = SmartIntegrationUtils.SuggestionUiStyle
-                        .from(statusInfo, ((PrismContainerValueWrapper<?>) value));
-                String styleClass = uiStyle.tileClass;
-                tile.add(AttributeModifier.append("class", baseCss + " border-large-left " + styleClass));
+                SmartIntegrationUtils.SuggestionUiStyle uiStyle =
+                        SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, wrapper);
+                tile.add(AttributeModifier.append("class", baseCss + " border-large-left " + uiStyle.tileClass));
             }
         }
     }
 
     @NotNull
     protected AjaxIconButton createNewObjectPerformButton(String idButton) {
-        AjaxIconButton newObjectButton = new AjaxIconButton(idButton,
+        AjaxIconButton newObjectButton = new AjaxIconButton(
+                idButton,
                 Model.of(GuiStyleConstants.CLASS_PLUS_CIRCLE),
                 getNewObjectButtonTitle()) {
 
@@ -569,7 +609,6 @@ public abstract class ColumnTileTable<O extends Serializable>
     }
 
     protected void onCreateNewObjectPerform(AjaxRequestTarget target) {
-
     }
 
     protected List<Component> createToolbarButtonsList(String idButton) {
@@ -583,8 +622,8 @@ public abstract class ColumnTileTable<O extends Serializable>
 
     @Override
     protected Component createToolbarButtons(String id) {
-        ButtonBar<Containerable, SelectableRow<?>> buttonBar = new ButtonBar<>(id, ID_BUTTON_BAR,
-                ColumnTileTable.this, createToolbarButtonsList(ID_BUTTON));
+        ButtonBar<Containerable, SelectableRow<?>> buttonBar =
+                new ButtonBar<>(id, ID_BUTTON_BAR, ColumnTileTable.this, createToolbarButtonsList(ID_BUTTON));
         buttonBar.setOutputMarkupId(true);
         buttonBar.add(new VisibleBehaviour(this::isToolbarButtonsVisible));
         return buttonBar;
@@ -594,7 +633,7 @@ public abstract class ColumnTileTable<O extends Serializable>
         WebMarkupContainer panelToolbar = new WebMarkupContainer(ID_PANEL_TOOLBAR);
         panelToolbar.setOutputMarkupId(true);
 
-        RepeatingView toolbar = new RepeatingView(ColumnTileTable.ID_PANEL_TOOLBAR_BUTTONS);
+        RepeatingView toolbar = new RepeatingView(ID_PANEL_TOOLBAR_BUTTONS);
         initPanelToolbarButtons(toolbar);
         panelToolbar.add(toolbar);
         panelToolbar.add(new VisibleBehaviour(this::isPanelToolbarVisible));
@@ -626,15 +665,13 @@ public abstract class ColumnTileTable<O extends Serializable>
 
     @Override
     public boolean displayNoValuePanel() {
-//        return getProvider().size() == 0;
-        return false; //disable for now
+        return false;
     }
 
     @Override
     protected List<Component> createNoValueButtonToolbar(String id) {
         List<Component> buttons = new ArrayList<>();
-        AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(id);
-        buttons.add(newObjectPerformButton);
+        buttons.add(createNewObjectPerformButton(id));
         return buttons;
     }
 }

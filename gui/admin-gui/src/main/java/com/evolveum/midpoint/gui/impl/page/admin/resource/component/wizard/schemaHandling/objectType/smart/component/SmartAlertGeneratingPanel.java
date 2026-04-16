@@ -37,6 +37,8 @@ import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDi
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Panel for monitoring and controlling a "smart generating" task.
  * <p>
@@ -177,8 +179,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
             @NotNull Duration refreshDuration,
             @NotNull IModel<SmartGeneratingAlertDto> model,
             @NotNull SerializableConsumer<AjaxRequestTarget> onFinishAction) {
-
-        return new AbstractAjaxTimerBehavior(refreshDuration) {
+        AbstractAjaxTimerBehavior abstractAjaxTimerBehavior = new AbstractAjaxTimerBehavior(refreshDuration) {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
                 try {
@@ -215,6 +216,21 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                 }
             }
         };
+
+        SmartGeneratingAlertDto dto = getModelObject();
+        if (!shouldStartPolling(dto)) {
+            abstractAjaxTimerBehavior.stop(null);
+        }
+        return abstractAjaxTimerBehavior;
+    }
+
+    //TODO check it
+    private boolean shouldStartPolling(@Nullable SmartGeneratingAlertDto dto) {
+        if (dto == null) {
+            return false;
+        }
+
+        return !dto.isFinished() && !dto.isFailed() && !dto.isSuspended();
     }
 
     private void generatePerformed(AjaxRequestTarget target,
