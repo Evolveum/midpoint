@@ -58,16 +58,19 @@
     </wicket:fragment>
 
     <wicket:fragment wicket:id="footerButtons">
-        <div class="d-flex justify-content-start w-100">
+        <div class="d-flex justify-content-start w-100 align-items-center gap-3">
             <button type="button" wicket:id="closeButton" class="btn btn-link"></button>
+            <div class="text-muted small ml-auto" wicket:id="timestamp"></div>
+            <div wicket:id="recreateButton"></div>
         </div>
     </wicket:fragment>
 
     <wicket:fragment wicket:id="title">
         <div class="d-flex align-items-center gap-2 w-100">
             <div class="h5 m-0" wicket:id="primaryTitle"></div>
-            <div class="text-muted small ml-auto" wicket:id="secondaryTitle"></div>
-            <div wicket:id="regenerateButton"></div>
+            <a wicket:id="closeButton" class="ml-auto text-muted mr-2" href="#" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </a>
         </div>
     </wicket:fragment>
 </wicket:panel>

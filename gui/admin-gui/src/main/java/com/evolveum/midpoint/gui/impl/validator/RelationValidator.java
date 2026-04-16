@@ -6,12 +6,16 @@
 
 package com.evolveum.midpoint.gui.impl.validator;
 
+import com.evolveum.midpoint.schema.constants.RelationTypes;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.util.QNameUtil;
+
+import javax.xml.namespace.QName;
 
 public class RelationValidator implements IValidator<String> {
 
@@ -23,6 +27,11 @@ public class RelationValidator implements IValidator<String> {
         }
 
         if (QNameUtil.isUri(value)) {
+            return;
+        }
+
+        QName matchingRelation = RelationTypes.getRelationByLocalPart(value);
+        if (matchingRelation != null) {
             return;
         }
 

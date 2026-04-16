@@ -35,12 +35,19 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * A reusable, column-based tile that renders its content using existing {@link IColumn}
- * definitions from Wicket tables. Allows tile and table to share the same column model.
+ * Header panel for {@link ColumnTileTable} that renders shared column headers for tile-based layouts.
  *
- * @author tchrapovic
+ * <p>The panel is generic over:
+ * <ul>
+ *   <li><b>O</b> - the logical row object managed by the tile table</li>
+ *   <li><b>PV</b> - the delegated value type rendered by individual columns</li>
+ * </ul>
+ *
+ * <p>This mirrors the type split used by {@link ColumnTileTable}, allowing one tile row object
+ * to expose another value type for reusable column rendering.
  */
-public class ColumnTileHeaderPanel<O extends Serializable> extends BasePanel<List<IColumn<O, String>>> {
+public class ColumnTileHeaderPanel<O extends ColumnValueProvider<PV>, PV extends Serializable>
+        extends BasePanel<List<IColumn<PV, String>>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -53,9 +60,15 @@ public class ColumnTileHeaderPanel<O extends Serializable> extends BasePanel<Lis
     private static final String ID_HEADER_LABEL = "label";
 
     private static final String ID_TOOLBAR = "toolbar";
+    boolean isSortingSupported = true;
 
-    public ColumnTileHeaderPanel(String id, IModel<List<IColumn<O, String>>> model) {
+    public ColumnTileHeaderPanel(String id, IModel<List<IColumn<PV, String>>> model) {
         super(id, model);
+    }
+
+    public ColumnTileHeaderPanel(String id, IModel<List<IColumn<PV, String>>> model, boolean isSortingSupported) {
+        super(id, model);
+        this.isSortingSupported = isSortingSupported;
     }
 
     @Override
@@ -69,28 +82,30 @@ public class ColumnTileHeaderPanel<O extends Serializable> extends BasePanel<Lis
     }
 
     private @NotNull Component createContentFragment() {
-        Fragment fragment = new Fragment(ColumnTileHeaderPanel.ID_CONTENT_CONTAINER, ID_COLUMNS_TILE_FRAGMENT, this);
+        Fragment fragment = new Fragment(ID_CONTENT_CONTAINER, ID_COLUMNS_TILE_FRAGMENT, this);
 
         @SuppressWarnings("unchecked")
-        ColumnTileTable<O> table = this.findParent(ColumnTileTable.class);
+        ColumnTileTable<O, PV> table = (ColumnTileTable<O, PV>) findParent(ColumnTileTable.class);
 
         BaseSortableDataProvider<O> provider = null;
-        if (table != null && table.getProvider() != null
-                && table.getProvider() instanceof BaseSortableDataProvider<O> p) {
-            provider = p;
+        if (table != null && table.getProvider() instanceof BaseSortableDataProvider<?> p) {
+            @SuppressWarnings("unchecked")
+            BaseSortableDataProvider<O> casted = (BaseSortableDataProvider<O>) p;
+            provider = casted;
         }
+
         ISortStateLocator<String> sortLocator = provider;
 
-        List<IColumn<O, String>> columns = getModelObject();
-        ListView<IColumn<O, String>> columnsView = new ListView<>(ID_COLUMNS, columns) {
+        List<IColumn<PV, String>> columns = getModelObject();
+        ListView<IColumn<PV, String>> columnsView = new ListView<>(ID_COLUMNS, columns) {
             @Override
-            protected void populateItem(@NotNull ListItem<IColumn<O, String>> item) {
-                IColumn<O, String> column = item.getModelObject();
-                Item<?> cellItem = new Item<>(ID_CELL, 0);
+            protected void populateItem(@NotNull ListItem<IColumn<PV, String>> item) {
+                IColumn<PV, String> column = item.getModelObject();
+                Item<?> cellItem = new Item<>(ID_CELL, item.getIndex());
                 cellItem.setOutputMarkupId(true);
 
                 WebMarkupContainer header;
-                if (column.isSortable()) {
+                if (column.isSortable() && table != null && isSortingSupported) {
                     header = newSortableHeader(column.getSortProperty(), sortLocator, table);
                 } else {
                     header = new WebMarkupContainer(ID_HEADER);
@@ -99,8 +114,13 @@ public class ColumnTileHeaderPanel<O extends Serializable> extends BasePanel<Lis
                 WebMarkupContainer icon = new WebMarkupContainer(ID_ICON) {
                     @Override
                     protected void onComponentTag(ComponentTag tag) {
-                        super.onComponentTag(tag);
-                        tag.put("class", getSortIconCss(column, sortLocator));
+                        if (column.isSortable() && table != null && isSortingSupported) {
+                            super.onComponentTag(tag);
+                            String css = getSortIconCss(column, sortLocator);
+                            if (!css.isEmpty()) {
+                                tag.put("class", css);
+                            }
+                        }
                     }
                 };
                 icon.setOutputMarkupId(true);
@@ -113,6 +133,7 @@ public class ColumnTileHeaderPanel<O extends Serializable> extends BasePanel<Lis
                     cellItem.add(AttributeAppender.append("class", css != null ? css : "col"));
                 }
 
+                hideSpecificHeaderIfNeeded(column, header);
                 cellItem.add(header);
                 item.add(cellItem);
             }
@@ -129,7 +150,7 @@ public class ColumnTileHeaderPanel<O extends Serializable> extends BasePanel<Lis
     /**
      * Returns the icon class based on sort state.
      */
-    private @NotNull String getSortIconCss(@NotNull IColumn<O, String> column, ISortStateLocator<String> locator) {
+    private @NotNull String getSortIconCss(@NotNull IColumn<PV, String> column, ISortStateLocator<String> locator) {
         String base = "icon fas fa-fw mr-1";
         if (column.isSortable() && locator != null) {
             ISortState<String> sortState = locator.getSortState();
@@ -150,7 +171,7 @@ public class ColumnTileHeaderPanel<O extends Serializable> extends BasePanel<Lis
     protected WebMarkupContainer newSortableHeader(
             final String property,
             final ISortStateLocator<String> locator,
-            @NotNull ColumnTileTable<O> table) {
+            @NotNull ColumnTileTable<O, PV> table) {
         IDataProvider<O> provider = table.getProvider();
         if (provider instanceof BaseSortableDataProvider<O> sortableDataProvider) {
             if (sortableDataProvider.isOrderingDisabled()) {
@@ -170,5 +191,9 @@ public class ColumnTileHeaderPanel<O extends Serializable> extends BasePanel<Lis
                 target.add(table);
             }
         };
+    }
+
+    protected void hideSpecificHeaderIfNeeded(IColumn<PV, String> column, WebMarkupContainer header) {
+        // By default, all headers are shown. Override this method to hide specific headers based on column type or properties.
     }
 }
