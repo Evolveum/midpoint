@@ -19,7 +19,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 /** Context of a smart integration operation, knowing a resource and an object class on it. */
 class OperationContext {
@@ -55,8 +59,16 @@ class OperationContext {
             ServiceClient serviceClient, String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
+        return init(serviceClient, resourceOid, objectClassName, null, task, result);
+    }
+
+    static OperationContext init(
+            ServiceClient serviceClient, String resourceOid, QName objectClassName,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
         var resource = SmartIntegrationBeans.get().modelService
-                .getObject(ResourceType.class, resourceOid, null, task, result)
+                .getObject(ResourceType.class, resourceOid, options, task, result)
                 .asObjectable();
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
         var objectClassDefinition = resourceSchema.findObjectClassDefinitionRequired(objectClassName);

@@ -10,8 +10,7 @@ import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.BasicQueryWrapper;
+import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -26,7 +25,9 @@ import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
+import com.evolveum.midpoint.gui.impl.component.search.SearchItemWrapperComparator;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.BasicQueryWrapper;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -42,6 +43,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
     private LoadableDetachableModel<List<FilterableSearchItemWrapper<?>>> basicSearchItemsModel;
     private LoadableDetachableModel<List<FilterableSearchItemWrapper<?>>> morePopupModel;
     private boolean isPopoverOpen = false;
+    private int currentBiggestDisplayOrder;
 
     public BasicSearchPanel(String id, IModel<BasicQueryWrapper> model) {
         super(id, model);
@@ -75,10 +77,6 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         };
     }
 
-    public void displayedSearchItemsModelReset() {
-        basicSearchItemsModel.detach();
-    }
-
     private void initLayout() {
 
         ListView<FilterableSearchItemWrapper<?>> items = new ListView<>(ID_ITEMS, basicSearchItemsModel) {
@@ -95,6 +93,28 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         };
         add(items);
 
+        currentBiggestDisplayOrder = getModelObject().getItemsList().stream()
+                .peek(item -> {
+                    // add displayOrder for default search items which are visible, so they are properly sorted before items added by More button
+                    // this case occurs when only default search items are in search box
+                    if (item.isVisible() && item.getDisplayOrder() == null) {
+                        item.setDisplayOrder(++currentBiggestDisplayOrder);
+                    }
+                    // it is needed to remove displayOrder for not visible search items, so they are properly sorted in More button alphabetically
+                    // this case occurs when you switch between Saved filters
+                    if (!item.isVisible() && item.getDisplayOrder() != null) {
+                        item.setDisplayOrder(null);
+                    }
+                })
+                .map(FilterableSearchItemWrapper::getDisplayOrder)
+                .filter(Objects::nonNull)
+                .reduce(0, Integer::max);
+
+        // it is needed to sort search items after removal of displayOrder for not visible search items,
+        // so they are properly sorted in More button alphabetically
+        // this case occurs when you switch between Saved filters
+        sortItems();
+
         WebMarkupContainer propertiesStatus = new WebMarkupContainer(ID_MORE_PROPERTIES_POPOVER_STATUS, Model.of(""));
         propertiesStatus.setOutputMarkupId(true);
         add(propertiesStatus);
@@ -106,6 +126,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
                     @Override
                     protected void addItemsPerformed(List<FilterableSearchItemWrapper<?>> itemList, AjaxRequestTarget target) {
                         addItemPerformed(itemList, target);
+                        sortItems();
                         isPopoverOpen = false;
                         String message;
                         if (itemList.size() == 1) {
@@ -170,6 +191,10 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         add(more);
     }
 
+    public void sortItems() {
+        getModelObject().getItemsList().sort(new SearchItemWrapperComparator<>());
+    }
+
     private void addPopoverStatusMessage(AjaxRequestTarget target, String markupId, String message, int refreshInMillis) {
         target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
                 markupId, message, refreshInMillis));
@@ -199,6 +224,10 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
             if (item.isSelected()) {
                 item.setVisible(true);
                 item.setSelected(false);
+                // in corner case when currentBiggestDisplayOrder reaches Integer.MAX_VALUE,
+                // the variable will contains the smallest Integer values,
+                // so added items will be added from the beginning of the search box items
+                item.setDisplayOrder(++currentBiggestDisplayOrder);
             }
         });
         target.add(BasicSearchPanel.this);
@@ -213,5 +242,4 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         return CollectionUtils.isNotEmpty(morePopupModel.getObject()) &&
                 morePopupModel.getObject().stream().anyMatch(property -> !property.isVisible());
     }
-
 }

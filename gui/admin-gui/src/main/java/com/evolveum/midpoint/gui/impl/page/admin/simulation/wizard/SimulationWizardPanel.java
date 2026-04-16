@@ -153,12 +153,13 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
             @Override
             protected void navigateToSimulationResultObject(@NotNull String simulationResultOid, @Nullable String markOid, @NotNull SimulationResultProcessedObjectType object, @NotNull AjaxRequestTarget target) {
                 removeLastBreadcrumb();
-                showChoiceFragment(target, buildSimulationObjectResultPanel(idOfChoicePanel, model, object.getId(), markOid, null));
+                showChoiceFragment(target, buildSimulationObjectResultPanel(idOfChoicePanel, model, object.getId(), markOid,
+                        null, false));
             }
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                if(SimulationWizardPanel.this.simulationResultModel != null && SimulationWizardPanel.this.simulationResultModel.getObject() != null) {
+                if (SimulationWizardPanel.this.simulationResultModel != null && SimulationWizardPanel.this.simulationResultModel.getObject() != null) {
                     removeLastBreadcrumb();
                     SimulationWizardPanel.this.onBackPerformed(target);
                     return;
@@ -207,7 +208,7 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
                     @NotNull AjaxRequestTarget target) {
                 removeLastBreadcrumb();
                 showChoiceFragment(target,
-                        buildSimulationObjectResultPanel(idOfChoicePanel, model, object.getId(), markOid, state));
+                        buildSimulationObjectResultPanel(idOfChoicePanel, model, object.getId(), markOid, state, true));
             }
 
             @Override
@@ -243,6 +244,7 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
      * @param simulationResultProcessedObjectId id of the processed object
      * @param markOid optional mark OID
      * @param state optional processing state
+     * @param fromSimulationObjects indicates if the navigation to this panel is from the objects list (true) or from the result overview (false)
      * @return the object wizard panel
      */
     private @NotNull ResourceSimulationResultObjectWizardPanel buildSimulationObjectResultPanel(
@@ -250,7 +252,8 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
             @NotNull IModel<SimulationResultType> model,
             @Nullable Long simulationResultProcessedObjectId,
             @Nullable String markOid,
-            @Nullable ObjectProcessingStateType state) {
+            @Nullable ObjectProcessingStateType state,
+            boolean fromSimulationObjects) {
         LoadableDetachableModel<SimulationResultProcessedObjectType> prModel = loadSimulationResultProcessedObjectModel(
                 getPageBase(),
                 model.getObject().getOid(), simulationResultProcessedObjectId);
@@ -265,20 +268,18 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
                     @NotNull AjaxRequestTarget target) {
                 removeLastBreadcrumb();
                 showChoiceFragment(target, buildSimulationObjectResultPanel(idOfChoicePanel,
-                        model, object.getId(), markOid, state));
+                        model, object.getId(), markOid, state, false));
             }
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
                 removeLastBreadcrumb();
 
-                if(SimulationWizardPanel.this.simulationResultModel != null && SimulationWizardPanel.this.simulationResultModel.getObject() != null) {
-                    removeLastBreadcrumb();
+                if (fromSimulationObjects) {
+                    showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, markOid, state));
+                } else {
                     showChoiceFragment(target, buildSimulationResultPanel(idOfChoicePanel, model));
-                    return;
                 }
-
-                showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, markOid, state));
             }
 
             @Override

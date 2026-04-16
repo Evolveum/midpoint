@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.MATCH_SCHEMA;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
@@ -52,17 +53,17 @@ class SchemaMatchingOperation {
     }
 
     SiMatchSchemaResponseType matchSchema(
-            ResourceObjectTypeDefinition objectTypeDef,
+            ResourceObjectClassDefinition objectClassDef,
             PrismObjectDefinition<?> focusDef,
             ResourceType resource)
             throws SchemaException {
 
         MiscUtil.stateCheck(resourceSideSerializer == null, "matchSchema method was already called");
 
-        resourceSideSerializer = ResourceObjectClassSchemaSerializer.create(objectTypeDef.getObjectClassDefinition(), resource);
+        resourceSideSerializer = ResourceObjectClassSchemaSerializer.create(objectClassDef, resource);
         midPointSideSerializer = PrismComplexTypeDefinitionSerializer.create(focusDef);
 
-        SiMatchSchemaResponseType systemSchemaMatch = wellKnownSchemaService.detectSchemaType(resource, objectTypeDef)
+        SiMatchSchemaResponseType systemSchemaMatch = wellKnownSchemaService.detectSchemaType(resource, objectClassDef)
                 .map(schemaType -> {
                     detectedSchemaType = schemaType;
                     return schemaType;

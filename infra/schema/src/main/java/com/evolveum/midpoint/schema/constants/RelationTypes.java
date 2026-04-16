@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType.*;
@@ -101,6 +102,29 @@ public enum RelationTypes {
         for (RelationTypes relationType : values()) {
             if (QNameUtil.match(relationType.getRelation(), relation)) {
                 return relationType;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns QName relation value just in case if a single matching RelationTypes value is found.
+     * In some places in gui we want to simplify the UX so that the user can enter just the local
+     * part of the relation URI.
+     * @param relationLocalPart
+     * @return
+     */
+    public static QName getRelationByLocalPart(String relationLocalPart){
+        long matchingRelationsCount = Arrays.stream(values())
+                .filter(r ->
+                        QNameUtil.match(r.getRelation(), QNameUtil.uriToQName(relationLocalPart, true)))
+                .count();
+        if (matchingRelationsCount == 0 || matchingRelationsCount > 1) {
+            return null;
+        }
+        for (RelationTypes relationType : values()) {
+            if (QNameUtil.match(relationType.getRelation(), QNameUtil.uriToQName(relationLocalPart, true))) {
+                return relationType.relation;
             }
         }
         return null;
