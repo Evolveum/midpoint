@@ -6,6 +6,10 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.searchfilter;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
@@ -14,23 +18,21 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.SearchFilterConfigurationPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import jakarta.annotation.PostConstruct;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.SearchFilterConfigurationPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 @Component
 public class SearchFilterPanelFactory extends AbstractInputGuiComponentFactory<SearchFilterType> {
@@ -85,15 +87,25 @@ public class SearchFilterPanelFactory extends AbstractInputGuiComponentFactory<S
         return containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType;
     }
 
+    /**
+     * Resolves the object type for the search filter.
+     *
+     * <p>Returning {@code null} is intentional in some cases (e.g. delineation suggestion) — it prevents filter parsing
+     * and validation in {@code SearchFilterConfigurationPanel#createQueryModel(...)}.
+     *
+     * @param panelCtx context for the search filter
+     * @return resolved object type, {@link ObjectType#COMPLEX_TYPE} as a generic fallback,
+     * or {@code null} when parsing should be skipped
+     */
     private QName getFilterObjectType(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
         PrismPropertyWrapper<SearchFilterType> searchFilterItemWrapper = panelCtx.unwrapWrapperModel();
         PrismContainerValueWrapper<?> containerWrapper = searchFilterItemWrapper.getParent();
         if (containerWrapper == null) {
-            return null;
+            return ObjectType.COMPLEX_TYPE;
         }
         var parentContainerValue = containerWrapper.getRealValue();
         if (parentContainerValue instanceof ObjectCollectionType oct) {
-            return oct.getType();
+            return oct.getType() == null ? ObjectType.COMPLEX_TYPE : oct.getType();
         } else if (parentContainerValue instanceof CollectionRefSpecificationType collectionRefSpecificationType) {
             try {
                 Task task = panelCtx.getPageBase().createSimpleTask("compileObjectCollectionView");

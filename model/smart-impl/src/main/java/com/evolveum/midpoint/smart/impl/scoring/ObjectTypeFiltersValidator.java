@@ -8,6 +8,7 @@
 
 package com.evolveum.midpoint.smart.impl.scoring;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -45,9 +46,11 @@ public class ObjectTypeFiltersValidator {
     private static final String ID_IS_BASE_CONTEXT_FILTER_RUNNABLE = "isBaseContextFilterRunnable";
 
     private final ProvisioningService provisioningService;
+    private final ModelService modelService;
 
-    public ObjectTypeFiltersValidator(ProvisioningService provisioningService) {
+    public ObjectTypeFiltersValidator(ProvisioningService provisioningService, ModelService modelService) {
         this.provisioningService = provisioningService;
+        this.modelService = modelService;
     }
 
     /**
@@ -66,7 +69,7 @@ public class ObjectTypeFiltersValidator {
                 .addParam("objectClassName", objectClassName)
                 .build();
 
-        var resourceObj = SmartIntegrationBeans.get().modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+        var resourceObj = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
         var resource = Resource.of(resourceObj);
         ResourceObjectDefinition objectDef = resource.getCompleteSchemaRequired().findObjectClassDefinitionRequired(objectClassName);
 
@@ -80,6 +83,7 @@ public class ObjectTypeFiltersValidator {
             query.addFilter(parsed);
             provisioningService.searchShadows(query, null, task, result);
         } catch (Exception e) {
+            result.recordException(e);
             throw new FilterValidationException("Filter validation failed: " + e.getMessage());
         } finally {
             result.close();
@@ -102,7 +106,7 @@ public class ObjectTypeFiltersValidator {
                 .addParam("baseContextObjectClassName", baseContextObjectClassName)
                 .build();
 
-        var resourceObj = SmartIntegrationBeans.get().modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+        var resourceObj = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
         var resource = Resource.of(resourceObj);
         ResourceObjectDefinition objectDef = resource.getCompleteSchemaRequired().findObjectClassDefinitionRequired(baseContextObjectClassName);
 
@@ -116,6 +120,7 @@ public class ObjectTypeFiltersValidator {
             query.addFilter(parsed);
             provisioningService.searchShadows(query, null, task, result);
         } catch (Exception e) {
+            result.recordException(e);
             throw new FilterValidationException("Filter validation failed: " + e.getMessage());
         } finally {
             result.close();

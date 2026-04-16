@@ -43,14 +43,17 @@ public class GroupOfNamesLdapMappingProvider implements WellKnownSchemaProvider 
     }
 
     @Override
-    public List<SystemMappingSuggestion> suggestInboundMappings() {
+    public List<SystemMappingSuggestion> suggestInboundMappings(@Nullable String resourceName) {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", AbstractRoleType.F_IDENTIFIER));
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", RoleType.F_NAME, MappingStrengthType.STRONG));
+        String prefixScript = resourceName != null
+                ? "'" + resourceName.replace("'", "\\'") + "' + '-' + input"
+                : "'RESOURCE_NAME-' + input";
         mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                 "cn",
                 RoleType.F_NAME,
-                "resource.name + '-' + input",
+                prefixScript,
                 "Inbound: group name with resource prefix (<resource>-<cn>)",
                 MappingStrengthType.STRONG));
         return mappings;

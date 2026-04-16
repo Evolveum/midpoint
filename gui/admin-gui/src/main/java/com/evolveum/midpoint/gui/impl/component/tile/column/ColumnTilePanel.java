@@ -10,7 +10,12 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
+
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,7 +29,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
@@ -36,12 +40,22 @@ import static com.evolveum.midpoint.gui.impl.component.tile.column.ColumnTileTab
 import static com.evolveum.midpoint.gui.impl.component.tile.column.ColumnTileTable.setColumnTileSelected;
 
 /**
- * A reusable, column-based tile that renders its content using existing {@link IColumn}
- * definitions from Wicket tables. Allows tile and table to share the same column model.
+ * Reusable tile panel that renders one logical row using standard Wicket table columns.
  *
- * @author tchrapovic
+ * <p>The panel works with two types:
+ * <ul>
+ *   <li><b>O</b> - the tile row object</li>
+ *   <li><b>PV</b> - the delegated value rendered by the tile columns</li>
+ * </ul>
+ *
+ * <p>This allows a tile row to be a DTO or grouped object, while still rendering
+ * existing column definitions built for another value type.
  */
-public class ColumnTilePanel<O extends Serializable, T extends ColumnTile<O>> extends BasePanel<T> {
+public class ColumnTilePanel<
+        O extends ColumnValueProvider<PV>,
+        PV extends Serializable,
+        T extends ColumnTile<O, PV>>
+        extends BasePanel<T> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -52,9 +66,11 @@ public class ColumnTilePanel<O extends Serializable, T extends ColumnTile<O>> ex
     private static final String ID_COMPONENT = "component";
 
     private static final String ID_TOOLBAR = "toolbar";
+    IModel<PV> rowModel;
 
-    public ColumnTilePanel(String id, IModel<T> model) {
+    public ColumnTilePanel(String id, IModel<T> model, IModel<PV> rowModel) {
         super(id, model);
+        this.rowModel = rowModel;
     }
 
     @Override
@@ -70,20 +86,23 @@ public class ColumnTilePanel<O extends Serializable, T extends ColumnTile<O>> ex
     }
 
     /**
-     * Creates a fragment containing the column components for this tile.
+     * Creates a fragment containing the rendered column content for this tile.
      */
     public Component createContentFragment(String id) {
         Fragment fragment = new Fragment(id, ID_COLUMNS_TILE_FRAGMENT, this);
 
-        O value = getModelObject().getValue();
-        IModel<O> rowModel = Model.of(value);
-
-        List<IColumn<O, String>> columns = getModelObject().getColumns();
-        ListView<IColumn<O, String>> columnsView = new ListView<>(ID_COLUMNS, columns) {
+        List<IColumn<PV, String>> columns = getModelObject().getColumns();
+        ListView<IColumn<PV, String>> columnsView = new ListView<>(ID_COLUMNS, columns) {
             @Override
-            protected void populateItem(@NotNull ListItem<IColumn<O, String>> item) {
-                IColumn<O, String> column = item.getModelObject();
-                Item<ICellPopulator<O>> cellItem = new Item<>(ID_CELL, 0);
+            protected void populateItem(@NotNull ListItem<IColumn<PV, String>> item) {
+
+                IColumn<PV, String> column = item.getModelObject();
+
+                if (!isInlineMenuButtonVisible()) {
+                    hideButtonInlineMenus(column);
+                }
+
+                Item<ICellPopulator<PV>> cellItem = new Item<>(ID_CELL, item.getIndex());
                 cellItem.setOutputMarkupId(true);
                 column.populateItem(cellItem, ID_COMPONENT, rowModel);
 
@@ -91,6 +110,7 @@ public class ColumnTilePanel<O extends Serializable, T extends ColumnTile<O>> ex
                     String css = abstractColumn.getCssClass();
                     cellItem.add(AttributeAppender.append("class", css != null ? css : "col"));
                 }
+
                 item.add(cellItem);
             }
         };
@@ -102,7 +122,22 @@ public class ColumnTilePanel<O extends Serializable, T extends ColumnTile<O>> ex
         columnsView.setOutputMarkupId(true);
         columnsView.setRenderBodyOnly(true);
         fragment.add(columnsView);
+
         return fragment;
+    }
+
+    protected boolean isInlineMenuButtonVisible() {
+        return true;
+    }
+
+    private static <PV extends Serializable> void hideButtonInlineMenus(IColumn<PV, String> column) {
+        if (column instanceof InlineMenuButtonColumn<PV> inlineMenuButtonColumn) {
+            for (InlineMenuItem menuItem : inlineMenuButtonColumn.menuItems) {
+                if (menuItem instanceof ButtonInlineMenuItem) {
+                    menuItem.setVisible(() -> false);
+                }
+            }
+        }
     }
 
     protected void addToolbarButtons(@NotNull RepeatingView repeatingView) {

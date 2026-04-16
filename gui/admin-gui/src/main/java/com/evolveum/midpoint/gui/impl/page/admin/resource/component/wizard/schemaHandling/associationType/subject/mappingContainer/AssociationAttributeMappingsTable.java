@@ -290,6 +290,11 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     protected abstract boolean isAttributeVisible();
 
     @Override
+    protected boolean isGroupedSuggestion() {
+        return false;
+    }
+
+    @Override
     protected ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> createDataProvider() {
         return new MultivalueContainerListDataProvider<>(
                 this,

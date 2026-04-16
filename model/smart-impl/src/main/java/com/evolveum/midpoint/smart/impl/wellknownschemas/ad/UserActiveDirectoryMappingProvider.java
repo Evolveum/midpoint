@@ -55,7 +55,7 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
     }
 
     @Override
-    public List<SystemMappingSuggestion> suggestInboundMappings() {
+    public List<SystemMappingSuggestion> suggestInboundMappings(@Nullable String resourceName) {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
         return mappings;
     }

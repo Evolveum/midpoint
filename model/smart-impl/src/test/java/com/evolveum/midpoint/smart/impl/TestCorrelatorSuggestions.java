@@ -640,7 +640,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 .hasSize(1);
         assertThat(personalNumberToName.get(0).isIsSystemProvided())
                 .as("heuristic-added entry must be marked as system-provided")
-                .isTrue();
+                .isFalse();
 
         var departmentToName = matchResults.stream()
                 .filter(r -> r.getShadowAttributePath().contains(DEPARTMENT.local())

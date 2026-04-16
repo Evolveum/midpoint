@@ -45,7 +45,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
     @Serial private static final long serialVersionUID = 1L;
 
-    protected List<InlineMenuItem> menuItems;
+    public List<InlineMenuItem> menuItems;
 
     private final PageBase pageBase;
 

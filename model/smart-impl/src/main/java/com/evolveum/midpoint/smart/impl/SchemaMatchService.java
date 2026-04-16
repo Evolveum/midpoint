@@ -11,7 +11,6 @@ package com.evolveum.midpoint.smart.impl;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
@@ -31,14 +30,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
+import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.task.api.Task;
@@ -123,26 +122,9 @@ public class SchemaMatchService {
                     .item(ResourceType.F_CONNECTOR_REF).resolve()
                     .build();
             var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, options, null, task, result);
-            var focusTypeDefinition = ctx.getFocusTypeDefinition();
-            var matchingOp = new SchemaMatchingOperation(serviceClient, wellKnownSchemaService, useAiService);
-            var match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource);
-
-            SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()
-                    .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-
-            var detectedSchemaType = matchingOp.getDetectedSchemaType();
-            if (detectedSchemaType != null) {
-                schemaMatchResult.setWellKnownSchemaType(detectedSchemaType.name());
-                LOGGER.debug("Stored known schema type: {} for resource {}", detectedSchemaType, resourceOid);
-            }
-
-            for (var attributeMatch : match.getAttributeMatch()) {
-                processAttributeMatch(attributeMatch, matchingOp, ctx, focusTypeDefinition)
-                        .ifPresent(schemaMatchResult.getSchemaMatchResult()::add);
-            }
             var objectTypeStatistics = loadObjectTypeStats(resourceOid, typeIdentification, ctx.resource, ctx.typeDefinition, result);
-            new PostSchemaMatchHeuristics(focusTypeDefinition, objectTypeStatistics).applyAll(schemaMatchResult);
-            return schemaMatchResult;
+            return doComputeSchemaMatch(
+                    serviceClient, ctx.objectClassDefinition, ctx.getFocusTypeDefinition(), ctx.resource, useAiService, objectTypeStatistics);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -151,10 +133,78 @@ public class SchemaMatchService {
         }
     }
 
+    /**
+     * Computes schema match at the object class level using an explicit focus type name,
+     * without requiring the object type (kind/intent) to be configured on the resource.
+     * Useful for pre-loading schema matching during object type suggestions, before types are saved.
+     */
+    public SchemaMatchResultType computeSchemaMatchByObjectClass(
+            String resourceOid,
+            QName objectClassName,
+            QName focusTypeName,
+            boolean useAiService,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        var result = parentResult.subresult("computeSchemaMatchByObjectClass")
+                .addParam("resourceOid", resourceOid)
+                .addParam("objectClassName", objectClassName)
+                .addParam("focusTypeName", focusTypeName)
+                .build();
+        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+            var options = GetOperationOptionsBuilder.create()
+                    .item(ResourceType.F_CONNECTOR_REF).resolve()
+                    .build();
+            var ctx = OperationContext.init(serviceClient, resourceOid, objectClassName, options, task, result);
+            var focusTypeDefinition = PrismContext.get().getSchemaRegistry()
+                    .findObjectDefinitionByType(focusTypeName);
+            if (focusTypeDefinition == null) {
+                throw new SchemaException("Focus type definition not found for " + focusTypeName);
+            }
+            return doComputeSchemaMatch(
+                    serviceClient, ctx.objectClassDefinition, focusTypeDefinition, ctx.resource, useAiService, null);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    private SchemaMatchResultType doComputeSchemaMatch(
+            ServiceClient serviceClient,
+            ResourceObjectClassDefinition objectClassDef,
+            PrismObjectDefinition<?> focusTypeDefinition,
+            ResourceType resource,
+            boolean useAiService,
+            ShadowObjectClassStatisticsType objectTypeStatistics)
+            throws SchemaException {
+        var matchingOp = new SchemaMatchingOperation(serviceClient, wellKnownSchemaService, useAiService);
+        var match = matchingOp.matchSchema(objectClassDef, focusTypeDefinition, resource);
+
+        SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()
+                .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+
+        var detectedSchemaType = matchingOp.getDetectedSchemaType();
+        if (detectedSchemaType != null) {
+            schemaMatchResult.setWellKnownSchemaType(detectedSchemaType.name());
+            LOGGER.debug("Stored known schema type: {} for resource {}", detectedSchemaType, resource.getOid());
+        }
+
+        for (var attributeMatch : match.getAttributeMatch()) {
+            processAttributeMatch(attributeMatch, matchingOp, objectClassDef, resource, focusTypeDefinition)
+                    .ifPresent(schemaMatchResult.getSchemaMatchResult()::add);
+        }
+        new PostSchemaMatchHeuristics(focusTypeDefinition, objectTypeStatistics).applyAll(schemaMatchResult);
+        return schemaMatchResult;
+    }
+
     private Optional<SchemaMatchOneResultType> processAttributeMatch(
             SiAttributeMatchSuggestionType attributeMatch,
             SchemaMatchingOperation matchingOp,
-            TypeOperationContext ctx,
+            ResourceObjectClassDefinition objectClassDef,
+            ResourceType resource,
             PrismObjectDefinition<?> focusTypeDefinition) {
         var shadowAttrPath = matchingOp.getApplicationItemPath(attributeMatch.getApplicationAttribute());
         if (shadowAttrPath.size() != 2 || !shadowAttrPath.startsWith(ShadowType.F_ATTRIBUTES)) {
@@ -163,7 +213,7 @@ public class SchemaMatchService {
         }
 
         var shadowAttrName = shadowAttrPath.rest().asSingleNameOrFail();
-        var shadowAttrDef = ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
+        var shadowAttrDef = objectClassDef.findSimpleAttributeDefinition(shadowAttrName);
         if (shadowAttrDef == null) {
             LOGGER.warn("No shadow attribute definition found for {}. Skipping schema match record.", shadowAttrName);
             return Optional.empty();
@@ -176,10 +226,16 @@ public class SchemaMatchService {
             return Optional.empty();
         }
 
+        var shadowAttrDescriptivePath = DescriptiveItemPath.empty()
+                .append(ShadowType.F_ATTRIBUTES, false)
+                .append(shadowAttrName, shadowAttrDef.isMultiValue());
+        var applicationAttrDefBean = new SiAttributeDefinitionType()
+                .name(shadowAttrDescriptivePath.asString())
+                .type(getTypeName(shadowAttrDef))
+                .minOccurs(shadowAttrDef.getMinOccurs())
+                .maxOccurs(shadowAttrDef.getMaxOccurs());
         //TODO this is a nasty hack for MCM demo, remove later.
-        var applicationAttrDefBean = createAttributeDefinition(
-                shadowAttrPath, shadowAttrDef, ctx.getShadowDefinition());
-        if (isLdapResource(ctx.resource)) {
+        if (isLdapResource(resource)) {
             applicationAttrDefBean.setMaxOccurs(1);
         }
         var midPointPropertyDefBean = createAttributeDefinition(

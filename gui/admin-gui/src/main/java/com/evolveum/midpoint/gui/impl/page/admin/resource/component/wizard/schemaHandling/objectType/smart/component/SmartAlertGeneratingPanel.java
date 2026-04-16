@@ -13,13 +13,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
-
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
-import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,12 +25,19 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Panel for monitoring and controlling a "smart generating" task.
@@ -179,8 +179,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
             @NotNull Duration refreshDuration,
             @NotNull IModel<SmartGeneratingAlertDto> model,
             @NotNull SerializableConsumer<AjaxRequestTarget> onFinishAction) {
-
-        return new AbstractAjaxTimerBehavior(refreshDuration) {
+        AbstractAjaxTimerBehavior abstractAjaxTimerBehavior = new AbstractAjaxTimerBehavior(refreshDuration) {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
                 try {
@@ -217,6 +216,21 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                 }
             }
         };
+
+        SmartGeneratingAlertDto dto = getModelObject();
+        if (!shouldStartPolling(dto)) {
+            abstractAjaxTimerBehavior.stop(null);
+        }
+        return abstractAjaxTimerBehavior;
+    }
+
+    //TODO check it
+    private boolean shouldStartPolling(@Nullable SmartGeneratingAlertDto dto) {
+        if (dto == null) {
+            return false;
+        }
+
+        return !dto.isFinished() && !dto.isFailed() && !dto.isSuspended();
     }
 
     private void generatePerformed(AjaxRequestTarget target,
@@ -239,7 +253,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         final AjaxIconButton suggestButton;
         if (getConfirmationOptions().getObject().isEmpty()) {
             suggestButton = buttonWithoutDialog(buttonId);
-            suggestButton.add(AttributeModifier.append("class", "btn, rounded, bg-purple"));
+            suggestButton.add(AttributeModifier.append("class", "btn rounded bg-purple"));
         } else {
             suggestButton = buttonWithDialog(buttonId);
         }

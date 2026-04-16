@@ -34,11 +34,12 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
-import java.util.List;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+
+import java.util.List;
 
 /**
  * @author lskublik
@@ -57,6 +58,8 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     public static final ItemName SCIM_BASE_URL_ITEM_NAME = ItemName.from("", "scimBaseUrl");
 
     private static final String ID_AI_ALERT = "aiAlert";
+
+    private PrismContainerWrapper<? extends Containerable> containerWrapper;
 
     public BaseUrlConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -103,6 +106,13 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     @Override
     protected void onBeforeRender() {
+        PrismContainerWrapper<?> wrapper = getContainerFormModel().getObject();
+
+        if (containerWrapper != null && containerWrapper != wrapper) {
+            initLayout();
+        }
+        containerWrapper = wrapper;
+
         super.onBeforeRender();
         ((VerticalFormPrismContainerPanel) getVerticalForm().getSingleContainerPanel().getContainer().get("1"))
                 .getContainer().add(AttributeAppender.remove("class"));
@@ -118,7 +128,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
         WebMarkupContainer aiAlert = new WebMarkupContainer(ID_AI_ALERT);
         aiAlert.setOutputMarkupId(true);
-        add(aiAlert);
+        addOrReplace(aiAlert);
         aiAlert.add(new VisibleBehaviour(this::isAiAlertVisible));
 
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
@@ -158,7 +168,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
         };
         panel.setOutputMarkupId(true);
         panel.add(AttributeAppender.replace("class", "col-12"));
-        add(panel);
+        addOrReplace(panel);
     }
 
     private boolean isAiAlertVisible() {
