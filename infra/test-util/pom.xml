@@ -87,8 +87,8 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.qpid</groupId>
-            <artifactId>qpid-broker-core</artifactId>
+            <groupId>com.github.fridujo</groupId>
+            <artifactId>rabbitmq-mock</artifactId>
         </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>

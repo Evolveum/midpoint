@@ -59,11 +59,14 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
     private static final String QUEUE_NAME = "testQueue";
 
     private final EmbeddedBroker embeddedBroker = new EmbeddedBroker();
+    private AutoCloseable connectionFactoryOverride;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
         embeddedBroker.start();
+        connectionFactoryOverride = Amqp091AsyncUpdateSource.useConnectionFactoryOverrideForTesting(
+                embeddedBroker::getConnectionFactory);
+        super.initSystem(initTask, initResult);
         embeddedBroker.createQueue(QUEUE_NAME);
 
         importObject(RESOURCE_HR, initTask, initResult);
@@ -75,7 +78,10 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
     }
 
     @AfterClass
-    public void stop() {
+    public void stop() throws Exception {
+        if (connectionFactoryOverride != null) {
+            connectionFactoryOverride.close();
+        }
         embeddedBroker.stop();
     }
 

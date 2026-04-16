@@ -53,6 +53,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * bug:MID-11036[] Implemented export to XLSX.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
 * bug:MID-9476[] Improved Search Box in Object Collection View.
+* bug:MID-10867[] Added support for java 25.
 
 === Major Bugfixes
 

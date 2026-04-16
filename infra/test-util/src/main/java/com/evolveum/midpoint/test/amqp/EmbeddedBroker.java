@@ -12,12 +12,11 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import org.apache.qpid.server.SystemLauncher;
+import com.github.fridujo.rabbitmq.mock.MockConnectionFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -25,35 +24,22 @@ public class EmbeddedBroker {
 
     protected static final Trace LOGGER = TraceManager.getTrace(EmbeddedBroker.class);
 
-    private static final String DEFAULT_CONFIG_RESOURCE_PATH = "amqp/default-qpid-config.json";
-
-    private final SystemLauncher broker = new SystemLauncher();
+    private final ConnectionFactory connectionFactory = new MockConnectionFactory();
 
     public void start() throws Exception {
-        start(DEFAULT_CONFIG_RESOURCE_PATH);
-    }
-
-    public void start(String configResourcePath) throws Exception {
-        System.out.println("Starting the broker");
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("type", "Memory");
-        attributes.put("initialConfigurationLocation", findResourcePath(configResourcePath));
-        broker.startup(attributes);
-    }
-
-    private String findResourcePath(String fileName) {
-        return EmbeddedBroker.class.getClassLoader().getResource(fileName).toExternalForm();
+        System.out.println("Starting the mock broker");
     }
 
     public void stop() {
-        System.out.println("Stopping the broker");
-        broker.shutdown();
+        System.out.println("Stopping the mock broker");
+    }
+
+    public ConnectionFactory getConnectionFactory() {
+        return connectionFactory;
     }
 
     public void send(String queueName, String message, Map<String, Object> headers) throws IOException, TimeoutException {
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
-        try (Connection connection = factory.newConnection();
+        try (Connection connection = connectionFactory.newConnection();
                 Channel channel = connection.createChannel()) {
             channel.basicPublish("", queueName, createProperties(headers), message.getBytes(StandardCharsets.UTF_8));
             LOGGER.trace("Sent '{}'", message);
@@ -61,9 +47,7 @@ public class EmbeddedBroker {
     }
 
     public long getMessagesCount(String queueName) throws IOException, TimeoutException {
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
-        try (Connection connection = factory.newConnection();
+        try (Connection connection = connectionFactory.newConnection();
                 Channel channel = connection.createChannel()) {
             return channel.messageCount(queueName);
         }
@@ -78,11 +62,9 @@ public class EmbeddedBroker {
     }
 
     public void createQueue(String queueName) throws IOException, TimeoutException {
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
-        try (Connection connection = factory.newConnection();
+        try (Connection connection = connectionFactory.newConnection();
                 Channel channel = connection.createChannel()) {
-            channel.queueDeclare(queueName, true, false, false, new HashMap<>());
+            channel.queueDeclare(queueName, true, false, false, Map.of());
         }
     }
 }
