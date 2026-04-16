@@ -25,7 +25,7 @@ public class ObjectTypeStatisticsComputer {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeStatisticsComputer.class);
 
     /** Regular expression pattern for token delimiters. */
-    private static final String DELIMITERS = "[-_:*#+.]+";
+    private static final String DELIMITERS = "[-_:*#+.()\\[\\]]+";
 
     /** Compiled pattern for token delimiters (used by Matcher). */
     private static final Pattern DELIMITER_PATTERN = Pattern.compile(DELIMITERS);
@@ -115,11 +115,9 @@ public class ObjectTypeStatisticsComputer {
                 emitAllPatterns(attributeAggregation.lastTokenCounts, ShadowValuePatternType.LAST_TOKEN, statisticsAttribute);
             }
 
-            if (statisticsAttribute.getMissingValueCount() == statistics.getSize()
-                    || (statisticsAttribute.getValueCount().isEmpty() && statisticsAttribute.getValuePatternCount().isEmpty())) {
-                statisticsIterator.remove();
-            }
         }
+        statistics.getAttribute();
+        statistics.getAttributeTuple();
     }
 
     /**
@@ -173,15 +171,24 @@ public class ObjectTypeStatisticsComputer {
     /**
      * Extracts first/last tokens (including their adjacent delimiter) and increments their counts.
      * Skips values that look like URLs, emails, or phone numbers.
+     * Only "inside" delimiters are considered: any leading or trailing delimiter sequences are
+     * stripped before processing, so they do not influence the token boundaries.
      *
-     * For example, "prod-server01" yields firstToken="prod-" and lastToken="-server01"
+     * For example, "-prod-server01-" yields firstToken="-prod-" and lastToken="-server01-"
      */
     private void aggregateTokenPatterns(AttributeAggregation agg, String value) {
         if (isUrl(value) || isEmail(value) || isPhoneNumber(value)) {
             return;
         }
 
-        Matcher matcher = DELIMITER_PATTERN.matcher(value);
+        // Strip leading and trailing delimiter sequences to find only "inside" delimiters.
+        // leadingDelimLength is used as an offset to extract tokens from the original value,
+        // so that tokens preserve any leading/trailing delimiters of the original string.
+        String withoutLeading = value.replaceAll("^" + DELIMITERS, "");
+        int leadingDelimLength = value.length() - withoutLeading.length();
+        String inner = withoutLeading.replaceAll(DELIMITERS + "$", "");
+
+        Matcher matcher = DELIMITER_PATTERN.matcher(inner);
 
         if (!matcher.find()) {
             return;
@@ -196,14 +203,14 @@ public class ObjectTypeStatisticsComputer {
             lastDelimStart = matcher.start();
         }
 
-        // firstToken: text + trailing delimiter (skip if value starts with delimiter)
+        // firstToken: text + trailing delimiter, mapped back to original value (includes leading delimiters)
         if (firstDelimStart > 0) {
-            agg.firstTokenCounts.merge(value.substring(0, firstDelimEnd), 1, Integer::sum);
+            agg.firstTokenCounts.merge(value.substring(0, leadingDelimLength + firstDelimEnd), 1, Integer::sum);
         }
 
-        // lastToken: leading delimiter + text (skip if value ends with delimiter)
-        if (lastDelimStart < value.length() - 1) {
-            agg.lastTokenCounts.merge(value.substring(lastDelimStart), 1, Integer::sum);
+        // lastToken: leading delimiter + text, mapped back to original value (includes trailing delimiters)
+        if (lastDelimStart < inner.length() - 1) {
+            agg.lastTokenCounts.merge(value.substring(leadingDelimLength + lastDelimStart), 1, Integer::sum);
         }
     }
 
