@@ -5,7 +5,8 @@
 :page-description: Package Java classes to JAR files to use them as custom functions in midPoint expression scripts
 
 MidPoint makes compiled Java classes available to all script expressions similarly to functions in expression function libraries.
-Methods of public classes packaged in JAR files and placed in midPoint home directory are accessible in expressions using their fully qualified class name.
+Methods of public classes packaged in JAR files and placed on the classpath are accessible in expressions using their fully qualified class names or via the Java import statement.
+The `lib` directory under midPoint home directory is the typical classpath location for custom JARs.
 
 This mechanism is distinct from the XML-based xref:/midpoint/reference/expressions/function-libraries/[expression function libraries] that store Groovy functions as midPoint repository objects.
 
@@ -36,9 +37,11 @@ public class SampleUtil {
 Requirements and constraints:
 
 * Classes must be `public`.
-* Methods called from expression scripts must be `public static`.
+* Methods called from expression scripts should be `public static`.
+    Technically, you can use non-static methods.
+    However, you would have to explicitly instantiate their class in the script first, which would add unnecessary complexity for most use cases.
 * The class and its dependencies must be compatible with the JVM version midPoint runs on.
-* Do not use package or class names that would collide with those already used by midPoint.
+* Do not use package and class names that would, when combined into fully qualified names, collide with those already used by midPoint.
 
 == Build and deploy the JAR
 
