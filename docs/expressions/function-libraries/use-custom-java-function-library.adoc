@@ -6,7 +6,7 @@
 
 MidPoint makes compiled Java classes available to all script expressions similarly to functions in expression function libraries.
 Methods of public classes packaged in JAR files and placed on the classpath are accessible in expressions using their fully qualified class names or via the Java import statement.
-The `lib` directory under midPoint home directory is the typical classpath location for custom JARs.
+The `lib` directory under the midPoint home directory is the typical classpath location for custom JARs.
 
 This mechanism is distinct from the XML-based xref:/midpoint/reference/expressions/function-libraries/[expression function libraries] that store Groovy functions as midPoint repository objects.
 
@@ -46,9 +46,10 @@ Requirements and constraints:
 == Build and deploy the JAR
 
 . Compile and package the class into a JAR.
-. Copy the resulting JAR directly to the `lib` directory in midPoint home directory, e.g., `/opt/midpoint/var/lib/`.
+. Copy the resulting JAR to a path that is on the classpath.
+    Most commonly, this is the `lib` directory in the midPoint home directory, e.g., `/opt/midpoint/var/lib/`.
     ** Classes placed there are loaded at startup.
-    ** Do not place the JAR into a subdirectory.
+    ** Do not place the JAR into a subdirectory unless it is on the classpath as well.
 . Restart midPoint so that the new JAR is loaded.
     If you update an existing JAR, a restart is also required.
 
@@ -91,15 +92,16 @@ The same call syntax works in any midPoint script context.
 
 == Troubleshooting
 
-* `ClassNotFoundException` or `NoClassDefFoundError` in script evaluation. +
-    The JAR is not on the classpath.
+* `ClassNotFoundException` or `NoClassDefFoundError` in script evaluation.
+    ** The JAR is not on the classpath.
     Verify that:
-    ** The file is in `lib` under midPoint home (not a subdirectory).
-    ** MidPoint was restarted after you copied there the JAR.
-    ** The fully qualified class name in the script matches the compiled class exactly, including case.
-* Changes to the JAR have no effect. +
+        *** The directory where you placed the JAR is on the classpath;
+            e.g., the `lib` directory under the midPoint home directory (not its subdirectory).
+        *** MidPoint was restarted after you copied there the JAR.
+        *** The fully qualified class name in the script matches the compiled class exactly, including case.
+* Changes to the JAR have no effect.
     ** You have to restart midPoint both after adding and updating the JAR file.
-* Dependency conflicts. +
+* Dependency conflicts.
     ** If your library depends on a third-party library, include that dependency in the JAR or place the dependency JAR separately to the `lib` directory.
         Be cautious about including libraries that midPoint itself uses;
         version conflicts can cause unpredictable failures.
