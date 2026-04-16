@@ -10,7 +10,6 @@ package com.evolveum.midpoint.smart.impl.activities;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -40,18 +39,6 @@ import javax.xml.namespace.QName;
 public class ObjectClassStatisticsComputer {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectClassStatisticsComputer.class);
-
-    /** Top-N value counts to retain per attribute (spec: VALUECOUNT_TOP_N = 10). */
-    private static final int VALUECOUNT_TOP_N = 10;
-
-    /** Minimum repeat count for a value to appear in Top-N output (spec: VALUECOUNT_MIN_REPEAT = 2). */
-    private static final int VALUECOUNT_MIN_REPEAT = 2;
-
-    /** Top-N DN suffix patterns to retain per attribute (spec: DN_SUFFIX_TOP_N = 20). */
-    private static final int DN_SUFFIX_TOP_N = 20;
-
-    /** Top-N first/last token patterns to retain per token type (spec: FIRST_LAST_TOP_N = 10). */
-    private static final int FIRST_LAST_TOP_N = 10;
 
     /** Regular expression pattern for token delimiters. */
     private static final String DELIMITERS = "[-_:*#+.]+";
@@ -123,8 +110,8 @@ public class ObjectClassStatisticsComputer {
     }
 
     /**
-     * Performs post-processing: converts aggregated counts into JAXB-compatible structures,
-     * applying Top-N limits.
+     * Performs post-processing: converts aggregated counts into JAXB-compatible structures.
+     * All values and patterns are emitted without any filtering or top-N limits.
      */
     public void postProcessStatistics() {
         for (Iterator<ShadowAttributeStatisticsType> statisticsIterator = statistics.getAttribute().iterator(); statisticsIterator.hasNext(); ) {
@@ -139,13 +126,13 @@ public class ObjectClassStatisticsComputer {
             statisticsAttribute.setMissingValueCount(attributeAggregation.missingCount);
             statisticsAttribute.setUniqueValueCount(attributeAggregation.valueCounts.size());
 
-            emitTopNValueCounts(attributeAggregation.valueCounts, statisticsAttribute);
+            emitAllValueCounts(attributeAggregation.valueCounts, statisticsAttribute);
 
             if (attributeAggregation.isDnAttribute) {
-                emitTopNPatterns(attributeAggregation.dnSuffixCounts, ShadowValuePatternType.DN_SUFFIX, DN_SUFFIX_TOP_N, statisticsAttribute);
+                emitAllPatterns(attributeAggregation.dnSuffixCounts, ShadowValuePatternType.DN_SUFFIX, statisticsAttribute);
             } else {
-                emitTopNPatterns(attributeAggregation.firstTokenCounts, ShadowValuePatternType.FIRST_TOKEN, FIRST_LAST_TOP_N, statisticsAttribute);
-                emitTopNPatterns(attributeAggregation.lastTokenCounts, ShadowValuePatternType.LAST_TOKEN, FIRST_LAST_TOP_N, statisticsAttribute);
+                emitAllPatterns(attributeAggregation.firstTokenCounts, ShadowValuePatternType.FIRST_TOKEN, statisticsAttribute);
+                emitAllPatterns(attributeAggregation.lastTokenCounts, ShadowValuePatternType.LAST_TOKEN, statisticsAttribute);
             }
 
             if (statisticsAttribute.getMissingValueCount() == statistics.getSize()
@@ -241,59 +228,29 @@ public class ObjectClassStatisticsComputer {
     }
 
     /**
-     * Emits Top-N value counts into the statistics, only if at least one value
-     * has count >= VALUECOUNT_MIN_REPEAT
+     * Emits all value counts into the statistics, sorted by count descending.
      */
-    private void emitTopNValueCounts(Map<String, Integer> valueCounts, ShadowAttributeStatisticsType stats) {
-        int maxCount = valueCounts.values().stream()
-                .max(Integer::compare)
-                .orElse(0);
-        if (maxCount < VALUECOUNT_MIN_REPEAT) {
-            return;
-        }
-
-        topN(valueCounts, VALUECOUNT_TOP_N)
+    private void emitAllValueCounts(Map<String, Integer> valueCounts, ShadowAttributeStatisticsType stats) {
+        valueCounts.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .forEach(entry -> stats.beginValueCount()
                         .value(entry.getKey())
                         .count(entry.getValue()));
     }
 
     /**
-     * Emits Top-N pattern counts of a given type into the statistics.
+     * Emits all pattern counts of a given type into the statistics, sorted by count descending.
      */
-    private void emitTopNPatterns(
+    private void emitAllPatterns(
             Map<String, Integer> counts,
             ShadowValuePatternType type,
-            int limit,
             ShadowAttributeStatisticsType stats) {
-        topN(counts, limit)
+        counts.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .forEach(entry -> stats.beginValuePatternCount()
                         .value(entry.getKey())
                         .type(type)
                         .count(entry.getValue()));
-    }
-
-    /**
-     * Returns top entries from the given map, sorted by value descending.
-     * If the map size is within the limit, all entries are returned.
-     * If the map size exceeds the limit, entries with count > 1 are kept only when
-     * their number is lower than the limit (concentrated clusters). Otherwise the
-     * pattern is too diffuse and an empty list is returned.
-     */
-    private static List<Map.Entry<String, Integer>> topN(Map<String, Integer> map, int limit) {
-        if (map.size() <= limit) {
-            return map.entrySet().stream()
-                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                    .collect(Collectors.toList());
-        }
-        long repeatingCount = map.values().stream().filter(v -> v > 1).count();
-        if (repeatingCount >= limit) {
-            return List.of();
-        }
-        return map.entrySet().stream()
-                .filter(e -> e.getValue() > 1)
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toList());
     }
 
     /** Checks whether the given string matches the URL pattern. */
