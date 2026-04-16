@@ -8,10 +8,18 @@ package com.evolveum.midpoint.transport.impl;
 
 import java.util.*;
 
+import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 
+import org.springframework.context.ApplicationContext;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -39,7 +47,37 @@ public class MailMessageTransportAddressParsingTest {
         config.setName("test-mail");
         config.setDefaultFrom(VALID_ADDRESS);
 
-        transport.configure(config, null);
+        // Just to make sure this test can be run with @NotNull annotations checks turned on
+        // (The object is currently not used by the code being tested here.)
+        var dummySupport = new TransportSupport() {
+
+            @Override
+            public PrismContext prismContext() {
+                return null;
+            }
+
+            @Override
+            public ExpressionFactory expressionFactory() {
+                return null;
+            }
+
+            @Override
+            public RepositoryService repositoryService() {
+                return null;
+            }
+
+            @Override
+            public Protector protector() {
+                return null;
+            }
+
+            @Override
+            public ApplicationContext applicationContext() {
+                return null;
+            }
+        };
+
+        transport.configure(config, dummySupport);
     }
 
     @Test
