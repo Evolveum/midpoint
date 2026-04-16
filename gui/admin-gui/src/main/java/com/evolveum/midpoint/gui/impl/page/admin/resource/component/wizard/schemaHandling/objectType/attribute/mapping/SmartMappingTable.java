@@ -973,15 +973,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     return;
                 }
 
-                MappingDataDto dto = (MappingDataDto) getRowModel().getObject();
-                if (dto == null) {
-                    return;
-                }
-
-                for (PrismContainerValueWrapper<MappingType> mapping : dto.getMappings()) {
-                    if (getStatusInfo(mapping) != null) {
-                        deleteItemPerform(mapping);
-                    }
+                if (getRowModel().getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                    //noinspection unchecked
+                    deleteItemPerform((PrismContainerValueWrapper<MappingType>) valueWrapper);
                 }
 
                 refreshAndDetach(target);
