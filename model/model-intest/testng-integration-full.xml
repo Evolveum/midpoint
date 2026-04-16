@@ -110,6 +110,8 @@
             <class name="com.evolveum.midpoint.model.intest.TestShadowCaching"/>
             <class name="com.evolveum.midpoint.model.intest.TestDiscoveryBoundaries"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestQueries"/>
+            <!-- Test for MID-10834. Disabled here because it is long-running; executed separately.  -->
+            <!-- <class name="com.evolveum.midpoint.model.intest.TestMqlTicket10834"/> -->
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="none" verbose="10">

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="33333333-3333-3333-3333-333333333333"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>mid10834-role-carrier</name>
+
+    <inducement>
+        <description>assign default SAP role for FSD</description>
+        <targetRef type="RoleType">
+            <resolutionTime>run</resolutionTime>
+            <filter>
+                <q:text>
+                    extension/exRoleSapCode1 = `immediateAssignment.description` and
+                    extension/exRoleSapCode = 'yyy' and
+                    extension/exRoleApplicationInstanceName = 'FSD' and
+                    archetypeRef matches (oid = '879e6e8a-ba0a-449d-9795-4f089c52aaaa')
+                </q:text>
+            </filter>
+        </targetRef>
+        <orderConstraint>
+            <orderMin>1</orderMin>
+            <orderMax>unbounded</orderMax>
+            <resetOrder>1</resetOrder>
+        </orderConstraint>
+        <focusType>UserType</focusType>
+    </inducement>
+</role>
