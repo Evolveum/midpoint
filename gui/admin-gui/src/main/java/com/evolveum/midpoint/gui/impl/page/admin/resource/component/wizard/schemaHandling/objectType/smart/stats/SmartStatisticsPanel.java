@@ -5,13 +5,15 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.FocusStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectTypeStatisticsButton;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -30,6 +32,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -99,8 +102,9 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     private static final String ID_HEADER_FRAGMENT = "title";
     private static final String ID_HEADER_PRIMARY_TITLE = "primaryTitle";
-    private static final String ID_HEADER_SECONDARY_TITLE = "secondaryTitle";
-    private static final String ID_HEADER_REGENERATE_BUTTON = "regenerateButton";
+
+    private static final String ID_TIMESTAMP = "timestamp";
+    private static final String ID_RECREATE_BUTTON = "recreateButton";
 
     private final String resourceOid;
     private final QName objectClassName;
@@ -585,6 +589,29 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         closeButton.setOutputMarkupId(true);
         closeButton.add(new VisibleBehaviour(this::isCloseButtonVisible));
         footer.add(closeButton);
+
+        StringResourceModel timestampLabel = null;
+        XMLGregorianCalendar timestamp = getModelObject().getTimestamp();
+        if (timestamp != null) {
+            timestampLabel = createStringResource("SmartStatisticsPanel.title.timestamped",
+                    timestamp.toXMLFormat());
+        }
+
+        footer.add(new Label(ID_TIMESTAMP, timestampLabel).setVisible(timestampLabel != null));
+
+        if (panelType == PanelType.FOCUS) {
+            FocusStatisticsButton statisticsButton = buildFocusStatisticsButton();
+            footer.add(statisticsButton);
+        } else if (panelType == PanelType.OBJECT_CLASS) {
+            ObjectClassStatisticsButton statisticsButton = buildObjectClassStatisticsButton();
+            footer.add(statisticsButton);
+        } else {
+            ObjectTypeStatisticsButton statisticsButton = buildObjectTypeStatisticsButton();
+            footer.add(statisticsButton);
+        }
+
+        footer.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1"));
+
         return footer;
     }
 
@@ -636,38 +663,28 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     @Override
     public IModel<String> getTitleIconClass() {
-        return Model.of(GuiStyleConstants.CLASS_ICON_PREVIEW);
+        return Model.of("fa-solid fa-chart-line");
     }
 
     private @NotNull Fragment createHeaderFragment() {
-        StringResourceModel secondaryTitle = null;
-        XMLGregorianCalendar timestamp = getModelObject().getTimestamp();
-        if (timestamp != null) {
-            secondaryTitle = createStringResource("SmartStatisticsPanel.title.timestamped",
-                    timestamp.toXMLFormat());
-        }
-
         Fragment header = new Fragment(SmartStatisticsPanel.ID_HEADER_FRAGMENT, ID_HEADER_FRAGMENT, this);
         header.add(new Label(ID_HEADER_PRIMARY_TITLE, getTitle()));
-        header.add(new Label(ID_HEADER_SECONDARY_TITLE, secondaryTitle).setVisible(secondaryTitle != null));
 
-        if (panelType == PanelType.FOCUS) {
-            FocusStatisticsButton statisticsButton = buildFocusStatisticsButton();
-            header.add(statisticsButton);
-        } else if (panelType == PanelType.OBJECT_CLASS) {
-            ObjectClassStatisticsButton statisticsButton = buildObjectClassStatisticsButton();
-            header.add(statisticsButton);
-        } else {
-            ObjectTypeStatisticsButton statisticsButton = buildObjectTypeStatisticsButton();
-            header.add(statisticsButton);
-        }
+        AjaxLink<Void> closeButton = new AjaxLink<>(ID_CLOSE_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                noPerformed(target);
+            }
+        };
+        closeButton.setOutputMarkupId(true);
+        header.add(closeButton);
 
         header.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1 mt-1"));
         return header;
     }
 
     private @NotNull ObjectTypeStatisticsButton buildObjectTypeStatisticsButton() {
-        ObjectTypeStatisticsButton statisticsButton = new ObjectTypeStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
+        ObjectTypeStatisticsButton statisticsButton = new ObjectTypeStatisticsButton(ID_RECREATE_BUTTON,
                 () -> objectTypeIdentification, resourceOid) {
             @Override
             protected boolean forceRegeneration() {
@@ -675,8 +692,8 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             }
 
             @Override
-            protected IModel<String> getMainButtonLabel() {
-                return createStringResource("SmartStatisticsPanel.regenerateStatistics");
+            protected boolean isRegenerateMode() {
+                return true;
             }
         };
         statisticsButton.setOutputMarkupId(true);
@@ -684,7 +701,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     }
 
     private @NotNull ObjectClassStatisticsButton buildObjectClassStatisticsButton() {
-        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
+        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_RECREATE_BUTTON,
                 () -> objectClassName, resourceOid) {
             @Override
             protected boolean forceRegeneration() {
@@ -692,8 +709,8 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             }
 
             @Override
-            protected IModel<String> getMainButtonLabel() {
-                return createStringResource("SmartStatisticsPanel.regenerateStatistics");
+            protected boolean isRegenerateMode() {
+                return true;
             }
         };
         statisticsButton.setOutputMarkupId(true);
@@ -701,7 +718,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     }
 
     protected FocusStatisticsButton buildFocusStatisticsButton() {
-        FocusStatisticsButton statisticsButton = new FocusStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
+        FocusStatisticsButton statisticsButton = new FocusStatisticsButton(ID_RECREATE_BUTTON,
                 () -> focusType, () -> resourceOid, objectTypeIdentification::getKind, objectTypeIdentification::getIntent) {
             @Override
             protected boolean forceRegeneration() {
@@ -709,13 +726,8 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             }
 
             @Override
-            protected IModel<String> getMainButtonLabel() {
-                return createStringResource("SmartStatisticsPanel.regenerateStatistics");
-            }
-
-            @Override
-            protected ItemPathType getPreselectedAttribute() {
-                return getDefaultSelectedAttributePath();
+            protected boolean isRegenerateMode() {
+                return true;
             }
         };
         statisticsButton.setOutputMarkupId(true);

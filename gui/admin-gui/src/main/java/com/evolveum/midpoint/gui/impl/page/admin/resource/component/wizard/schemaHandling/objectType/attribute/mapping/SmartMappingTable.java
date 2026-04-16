@@ -47,8 +47,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.preview.PreviewMappingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.FocusStatisticsActions;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectTypeStatisticsActions;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.FocusStatisticsActions;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectTypeStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionFlow;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationParams;
@@ -183,14 +183,15 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                 }
 
                                 @Override
-                                protected void onDeletePerform(IModel<PrismContainerValueWrapper<MappingType>> selectedRowModel) {
+                                protected void onDeletePerform(IModel<PrismContainerValueWrapper<MappingType>> selectedRowModel, AjaxRequestTarget target) {
                                     deleteItemPerform(selectedRowModel.getObject());
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override
                                 protected void refresh(AjaxRequestTarget target) {
                                     super.refresh(target);
-                                    refreshAndDetach(target);
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override
@@ -198,7 +199,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                     var accepted = SmartMappingTable.this.acceptSuggestionItemPerformed(() -> selected, target);
                                     getAcceptedSuggestionsCache().add(accepted);
                                     tileModel.getColumnsValues().forEach(SmartMappingTable.this::deleteItemPerform);
-                                    refreshAndDetach(target);
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override
