@@ -38,6 +38,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 * Improved login and self-dashboard performance. See bug:MID-10972[]
 * Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
+* Fix 10k limit in certification queries using iterative search. See bug:MID-11043[]
 
 == Changes With Respect To Version 4.10.2
 
