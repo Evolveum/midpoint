@@ -31,6 +31,20 @@
             <wicket:child/>
         </div>
     </div>
+
+    <wicket:fragment wicket:id="buttonFragment">
+        <div wicket:id="backContainer" class="wizard-actions-container">
+            <a class="btn btn-outline-primary" wicket:id="back"></a>
+        </div>
+
+        <div wicket:id="exitContainer" class="wizard-actions-container">
+            <a class="btn btn-link" wicket:id="exit"></a>
+        </div>
+
+        <div wicket:id="customButtonsContainer" class="wizard-actions-container gap-2">
+            <a class="btn" wicket:id="buttons"></a>
+        </div>
+    </wicket:fragment>
 </wicket:panel>
 </body>
 </html>
