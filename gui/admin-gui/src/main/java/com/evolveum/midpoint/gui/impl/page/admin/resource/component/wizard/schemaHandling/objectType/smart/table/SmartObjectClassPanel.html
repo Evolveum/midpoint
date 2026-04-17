@@ -8,30 +8,30 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="h-100">
-        <div class="card-body">
+    <div class="w-100 h-100 p-1">
+        <div class="card-body p-0">
 
             <div class="form-check d-flex align-items-center mb-2">
-                <input type="radio" class="form-check-input mt-0" style="transform: scale(1.5);" wicket:id="selectCheckbox"/>
-                <h5 class="ml-2 form-check-label card-title mb-0 fw-bold" wicket:id="name"></h5>
+                <input type="radio" class="form-check-input mt-0" style="transform: scale(1.35);" wicket:id="selectCheckbox"/>
+                <h5 class="ml-1 form-check-label card-title mb-0 fw-bold" wicket:id="name"></h5>
             </div>
-
             <p class="text-muted mb-2 tile-three-line-description" wicket:id="description"></p>
-
-            <div class="d-flex justify-content-between pt-2 mt-2">
-                <span class="text-muted" wicket:id="countTitle"></span>
-                <span class="text-dark" wicket:id="count"></span>
-            </div>
         </div>
 
-        <hr class="mt-1 mx-3">
+        <hr class="my-3">
 
-        <div class="card-footer bg-transparent border-0 pt-0 d-flex">
-            <a href="#" class="text-primary text-decoration-none d-inline-flex align-items-center" wicket:id="viewSchemaLink">
-                <i class="fa fa-eye me-1"></i>
-            </a>
+        <div class="card-footer bg-transparent border-0 p-0 d-flex">
+            <div class="d-flex justify-content-left gap-2 flex-grow-1 align-items-center">
+                <span class="text-muted" wicket:id="countTitle"></span>
+                <span class="text-dark font-weight-semibold" wicket:id="count"></span>
+            </div>
+            <div class="d-flex flex-row align-items-center">
+                <a href="#" class="text-primary text-decoration-none d-inline-flex align-items-center" wicket:id="viewSchemaLink">
+                    <i class="fa fa-eye me-1"></i>
+                </a>
 
-            <div wicket:id="statisticsButton" class="ml-auto"></div>
+                <div wicket:id="statisticsButton" class="ml-2"></div>
+            </div>
         </div>
     </div>
 

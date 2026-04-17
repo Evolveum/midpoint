@@ -7,14 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectClassStatisticsButton;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
+import java.io.Serial;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,10 +20,13 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serial;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexTypeDefinitionType>>
         extends TemplateTilePanel<C, SmartObjectClassTileModel<C>> {
@@ -188,6 +187,6 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
 
     protected String getDefaultTileCss() {
         return "simple-tile selectable clickable-by-enter tile-panel d-flex flex-column align-items-center "
-                + "rounded p-3 justify-content-center";
+                + "rounded p-4 justify-content-center";
     }
 }
