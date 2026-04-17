@@ -80,8 +80,8 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     private static final DummyTestResource RESOURCE_SOURCE_SLOW = new DummyTestResource(TEST_DIR, "resource-dummy-source-slow.xml",
             "1645e542-d034-4118-b8af-97c4d22d81d6", "source-slow", DummyResourceContoller::populateWithDefaultSchema);
 
-    static final int ACCOUNTS = 100;
-    private static final String ACCOUNT_NAME_PATTERN = "a%02d";
+    protected static final int ACCOUNTS = 100;
+    protected static final String ACCOUNT_NAME_PATTERN = "a%02d";
 
     static final int USER_ADD_ALLOWED = 9;
     static final int USER_MODIFY_ALLOWED = 4;

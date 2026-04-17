@@ -30,36 +30,35 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 /**
  * This class is responsible for updating the counters of evaluated activity policy rules.
  * It checks which rules have been triggered and have a threshold, and increments their counters accordingly.
- *
- * TODO: Way to similar to PolicyRuleCounterUpdater located in model.
- *  Consider refactoring to avoid code duplication.
  */
-public abstract class ActivityPolicyRuleCounterUpdater {
+public abstract class PolicyRuleCounterUpdater {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ActivityPolicyRuleCounterUpdater.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleCounterUpdater.class);
 
     /**
-     * TODO DOC
+     * Returns the already incremented counter value for the given rule identifier,
+     * or null if it has not been incremented yet.
      */
     protected Integer getIncrementedPolicyRuleCounter(String ruleIdentifier) {
         return null;
     }
 
     /**
-     * TODO DOC
+     * Callback method that can be used to store/cache counters.
      */
     protected void storeIncrementedPolicyRuleCounter(String ruleIdentifier, Integer counter) {
         // intentionally left empty
     }
 
     /**
-     * TODO DOC
+     * Returns list of evaluated policy rules that should be considered for counter updates.
      */
     @NotNull
     protected abstract Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules();
 
     /**
-     * TODO doc
+     * Returns execution support (instance of activity run) that is used to handle
+     * counter updates and to determine the execution mode (production vs simulation)
      */
     @NotNull
     protected abstract ExecutionSupport getExecutionSupport();

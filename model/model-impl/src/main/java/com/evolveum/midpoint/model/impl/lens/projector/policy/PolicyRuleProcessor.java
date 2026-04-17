@@ -22,7 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRulesE
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRulesEvaluator.ProjectionPolicyRulesEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleCounterUpdater;
+import com.evolveum.midpoint.repo.common.activity.policy.PolicyRuleCounterUpdater;
 import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
@@ -134,43 +134,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         // No need for custom operation result, as this already has one
 
-        new ActivityPolicyRuleCounterUpdater() {
-
-            @Override
-            protected Integer getIncrementedPolicyRuleCounter(String ruleIdentifier) {
-                LensFocusContext<?> focusContext = context.getFocusContext();
-                if (focusContext == null) {
-                    return null;
-                }
-
-                return focusContext.getPolicyRuleCounter(ruleIdentifier);
-            }
-
-            @Override
-            protected void storeIncrementedPolicyRuleCounter(String ruleIdentifier, Integer counter) {
-                LensFocusContext<?> focusContext = context.getFocusContext();
-                if (focusContext != null) {
-                    focusContext.setPolicyRuleCounter(ruleIdentifier, counter);
-                }
-            }
-
-            @NotNull
-            @Override
-            protected Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules() {
-                LensFocusContext<?> focusContext = context.getFocusContext();
-                if (focusContext == null) {
-                    return List.of();
-                }
-
-                return focusContext.getObjectPolicyRules();
-            }
-
-            @Override
-            protected ExecutionSupport getExecutionSupport() {
-                return task.getExecutionSupport();
-            }
-        }
-                .updateCounters(result);
+        new MyPolicyRuleCounterUpdater(context, task).updateCounters(result);
     }
 
     public <O extends ObjectType> void enforce(@NotNull LensContext<O> context, OperationResult parentResult)
@@ -184,6 +148,64 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             throw t;
         } finally {
             result.close();
+        }
+    }
+
+    /**
+     * This is a simple adapter that allows us to use the PolicyRuleCounterUpdater in the context of the projector,
+     * where we don't have an activity run, but we do have a lens context and a task.
+     *
+     * It retrieves and stores the counters in the focus context of the lens context, and it retrieves
+     * the policy rules from there as well.
+     */
+    private static class MyPolicyRuleCounterUpdater extends PolicyRuleCounterUpdater {
+
+        @NotNull private final LensContext<?> context;
+
+        @NotNull private final Task task;
+
+        public MyPolicyRuleCounterUpdater(@NotNull LensContext<?> context, @NotNull Task task) {
+            this.context = context;
+            this.task = task;
+        }
+
+        @Override
+        protected Integer getIncrementedPolicyRuleCounter(String ruleIdentifier) {
+            LensFocusContext<?> focusContext = context.getFocusContext();
+            if (focusContext == null) {
+                return null;
+            }
+
+            return focusContext.getPolicyRuleCounter(ruleIdentifier);
+        }
+
+        /**
+         * In the projector, we store the counters in the focus context of the lens context.
+         * This "cache" helps later on when checking if counter was already updated.
+         */
+        @Override
+        protected void storeIncrementedPolicyRuleCounter(String ruleIdentifier, Integer counter) {
+            LensFocusContext<?> focusContext = context.getFocusContext();
+            if (focusContext != null) {
+                focusContext.setPolicyRuleCounter(ruleIdentifier, counter);
+            }
+        }
+
+        @NotNull
+        @Override
+        protected Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules() {
+            LensFocusContext<?> focusContext = context.getFocusContext();
+            if (focusContext == null) {
+                return List.of();
+            }
+
+            return focusContext.getObjectPolicyRules();
+        }
+
+        @NotNull
+        @Override
+        protected ExecutionSupport getExecutionSupport() {
+            return task.getExecutionSupport();
         }
     }
 }

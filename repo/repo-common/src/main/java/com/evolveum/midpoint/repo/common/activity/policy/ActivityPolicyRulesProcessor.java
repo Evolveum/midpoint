@@ -88,20 +88,7 @@ public class ActivityPolicyRulesProcessor {
 
     private void updateCounters(Collection<GenericEvaluatedPolicyRule> evaluatedRules, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-
-        // todo make non-anonymous [viliam]
-        new ActivityPolicyRuleCounterUpdater() {
-
-            @Override
-            protected @NotNull Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules() {
-                return evaluatedRules;
-            }
-
-            @Override
-            protected ExecutionSupport getExecutionSupport() {
-                return activityRun;
-            }
-        }.updateCounters(result);
+        new ActivityPolicyRuleCounterUpdater(activityRun, evaluatedRules).updateCounters(result);
     }
 
     private ActivityPolicyStateType createPolicyState(GenericEvaluatedPolicyRule rule) {
@@ -210,6 +197,30 @@ public class ActivityPolicyRulesProcessor {
             } else {
                 LOGGER.debug("No action to take for policy violation, rule: {}", rule);
             }
+        }
+    }
+
+    private static class ActivityPolicyRuleCounterUpdater extends PolicyRuleCounterUpdater {
+
+        @NotNull private final AbstractActivityRun<?, ?, ?> activityRun;
+
+        @NotNull private final Collection<GenericEvaluatedPolicyRule> evaluatedRules;
+
+        public ActivityPolicyRuleCounterUpdater(
+                @NotNull AbstractActivityRun<?, ?, ?> activityRun,
+                @NotNull Collection<GenericEvaluatedPolicyRule> evaluatedRules) {
+            this.activityRun = activityRun;
+            this.evaluatedRules = evaluatedRules;
+        }
+
+        @Override
+        protected @NotNull Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules() {
+            return evaluatedRules;
+        }
+
+        @Override
+        protected @NotNull ExecutionSupport getExecutionSupport() {
+            return activityRun;
         }
     }
 }
