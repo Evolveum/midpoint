@@ -363,6 +363,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element minOccurs="0" name="imageUploadProcessing" type="tns:ImageUploadProcessingType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Describe options for image upload processing.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AdminGuiConfigurationType.imageUploadProcessing</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -5140,39 +5151,55 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
-    <!--<xsd:simpleType name="GuiParameterTypeType">-->
-    <!--    <xsd:annotation>-->
-    <!--        <xsd:documentation>-->
-    <!--            if the parameter is request from user, or if it is derived from other parameters.-->
-    <!--        </xsd:documentation>-->
-    <!--        <xsd:appinfo>-->
-    <!--            <a:since>4.9</a:since>-->
-    <!--        </xsd:appinfo>-->
-    <!--    </xsd:annotation>-->
-    <!--    <xsd:restriction base="xsd:string">-->
-    <!--        <xsd:enumeration value="manual">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Requires user input-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="MANUAL"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--        <xsd:enumeration value="automatic">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Gives the possibility to select individual items without possibility to select all at once.-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="AUTOMATIC"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--    </xsd:restriction>-->
-    <!--</xsd:simpleType>-->
-
-
+    <xsd:complexType name="ImageUploadProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains options for image upload processing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="processing" minOccurs="0" type="tns:ImageProcessingType"/>
+            <xsd:element name="format" minOccurs="0" type="tns:ImageFormatType"/>
+            <xsd:element name="stripExifData" minOccurs="0" type="tns:StripExifDataType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="ImageProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of processing for image upload.
+                Default value is preserveOriginalFormat.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="preserveOriginalFormat"/>
+            <xsd:enumeration value="fixedFormat"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="ImageFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Fixed format to which is needed to convert uploaded image.
+                Default value is jpeg, if fixedFormat is used.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="jpeg"/>
+            <xsd:enumeration value="png"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="StripExifDataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                We use this flag in case we want to remove exif data of uploaded image.
+                Default value is false.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="true"/>
+            <xsd:enumeration value="false"/>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

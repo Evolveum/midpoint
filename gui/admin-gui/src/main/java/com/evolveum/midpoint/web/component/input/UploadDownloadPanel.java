@@ -13,6 +13,11 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import jakarta.activation.MimeTypeParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -199,9 +204,23 @@ public class UploadDownloadPanel extends InputPanel {
         return file.getFileUpload();
     }
 
+    private ImageUploadProcessingType getImageUploadProcessingConfig() {
+        FocusType principalFocus = getPageBase().getPrincipalFocus();
+        if (!(principalFocus instanceof UserType)) {
+            return null;
+        }
+        AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
+        if (adminGui == null) {
+            return null;
+        }
+        return adminGui.getImageUploadProcessing();
+    }
+
     public void uploadFilePerformed(AjaxRequestTarget target) {
         Component input = getInputFile();
         try {
+            ImageUploadProcessingType imageUploadProcessingConfig = getImageUploadProcessingConfig();
+            System.out.println(imageUploadProcessingConfig);
             FileUpload uploadedFile = getFileUpload();
             updateValue(ImageSanitationUtil.removeEXIF(uploadedFile.getBytes(), true));
             LOGGER.trace("Upload file success.");
