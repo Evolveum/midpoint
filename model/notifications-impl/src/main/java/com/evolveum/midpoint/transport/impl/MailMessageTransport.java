@@ -21,6 +21,7 @@ import jakarta.mail.BodyPart;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Session;
+import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
@@ -350,20 +351,22 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
      *
      * @return null if an expected error occurs, MimeMessage otherwise
      */
-    private MimeMessage composeMimeMessage(Session session, Message mailMessage, Collection<String> actualTo, Collection<String> actualCc, Collection<String> actualBcc) throws MessagingException {
+    protected MimeMessage composeMimeMessage(Session session, Message mailMessage, Collection<String> actualTo, Collection<String> actualCc, Collection<String> actualBcc) throws MessagingException {
+        boolean strict = isStrictAddressParsing(session);
+
         MimeMessage mimeMessage = new MimeMessage(session);
         mimeMessage.setSentDate(new Date());
         String defaultFrom = configuration.getDefaultFrom() != null ? configuration.getDefaultFrom() : "nobody@nowhere.org";
         String from = mailMessage.getFrom() != null ? mailMessage.getFrom() : defaultFrom;
-        mimeMessage.setFrom(new InternetAddress(from));
+        mimeMessage.setFrom(parseInternetAddress(from, strict));
         for (String recipient : actualTo) {
-            mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(recipient));
+            mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.TO, parseInternetAddress(recipient, strict));
         }
         for (String recipientCc : actualCc) {
-            mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
+            mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.CC, parseInternetAddress(recipientCc, strict));
         }
         for (String recipientBcc : actualBcc) {
-            mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
+            mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.BCC, parseInternetAddress(recipientBcc, strict));
         }
         mimeMessage.setSubject(mailMessage.getSubject(), StandardCharsets.UTF_8.name());
         String contentType = mailMessage.getContentType();
@@ -441,5 +444,31 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
     @Override
     public MailTransportConfigurationType getConfiguration() {
         return configuration;
+    }
+
+    /**
+     * Determines whether strict address parsing should be used based on the session property.
+     * Returns true (strict) by default, unless mail.mime.address.strict is explicitly set to "false".
+     *
+     * Note: We use the standard Jakarta Mail property "mail.mime.address.strict" instead of a
+     * MidPoint-specific property because MimeMessage.getAllRecipients() internally calls
+     * getAddressHeader() which uses this property. Using a custom property would not work.
+     */
+    private boolean isStrictAddressParsing(Session session) {
+        String strictProperty = session.getProperty("mail.mime.address.strict");
+        return strictProperty == null || !strictProperty.equalsIgnoreCase("false");
+    }
+
+    /**
+     * Parses an email address string into an InternetAddress.
+     * Uses InternetAddress.parseHeader() which properly respects the strict parameter,
+     * unlike the InternetAddress(String, boolean) constructor which always parses strictly.
+     */
+    private InternetAddress parseInternetAddress(String address, boolean strict) throws AddressException {
+        InternetAddress[] addresses = InternetAddress.parseHeader(address, strict);
+        if (addresses.length != 1) {
+            throw new AddressException("Illegal address", address);
+        }
+        return addresses[0];
     }
 }

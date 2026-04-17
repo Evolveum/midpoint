@@ -33,12 +33,12 @@ public class UserScimMappingProvider implements WellKnownSchemaProvider {
     @Override
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
-        matches.put(ItemPath.create("userName"), UserType.F_NAME);
-        matches.put(ItemPath.create("displayName"), UserType.F_FULL_NAME);
-        matches.put(ItemPath.create("givenName"), UserType.F_GIVEN_NAME);
-        matches.put(ItemPath.create("familyName"), UserType.F_FAMILY_NAME);
-        matches.put(ItemPath.create("emailAddress"), UserType.F_EMAIL_ADDRESS);
-        matches.put(ItemPath.create("phoneNumber"), UserType.F_TELEPHONE_NUMBER);
+        matches.put(SystemMappingSuggestion.riAttr("userName"), UserType.F_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("displayName"), UserType.F_FULL_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("givenName"), UserType.F_GIVEN_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("familyName"), UserType.F_FAMILY_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("emailAddress"), UserType.F_EMAIL_ADDRESS);
+        matches.put(SystemMappingSuggestion.riAttr("phoneNumber"), UserType.F_TELEPHONE_NUMBER);
         return matches;
     }
 
