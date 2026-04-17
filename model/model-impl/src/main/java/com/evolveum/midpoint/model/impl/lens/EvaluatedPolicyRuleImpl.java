@@ -15,6 +15,8 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.activity.policy.PolicyRuleIdentifier;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +33,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleIdentifier;
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.config.AbstractPolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
@@ -41,6 +46,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -55,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author semancik
  *
  */
-public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedPolicyRule {
+public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedPolicyRule, GenericEvaluatedPolicyRule {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -111,12 +117,27 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
      */
     @NotNull private final List<PolicyActionConfigItem<?>> enabledActions = new ArrayList<>();
 
+    /**
+     * Filled in only if rule was loaded from specific activity.
+     * E.g. not for global policy rules or rules obtained from task assignments.
+     */
+    private final ActivityPolicyRule activityPolicyRule;
+
     public EvaluatedPolicyRuleImpl(
             @NotNull AbstractPolicyRuleConfigItem<?> policyRuleCI,
             @NotNull String ruleId,
             @Nullable AssignmentPath assignmentPath,
             @NotNull TargetType targetType) {
-        this(policyRuleCI, ruleId, assignmentPath, null, targetType);
+        this(policyRuleCI, ruleId, assignmentPath, null, targetType, null);
+    }
+
+    public EvaluatedPolicyRuleImpl(
+            @NotNull AbstractPolicyRuleConfigItem<?> policyRuleCI,
+            @NotNull String ruleId,
+            @Nullable AssignmentPath assignmentPath,
+            @NotNull TargetType targetType,
+            ActivityPolicyRule activityPolicyRule) {
+        this(policyRuleCI, ruleId, assignmentPath, null, targetType, activityPolicyRule);
     }
 
     public EvaluatedPolicyRuleImpl(
@@ -125,12 +146,24 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
             @Nullable AssignmentPath assignmentPath,
             @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment,
             @NotNull TargetType targetType) {
+        this(policyRuleCI, ruleId, assignmentPath, evaluatedAssignment, targetType, null);
+    }
+
+    public EvaluatedPolicyRuleImpl(
+            @NotNull AbstractPolicyRuleConfigItem<?> policyRuleCI,
+            @NotNull String ruleId,
+            @Nullable AssignmentPath assignmentPath,
+            @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment,
+            @NotNull TargetType targetType,
+            ActivityPolicyRule activityPolicyRule) {
+
         this.policyRuleCI = policyRuleCI;
         this.policyRuleBean = policyRuleCI.value();
         this.ruleId = ruleId;
         this.assignmentPath = assignmentPath;
         this.evaluatedAssignment = evaluatedAssignment;
         this.targetType = targetType;
+        this.activityPolicyRule = activityPolicyRule;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -143,50 +176,81 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
                 targetType);
     }
 
-//    @Override
-//    public ActivityPath getPath() {
-//        return null;    // todo fix [viliam]
-//    }
-//
-//    @Override
-//    public @NotNull ActivityPolicyRuleIdentifier getRuleIdentifier() {
-//        return null;    // todo fix [viliam]
-//    }
-//
-//    @Override
-//    public void setCount(Integer localValue, Integer totalValue) {
-//        // todo fix [viliam]
-//    }
-//
-//    @Override
-//    public void setCurrentState(ActivityPolicyStateType currentState) {
-//        // todo fix [viliam]
-//    }
-//
-//    @Override
-//    public void setTriggers(List<EvaluatedActivityPolicyRuleTrigger<?>> triggers) {
-//        // todo fix [viliam]
-//    }
-//
-//    @Override
-//    public boolean hasThreshold() {
-//        return EvaluatedPolicyRule.super.hasThreshold();
-//    }
-//
-//    @Override
-//    public boolean isApplicableToAssignment() {
-//        return EvaluatedPolicyRule.super.isApplicableToAssignment();
-//    }
-//
-//    @Override
-//    public boolean isApplicableToFocusObject() {
-//        return EvaluatedPolicyRule.super.isApplicableToFocusObject();
-//    }
-//
-//    @Override
-//    public boolean isApplicableToProjection() {
-//        return EvaluatedPolicyRule.super.isApplicableToProjection();
-//    }
+    @Override
+    public ActivityPath getPath() {
+        return null;    // todo fix [viliam]
+    }
+
+    @Override
+    public @NotNull PolicyRuleIdentifier getRuleIdentifier() {
+        if (activityPolicyRule != null) {
+            return activityPolicyRule.getRuleIdentifier();
+        }
+
+        return GenericPolicyRuleIdentifier.of(ruleId);
+    }
+
+    @Override
+    public void setCount(Integer localValue, Integer totalValue) {
+        if (activityPolicyRule != null) {
+            activityPolicyRule.setCount(localValue, totalValue);
+        }
+
+        count = totalValue;
+    }
+
+    @Override
+    public void setCurrentState(ActivityPolicyStateType currentState) {
+        if (activityPolicyRule != null) {
+            activityPolicyRule.setCurrentState(currentState);
+        }
+    }
+
+    @Override
+    public boolean hasThreshold() {
+        return EvaluatedPolicyRule.super.hasThreshold();
+    }
+
+    @Override
+    public boolean isApplicableToAssignment() {
+        return EvaluatedPolicyRule.super.isApplicableToAssignment();
+    }
+
+    @Override
+    public boolean isApplicableToFocusObject() {
+        return EvaluatedPolicyRule.super.isApplicableToFocusObject();
+    }
+
+    @Override
+    public boolean isApplicableToProjection() {
+        return EvaluatedPolicyRule.super.isApplicableToProjection();
+    }
+
+    @Override
+    public boolean isOverThreshold() {
+        return GenericEvaluatedPolicyRule.super.isOverThreshold();
+    }
+
+    @Override
+    public @NotNull List<PolicyActionType> getActions() {
+        if (activityPolicyRule != null) {
+            return activityPolicyRule.getActions();
+        }
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void setTriggers(List<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        this.triggers.clear();
+        if (triggers != null) {
+            this.triggers.addAll(triggers);
+        }
+    }
+
+    @Override
+    public ActivityPolicyRule getActivityPolicyRule() {
+        return activityPolicyRule;
+    }
 
     @Override
     public String getName() {
@@ -298,7 +362,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     }
 
     @Override
-    public PolicyActionsType getActions() {
+    @NotNull public PolicyActionsType getRawActions() {
         return policyRuleBean.getPolicyActions();
     }
 
@@ -437,7 +501,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
                 .append(")");
         sb.append("->");
         sb.append("(")
-                .append(PolicyRuleTypeUtil.toShortString(getActions(), enabledActionsComputed ? enabledActions : null))
+                .append(PolicyRuleTypeUtil.toShortString(getRawActions(), enabledActionsComputed ? enabledActions : null))
                 .append(")");
         if (!getTriggers().isEmpty()) {
             sb.append(" # {T:");
@@ -651,29 +715,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     }
 
     @Override
-    public int getCount() {
+    public Integer getCount() {
+        if (activityPolicyRule != null) {
+            return activityPolicyRule.getTotalCount();
+        }
+
         return count;
-    }
-
-    @Override
-    public void setCount(int value) {
-        count = value;
-    }
-
-    @Override
-    public boolean isOverThreshold() throws ConfigurationException {
-        // TODO: better implementation that takes high water mark into account
-        PolicyThresholdType thresholdSettings = getPolicyThreshold();
-        WaterMarkType lowWaterMark = thresholdSettings != null ? thresholdSettings.getLowWaterMark() : null;
-        if (lowWaterMark == null) {
-            LOGGER.trace("No low water mark defined.");
-            return true;
-        }
-        Integer lowWaterCount = lowWaterMark.getCount();
-        if (lowWaterCount == null) {
-            throw new ConfigurationException("No count in low water mark in a policy rule");
-        }
-        return count >= lowWaterCount;
     }
 
     @Override

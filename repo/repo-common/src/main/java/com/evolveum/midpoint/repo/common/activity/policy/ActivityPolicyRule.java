@@ -70,7 +70,7 @@ public class ActivityPolicyRule implements DebugDumpable {
         return path;
     }
 
-    public @NotNull ActivityPolicyRuleIdentifier getRuleIdentifier() {
+    public @NotNull PolicyRuleIdentifier getRuleIdentifier() {
         return ActivityPolicyRuleIdentifier.of(policy, path);
     }
 

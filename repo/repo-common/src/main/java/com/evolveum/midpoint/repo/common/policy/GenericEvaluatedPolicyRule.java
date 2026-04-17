@@ -6,19 +6,18 @@
 
 package com.evolveum.midpoint.repo.common.policy;
 
+import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.activity.policy.PolicyRuleIdentifier;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleIdentifier;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * TODO docs
@@ -32,7 +31,7 @@ public interface GenericEvaluatedPolicyRule extends DebugDumpable {
 
     String getName();
 
-    @NotNull ActivityPolicyRuleIdentifier getRuleIdentifier();
+    @NotNull PolicyRuleIdentifier getRuleIdentifier();
 
     void setCount(Integer localValue, Integer totalValue);
 
@@ -40,7 +39,7 @@ public interface GenericEvaluatedPolicyRule extends DebugDumpable {
 
     @NotNull List<PolicyActionType> getActions();
 
-    @NotNull List<EvaluatedPolicyRuleTrigger<?>> getTriggers();
+    @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
 
     void setTriggers(List<EvaluatedPolicyRuleTrigger<?>> triggers);
 
@@ -48,5 +47,43 @@ public interface GenericEvaluatedPolicyRule extends DebugDumpable {
 
     boolean hasThreshold();
 
-    boolean isOverThreshold();
+    ActivityPolicyRule getActivityPolicyRule();
+
+    Integer getCount();
+
+    default boolean isOverThreshold() {
+        if (!hasThreshold()) {
+            return true;
+        }
+
+        Integer count = getCount();
+        if (count == null) {
+            count = 0;
+        }
+
+        PolicyThresholdType policyThreshold = getPolicyRule().getPolicyThreshold();
+        Integer low = getWaterMarkValue(policyThreshold.getLowWaterMark());
+        Integer high = getWaterMarkValue(policyThreshold.getHighWaterMark());
+
+        if (low != null && count < low) {
+            // below low water-mark
+            return false;
+        }
+
+        if (high != null && count > high) {
+            // above high water-mark
+            return false;
+        }
+
+        // either marks are not set, or the count is within the range
+        return true;
+    }
+
+    private Integer getWaterMarkValue(WaterMarkType waterMark) {
+        if (waterMark == null) {
+            return null;
+        }
+
+        return waterMark.getCount();
+    }
 }

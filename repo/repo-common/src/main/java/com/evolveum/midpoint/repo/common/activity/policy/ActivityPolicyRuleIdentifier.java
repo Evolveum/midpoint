@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
  */
 public record ActivityPolicyRuleIdentifier(
         @NotNull ActivityPath path,
-        long policyId) implements Serializable {
+        long policyId) implements Serializable, PolicyRuleIdentifier {
 
     public static @NotNull ActivityPolicyRuleIdentifier of(
             @NotNull PolicyRuleType policy, @NotNull ActivityPath path) {
@@ -31,6 +31,11 @@ public record ActivityPolicyRuleIdentifier(
 
     @Override
     public String toString() {
+        return asString();
+    }
+
+    @Override
+    public String asString() {
         return path + ":" + policyId;
     }
 }

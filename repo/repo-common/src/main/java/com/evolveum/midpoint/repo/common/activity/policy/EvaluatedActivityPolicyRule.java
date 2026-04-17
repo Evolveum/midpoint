@@ -18,7 +18,9 @@ import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 public class EvaluatedActivityPolicyRule implements GenericEvaluatedPolicyRule, DebugDumpable {
 
@@ -28,6 +30,16 @@ public class EvaluatedActivityPolicyRule implements GenericEvaluatedPolicyRule, 
 
     public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyRule policyRule) {
         this.policyRule = policyRule;
+    }
+
+    @Override
+    public ActivityPolicyRule getActivityPolicyRule() {
+        return policyRule;
+    }
+
+    @Override
+    public Integer getCount() {
+        return policyRule.getTotalCount();
     }
 
     @NotNull
@@ -43,7 +55,7 @@ public class EvaluatedActivityPolicyRule implements GenericEvaluatedPolicyRule, 
         return policyRule.getName();
     }
 
-    public @NotNull ActivityPolicyRuleIdentifier getRuleIdentifier() {
+    public @NotNull PolicyRuleIdentifier getRuleIdentifier() {
         return policyRule.getRuleIdentifier();
     }
 
@@ -80,42 +92,6 @@ public class EvaluatedActivityPolicyRule implements GenericEvaluatedPolicyRule, 
 
     public boolean hasThreshold() {
         return getPolicyRule().getPolicyThreshold() != null;
-    }
-
-    public boolean isOverThreshold() {
-        if (!hasThreshold()) {
-            return true;
-        }
-
-        Integer count = policyRule.getTotalCount();
-        if (count == null) {
-            count = 0;
-        }
-
-        PolicyThresholdType policyThreshold = policyRule.getPolicy().getPolicyThreshold();
-        Integer low = getWaterMarkValue(policyThreshold.getLowWaterMark());
-        Integer high = getWaterMarkValue(policyThreshold.getHighWaterMark());
-
-        if (low != null && count < low) {
-            // below low water-mark
-            return false;
-        }
-
-        if (high != null && count > high) {
-            // above high water-mark
-            return false;
-        }
-
-        // either marks are not set, or the count is within the range
-        return true;
-    }
-
-    private Integer getWaterMarkValue(WaterMarkType waterMark) {
-        if (waterMark == null) {
-            return null;
-        }
-
-        return waterMark.getCount();
     }
 
     @Override

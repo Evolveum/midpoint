@@ -1748,7 +1748,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
         EvaluatedPolicyRuleTrigger<?> situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
         displayDumpable("Situation trigger", situationTrigger);
-        PolicyActionsType sodActions = evaluatedSodPolicyRule.getActions();
+        PolicyActionsType sodActions = evaluatedSodPolicyRule.getRawActions();
         display("Actions", sodActions);
         assertPolicyActionApproval(evaluatedSodPolicyRule);
     }
@@ -1870,7 +1870,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     }
 
     private void assertPolicyActionApproval(EvaluatedPolicyRule evaluatedPolicyRule) {
-        PolicyActionsType actions = evaluatedPolicyRule.getActions();
+        PolicyActionsType actions = evaluatedPolicyRule.getRawActions();
         assertNotNull("No policy actions in " + evaluatedPolicyRule, actions);
         assertFalse("No approval action in " + evaluatedPolicyRule, actions.getApproval().isEmpty());
     }

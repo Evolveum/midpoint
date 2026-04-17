@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
-
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +25,9 @@ import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompo
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunPolicyException;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -67,6 +67,7 @@ public class ActivityPolicyRulesProcessor {
         }
 
         Collection<GenericEvaluatedPolicyRule> evaluatedRules = rules.stream()
+                // todo use only policies that have activity constraints only [viliam]
                 .map(EvaluatedActivityPolicyRule::new)
                 .collect(Collectors.toList());
 
@@ -88,13 +89,24 @@ public class ActivityPolicyRulesProcessor {
     private void updateCounters(Collection<GenericEvaluatedPolicyRule> evaluatedRules, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        new ActivityPolicyRuleCounterUpdater(activityRun, () -> evaluatedRules, null)
-                .updateCounters(result);
+        // todo make non-anonymous [viliam]
+        new ActivityPolicyRuleCounterUpdater() {
+
+            @Override
+            protected @NotNull Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules() {
+                return evaluatedRules;
+            }
+
+            @Override
+            protected ExecutionSupport getExecutionSupport() {
+                return activityRun;
+            }
+        }.updateCounters(result);
     }
 
     private ActivityPolicyStateType createPolicyState(GenericEvaluatedPolicyRule rule) {
         ActivityPolicyStateType state = new ActivityPolicyStateType();
-        state.setIdentifier(rule.getRuleIdentifier().toString());
+        state.setIdentifier(rule.getRuleIdentifier().asString());
         state.setName(rule.getName());
 
         rule.getTriggers().stream()
@@ -132,7 +144,7 @@ public class ActivityPolicyRulesProcessor {
         } finally {
             // update policy states after all rules were enforced (even if ThresholdPolicyViolationException was thrown)
             Map<String, GenericEvaluatedPolicyRule> ruleMap = evaluatedRules.stream()
-                    .collect(Collectors.toMap(r -> r.getRuleIdentifier().toString(), r -> r));
+                    .collect(Collectors.toMap(r -> r.getRuleIdentifier().asString(), r -> r));
 
             Map<String, ActivityPolicyStateType> updated = activityRun.updateActivityPolicyState(policyStates, result);
             updated.forEach((id, state) -> ruleMap.get(id).setCurrentState(state));

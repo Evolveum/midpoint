@@ -55,7 +55,7 @@ public interface EvaluatedPolicyRule extends AssociatedPolicyRule {
     PolicyThresholdType getPolicyThreshold();
 
     // returns statically defined actions; consider using getEnabledActions() instead
-    PolicyActionsType getActions();
+    PolicyActionsType getRawActions();
 
     /**
      * Evaluated assignment that brought this policy rule to the focus or target.
@@ -82,10 +82,6 @@ public interface EvaluatedPolicyRule extends AssociatedPolicyRule {
     default boolean hasThreshold() {
         return getPolicyRule().getPolicyThreshold() != null; // refine this if needed
     }
-
-    int getCount();
-
-    void setCount(int value);
 
     boolean isOverThreshold() throws ConfigurationException;
 

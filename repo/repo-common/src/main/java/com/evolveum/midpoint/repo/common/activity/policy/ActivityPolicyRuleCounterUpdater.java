@@ -6,18 +6,18 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.FULL_EXECUTION_MODE_POLICY_RULES;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.PREVIEW_MODE_POLICY_RULES;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 /**
  * This class is responsible for updating the counters of evaluated activity policy rules.
@@ -33,25 +34,35 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * TODO: Way to similar to PolicyRuleCounterUpdater located in model.
  *  Consider refactoring to avoid code duplication.
  */
-public class ActivityPolicyRuleCounterUpdater {
+public abstract class ActivityPolicyRuleCounterUpdater {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityPolicyRuleCounterUpdater.class);
 
-    private final @NotNull AbstractActivityRun<?, ?, ?> activityRun;
-
-    private final @NotNull Supplier<Collection<GenericEvaluatedPolicyRule>> policyRulesProvider;
-
-    private final Function<String, Integer> alreadyIncrementedValueChecker;
-
-    public ActivityPolicyRuleCounterUpdater(
-            @NotNull AbstractActivityRun<?, ?, ?> activityRun,
-            @NotNull Supplier<Collection<GenericEvaluatedPolicyRule>> policyRulesProvider,
-            Function<String, Integer> alreadyIncrementedValueChecker) {
-
-        this.activityRun = activityRun;
-        this.policyRulesProvider = policyRulesProvider;
-        this.alreadyIncrementedValueChecker = alreadyIncrementedValueChecker;
+    /**
+     * TODO DOC
+     */
+    protected Integer getIncrementedPolicyRuleCounter(String ruleIdentifier) {
+        return null;
     }
+
+    /**
+     * TODO DOC
+     */
+    protected void storeIncrementedPolicyRuleCounter(String ruleIdentifier, Integer counter) {
+        // intentionally left empty
+    }
+
+    /**
+     * TODO DOC
+     */
+    @NotNull
+    protected abstract Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules();
+
+    /**
+     * TODO doc
+     */
+    @NotNull
+    protected abstract ExecutionSupport getExecutionSupport();
 
     /** Updates counters for the triggered "counter-style" rules in repo (activity state) and in memory (rules themselves). */
     public void updateCounters(OperationResult result)
@@ -66,21 +77,31 @@ public class ActivityPolicyRuleCounterUpdater {
 
         // Increment the counters (stored in the activity state, usually the current one or parent one)
         // Should we update production or simulation counters?
-        ExecutionSupport.CountersGroup group = activityRun.getCountersGroup();
+        ExecutionSupport executionSupport = getExecutionSupport();
+
+        ExecutionSupport.CountersGroup group =
+                executionSupport.getActivityExecutionMode() == ExecutionModeType.FULL ?
+                        FULL_EXECUTION_MODE_POLICY_RULES : PREVIEW_MODE_POLICY_RULES;
         Map<String, Integer> currentValues =
-                activityRun.incrementCounters(group, rulesToIncrementMap.keySet(), result);
+                executionSupport.incrementCounters(group, rulesToIncrementMap.keySet(), result);
         LOGGER.trace("Updated counters for group {}: {}", group, currentValues);
 
         // Combine with preexisting values to get total values
-        Map<String, Integer> totalValues = computeTotalValues(currentValues);
+        Map<String, Integer> totalValues = computeTotalValues(executionSupport, currentValues);
 
         // Update the rules with the new counter values
-        currentValues.forEach((id, value) ->
-                rulesToIncrementMap.get(id).setCount(value, totalValues.get(id)));
+        currentValues.forEach((id, value) -> {
+            rulesToIncrementMap.get(id).setCount(value, totalValues.get(id));
+            storeIncrementedPolicyRuleCounter(id, value);
+        });
     }
 
-    private Map<String, Integer> computeTotalValues(Map<String, Integer> currentValues) {
-        var preexistingCounters = activityRun.getActivityPolicyRulesContext().getPreexistingValues().getPreexistingCounters();
+    private Map<String, Integer> computeTotalValues(ExecutionSupport executionSupport, Map<String, Integer> currentValues) {
+        if (!(executionSupport instanceof AbstractActivityRun<?, ?, ?> aar)) {
+            return currentValues;
+        }
+
+        var preexistingCounters = aar.getActivityPolicyRulesContext().getPreexistingValues().getPreexistingCounters();
         // for each entry in currentValues, add the corresponding value from preexistingValues
         return currentValues.entrySet().stream()
                 .collect(Collectors.toMap(
@@ -90,7 +111,7 @@ public class ActivityPolicyRuleCounterUpdater {
 
     /** Returns rules that should have their counters incremented, in a form of map: ID -> rule. */
     private @NotNull Map<String, GenericEvaluatedPolicyRule> collectRulesToIncrement() {
-        Collection<GenericEvaluatedPolicyRule> rules = policyRulesProvider.get();
+        Collection<? extends GenericEvaluatedPolicyRule> rules = getPolicyRules();
 
         Map<String, GenericEvaluatedPolicyRule> rulesToIncrementMap = new HashMap<>();
         for (GenericEvaluatedPolicyRule rule : rules) {
@@ -104,19 +125,17 @@ public class ActivityPolicyRuleCounterUpdater {
                 continue;
             }
 
-            if (alreadyIncrementedValueChecker != null) {
-                Integer alreadyIncrementedValue = alreadyIncrementedValueChecker.apply(rule.getRuleIdentifier().toString());
-                if (alreadyIncrementedValue != null) {
-                    // todo skip also already incremented, uncomment and fix
+            Integer alreadyIncrementedValue = getIncrementedPolicyRuleCounter(rule.getRuleIdentifier().asString());
+            if (alreadyIncrementedValue != null) {
+                // todo skip also already incremented, uncomment and fix
 //                    rule.setCount(alreadyIncrementedValue);
-                    LOGGER.trace("Rule {} already has an incremented value {}, skipping counter update",
-                            rule.getRuleIdentifier(), alreadyIncrementedValue);
-                    continue;
-                }
+                LOGGER.trace("Rule {} already has an incremented value {}, skipping counter update",
+                        rule.getRuleIdentifier(), alreadyIncrementedValue);
+                continue;
             }
 
             LOGGER.trace("Incrementing counter for rule {}", rule.getRuleIdentifier());
-            rulesToIncrementMap.put(rule.getRuleIdentifier().toString(), rule);
+            rulesToIncrementMap.put(rule.getRuleIdentifier().asString(), rule);
         }
         return rulesToIncrementMap;
     }

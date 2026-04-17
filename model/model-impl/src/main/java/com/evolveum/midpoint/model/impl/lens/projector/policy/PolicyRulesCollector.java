@@ -104,13 +104,18 @@ class PolicyRulesCollector<O extends ObjectType> {
         }
 
         for (ActivityPolicyRule rule : activityRules) {
+            // todo filter out policies that have non-focus constraints [viliam]
+            //  check enabled condition, and expression condition
+
             String ruleId = rule.getRuleIdentifier().toString();
             ActivityPolicyRuleConfigItem ruleCI =
                     ConfigurationItem.configItem(rule.getPolicy(), ConfigurationItemOrigin.embedded(rule), ActivityPolicyRuleConfigItem.class);
 
             LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
-            rules.add(new EvaluatedPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT));
+            rules.add(new EvaluatedPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT, rule));
         }
+
+        LOGGER.trace("Collected activity policy rules {} for further evaluation", rules);
     }
 
     private void collectObjectRulesFromAssignments(List<EvaluatedPolicyRuleImpl> rules) {
