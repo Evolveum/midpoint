@@ -17,25 +17,31 @@
         </wicket:enclosure>
 
         <wicket:child/>
-        <div class="d-flex gap-3 justify-content-center mt-5" wicket:id="buttonsStrip">
-            <a class="btn text-primary" wicket:id="back">
-                <i class="fas fa-arrow-left mr-1"></i>
-                <span wicket:id="backLabel"></span>
-            </a>
-            <a class="btn btn-default" wicket:id="exit">
-                <i class="fas fa-right-from-bracket mr-1 fa-rotate-180"></i>
-                <wicket:message key="WizardPanel.exit"/>
-            </a>
-            <a class="btn btn-default" wicket:id="customButtons" />
-            <a class="btn btn-success" wicket:id="submit">
-                <i class="fas fa-check mr-1"/>
-                <span wicket:id="submitLabel"/>
-            </a>
-            <a class="btn btn-primary" wicket:id="next">
-                <wicket:message key="NavigationPanel.onlyNext"/>
-                <span wicket:id="nextLabel"/>
-                <i class="fas fa-arrow-right ml-1"></i>
-            </a>
+        <div class="d-flex align-items-center flex-nowrap flex-row mt-5 gap-2 wizard-actions-strip " wicket:id="buttonsStrip">
+            <div wicket:id="backContainer" class="wizard-actions-container">
+                <a class="btn btn-outline-primary" wicket:id="back">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    <span wicket:id="backLabel"></span>
+                </a>
+            </div>
+            <div wicket:id="exitContainer" class="wizard-actions-container">
+                <a class="btn btn-link" wicket:id="exit">
+                    <i class="fas fa-right-from-bracket mr-1 fa-rotate-180"></i>
+                    <wicket:message key="WizardPanel.exit"/>
+                </a>
+            </div>
+            <div wicket:id="customButtonsContainer" class="wizard-actions-container gap-2">
+                <a class="btn btn-default" wicket:id="customButtons" />
+                <a class="btn btn-success" wicket:id="submit">
+                    <i class="fas fa-check mr-1"/>
+                    <span wicket:id="submitLabel"/>
+                </a>
+                <a class="btn btn-primary" wicket:id="next">
+                    <wicket:message key="NavigationPanel.onlyNext"/>
+                    <span wicket:id="nextLabel"/>
+                    <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
         </div>
     </div>
 </wicket:panel>

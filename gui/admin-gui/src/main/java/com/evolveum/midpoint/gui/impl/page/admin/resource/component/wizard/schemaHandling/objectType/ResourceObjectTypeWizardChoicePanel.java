@@ -6,34 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.component.tile.WizardGuideTilePanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceAccountsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceEntitlementsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceGenericsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
-import com.evolveum.midpoint.web.session.ResourceContentStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+import static com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails.PARAM_PANEL_ID;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceGuideObjectTypeTileState.computeState;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.resolveDefault;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -47,12 +25,32 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
-import static com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails.PARAM_PANEL_ID;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceGuideObjectTypeTileState.computeState;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
-import static com.evolveum.midpoint.schema.util.ShadowUtil.resolveDefault;
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.component.tile.WizardGuideTilePanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceAccountsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceEntitlementsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceGenericsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class ResourceObjectTypeWizardChoicePanel
         extends ResourceWizardChoicePanel<ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType> {
@@ -341,5 +339,10 @@ public abstract class ResourceObjectTypeWizardChoicePanel
     private @Nullable ResourceObjectTypeDefinitionType getResourceObjectDefinition() {
         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = getValueModel().getObject();
         return object != null ? object.getRealValue() : null;
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-12 col-sm-8";
     }
 }

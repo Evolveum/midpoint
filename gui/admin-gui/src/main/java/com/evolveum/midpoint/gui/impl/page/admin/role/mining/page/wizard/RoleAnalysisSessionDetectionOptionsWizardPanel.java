@@ -6,17 +6,23 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.IModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcedureType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -123,6 +129,11 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
             return ItemVisibility.AUTO;
         };
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return true;
     }
 
     private RoleAnalysisOptionType getRoleAnalysisOption() {

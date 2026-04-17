@@ -6,10 +6,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.getSessionOptionContainer;
+
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -18,10 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAnalysisSess
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.getSessionOptionContainer;
 
 public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -105,5 +107,10 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
     @Override
     public String getStepId() {
         return WORK_PANEL_TYPE;
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return true;
     }
 }
