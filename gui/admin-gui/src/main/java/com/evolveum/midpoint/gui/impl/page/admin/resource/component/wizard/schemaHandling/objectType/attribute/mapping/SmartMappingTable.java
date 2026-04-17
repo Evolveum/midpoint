@@ -1132,23 +1132,23 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 .buildInlineMenu();
     }
 
-    protected StringResourceModel discardConfirmationTitle(int selectedCount) {
-        if (selectedCount == 0 && getAllItemsWithStatus().isEmpty()) {
+    protected StringResourceModel discardConfirmationTitle(int selectedCount, int allCount) {
+        if (selectedCount == 0 && allCount == 0) {
             return createStringResource("ColumnTileTable.discard.title.noItems");
         }
 
         return selectedCount == 0
-                ? createStringResource("ColumnTileTable.discard.title.empty", getAllItemsWithStatus().size())
+                ? createStringResource("ColumnTileTable.discard.title.empty", allCount)
                 : createStringResource("ColumnTileTable.discard.title", selectedCount);
     }
 
-    protected StringResourceModel acceptSuggestionTitle(int selectedCount) {
-        if (selectedCount == 0 && getAllItemsWithStatus().isEmpty()) {
+    protected StringResourceModel acceptSuggestionTitle(int selectedCount, int allCount) {
+        if (selectedCount == 0 && allCount == 0) {
             return createStringResource("ColumnTileTable.accept.title.noItems");
         }
 
         return selectedCount == 0
-                ? createStringResource("ColumnTileTable.accept.title.empty", getAllItemsWithStatus().size())
+                ? createStringResource("ColumnTileTable.accept.title.empty", allCount)
                 : createStringResource("ColumnTileTable.accept.title", selectedCount);
     }
 
@@ -1169,32 +1169,39 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                final List<PrismContainerValueWrapper<MappingType>> selectedSuggestions = getAllSelectedItemsWithStatus();
+                final List<PrismContainerValueWrapper<MappingType>> selectedSuggestions =
+                        new ArrayList<>(getAllSelectedItemsWithStatus());
+
+                final List<PrismContainerValueWrapper<MappingType>> allSuggestions =
+                        new ArrayList<>(getAllItemsWithStatus());
+
+                final int selectedCount = selectedSuggestions.size();
+                final int allCount = allSuggestions.size();
 
                 ConfirmationPanel dialog = new ConfirmationPanel(
                         getPageBase().getMainPopupBodyId(),
-                        discardConfirmationTitle(selectedSuggestions.size())) {
+                        discardConfirmationTitle(selectedCount, allCount)) {
 
                     @Override
                     protected IModel<String> createNoLabel() {
-                        return selectedSuggestions.isEmpty()
+                        return selectedCount == 0
                                 ? createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.cancel")
                                 : super.createNoLabel();
                     }
 
                     @Override
                     protected boolean isYesButtonVisible() {
-                        return !selectedSuggestions.isEmpty() || !getAllItemsWithStatus().isEmpty();
+                        return selectedCount > 0 || allCount > 0;
                     }
 
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         if (selectedSuggestions.isEmpty()) {
-                            getAllItemsWithStatus().forEach(SmartMappingTable.this::deleteItemPerform);
-                            refreshAndDetach(target);
-                            return;
+                            allSuggestions.forEach(SmartMappingTable.this::deleteItemPerform);
+                        } else {
+                            selectedSuggestions.forEach(SmartMappingTable.this::deleteItemPerform);
                         }
-                        selectedSuggestions.forEach(SmartMappingTable.this::deleteItemPerform);
+                        getPageBase().hideMainPopup(target);
                         refreshAndDetach(target);
                     }
                 };
@@ -1209,31 +1216,39 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                final List<PrismContainerValueWrapper<MappingType>> selectedSuggestions = getAllSelectedItemsWithStatus();
+                final List<PrismContainerValueWrapper<MappingType>> selectedSuggestions =
+                        new ArrayList<>(getAllSelectedItemsWithStatus());
+
+                final List<PrismContainerValueWrapper<MappingType>> allSuggestions =
+                        new ArrayList<>(getAllItemsWithStatus());
+
+                final int selectedCount = selectedSuggestions.size();
+                final int allCount = allSuggestions.size();
 
                 ConfirmationPanel dialog = new ConfirmationPanel(
                         getPageBase().getMainPopupBodyId(),
-                        acceptSuggestionTitle(selectedSuggestions.size())) {
+                        acceptSuggestionTitle(selectedCount, allCount)) {
 
                     @Override
                     protected IModel<String> createNoLabel() {
-                        return selectedSuggestions.isEmpty()
+                        return selectedCount == 0
                                 ? createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.cancel")
                                 : super.createNoLabel();
                     }
 
                     @Override
                     protected boolean isYesButtonVisible() {
-                        return !selectedSuggestions.isEmpty() || !getAllItemsWithStatus().isEmpty();
+                        return selectedCount > 0 || allCount > 0;
                     }
 
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         if (selectedSuggestions.isEmpty()) {
-                            getAllItemsWithStatus().forEach(v -> acceptSuggestionItemPerformed(() -> v, target));
-                            return;
+                            allSuggestions.forEach(v -> acceptSuggestionItemPerformed(() -> v, target));
+                        } else {
+                            selectedSuggestions.forEach(v -> acceptSuggestionItemPerformed(() -> v, target));
                         }
-                        selectedSuggestions.forEach(v -> acceptSuggestionItemPerformed(() -> v, target));
+                        getPageBase().hideMainPopup(target);
                         refreshAndDetach(target);
                     }
                 };
