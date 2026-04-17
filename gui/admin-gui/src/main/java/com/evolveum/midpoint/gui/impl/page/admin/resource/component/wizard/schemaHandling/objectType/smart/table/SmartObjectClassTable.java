@@ -8,10 +8,16 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeObjectClassSizeEstimationType;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
 
 import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectClassStatisticsActions;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -31,7 +37,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +63,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.RadioColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -134,11 +138,6 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         };
 
         return (IModel) searchModel;
-    }
-
-    @Override
-    protected boolean isFullTextSearchEnabled() {
-        return true;
     }
 
     @Override
@@ -447,40 +446,58 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("")) {
+        columns.add(createLinkStyleActionsColumn(getPageBase(), createInlineMenu()));
+        return columns;
+    }
 
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
+    protected List<InlineMenuItem> createInlineMenu() {
+        List<InlineMenuItem> inlineMenu = new ArrayList<>();
+        inlineMenu.add(createViewStatisticsInlineMenuButton());
+        inlineMenu.add(createStatisticsInlineMenuAction());
+        return inlineMenu;
+    }
 
-            @Override
-            public void populateItem(
-                    Item<ICellPopulator<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> item,
-                    String componentId,
-                    IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> rowModel) {
-
-                AjaxIconButton viewSchemaLink = new AjaxIconButton(componentId, Model.of("fa fa-eye"),
-                        createStringResource("SuggestTilePanel.view.schema")) {
+    protected InlineMenuItem createViewStatisticsInlineMenuButton() {
+        return InlineMenuItemBuilder.create()
+                .headerMenuItem(false)
+                .menuLinkVisible(false)
+                .labelVisible(true)
+                .label(createStringResource("SuggestTilePanel.view.schema"))
+                .icon("fa fa-eye")
+                .action(new ColumnMenuAction<PrismContainerValueWrapper<ComplexTypeDefinitionType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        displaySchemaViewTablePopup(target, rowModel);
+                        displaySchemaViewTablePopup(target, getRowModel());
                     }
-                };
-                viewSchemaLink.setOutputMarkupId(true);
-                viewSchemaLink.add(AttributeModifier.append("class", "btn btn-link"));
-                viewSchemaLink.showTitleAsLabel(true);
-                item.add(viewSchemaLink);
+                })
+                .additionalCssClass("btn btn-link")
+                .buildButtonMenu();
+    }
 
-            }
-
-            @Override
-            public String getCssClass() {
-                return "text-right";
-            }
-        });
-
-        return columns;
+    protected InlineMenuItem createStatisticsInlineMenuAction() {
+        return InlineMenuItemBuilder.create()
+                .icon("fa-solid fa-chart-bar")
+                .headerMenuItem(false)
+                .label(createStringResource("SmartObjectClassPanel.statistics.title"))
+                .action(new ColumnMenuAction<PrismContainerValueWrapper<ComplexTypeDefinitionType>>() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null
+                                || getRowModel().getObject() == null
+                                || getRowModel().getObject().getRealValue() == null) {
+                            return;
+                        }
+                        PrismContainerValueWrapper<ComplexTypeDefinitionType> object = getRowModel().getObject();
+                        ObjectClassStatisticsActions.handleClick(
+                                target,
+                                getPageBase(),
+                                getPageBase().getSmartIntegrationService(),
+                                resourceOid,
+                                object.getRealValue().getName(),
+                                false);
+                    }
+                })
+                .buildInlineMenu();
     }
 
     @Override

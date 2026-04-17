@@ -469,6 +469,11 @@ public class StatusInfoTableUtil {
             }
 
             @Override
+            protected boolean showInlineMenuIcon() {
+                return true;
+            }
+
+            @Override
             protected String getDropDownButtonIcon() {
                 return "fa-ellipsis-h";
             }
