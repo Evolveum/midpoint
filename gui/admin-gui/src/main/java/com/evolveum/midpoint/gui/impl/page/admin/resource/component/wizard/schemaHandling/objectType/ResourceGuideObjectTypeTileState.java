@@ -6,6 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.getEnabledCapability;
+
+import java.util.List;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -13,25 +22,12 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.*;
 
 /**
  * Represents UI state of tiles in the Resource Object Type wizard.
@@ -42,11 +38,11 @@ public enum ResourceGuideObjectTypeTileState {
 
     NORMAL(null),
     CONFIGURED(new BadgeSpec(
-            "badge bg-light text-success border border-success",
+            "badge badge-success badge-opaque",
             "",
             "ResourceObjectTypeWizardChoicePanel.configured")),
     RECOMMENDED(new BadgeSpec(
-            "badge bg-light text-primary border border-primary",
+            "badge badge-primary badge-opaque",
             "",
             "ResourceObjectTypeWizardChoicePanel.recommended")),
     TEMPORARY_LOCKED(null);

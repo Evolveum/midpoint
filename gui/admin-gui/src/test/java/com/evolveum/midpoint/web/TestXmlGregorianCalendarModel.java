@@ -29,13 +29,13 @@ import org.testng.annotations.Test;
 
 public class TestXmlGregorianCalendarModel extends AbstractGuiUnitTest {
 
-    private static final TimeZone PRAGUE = TimeZone.getTimeZone("Europe/Prague");
+    private static final TimeZone SYSTEM_TIME_ZONE = TimeZone.getDefault();
 
     @Test
     void testKeepStoredValueWhenGuiOnlyDropsSeconds() {
-        XMLGregorianCalendar stored = XmlTypeConverter.createXMLGregorianCalendar("2025-05-15T09:32:12+02:00");
+        XMLGregorianCalendar stored = xmlGregorianCalendar(32, 12);
 
-        GregorianCalendar sameMinuteDifferentCalendar = stored.toGregorianCalendar(PRAGUE, null, null);
+        GregorianCalendar sameMinuteDifferentCalendar = stored.toGregorianCalendar(SYSTEM_TIME_ZONE, null, null);
         sameMinuteDifferentCalendar.setLenient(false); // makes GregorianCalendar.equals(...) differ
 
         XMLGregorianCalendar wrapped = new CalendarOverride(stored, sameMinuteDifferentCalendar);
@@ -48,7 +48,7 @@ public class TestXmlGregorianCalendarModel extends AbstractGuiUnitTest {
         GregorianCalendar current = wrapped.toGregorianCalendar();
         zeroSubMinuteFields(current);
 
-        GregorianCalendar submittedCalendar = XmlTypeConverter.createXMLGregorianCalendar(submitted).toGregorianCalendar(PRAGUE, null, null);
+        GregorianCalendar submittedCalendar = XmlTypeConverter.createXMLGregorianCalendar(submitted).toGregorianCalendar(SYSTEM_TIME_ZONE, null, null);
         zeroSubMinuteFields(submittedCalendar);
 
         assertEquals(current.getTimeInMillis(), submittedCalendar.getTimeInMillis());
@@ -58,27 +58,40 @@ public class TestXmlGregorianCalendarModel extends AbstractGuiUnitTest {
 
         assertSame(wrapped, backing.getObject());
         assertEquals(12, backing.getObject().getSecond());
-        assertEquals("2025-05-15T09:32:12+02:00", backing.getObject().toXMLFormat());
+        assertEquals(stored.toXMLFormat(), backing.getObject().toXMLFormat());
     }
 
     @Test
     void testReplaceValueWhenMinuteChanges() {
-        XMLGregorianCalendar stored = XmlTypeConverter.createXMLGregorianCalendar("2025-05-15T09:32:12+02:00");
+        XMLGregorianCalendar stored = xmlGregorianCalendar(32, 12);
 
         IModel<XMLGregorianCalendar> backing = modelOf(stored);
         XmlGregorianCalendarModel model = new XmlGregorianCalendarModel(backing);
 
-        model.setObject(minuteDate(33));
+        Date submitted = minuteDate(33);
 
-        assertEquals("2025-05-15T09:33:00.000+02:00", backing.getObject().toXMLFormat());
+        model.setObject(submitted);
+
+        XMLGregorianCalendar updated = backing.getObject();
+        assertEquals(submitted.getTime(), updated.toGregorianCalendar().getTimeInMillis());
+        assertEquals(0, updated.getSecond());
+        assertEquals(0, updated.getMillisecond());
     }
 
     private static Date minuteDate(int minute) {
-        Calendar calendar = Calendar.getInstance(PRAGUE);
+        Calendar calendar = Calendar.getInstance(SYSTEM_TIME_ZONE);
         calendar.clear();
         calendar.set(2025, Calendar.MAY, 15, 9, minute, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         return calendar.getTime();
+    }
+
+    private static XMLGregorianCalendar xmlGregorianCalendar(int minute, int second) {
+        GregorianCalendar calendar = new GregorianCalendar(SYSTEM_TIME_ZONE);
+        calendar.clear();
+        calendar.set(2025, Calendar.MAY, 15, 9, minute, second);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return XmlTypeConverter.createXMLGregorianCalendar(calendar);
     }
 
     private static void zeroSubMinuteFields(Calendar calendar) {

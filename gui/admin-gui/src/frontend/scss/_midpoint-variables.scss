@@ -35,6 +35,7 @@ $theme-colors: map-merge(
                         "fuchsia": $fuchsia,
                         "maroon": $maroon,
                         "lightblue": $lightblue,
+                        "purple": $purple,
                         "blue": $blue,
                         "ai": $ai,
                 ),
@@ -53,6 +54,7 @@ $light-text-emphasis:     $gray-700 !default;
 $dark-text-emphasis:      $gray-700 !default;
 $blue-text-emphasis:      mix(black, $blue, 60%) !default;
 $ai-text-emphasis:        mix(black, $ai, 60%) !default;
+$purple-text-emphasis:    mix(black, $purple, 60%) !default;
 
 $theme-text-emphasis: (
   "primary":   $primary-text-emphasis,
@@ -65,6 +67,7 @@ $theme-text-emphasis: (
   "dark":      $dark-text-emphasis,
   "blue":      $blue-text-emphasis,
   "ai":        $ai-text-emphasis,
+  "purple":    $purple-text-emphasis,
 );
 // scss-docs-end theme-text-variables
 
@@ -79,6 +82,7 @@ $light-bg-subtle:       mix($gray-100, $white) !default;
 $dark-bg-subtle:        $gray-400 !default;
 $blue-bg-subtle:        mix(white, $blue, 80%) !default;
 $ai-bg-subtle:          mix(white, $ai, 80%) !default;
+$purple-bg-subtle:      mix(white, $purple, 80%) !default;
 
 $theme-bg-subtle: (
   "primary":   $primary-bg-subtle,
@@ -91,6 +95,7 @@ $theme-bg-subtle: (
   "dark":      $dark-bg-subtle,
   "blue":      $blue-bg-subtle,
   "ai":        $ai-bg-subtle,
+  "purple":    $purple-bg-subtle,
 );
 // scss-docs-end theme-bg-subtle-variables
 
@@ -105,6 +110,7 @@ $light-border-subtle:     $gray-200 !default;
 $dark-border-subtle:      $gray-500 !default;
 $blue-border-subtle:      mix(white, $blue, 60%) !default;
 $ai-border-subtle:        mix(white, $ai, 60%) !default;
+$purple-border-subtle:    mix(white, $purple, 60%) !default;
 
 $theme-border-subtle: (
   "primary":   $primary-border-subtle,
@@ -117,6 +123,7 @@ $theme-border-subtle: (
   "dark":      $dark-border-subtle,
   "blue":      $blue-border-subtle,
   "ai":        $ai-border-subtle,
+  "purple":    $purple-border-subtle,
 );
 // scss-docs-end theme-border-subtle-variables
 
