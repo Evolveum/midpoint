@@ -203,7 +203,7 @@ public class UploadDownloadPanel extends InputPanel {
         Component input = getInputFile();
         try {
             FileUpload uploadedFile = getFileUpload();
-            updateValue(uploadedFile.getBytes());
+            updateValue(ImageSanitationUtil.removeEXIF(uploadedFile.getBytes(), true));
             LOGGER.trace("Upload file success.");
             input.success(getString("UploadPanel.message.uploadSuccess"));
         } catch (Exception e) {
