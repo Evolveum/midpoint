@@ -66,6 +66,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(label = "PageResource.tab.content.others", icon = GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN, order = 80))
 public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
 
+    public static final String ID = "resourceUncategorized";
+
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";

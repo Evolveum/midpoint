@@ -30,6 +30,8 @@ import org.apache.wicket.model.StringResourceModel;
 )
 public class ResourceEntitlementsPanel extends ResourceObjectsPanel {
 
+    public static final String ID = "resourceEntitlements";
+
     public ResourceEntitlementsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }

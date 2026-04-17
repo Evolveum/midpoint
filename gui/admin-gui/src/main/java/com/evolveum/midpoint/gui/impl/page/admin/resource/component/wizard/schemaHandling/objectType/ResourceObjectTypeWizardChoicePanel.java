@@ -15,9 +15,14 @@ import com.evolveum.midpoint.gui.impl.component.tile.WizardGuideTilePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceAccountsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceEntitlementsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceGenericsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -26,6 +31,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,13 +43,16 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+import static com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails.PARAM_PANEL_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceGuideObjectTypeTileState.computeState;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.resolveDefault;
 
 public abstract class ResourceObjectTypeWizardChoicePanel
         extends ResourceWizardChoicePanel<ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType> {
@@ -152,11 +162,14 @@ public abstract class ResourceObjectTypeWizardChoicePanel
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        SimulationActionTaskButton<?> simulationActionTaskButton = createSimulationMenuButton(buttons);
-        buttons.add(simulationActionTaskButton);
+        buttons.add(createSimulationMenuButton(buttons));
+        buttons.add(createPreviewDataButton(buttons.newChildId()));
+        buttons.add(createGoToResourceButton(buttons.newChildId()));
+    }
 
-        AjaxIconButton previewData = new AjaxIconButton(
-                buttons.newChildId(),
+    private @NotNull AjaxIconButton createPreviewDataButton(String id) {
+        AjaxIconButton button = new AjaxIconButton(
+                id,
                 Model.of("fa fa-magnifying-glass"),
                 getPageBase().createStringResource("ResourceObjectTypePreviewTileType.PREVIEW_DATA")) {
             @Override
@@ -164,10 +177,71 @@ public abstract class ResourceObjectTypeWizardChoicePanel
                 showPreviewDataObjectType(target);
             }
         };
-        previewData.showTitleAsLabel(true);
-        previewData.add(AttributeAppender.append("class", "btn btn-default"));
-        buttons.add(previewData);
+        button.showTitleAsLabel(true);
+        button.add(AttributeAppender.append("class", "btn btn-default"));
+        return button;
+    }
 
+    private @NotNull AjaxIconButton createGoToResourceButton(String id) {
+        AjaxIconButton button = new AjaxIconButton(
+                id,
+                Model.of("fa fa-arrow-right"),
+                getPageBase().createStringResource("ResourceObjectTypeWizardPreviewPanel.goToResource")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                navigateToResourcePage();
+            }
+        };
+        button.showTitleAsLabel(true);
+        button.add(AttributeAppender.append("class", "btn btn-primary"));
+        return button;
+    }
+
+    private void navigateToResourcePage() {
+        ResourceObjectTypeDefinitionType objectType = getResourceObjectDefinition();
+        ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
+
+        if (objectType == null || resource == null) {
+            return;
+        }
+
+        ShadowKindType kind = objectType.getKind();
+        storeSelectedObjectType(resource, kind, objectType.getIntent());
+
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, resource.getOid());
+        parameters.add(PARAM_PANEL_ID, resolvePanelId(kind));
+
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil.getObjectDetailsPage(ResourceType.class);
+        getPageBase().navigateToNext(detailsPageClass, parameters);
+    }
+
+    private void storeSelectedObjectType(
+            @NotNull ResourceType resource,
+            @Nullable ShadowKindType kind,
+            @Nullable String intent) {
+        if (kind == null) {
+            return;
+        }
+
+        ResourceContentStorage storage = getPageBase()
+                .getBrowserTabSessionStorage()
+                .getResourceContentStorage(kind);
+        storage.getContentSearch().setResourceOid(resource.getOid());
+        storage.getContentSearch().setIntent(resolveDefault(intent));
+    }
+
+    private @NotNull String resolvePanelId(@Nullable ShadowKindType kind) {
+        if (ShadowKindType.GENERIC.equals(kind)) {
+            return ResourceGenericsPanel.ID;
+        }
+        if (ShadowKindType.ACCOUNT.equals(kind)) {
+            return ResourceAccountsPanel.ID;
+        }
+        if (ShadowKindType.ENTITLEMENT.equals(kind)) {
+            return ResourceEntitlementsPanel.ID;
+        }
+        return ResourceUncategorizedPanel.ID;
     }
 
     private @NotNull SimulationActionTaskButton<?> createSimulationMenuButton(@NotNull RepeatingView buttons) {
