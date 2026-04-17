@@ -69,7 +69,7 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
 
         final SmartSuggestButtonWithConfirmation<DataAccessPermission> button =
                 new SmartSuggestButtonWithConfirmation<>(id, () -> buttonConfig, clickHandlers);
-        button.add(AttributeModifier.append("class", "btn-purple"));
+        button.add(AttributeModifier.append("class", "btn btn-purple"));
         return button;
     }
 
