@@ -247,10 +247,14 @@ public class MimeTypeUtil {
     }
 
     public static String getExtension(String mimeType) {
-        String ext = MIMETYPE_EXTENSIONS.get(mimeType.toLowerCase());
+        String ext = getExtensionRaw(mimeType);
         if (ext == null) {
             return "";
         }
         return "." + ext;
+    }
+
+    public static String getExtensionRaw(String mimeType) {
+        return MIMETYPE_EXTENSIONS.get(mimeType.toLowerCase());
     }
 }

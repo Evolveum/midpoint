@@ -14,7 +14,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Map;
+
+import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_CONTENT_TYPES;
 
 /**
  * @author matisovaa
@@ -22,11 +23,6 @@ import java.util.Map;
  */
 public final class ImageSanitationUtil {
     private static final Trace LOGGER = TraceManager.getTrace(ImageSanitationUtil.class);
-
-    public static final Map<byte[], String> MAGIC_NUMBERS_TO_CONTENT_TYPES = Map.of(
-            new byte[] { -1, -40, -1 }, "jpg",
-            new byte[] { -119, 80, 78, 71, 13, 10, 26, 10 }, "png"
-    );
 
     public static String getContentTypeFromFileMagicNumber(final byte[] fileBites) {
         magicNumbersFor:
