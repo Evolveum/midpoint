@@ -324,4 +324,8 @@ public class ResourceSimulationTaskWizardPanel<C extends Containerable> extends 
         return true;
     }
 
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-12 p-0";
+    }
 }
