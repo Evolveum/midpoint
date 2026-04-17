@@ -201,9 +201,9 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         if (isTile) {
             switch (value.getStatus()) {
                 case DELETED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger border-large-left"));
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger"));
                 case ADDED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success border-large-left"));
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success"));
                 default -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0"));
             }
             return;
@@ -267,7 +267,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(AttributeAppender.replace("class",
-                "text-nowrap btn btn-primary rounded text-nowrap ml-2"));
+                "text-nowrap btn btn-outline-primary text-nowrap ml-2"));
         return newObjectButton;
     }
 

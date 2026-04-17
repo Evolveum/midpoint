@@ -13,14 +13,13 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ActivityIndicationInteractionsPair;
-import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.input.BlockingActionButtonWithConfirmationOptionsDialog;
+import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.util.Describable;
 
 /**
@@ -70,7 +69,7 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
 
         final SmartSuggestButtonWithConfirmation<DataAccessPermission> button =
                 new SmartSuggestButtonWithConfirmation<>(id, () -> buttonConfig, clickHandlers);
-        button.add(AttributeModifier.append("class", "btn rounded bg-purple"));
+        button.add(AttributeModifier.append("class", "btn-purple"));
         return button;
     }
 
