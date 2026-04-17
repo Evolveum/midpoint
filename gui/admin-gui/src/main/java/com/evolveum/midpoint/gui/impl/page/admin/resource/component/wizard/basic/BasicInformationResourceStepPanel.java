@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
@@ -13,12 +15,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import org.apache.wicket.model.IModel;
 
 /**
  * @author lskublik
@@ -73,6 +72,11 @@ public class BasicInformationResourceStepPanel extends AbstractFormWizardStepPan
             return true;
         }
         return itemWrapper.isMandatory();
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return true;
     }
 
     @Override

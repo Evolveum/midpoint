@@ -38,8 +38,8 @@ public class OrganizationalUnitActiveDirectoryMappingProvider implements WellKno
     @Override
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
-        matches.put(ItemPath.create("ou"), OrgType.F_NAME);
-        matches.put(ItemPath.create("adminDescription"), OrgType.F_DESCRIPTION);
+        matches.put(SystemMappingSuggestion.riAttr("ou"), OrgType.F_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("adminDescription"), OrgType.F_DESCRIPTION);
         return matches;
     }
 

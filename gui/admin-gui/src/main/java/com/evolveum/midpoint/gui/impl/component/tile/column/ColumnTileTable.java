@@ -383,31 +383,36 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
                     return;
                 }
 
-                final List<O> selected = Optional.of(getSelectedContainerItems()).orElse(List.of());
+                final List<O> selected = new ArrayList<>(Optional.of(getSelectedContainerItems()).orElse(List.of()));
+                final List<O> allItems = new ArrayList<>(Optional.ofNullable(getMultiTableModel()).orElse(List.of()));
+
+                final int selectedCount = selected.size();
+                final int allCount = allItems.size();
 
                 ConfirmationPanel dialog = new ConfirmationPanel(
                         getPageBase().getMainPopupBodyId(),
-                        deleteConfirmationTitle(selected.size())) {
+                        deleteConfirmationTitle(selectedCount, allCount)) {
 
                     @Override
                     protected IModel<String> createNoLabel() {
-                        return selected.isEmpty()
+                        return selectedCount == 0
                                 ? createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.cancel")
                                 : super.createNoLabel();
                     }
 
                     @Override
                     protected boolean isYesButtonVisible() {
-                        return !selected.isEmpty() || !getMultiTableModel().isEmpty();
+                        return selectedCount > 0 || allCount > 0;
                     }
 
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         if (selected.isEmpty()) {
-                            deleteItemPerformed(target, getMultiTableModel());
-                            return;
+                            deleteItemPerformed(target, allItems);
+                        } else {
+                            deleteItemPerformed(target, selected);
                         }
-                        deleteItemPerformed(target, selected);
+                        getPageBase().hideMainPopup(target);
                     }
                 };
 
@@ -503,13 +508,13 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         refresh(target);
     }
 
-    protected StringResourceModel deleteConfirmationTitle(int selectedCount) {
-        if (selectedCount == 0 && getMultiTableModel().isEmpty()) {
+    protected StringResourceModel deleteConfirmationTitle(int selectedCount, int allCount) {
+        if (selectedCount == 0 && allCount == 0) {
             return createStringResource("ColumnTileTable.deleteConfirmation.title.noItems");
         }
 
         return selectedCount == 0
-                ? createStringResource("ColumnTileTable.deleteConfirmation.title.empty", getMultiTableModel().size())
+                ? createStringResource("ColumnTileTable.deleteConfirmation.title.empty", allCount)
                 : createStringResource("ColumnTileTable.deleteConfirmation.title", selectedCount);
     }
 

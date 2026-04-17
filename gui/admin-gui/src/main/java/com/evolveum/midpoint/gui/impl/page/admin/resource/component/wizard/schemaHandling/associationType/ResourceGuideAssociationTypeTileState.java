@@ -6,9 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.List;
 
 import jakarta.xml.bind.JAXBElement;
 import org.apache.wicket.model.IModel;
@@ -16,17 +14,19 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public enum ResourceGuideAssociationTypeTileState {
 
     NORMAL(null),
     CONFIGURED(new BadgeSpec(
-            "badge bg-light text-success border border-success",
+            "badge badge-success badge-opaque",
             "",
             "ResourceAssociationTypeWizardChoicePanel.ready")),
     RECOMMENDED(new BadgeSpec(
-            "badge bg-light text-primary border border-primary",
+            "badge badge-primary badge-opaque",
             "",
             "ResourceAssociationTypeWizardChoicePanel.pending")),
     TEMPORARY_LOCKED(null);
