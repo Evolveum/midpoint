@@ -137,7 +137,7 @@ public class UploadDownloadPanel extends InputPanel {
                         continue;
                     }
 
-                    if (!FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {
+                    if (!FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {// TODO if change to fixedFormat handle check differently
                         String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType);
                         validatable.error(new ValidationError(msg));
                     }
@@ -220,7 +220,7 @@ public class UploadDownloadPanel extends InputPanel {
         Component input = getInputFile();
         try {
             ImageUploadProcessingType imageUploadProcessingConfig = getImageUploadProcessingConfig();
-            System.out.println(imageUploadProcessingConfig);
+            System.out.println(imageUploadProcessingConfig);// TODO ImageUploadProcessingType as arg to ImageSanitationUtil
             FileUpload uploadedFile = getFileUpload();
             updateValue(ImageSanitationUtil.removeEXIF(uploadedFile.getBytes(), true));
             LOGGER.trace("Upload file success.");

@@ -40,53 +40,66 @@ public final class ImageSanitationUtil {
         return null;
     }
 
-    //TODO make more smaller methods
-    public static byte[] removeEXIF(final byte[] originalBytes, final boolean removalEnabled) {
+    public static byte[] removeEXIF(final byte[] originalBytes, final boolean removalEnabled) { // TODO argument ImageUploadProcessingType
         if (originalBytes == null) {
             LOGGER.debug("There are no file for exif data removal.");
             return null;
         }
 
-        if (!removalEnabled) {
+        if (!removalEnabled) { // TODO if stripExifData
             LOGGER.debug("Removal of exif data is not enabled.");
             return originalBytes;
         }
 
         final String imageFormatName = getContentTypeFromFileMagicNumber(originalBytes);
         if (imageFormatName == null) {
-            LOGGER.warn("File format for removal of exif data is not recognized, so no exif data was removed.");
+            LOGGER.error("File format for removal of exif data is not recognized, so no exif data was removed.");
             return originalBytes;
         }
 
         // Read image (ImageIO automatically excludes metadata)
-        BufferedImage image;
-        try {
-            image = ImageIO.read(new ByteArrayInputStream(originalBytes));
-            if (image == null) {
-                LOGGER.warn("Failed to read image for removal of exif data, so no exif data was removed.");
-                return originalBytes;
-            }
-            LOGGER.debug("Read {} image: {} bytes", imageFormatName, originalBytes.length);
-        } catch (IOException e) {
-            LOGGER.error("Failed to read image for removal of exif data, so no exif data was removed: {}", e.getMessage());
+        BufferedImage image = readImage(originalBytes);
+        if (image == null) {
             return originalBytes;
         }
 
         // Write image is same as input image format (no metadata)
-        byte[] outputBytes;
-        try {
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            if (!ImageIO.write(image, imageFormatName, baos)) {
-                LOGGER.warn("No {} writer available, so no exif data was removed.", imageFormatName);
-                return originalBytes;
-            }
-            outputBytes = baos.toByteArray();
-            LOGGER.debug("Wrote {} image: {} bytes", imageFormatName, outputBytes.length);
-        } catch (IOException e) {
-            LOGGER.error("Failed to write {} image for removal of exif data, so no exif data was removed: {}", imageFormatName, e.getMessage());
+        byte[] outputBytes = writeImage(image, imageFormatName); // TODO if fixedFormat
+        if (outputBytes == null) {
             return originalBytes;
         }
 
+        return outputBytes;
+    }
+
+    private static BufferedImage readImage(final byte[] imageBytes) {
+        BufferedImage image;
+        try {
+            image = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            if (image == null) {
+                LOGGER.error("Failed to read image for removal of exif data, so no exif data was removed.");
+                return null;
+            }
+        } catch (IOException e) {
+            LOGGER.error("Failed to read image for removal of exif data, so no exif data was removed: {}", e.getMessage());
+            return null;
+        }
+        return image;
+    }
+
+    private static byte[] writeImage(final BufferedImage image, final String outputImageFormatName) {
+        byte[] outputBytes;
+        try {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            if (!ImageIO.write(image, outputImageFormatName, baos)) {
+                LOGGER.error("No {} writer available, so no exif data was removed.", outputImageFormatName);
+                return null;
+            }
+            outputBytes = baos.toByteArray();
+        } catch (IOException e) {
+            LOGGER.error("Failed to write {} image for removal of exif data, so no exif data was removed: {}", outputImageFormatName, e.getMessage());
+            return null;
+        }
         return outputBytes;
     }
 }
