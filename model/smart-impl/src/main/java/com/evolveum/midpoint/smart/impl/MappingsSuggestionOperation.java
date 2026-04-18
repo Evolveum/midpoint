@@ -486,6 +486,19 @@ class MappingsSuggestionOperation {
 
         // Check if data is sufficient for evaluation
         if (valuePairsForLLM.pairs().isEmpty() || valuePairsForValidation.pairs().isEmpty()) {
+            if (isInbound && objectTypeStatistics != null) {
+                var shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
+                var attrStats = findAttributeStatistics(shadowAttrPath);
+                if (attrStats.isPresent()) {
+                    int missingCount = attrStats.get().getMissingValueCount();
+                    int totalSize = objectTypeStatistics.getSize();
+                    if (totalSize > 0 && missingCount > MISSING_DATA_THRESHOLD * totalSize) {
+                        LOGGER.trace("Skipping inbound mapping: attribute {} has low missingCount ({}) relative to total ({}).",
+                                matchPair.getShadowAttributePath(), missingCount, totalSize);
+                        throw new MissingSourceDataException(matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
+                    }
+                }
+            }
             if (useAiService && isInbound) {
                 var categoricalResult = tryCategoricalMappingSuggestion(matchPair);
                 if (categoricalResult != null) {
