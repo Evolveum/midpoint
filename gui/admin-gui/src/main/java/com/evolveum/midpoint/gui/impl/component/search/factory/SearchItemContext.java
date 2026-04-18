@@ -180,13 +180,6 @@ public class SearchItemContext implements Serializable {
         return false;
     }
 
-    public Integer getDisplayOrder() {
-        if (item.getDisplayOrder() != null) {
-            return item.getDisplayOrder();
-        }
-        return null;
-    }
-
     public IModel<String> getDisplayName() {
         return new LoadableDetachableModel<>() {
             @Override

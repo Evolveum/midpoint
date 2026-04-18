@@ -198,15 +198,11 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
     private void deletePerformed(AjaxRequestTarget target) {
         AbstractSearchItemWrapper wrapper = getModelObject();
         wrapper.setVisible(false);
-        wrapper.setDisplayOrder(null);
         wrapper.clearValue();
 
         SearchPanel panel = findParent(SearchPanel.class);
         target.add(panel);
         panel.searchPerformed(target);
-
-        BasicSearchPanel basicSearchPanel = findParent(BasicSearchPanel.class);
-        basicSearchPanel.sortItems();
     }
 
     protected AutoCompleteTextPanel createAutoCompetePanel(String id, IModel<String> model, String lookupTableOid) {

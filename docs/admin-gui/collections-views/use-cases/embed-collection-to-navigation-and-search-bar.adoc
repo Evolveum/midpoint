@@ -91,10 +91,10 @@ Put the code into the system configuration.
 ...
 ----
 .The custom quick search filter in the search bar for "All Users"
-image::allUsersCustomManagers.png["Custom quick search filter active in the search bar for All Users"]
+image::mngrs-tggl-1.png["Custom quick search filter active in the search bar for All Users"]
 
 .The custom quick search filter in the search bar for "All Users" is active
-image::managersOnly.png["Custom quick search filter is active"]
+image::mngrs-tggl-2.png["Custom quick search filter is active"]
 
 TIP: For better filtering, you can use `roleMembershipRef matches ( relation = manager )` query to list all managers who got their role with `relation:manager` indirectly (from inducement)
 

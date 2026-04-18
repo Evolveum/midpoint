@@ -2775,23 +2775,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            The content of this property specifies an order in which the SearchItem
-                            should be displayed relative to other SearchItems at the same level.
-                            SearchItems will be displayed by sorting them by the values of displayOrder
-                            property (ascending). These that do not have any displayOrder annotation
-                            will be displayed last. SearchItems with the same displayOrder
-                            are displayed in alphabetic order.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>SearchItemType.displayOrder</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
