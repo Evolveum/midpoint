@@ -32,6 +32,7 @@
         <classes>
             <class name="com.evolveum.midpoint.web.RequestAccessTest"/>
             <class name="com.evolveum.midpoint.web.component.FileValidatorTest"/>
+            <class name="com.evolveum.midpoint.web.component.ImageSanitizationTest"/>
         </classes>
     </test>
 </suite>
