@@ -127,8 +127,15 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
     protected @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(String idAiPanel,
             IModel<Boolean> switchSuggestion) {
-        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(idAiPanel,
-                () -> new SmartGeneratingAlertDto(null, Model.of(), getPageBase())) {
+
+        LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
+            @Override
+            protected @NotNull SmartGeneratingAlertDto load() {
+                return new SmartGeneratingAlertDto(null, Model.of(), getPageBase());
+            }
+        };
+
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(idAiPanel, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {

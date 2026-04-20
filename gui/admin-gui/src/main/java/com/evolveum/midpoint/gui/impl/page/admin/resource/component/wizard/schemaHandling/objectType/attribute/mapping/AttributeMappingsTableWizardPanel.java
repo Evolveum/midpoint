@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createVirtualMappingContainerModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.isSuggestionExists;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeMappingTypeSuggestion;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 
 import java.util.*;
 
@@ -22,6 +20,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -47,7 +45,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -71,8 +68,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.web.session.SuggestionsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -105,6 +100,18 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     IModel<Boolean> outboundSuggestionToggleModel = Model.of(Boolean.FALSE);
     boolean isInboundTabSelected = true;
     private SerializableConsumer<AjaxRequestTarget> restartTime;
+
+    LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
+        @Override
+        protected @NotNull SmartGeneratingAlertDto load() {
+            if (!Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
+                return new SmartGeneratingAlertDto(null, getSwitchToggleModel(), getPageBase());
+            }
+
+            ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
+            return new SmartGeneratingAlertDto(loadSuggestion(resource.getOid()), getSwitchToggleModel(), getPageBase());
+        }
+    };
 
     public AttributeMappingsTableWizardPanel(
             String id,
@@ -262,6 +269,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
                     @Override
                     protected void refreshAndDetach(AjaxRequestTarget target) {
+                        suggestionModel.detach();
                         super.refreshAndDetach(target);
 
                         if (displayNoValuePanel()) {
@@ -397,6 +405,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         return new LoadableModel<>() {
             @Override
             protected StatusInfo<MappingsSuggestionType> load() {
+
                 return loadObjectTypeMappingTypeSuggestion(getPageBase(),
                         resourceOid,
                         getResourceObjectTypeIdentification(),
@@ -409,8 +418,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
             @NotNull String resourceOid) {
-        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
-                () -> new SmartGeneratingAlertDto(loadSuggestion(resourceOid), getSwitchToggleModel(), getPageBase())) {
+
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
@@ -427,11 +436,11 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
             @Override
             protected void onSuggestionFinish(AjaxRequestTarget target) {
-                getTable().refreshAndDetach(target);
+                Objects.requireNonNull(getTable()).refreshAndDetach(target);
             }
 
             @Override
-            protected IModel<List<ConfirmationOption<DataAccessPermission>>> getConfirmationOptions() {
+            protected @NotNull IModel<List<ConfirmationOption<DataAccessPermission>>> getConfirmationOptions() {
                 final List<ConfirmationOption<DataAccessPermission>> confirmationOptions =
                         ConfirmationOption.mappingPermissionsOptions();
                 return () -> confirmationOptions;
@@ -440,7 +449,9 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             protected void onRefresh(@NotNull AjaxRequestTarget target) {
                 SmartMappingTable<?> smartMappingTable = getTable();
-                smartMappingTable.refreshAndDetach(target);
+                if (smartMappingTable != null) {
+                    smartMappingTable.refreshAndDetach(target);
+                }
             }
         };
 
@@ -501,13 +512,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        //TBD after mcm
-//        IModel<PrismContainerValueWrapper<P>> valueModel = getValueModel();
-//        PrismContainerValueWrapper<P> object = valueModel.getObject();
-//        if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType def) {
-//            buttons.add(createSimulationMenuButton(buttons, () -> def));
-//        }
-
         buttons.add(createShowOverridesButton(buttons));
     }
 
@@ -526,52 +530,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         showOverrides.showTitleAsLabel(true);
         showOverrides.add(AttributeAppender.append("class", "btn  btn-outline-primary"));
         return showOverrides;
-    }
-
-    private @NotNull SimulationActionTaskButton<Void> createSimulationMenuButton(
-            @NotNull RepeatingView buttons,
-            @NotNull IModel<ResourceObjectTypeDefinitionType> objectTypeDefModel) {
-
-        SimulationActionTaskButton<Void> simulationActionTaskButton = new SimulationActionTaskButton<>(
-                buttons.newChildId(),
-                objectTypeDefModel,
-                () -> getAssignmentHolderDetailsModel().getObjectType()) {
-
-            @Override
-            protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
-                ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
-                if (simulationResultReference == null || simulationResultReference.getOid() == null) {
-                    LOGGER.error("Simulation result reference or OID is null for task {}", task.getName());
-                    return;
-                }
-                SimulationResultType simulationResultType = loadSimulationResult(pageBase, simulationResultReference.getOid());
-                buildSimulationResultPanel(target, Model.of(simulationResultType));
-            }
-
-            @Override
-            protected @NotNull ResourceTaskFlavor<Void> getTaskFlavor() {
-                return ResourceTaskFlavors.IMPORT;
-            }
-
-            @Override
-            protected ExecutionModeType getExecutionMode() {
-                return ExecutionModeType.PREVIEW;
-            }
-
-            @Override
-            public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
-                AttributeMappingsTableWizardPanel.this.redirectToSimulationTasksWizard(target);
-            }
-
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getAdditionalSplitComponentCssClass() {
-                return "ml-auto";
-            }
-        };
-
-        simulationActionTaskButton.setRenderBodyOnly(true);
-        return simulationActionTaskButton;
     }
 
     @Override

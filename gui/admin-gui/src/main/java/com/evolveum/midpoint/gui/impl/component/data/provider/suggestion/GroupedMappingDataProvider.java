@@ -34,6 +34,12 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
 
     private final Map<String, MappingDataDto> dtoCache = new LinkedHashMap<>();
 
+    /** Cache for already loaded delegate rows within current request/detach cycle. */
+    private List<PrismContainerValueWrapper<MappingType>> loadedRowsCache;
+
+    /** Cache for grouped/flat DTO result within current request/detach cycle. */
+    private List<MappingDataDto> groupedDataCache;
+
     public GroupedMappingDataProvider(
             @NotNull Component component,
             @NotNull ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> delegate,
@@ -76,19 +82,29 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
     @Override
     public void detach() {
         super.detach();
+
+        loadedRowsCache = null;
+        groupedDataCache = null;
+
         if (delegate instanceof StatusAwareDataProvider<MappingType> statusAwareDataProvider) {
             statusAwareDataProvider.getModel().detach();
         }
     }
 
     private @NotNull List<MappingDataDto> getGroupedData() {
+        if (groupedDataCache != null) {
+            return groupedDataCache;
+        }
+
         List<PrismContainerValueWrapper<MappingType>> all = loadAllData();
         if (all.isEmpty()) {
             dtoCache.clear();
-            return List.of();
+            groupedDataCache = List.of();
+            return groupedDataCache;
         }
 
-        return groupSuggestions ? createGroupedData(all) : createFlatData(all);
+        groupedDataCache = groupSuggestions ? createGroupedData(all) : createFlatData(all);
+        return groupedDataCache;
     }
 
     public StatusInfo<?> getSuggestionInfo(@NotNull PrismContainerValueWrapper<?> wrapper) {
@@ -167,17 +183,24 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
     }
 
     private @NotNull List<PrismContainerValueWrapper<MappingType>> loadAllData() {
+        if (loadedRowsCache != null) {
+            return loadedRowsCache;
+        }
+
         applySortToDelegate();
 
         long size = delegate.size();
         if (size <= 0) {
-            return List.of();
+            loadedRowsCache = List.of();
+            return loadedRowsCache;
         }
 
         List<PrismContainerValueWrapper<MappingType>> all = new ArrayList<>();
         Iterator<? extends PrismContainerValueWrapper<MappingType>> iterator = delegate.iterator(0, size);
         iterator.forEachRemaining(all::add);
-        return all;
+
+        loadedRowsCache = all;
+        return loadedRowsCache;
     }
 
     private @NotNull String resolveRowKey(@NotNull PrismContainerValueWrapper<MappingType> wrapper) {
@@ -190,5 +213,9 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
             return "__null_target__";
         }
         return String.valueOf(mapping.getTarget().getPath().getItemPath());
+    }
+
+    public ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> getDelegateProvider() {
+        return delegate;
     }
 }

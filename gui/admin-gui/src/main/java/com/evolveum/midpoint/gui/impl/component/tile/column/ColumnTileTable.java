@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.ButtonBar;
@@ -39,6 +40,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -562,6 +565,17 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
             provider.detach();
         }
 
+        if (provider instanceof GroupedMappingDataProvider groupedMappingDataProvider) {
+            ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> delegateProvider = groupedMappingDataProvider.getDelegateProvider();
+            if (delegateProvider instanceof StatusAwareDataProvider<MappingType> statusAwareDataProvider) {
+                if (statusAwareDataProvider.getModel() instanceof LoadableModel<List<PrismContainerValueWrapper<MappingType>>> loadableModel) {
+                    loadableModel.reset();
+                }
+
+                statusAwareDataProvider.getModel().detach();
+                return;
+            }
+        }
         if (provider instanceof MultivalueContainerListDataProvider mvProvider) {
             mvProvider.getModel().detach();
         }

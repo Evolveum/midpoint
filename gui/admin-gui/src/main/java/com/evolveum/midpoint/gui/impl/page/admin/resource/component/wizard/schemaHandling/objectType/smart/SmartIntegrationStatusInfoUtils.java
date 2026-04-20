@@ -260,7 +260,12 @@ public class SmartIntegrationStatusInfoUtils {
         var isInbound = mappingDirection == MappingDirection.INBOUND;
 
         try {
-            return smart.listSuggestMappingsOperationStatuses(resourceOid, objectTypeIdentification, isInbound, task, result);
+            List<StatusInfo<MappingsSuggestionType>> statusInfos = smart.listSuggestMappingsOperationStatuses(
+                    resourceOid, objectTypeIdentification, isInbound, task, result);
+            LOGGER.debug("Loaded mapping suggestions statuses for resource {} and object type identification {}",
+                    resourceOid, objectTypeIdentification);
+            return statusInfos;
+
         } catch (Throwable t) {
             result.recordException(t);
             LoggingUtils.logException(LOGGER, "Couldn't load mapping status for {}", t, resourceOid);
@@ -742,7 +747,7 @@ public class SmartIntegrationStatusInfoUtils {
                 return;
             }
 
-            if(si.getStatus() == OperationResultStatusType.SUCCESS
+            if (si.getStatus() == OperationResultStatusType.SUCCESS
                     && (si.getResult() == null || si.getResult().getObjectType().isEmpty())) {
                 return;
             }
@@ -794,7 +799,7 @@ public class SmartIntegrationStatusInfoUtils {
                 return;
             }
 
-            if(si.getStatus() == OperationResultStatusType.SUCCESS
+            if (si.getStatus() == OperationResultStatusType.SUCCESS
                     && (si.getResult() == null || si.getResult().getAssociation().isEmpty())) {
                 return;
             }

@@ -51,6 +51,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,6 +73,17 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
     private static final String OP_DEFINE_TYPES = CLASS_DOT + "defineTypes";
     private static final String OP_DETERMINE_STATUSES = CLASS_DOT + ".determineStatuses";
+
+    LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
+        @Override
+        protected @NotNull SmartGeneratingAlertDto load() {
+            if (!Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
+                return new SmartGeneratingAlertDto(null, getSwitchSuggestionModel(), getPageBase());
+            }
+
+            return new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), getSwitchSuggestionModel(), getPageBase());
+        }
+    };
 
     public AssociationTypesPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -121,10 +133,13 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
             @Override
             public void refreshAndDetach(AjaxRequestTarget target) {
+                suggestionModel.detach();
                 super.refreshAndDetach(target);
+
                 if (displayNoValuePanel()) {
                     getSwitchSuggestionModel().setObject(Boolean.FALSE);
                 }
+
                 target.add(AssociationTypesPanel.this.getAiPanel());
                 target.add(AssociationTypesPanel.this);
             }
@@ -384,8 +399,15 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
     protected @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
             @NotNull String id,
             @NotNull IModel<Boolean> switchToggleModel) {
-        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(id,
-                () -> new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), switchToggleModel, getPageBase())) {
+
+        LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
+            @Override
+            protected SmartGeneratingAlertDto load() {
+                return new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), switchToggleModel, getPageBase());
+            }
+        };
+
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(id, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
