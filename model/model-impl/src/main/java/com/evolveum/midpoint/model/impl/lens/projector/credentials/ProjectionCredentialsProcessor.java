@@ -156,7 +156,16 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
 
         ObjectDeltaObject<F> objectDeltaObject = focusContext.getObjectDeltaObjectAbsolute();
 
-        // HACK
+        // Unless we do reconciliation, we sometimes skip the mapping execution even for strong mappings.
+        // The reason is that we don't want to push excessive password changes to the resource during normal processing.
+        //
+        // Note we don't need to do such hacks for regular attributes, because there is a mechanism of "attribute reconciliation"
+        // (see ReconciliationProcessor), which suppresses modifications if the to-be value is equal to the value currently on the
+        // resource. Obviously, most resources do not reveal password value, so this mechanism is useless for passwords.
+        //
+        // So, we try to _estimate_ if there is a legitimate reason for pushing the password through: checking if the account is
+        // being added and if the source(s) of the mapping have changed. But that's mere estimation. It breaks down e.g. for
+        // <generate> strong mapping, which should produce a new value for each invocation (see MID-11161).
         if (!projCtx.isDoReconciliation()
                 && !projCtx.isAdd()
                 && !isActivated(outboundMappingBeans, objectDeltaObject.getObjectDelta())) {
@@ -303,7 +312,8 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         for (MappingType outboundMappingBean: outboundMappingBeans) {
             List<VariableBindingDefinitionType> sources = outboundMappingBean.getSource();
             if (sources.isEmpty()) {
-                // Default source
+                // No sources = default source (focus password).
+                // Note this behavior assumes expression that takes input into account, does not work e.g. fpr <generate> mapping
                 if (focusDelta.hasItemDelta(SchemaConstants.PATH_PASSWORD_VALUE)) {
                     return true;
                 }
