@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion.SimulationCorrelationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingUtil;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -61,7 +60,7 @@ public class SimulationMappingPanel extends BasePanel<SimulationResultType> {
     private static final String ID_TABLE = "table";
 
     private IModel<List<DashboardWidgetType>> metricsModel;
-    IModel<String> selectedMarkOidModel = Model.of(MARK_SHADOW_CORRELATION_OWNER_FOUND.value());
+    IModel<String> selectedMarkOidModel = Model.of();
 
     List<String> mappingMarksOids = List.of(
             MARK_ITEM_VALUE_ADDED.value(),
