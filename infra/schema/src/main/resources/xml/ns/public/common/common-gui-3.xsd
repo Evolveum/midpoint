@@ -5186,7 +5186,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="jpeg"/>
+            <xsd:enumeration value="jpg"/>
             <xsd:enumeration value="png"/>
         </xsd:restriction>
     </xsd:simpleType>

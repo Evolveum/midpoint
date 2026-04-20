@@ -8,6 +8,9 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StripExifDataType;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -15,6 +18,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
+import static com.evolveum.midpoint.common.MimeTypeUtil.getExtensionRaw;
 import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_CONTENT_TYPES;
 
 /**
@@ -40,19 +45,25 @@ public final class ImageSanitizationUtil {
         return null;
     }
 
-    public static byte[] sanitizeImage(final byte[] originalBytes, final boolean removalEnabled) // TODO argument ImageUploadProcessingType
+    public static byte[] sanitizeImage(final byte[] originalBytes, final ImageUploadProcessingType imageUploadProcessingConfig)
             throws ImageSanitizationException {
+        if (imageUploadProcessingConfig == null) {
+            LOGGER.debug("There are no sanitization configured.");
+            return originalBytes;
+        }
+
         if (originalBytes == null) {
             LOGGER.debug("There are no file for sanitization.");
             return null;
         }
 
-        if (!removalEnabled) { // TODO if stripExifData
-            LOGGER.debug("Sanitization is not enabled.");
+        if (ImageProcessingType.PRESERVEORIGINALFORMAT.equals(imageUploadProcessingConfig.getProcessing()) &&
+                !StripExifDataType.TRUE.equals(imageUploadProcessingConfig.getStripExifData())) {
+            LOGGER.debug("There are no sanitization enabled in configuration.");
             return originalBytes;
         }
 
-        final String imageFormatName = getContentTypeFromFileMagicNumber(originalBytes);
+        final String imageFormatName = getOutputImageFormatName(originalBytes, imageUploadProcessingConfig);
         if (imageFormatName == null) {
             throw new ImageSanitizationException("File format for sanitization is not recognized.");
         }
@@ -60,8 +71,18 @@ public final class ImageSanitizationUtil {
         // Read image (ImageIO automatically excludes metadata)
         BufferedImage image = readImage(originalBytes);
 
-        // Write image is same as input image format (no metadata)
-        return writeImage(image, imageFormatName); // TODO if fixedFormat
+        // Write image to given format (no metadata)
+        return writeImage(image, imageFormatName);
+    }
+
+    private static String getOutputImageFormatName(final byte[] originalBytes, final ImageUploadProcessingType imageUploadProcessingConfig) {
+        if (ImageProcessingType.FIXEDFORMAT.equals(imageUploadProcessingConfig.getProcessing())) {
+            if (imageUploadProcessingConfig.getFormat() != null) {
+                return imageUploadProcessingConfig.getFormat().value();
+            }
+            return getExtensionRaw(MIME_IMAGE_JPEG);
+        }
+        return getContentTypeFromFileMagicNumber(originalBytes);
     }
 
     private static BufferedImage readImage(final byte[] imageBytes)
