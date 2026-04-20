@@ -222,7 +222,7 @@ public class UploadDownloadPanel extends InputPanel {
             ImageUploadProcessingType imageUploadProcessingConfig = getImageUploadProcessingConfig();
             System.out.println(imageUploadProcessingConfig);// TODO ImageUploadProcessingType as arg to ImageSanitationUtil
             FileUpload uploadedFile = getFileUpload();
-            updateValue(ImageSanitationUtil.removeEXIF(uploadedFile.getBytes(), true));
+            updateValue(ImageSanitizationUtil.sanitizeImage(uploadedFile.getBytes(), true));
             LOGGER.trace("Upload file success.");
             input.success(getString("UploadPanel.message.uploadSuccess"));
         } catch (Exception e) {

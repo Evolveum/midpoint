@@ -21,8 +21,8 @@ import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumbe
  * @author matisovaa
  *
  */
-public final class ImageSanitationUtil {
-    private static final Trace LOGGER = TraceManager.getTrace(ImageSanitationUtil.class);
+public final class ImageSanitizationUtil {
+    private static final Trace LOGGER = TraceManager.getTrace(ImageSanitizationUtil.class);
 
     public static String getContentTypeFromFileMagicNumber(final byte[] fileBites) {
         magicNumbersFor:
@@ -40,7 +40,7 @@ public final class ImageSanitationUtil {
         return null;
     }
 
-    public static byte[] removeEXIF(final byte[] originalBytes, final boolean removalEnabled) { // TODO argument ImageUploadProcessingType
+    public static byte[] sanitizeImage(final byte[] originalBytes, final boolean removalEnabled) { // TODO argument ImageUploadProcessingType
         if (originalBytes == null) {
             LOGGER.debug("There are no file for exif data removal.");
             return null;
