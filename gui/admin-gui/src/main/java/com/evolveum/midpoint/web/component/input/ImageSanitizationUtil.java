@@ -40,7 +40,8 @@ public final class ImageSanitizationUtil {
         return null;
     }
 
-    public static byte[] sanitizeImage(final byte[] originalBytes, final boolean removalEnabled) { // TODO argument ImageUploadProcessingType
+    public static byte[] sanitizeImage(final byte[] originalBytes, final boolean removalEnabled) // TODO argument ImageUploadProcessingType
+            throws ImageSanitizationException {
         if (originalBytes == null) {
             LOGGER.debug("There are no file for exif data removal.");
             return null;
@@ -53,52 +54,41 @@ public final class ImageSanitizationUtil {
 
         final String imageFormatName = getContentTypeFromFileMagicNumber(originalBytes);
         if (imageFormatName == null) {
-            LOGGER.error("File format for removal of exif data is not recognized, so no exif data was removed.");
-            return originalBytes;
+            throw new ImageSanitizationException("File format for removal of exif data is not recognized.");
         }
 
         // Read image (ImageIO automatically excludes metadata)
         BufferedImage image = readImage(originalBytes);
-        if (image == null) {
-            return originalBytes;
-        }
 
         // Write image is same as input image format (no metadata)
-        byte[] outputBytes = writeImage(image, imageFormatName); // TODO if fixedFormat
-        if (outputBytes == null) {
-            return originalBytes;
-        }
-
-        return outputBytes;
+        return writeImage(image, imageFormatName); // TODO if fixedFormat
     }
 
-    private static BufferedImage readImage(final byte[] imageBytes) {
+    private static BufferedImage readImage(final byte[] imageBytes)
+            throws ImageSanitizationException {
         BufferedImage image;
         try {
             image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (image == null) {
-                LOGGER.error("Failed to read image for removal of exif data, so no exif data was removed.");
-                return null;
+                throw new ImageSanitizationException("Failed to read image for removal of exif data.");
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to read image for removal of exif data, so no exif data was removed: {}", e.getMessage());
-            return null;
+            throw new ImageSanitizationException("Failed to read image for removal of exif data.", e);
         }
         return image;
     }
 
-    private static byte[] writeImage(final BufferedImage image, final String outputImageFormatName) {
+    private static byte[] writeImage(final BufferedImage image, final String outputImageFormatName)
+            throws ImageSanitizationException {
         byte[] outputBytes;
         try {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             if (!ImageIO.write(image, outputImageFormatName, baos)) {
-                LOGGER.error("No {} writer available, so no exif data was removed.", outputImageFormatName);
-                return null;
+                throw new ImageSanitizationException("No " + outputImageFormatName + " writer available.");
             }
             outputBytes = baos.toByteArray();
         } catch (IOException e) {
-            LOGGER.error("Failed to write {} image for removal of exif data, so no exif data was removed: {}", outputImageFormatName, e.getMessage());
-            return null;
+            throw new ImageSanitizationException("Failed to write " + outputImageFormatName + " image for removal of exif data.", e);
         }
         return outputBytes;
     }

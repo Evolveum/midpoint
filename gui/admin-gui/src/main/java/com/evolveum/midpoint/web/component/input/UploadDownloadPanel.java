@@ -225,6 +225,9 @@ public class UploadDownloadPanel extends InputPanel {
             updateValue(ImageSanitizationUtil.sanitizeImage(uploadedFile.getBytes(), true));
             LOGGER.trace("Upload file success.");
             input.success(getString("UploadPanel.message.uploadSuccess"));
+        } catch (ImageSanitizationException e) {
+            LOGGER.trace("Sanitization of upload file error.", e);
+            input.error(getString("UploadPanel.message.sanitizationUploadError") + " " + e.getMessage());
         } catch (Exception e) {
             LOGGER.trace("Upload file error.", e);
             input.error(getString("UploadPanel.message.uploadError") + " " + e.getMessage());
