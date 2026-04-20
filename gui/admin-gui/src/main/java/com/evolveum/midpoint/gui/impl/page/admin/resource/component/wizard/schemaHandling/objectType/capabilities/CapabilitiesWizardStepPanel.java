@@ -6,18 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.capabilities;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
-
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.CapabilitiesPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 /**
  * @author lskublik
@@ -63,5 +60,10 @@ public abstract class CapabilitiesWizardStepPanel extends AbstractResourceWizard
     @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("CapabilitiesWizardStepPanel.subText");
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
     }
 }

@@ -12,10 +12,6 @@ import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createConf
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,6 +52,8 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -356,7 +354,6 @@ public abstract class AssociationTablePanel
             @Override
             protected Component createHeader(String headerId) {
                 Fragment f = createHeaderFragment(headerId);
-                f.add(AttributeModifier.replace("class", "card-header"));
                 return f;
             }
 
