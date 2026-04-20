@@ -43,18 +43,18 @@ public final class ImageSanitizationUtil {
     public static byte[] sanitizeImage(final byte[] originalBytes, final boolean removalEnabled) // TODO argument ImageUploadProcessingType
             throws ImageSanitizationException {
         if (originalBytes == null) {
-            LOGGER.debug("There are no file for exif data removal.");
+            LOGGER.debug("There are no file for sanitization.");
             return null;
         }
 
         if (!removalEnabled) { // TODO if stripExifData
-            LOGGER.debug("Removal of exif data is not enabled.");
+            LOGGER.debug("Sanitization is not enabled.");
             return originalBytes;
         }
 
         final String imageFormatName = getContentTypeFromFileMagicNumber(originalBytes);
         if (imageFormatName == null) {
-            throw new ImageSanitizationException("File format for removal of exif data is not recognized.");
+            throw new ImageSanitizationException("File format for sanitization is not recognized.");
         }
 
         // Read image (ImageIO automatically excludes metadata)
@@ -70,10 +70,10 @@ public final class ImageSanitizationUtil {
         try {
             image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (image == null) {
-                throw new ImageSanitizationException("Failed to read image for removal of exif data.");
+                throw new ImageSanitizationException("Failed to read image for sanitization.");
             }
         } catch (IOException e) {
-            throw new ImageSanitizationException("Failed to read image for removal of exif data.", e);
+            throw new ImageSanitizationException("Failed to read image for sanitization.", e);
         }
         return image;
     }
@@ -88,7 +88,7 @@ public final class ImageSanitizationUtil {
             }
             outputBytes = baos.toByteArray();
         } catch (IOException e) {
-            throw new ImageSanitizationException("Failed to write " + outputImageFormatName + " image for removal of exif data.", e);
+            throw new ImageSanitizationException("Failed to write " + outputImageFormatName + " image for sanitization.", e);
         }
         return outputBytes;
     }

@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -227,10 +228,14 @@ public class UploadDownloadPanel extends InputPanel {
             input.success(getString("UploadPanel.message.uploadSuccess"));
         } catch (ImageSanitizationException e) {
             LOGGER.trace("Sanitization of upload file error.", e);
-            input.error(getString("UploadPanel.message.sanitizationUploadError") + " " + e.getMessage());
+            final String errorMessage = getString("UploadPanel.message.sanitizationUploadError") + " " + e.getMessage();
+            input.error(errorMessage);
+            input.getParent().getFeedbackMessages().add(new FeedbackMessage(input, errorMessage, FeedbackMessage.WARNING));
         } catch (Exception e) {
             LOGGER.trace("Upload file error.", e);
-            input.error(getString("UploadPanel.message.uploadError") + " " + e.getMessage());
+            final String errorMessage = getString("UploadPanel.message.uploadError") + " " + e.getMessage();
+            input.error(errorMessage);
+            input.getParent().getFeedbackMessages().add(new FeedbackMessage(input, errorMessage, FeedbackMessage.WARNING));
         }
     }
 
