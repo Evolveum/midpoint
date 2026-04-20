@@ -74,7 +74,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         public String submitCreateConnector(Task task, OperationResult result) {
-            return submitTask("Creating editable connector for " + stateObject.getOid(),
+            return submitTask("Creating editable connector for " + connectorNameForTasks(),
                     new WorkDefinitionsType().createConnector(new ConnDevCreateConnectorWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                             .baseTemplateUrl(connectorTemplateFor(stateObject.getConnector().getIntegrationType()))
@@ -82,14 +82,14 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         public String submitDiscoverBasicInformation(Task task, OperationResult result) {
-            return submitTask("Discover Basic Information for " + stateObject.getOid(),
+            return submitTask("Discover Basic Information for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverGlobalInformation(new ConnDevDiscoverGlobalInformationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
         }
 
         public String submitDiscoverDocumentation(Task task, OperationResult result) {
-            return submitTask("Discovering documentation for " + stateObject.getOid(),
+            return submitTask("Discovering documentation for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverDocumentation(new ConnDevDiscoverDocumentationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
@@ -105,7 +105,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public String submitDiscoverObjectClasses(Task task, OperationResult result) {
-            return submitTask("Discovering object classes for for " + stateObject.getOid(),
+            return submitTask("Discovering object classes for for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverObjectClassInformation(new ConnDevDiscoverObjectClassInformationDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
@@ -253,6 +253,10 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         public void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
             ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .updateConfigurationOverride();
+        }
+
+        private String connectorNameForTasks() {
+            return stateObject.getName().getOrig();
         }
     }
 
