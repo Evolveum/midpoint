@@ -569,6 +569,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
             ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> delegateProvider = groupedMappingDataProvider.getDelegateProvider();
             if (delegateProvider instanceof StatusAwareDataProvider<MappingType> statusAwareDataProvider) {
                 if (statusAwareDataProvider.getModel() instanceof LoadableModel<List<PrismContainerValueWrapper<MappingType>>> loadableModel) {
+                    groupedMappingDataProvider.reset();
                     loadableModel.reset();
                 }
 

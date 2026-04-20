@@ -82,7 +82,9 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
     @Override
     public void detach() {
         super.detach();
+    }
 
+    public void reset(){
         loadedRowsCache = null;
         groupedDataCache = null;
 
