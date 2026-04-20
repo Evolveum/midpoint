@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusA
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -148,7 +149,6 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         IsolatedCheckBoxPanel selectCheckbox = new IsolatedCheckBoxPanel(idButton, selectModel) {
             @Override
             public void onUpdate(@NotNull AjaxRequestTarget target) {
-                target.add(ColumnTileTable.this);
                 refresh(target);
             }
         };
@@ -157,6 +157,23 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
         selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
         return selectCheckbox;
+    }
+
+    private void updateTileCheckboxes(@NotNull AjaxRequestTarget target) {
+        PageableListView<?, ?> tiles = getTiles();
+
+        tiles.visitChildren(Component.class, (component, visit) -> {
+            if (isRefreshableTileComponent(component)) {
+                target.add(component);
+            }
+        });
+
+    }
+
+    private boolean isRefreshableTileComponent(@NotNull Component component) {
+        return component.getOutputMarkupId()
+                && (component instanceof ColumnTilePanel<?, ?, ?>
+                || component instanceof MappingSuggestionGroupColumnTilePanel<?, ?, ?>);
     }
 
     private @NotNull IModel<Boolean> buildHeaderCheckboxModel(@NotNull IModel<List<O>> currentPageModel) {
