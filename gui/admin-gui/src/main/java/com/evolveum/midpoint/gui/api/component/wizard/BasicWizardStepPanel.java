@@ -137,7 +137,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         exitContainer.add(exit);
 
         WebMarkupContainer customButtonsContainer = new WebMarkupContainer(ID_CUSTOM_BUTTONS_CONTAINER);
-        customButtonsContainer.add(new VisibleBehaviour(() -> isSubmitVisible() || getNextBehaviour().isVisible()));
+        //customButtonsContainer.add(new VisibleBehaviour(() -> isSubmitVisible() || getNextBehaviour().isVisible()));
         buttonsStrip.add(customButtonsContainer);
 
         RepeatingView customButtons = new RepeatingView(ID_CUSTOM_BUTTONS);

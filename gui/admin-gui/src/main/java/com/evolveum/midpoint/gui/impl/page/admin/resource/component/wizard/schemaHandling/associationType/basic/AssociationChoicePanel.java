@@ -135,4 +135,9 @@ public abstract class AssociationChoicePanel
     protected String getExitButtonCssClass() {
         return "btn btn-link";
     }
+
+    @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
+    }
 }

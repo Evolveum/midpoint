@@ -219,7 +219,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel<String> {
     }
 
     protected String getButtonContainerAdditionalCssClass() {
-        return "col-8";
+        return "col-12 col-sm-8";
     }
 
     protected boolean isOnlyChildCentered() {

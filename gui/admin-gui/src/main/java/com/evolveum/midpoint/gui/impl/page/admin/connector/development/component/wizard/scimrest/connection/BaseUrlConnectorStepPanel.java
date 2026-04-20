@@ -54,8 +54,10 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     private static final String PANEL_TYPE = "cdw-base-url";
     public static final ItemName BASE_ADDRESS_ITEM_NAME = ItemName.from("", "baseAddress");
-    public static final ItemName DEVELOPMENT_MODE_ITEM_NAME = ItemName.from("", "developmentMode");
     public static final ItemName SCIM_BASE_URL_ITEM_NAME = ItemName.from("", "scimBaseUrl");
+
+    private static final ItemName DEVELOPMENT_MODE_ITEM_NAME = ItemName.from("", "developmentMode");
+    private static final ItemPath CONNECTOR_CONFIGURATION = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
 
     private static final String ID_AI_ALERT = "aiAlert";
 
@@ -73,6 +75,10 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
             ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
 
             try {
+                // Enable development mode (slower  requests, more verbose login, native schema as resources)
+                objectDetailsModel.getObjectWrapper().findProperty(CONNECTOR_CONFIGURATION.append(DEVELOPMENT_MODE_ITEM_NAME)).getValue().setRealValue(true);
+
+                // Mark resource as down
                 PrismPropertyWrapper<Object> stateProperty = objectDetailsModel.getObjectWrapper().findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
                 stateProperty.getValue().setRealValue(AvailabilityStatusType.DOWN);
             } catch (SchemaException e) {
@@ -230,7 +236,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     }
 
     private List<ItemName> scimItemNames() {
-        return List.of(SCIM_BASE_URL_ITEM_NAME, DEVELOPMENT_MODE_ITEM_NAME);
+        return List.of(SCIM_BASE_URL_ITEM_NAME);
     }
 
     private boolean isScim() {

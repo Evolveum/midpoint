@@ -14,11 +14,6 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectClassStatisticsActions;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -52,6 +47,7 @@ import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectContainerTileTa
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CardWithTablePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectClassStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.PrismItemDefinitionsTable;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -64,8 +60,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.RadioColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -517,7 +515,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     protected String getTileCssClasses() {
-        return "col-12 col-sm-12 col-md-6 col-lg-4 p-2";
+        return "col-12 col-sm-12 col-md-12 col-lg-6 col-xl-4 p-2";
     }
 
     @Override
