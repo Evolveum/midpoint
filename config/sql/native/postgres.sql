@@ -632,6 +632,8 @@ CREATE TABLE m_user (
         CHECK (objectType = 'USER'),
     additionalNameOrig TEXT,
     additionalNameNorm TEXT,
+    displayNameOrig TEXT,
+    displayNameNorm TEXT,
     employeeNumber TEXT,
     familyNameOrig TEXT,
     familyNameNorm TEXT,
@@ -646,6 +648,8 @@ CREATE TABLE m_user (
     nickNameOrig TEXT,
     nickNameNorm TEXT,
     personalNumber TEXT,
+    preferredNameOrig TEXT,
+    preferredNameNorm TEXT,
     titleOrig TEXT,
     titleNorm TEXT,
     organizations JSONB, -- array of {o,n} objects (poly-strings)
@@ -664,10 +668,12 @@ CREATE INDEX m_user_nameOrig_idx ON m_user (nameOrig);
 CREATE UNIQUE INDEX m_user_nameNorm_key ON m_user (nameNorm);
 CREATE INDEX m_user_policySituation_idx ON m_user USING gin(policysituations gin__int_ops);
 CREATE INDEX m_user_ext_idx ON m_user USING gin(ext);
+CREATE INDEX m_user_displayNameOrig_idx ON m_user (displayNameOrig);
 CREATE INDEX m_user_fullNameOrig_idx ON m_user (fullNameOrig);
 CREATE INDEX m_user_familyNameOrig_idx ON m_user (familyNameOrig);
 CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
+CREATE INDEX m_user_preferredNameOrig_idx ON m_user (preferredNameOrig);
 CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
 CREATE INDEX m_user_organizations_idx ON m_user USING gin(organizations);
 CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits);
@@ -2689,4 +2695,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(57, $$ SELECT 1 $$, true);
+call apply_change(58, $$ SELECT 1 $$, true);

@@ -1069,7 +1069,7 @@ public class Visualizer {
         ObjectType objectType = object.asObjectable();
         name.setDescription(objectType.getDescription());
         if (objectType instanceof UserType) {
-            name.setDisplayName(getOrig(((UserType) objectType).getFullName()));
+            name.setDisplayName(getOrig(((UserType) objectType).getDisplayName()));
         } else if (objectType instanceof AbstractRoleType) {
             name.setDisplayName(getOrig(((AbstractRoleType) objectType).getDisplayName()));
         }

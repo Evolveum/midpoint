@@ -346,7 +346,7 @@ public final class WebComponentUtil {
         ObjectType object = prismObject.asObjectable();
         String displayName = null;
         if (object instanceof UserType) {
-            displayName = getTranslatedPolyString(((UserType) object).getFullName());
+            displayName = getTranslatedPolyString(((UserType) object).getDisplayName());
         } else if (object instanceof AbstractRoleType) {
             displayName = getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
         }

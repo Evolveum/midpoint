@@ -1096,6 +1096,7 @@ public class TestProjector extends AbstractLensTest {
                                 PATH_ACTIVATION_EFFECTIVE_STATUS,
                                 PATH_ACTIVATION_ENABLE_TIMESTAMP,
                                 PATH_PASSWORD_METADATA,
+                                UserType.F_DISPLAY_NAME,
                                 UserType.F_ITERATION,
                                 UserType.F_ITERATION_TOKEN),
                         (a, b) -> a.equivalent(b)));
@@ -1185,7 +1186,7 @@ public class TestProjector extends AbstractLensTest {
                 PrismAsserts.assertOrigin(modification, OriginType.USER_POLICY);
                 iterator.remove();
             }
-            if (modification.getPath().containsNameExactly(InfraItemName.METADATA)) {
+            if (modification.getPath().containsNameExactly(InfraItemName.METADATA) || firstName.equals(UserType.F_DISPLAY_NAME)) {
                 iterator.remove();
             }
         }

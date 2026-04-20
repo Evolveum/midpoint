@@ -141,7 +141,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
             return null;
         }
         if (object instanceof UserType) {
-            return ((UserType) object).getFullName();
+            return ((UserType) object).getDisplayName();
         } else if (object instanceof AbstractRoleType) {
             return ((AbstractRoleType) object).getDisplayName();
         } else {

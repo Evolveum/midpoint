@@ -87,7 +87,7 @@ public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, Simpl
             FocusType owner = taskOwner.asObjectable();
             body.append("Task owner: ");
             if (owner instanceof UserType) {
-                body.append(((UserType)owner).getFullName()).append(" (").append(owner.getName()).append(")");
+                body.append(PolyString.getOrig(((UserType) owner).getDisplayName())).append(" (").append(owner.getName()).append(")");
             } else {
                 body.append(owner.getName());
             }
