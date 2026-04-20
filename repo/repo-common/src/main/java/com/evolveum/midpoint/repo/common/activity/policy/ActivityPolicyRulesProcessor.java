@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunPolicyException
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -67,7 +68,7 @@ public class ActivityPolicyRulesProcessor {
         }
 
         Collection<GenericEvaluatedPolicyRule> evaluatedRules = rules.stream()
-                // todo use only policies that have activity constraints only [viliam]
+                .filter(rule -> PolicyRuleTypeUtil.hasActivityOnlyConstraint(rule.getPolicy()))
                 .map(EvaluatedActivityPolicyRule::new)
                 .collect(Collectors.toList());
 

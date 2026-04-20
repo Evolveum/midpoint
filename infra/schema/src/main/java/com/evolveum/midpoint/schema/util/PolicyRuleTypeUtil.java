@@ -6,6 +6,18 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.*;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import jakarta.xml.bind.JAXBElement;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -19,18 +31,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import jakarta.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.*;
 
 public class PolicyRuleTypeUtil {
 
@@ -345,7 +345,10 @@ public class PolicyRuleTypeUtil {
                 && visit(pc.getOrphaned(), F_ORPHANED, visitor)
                 && visit(pc.getAnd(), F_AND, visitor)
                 && visit(pc.getOr(), F_OR, visitor)
-                && visit(pc.getNot(), F_NOT, visitor);
+                && visit(pc.getNot(), F_NOT, visitor)
+                && visit(pc.getExecutionAttempts(), F_EXECUTION_ATTEMPTS, visitor)
+                && visit(pc.getExecutionTime(), F_EXECUTION_TIME, visitor)
+                && visit(pc.getItemProcessingResult(), F_ITEM_PROCESSING_RESULT, visitor);
 
         if (!ignoreRefs && !pc.getRef().isEmpty()) {
             throw new IllegalStateException("Unresolved constraint reference (" + pc.getRef() + ").");
@@ -361,6 +364,14 @@ public class PolicyRuleTypeUtil {
                     && accept(pc.getNot(), visitor, alsoRoots, F_AND, ignoreRefs);
         }
         return rv;
+    }
+
+    private static boolean visit(AbstractPolicyConstraintType constraint, QName name, ConstraintVisitor visitor) {
+        List<AbstractPolicyConstraintType> constraints = new ArrayList<>();
+        if (constraint != null) {
+            constraints.add(constraint);
+        }
+        return visit(constraints, name, visitor);
     }
 
     private static boolean visit(List<? extends AbstractPolicyConstraintType> constraints, QName name, ConstraintVisitor visitor) {
@@ -442,6 +453,25 @@ public class PolicyRuleTypeUtil {
         return !accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isNotAssignmentOnly, true, true, F_AND, false);
     }
 
+    /*
+     * Returns true if rule contains only task activity related constraints like executionTime, executionAttempts, etc.
+     */
+    public static boolean hasActivityOnlyConstraint(PolicyRuleType rule) {
+        return accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isActivityConstraint, true, true, F_AND, false);
+    }
+
+    /**
+     * TODO: Maybe better name? hasModelContextOnlyConstraints() or hasModelOnlyConstraints() ?
+     *
+     * Returns true if rule contain only constraints that can be evaluated in model (lens/focus context).
+     * Opposite of {@link #hasActivityOnlyConstraint(PolicyRuleType)}.
+     *
+     * @see #hasActivityOnlyConstraint(PolicyRuleType)
+     */
+    public static boolean hasFocusOnlyConstraint(PolicyRuleType rule) {
+        return accept(rule.getPolicyConstraints(), (name, c) -> !isActivityConstraint(name, c), true, true, F_AND, false);
+    }
+
     // do we have a constraint that indicates a use against object?
     private static boolean hasObjectRelatedConstraint(PolicyRuleType rule) {
         // 'accept' continues until isNotObjectRelated is false; and returns false then --> so we return true in that case (i.e. we have found object-related constraint)
@@ -463,6 +493,13 @@ public class PolicyRuleTypeUtil {
                 ;
         //System.out.println("isAssignmentOnly: " + name.getLocalPart() + "/" + c.getClass().getSimpleName() + " -> " + rv);
         return !assignmentOnly;
+    }
+
+    private static boolean isActivityConstraint(QName name, AbstractPolicyConstraintType c) {
+        return QNameUtil.match(name, F_EXECUTION_TIME)
+                || QNameUtil.match(name, F_EXECUTION_ATTEMPTS)
+                || QNameUtil.match(name, F_ITEM_PROCESSING_RESULT)
+                ;
     }
 
     private static final Set<Class<? extends AbstractPolicyConstraintType>> OBJECT_RELATED_CONSTRAINTS_CLASSES =
@@ -503,7 +540,7 @@ public class PolicyRuleTypeUtil {
         @Override
         public JAXBElement<? extends AbstractPolicyConstraintType> resolve(@NotNull String name)
                 throws ObjectNotFoundException, SchemaException {
-            for (;;) {
+            for (; ; ) {
                 JAXBElement<? extends AbstractPolicyConstraintType> rv = constraintsMap.get(name);
                 if (rv != null) {
                     return rv;

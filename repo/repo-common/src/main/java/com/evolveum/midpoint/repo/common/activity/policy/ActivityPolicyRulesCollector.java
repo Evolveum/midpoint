@@ -88,8 +88,8 @@ public class ActivityPolicyRulesCollector {
         List<PolicyRuleType> policyBeans = activityPoliciesBean.getPolicy();
 
         policyBeans.stream()
-                .filter(policyBean -> BooleanUtils.isNotFalse(policyBean.isEnabled()))
-                .map(policyBean -> new ActivityPolicyRule(policyBean, activityPath, getDataNeeds(policyBean)))
+                .filter(policy -> BooleanUtils.isNotFalse(policy.isEnabled()))
+                .map(policy -> new ActivityPolicyRule(policy, activityPath, getDataNeeds(policy)))
                 .sorted(
                         Comparator.comparing(
                                 ActivityPolicyRule::getOrder,
