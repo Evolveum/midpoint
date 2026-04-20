@@ -3876,6 +3876,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (focusDelta.findItemDelta(FocusType.F_ITERATION_TOKEN) != null) {
             expectedModifications++;
         }
+        if (focusDelta.findItemDelta(UserType.F_DISPLAY_NAME) != null) {
+            expectedModifications++;
+        }
         assertEquals("Unexpected modifications in " + desc + ": " + focusDelta, expectedModifications, focusDelta.getModifications().size());
     }
 
@@ -3920,6 +3923,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             expectedModifications++;
         }
         if (focusDelta.findItemDelta(FocusType.F_ITERATION_TOKEN) != null) {
+            expectedModifications++;
+        }
+        if (focusDelta.findItemDelta(UserType.F_DISPLAY_NAME) != null) {
             expectedModifications++;
         }
         assertEquals("Unexpected modifications in " + desc + ": " + focusDelta, expectedModifications, focusDelta.getModifications().size());

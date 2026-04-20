@@ -150,8 +150,8 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
             name = requester.asPrismObject().getDisplayName();
         }
         if (requester instanceof UserType) {
-            if (((UserType) requester).getFullName() != null) {
-                name = ((UserType) requester).getFullName().getOrig();
+            if (((UserType) requester).getDisplayName() != null) {
+                name = ((UserType) requester).getDisplayName().getOrig();
             }
         }
         return name;

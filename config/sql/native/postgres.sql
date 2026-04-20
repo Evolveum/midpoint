@@ -849,6 +849,10 @@ CREATE TABLE m_user (
     additionalNameOrig TEXT,
     -- @description: Additional name in normalized form used for searches.
     additionalNameNorm TEXT,
+    -- @description: Display name in original form.
+    displayNameOrig TEXT,
+    -- @description: Display name in normalized form used for searches.
+    displayNameNorm TEXT,
     -- @description: Employee number assigned to the user.
     employeeNumber TEXT,
     -- @description: Family name in original form.
@@ -877,6 +881,10 @@ CREATE TABLE m_user (
     nickNameNorm TEXT,
     -- @description: Personal number assigned to the user.
     personalNumber TEXT,
+    -- @description: Preferred name in original form.
+    preferredNameOrig TEXT,
+    -- @description: Preferred name in normalized form used for searches.
+    preferredNameNorm TEXT,
     -- @description: Title in original form.
     titleOrig TEXT,
     -- @description: Title in normalized form used for searches.
@@ -910,6 +918,9 @@ CREATE INDEX m_user_policySituation_idx ON m_user USING gin(policysituations gin
 -- @description: Speeds up filtering by indexed extension values.
 -- @usedFor: extension item filters
 CREATE INDEX m_user_ext_idx ON m_user USING gin(ext);
+-- @description: Speeds up lookup by display name.
+-- @usedFor: display name searches
+CREATE INDEX m_user_displayNameOrig_idx ON m_user (displayNameOrig);
 -- @description: Speeds up lookup by original full name.
 -- @usedFor: full name searches
 CREATE INDEX m_user_fullNameOrig_idx ON m_user (fullNameOrig);
@@ -922,6 +933,9 @@ CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
 -- @description: Speeds up lookup by employee number.
 -- @usedFor: employee number searches
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
+-- @description: Speeds up lookup by preferred name.
+-- @usedFor: preferred name searches
+CREATE INDEX m_user_preferredNameOrig_idx ON m_user (preferredNameOrig);
 -- @description: Speeds up filtering by object subtype.
 -- @usedFor: subtype filters
 CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
@@ -4155,4 +4169,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(57, $$ SELECT 1 $$, true);
+call apply_change(58, $$ SELECT 1 $$, true);

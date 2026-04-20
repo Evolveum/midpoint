@@ -74,8 +74,8 @@ public interface AccessRequestMixin {
 
     default String getDefaultUserDisplayName(PrismObject<UserType> o) {
         String name = WebComponentUtil.getOrigStringFromPoly(o.getName());
-        String fullName = WebComponentUtil.getOrigStringFromPoly(o.asObjectable().getFullName());
+        String displayName = WebComponentUtil.getOrigStringFromPoly(o.asObjectable().getDisplayName());
 
-        return StringUtils.isNotEmpty(fullName) ? fullName + " (" + name + ")" : name;
+        return StringUtils.isNotEmpty(displayName) ? displayName + " (" + name + ")" : name;
     }
 }

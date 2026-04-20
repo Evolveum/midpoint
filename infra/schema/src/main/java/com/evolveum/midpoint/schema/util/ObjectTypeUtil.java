@@ -884,16 +884,16 @@ public class ObjectTypeUtil {
     }
 
     /**
-     * - User name is in the form of "full name (object name)".
+     * - User name is in the form of "display name (object name)".
      * - Names for other objects are either "detailed display name" ({@link #getDetailedDisplayName(Objectable)}) or plain name.
      */
     private static Object getDescriptiveName(Objectable object) {
         if (object instanceof UserType) {
-            PolyStringType fullName = ((UserType) object).getFullName();
-            if (fullName != null) {
+            PolyStringType displayName = ((UserType) object).getDisplayName();
+            if (displayName != null) {
                 return new LocalizableMessageBuilder()
                         .key(SchemaConstants.USER_DESCRIPTIVE_NAME)
-                        .arg(fullName)
+                        .arg(displayName)
                         .arg(object.getName())
                         .build();
             } else {
@@ -1112,7 +1112,7 @@ public class ObjectTypeUtil {
     }
 
     /**
-     * Returns display name for given object, e.g. fullName for a user, displayName for a role,
+     * Returns display name for given object, e.g. displayName for a user or role,
      * and more detailed description for a shadow. TODO where exactly does this method belong?
      */
     public static String getDetailedDisplayName(PrismObject<?> object) {
@@ -1122,7 +1122,7 @@ public class ObjectTypeUtil {
 
     public static String getDetailedDisplayName(Objectable objectable) {
         if (objectable instanceof UserType) {
-            return getOrig(((UserType) objectable).getFullName());
+            return getOrig(((UserType) objectable).getDisplayName());
         } else if (objectable instanceof AbstractRoleType) {
             return getOrig(((AbstractRoleType) objectable).getDisplayName());
         } else if (objectable instanceof ShadowType) {

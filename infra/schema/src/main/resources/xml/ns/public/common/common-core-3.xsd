@@ -2123,6 +2123,61 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="preferredName" type="t:PolyStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Preferred name of the user. This is the name that the user prefers
+                                    to use for display purposes. It does not replace legal-name attributes
+                                    such as given name, family name, or full name, and it is not intended
+                                    to be used as a login name, account identifier, or correlation identifier.
+                                </p>
+                                <p>
+                                    Examples:
+                                    <ul>
+                                        <li>Jack Smith</li>
+                                        <li>Liz Johnson</li>
+                                    </ul>
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>UserType.preferredName</a:displayName>
+                                <a:displayOrder>105</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                                <a:diagram>
+                                    <a:name>user-overview</a:name>
+                                    <a:inclusion>include</a:inclusion>
+                                </a:diagram>
+                                <a:help>UserType.preferredName.help</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Effective visible name of the user for presentation-oriented display.
+                                    This property is intended to hold the user's preferred display value
+                                    for UI, reporting, and outbound provisioning scenarios where a visible
+                                    name is needed. It is distinct from the legal/full name and from login
+                                    or account identifiers.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>UserType.displayNameProperty</a:displayName>
+                                <a:displayOrder>106</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                                <a:access>read</a:access>
+                                <a:diagram>
+                                    <a:name>user-overview</a:name>
+                                    <a:inclusion>include</a:inclusion>
+                                </a:diagram>
+                                <a:help>UserType.displayNameProperty.help</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="givenName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

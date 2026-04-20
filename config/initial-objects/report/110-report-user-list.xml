@@ -97,11 +97,16 @@
                 <previousColumn>nameColumn</previousColumn>
             </column>
             <column id="8">
-                <name>activationColumn</name>
-                <path>activation/administrativeStatus</path>
+                <name>displayNameColumn</name>
+                <path>displayName</path>
                 <previousColumn>fullNameColumn</previousColumn>
             </column>
             <column id="9">
+                <name>activationColumn</name>
+                <path>activation/administrativeStatus</path>
+                <previousColumn>displayNameColumn</previousColumn>
+            </column>
+            <column id="10">
                 <name>roleColumn</name>
                 <path>assignment</path>
                 <display>
@@ -133,7 +138,7 @@
                 </export>
                 <previousColumn>activationColumn</previousColumn>
             </column>
-            <column id="10">
+            <column id="11">
                 <name>orgColumn</name>
                 <path>assignment</path>
                 <display>
@@ -165,7 +170,7 @@
                 </export>
                 <previousColumn>roleColumn</previousColumn>
             </column>
-            <column id="11">
+            <column id="12">
                 <name>accountColumn</name>
                 <path>linkRef</path>
                 <display>
