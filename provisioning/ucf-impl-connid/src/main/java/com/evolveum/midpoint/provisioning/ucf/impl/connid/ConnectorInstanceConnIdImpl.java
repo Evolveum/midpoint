@@ -24,7 +24,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
@@ -68,10 +72,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -110,6 +110,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
     /** MidPoint connector definition bean. */
     @NotNull private final ConnectorType connectorBean;
+
+    /** MidPoint Tracer **/
+    @Nullable private final Tracer tracer;
 
     /**
      * MidPoint connector instance configuration (if this instance is configured).
@@ -175,13 +178,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             @NotNull ConnectorType connectorBean,
             @Nullable ConnectorSchema connectorSchema,
             @NotNull String instanceName,
-            @NotNull String description) {
+            @NotNull String description,
+            @Nullable Tracer tracer) {
         this.connIdConnectorInfo = connIdConnectorInfo;
         this.connectorBean = connectorBean;
         this.connectorSchema = connectorSchema;
         this.connIdObjectConvertor = new ConnIdObjectConvertor(this);
         this.instanceName = instanceName;
         this.description = description;
+        this.tracer = tracer;
     }
 
     public @NotNull String getDescription() {
@@ -565,8 +570,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         icfResult.addParam("uid", uid.getUidValue());
         icfResult.addArbitraryObjectAsParam("options", options);
         icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
         InternalMonitor.recordConnectorOperation("getObject");
+        startTracingIfConfigured(reporter, parentResult, icfResult);
+
+        // Injection here
         ConnIdOperation operation = recordIcfOperationStart(reporter, ProvisioningOperation.ICF_GET, objectDefinition, uid);
 
         LOGGER.trace("Fetching connector object ObjectClass={}, UID={}, operation id={}, options={}",
@@ -749,6 +756,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             connIdResult.addArbitraryObjectAsParam("options", options);
             connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
 
+            startTracingIfConfigured(ctx, parentResult, connIdResult);
             // CALL THE ConnId FRAMEWORK
             InternalMonitor.recordConnectorOperation("create");
             InternalMonitor.recordConnectorModification("create");
@@ -910,6 +918,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             connIdResult.addParam("attributesDelta", attributesDelta.toString());
             connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
             connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            startTracingIfConfigured(ctx, result, connIdResult);
 
             InternalMonitor.recordConnectorOperation("update");
             InternalMonitor.recordConnectorModification("update");
@@ -1057,6 +1066,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             connIdResult.addArbitraryObjectAsParam("attributes", attributesToAdd);
             connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
             connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            startTracingIfConfigured(ctx, result, connIdResult);
 
             InternalMonitor.recordConnectorOperation("addAttributeValues");
             InternalMonitor.recordConnectorModification("addAttributeValues");
@@ -1116,7 +1126,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             connIdResult.addArbitraryObjectAsParam("attributes", attributesToUpdate);
             connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
             connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
+            startTracingIfConfigured(ctx, result, connIdResult);
             InternalMonitor.recordConnectorOperation("update");
             InternalMonitor.recordConnectorModification("update");
             @Nullable ConnIdOperation operation =
@@ -1175,7 +1185,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             connIdResult.addArbitraryObjectAsParam("attributes", attributesToRemove);
             connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
             connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
+            startTracingIfConfigured(ctx, result, connIdResult);
             InternalMonitor.recordConnectorOperation("removeAttributeValues");
             InternalMonitor.recordConnectorModification("removeAttributeValues");
             @Nullable ConnIdOperation operation =
@@ -1347,7 +1357,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             icfResult.addArbitraryObjectAsParam("uid", uid);
             icfResult.addArbitraryObjectAsParam("objectClass", objClass);
             icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
+            startTracingIfConfigured(ctx, result, icfResult);
             try {
                 LOGGER.trace("Invoking ConnId delete operation: {}", operation);
 
@@ -1961,12 +1971,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
         OperationResult icfResult = parentResult.createSubresult(opName);
         icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
         ConnIdOperation operation = recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SCRIPT, null);
 
         Object output = null;
 
         try {
+            startTracingIfConfigured(reporter, parentResult, icfResult);
 
             LOGGER.trace("Running script ({}): {}", icfOpName, operation);
 
@@ -2055,6 +2065,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             connIdConnectorFacade.dispose();
             connIdConnectorFacade = null;
         }
+    }
+
+    private void startTracingIfConfigured(UcfExecutionContext context, OperationResult parentResult, OperationResult icfResult) throws SchemaException {
+        if (context.getTask().isTracingRequestedFor(TracingRootType.CONNECTOR_OPERATION) && tracer != null) {
+            icfResult.tracingProfile(tracer.compileProfile(context.getTask().getTracingProfile(), parentResult));
+        }
+
     }
 
     @Contract("!null, _, _, _ -> !null; null, _, _, _ -> null")
