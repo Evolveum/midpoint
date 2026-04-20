@@ -19,7 +19,7 @@ This archetype includes a reference to *Person Object Template*, which is also a
 *System configuration* includes an xref:/midpoint/reference/admin-gui/collections-views/[object collection view] for users with this archetype.
 
 .Example of using the Person archetype
-image::PersonArchetype.png[Example of using the Person archetype]
+image::person-example.png[Example of using the Person archetype]
 
 == Configuration
 
@@ -49,7 +49,7 @@ Feel free to add any additional mappings or change the existing ones; just remem
 
 In the following configuration example, you can see how we:
 
-* display users with the `Person` archetype assigned using a menu item, 
+* display users with the `Person` archetype assigned using a menu item,
 * add a custom search configuration.
 
 .Default Person-related configuration in the system configuration (`objectCollectionView`)

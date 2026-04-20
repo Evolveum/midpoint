@@ -46,6 +46,7 @@ public class TenantRefWrapperFactory extends PrismReferenceWrapperFactory<Object
     protected PrismReferenceWrapper<ObjectReferenceType> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status, WrapperContext ctx) {
         PrismReferenceWrapper<ObjectReferenceType> wrapper =  super.createWrapperInternal(parent, item, status, ctx);
         wrapper.setPredefinedSearchItem(Set.of(createTenantSearchItem()));
+//        wrapper.setSpecialSearchItemFunctions(Collections.singleton(this::createTenantSearchItem));
         return wrapper;
     }
 
@@ -57,5 +58,24 @@ public class TenantRefWrapperFactory extends PrismReferenceWrapperFactory<Object
         searchFilter.setText("tenant = true");
         searchItem.setFilter(searchFilter);
         return searchItem;
+//        PrismPropertyDefinition tenantDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(OrgType.class)
+//                .findPropertyDefinition(OrgType.F_TENANT);
+//        SearchItemType searchItem = new SearchItemType()
+//                .path(new ItemPathType(ItemPath.create(OrgType.F_TENANT)))
+//                .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(tenantDef, null));
+//        ChoicesSearchItemWrapper searchItemWrapper = new ChoicesSearchItemWrapper(ItemPath.create(OrgType.F_TENANT),
+//                Collections.singletonList(new SearchValue<Boolean>(Boolean.TRUE, "Boolean.TRUE")))  {
+//            @Override
+//            public boolean canRemoveSearchItem() {
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean isEnabled() {
+//                return false;
+//            }
+//        };
+//        searchItemWrapper.setValue(new SearchValue<Boolean>(Boolean.TRUE, "Boolean.TRUE"));
+//        return searchItemWrapper;
     }
 }

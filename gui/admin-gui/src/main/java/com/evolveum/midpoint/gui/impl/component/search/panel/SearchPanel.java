@@ -616,7 +616,6 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
             return null;
         }
 
-        item.setDisplayOrder(searchItem.getDisplayOrder());
         setupFilterValues(item, filter);
 
         return item;

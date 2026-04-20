@@ -23,7 +23,6 @@ public abstract class AbstractSearchItemWrapperFactory<T, PSW extends PropertySe
 
         searchItem.setName(ctx.getDisplayName()); //getSearchItemName(item, itemDef)
         searchItem.setHelp(ctx.getHelp()); //getSearchItemHelp(item, itemDef)
-        searchItem.setDisplayOrder(ctx.getDisplayOrder());
 
         setupParameterOptions(ctx, searchItem);
 

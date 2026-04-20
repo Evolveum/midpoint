@@ -39,10 +39,6 @@ public abstract class AbstractSearchItemWrapper<T> implements Serializable, Sele
      */
     private boolean visible;
     /**
-     * information about display order of wrapper item in search bar
-     */
-    private Integer displayOrder;
-    /**
      * whether wrapper item (or in case of UI some panel) can be removed from search bar
      *
      * todo rename to canHide
@@ -154,14 +150,6 @@ public abstract class AbstractSearchItemWrapper<T> implements Serializable, Sele
 
     public void setFilterExpression(ExpressionType filterExpression) {
         this.filterExpression = filterExpression;
-    }
-
-    public Integer getDisplayOrder() {
-        return displayOrder;
-    }
-
-    public void setDisplayOrder(Integer displayOrder) {
-        this.displayOrder = displayOrder;
     }
 
     @Override

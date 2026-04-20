@@ -48,6 +48,7 @@ public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTy
             protected void onUpdate(AjaxRequestTarget target) {
                 getModelObject().setTypeChanged(true);
                 SearchPanel panel = findParent(SearchPanel.class);
+//                panel.displayedSearchItemsModelReset();
                 panel.searchPerformed(target);
             }
         });
