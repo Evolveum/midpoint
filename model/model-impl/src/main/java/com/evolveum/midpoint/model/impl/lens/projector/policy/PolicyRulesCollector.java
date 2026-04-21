@@ -6,6 +6,20 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
+import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
+import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET;
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
@@ -25,9 +39,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyProcessorHelper;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesCollector;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
@@ -40,19 +52,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
-import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET;
-import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Collects relevant rules (for assignments, focus, or projection) from all relevant sources.
@@ -88,28 +87,41 @@ class PolicyRulesCollector<O extends ObjectType> {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
-        collectObjectRulesFromActivity(rules, result);
+        collectActivityObjectRules(rules);
         collectObjectRulesFromAssignments(rules);
         collectGlobalObjectRules(rules, result);
         resolveConstraintReferences(rules);
         return rules;
     }
 
-    // todo better implementation needed, we need to know that policies came from activity (and which one)
-    //  so that we can figure out how to manage counters, etc. [viliam]
-    private void collectObjectRulesFromActivity(List<EvaluatedPolicyRuleImpl> rules, OperationResult result) {
-        Collection<ActivityPolicyRule> activityRules = ActivityPolicyProcessorHelper.getActivityPolicyRules();
-        if (activityRules.isEmpty()) {
+    private void collectActivityObjectRules(List<EvaluatedPolicyRuleImpl> rules) {
+        // todo this doesn't seem right [viliam]
+        Collection<ActivityPolicyRule> activityRules = null;
+        if (task.getExecutionSupport() instanceof AbstractActivityRun<?, ?, ?> activityRun) {
+            activityRules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
+        }
+
+        if (activityRules == null || activityRules.isEmpty()) {
             return;
         }
 
         for (ActivityPolicyRule rule : activityRules) {
             // todo filter out policies that have non-focus constraints [viliam]
-            //  check enabled condition, and expression condition
+            //  check enabled condition, and expression condition ->
+            //  enabled switch is used mainly in GUI to disable activity policies, condition for more granular behavior changes
+            //  fix enabled switch on other places where condition is used
+            if (BooleanUtils.isTrue(rule.getPolicy().isEnabled())) {
+                continue;
+            }
+
+            if (!PolicyRuleTypeUtil.hasFocusOnlyConstraint(rule.getPolicy())) {
+                continue;
+            }
 
             String ruleId = rule.getRuleIdentifier().toString();
             ActivityPolicyRuleConfigItem ruleCI =
-                    ConfigurationItem.configItem(rule.getPolicy(), ConfigurationItemOrigin.embedded(rule), ActivityPolicyRuleConfigItem.class);
+                    // todo change configuration item origin to InObject -> have to put it to activity rule
+                    ConfigurationItem.configItem(rule.getPolicy(), ConfigurationItemOrigin.generated(), ActivityPolicyRuleConfigItem.class);
 
             LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
             rules.add(new EvaluatedPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT, rule));
@@ -219,7 +231,7 @@ class PolicyRulesCollector<O extends ObjectType> {
         checkInitialized();
         List<GlobalRuleWithId> matching = new ArrayList<>();
         LOGGER.trace("Checking {} global policy rules for use with the object or assignments", rulesWithIds.size());
-        for (GlobalRuleWithId ruleWithId: rulesWithIds) {
+        for (GlobalRuleWithId ruleWithId : rulesWithIds) {
             GlobalPolicyRuleConfigItem ruleCI = ruleWithId.ruleCI();
             ObjectSelectorType focusSelector = ruleCI.value().getFocusSelector();
             if (focusSelector == null ||

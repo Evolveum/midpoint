@@ -6,11 +6,10 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
-import static com.evolveum.icf.dummy.resource.DummyAccount.ATTR_DESCRIPTION_NAME;
-
-import static com.evolveum.icf.dummy.resource.DummyAccount.ATTR_FULLNAME_NAME;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.icf.dummy.resource.DummyAccount.ATTR_DESCRIPTION_NAME;
+import static com.evolveum.icf.dummy.resource.DummyAccount.ATTR_FULLNAME_NAME;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,31 +17,31 @@ import java.net.ConnectException;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyObjectsCreator;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests the thresholds functionality.
@@ -60,7 +59,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
  * Yet another thresholds-related tests are in the `story` module.
  */
 @SuppressWarnings("SameParameterValue")
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
@@ -76,9 +75,6 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
     private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(TEST_DIR, "resource-dummy-source.xml",
             "40f8fb21-a473-4da7-bbd0-7019d3d450a5", "source", DummyResourceContoller::populateWithDefaultSchema);
-
-    private static final DummyTestResource RESOURCE_SOURCE_SLOW = new DummyTestResource(TEST_DIR, "resource-dummy-source-slow.xml",
-            "1645e542-d034-4118-b8af-97c4d22d81d6", "source-slow", DummyResourceContoller::populateWithDefaultSchema);
 
     protected static final int ACCOUNTS = 100;
     protected static final String ACCOUNT_NAME_PATTERN = "a%02d";
@@ -115,7 +111,6 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         ruleDeleteId = determineSingleInducedRuleId(ROLE_DELETE_5.oid, initResult);
 
         initDummyResource(RESOURCE_SOURCE, initTask, initResult);
-        initDummyResource(RESOURCE_SOURCE_SLOW, initTask, initResult);
 
         usersBefore = getObjectCount(UserType.class);
         displayValue("users before", usersBefore);
@@ -153,6 +148,18 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         return tailoringWorkerThreadsCustomizer(getWorkerThreads());
     }
 
+    protected Consumer<PrismObject<TaskType>> getRoleAssignmentImportAddCustomizer() {
+        return roleAssignmentCustomizer(ROLE_ADD_10.oid);
+    }
+
+    protected Consumer<PrismObject<TaskType>> getRoleAssignmentModifyCostCenter() {
+        return roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid);
+    }
+
+    protected Consumer<PrismObject<TaskType>> getRoleAssignmentModifyFullName() {
+        return roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid);
+    }
+
     /**
      * Imports accounts from the source in simulate mode. Should stop on 10th added user.
      */
@@ -169,7 +176,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        roleAssignmentCustomizer(ROLE_ADD_10.oid),
+                        getRoleAssignmentImportAddCustomizer(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
@@ -194,7 +201,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         }
     }
 
-    abstract void assertTest100Task(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest100Task(TestObject<TaskType> importTask) throws Exception;
     abstract void assertTest100TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
@@ -213,7 +220,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        roleAssignmentCustomizer(ROLE_ADD_10.oid),
+                        getRoleAssignmentImportAddCustomizer(),
                         getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
@@ -241,7 +248,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        roleAssignmentCustomizer(ROLE_ADD_10.oid),
+                        getRoleAssignmentImportAddCustomizer(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
@@ -314,7 +321,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid),
+                        getRoleAssignmentModifyCostCenter(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
@@ -354,7 +361,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid),
+                        getRoleAssignmentModifyCostCenter(),
                         getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
@@ -382,7 +389,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid),
+                        getRoleAssignmentModifyCostCenter(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
@@ -417,7 +424,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid),
+                        getRoleAssignmentModifyFullName(),
                         getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
@@ -451,9 +458,9 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
-                        roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid),
+                        getRoleAssignmentModifyFullName(),
                         getReconWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, 5*getTimeout());
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, 5 * getTimeout());
 
         then();
 

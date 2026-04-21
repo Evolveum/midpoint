@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role oid="6b76ce6f-0ca0-4e86-9209-8d734851348d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>role-modify-employee-number-5</name>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <modification>
+                    <operation>modify</operation>
+                    <item>fullName</item>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>5</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <notification/>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
+</role>

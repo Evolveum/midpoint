@@ -9,6 +9,7 @@ package com.evolveum.midpoint.test;
 import java.io.File;
 import java.util.Objects;
 
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,9 +21,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Task that is to be used in tests.
@@ -184,7 +182,8 @@ public class TestTask extends TestObject<TaskType> {
     }
 
     public String buildPolicyIdentifier(ActivityPath path, String policyIdentifier, boolean exact)
-            throws CommonException {
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
 
         TaskType task = test.getTask(oid).asObjectable();
 
