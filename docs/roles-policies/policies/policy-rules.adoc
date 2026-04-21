@@ -154,7 +154,7 @@ This is typically used to enforce segregation of duty (SoD) policies.
 | `modification`
 | Triggers when an object is modified (Add, Modify, or Delete actions).
 This is used to implement change management.
-| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#modification[Example]
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#modification[Details and example]
 
 | `assignment`
 | Triggers when an object is assigned, unassigned, or when the assignment is modified, i.e., if the object is the target of an assignment that is being modified.
