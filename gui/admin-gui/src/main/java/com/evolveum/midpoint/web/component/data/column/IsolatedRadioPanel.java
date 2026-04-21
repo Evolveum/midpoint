@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -33,11 +34,15 @@ public class IsolatedRadioPanel<T extends Serializable> extends Panel {
     protected void onInitialize() {
         super.onInitialize();
         Radio<T> radio = new Radio<>("radio", optionModel);
+        radio.add(AttributeModifier.append("style", getRadioCssStyle()));
         radio.setEnabled(Boolean.TRUE.equals(enabled.getObject()));
         radio.setOutputMarkupId(true);
         add(radio);
     }
 
+    protected String getRadioCssStyle() {
+        return null;
+    }
     public Radio<?> getPanelComponent() {
         return (Radio<?>) get("radio");
     }

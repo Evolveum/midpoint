@@ -13,7 +13,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectTypeStatisticsButton;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,7 +22,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -65,6 +65,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(identifier = "resourceUncategorized", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
         display = @PanelDisplay(label = "PageResource.tab.content.others", icon = GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN, order = 80))
 public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
+
+    public static final String ID = "resourceUncategorized";
 
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
@@ -146,19 +148,18 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         createShadowTable();
     }
 
+    /**
+     * Creates and adds a statistics button.
+     * Uses object type statistics if available, otherwise falls back to object class statistics.
+     */
     private void createStatisticsButton() {
-        //TODO add ObjectTypeStatisticsButton after merge from object-type-statistics branch
-        if(getResourceObjectTypeIdentification() != null){
-            EmptyPanel statisticsPanel = new EmptyPanel(ID_STATISTICS);
-            statisticsPanel.setOutputMarkupId(true);
-            add(statisticsPanel);
-            return;
-        }
-        ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
-        ResourceType resource = objectDetailsModels.getObjectType();
+        ResourceType resource = getObjectDetailsModels().getObjectType();
+        ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
 
-        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_STATISTICS,
-                this::getObjectClass, resource.getOid());
+        Component statisticsButton = objectTypeIdentification != null
+                ? new ObjectTypeStatisticsButton(ID_STATISTICS, () -> objectTypeIdentification, resource.getOid())
+                : new ObjectClassStatisticsButton(ID_STATISTICS, this::getObjectClass, resource.getOid());
+
         statisticsButton.setOutputMarkupId(true);
         add(statisticsButton);
     }

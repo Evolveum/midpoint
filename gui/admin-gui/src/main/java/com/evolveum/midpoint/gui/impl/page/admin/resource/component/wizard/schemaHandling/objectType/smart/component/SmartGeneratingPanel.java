@@ -31,6 +31,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -398,7 +399,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             return;
         }
 
-        TaskOperationUtils.runNowPerformed(ObjectTypeUtil.getOids(Collections.singletonList(taskObject)), pageBase);
+        TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
 
         timerBehavior.restart(target);
         if (target != null) {

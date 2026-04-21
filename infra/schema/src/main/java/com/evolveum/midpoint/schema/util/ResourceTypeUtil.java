@@ -230,7 +230,7 @@ public class ResourceTypeUtil {
     }
 
     // FIXME typeDefBean must be fully expanded!
-    private static ActivationStatusCapabilityType getEffectiveActivationStatusCapability(
+    public static ActivationStatusCapabilityType getEffectiveActivationStatusCapability(
             ResourceType resource, ResourceObjectTypeDefinitionType typeDefinitionBean) {
         ActivationCapabilityType act = getEnabledCapability(resource, typeDefinitionBean, ActivationCapabilityType.class);
         if (act == null || act.getStatus() == null || Boolean.FALSE.equals(act.getStatus().isEnabled())) {

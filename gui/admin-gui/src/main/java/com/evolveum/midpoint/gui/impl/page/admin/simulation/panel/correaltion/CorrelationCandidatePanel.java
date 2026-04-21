@@ -65,8 +65,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
     private static final String ID_RULE_NAME = "ruleName";
     private static final String ID_RULE_VIEW_LINK = "ruleViewLink";
 
-    record CorrelationRuleDetails(String title, Object value, boolean isHeader) implements Serializable {
-    }
+    record CorrelationRuleDetails(String title, Object value, boolean isHeader) implements Serializable {}
 
     List<CorrelationRuleDetails> correlationRuleDetailsList = new ArrayList<>();
     IModel<SimulationResultType> simulationResultModel;
@@ -223,7 +222,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                 WebPrismUtil.setReadOnlyRecursively(correlatorWrapper);
                 WebPrismUtil.setReadOnlyRecursively(definitionWrapper);
 
-                final CorrelationItemRulePanel rulePanel = new CorrelationItemRulePanel(
+                final CorrelationItemRulePanel<?> rulePanel = new CorrelationItemRulePanel<>(
                         getPageBase().getMainPopupBodyId(),
                         () -> correlatorWrapper,
                         () -> definitionWrapper) {
@@ -252,6 +251,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
         container.setOutputMarkupId(true);
         add(container);
 
+        @SuppressWarnings("unchecked")
         final ProcessedObject<ShadowType> processedObject = (ProcessedObject<ShadowType>) getModelObject();
         final ShadowType shadowAfterChanges = getShadowAfterChanges(processedObject);
         final var candidateModel = getCorrelationCandidateModel(shadowAfterChanges);
@@ -299,7 +299,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
         container.add(listView);
     }
 
-    private WebMarkupContainer candidateRow(boolean isOwner, String identifier, ObjectReferenceType ref,
+    private @NotNull WebMarkupContainer candidateRow(boolean isOwner, String identifier, ObjectReferenceType ref,
             @Nullable Double confidence) {
 
         String displayName = WebModelServiceUtils.resolveReferenceName(ref, getPageBase());

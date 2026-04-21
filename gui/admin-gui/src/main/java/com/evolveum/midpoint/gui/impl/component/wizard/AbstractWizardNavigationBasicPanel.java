@@ -18,4 +18,9 @@ public abstract class AbstractWizardNavigationBasicPanel<AHD extends AssignmentH
     protected String getExitButtonCssClass() {
         return "btn-link";
     }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-12 p-0";
+    }
 }

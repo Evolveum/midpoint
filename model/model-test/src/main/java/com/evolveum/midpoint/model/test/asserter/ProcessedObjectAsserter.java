@@ -43,6 +43,7 @@ import java.util.function.Function;
  * (This class is in `model.test` package. Would the {@link ProcessedObject} class move e.g. to `schema` module, this asserter
  * can be moved to a lower layer as well.)
  */
+@SuppressWarnings("UnusedReturnValue")
 public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractAsserter<RA> {
 
     private final ProcessedObject<O> processedObject;
@@ -72,6 +73,11 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
     public ProcessedObjectAsserter<O, RA> assertType(Class<?> expected) {
         assertThat(processedObject.getType()).as("object type").isEqualTo(expected);
         return this;
+    }
+
+    /** Convenience / easy to understand variant. */
+    public final ProcessedObjectAsserter<O, RA> assertNoEventMarks() {
+        return assertEventMarks();
     }
 
     @SafeVarargs

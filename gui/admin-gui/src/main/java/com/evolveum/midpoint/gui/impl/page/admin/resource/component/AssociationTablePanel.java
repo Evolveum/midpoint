@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createConf
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -52,13 +54,11 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
 public abstract class AssociationTablePanel
         extends MultiSelectContainerActionTileTablePanel<
@@ -153,7 +153,7 @@ public abstract class AssociationTablePanel
     @Override
     protected MultivalueContainerListDataProvider<ShadowAssociationTypeDefinitionType> createDataProvider() {
         var dto = getSuggestionsModelDto();
-        return new StatusAwareDataProvider<>(this, Model.of(), dto, false);
+        return new StatusAwareDataProvider<>(this, Model.of(), dto, AssociationsSuggestionType.class, false);
     }
 
     @Override
@@ -217,6 +217,22 @@ public abstract class AssociationTablePanel
             @Override
             protected IColumn<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>, String> createIconColumn() {
                 return null;
+            }
+
+            @Override
+            public @NotNull List<InlineMenuItem> getInlineMenuItems() {
+                List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
+                inlineMenuItems.add(createDeleteItemMenu());
+                return inlineMenuItems;
+            }
+
+            private InlineMenuItem createDeleteItemMenu() {
+                return InlineMenuItemBuilder.create()
+                        .icon("fa fa-trash text-danger")
+                        .additionalCssClass("text-danger")
+                        .label(createStringResource("pageAdminFocus.button.delete"))
+                        .action(createDeleteColumnAction())
+                        .buildInlineMenu();
             }
 
             @Override
@@ -335,7 +351,6 @@ public abstract class AssociationTablePanel
             @Override
             protected Component createHeader(String headerId) {
                 Fragment f = createHeaderFragment(headerId);
-                f.add(AttributeModifier.replace("class", "card-header"));
                 return f;
             }
 

@@ -9,9 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -20,7 +17,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
@@ -170,5 +169,10 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
             WizardStep step = getWizard().findPreviousStep();
             return step != null ? getString("WizardHeader.backTo", step.getTitle().getObject()) : getString("WizardHeader.back");
         };
+    }
+
+    @Override
+    protected String getButtonsStripCssClass() {
+        return "col-xl-6 col-lg-8 col-md-8 col-sm-8 col-12";
     }
 }

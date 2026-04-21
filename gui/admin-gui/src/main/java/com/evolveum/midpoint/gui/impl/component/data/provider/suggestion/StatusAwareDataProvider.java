@@ -9,10 +9,12 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -42,6 +44,7 @@ public class StatusAwareDataProvider<C extends Containerable>
 
     /** Cache of status information keyed by token. */
     protected final Map<String, StatusInfo<?>> statusByToken = new HashMap<>();
+    private final Class<?> resultClass;
 
     /** Cache of wrappers mapped to their status token (identity-based). */
     protected final Map<PrismContainerValueWrapper<C>, String> tokenByWrapper = new IdentityHashMap<>();
@@ -56,8 +59,10 @@ public class StatusAwareDataProvider<C extends Containerable>
             @NotNull Component component,
             @NotNull IModel<Search<C>> search,
             @NotNull StatusAwareDataFactory.SuggestionsModelDto<C> suggestionsModelDto,
+            @NotNull Class<?> resultClass,
             boolean sortable) {
         super(component, search, suggestionsModelDto.getModel(), sortable);
+        this.resultClass = resultClass;
         this.suggestionResolver = suggestionsModelDto.getSuggestionResolver();
         this.resourceOid = suggestionsModelDto.getResourceOid();
         applyInitialSorting();
@@ -109,17 +114,45 @@ public class StatusAwareDataProvider<C extends Containerable>
         return statusInfo;
     }
 
-    private @Nullable StatusInfo<MappingsSuggestionType> fetchStatus(String token) {
-        Task task = getPageBase().createSimpleTask("Load correlation suggestion");
+    private @Nullable StatusInfo<?> fetchStatus(String token) {
+        Task task = getPageBase().createSimpleTask("Load suggestion");
         SmartIntegrationService smart = getPageBase().getSmartIntegrationService();
 
         try {
-            // TODO: Handle correlation, association, and object type
-            return smart.getSuggestMappingsOperationStatus(token, task, task.getResult());
+            StatusInfo<?> status = loadStatusInfo(token, smart, task);
+            if (status != null) {
+                statusByToken.put(token, status);
+            }
+            return status;
         } catch (Exception e) {
-            getPageBase().error("Couldn't get correlation suggestion status: " + e.getMessage());
+            getPageBase().error("Couldn't get suggestion status: " + e.getMessage());
             return null;
         }
+    }
+
+    private @Nullable StatusInfo<?> loadStatusInfo(
+            @NotNull String token,
+            @NotNull SmartIntegrationService smart,
+            @NotNull Task task)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+
+        if (MappingsSuggestionType.class.equals(resultClass)) {
+            return smart.getSuggestMappingsOperationStatus(token, task, task.getResult());
+        }
+        if (CorrelationSuggestionsType.class.equals(resultClass)) {
+            return smart.getSuggestCorrelationOperationStatus(token, task, task.getResult());
+        }
+        if (ObjectTypesSuggestionType.class.equals(resultClass)) {
+            return smart.getSuggestObjectTypesOperationStatus(token, task, task.getResult());
+        }
+        if (AssociationsSuggestionType.class.equals(resultClass)) {
+            return smart.getSuggestAssociationsOperationStatus(token, task, task.getResult());
+        }
+        if (FocusTypeSuggestionType.class.equals(resultClass)) {
+            return smart.getSuggestFocusTypeOperationStatus(token, task, task.getResult());
+        }
+
+        throw new IllegalStateException("Unsupported suggestion result class: " + resultClass);
     }
 
     protected String getResourceOid() {

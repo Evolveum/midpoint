@@ -127,8 +127,15 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
     protected @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(String idAiPanel,
             IModel<Boolean> switchSuggestion) {
-        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(idAiPanel,
-                () -> new SmartGeneratingAlertDto(null, Model.of(), getPageBase())) {
+
+        LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
+            @Override
+            protected @NotNull SmartGeneratingAlertDto load() {
+                return new SmartGeneratingAlertDto(null, Model.of(), getPageBase());
+            }
+        };
+
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(idAiPanel, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
@@ -188,7 +195,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     }
 
     protected @NotNull Component createMultiValueListPanel(String id) {
-        return new StatusAwareContainerListPanel<C>(id, getSchemaHandlingObjectsType()) {
+        Class<?> statusResultClass = ObjectTypesSuggestionType.class;
+        if (getSchemaHandlingObjectsType().equals(ShadowAssociationTypeDefinitionType.class)) {
+            statusResultClass = AssociationsSuggestionType.class;
+        }
+        return new StatusAwareContainerListPanel<C>(id, getSchemaHandlingObjectsType(), statusResultClass) {
 
             @Override
             protected StatusAwareDataFactory.SuggestionsModelDto<C> getSuggestionsModelDto() {

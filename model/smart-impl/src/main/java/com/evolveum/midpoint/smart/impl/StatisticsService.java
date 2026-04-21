@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.xml.datatype.Duration;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -396,6 +399,53 @@ public class StatisticsService {
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    /**
+     * Synchronously computes object type statistics by iterating all matching shadows in the repository,
+     * persists the result, and returns it. Returns {@code null} if computation fails.
+     */
+    public @Nullable ShadowObjectClassStatisticsType computeObjectTypeStatisticsSync(
+            String resourceOid,
+            String resourceName,
+            ResourceObjectTypeIdentification typeIdentification,
+            ResourceObjectTypeDefinition typeDefinition,
+            OperationResult parentResult) {
+        var result = parentResult.subresult("computeObjectTypeStatisticsSync")
+                .addParam("resourceOid", resourceOid)
+                .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
+                .build();
+        try {
+            var computer = new ObjectTypeStatisticsComputer(typeDefinition);
+            var query = PrismContext.get().queryFor(ShadowType.class)
+                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+                    .and().item(ShadowType.F_KIND).eq(typeIdentification.getKind())
+                    .and().item(ShadowType.F_INTENT).eq(typeIdentification.getIntent())
+                    .build();
+            repositoryService.searchObjectsIterative(ShadowType.class, query,
+                    (shadow, lResult) -> { computer.process(shadow.asObjectable()); return true; },
+                    null, true, result);
+            computer.postProcessStatistics();
+            var statistics = computer.getStatistics()
+                    .coverage(1.0f)
+                    .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+            var statsObject = ShadowObjectTypeUtil.createObjectTypeStatisticsObject(
+                    resourceOid, resourceName,
+                    typeIdentification.getKind().value(), typeIdentification.getIntent(),
+                    statistics);
+            repositoryService.addObject(statsObject.asPrismObject(), null, result);
+            LOGGER.info("Synchronously computed and saved object type statistics for {}/{}/{}",
+                    resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent());
+            return statistics;
+        } catch (Throwable t) {
+            result.recordException(t);
+            LOGGER.warn("Failed to compute object type statistics synchronously for {}/{}/{}: {}",
+                    resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent(),
+                    t.getMessage());
+            return null;
         } finally {
             result.close();
         }

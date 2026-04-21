@@ -66,6 +66,7 @@ import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSyst
 public class SmartIntegrationUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationUtils.class);
+    private static final String OP_LOAD_TASK = "loadTask";
 
     private static final int MAX_SIZE_FOR_ESTIMATION = 100;
 
@@ -739,5 +740,14 @@ public class SmartIntegrationUtils {
                         .getSuggestions()
                         .setEnabled(type, Boolean.TRUE.equals(value))
         );
+    }
+
+    public static @Nullable TaskType loadTask(@NotNull PageBase pageBase, @NotNull String taskOid) {
+        Task task = pageBase.createSimpleTask(OP_LOAD_TASK);
+
+        PrismObject<TaskType> taskObject = WebModelServiceUtils.loadObject(
+                TaskType.class, taskOid, null, true, pageBase, task, task.getResult());
+
+        return taskObject != null ? taskObject.asObjectable() : null;
     }
 }
