@@ -316,9 +316,10 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             }
 
             @Override
-            protected void processErrorResult(OperationResult errorResult) {
-                ResourceUncategorizedPanel.this.processErrorResult(errorResult);
+            protected void processResult(OperationResult result) {
+                ResourceUncategorizedPanel.this.processResult(result);
             }
+
 
             @Override
             public Component getFeedbackPanel() {
@@ -329,7 +330,9 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         add(shadowTablePanel);
     }
 
-    protected void processErrorResult(OperationResult errorResult) {
+
+    protected void processResult(OperationResult result) {
+
     }
 
     protected boolean isHeaderVisible() {

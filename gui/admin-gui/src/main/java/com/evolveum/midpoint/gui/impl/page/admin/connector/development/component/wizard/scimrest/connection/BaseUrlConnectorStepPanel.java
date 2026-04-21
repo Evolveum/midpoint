@@ -60,7 +60,9 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     public static final ItemName SCIM_BASE_URL_ITEM_NAME = ItemName.from("", "scimBaseUrl");
 
     private static final ItemName DEVELOPMENT_MODE_ITEM_NAME = ItemName.from("", "developmentMode");
-    private static final ItemPath CONNECTOR_CONFIGURATION = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
+    private static final ItemPath CONNECTOR_CONFIGURATION_PROPERTIES = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
+
+    private static final ItemPath PRODUCER_BUFFER_SIZE = ItemPath.create("connectorConfiguration", "producerBufferSize");
 
     private static final String ID_AI_ALERT = "aiAlert";
 
@@ -75,12 +77,11 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
         try {
             ObjectDetailsModels<ResourceType> objectDetailsModel =
                     ConnectorDevelopmentWizardUtil.getTestingResourceModel(getDetailsModel(), getPanelType());
-            ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
 
             try {
-                // Enable development mode (slower  requests, more verbose login, native schema as resources)
-                objectDetailsModel.getObjectWrapper().findProperty(CONNECTOR_CONFIGURATION.append(DEVELOPMENT_MODE_ITEM_NAME)).getValue().setRealValue(true);
 
+                disableConnIdProducerProxy(objectDetailsModel);
+                enableConnectorDevelopmentMode(objectDetailsModel);
                 // Mark resource as down
                 PrismPropertyWrapper<Object> stateProperty = objectDetailsModel.getObjectWrapper().findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
                 stateProperty.getValue().setRealValue(AvailabilityStatusType.DOWN);
@@ -88,10 +89,24 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
                 throw new RuntimeException(e);
             }
 
-            return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), path);
+            return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), CONNECTOR_CONFIGURATION_PROPERTIES);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void enableConnectorDevelopmentMode(ObjectDetailsModels<ResourceType> objectDetailsModel) throws SchemaException {
+        objectDetailsModel.getObjectWrapper().findProperty(CONNECTOR_CONFIGURATION_PROPERTIES.append(DEVELOPMENT_MODE_ITEM_NAME)).getValue().setRealValue(true);
+    }
+
+    /**
+     * Disables ConnID producer proxy which breaks log capture in tracing mode.
+     *
+     * @param objectDetailsModel model for resource
+     * @throws SchemaException
+     */
+    private void disableConnIdProducerProxy(ObjectDetailsModels<ResourceType> objectDetailsModel) throws SchemaException {
+        objectDetailsModel.getObjectWrapper().findProperty(PRODUCER_BUFFER_SIZE).getValue().setRealValue(0);
     }
 
     @Override
