@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -362,6 +363,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public String submitSuggestObjectTypesOperation(
             String resourceOid, QName objectClassName, List<DataAccessPermissionType> permissions,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task, OperationResult parentResult)
             throws CommonException {
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION)
@@ -373,6 +376,16 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectclass(objectClassName);
             workDef.getPermissions().addAll(permissions);
+            if (regenerateMode != null) {
+                workDef.setRegenerateMode(regenerateMode.name());
+            }
+            if (regenerateMode != RegenerateMode.HARD_REFRESH
+                    && previousObjectTypes != null && !previousObjectTypes.isEmpty()) {
+                for (var objectType : previousObjectTypes) {
+                    workDef.getPreviousDelineation().add(
+                            (ResourceObjectTypeDefinitionType) objectType.asPrismContainerValue().clone().asContainerable());
+                }
+            }
             var oid = modelInteractionService.submit(
                     new ActivityDefinitionType()
                             .work(new WorkDefinitionsType()
@@ -381,8 +394,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                             .name("Suggest object types for " + objectClassName.getLocalPart() + " on " + resourceOid)
                             .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
                     task, result);
-            LOGGER.debug("Submitted suggest object types operation for resourceOid {}, objectClassName {}, permissions {}: {}",
-                    resourceOid, objectClassName, permissions, oid);
+            LOGGER.debug("Submitted suggest object types operation for resourceOid {}, objectClassName {}, "
+                            + "permissions {}, regenerateMode {}: {}",
+                    resourceOid, objectClassName, permissions, regenerateMode, oid);
             return oid;
         } catch (Throwable t) {
             result.recordException(t);
@@ -581,6 +595,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid,
             QName objectClassName,
             ShadowObjectClassStatisticsType statistics,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -592,7 +608,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var op = this.objectTypesSuggestionOperationFactory.create(
-                    serviceClient, resourceOid, objectClassName, task, result);
+                    serviceClient, resourceOid, objectClassName, regenerateMode, previousObjectTypes, task, result);
             var types = op.suggestObjectTypes(statistics, result);
             LOGGER.debug("Object types suggestion:\n{}", types.debugDump(1));
             return types;

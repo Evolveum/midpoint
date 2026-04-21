@@ -19,6 +19,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiPreviousDelineationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestedObjectTypeType;
@@ -62,11 +64,19 @@ class ObjectTypesSuggestionOperation {
     private final OperationContext ctx;
     private final ObjectTypeFiltersValidator filtersValidator;
     private final QName typeName;
+    @Nullable private final RegenerateMode regenerateMode;
+    @Nullable private final List<ResourceObjectTypeDefinitionType> previousObjectTypes;
 
-    ObjectTypesSuggestionOperation(OperationContext context, ObjectTypeFiltersValidator filtersValidator) {
+    ObjectTypesSuggestionOperation(
+            OperationContext context,
+            ObjectTypeFiltersValidator filtersValidator,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes) {
         this.ctx = context;
         this.filtersValidator = filtersValidator;
         this.typeName = ctx.objectClassDefinition.getTypeName();
+        this.regenerateMode = regenerateMode;
+        this.previousObjectTypes = previousObjectTypes;
     }
 
     /**
@@ -238,6 +248,14 @@ class ObjectTypesSuggestionOperation {
         if (validationFeedback != null && !validationFeedback.isEmpty()) {
             siRequest.getValidationErrorFeedback().addAll(validationFeedback);
         }
+        if (regenerateMode != null) {
+            siRequest.setRegenerateMode(regenerateMode.name());
+        }
+        if (previousObjectTypes != null && !previousObjectTypes.isEmpty()) {
+            for (var objectType : previousObjectTypes) {
+                siRequest.getPreviousDelineation().add(toSiPreviousDelineation(objectType));
+            }
+        }
         var siResponse = ctx.serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class);
         stripBlankStrings(siResponse);
         return siResponse;
@@ -250,6 +268,27 @@ class ObjectTypesSuggestionOperation {
             objectType.setBaseContextObjectClassName(nullIfEmpty(objectType.getBaseContextObjectClassName()));
             objectType.setBaseContextFilter(nullIfEmpty(objectType.getBaseContextFilter()));
         }
+    }
+
+    private static @NotNull SiPreviousDelineationType toSiPreviousDelineation(
+            @NotNull ResourceObjectTypeDefinitionType objectType) {
+        var si = new SiPreviousDelineationType()
+                .kind(objectType.getKind() != null ? objectType.getKind().value() : null)
+                .intent(objectType.getIntent());
+        var delineation = objectType.getDelineation();
+        if (delineation != null) {
+            for (var filter : delineation.getFilter()) {
+                var text = filter.getText();
+                if (text != null) {
+                    si.getFilter().add(text);
+                }
+            }
+            var baseCtx = delineation.getBaseContext();
+            if (baseCtx != null && baseCtx.getFilter() != null) {
+                si.setBaseContextFilter(baseCtx.getFilter().getText());
+            }
+        }
+        return si;
     }
 
     private static SearchFilterType parseAndSerializeFilter(

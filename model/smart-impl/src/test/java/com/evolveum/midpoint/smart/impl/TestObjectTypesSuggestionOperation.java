@@ -160,7 +160,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
         ObjectTypesSuggestionType suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(1);
@@ -201,7 +201,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
         var suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(2);
@@ -237,7 +237,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
         var suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(1);
@@ -267,7 +267,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
         var suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(1);

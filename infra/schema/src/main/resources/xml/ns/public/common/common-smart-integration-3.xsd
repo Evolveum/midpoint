@@ -963,9 +963,61 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="regenerateMode" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Describes why the user is regenerating; absent for an initial suggestion run.
+                                One of: NEW_DATA_SPLIT, NEW_FILTER, HARD_REFRESH.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="previousDelineation" type="tns:SiPreviousDelineationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Previously accepted object type delineations for this object class. The microservice
+                                can use this context to avoid repeating the same suggestions and to produce
+                                complementary or improved ones.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SiPreviousDelineationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Simplified representation of a previously suggested object type delineation sent to the
+                microservice. Contains kind, intent and filter expressions as plain strings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="kind" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>MidPoint kind (account, entitlement, generic).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>MidPoint intent (e.g. default, admin).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="filter" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>MQL filter expressions for this delineation (logical AND of all items).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Base context filter expression (must start with c:attributes/ri:dn =).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="SiValidationErrorFeedbackEntryType">

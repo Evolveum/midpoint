@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -130,6 +131,24 @@ public class SmartIntegrationUtils {
             @NotNull String operationName,
             @NotNull Task task,
             @NotNull List<DataAccessPermissionType> permissions) {
+        return runSuggestionAction(pageBase, resourceOid, objectClassName, target, operationName, task, permissions,
+                null, null);
+    }
+
+    /**
+     * Executes an object type suggestion operation if no suggestion is currently available.
+     * If suggestions exist, no background task is started.
+     */
+    public static boolean runSuggestionAction(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull QName objectClassName,
+            @NotNull AjaxRequestTarget target,
+            @NotNull String operationName,
+            @NotNull Task task,
+            @NotNull List<DataAccessPermissionType> permissions,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes) {
         OperationResult opResult = task.getResult();
         StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
                 pageBase, resourceOid, objectClassName, task, opResult);
@@ -153,7 +172,9 @@ public class SmartIntegrationUtils {
                             .withHideInProgress(true))
                     .runVoid((activityTask, activityResult) -> {
                         var oid = pageBase.getSmartIntegrationService().submitSuggestObjectTypesOperation(
-                                resourceOid, objectClassName, permissions, activityTask, activityResult);
+                                resourceOid, objectClassName, permissions,
+                                regenerateMode, previousObjectTypes,
+                                activityTask, activityResult);
                         activityResult.setBackgroundTaskOid(oid);
                     });
         }
