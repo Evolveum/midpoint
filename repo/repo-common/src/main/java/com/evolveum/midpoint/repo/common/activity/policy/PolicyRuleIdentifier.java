@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.common.activity.policy;
 
 /**
- * TODO move to better place
+ * TODO move to better place [viliam]
  *
  * Generic interface for policy rules that may come from different places,
  * be it activity, global (system configuration) or task assignment, etc.

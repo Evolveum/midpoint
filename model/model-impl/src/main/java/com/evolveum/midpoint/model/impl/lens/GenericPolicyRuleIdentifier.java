@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.common.activity.policy.PolicyRuleIdentifier;
 
 /**
- * TODO better name, since this identifier is used for policies loaded from system configuration (global) or task assignments.
+ * TODO better name, since this identifier is used for policies loaded from system configuration (global) or task assignments. [viliam]
  */
 public record GenericPolicyRuleIdentifier(String ruleId) implements Serializable, PolicyRuleIdentifier {
 

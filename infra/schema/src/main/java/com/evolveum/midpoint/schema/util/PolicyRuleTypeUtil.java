@@ -461,7 +461,7 @@ public class PolicyRuleTypeUtil {
     }
 
     /**
-     * TODO: Maybe better name? hasModelContextOnlyConstraints() or hasModelOnlyConstraints() ?
+     * TODO: Maybe better name? hasModelContextOnlyConstraints() or hasModelOnlyConstraints()? [viliam]
      *
      * Returns true if rule contain only constraints that can be evaluated in model (lens/focus context).
      * Opposite of {@link #hasActivityOnlyConstraint(PolicyRuleType)}.

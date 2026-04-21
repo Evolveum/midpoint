@@ -5,8 +5,6 @@
   ~ Licensed under the EUPL-1.2 or later.
   -->
 
-
-
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>'%s %s'.format([foo, default(jack.?employeeNumber, '')])</code>

@@ -120,7 +120,7 @@ class PolicyRulesCollector<O extends ObjectType> {
 
             String ruleId = rule.getRuleIdentifier().toString();
             ActivityPolicyRuleConfigItem ruleCI =
-                    // todo change configuration item origin to InObject -> have to put it to activity rule
+                    // todo change configuration item origin to InObject -> have to put it to activity rule [viliam]
                     ConfigurationItem.configItem(rule.getPolicy(), ConfigurationItemOrigin.generated(), ActivityPolicyRuleConfigItem.class);
 
             LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
