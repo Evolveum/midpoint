@@ -379,7 +379,6 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 return super.getNullValidDisplayValue();
             }
         };
-        dropDown.setOutputMarkupId(true);
         dropDown.setRenderBodyOnly(true); // Important for validation behavior.
         return dropDown;
     }
