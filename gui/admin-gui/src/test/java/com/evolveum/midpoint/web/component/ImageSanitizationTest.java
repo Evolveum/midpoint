@@ -64,9 +64,23 @@ public class ImageSanitizationTest {
     }
 
     @Test
+    public void test4299_55ImageSanitization_fixedFormatJPG_PNGInput() throws Exception {
+        final byte[] jpgWithoutMetadata = ImageSanitizationUtil.sanitizeImage(PNG_ARRAY, getImageUploadProcessingFixedDefault());
+        assertNotSame(PNG_ARRAY, jpgWithoutMetadata);
+        assertEquals(getContentTypeFromFileMagicNumber(jpgWithoutMetadata), getExtensionRaw(MIME_IMAGE_JPEG));
+    }
+
+    @Test
     public void test4299_60ImageSanitization_fixedFormatPNG_removeEXIF() throws Exception {
         final byte[] pngWithoutMetadata = ImageSanitizationUtil.sanitizeImage(JPG_METADATA_ARRAY, getImageUploadProcessingFixedPng());
         assertNotSame(JPG_METADATA_ARRAY, pngWithoutMetadata);
+        assertEquals(getContentTypeFromFileMagicNumber(pngWithoutMetadata), getExtensionRaw(MIME_IMAGE_PNG));
+    }
+
+    @Test
+    public void test4299_65ImageSanitization_fixedFormatPNG_PNGInput() throws Exception {
+        final byte[] pngWithoutMetadata = ImageSanitizationUtil.sanitizeImage(PNG_ARRAY, getImageUploadProcessingFixedPng());
+        assertNotSame(PNG_ARRAY, pngWithoutMetadata);
         assertTrue(JPG_METADATA_ARRAY.length > Objects.requireNonNull(pngWithoutMetadata).length);
         assertEquals(getContentTypeFromFileMagicNumber(pngWithoutMetadata), getExtensionRaw(MIME_IMAGE_PNG));
     }
@@ -90,7 +104,7 @@ public class ImageSanitizationTest {
     @Test
     public void test4299_90ImageSanitization_removeEXIF_exception() throws Exception {
         ImageSanitizationException exception = assertThrows(ImageSanitizationException.class, () -> {
-            ImageSanitizationUtil.sanitizeImage(JPG_ARRAY, getImageUploadProcessingStripExifTrue());
+            ImageSanitizationUtil.sanitizeImage(JPG_START_ARRAY, getImageUploadProcessingStripExifTrue());
         });
         assertEquals("Failed to read image for sanitization.", exception.getMessage());
     }

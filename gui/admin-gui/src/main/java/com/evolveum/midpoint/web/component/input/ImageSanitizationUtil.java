@@ -13,13 +13,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StripExifDataType;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
-import static com.evolveum.midpoint.common.MimeTypeUtil.getExtensionRaw;
+import static com.evolveum.midpoint.common.MimeTypeUtil.*;
 import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_CONTENT_TYPES;
 
 /**
@@ -104,13 +104,40 @@ public final class ImageSanitizationUtil {
         byte[] outputBytes;
         try {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            if (!ImageIO.write(image, outputImageFormatName, baos)) {
-                throw new ImageSanitizationException("No " + outputImageFormatName + " writer available.");
+            if (ImageIO.write(image, outputImageFormatName, baos)) {
+                outputBytes = baos.toByteArray();
+            } else {//TODO refactor to many conditions
+                if (getExtensionRaw(MIME_IMAGE_JPEG).equals(outputImageFormatName)
+                        && ImageIO.write(handleTransparency(image), outputImageFormatName, baos)) {
+                    outputBytes = baos.toByteArray();
+                } else {
+                    throw new ImageSanitizationException("No " + outputImageFormatName + " writer available.");
+                }
             }
-            outputBytes = baos.toByteArray();
         } catch (IOException e) {
             throw new ImageSanitizationException("Failed to write " + outputImageFormatName + " image for sanitization.", e);
         }
         return outputBytes;
+    }
+
+    /**
+     * Draw the original image onto the new RGB canvas to remove transparent parts.
+     * Use Color.WHITE as a background to fill any transparent parts.
+     *
+     * @param inputImage for which we need to fill any transparent parts
+     * @return image where originally transparent parts was replaced by Color.WHITE
+     */
+    private static BufferedImage handleTransparency(final BufferedImage inputImage) {
+        // Create a new blank RGB image (no transparency)
+        BufferedImage outputImage = new BufferedImage(
+                inputImage.getWidth(),
+                inputImage.getHeight(),
+                BufferedImage.TYPE_INT_RGB
+        );
+
+        // Draw the original image onto the new RGB canvas
+        // Use Color.WHITE as a background to fill any transparent parts
+        outputImage.createGraphics().drawImage(inputImage, 0, 0, Color.WHITE, null);
+        return outputImage;
     }
 }
