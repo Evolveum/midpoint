@@ -794,22 +794,10 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>npm clean (force) cache</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>cache clean --force</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>npm install</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
-                        <configuration>
-                            <arguments>install --verbose</arguments>
-                        </configuration>
                     </execution>
                     <execution>
                         <!--
