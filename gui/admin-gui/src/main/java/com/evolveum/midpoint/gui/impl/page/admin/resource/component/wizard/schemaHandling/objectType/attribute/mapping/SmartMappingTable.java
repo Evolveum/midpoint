@@ -469,6 +469,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 this,
                 (IModel<Search<MappingType>>) (IModel<?>) getTable().getSearchModel(),
                 dto,
+                MappingsSuggestionType.class,
                 true) {
 
             @Override

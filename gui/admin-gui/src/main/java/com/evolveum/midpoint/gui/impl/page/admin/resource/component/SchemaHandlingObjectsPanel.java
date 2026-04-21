@@ -195,7 +195,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     }
 
     protected @NotNull Component createMultiValueListPanel(String id) {
-        return new StatusAwareContainerListPanel<C>(id, getSchemaHandlingObjectsType()) {
+        Class<?> statusResultClass = ObjectTypesSuggestionType.class;
+        if (getSchemaHandlingObjectsType().equals(ShadowAssociationTypeDefinitionType.class)) {
+            statusResultClass = AssociationsSuggestionType.class;
+        }
+        return new StatusAwareContainerListPanel<C>(id, getSchemaHandlingObjectsType(), statusResultClass) {
 
             @Override
             protected StatusAwareDataFactory.SuggestionsModelDto<C> getSuggestionsModelDto() {

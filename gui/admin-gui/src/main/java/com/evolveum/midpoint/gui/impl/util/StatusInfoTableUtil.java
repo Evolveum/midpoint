@@ -16,6 +16,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
@@ -415,9 +417,16 @@ public class StatusInfoTableUtil {
 
             @Override
             public @NotNull Component getTitleComponent(@NotNull String id) {
-                return new IconWithLabel(id, () -> switchSuggestionModel.getObject()
-                        ? pageBase.getString("ToggleCheckBoxPanel.suggestion.enabled")
-                        : pageBase.getString("ToggleCheckBoxPanel.suggestion.disabled")) {
+                IModel<String> titleModel = new LoadableModel<>() {
+                    @Override
+                    protected String load() {
+                        return Boolean.TRUE.equals(switchSuggestionModel.getObject())
+                                ? pageBase.getString("ToggleCheckBoxPanel.suggestion.enabled")
+                                : pageBase.getString("ToggleCheckBoxPanel.suggestion.disabled");
+                    }
+                };
+
+                return new IconWithLabel(id, titleModel) {
                     @Override
                     protected String getIconCssClass() {
                         return GuiStyleConstants.CLASS_MAGIC_WAND + " text-purple ml-2";
