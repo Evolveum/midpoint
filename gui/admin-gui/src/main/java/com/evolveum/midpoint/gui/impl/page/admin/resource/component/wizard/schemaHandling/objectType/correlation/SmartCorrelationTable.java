@@ -225,7 +225,7 @@ public abstract class SmartCorrelationTable
                     resourceObjectTypeWrapper,
                     getResourceOid());
 
-            return new StatusAwareDataProvider<>(this, Model.of(), dto, false);
+            return new StatusAwareDataProvider<>(this, Model.of(), dto, CorrelationSuggestionsType.class, false);
         }
 
         return new MultivalueContainerListDataProvider(this, getSearchModel(),
