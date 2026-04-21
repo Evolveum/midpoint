@@ -38,6 +38,12 @@ public final class FileTestConstants {
 
     public static final List<MimeType> MIME_TYPE_LIST = FileValidatorUtil.getMimeTypes(ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES);
 
+    public static ImageUploadProcessingType getImageUploadProcessingOnlyFormat() {
+        final ImageUploadProcessingType imageUploadProcessing = new ImageUploadProcessingType();
+        imageUploadProcessing.setFormat(ImageFormatType.PNG);
+        return imageUploadProcessing;
+    }
+
     public static ImageUploadProcessingType getImageUploadProcessingPreserve() {
         final ImageUploadProcessingType imageUploadProcessing = new ImageUploadProcessingType();
         imageUploadProcessing.setProcessing(ImageProcessingType.PRESERVEORIGINALFORMAT);

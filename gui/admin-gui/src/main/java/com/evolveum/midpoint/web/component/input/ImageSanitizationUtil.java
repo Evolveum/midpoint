@@ -57,7 +57,7 @@ public final class ImageSanitizationUtil {
             return null;
         }
 
-        if (ImageProcessingType.PRESERVEORIGINALFORMAT.equals(imageUploadProcessingConfig.getProcessing()) &&
+        if (!ImageProcessingType.FIXEDFORMAT.equals(imageUploadProcessingConfig.getProcessing()) &&
                 !StripExifDataType.TRUE.equals(imageUploadProcessingConfig.getStripExifData())) {
             LOGGER.debug("There are no sanitization enabled in configuration.");
             return originalBytes;
