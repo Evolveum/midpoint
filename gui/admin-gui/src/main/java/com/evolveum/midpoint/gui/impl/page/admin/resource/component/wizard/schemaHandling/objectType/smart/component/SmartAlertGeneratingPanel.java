@@ -63,7 +63,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
 
     private AbstractAjaxTimerBehavior timerBehavior;
 
-    public SmartAlertGeneratingPanel(String id, IModel<SmartGeneratingAlertDto> model) {
+    public SmartAlertGeneratingPanel(String id, LoadableDetachableModel<SmartGeneratingAlertDto> model) {
         super(id, model);
     }
 
@@ -169,7 +169,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     /** Initializes the timer polling behaviour. */
     private void initAjaxTimeBehaviour(WebMarkupContainer alertContainer) {
         this.timerBehavior = createSuggestionAjaxTimerBehavior(
-                alertContainer, getRefreshInterval(), getModel(), this::onSuggestionFinish);
+                alertContainer, getRefreshInterval(), this::onSuggestionFinish);
         alertContainer.add(timerBehavior);
     }
 
@@ -177,13 +177,15 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     private @NotNull AbstractAjaxTimerBehavior createSuggestionAjaxTimerBehavior(
             @NotNull WebMarkupContainer bodyContainer,
             @NotNull Duration refreshDuration,
-            @NotNull IModel<SmartGeneratingAlertDto> model,
             @NotNull SerializableConsumer<AjaxRequestTarget> onFinishAction) {
         AbstractAjaxTimerBehavior abstractAjaxTimerBehavior = new AbstractAjaxTimerBehavior(refreshDuration) {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
                 try {
-                    final SmartGeneratingAlertDto dto = model.getObject();
+                    IModel<SmartGeneratingAlertDto> model = getModel();
+                    model.detach();
+
+                    SmartGeneratingAlertDto dto = model.getObject();
 
                     if (dto == null || !dto.suggestionExists()) {
                         stop(target);

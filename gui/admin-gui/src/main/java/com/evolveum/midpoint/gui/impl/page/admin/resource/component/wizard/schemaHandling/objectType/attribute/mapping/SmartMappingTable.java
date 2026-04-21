@@ -130,6 +130,15 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     private final Set<PrismContainerValueWrapper<MappingType>> acceptedSuggestionsCache = new HashSet<>();
     private final IModel<String> searchTextModel = Model.of("");
 
+    private final LoadableModel<Boolean> noValuePanelModel = new LoadableModel<>(false) {
+        @Override
+        protected @NotNull Boolean load() {
+            return !suggestionToggleModel.getObject()
+                    && mappingUsedForIModel.getObject().equals(MappingUsedFor.ALL)
+                    && getTable().getProvider().size() == 0;
+        }
+    };
+
     public SmartMappingTable(
             @NotNull String id,
             @NotNull IModel<MappingDirection> mappingDirection,
@@ -514,9 +523,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected boolean displayNoValuePanel() {
-        return getTable().getProvider().size() == 0
-                && !suggestionToggleModel.getObject()
-                && mappingUsedForIModel.getObject().equals(MappingUsedFor.ALL);
+        return Boolean.TRUE.equals(noValuePanelModel.getObject());
     }
 
     @SuppressWarnings("unchecked")
@@ -893,6 +900,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected void refreshAndDetach(AjaxRequestTarget target) {
+        noValuePanelModel.reset();
         getTable().refreshAndDetach(target);
     }
 

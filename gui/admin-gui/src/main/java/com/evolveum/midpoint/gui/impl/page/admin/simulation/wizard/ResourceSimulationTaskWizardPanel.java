@@ -6,6 +6,29 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
 
+import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObjectTypeSimulationTasks;
+import static com.evolveum.midpoint.web.page.admin.server.PageTasks.createObjectRefColumn;
+import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_TASKS_WIZARD;
+
+import java.io.Serial;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -32,29 +55,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.TaskTablePanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serial;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObjectTypeSimulationTasks;
-import static com.evolveum.midpoint.web.page.admin.server.PageTasks.createObjectRefColumn;
-import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_TASKS_WIZARD;
 
 @PanelType(name = "rw-simulation-task")
 @PanelInstance(identifier = "rw-simulation-task",
@@ -327,5 +327,10 @@ public class ResourceSimulationTaskWizardPanel<C extends Containerable> extends 
     @Override
     protected String getButtonContainerAdditionalCssClass() {
         return "col-12 p-0";
+    }
+
+    @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
     }
 }

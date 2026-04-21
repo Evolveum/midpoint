@@ -6,6 +6,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -18,14 +26,6 @@ import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class ResourceAssociationTypeWizardChoicePanel
         extends ResourceWizardChoicePanel<ResourceAssociationTypeWizardChoicePanel.ResourceAssociationTypePreviewTileType> {
@@ -170,5 +170,15 @@ public abstract class ResourceAssociationTypeWizardChoicePanel
     @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("ResourceAssociationTypeWizardChoicePanel.text");
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-12 col-sm-8";
+    }
+
+    @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
     }
 }

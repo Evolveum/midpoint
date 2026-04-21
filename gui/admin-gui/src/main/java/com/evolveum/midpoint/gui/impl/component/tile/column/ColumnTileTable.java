@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.ButtonBar;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusA
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -39,6 +41,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -145,7 +149,6 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         IsolatedCheckBoxPanel selectCheckbox = new IsolatedCheckBoxPanel(idButton, selectModel) {
             @Override
             public void onUpdate(@NotNull AjaxRequestTarget target) {
-                target.add(ColumnTileTable.this);
                 refresh(target);
             }
         };
@@ -154,6 +157,23 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
         selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
         return selectCheckbox;
+    }
+
+    private void updateTileCheckboxes(@NotNull AjaxRequestTarget target) {
+        PageableListView<?, ?> tiles = getTiles();
+
+        tiles.visitChildren(Component.class, (component, visit) -> {
+            if (isRefreshableTileComponent(component)) {
+                target.add(component);
+            }
+        });
+
+    }
+
+    private boolean isRefreshableTileComponent(@NotNull Component component) {
+        return component.getOutputMarkupId()
+                && (component instanceof ColumnTilePanel<?, ?, ?>
+                || component instanceof MappingSuggestionGroupColumnTilePanel<?, ?, ?>);
     }
 
     private @NotNull IModel<Boolean> buildHeaderCheckboxModel(@NotNull IModel<List<O>> currentPageModel) {
@@ -562,6 +582,18 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
             provider.detach();
         }
 
+        if (provider instanceof GroupedMappingDataProvider groupedMappingDataProvider) {
+            ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> delegateProvider = groupedMappingDataProvider.getDelegateProvider();
+            if (delegateProvider instanceof StatusAwareDataProvider<MappingType> statusAwareDataProvider) {
+                if (statusAwareDataProvider.getModel() instanceof LoadableModel<List<PrismContainerValueWrapper<MappingType>>> loadableModel) {
+                    groupedMappingDataProvider.reset();
+                    loadableModel.reset();
+                }
+
+                statusAwareDataProvider.getModel().detach();
+                return;
+            }
+        }
         if (provider instanceof MultivalueContainerListDataProvider mvProvider) {
             mvProvider.getModel().detach();
         }

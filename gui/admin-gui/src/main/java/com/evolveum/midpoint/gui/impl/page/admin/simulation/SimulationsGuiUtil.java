@@ -13,9 +13,16 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import com.evolveum.midpoint.web.page.error.PageError404;
@@ -463,5 +470,87 @@ public class SimulationsGuiUtil {
                 return result.get(0);
             }
         };
+    }
+
+    public static @NotNull LoadableDetachableModel<PrismObjectWrapper<? extends ObjectType>> loadWrapper(
+            PageBase pageBase,
+            SimulationResultProcessedObjectType resultProcessedObjectType) {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObjectWrapper<? extends ObjectType> load() {
+                if (resultProcessedObjectType == null) {
+                    return null;
+                }
+
+                Task task = pageBase.createSimpleTask("createWrapper");
+
+                Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder()
+                        .noFetch()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_MARK_REF)).resolve()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_LIFECYCLE_STATE)).resolve()
+                        .build();
+
+                try {
+                    PrismObject<ObjectType> prismObject = WebModelServiceUtils.loadObject(
+                            ObjectTypes.getObjectTypeClass(resultProcessedObjectType.getType()),
+                            resultProcessedObjectType.getOid(),
+                            options, pageBase, task, task.getResult());
+
+                    if (prismObject == null) {
+                        return null;
+                    }
+
+                    PrismObjectWrapperFactory<ObjectType> factory = pageBase.findObjectWrapperFactory(
+                            prismObject.getDefinition());
+                    OperationResult result = task.getResult();
+                    WrapperContext ctx = new WrapperContext(task, result);
+                    ctx.setCreateIfEmpty(true);
+
+                    return factory.createObjectWrapper(prismObject, ItemStatus.NOT_CHANGED, ctx);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create object wrapper for " + resultProcessedObjectType, e);
+                }
+                return null;
+            }
+        };
+    }
+
+    public static void performMarkObjects(List<String> markOids,
+            @NotNull List<SimulationResultProcessedObjectType> selected,
+            PageBase page,
+            Task task,
+            OperationResult result) {
+        for (var object : selected) {
+            if (ObjectProcessingStateType.ADDED.equals(object.getState())) {
+                // skip object, since it is added
+                continue;
+            }
+
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            List<PolicyStatementType> statements = new ArrayList<>();
+            for (String oid : markOids) {
+                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+                        .type(PolicyStatementTypeType.APPLY));
+            }
+
+            try {
+                @SuppressWarnings("unchecked")
+                var type = (Class<? extends ObjectType>) page.getPrismContext().getSchemaRegistry()
+                        .getCompileTimeClassForObjectType(object.getType());
+                var delta = page.getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(type,
+                                object.getOid(), ObjectType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
+                page.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            } catch (Exception e) {
+                result.recordPartialError(
+                        page.createStringResource(
+                                        "ProcessedObjectsPanel.message.markObjectError", object)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark object {} with marks {}", object, markOids, e);
+            }
+        }
     }
 }
