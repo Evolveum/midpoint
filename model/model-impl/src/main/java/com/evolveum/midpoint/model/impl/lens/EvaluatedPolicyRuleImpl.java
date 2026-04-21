@@ -348,7 +348,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     }
 
     @Override
-    @NotNull public PolicyActionsType getRawActions() {
+    public PolicyActionsType getRawActions() {
         return policyRuleBean.getPolicyActions();
     }
 
