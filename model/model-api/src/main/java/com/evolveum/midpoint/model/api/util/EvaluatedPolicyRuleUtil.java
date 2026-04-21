@@ -96,7 +96,7 @@ public class EvaluatedPolicyRuleUtil {
             case NORMAL:
                 return trigger.getMessage();
             case SHORT:
-                return trigger.getMessage();    // todo: shouldn't this be getShortMessage()?
+                return trigger.getShortMessage();
             default:
                 throw new AssertionError(kind);
         }

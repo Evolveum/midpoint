@@ -126,7 +126,7 @@ public abstract class PolicyRuleCounterUpdater {
 
             Integer alreadyIncrementedValue = getIncrementedPolicyRuleCounter(rule.getRuleIdentifier().asString());
             if (alreadyIncrementedValue != null) {
-                // todo skip also already incremented, uncomment and fix
+                // todo skip also already incremented, uncomment and fix [viliam]
 //                    rule.setCount(alreadyIncrementedValue);
                 LOGGER.trace("Rule {} already has an incremented value {}, skipping counter update",
                         rule.getRuleIdentifier(), alreadyIncrementedValue);

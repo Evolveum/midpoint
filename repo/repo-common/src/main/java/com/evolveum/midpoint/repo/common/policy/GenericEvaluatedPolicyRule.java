@@ -20,8 +20,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * TODO docs
- * TODO rename
+ * TODO docs and probably better name [viliam]
  */
 public interface GenericEvaluatedPolicyRule extends DebugDumpable {
 
