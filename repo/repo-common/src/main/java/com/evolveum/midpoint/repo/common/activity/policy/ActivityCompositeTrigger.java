@@ -8,9 +8,10 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 public class ActivityCompositeTrigger extends EvaluatedActivityPolicyRuleTrigger<PolicyConstraintsType> {
@@ -18,7 +19,7 @@ public class ActivityCompositeTrigger extends EvaluatedActivityPolicyRuleTrigger
     private final @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
     public ActivityCompositeTrigger(
-            @NotNull PolicyConstraintKindType constraintKind,
+            @NotNull PolicyConstraintKind constraintKind,
             @NotNull PolicyConstraintsType constraint,
             @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
         super(constraintKind, constraint, null, null);

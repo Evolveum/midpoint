@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.Set;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +51,7 @@ public class ExecutionAttemptsConstraintEvaluator
     }
 
     @Override
-    protected PolicyConstraintKindType getPolicyConstraintKind() {
-        return PolicyConstraintKindType.EXECUTION_ATTEMPTS;
+    protected PolicyConstraintKind getPolicyConstraintKind() {
+        return PolicyConstraintKind.EXECUTION_ATTEMPTS;
     }
 }

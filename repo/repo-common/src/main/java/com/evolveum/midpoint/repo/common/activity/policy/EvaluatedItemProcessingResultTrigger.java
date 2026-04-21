@@ -6,11 +6,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingResultPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
 public class EvaluatedItemProcessingResultTrigger
         extends EvaluatedActivityPolicyRuleTrigger<ItemProcessingResultPolicyConstraintType> {
@@ -20,6 +21,6 @@ public class EvaluatedItemProcessingResultTrigger
             LocalizableMessage message,
             LocalizableMessage shortMessage) {
 
-        super(PolicyConstraintKindType.ITEM_PROCESSING_RESULT, constraint, message, shortMessage);
+        super(PolicyConstraintKind.ITEM_PROCESSING_RESULT, constraint, message, shortMessage);
     }
 }

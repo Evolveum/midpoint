@@ -158,7 +158,7 @@ public class CollectionProcessor {
             CollectionStats stats = determineCollectionStats(collectionView, task, result);
             if (isThresholdTriggered(stats, collection, policyThreshold)) {
                 EvaluatedFocusPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(
-                        PolicyConstraintKindType.COLLECTION_STATS, collectionStatsPolicy,
+                        collectionStatsPolicy,
                         new LocalizableMessageBuilder()
                                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
                                 .arg(ObjectTypeUtil.createDisplayInformation(collection, false))

@@ -10,13 +10,15 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AlwaysTruePolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ALWAYS_TRUE;
 
 public class EvaluatedAlwaysTrueTrigger extends EvaluatedFocusPolicyRuleTrigger<AlwaysTruePolicyConstraintType> {
 
     public EvaluatedAlwaysTrueTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull AlwaysTruePolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage) {
-        super(kind, constraint, message, shortMessage, false);
+            @NotNull AlwaysTruePolicyConstraintType constraint,
+            LocalizableMessage message,
+            LocalizableMessage shortMessage) {
+        super(ALWAYS_TRUE, constraint, message, shortMessage, false);
     }
 }

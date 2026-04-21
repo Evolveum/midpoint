@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.EXCLUSION;
+
 /**
  * Represents triggered exclusion constraint.
  *
@@ -50,7 +52,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedExclusionRequirementTrig
             @NotNull AssignmentPath thisPath,
             @NotNull AssignmentPath conflictingPath,
             boolean enforcementOverride) {
-        super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage, thisAssignment, thisTarget, thisPath, enforcementOverride);
+        super(EXCLUSION, constraint, message, shortMessage, thisAssignment, thisTarget, thisPath, enforcementOverride);
         this.conflictingAssignment = conflictingAssignment;
         this.conflictingTarget = conflictingTarget;
         this.conflictingPath = conflictingPath;

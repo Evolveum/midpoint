@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ALWAYS_TRUE;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -79,7 +77,7 @@ public class AlwaysTrueConstraintEvaluator
 
         return List.of(
                 new EvaluatedAlwaysTrueTrigger(
-                        ALWAYS_TRUE, constraintElement.getValue(),
+                        constraintElement.getValue(),
                         createMessage(constraintElement, ctx, result),
                         createShortMessage(constraintElement, ctx, result)));
     }

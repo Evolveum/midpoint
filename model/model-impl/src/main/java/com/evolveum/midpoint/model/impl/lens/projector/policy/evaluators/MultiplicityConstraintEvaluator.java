@@ -7,11 +7,14 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.MAX_ASSIGNEES;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.MIN_ASSIGNEES;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -120,7 +123,7 @@ public class MultiplicityConstraintEvaluator
                 int currentAssignees = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
                 if (currentAssignees < requiredMultiplicity) {
                     triggers.add(new EvaluatedMultiplicityTrigger(
-                            PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+                            MIN_ASSIGNEES,
                             constraint.getValue(),
                             getMessage(constraint, ctx, result, KEY_MIN, KEY_OBJECT, target,
                                     requiredMultiplicity, relationToCheck.getLocalPart()),
@@ -138,7 +141,7 @@ public class MultiplicityConstraintEvaluator
                 int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
                 if (currentAssigneesExceptMyself > requiredMultiplicity) {
                     triggers.add(new EvaluatedMultiplicityTrigger(
-                            PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+                            MAX_ASSIGNEES,
                             constraint.getValue(),
                             getMessage(constraint, ctx, result, KEY_MAX, KEY_OBJECT, target,
                                     requiredMultiplicity, relationToCheck.getLocalPart()),
@@ -204,7 +207,7 @@ public class MultiplicityConstraintEvaluator
             int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
             if (currentAssigneesExceptMyself < requiredMultiplicity && plusMinus == PlusMinusZero.MINUS) {
                 return List.of(new EvaluatedMultiplicityTrigger(
-                        PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+                        MIN_ASSIGNEES,
                         constraint.getValue(),
                         getMessage(constraint, ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
                                 requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself),
@@ -221,7 +224,7 @@ public class MultiplicityConstraintEvaluator
             int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
             if (currentAssigneesExceptMyself >= requiredMultiplicity && plusMinus == PLUS) {
                 return List.of(new EvaluatedMultiplicityTrigger(
-                        PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+                        MAX_ASSIGNEES,
                         constraint.getValue(),
                         getMessage(constraint, ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
                                 requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself + 1),

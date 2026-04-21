@@ -6,13 +6,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ORPHANED;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import jakarta.xml.bind.JAXBElement;
 
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -95,7 +93,7 @@ public class OrphanedConstraintEvaluator
 
         if (orphaned) {
             return List.of(new EvaluatedOrphanedTrigger(
-                    ORPHANED, constraintElement.getValue(),
+                    constraintElement.getValue(),
                     createMessage(constraintElement, ctx, result),
                     createShortMessage(constraintElement, ctx, result)));
         } else {

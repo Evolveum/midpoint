@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +20,6 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, EvaluatedNumericTrigger<C>> {
@@ -98,7 +99,7 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
         return false;
     }
 
-    protected abstract PolicyConstraintKindType getPolicyConstraintKind();
+    protected abstract PolicyConstraintKind getPolicyConstraintKind();
 
     private EvaluatedNumericTrigger<C> createTrigger(C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
         return new EvaluatedNumericTrigger<>(getPolicyConstraintKind(), constraint, message, shortMessage);

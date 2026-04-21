@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.policy.PolicyRuleApplicabilityUtil;
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunPolicyException
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -68,7 +68,7 @@ public class ActivityPolicyRulesProcessor {
         }
 
         Collection<GenericEvaluatedPolicyRule> evaluatedRules = rules.stream()
-                .filter(rule -> PolicyRuleTypeUtil.hasActivityOnlyConstraint(rule.getPolicy()))
+                .filter(rule -> PolicyRuleApplicabilityUtil.isApplicableToActivity(rule.getPolicy()))
                 .map(EvaluatedActivityPolicyRule::new)
                 .collect(Collectors.toList());
 

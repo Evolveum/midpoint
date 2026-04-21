@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 import java.util.List;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
@@ -115,7 +115,7 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
         return value != null;
     }
 
-    protected abstract PolicyConstraintKindType getPolicyConstraintKind();
+    protected abstract PolicyConstraintKind getPolicyConstraintKind();
 
     protected EvaluatedDurationTrigger<C> createTrigger(
             C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {

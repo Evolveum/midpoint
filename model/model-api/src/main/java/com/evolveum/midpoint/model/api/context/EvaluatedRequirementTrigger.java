@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -15,9 +14,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
+
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.REQUIREMENT;
 
 /**
  * Represents triggered requirement constraint.
@@ -38,7 +37,7 @@ public class EvaluatedRequirementTrigger extends EvaluatedExclusionRequirementTr
             ObjectReferenceType requiredTargetArchetypeRef,
             @NotNull AssignmentPath thisPath,
             boolean enforcementOverride) {
-        super(PolicyConstraintKindType.REQUIREMENT, constraint, message, shortMessage, thisAssignment, thisTarget, thisPath, enforcementOverride);
+        super(REQUIREMENT, constraint, message, shortMessage, thisAssignment, thisTarget, thisPath, enforcementOverride);
         this.requiredTargetRef = requiredTargetRef;
         this.requiredTargetArchetypeRef = requiredTargetArchetypeRef;
     }

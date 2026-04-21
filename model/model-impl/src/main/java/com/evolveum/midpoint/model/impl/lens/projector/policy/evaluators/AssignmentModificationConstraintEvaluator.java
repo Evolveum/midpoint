@@ -80,8 +80,8 @@ public class AssignmentModificationConstraintEvaluator
 
             // TODO check modifications
             EvaluatedAssignmentModificationTrigger rv = new EvaluatedAssignmentModificationTrigger(
-                    PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
-                    constraint, ctx.evaluatedAssignment.getTarget(),
+                    constraint,
+                    ctx.evaluatedAssignment.getTarget(),
                     createMessage(constraintElement, ctx, result),
                     createShortMessage(constraintElement, ctx, result));
             result.addReturn("trigger", rv.toDiagShortcut());

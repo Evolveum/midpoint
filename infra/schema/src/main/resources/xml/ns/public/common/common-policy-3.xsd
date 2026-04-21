@@ -41,6 +41,9 @@
             <xsd:documentation>
                 Set of governance, risk management, compliance (GRC) and similar policy constraints
                 that influence the identity model. These constraints act as triggers for the rules.
+
+                NOTE to developers: after adding a new constraint kind here, update PolicyConstraintKindType
+                and PolicyConstraintKind (java).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

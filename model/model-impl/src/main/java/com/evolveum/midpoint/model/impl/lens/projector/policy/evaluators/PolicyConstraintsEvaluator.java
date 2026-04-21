@@ -57,7 +57,7 @@ public class PolicyConstraintsEvaluator {
             return Collections.emptyList();
         }
         List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
-        for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false, false)) {
+        for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false)) {
             PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
                     (PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) getConstraintEvaluator(constraint);
             Collection<? extends EvaluatedFocusPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(constraint, ctx, result);

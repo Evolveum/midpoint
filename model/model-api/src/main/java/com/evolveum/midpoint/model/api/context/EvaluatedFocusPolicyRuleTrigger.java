@@ -6,14 +6,13 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
+
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -21,7 +20,6 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintPresentationType;
 
 /**
@@ -39,7 +37,7 @@ public abstract class EvaluatedFocusPolicyRuleTrigger<CT extends AbstractPolicyC
     private final boolean enforcementOverride;
 
     public EvaluatedFocusPolicyRuleTrigger(
-            @NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint,
+            @NotNull PolicyConstraintKind constraintKind, @NotNull CT constraint,
             LocalizableMessage message, LocalizableMessage shortMessage,
             boolean enforcementOverride) {
         super(constraintKind, constraint, message, shortMessage);

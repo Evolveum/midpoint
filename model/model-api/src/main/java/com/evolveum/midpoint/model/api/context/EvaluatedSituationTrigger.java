@@ -12,16 +12,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
+
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.SITUATION;
 
 public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<PolicySituationPolicyConstraintType> {
 
@@ -31,7 +32,7 @@ public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<P
             @NotNull PolicySituationPolicyConstraintType constraint,
             LocalizableMessage message, LocalizableMessage shortMessage,
             @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
-        super(PolicyConstraintKindType.SITUATION, constraint, message, shortMessage, false);
+        super(SITUATION, constraint, message, shortMessage, false);
         this.sourceRules = sourceRules;
     }
 
@@ -66,7 +67,7 @@ public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<P
     public String toDiagShortcut() {
         return super.toDiagShortcut()
                 + sourceRules.stream()
-                .map(sr -> PolicyRuleTypeUtil.toShortString(sr.getPolicyConstraints()))
+                .map(sr -> PolicyRuleDumpUtil.toShortString(sr.getPolicyConstraints()))
                 .distinct()
                 .collect(Collectors.joining("+", "(", ")"));
     }

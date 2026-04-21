@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.CUSTOM;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,7 +81,6 @@ public class CustomConstraintEvaluator
                 boolean onAssignment = rctx instanceof AssignmentPolicyRuleEvaluationContext;
                 String keyPrefix = onAssignment ? ASSIGNMENT_CONSTRAINT_KEY_PREFIX : OBJECT_CONSTRAINT_KEY_PREFIX;
                 return List.of(new EvaluatedCustomConstraintTrigger(
-                        CUSTOM,
                         constraintValue,
                         createMessage(keyPrefix, constraint, rctx, onAssignment, result),
                         createShortMessage(keyPrefix, constraint, rctx, onAssignment, result)));

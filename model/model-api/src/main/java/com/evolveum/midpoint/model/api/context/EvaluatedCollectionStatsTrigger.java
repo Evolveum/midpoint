@@ -11,12 +11,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.COLLECTION_STATS;
+
 public class EvaluatedCollectionStatsTrigger extends EvaluatedFocusPolicyRuleTrigger<CollectionStatsPolicyConstraintType> {
 
     public EvaluatedCollectionStatsTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull CollectionStatsPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage) {
-        super(kind, constraint, message, shortMessage, false);
+            @NotNull CollectionStatsPolicyConstraintType constraint,
+            LocalizableMessage message,
+            LocalizableMessage shortMessage) {
+        super(COLLECTION_STATS, constraint, message, shortMessage, false);
     }
 
     @Override

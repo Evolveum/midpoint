@@ -59,7 +59,7 @@ public class TransitionConstraintEvaluator
             if (match) {
                 return List.of(
                         new EvaluatedTransitionTrigger(
-                                PolicyConstraintKindType.TRANSITION, trans,
+                                trans,
                                 createMessage(constraintElement, rctx, result),
                                 createShortMessage(constraintElement, rctx, result),
                                 triggers));

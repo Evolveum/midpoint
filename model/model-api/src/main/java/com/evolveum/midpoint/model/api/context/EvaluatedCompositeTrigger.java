@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +19,6 @@ import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrig
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedLogicalTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 public class EvaluatedCompositeTrigger extends EvaluatedFocusPolicyRuleTrigger<PolicyConstraintsType> {
@@ -25,7 +26,7 @@ public class EvaluatedCompositeTrigger extends EvaluatedFocusPolicyRuleTrigger<P
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
     public EvaluatedCompositeTrigger(
-            @NotNull PolicyConstraintKindType kind,
+            @NotNull PolicyConstraintKind kind,
             @NotNull PolicyConstraintsType constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage,

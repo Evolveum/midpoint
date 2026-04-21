@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
@@ -44,8 +43,9 @@ import java.util.*;
 import static com.evolveum.midpoint.schema.config.ConfigurationItem.configItem;
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_OBJECT;
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ASSIGNMENT_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.OBJECT_STATE;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ASSIGNMENT_STATE;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.OBJECT_STATE;
+
 import static java.util.Collections.emptyList;
 
 @Component

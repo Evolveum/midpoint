@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +19,9 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.repo.common.activity.policy.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.*;
 
 // TODO create package com.evolveum.midpoint.repo.common.policy and merge this class with
 //  CompositeConstraintEvaluator (from model) it will be quite a lot of refactoring moving
@@ -62,16 +65,13 @@ public class ActivityCompositeConstraintEvaluator
             ActivityCompositeTrigger rv;
             if (isNot) {
                 if (triggers.isEmpty()) {
-                    rv = createTrigger(PolicyConstraintKindType.NOT, constraint, triggers);
+                    rv = createTrigger(NOT, constraint, triggers);
                 } else {
                     rv = null;
                 }
             } else {
                 if (!triggers.isEmpty()) {
-                    rv = createTrigger(
-                            isAnd ? PolicyConstraintKindType.AND : PolicyConstraintKindType.OR,
-                            constraint,
-                            triggers);
+                    rv = createTrigger(isAnd ? AND : OR, constraint, triggers);
                 } else {
                     rv = null;
                 }
@@ -91,7 +91,7 @@ public class ActivityCompositeConstraintEvaluator
     }
 
     private ActivityCompositeTrigger createTrigger(
-            PolicyConstraintKindType kind,
+            PolicyConstraintKind kind,
             JAXBElement<PolicyConstraintsType> element,
             List<EvaluatedPolicyRuleTrigger<?>> triggers) {
         return new ActivityCompositeTrigger(kind, element.getValue(), triggers);

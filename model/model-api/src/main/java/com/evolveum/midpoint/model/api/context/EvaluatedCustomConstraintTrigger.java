@@ -12,14 +12,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.CUSTOM;
+
 public class EvaluatedCustomConstraintTrigger extends EvaluatedFocusPolicyRuleTrigger<CustomPolicyConstraintType> {
 
     public EvaluatedCustomConstraintTrigger(
-            @NotNull PolicyConstraintKindType kind,
             @NotNull CustomPolicyConstraintType constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage) {
-        super(kind, constraint, message, shortMessage, false);
+        super(CUSTOM, constraint, message, shortMessage, false);
     }
 
     @Override

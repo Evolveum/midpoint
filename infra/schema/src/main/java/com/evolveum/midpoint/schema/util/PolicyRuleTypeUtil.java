@@ -14,6 +14,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
+
 import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -32,239 +34,30 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Utility class related to policy rules, common to all layers (up to GUI).
+ *
+ * TODO consider splitting into more focused classes
+ *
+ * @see PolicyRuleDumpUtil
+ */
 public class PolicyRuleTypeUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleTypeUtil.class);
 
-    private static final char JOIN_AND = '*';
-    private static final char JOIN_OR = '|';
-
-    private static final Map<String, String> CONSTRAINT_NAMES = new HashMap<>();
-
-    private static final String SYMBOL_MIN = "min";
-    private static final String SYMBOL_MAX = "max";
-    private static final String SYMBOL_ASSIGNMENT_MODIFICATION = "amod";
-    private static final String SYMBOL_OBJECT_MODIFICATION = "omod";
-    private static final String SYMBOL_OBJECT_STATE = "ostate";
-    private static final String SYMBOL_ASSIGNMENT_STATE = "astate";
-    private static final String SYMBOL_EXCLUSION = "exc";
-    private static final String SYMBOL_HAS_ASSIGNMENT = "hasass";
-    private static final String SYMBOL_NO_ASSIGNMENT = "noass";
-    private static final String SYMBOL_OBJECT_TIME_VALIDITY = "otime";
-    private static final String SYMBOL_ASSIGNMENT_TIME_VALIDITY = "atime";
-    private static final String SYMBOL_SITUATION = "sit";
-    private static final String SYMBOL_CUSTOM = "custom";
-    private static final String SYMBOL_TRANSITION = "trans";
-    private static final String SYMBOL_ALWAYS_TRUE = "true";
-    private static final String SYMBOL_ORPHANED = "orphaned";
-
-    static {
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart(), SYMBOL_MIN);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MAX_ASSIGNEES.getLocalPart(), SYMBOL_MAX);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT.getLocalPart(), SYMBOL_ASSIGNMENT_MODIFICATION);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MODIFICATION.getLocalPart(), SYMBOL_OBJECT_MODIFICATION);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_OBJECT_STATE.getLocalPart(), SYMBOL_OBJECT_STATE);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT_STATE.getLocalPart(), SYMBOL_ASSIGNMENT_STATE);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_EXCLUSION.getLocalPart(), SYMBOL_EXCLUSION);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_ASSIGNMENT.getLocalPart(), SYMBOL_HAS_ASSIGNMENT);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_NO_ASSIGNMENT.getLocalPart(), SYMBOL_NO_ASSIGNMENT);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_OBJECT_TIME_VALIDITY.getLocalPart(), SYMBOL_OBJECT_TIME_VALIDITY);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT_TIME_VALIDITY.getLocalPart(), SYMBOL_ASSIGNMENT_TIME_VALIDITY);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_SITUATION.getLocalPart(), SYMBOL_SITUATION);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_CUSTOM.getLocalPart(), SYMBOL_CUSTOM);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TRANSITION.getLocalPart(), SYMBOL_TRANSITION);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ALWAYS_TRUE.getLocalPart(), SYMBOL_ALWAYS_TRUE);
-        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ORPHANED.getLocalPart(), SYMBOL_ORPHANED);
-    }
-
-    public static String toShortString(PolicyRuleType rule) {
-        if (rule != null) {
-            return toShortString(rule.getPolicyConstraints()) + "→" + toShortString(rule.getPolicyActions());
-        } else {
-            return null;
-        }
-    }
-
-    public static String toShortString(JAXBElement<? extends AbstractPolicyConstraintType> constraint) {
-        StringBuilder sb = new StringBuilder();
-        toShortString(sb, constraint, ' ');
-        return sb.toString();
-    }
-
-    public static String toShortString(PolicyConstraintsType constraints) {
-        return toShortString(constraints, JOIN_AND);
-    }
-
-    public static String toShortString(PolicyConstraintsType constraints, char join) {
-        if (constraints == null) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        // we ignore refs to be able to dump even unresolved policy rules
-        for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false, true)) {
-            toShortString(sb, constraint, join);
-        }
-        for (PolicyConstraintReferenceType ref : constraints.getRef()) {
-            if (!sb.isEmpty()) {
-                sb.append(join);
-            }
-            sb.append("ref:").append(ref.getName());
-        }
-        return sb.toString();
-    }
-
-    private static void toShortString(StringBuilder sb, JAXBElement<? extends AbstractPolicyConstraintType> constraint, char join) {
-        QName name = constraint.getName();
-        String abbreviation = CONSTRAINT_NAMES.get(name.getLocalPart());
-        if (!sb.isEmpty()) {
-            sb.append(join);
-        }
-        if (QNameUtil.match(name, PolicyConstraintsType.F_AND)) {
-            sb.append('(');
-            sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_AND));
-            sb.append(')');
-        } else if (QNameUtil.match(name, PolicyConstraintsType.F_OR)) {
-            sb.append('(');
-            sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_OR));
-            sb.append(')');
-        } else if (QNameUtil.match(name, PolicyConstraintsType.F_NOT)) {
-            sb.append('(');
-            sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_AND));
-            sb.append(')');
-        } else if (QNameUtil.match(name, PolicyConstraintsType.F_TRANSITION)) {
-            TransitionPolicyConstraintType trans = (TransitionPolicyConstraintType) constraint.getValue();
-            sb.append(SYMBOL_TRANSITION);
-            sb.append(toTransSymbol(trans.isStateBefore()));
-            sb.append(toTransSymbol(trans.isStateAfter()));
-            sb.append('(');
-            sb.append(toShortString(trans.getConstraints(), JOIN_AND));
-            sb.append(')');
-        } else {
-            sb.append(abbreviation != null ? abbreviation : name.getLocalPart());
-        }
-    }
-
-    private static String toTransSymbol(Boolean state) {
-        if (state != null) {
-            return state ? "1" : "0";
-        } else {
-            return "x";
-        }
-    }
-
-    public static String toShortString(PolicyActionsType actions) {
-        return toShortString(actions, null);
-    }
-
-    /**
-     * @param enabledActions if null we don't consider action enabled/disabled state
-     */
-    public static String toShortString(PolicyActionsType actions, List<PolicyActionConfigItem<?>> enabledActions) {
-        if (actions == null) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        if (actions.getEnforcement() != null) {
-            sb.append("enforce");
-            if (enabledActions != null && filterActions(enabledActions, EnforcementPolicyActionType.class).isEmpty()) {
-                sb.append("X");
-            }
-        }
-        if (!actions.getApproval().isEmpty()) {
-            sb.append(" approve");
-            if (enabledActions != null && filterActions(enabledActions, ApprovalPolicyActionType.class).isEmpty()) {
-                sb.append("X");
-            }
-        }
-        if (actions.getRemediation() != null) {
-            sb.append(" remedy");
-            if (enabledActions != null && filterActions(enabledActions, RemediationPolicyActionType.class).isEmpty()) {
-                sb.append("X");
-            }
-        }
-        if (actions.getPrune() != null) {
-            sb.append(" prune");
-            if (enabledActions != null && filterActions(enabledActions, PrunePolicyActionType.class).isEmpty()) {
-                sb.append("X");
-            }
-        }
-        if (actions.getCertification() != null) {
-            sb.append(" certify");
-            if (enabledActions != null && filterActions(enabledActions, CertificationPolicyActionType.class).isEmpty()) {
-                sb.append("X");
-            }
-        }
-        if (!actions.getNotification().isEmpty()) {
-            sb.append(" notify");
-            if (enabledActions != null && filterActions(enabledActions, NotificationPolicyActionType.class).isEmpty()) {
-                sb.append("X");
-            }
-        }
-        if (actions.getRecord() != null) {
-            sb.append(" record");
-            if (enabledActions != null && filterActions(enabledActions, RecordPolicyActionType.class).isEmpty()) {
-                sb.append("X");
-            }
-        }
-        if (!actions.getScriptExecution().isEmpty()) {
-            sb.append(" execute");
-            if (enabledActions != null && filterActions(enabledActions, ScriptExecutionPolicyActionType.class).isEmpty()) {
-                sb.append("X");
-            }
-        }
-        if (actions.getSuspendTask() != null) {
-            sb.append(" suspend");
-            if (enabledActions != null && filterActions(enabledActions, SuspendTaskPolicyActionType.class).isEmpty()) {
-                sb.append("X");
-            }
-        }
-        return sb.toString().trim();
-    }
-
-//    public static String toShortString(AbstractPolicyConstraintType constraint) {
-//        if (constraint == null) {
-//            return "null";
-//        }
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(getConstraintClassShortcut(constraint.getClass()));
-//        if (constraint.getName() != null) {
-//            sb.append(":").append(constraint.getName());
-//        }
-//        return sb.toString();
-//    }
-
-    public static String toDiagShortcut(PolicyConstraintKindType constraintKind) {
-        if (constraintKind == null) {
-            return "null";
-        }
-        switch (constraintKind) {
-            case ASSIGNMENT_MODIFICATION: return SYMBOL_ASSIGNMENT_MODIFICATION;
-            case OBJECT_MODIFICATION: return SYMBOL_OBJECT_MODIFICATION;
-            case EXCLUSION: return SYMBOL_EXCLUSION;
-            case MAX_ASSIGNEES_VIOLATION: return SYMBOL_MAX;
-            case MIN_ASSIGNEES_VIOLATION: return SYMBOL_MIN;
-            case OBJECT_STATE: return SYMBOL_OBJECT_STATE;
-            case ASSIGNMENT_STATE: return SYMBOL_ASSIGNMENT_STATE;
-            case HAS_ASSIGNMENT: return SYMBOL_HAS_ASSIGNMENT;
-            case HAS_NO_ASSIGNMENT: return SYMBOL_NO_ASSIGNMENT;
-            case OBJECT_TIME_VALIDITY: return SYMBOL_OBJECT_TIME_VALIDITY;
-            case ASSIGNMENT_TIME_VALIDITY: return SYMBOL_ASSIGNMENT_TIME_VALIDITY;
-            case SITUATION: return SYMBOL_SITUATION;
-            default: return constraintKind.toString();
-        }
-    }
-
-    public static void visit(List<EvaluatedPolicyRuleTriggerType> triggers, Consumer<EvaluatedPolicyRuleTriggerType> visitor) {
+    // TODO unused; consider removing
+    public static void accept(List<EvaluatedPolicyRuleTriggerType> triggers, Consumer<EvaluatedPolicyRuleTriggerType> visitor) {
         for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
             visitor.accept(trigger);
             if (trigger instanceof EvaluatedSituationTriggerType situationTrigger) {
                 for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-                    visit(sourceRule.getTrigger(), visitor);
+                    accept(sourceRule.getTrigger(), visitor);
                 }
             }
         }
     }
 
+    // TODO unused; consider removing in the future
     public static boolean triggerCollectionsEqual(Collection<EvaluatedPolicyRuleTriggerType> triggers,
             Collection<EvaluatedPolicyRuleTriggerType> currentTriggersUnpacked) {
         HeteroEqualsChecker<EvaluatedPolicyRuleTriggerType, EvaluatedPolicyRuleTriggerType> equalsChecker = (t1, t2) -> {
@@ -287,25 +80,34 @@ public class PolicyRuleTypeUtil {
     }
 
     public static <T extends PolicyActionType> List<PolicyActionConfigItem<T>> filterActions(
-            @NotNull List<? extends PolicyActionConfigItem<?>> actions, @NotNull Class<T> clazz) {
+            @NotNull List<? extends PolicyActionConfigItem<?>> actionsConfigItems, @NotNull Class<T> actionBeanClass) {
         //noinspection unchecked
-        return actions.stream()
-                .filter(a -> clazz.isAssignableFrom(a.value().getClass()))
+        return actionsConfigItems.stream()
+                .filter(a -> actionBeanClass.isAssignableFrom(a.value().getClass()))
                 .map(a -> (PolicyActionConfigItem<T>) a)
                 .collect(Collectors.toList());
     }
 
     @FunctionalInterface
-    interface ConstraintVisitor {
+    public interface ConstraintVisitor {
         /**
-         * Returns false if the process is to be finished.
+         * Visits given constraint.
+         *
+         * @param name {@link JAXBElement} name of the constraint (e.g. `minAssignees`, `assignment`, etc.)
+         * @param constraint the constraint itself (bean with the value)
+         * @return {@code false} if the visiting process is to be finished
          */
         boolean visit(QName name, AbstractPolicyConstraintType constraint);
     }
 
     /**
-     * Returns false if the process was stopped by the consumer.
-     * All references should be resolved.
+     * Visits all constraints in given {@link PolicyConstraintsType}.
+     *
+     * @param pc the constraints to visit
+     * @param deep whether we want to recursely visit embedded constraints (and, or, not, transition)
+     * @param alsoRoots whether we want to call the visitor also for the root (rootElementName must be set then)
+     * @param ignoreRefs {@code false} if we want to visit referenced constraints (which must be resolved then)
+     * @return {@code false} if the process was stopped by the {@link ConstraintVisitor}.
      */
     public static boolean accept(
             PolicyConstraintsType pc,
@@ -320,35 +122,35 @@ public class PolicyRuleTypeUtil {
         boolean rv;
         if (alsoRoots) {
             assert rootElementName != null;
-            rv = visit(Collections.singletonList(pc), rootElementName, visitor);
+            rv = accept(pc, rootElementName, visitor);
         } else {
             rv = true;
         }
-        rv = rv && visit(pc.getMinAssignees(), F_MIN_ASSIGNEES, visitor)
-                && visit(pc.getMaxAssignees(), F_MAX_ASSIGNEES, visitor)
-                && visit(pc.getObjectMinAssigneesViolation(), F_OBJECT_MIN_ASSIGNEES_VIOLATION, visitor)
-                && visit(pc.getObjectMaxAssigneesViolation(), F_OBJECT_MAX_ASSIGNEES_VIOLATION, visitor)
-                && visit(pc.getExclusion(), F_EXCLUSION, visitor)
-                && visit(pc.getAssignment(), F_ASSIGNMENT, visitor)
-                && visit(pc.getHasAssignment(), F_HAS_ASSIGNMENT, visitor)
-                && visit(pc.getHasNoAssignment(), F_HAS_NO_ASSIGNMENT, visitor)
-                && visit(pc.getRequirement(), F_REQUIREMENT, visitor)
-                && visit(pc.getModification(), F_MODIFICATION, visitor)
-                && visit(pc.getObjectTimeValidity(), F_OBJECT_TIME_VALIDITY, visitor)
-                && visit(pc.getAssignmentTimeValidity(), F_ASSIGNMENT_TIME_VALIDITY, visitor)
-                && visit(pc.getAssignmentState(), F_ASSIGNMENT_STATE, visitor)
-                && visit(pc.getObjectState(), F_OBJECT_STATE, visitor)
-                && visit(pc.getSituation(), F_SITUATION, visitor)
-                && visit(pc.getCustom(), F_CUSTOM, visitor)
-                && visit(pc.getTransition(), F_TRANSITION, visitor)
-                && visit(pc.getAlwaysTrue(), F_ALWAYS_TRUE, visitor)
-                && visit(pc.getOrphaned(), F_ORPHANED, visitor)
-                && visit(pc.getAnd(), F_AND, visitor)
-                && visit(pc.getOr(), F_OR, visitor)
-                && visit(pc.getNot(), F_NOT, visitor)
-                && visit(pc.getExecutionAttempts(), F_EXECUTION_ATTEMPTS, visitor)
-                && visit(pc.getExecutionTime(), F_EXECUTION_TIME, visitor)
-                && visit(pc.getItemProcessingResult(), F_ITEM_PROCESSING_RESULT, visitor);
+        rv = rv && accept(pc.getMinAssignees(), F_MIN_ASSIGNEES, visitor)
+                && accept(pc.getMaxAssignees(), F_MAX_ASSIGNEES, visitor)
+                && accept(pc.getObjectMinAssigneesViolation(), F_OBJECT_MIN_ASSIGNEES_VIOLATION, visitor)
+                && accept(pc.getObjectMaxAssigneesViolation(), F_OBJECT_MAX_ASSIGNEES_VIOLATION, visitor)
+                && accept(pc.getExclusion(), F_EXCLUSION, visitor)
+                && accept(pc.getAssignment(), F_ASSIGNMENT, visitor)
+                && accept(pc.getHasAssignment(), F_HAS_ASSIGNMENT, visitor)
+                && accept(pc.getHasNoAssignment(), F_HAS_NO_ASSIGNMENT, visitor)
+                && accept(pc.getRequirement(), F_REQUIREMENT, visitor)
+                && accept(pc.getModification(), F_MODIFICATION, visitor)
+                && accept(pc.getObjectTimeValidity(), F_OBJECT_TIME_VALIDITY, visitor)
+                && accept(pc.getAssignmentTimeValidity(), F_ASSIGNMENT_TIME_VALIDITY, visitor)
+                && accept(pc.getAssignmentState(), F_ASSIGNMENT_STATE, visitor)
+                && accept(pc.getObjectState(), F_OBJECT_STATE, visitor)
+                && accept(pc.getSituation(), F_SITUATION, visitor)
+                && accept(pc.getCustom(), F_CUSTOM, visitor)
+                && accept(pc.getTransition(), F_TRANSITION, visitor)
+                && accept(pc.getAlwaysTrue(), F_ALWAYS_TRUE, visitor)
+                && accept(pc.getOrphaned(), F_ORPHANED, visitor)
+                && accept(pc.getAnd(), F_AND, visitor)
+                && accept(pc.getOr(), F_OR, visitor)
+                && accept(pc.getNot(), F_NOT, visitor)
+                && accept(pc.getExecutionAttempts(), F_EXECUTION_ATTEMPTS, visitor)
+                && accept(pc.getExecutionTime(), F_EXECUTION_TIME, visitor)
+                && accept(pc.getItemProcessingResult(), F_ITEM_PROCESSING_RESULT, visitor);
 
         if (!ignoreRefs && !pc.getRef().isEmpty()) {
             throw new IllegalStateException("Unresolved constraint reference (" + pc.getRef() + ").");
@@ -366,15 +168,11 @@ public class PolicyRuleTypeUtil {
         return rv;
     }
 
-    private static boolean visit(AbstractPolicyConstraintType constraint, QName name, ConstraintVisitor visitor) {
-        List<AbstractPolicyConstraintType> constraints = new ArrayList<>();
-        if (constraint != null) {
-            constraints.add(constraint);
-        }
-        return visit(constraints, name, visitor);
+    private static boolean accept(AbstractPolicyConstraintType constraint, QName name, ConstraintVisitor visitor) {
+        return accept(MiscUtil.singletonOrEmptyList(constraint), name, visitor);
     }
 
-    private static boolean visit(List<? extends AbstractPolicyConstraintType> constraints, QName name, ConstraintVisitor visitor) {
+    private static boolean accept(List<? extends AbstractPolicyConstraintType> constraints, QName name, ConstraintVisitor visitor) {
         for (AbstractPolicyConstraintType constraint : constraints) {
             if (!visitor.visit(name, constraint)) {
                 return false;
@@ -385,136 +183,38 @@ public class PolicyRuleTypeUtil {
 
     private static boolean accept(
             List<PolicyConstraintsType> constraintsList,
-            ConstraintVisitor matcher,
+            ConstraintVisitor visitor,
             boolean alsoRoots,
             QName rootElementName,
             boolean ignoreRefs) {
         for (PolicyConstraintsType constraints : constraintsList) {
-            if (!accept(constraints, matcher, true, alsoRoots, rootElementName, ignoreRefs)) {
+            if (!accept(constraints, visitor, true, alsoRoots, rootElementName, ignoreRefs)) {
                 return false;
             }
         }
         return true;
     }
 
-    public static List<JAXBElement<AbstractPolicyConstraintType>> toConstraintsList(
-            PolicyConstraintsType pc, boolean deep, boolean ignoreRefs) {
-        List<JAXBElement<AbstractPolicyConstraintType>> rv = new ArrayList<>();
+    /**
+     * Returns the top-level list of constraints under a {@link PolicyConstraintsType}.
+     *
+     * @param ignoreRefs if {@code false}, the returned list will also contain referenced constraints (which must be resolved then)
+     */
+    public static List<JAXBElement<AbstractPolicyConstraintType>> toConstraintsList(PolicyConstraintsType pc, boolean ignoreRefs) {
+        List<JAXBElement<AbstractPolicyConstraintType>> constraints = new ArrayList<>();
         accept(
                 pc,
                 (name, c) -> {
-                    rv.add(toConstraintJaxbElement(name, c));
+                    constraints.add(toConstraintJaxbElement(name, c));
                     return true;
                 },
-                deep, false, null, ignoreRefs);
-        return rv;
+                false, false, null, ignoreRefs);
+        return constraints;
     }
 
     @NotNull
     private static JAXBElement<AbstractPolicyConstraintType> toConstraintJaxbElement(QName name, AbstractPolicyConstraintType c) {
         return new JAXBElement<>(name, AbstractPolicyConstraintType.class, c);
-    }
-
-    /**
-     * Returns true if this policy rule can be applied to an assignment.
-     * By default, rules that have only object-related constraints, are said to be applicable to objects only
-     * (even if technically they could be applied to assignments as well).
-     */
-    public static boolean isApplicableToAssignment(PolicyRuleType rule) {
-        PolicyRuleEvaluationTargetType evaluationTarget = rule.getEvaluationTarget();
-        if (evaluationTarget != null) {
-            return evaluationTarget == PolicyRuleEvaluationTargetType.ASSIGNMENT;
-        } else {
-            return hasAssignmentOnlyConstraint(rule) || !hasObjectRelatedConstraint(rule);
-        }
-    }
-
-    /**
-     * Returns true if this policy rule can be applied to an object as a whole.
-     */
-    public static boolean isApplicableToObject(PolicyRuleType rule) {
-        PolicyRuleEvaluationTargetType evaluationTarget = rule.getEvaluationTarget();
-        if (evaluationTarget != null) {
-            return evaluationTarget == PolicyRuleEvaluationTargetType.OBJECT;
-        } else {
-            return !hasAssignmentOnlyConstraint(rule);
-        }
-    }
-
-    /**
-     * Returns true if this policy rule can be applied to a projection.
-     */
-    public static boolean isApplicableToProjection(PolicyRuleType rule) {
-        return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.PROJECTION;
-    }
-
-    private static boolean hasAssignmentOnlyConstraint(PolicyRuleType rule) {
-        // 'accept' continues until isNotAssignmentOnly is false; and returns false then --> so we return true in that case (i.e. we have found assignmentOnly-constraint)
-        return !accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isNotAssignmentOnly, true, true, F_AND, false);
-    }
-
-    /*
-     * Returns true if rule contains only task activity related constraints like executionTime, executionAttempts, etc.
-     */
-    public static boolean hasActivityOnlyConstraint(PolicyRuleType rule) {
-        return accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isActivityConstraint, true, true, F_AND, false);
-    }
-
-    /**
-     * TODO: Maybe better name? hasModelContextOnlyConstraints() or hasModelOnlyConstraints() ?
-     *
-     * Returns true if rule contain only constraints that can be evaluated in model (lens/focus context).
-     * Opposite of {@link #hasActivityOnlyConstraint(PolicyRuleType)}.
-     *
-     * @see #hasActivityOnlyConstraint(PolicyRuleType)
-     */
-    public static boolean hasFocusOnlyConstraint(PolicyRuleType rule) {
-        return accept(rule.getPolicyConstraints(), (name, c) -> !isActivityConstraint(name, c), true, true, F_AND, false);
-    }
-
-    // do we have a constraint that indicates a use against object?
-    private static boolean hasObjectRelatedConstraint(PolicyRuleType rule) {
-        // 'accept' continues until isNotObjectRelated is false; and returns false then --> so we return true in that case (i.e. we have found object-related constraint)
-        return !accept(
-                rule.getPolicyConstraints(),
-                PolicyRuleTypeUtil::isNotObjectRelated,
-                true, true, F_AND, false);
-    }
-
-    private static final Set<Class<? extends AbstractPolicyConstraintType>> ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES =
-            new HashSet<>(Arrays.asList(AssignmentModificationPolicyConstraintType.class, ExclusionPolicyConstraintType.class));
-
-    private static boolean isNotAssignmentOnly(QName name, AbstractPolicyConstraintType c) {
-        boolean assignmentOnly = ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES.contains(c.getClass())
-                || QNameUtil.match(name, PolicyConstraintsType.F_ASSIGNMENT_STATE)
-                || QNameUtil.match(name, PolicyConstraintsType.F_ASSIGNMENT_TIME_VALIDITY)
-                || QNameUtil.match(name, PolicyConstraintsType.F_MIN_ASSIGNEES)     // these can be evaluated also on object level
-                || QNameUtil.match(name, PolicyConstraintsType.F_MAX_ASSIGNEES)     // but it requires evaluationTarget=object set (to maintain backwards compatibility)
-                ;
-        //System.out.println("isAssignmentOnly: " + name.getLocalPart() + "/" + c.getClass().getSimpleName() + " -> " + rv);
-        return !assignmentOnly;
-    }
-
-    private static boolean isActivityConstraint(QName name, AbstractPolicyConstraintType c) {
-        return QNameUtil.match(name, F_EXECUTION_TIME)
-                || QNameUtil.match(name, F_EXECUTION_ATTEMPTS)
-                || QNameUtil.match(name, F_ITEM_PROCESSING_RESULT)
-                ;
-    }
-
-    private static final Set<Class<? extends AbstractPolicyConstraintType>> OBJECT_RELATED_CONSTRAINTS_CLASSES =
-            new HashSet<>(Collections.singletonList(HasAssignmentPolicyConstraintType.class));
-
-    private static boolean isNotObjectRelated(QName name, AbstractPolicyConstraintType c) {
-        boolean objectRelated = OBJECT_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
-                || QNameUtil.match(name, PolicyConstraintsType.F_MODIFICATION)
-                || QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_STATE)
-                || QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_TIME_VALIDITY)
-                || QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_MIN_ASSIGNEES_VIOLATION)
-                || QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_MAX_ASSIGNEES_VIOLATION)
-                ;
-        //System.out.println("isObjectRelated: " + name.getLocalPart() + "/" + c.getClass().getSimpleName() + " -> " + rv);
-        return !objectRelated;
     }
 
     interface ConstraintResolver {

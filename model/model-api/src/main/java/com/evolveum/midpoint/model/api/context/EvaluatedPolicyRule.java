@@ -9,12 +9,13 @@ package com.evolveum.midpoint.model.api.context;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.policy.PolicyRuleApplicabilityUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -88,15 +89,15 @@ public interface EvaluatedPolicyRule extends AssociatedPolicyRule {
     boolean hasSituationConstraint();
 
     default boolean isApplicableToFocusObject() {
-        return PolicyRuleTypeUtil.isApplicableToObject(getPolicyRule());
+        return PolicyRuleApplicabilityUtil.isApplicableToFocusObject(getPolicyRule());
     }
 
     default boolean isApplicableToProjection() {
-        return PolicyRuleTypeUtil.isApplicableToProjection(getPolicyRule());
+        return PolicyRuleApplicabilityUtil.isApplicableToProjection(getPolicyRule());
     }
 
     default boolean isApplicableToAssignment() {
-        return PolicyRuleTypeUtil.isApplicableToAssignment(getPolicyRule());
+        return PolicyRuleApplicabilityUtil.isApplicableToAssignment(getPolicyRule());
     }
 
     /** To which object is the policy rule targeted and how. */

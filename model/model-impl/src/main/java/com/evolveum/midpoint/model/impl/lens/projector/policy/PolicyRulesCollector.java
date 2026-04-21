@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.policy.PolicyRuleApplicabilityUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,8 +116,8 @@ class PolicyRulesCollector<O extends ObjectType> {
                 continue;
             }
 
-            if (!PolicyRuleTypeUtil.hasFocusOnlyConstraint(rule.getPolicy())) {
-                continue;
+            if (PolicyRuleApplicabilityUtil.isApplicableToActivity(rule.getPolicy())) {
+                continue; // activity rules are mutually exclusive with "normal" (object, projection, assignment) ones
             }
 
             String ruleId = rule.getRuleIdentifier().toString();

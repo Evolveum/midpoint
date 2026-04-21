@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -19,9 +20,11 @@ public class EvaluatedHasAssignmentTrigger extends EvaluatedFocusPolicyRuleTrigg
     @NotNull private final Collection<PrismObject<?>> matchingTargets;
 
     public EvaluatedHasAssignmentTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull HasAssignmentPolicyConstraintType constraint,
+            @NotNull PolicyConstraintKind kind,
+            @NotNull HasAssignmentPolicyConstraintType constraint,
             @NotNull Collection<PrismObject<?>> matchingTargets,
-            LocalizableMessage message, LocalizableMessage shortMessage) {
+            LocalizableMessage message,
+            LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
         this.matchingTargets = matchingTargets;
     }

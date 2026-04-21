@@ -12,11 +12,10 @@ import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.repo.common.activity.policy.DataNeed;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +61,7 @@ public class ExecutionTimeConstraintEvaluator
     }
 
     @Override
-    protected PolicyConstraintKindType getPolicyConstraintKind() {
-        return PolicyConstraintKindType.EXECUTION_TIME;
+    protected PolicyConstraintKind getPolicyConstraintKind() {
+        return PolicyConstraintKind.EXECUTION_TIME;
     }
 }

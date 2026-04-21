@@ -17,18 +17,20 @@ import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrig
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedTransitionTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
+
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.TRANSITION;
 
 public class EvaluatedTransitionTrigger extends EvaluatedFocusPolicyRuleTrigger<TransitionPolicyConstraintType> {
 
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
     public EvaluatedTransitionTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull TransitionPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage,
+            @NotNull TransitionPolicyConstraintType constraint,
+            LocalizableMessage message,
+            LocalizableMessage shortMessage,
             @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
-        super(kind, constraint, message, shortMessage, false);
+        super(TRANSITION, constraint, message, shortMessage, false);
         this.innerTriggers = innerTriggers;
     }
 

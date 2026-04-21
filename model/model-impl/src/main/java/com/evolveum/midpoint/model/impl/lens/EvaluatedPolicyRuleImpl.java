@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.repo.common.activity.policy.PolicyRuleIdentifier;
 
+import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +36,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleIdentifier;
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.config.AbstractPolicyRuleConfigItem;
@@ -209,21 +210,6 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     @Override
     public boolean hasThreshold() {
         return EvaluatedPolicyRule.super.hasThreshold();
-    }
-
-    @Override
-    public boolean isApplicableToAssignment() {
-        return EvaluatedPolicyRule.super.isApplicableToAssignment();
-    }
-
-    @Override
-    public boolean isApplicableToFocusObject() {
-        return EvaluatedPolicyRule.super.isApplicableToFocusObject();
-    }
-
-    @Override
-    public boolean isApplicableToProjection() {
-        return EvaluatedPolicyRule.super.isApplicableToProjection();
     }
 
     @Override
@@ -497,11 +483,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
             sb.append(getName()).append(":");
         }
         sb.append("(")
-                .append(PolicyRuleTypeUtil.toShortString(getPolicyConstraints()))
+                .append(PolicyRuleDumpUtil.toShortString(getPolicyConstraints()))
                 .append(")");
         sb.append("->");
         sb.append("(")
-                .append(PolicyRuleTypeUtil.toShortString(getRawActions(), enabledActionsComputed ? enabledActions : null))
+                .append(PolicyRuleDumpUtil.toShortString(getRawActions(), enabledActionsComputed ? enabledActions : null))
                 .append(")");
         if (!getTriggers().isEmpty()) {
             sb.append(" # {T:");

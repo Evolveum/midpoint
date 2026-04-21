@@ -15,6 +15,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -138,7 +140,7 @@ public class HasAssignmentConstraintEvaluator
                     PrismObject<?> anyTargetObject = matchingTargets.get(0);
                     return List.of(
                             new EvaluatedHasAssignmentTrigger(
-                                    PolicyConstraintKindType.HAS_ASSIGNMENT, constraint, matchingTargets,
+                                    PolicyConstraintKind.HAS_ASSIGNMENT, constraint, matchingTargets,
                                     createPositiveMessage(constraintElement, ctx, anyTargetObject, result),
                                     createPositiveShortMessage(constraintElement, ctx, anyTargetObject, result)));
                 } else {
@@ -254,7 +256,7 @@ public class HasAssignmentConstraintEvaluator
                 String targetArchetypeOid = targetArchetypeRef.getOid();
                 return List.of(
                         new EvaluatedHasAssignmentTrigger(
-                                PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
+                                PolicyConstraintKind.HAS_NO_ASSIGNMENT, constraint, emptySet(),
                                 createNegativeArchetypeMessage(constraintElement, ctx, targetArchetypeOid, result),
                                 createNegativeShortArchetypeMessage(constraintElement, ctx, targetArchetypeOid, result)));
                 // targetName seems to be always null, even if specified in the policy rule
@@ -263,7 +265,7 @@ public class HasAssignmentConstraintEvaluator
                 String targetOid = targetRef.getOid();
                 return List.of(
                         new EvaluatedHasAssignmentTrigger(
-                                PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
+                                PolicyConstraintKind.HAS_NO_ASSIGNMENT, constraint, emptySet(),
                                 createNegativeMessage(constraintElement, ctx, targetType, targetOid, result),
                                 createNegativeShortMessage(constraintElement, ctx, targetType, targetOid, result)));
                         // targetName seems to be always null, even if specified in the policy rule

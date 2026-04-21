@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
@@ -80,7 +80,7 @@ public class ExclusionRequirementConstraintEvaluator
         try {
             LOGGER.trace("Evaluating {} constraint {} on {}",
                     isExclusion ? "exclusion" : "requirement",
-                    lazy(() -> PolicyRuleTypeUtil.toShortString(constraint)), rctx);
+                    lazy(() -> PolicyRuleDumpUtil.toShortString(constraint)), rctx);
             if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
                 return List.of();
             }

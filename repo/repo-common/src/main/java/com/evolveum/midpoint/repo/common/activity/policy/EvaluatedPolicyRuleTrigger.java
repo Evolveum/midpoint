@@ -11,11 +11,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -26,16 +28,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintPres
 
 public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType> implements DebugDumpable, Serializable {
 
-    @NotNull private final PolicyConstraintKindType constraintKind;
+    /**
+     * What is the specific constraint kind? It is here because the type of {@link #constraint} may be shared for multiple
+     * related constraints (like {@link PolicyConstraintKind#MIN_ASSIGNEES} and {@link PolicyConstraintKind#MAX_ASSIGNEES}).
+     */
+    @NotNull private final PolicyConstraintKind constraintKind;
 
+    /** The actual value (parameters) of the constraint. */
     @NotNull private final CT constraint;
 
+    /** Message describing the trigger. Like "assignment ... is going to be added". */
     private final LocalizableMessage message;
 
+    /** Short form of {@link #message}. */
     private final LocalizableMessage shortMessage;
 
     public EvaluatedPolicyRuleTrigger(
-            @NotNull PolicyConstraintKindType constraintKind,
+            @NotNull PolicyConstraintKind constraintKind,
             @NotNull CT constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage) {
@@ -47,10 +56,11 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 
     /**
      * The kind of constraint that caused the trigger.
+     * For backwards compatibility, we use the "serializable version" ({@link PolicyConstraintKindType}).
      */
     @NotNull
     public PolicyConstraintKindType getConstraintKind() {
-        return constraintKind;
+        return constraintKind.getSerializableVersion();
     }
 
     @NotNull
@@ -134,7 +144,7 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
     }
 
     public String toDiagShortcut() {
-        return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
+        return PolicyRuleDumpUtil.toDiagShortcut(constraintKind);
     }
 
     public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {

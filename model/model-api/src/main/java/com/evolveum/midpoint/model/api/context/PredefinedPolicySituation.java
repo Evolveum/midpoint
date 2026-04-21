@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 /**
  * @author semancik

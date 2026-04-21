@@ -6,10 +6,10 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ public abstract class EvaluatedExclusionRequirementTrigger extends EvaluatedFocu
 
     // we keep thisTarget and thisPath here because in the future they might be useful
     public EvaluatedExclusionRequirementTrigger(
-            @NotNull PolicyConstraintKindType policyConstraintKind,
+            @NotNull PolicyConstraintKind policyConstraintKind,
             @NotNull ExclusionPolicyConstraintType constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage,
@@ -37,7 +37,6 @@ public abstract class EvaluatedExclusionRequirementTrigger extends EvaluatedFocu
         this.thisTarget = thisTarget;
         this.thisPath = thisPath;
     }
-
 
     public @NotNull EvaluatedAssignment getThisAssignment() {
         return thisAssignment;
