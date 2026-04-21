@@ -14,6 +14,9 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchI
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Compares Search Items firstly by their displayOrder.
+ * If two Search Items have the same displayOrder (or have displayOrder null) they will be sorted alphabetically by their Name property.
+ *
  * @author matisovaa
  *
  */

@@ -93,22 +93,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         };
         add(items);
 
-        currentBiggestDisplayOrder = getModelObject().getItemsList().stream()
-                .peek(item -> {
-                    // add displayOrder for default search items which are visible, so they are properly sorted before items added by More button
-                    // this case occurs when only default search items are in search box
-                    if (item.isVisible() && item.getDisplayOrder() == null) {
-                        item.setDisplayOrder(++currentBiggestDisplayOrder);
-                    }
-                    // it is needed to remove displayOrder for not visible search items, so they are properly sorted in More button alphabetically
-                    // this case occurs when you switch between Saved filters
-                    if (!item.isVisible() && item.getDisplayOrder() != null) {
-                        item.setDisplayOrder(null);
-                    }
-                })
-                .map(FilterableSearchItemWrapper::getDisplayOrder)
-                .filter(Objects::nonNull)
-                .reduce(0, Integer::max);
+        currentBiggestDisplayOrder = calculateCurrentBiggestDisplayOrder();
 
         // it is needed to sort search items after removal of displayOrder for not visible search items,
         // so they are properly sorted in More button alphabetically
@@ -193,6 +178,41 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
 
     public void sortItems() {
         getModelObject().getItemsList().sort(new SearchItemWrapperComparator<>());
+    }
+
+    /**
+     * Calculates Current Biggest Display Order of visible Search panel items.
+     * It updates displayOrder of some search items before calculation to ensure that all visible items have displayOrder set and
+     * all not visible items have displayOrder null.
+     * Setting of displayOrder only for all visible items is crucial to preserve their order after adding of new items by More button.
+     *
+     * @return the biggest displayOrder of item in search box
+     */
+    private int calculateCurrentBiggestDisplayOrder() {
+        return getModelObject().getItemsList().stream()
+                .peek(this::updateDisplayOrderIfNeeded)
+                .map(FilterableSearchItemWrapper::getDisplayOrder)
+                .filter(Objects::nonNull)
+                .reduce(0, Integer::max);
+    }
+
+    /**
+     * Updates displayOrder of search item if needed to ensure that visible item have displayOrder set and
+     * not visible item have displayOrder null.
+     *
+     * @param item for update of displayOrder if needed
+     */
+    private void updateDisplayOrderIfNeeded(FilterableSearchItemWrapper<?> item) {
+        // add displayOrder for default search items which are visible, so they are properly sorted before items added by More button
+        // this case occurs when only default search items are in search box
+        if (item.isVisible() && item.getDisplayOrder() == null) {
+            item.setDisplayOrder(++currentBiggestDisplayOrder);
+        }
+        // it is needed to remove displayOrder for not visible search items, so they are properly sorted in More button alphabetically
+        // this case occurs when you switch between Saved filters
+        if (!item.isVisible() && item.getDisplayOrder() != null) {
+            item.setDisplayOrder(null);
+        }
     }
 
     private void addPopoverStatusMessage(AjaxRequestTarget target, String markupId, String message, int refreshInMillis) {

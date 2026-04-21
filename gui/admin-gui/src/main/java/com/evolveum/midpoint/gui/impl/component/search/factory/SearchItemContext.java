@@ -194,10 +194,7 @@ public class SearchItemContext implements Serializable {
     }
 
     public Integer getDisplayOrder() {
-        if (item.getDisplayOrder() != null) {
-            return item.getDisplayOrder();
-        }
-        return null;
+        return item.getDisplayOrder();
     }
 
     public IModel<String> getDisplayName() {

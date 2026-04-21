@@ -97,25 +97,46 @@ public class SearchConfigurationMerger {
         return searchItems;
     }
 
-    private static List<SearchItemType> getSearchItemsWithDisplayOrder(SearchItemsType searchItems) {
+    /**
+     * Checks all search items in the list whether they have displayOrder set.
+     * For each search item without displayOrder we set its displayOrder to its index in the list.
+     *
+     * @param searchItems for which we need to have displayOrder set
+     * @return list of SearchItem where each have displayOrder set
+     */
+    private static List<SearchItemType> getSearchItemsWithDisplayOrder(final SearchItemsType searchItems) {
         return IntStream
                 .range(0, searchItems.getSearchItem().size())
                 .mapToObj(i -> {
                     final SearchItemType customSearchItem = searchItems.getSearchItem().get(i);
-                    if (customSearchItem.getDisplayOrder() == null) {
-                        customSearchItem.setDisplayOrder(i);
-                    }
-                    return customSearchItem;
+                    return customSearchItem.getDisplayOrder() == null ?
+                            updateDisplayOrder(customSearchItem, i) :
+                            customSearchItem;
                 }).collect(Collectors.toList());
     }
 
-    private static List<SearchItemType> getSearchItemsWithRemovedVisibleByDefault(SearchItemsType searchItems) {
+    /**
+     * Sets displayOrder of given SearchItem to given value.
+     *
+     * @param searchItem for which we want set new displayOrder
+     * @param newDisplayOrder new value of displayOrder
+     * @return SearchItem with updated displayOrder
+     */
+    private static SearchItemType updateDisplayOrder(final SearchItemType searchItem, final Integer newDisplayOrder) {
+        searchItem.setDisplayOrder(newDisplayOrder);
+        return searchItem;
+    }
+
+    /**
+     * Removes (sets to null) visibleByDefault property for all given SearchItems.
+     *
+     * @param searchItems for which we want to remove visibleByDefault property
+     * @return list of SearchItem where each have visibleByDefault set to null
+     */
+    private static List<SearchItemType> getSearchItemsWithRemovedVisibleByDefault(final SearchItemsType searchItems) {
         return searchItems.getSearchItem().stream()
-                .peek(searchItem -> {
-                    if (searchItem.isVisibleByDefault() != null) {
-                        searchItem.setVisibleByDefault(null);
-                    }
-                }).toList();
+                .peek(searchItem -> searchItem.setVisibleByDefault(null))
+                .toList();
     }
 
     private static Predicate<SearchItemType> searchItemMatch(SearchItemType searchItem) {
