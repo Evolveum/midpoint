@@ -23,12 +23,21 @@ import static com.evolveum.midpoint.common.MimeTypeUtil.*;
 import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_CONTENT_TYPES;
 
 /**
+ * Handle sanitization if images. Sanitization is configurable by input ImageUploadProcessingType configuration.
+ * Possible sanitization options are e.g. remove EXIF data or convert to fixed format.
+ *
  * @author matisovaa
  *
  */
 public final class ImageSanitizationUtil {
     private static final Trace LOGGER = TraceManager.getTrace(ImageSanitizationUtil.class);
 
+    /**
+     * Determines ContentType by comparing first bytes of file byte array with known magic numbers of ContentTypes.
+     *
+     * @param fileBites file byte array to determine ContentType
+     * @return ContentType or null if ContentType was not possible to determine
+     */
     public static String getContentTypeFromFileMagicNumber(final byte[] fileBites) {
         magicNumbersFor:
         for (final byte[] magicNumber : MAGIC_NUMBERS_TO_CONTENT_TYPES.keySet()) {
@@ -45,6 +54,15 @@ public final class ImageSanitizationUtil {
         return null;
     }
 
+    /**
+     * Sanitize image based on ImageUploadProcessingType configuration.
+     *
+     * @param originalBytes image to sanitize
+     * @param imageUploadProcessingConfig configuration what conversion is needed with input image
+     * e.g. remove EXIF data or convert to fixed format
+     * @return image updated based on given configuration
+     * @throws ImageSanitizationException if there was error during sanitization process
+     */
     public static byte[] sanitizeImage(final byte[] originalBytes, final ImageUploadProcessingType imageUploadProcessingConfig)
             throws ImageSanitizationException {
         if (imageUploadProcessingConfig == null) {
@@ -85,6 +103,13 @@ public final class ImageSanitizationUtil {
         return getContentTypeFromFileMagicNumber(originalBytes);
     }
 
+    /**
+     * Reads input byte array to BufferedImage
+     *
+     * @param imageBytes to convert to BufferedImage
+     * @return image as BufferedImage
+     * @throws ImageSanitizationException if read of image ends with error
+     */
     private static BufferedImage readImage(final byte[] imageBytes)
             throws ImageSanitizationException {
         BufferedImage image;
@@ -99,25 +124,33 @@ public final class ImageSanitizationUtil {
         return image;
     }
 
+    /**
+     * Writes input BufferedImage to byte array of given output image file format.
+     *
+     * @param image to convert to byte array
+     * @param outputImageFormatName name of output image format
+     * @return image as byte array of given output image file format
+     * @throws ImageSanitizationException if write of image ends with error
+     */
     private static byte[] writeImage(final BufferedImage image, final String outputImageFormatName)
             throws ImageSanitizationException {
-        byte[] outputBytes;
         try {
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            if (ImageIO.write(image, outputImageFormatName, baos)) {
-                outputBytes = baos.toByteArray();
-            } else {//TODO refactor to many conditions
-                if (getExtensionRaw(MIME_IMAGE_JPEG).equals(outputImageFormatName)
-                        && ImageIO.write(handleTransparency(image), outputImageFormatName, baos)) {
-                    outputBytes = baos.toByteArray();
-                } else {
-                    throw new ImageSanitizationException("No " + outputImageFormatName + " writer available.");
-                }
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+            if (ImageIO.write(image, outputImageFormatName, byteArrayOutputStream)) {
+                return byteArrayOutputStream.toByteArray();
             }
+
+            // try to handle PNG to JPG conversion
+            if (getExtensionRaw(MIME_IMAGE_JPEG).equals(outputImageFormatName)
+                    && ImageIO.write(handleTransparency(image), outputImageFormatName, byteArrayOutputStream)) {
+                return byteArrayOutputStream.toByteArray();
+            }
+
+            throw new ImageSanitizationException("No " + outputImageFormatName + " writer available.");
         } catch (IOException e) {
             throw new ImageSanitizationException("Failed to write " + outputImageFormatName + " image for sanitization.", e);
         }
-        return outputBytes;
     }
 
     /**
