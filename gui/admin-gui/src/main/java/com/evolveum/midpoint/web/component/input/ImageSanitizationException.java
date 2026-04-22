@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.web.component.input;
 
 /**
+ * Thrown when error occurs during file sanitization process.
+ *
  * @author matisovaa
+ *
  */
 public class ImageSanitizationException extends Exception {
 
