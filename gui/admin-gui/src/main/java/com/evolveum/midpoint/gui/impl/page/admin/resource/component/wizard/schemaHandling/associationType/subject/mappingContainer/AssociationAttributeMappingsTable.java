@@ -204,7 +204,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                         ? AssociationConstructionExpressionEvaluatorType.F_OBJECT_REF
                         : AssociationConstructionExpressionEvaluatorType.F_ATTRIBUTE;
 
-        PrismContainerValueWrapper<MappingType> newVirtualMappingValue = createNewVirtualMappingValue(
+        createNewVirtualMappingValue(
                 oldMappingValue,
                 getValueModel(),
                 associationType,
@@ -214,28 +214,28 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 target);
     }
 
-//    @Override
-//    protected void resolveDeletedItem(@NotNull PrismContainerValueWrapper<MappingType> value) {
-//        try {
-//            if (value.getStatus() == ValueStatus.ADDED) {
-//                boolean removed = removeAssociationObjectRefMapping(value);
-//                if (!removed) {
-//                    removed = removeAssociationAttributeMapping(value);
-//                }
-//
-//                if (!removed) {
-//                    LOGGER.debug("Couldn't physically remove added association mapping {}, marking as deleted instead.", value);
-//                    value.setStatus(ValueStatus.DELETED);
-//                }
-//            } else {
-//                value.setStatus(ValueStatus.DELETED);
-//            }
-//        } catch (SchemaException e) {
-//            getPageBase().error("Couldn't delete mapping: " + e.getMessage());
-//        } finally {
-//            value.setSelected(false);
-//        }
-//    }
+    @Override
+    protected void resolveDeletedItem(@NotNull PrismContainerValueWrapper<MappingType> value) {
+        try {
+            if (value.getStatus() == ValueStatus.ADDED) {
+                boolean removed = removeAssociationObjectRefMapping(value);
+                if (!removed) {
+                    removed = removeAssociationAttributeMapping(value);
+                }
+
+                if (!removed) {
+                    LOGGER.debug("Couldn't physically remove added association mapping {}, marking as deleted instead.", value);
+                    value.setStatus(ValueStatus.DELETED);
+                }
+            } else {
+                value.setStatus(ValueStatus.DELETED);
+            }
+        } catch (SchemaException e) {
+            getPageBase().error("Couldn't delete mapping: " + e.getMessage());
+        } finally {
+            value.setSelected(false);
+        }
+    }
 
     private boolean removeAssociationAttributeMapping(
             @NotNull PrismContainerValueWrapper<MappingType> value) throws SchemaException {
@@ -270,22 +270,22 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
         return false;
     }
 
-//    @Override
-//    protected void createDuplicateValuePerform(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
-//        createNewVirtualMappingValue(
-//                value,
-//                getValueModel(),
-//                isAttributeRefMapping(value)
-//                        ? MappingDirection.ATTRIBUTE
-//                        : MappingDirection.OBJECTS,
-//                isAttributeRefMapping(value)
-//                        ? AssociationConstructionExpressionEvaluatorType.F_ATTRIBUTE
-//                        : AssociationConstructionExpressionEvaluatorType.F_OBJECT_REF,
-//                AbstractAttributeMappingsDefinitionType.F_REF,
-//                getPageBase(),
-//                target);
-//        refreshAndDetach(target);
-//    }
+    @Override
+    protected void createDuplicateValuePerform(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
+        createNewVirtualMappingValue(
+                value,
+                getValueModel(),
+                isAttributeRefMapping(value)
+                        ? MappingDirection.ATTRIBUTE
+                        : MappingDirection.OBJECTS,
+                isAttributeRefMapping(value)
+                        ? AssociationConstructionExpressionEvaluatorType.F_ATTRIBUTE
+                        : AssociationConstructionExpressionEvaluatorType.F_OBJECT_REF,
+                AbstractAttributeMappingsDefinitionType.F_REF,
+                getPageBase(),
+                target);
+        refreshAndDetach(target);
+    }
 
     protected abstract boolean isAttributeVisible();
 
@@ -316,6 +316,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     protected boolean isAttributeRefMapping(@NotNull PrismContainerValue<MappingType> row) {
         return !row.getPath().containsNameExactly(AssociationConstructionExpressionEvaluatorType.F_OBJECT_REF);
     }
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getColumns() {

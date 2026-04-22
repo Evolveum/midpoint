@@ -224,6 +224,10 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
     }
 
     void resolveDeletedItem(@NotNull PrismContainerValueWrapper<MappingType> value) {
+        table.resolveDeletedItem(value);
+    }
+
+    void resolveMappingDeletedItem(@NotNull PrismContainerValueWrapper<MappingType> value) {
         try {
             if (value.getStatus() == ValueStatus.ADDED) {
                 PrismContainerWrapper<ResourceAttributeDefinitionType> container =
@@ -362,8 +366,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
     }
 
     void createDuplicateValuePerform(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
-        table.createNewValue(value, target);
-        table.refreshAndDetach(target);
+        table.createDuplicateValuePerform(value, target);
     }
 
     @NotNull InlineMenuItem createResourceAttributeStatisticsMenu(ResourceObjectTypeDefinitionType objectTypeDefinitionType) {

@@ -492,6 +492,15 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 target);
     }
 
+    protected void createDuplicateValuePerform(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
+        createNewValue(value, target);
+        refreshAndDetach(target);
+    }
+
+    protected void resolveDeletedItem(@NotNull PrismContainerValueWrapper<MappingType> value) {
+        actions.resolveMappingDeletedItem(value);
+    }
+
     protected void deleteItemPerform(@NotNull PrismContainerValueWrapper<MappingType> value) {
         actions.deleteItemPerform(value);
     }
