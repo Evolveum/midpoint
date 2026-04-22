@@ -17,6 +17,9 @@ import static com.evolveum.midpoint.web.component.FileTestConstants.*;
 import static org.testng.Assert.*;
 
 /**
+ * Tests of methods for file validation.
+ * E.g. if contentType is from allowed list or if inputStream begins with magic number of expected contentType.
+ *
  * @author matisovaa
  *
  */

@@ -15,6 +15,9 @@ import static com.evolveum.midpoint.common.MimeTypeUtil.*;
 
 /**
  * Constants related to file validation and sanitization
+ *
+ * @author matisovaa
+ *
  */
 public final class FileMagicNumberConstants {
 

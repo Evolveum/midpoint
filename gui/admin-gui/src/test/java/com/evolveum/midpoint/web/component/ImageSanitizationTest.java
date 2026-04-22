@@ -25,6 +25,9 @@ import static org.junit.Assert.*;
 import static org.testng.Assert.assertSame;
 
 /**
+ * Tests of methods for file sanitization based on ImageUploadProcessingType configuration.
+ * E.g. if sanitization removes EXIF data or converts image to expected output format.
+ *
  * @author matisovaa
  *
  */
@@ -50,7 +53,7 @@ public class ImageSanitizationTest {
     }
 
     @Test
-    public void test4299_40ImageSanitization_preserveFormat_preserveExif() throws Exception {
+    public void test4299_40ImageSanitization_preserveFormat_preserveEXIF() throws Exception {
         // asserts if it returns the same reference, so no processing was performed at all
         assertSame(ImageSanitizationUtil.sanitizeImage(JPG_METADATA_ARRAY, getImageUploadProcessingPreserve()), JPG_METADATA_ARRAY);
     }
