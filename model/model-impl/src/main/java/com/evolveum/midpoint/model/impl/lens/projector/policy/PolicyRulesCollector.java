@@ -41,10 +41,10 @@ import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
-import com.evolveum.midpoint.schema.config.ActivityPolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
+import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.policy.PolicyRuleApplicabilityUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -127,8 +127,8 @@ class PolicyRulesCollector<O extends ObjectType> {
             }
 
             String ruleId = rule.getRuleIdentifier().toString();
-            ActivityPolicyRuleConfigItem ruleCI =
-                    ConfigurationItem.configItem(rule.getPolicy(), rule.getOrigin(), ActivityPolicyRuleConfigItem.class);
+            PolicyRuleConfigItem ruleCI =
+                    ConfigurationItem.configItem(rule.getPolicy(), rule.getOrigin(), PolicyRuleConfigItem.class);
 
             LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
             rules.add(new EvaluatedPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT, rule));
@@ -261,8 +261,8 @@ class PolicyRulesCollector<O extends ObjectType> {
 
                 for (ActivityPolicyRule rule : activityRules) {
                     String ruleId = rule.getRuleIdentifier().toString();
-                    ActivityPolicyRuleConfigItem ci =
-                            ConfigurationItem.configItem(rule.getPolicy(), rule.getOrigin(), ActivityPolicyRuleConfigItem.class);
+                    PolicyRuleConfigItem ci =
+                            ConfigurationItem.configItem(rule.getPolicy(), rule.getOrigin(), PolicyRuleConfigItem.class);
 
                     LOGGER.trace("Collecting activity policy rule for assignment '{}' ({})", ci.getName(), ruleId);
                     evaluatedAssignment.addTargetPolicyRule(
