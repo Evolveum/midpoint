@@ -27,8 +27,9 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 public class XlsxDownloadInlineMenuItem extends ExportDownloadInlineMenuItem {
 
-    private static final Trace LOGGER = TraceManager.getTrace(XlsxDownloadInlineMenuItem.class);
     @Serial private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(XlsxDownloadInlineMenuItem.class);
 
     public XlsxDownloadInlineMenuItem(ContainerableListPanel component, String fileNamePrefix) {
         super(ColumnUtils.createStringResource("XlsxDownloadButtonPanel.export"), component, fileNamePrefix);
