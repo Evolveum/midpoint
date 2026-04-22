@@ -11,10 +11,7 @@ import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.Target
 import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -62,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Collects relevant rules (for assignments, focus, or projection) from all relevant sources.
  *
  * @see #collectObjectRules(OperationResult)
- * @see #collectGlobalAssignmentRules(DeltaSetTriple, OperationResult)
+ * @see #collectAllAssignmentRules(DeltaSetTriple, OperationResult)
  */
 class PolicyRulesCollector<O extends ObjectType> {
 
@@ -105,26 +102,26 @@ class PolicyRulesCollector<O extends ObjectType> {
         return rules;
     }
 
-    private void collectActivityObjectRules(List<EvaluatedPolicyRuleImpl> rules) {
+    private Collection<ActivityPolicyRule> getEnabledActivityRules() {
+        Collection<ActivityPolicyRule> activityRules;
         // todo this doesn't seem right [viliam]
-        Collection<ActivityPolicyRule> activityRules = null;
         if (task.getExecutionSupport() instanceof AbstractActivityRun<?, ?, ?> activityRun) {
             activityRules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
+        } else {
+            activityRules = Collections.emptyList();
         }
 
-        if (activityRules == null || activityRules.isEmpty()) {
-            return;
-        }
+        // todo filter out policies that have non-focus constraints [viliam]
+        //  check enabled condition, and expression condition ->
+        //  enabled switch is used mainly in GUI to disable activity policies, condition for more granular behavior changes
+        //  fix enabled switch on other places where condition is used
+        return activityRules.stream()
+                .filter(r -> BooleanUtils.isNotFalse(r.getPolicy().isEnabled()))
+                .toList();
+    }
 
-        for (ActivityPolicyRule rule : activityRules) {
-            // todo filter out policies that have non-focus constraints [viliam]
-            //  check enabled condition, and expression condition ->
-            //  enabled switch is used mainly in GUI to disable activity policies, condition for more granular behavior changes
-            //  fix enabled switch on other places where condition is used
-            if (BooleanUtils.isTrue(rule.getPolicy().isEnabled())) {
-                continue;
-            }
-
+    private void collectActivityObjectRules(List<EvaluatedPolicyRuleImpl> rules) {
+        for (ActivityPolicyRule rule : getEnabledActivityRules()) {
             if (PolicyRuleApplicabilityUtil.isApplicableToActivity(rule.getPolicy())) {
                 continue; // activity rules are mutually exclusive with "normal" (object, projection, assignment) ones
             }
@@ -170,8 +167,17 @@ class PolicyRulesCollector<O extends ObjectType> {
         LOGGER.trace("Selected {} global policy rules for further evaluation", globalRulesFound);
     }
 
+    void collectAllAssignmentRules(
+            DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+
+        collectGlobalAssignmentRules(evaluatedAssignmentTriple, result);
+        collectActivityAssignmentRules(evaluatedAssignmentTriple);
+    }
+
     /** [EP:M:PRC] DONE rules are from {@link #rulesWithIds} only */
-    void collectGlobalAssignmentRules(
+    private void collectGlobalAssignmentRules(
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
@@ -193,15 +199,7 @@ class PolicyRulesCollector<O extends ObjectType> {
                             .withLogging(LOGGER, "Global policy rule " + ruleName + " target selector: ");
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
                 for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) { // MID-6403
-                    boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
-                    if (!appliesDirectlyToTarget && !target.getAssignmentPath().last().isMatchingOrder()) {
-                        // This is to be thought out well. It is of no use to include global policy rules
-                        // attached to meta-roles assigned to the role being assigned to the focus.
-                        //
-                        // But we certainly need to include rules
-                        //
-                        // 1. attached to a directly assigned role (because they might be considered for assignment)
-                        // 2. attached to an indirectly assigned role but of the matching order (because of exclusion violation).
+                    if (!isAssignmentTargetApplicable(target)) {
                         continue;
                     }
                     if (!selectorMatcher.matches(target.getTarget())) {
@@ -214,6 +212,8 @@ class PolicyRulesCollector<O extends ObjectType> {
                                 ruleName, ruleWithId);
                         continue;
                     }
+
+                    boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
                     LOGGER.trace("Collecting global policy rule '{}' in {}, considering target {} (applies directly: {})",
                             ruleCI.getName(), evaluatedAssignment, target, appliesDirectlyToTarget);
                     evaluatedAssignment.addTargetPolicyRule(
@@ -228,6 +228,57 @@ class PolicyRulesCollector<O extends ObjectType> {
             }
         }
         LOGGER.trace("Global policy rules instantiated {} times for further evaluation", globalRulesInstantiated);
+
+    }
+
+    private boolean isAssignmentTargetApplicable(EvaluatedAssignmentTargetImpl target) {
+        boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
+
+        // This is to be thought out well. It is of no use to include global policy rules
+        // attached to meta-roles assigned to the role being assigned to the focus.
+        //
+        // But we certainly need to include rules
+        //
+        // 1. attached to a directly assigned role (because they might be considered for assignment)
+        // 2. attached to an indirectly assigned role but of the matching order (because of exclusion violation).
+        return appliesDirectlyToTarget || target.getAssignmentPath().last().isMatchingOrder();
+    }
+
+    private void collectActivityAssignmentRules(DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple) {
+        int activityRulesInstantiated = 0;
+
+        Collection<ActivityPolicyRule> activityRules = getEnabledActivityRules().stream()
+                .filter(r -> PolicyRuleApplicabilityUtil.isApplicableToAssignment(r.getPolicy()))
+                .toList();
+
+        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
+            for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) { // MID-6403
+                if (!isAssignmentTargetApplicable(target)) {
+                    continue;
+                }
+
+                boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
+
+                for (ActivityPolicyRule rule : activityRules) {
+                    String ruleId = rule.getRuleIdentifier().toString();
+                    ActivityPolicyRuleConfigItem ci =
+                            ConfigurationItem.configItem(rule.getPolicy(), rule.getOrigin(), ActivityPolicyRuleConfigItem.class);
+
+                    LOGGER.trace("Collecting activity policy rule for assignment '{}' ({})", ci.getName(), ruleId);
+                    evaluatedAssignment.addTargetPolicyRule(
+                            new EvaluatedPolicyRuleImpl(
+                                    ci,
+                                    ruleId,
+                                    target.getAssignmentPath().clone(),
+                                    evaluatedAssignment,
+                                    appliesDirectlyToTarget ? DIRECT_ASSIGNMENT_TARGET : INDIRECT_ASSIGNMENT_TARGET,
+                                    rule));
+                    activityRulesInstantiated++;
+                }
+            }
+        }
+
+        LOGGER.trace("Activity policy rules instantiated {} times for further evaluation", activityRulesInstantiated);
     }
 
     /**

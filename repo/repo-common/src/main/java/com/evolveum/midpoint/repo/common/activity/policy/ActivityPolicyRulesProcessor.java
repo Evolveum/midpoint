@@ -168,7 +168,6 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void executeActions(GenericEvaluatedPolicyRule rule, OperationResult result) throws ActivityRunPolicyException {
-
         for (PolicyActionType action : rule.getActions()) {
             if (action instanceof NotificationPolicyActionType) {
                 LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);

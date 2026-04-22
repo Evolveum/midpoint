@@ -54,7 +54,7 @@ class AssignmentPolicyRuleEvaluator<F extends AssignmentHolderType> extends Poli
             ConfigurationException, SecurityViolationException {
 
         collector.initialize(result);
-        collector.collectGlobalAssignmentRules(evaluatedAssignmentTriple, result);
+        collector.collectAllAssignmentRules(evaluatedAssignmentTriple, result);
 
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
             Collection<EvaluatedPolicyRuleImpl> policyRules = evaluatedAssignment.getAllTargetsPolicyRules();
