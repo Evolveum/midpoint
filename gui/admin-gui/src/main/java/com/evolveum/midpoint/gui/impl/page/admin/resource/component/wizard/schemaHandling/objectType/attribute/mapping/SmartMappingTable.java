@@ -63,12 +63,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
+import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
@@ -201,6 +205,15 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                 protected void refresh(AjaxRequestTarget target) {
                                     super.refresh(target);
                                     SmartMappingTable.this.refreshAndDetach(target);
+                                }
+
+                                @Override
+                                protected void performOnAccept(AjaxRequestTarget target, PrismContainerValueWrapper<MappingType> selected) {
+                                    if (isForceDiscardMappingEnabled()) {
+                                        onAcceptSelected(selected, target);
+                                    } else {
+                                        showAcceptConfirmation(selected, target);
+                                    }
                                 }
 
                                 @Override
@@ -382,6 +395,77 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         columnTileTable.setDefaultPagingSize(MAX_TILE_COUNT);
 
         return columnTileTable;
+    }
+
+    protected void showAcceptConfirmation(PrismContainerValueWrapper<MappingType> selected, @NotNull AjaxRequestTarget target) {
+        IModel<Boolean> rememberChoiceModel = Model.of(false);
+
+        List<ConfirmationOption<Describable>> options = List.of(
+                new ConfirmationOption<>(
+                        rememberChoiceModel,
+                        new RememberDiscardSelection(),
+                        null
+                )
+        );
+
+        MappingDataDto groupedDto = Objects.requireNonNull(getProvider()).findGroupedDto(selected);
+        if (groupedDto == null) {
+            return;
+        }
+        String targetName = String.valueOf(groupedDto.getKeyValue());
+
+        ConfirmationWithOptionsDto<Describable> dto = ConfirmationWithOptionsDto.builder()
+                .confirmationTitle(createStringResource("MappingSuggestionGroupColumnTilePanel.accept.confirmation.title"))
+                .confirmationSubtitle(createStringResource(
+                        "MappingSuggestionGroupColumnTilePanel.accept.confirmation.message",
+                        targetName))
+                .confirmationOptionsTitle(null)
+                .confirmationInfoMessage(null)
+                .confirmationButtonLabel(createStringResource("MappingSuggestionGroupColumnTilePanel.acceptSelected"))
+                .titleIconCssClass("text-danger")
+                .externalLinkUrl(null)
+                .confirmationOptions(options)
+                .build();
+
+        ConfirmationWithOptionsPanel<Describable> dialog =
+                new ConfirmationWithOptionsPanel<>(getPageBase().getMainPopupBodyId(), () -> dto) {
+                    @Override
+                    public void confirmationPerformed(
+                            AjaxRequestTarget target,
+                            IModel<List<ConfirmationOption<Describable>>> confirmedOptions) {
+
+                        if (Boolean.TRUE.equals(rememberChoiceModel.getObject())) {
+                            getPageBase()
+                                    .getSessionStorage().getSuggestionsStorage()
+                                    .setForceDiscardMappingEnabled(true);
+                        }
+
+                        var accepted = SmartMappingTable.this.acceptSuggestionItemPerformed(() -> selected, target);
+                        getAcceptedSuggestionsCache().add(accepted);
+                        groupedDto.getColumnsValues().forEach(SmartMappingTable.this::deleteItemPerform);
+                        SmartMappingTable.this.refreshAndDetach(target);
+                    }
+                };
+
+        getPageBase().replaceMainPopup(dialog, target);
+    }
+
+    protected boolean isForceDiscardMappingEnabled() {
+        return getPageBase()
+                .getSessionStorage().getSuggestionsStorage()
+                .isForceDiscardMappingEnabled();
+    }
+
+    private class RememberDiscardSelection implements Describable {
+        @Override
+        public IModel<String> title() {
+            return createStringResource("MappingSuggestionGroupColumnTilePanel.accept.confirmation.option.hide.title");
+        }
+
+        @Override
+        public IModel<String> description() {
+            return Model.of("");
+        }
     }
 
     protected String getNewObjectButtonCssClass() {
@@ -1402,6 +1486,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     private @NotNull PreviewMappingPanel buildPreviewMappingPanelPopup(IModel<PrismContainerValueWrapper<MappingType>> mappingWrapper) {
+
         return new PreviewMappingPanel(
                 getPageBase().getMainPopupBodyId(),
                 mappingWrapper,
@@ -1419,7 +1504,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     repeater.add(discardSuggestionButton);
 
                     AjaxIconButton acceptSuggestionButton =
-                            buildAcceptButton(repeater, mappingWrapper);
+                            buildAcceptInGroupButton(repeater, mappingWrapper);
                     acceptSuggestionButton.add(AttributeModifier.replace("class", "btn btn-primary"));
                     repeater.add(acceptSuggestionButton);
                 }
@@ -1437,6 +1522,42 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 createStringResource("SmartMappingTable.apply.suggestion")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                var accepted = acceptSuggestionItemPerformed(rowModel, target);
+                getAcceptedSuggestionsCache().add(accepted);
+                refreshAndDetach(target);
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        acceptSuggestionButton.setOutputMarkupId(true);
+        acceptSuggestionButton.showTitleAsLabel(true);
+        return acceptSuggestionButton;
+    }
+
+    private @NotNull AjaxIconButton buildAcceptInGroupButton(
+            @NotNull RepeatingView repeater,
+            IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+        AjaxIconButton acceptSuggestionButton = new AjaxIconButton(
+                repeater.newChildId(),
+                Model.of("fa fa-check mr-2"),
+                createStringResource("SmartMappingTable.apply.suggestion")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                GroupedMappingDataProvider provider = getProvider();
+                MappingDataDto groupedDto = provider != null ? provider.findGroupedDto(rowModel.getObject()) : null;
+
+                if (groupedDto != null) {
+                    if (isForceDiscardMappingEnabled()) {
+                        var accepted = SmartMappingTable.this.acceptSuggestionItemPerformed(rowModel, target);
+                        getAcceptedSuggestionsCache().add(accepted);
+                        groupedDto.getColumnsValues().forEach(SmartMappingTable.this::deleteItemPerform);
+                        SmartMappingTable.this.refreshAndDetach(target);
+                        getPageBase().hideMainPopup(target);
+                    } else {
+                        showAcceptConfirmation(rowModel.getObject(), target);
+                    }
+                    return;
+                }
+
                 var accepted = acceptSuggestionItemPerformed(rowModel, target);
                 getAcceptedSuggestionsCache().add(accepted);
                 refreshAndDetach(target);
