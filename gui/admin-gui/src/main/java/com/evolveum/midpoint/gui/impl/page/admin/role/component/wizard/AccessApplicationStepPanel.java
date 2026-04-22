@@ -8,9 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.SingleTileWizardStepPanel;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.SingleTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -107,5 +107,10 @@ public class AccessApplicationStepPanel extends SingleTileWizardStepPanel<Servic
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    @Override
+    protected String getButtonsStripCssClass() {
+        return "col-12";
     }
 }

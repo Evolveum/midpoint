@@ -8,6 +8,10 @@ package com.evolveum.midpoint.model.intest.simulation;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
@@ -20,6 +24,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectAsserter;
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectsAsserter;
@@ -51,6 +59,8 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * Basic scenarios of production/development simulations: e.g., no create-on-demand.
  *
@@ -60,10 +70,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Structure:
  *
  * - `test1xx` deal with creation, modification, and deletion of user objects
- * - `test2xx` deal with importing single accounts from source resources
+ * - `test2xx` deal with importing accounts from source resources
  * - `test3xx` deal with simulated archetypes, roles, assignments/inducements, mappings
- *
- * *On native repo only!*
  */
 public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimulationsTest {
 
@@ -73,6 +81,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         return getExecutionMode(false);
     }
 
+    /**
+     * Returns the execution mode for actions executing as part of this test. We know that it should be one of simulation
+     * modes, but which one exactly: simulated-production or simulated-development or ... ?
+     *
+     * @param shadowSimulation is true if we are interested in low-level simulation, false if in regular one
+     */
     abstract TaskExecutionMode getExecutionMode(boolean shadowSimulation);
 
     /** Checks whether we can obtain a definition for given metric. */
@@ -574,7 +588,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         .asShadow()
                         .assertResource(target.oid)
                         .assertObjectClass(RI_ACCOUNT_OBJECT_CLASS)
-                        .assertKind(ShadowKindType.ACCOUNT)
+                        .assertKind(ACCOUNT)
                         .assertIntent("default")
                         .attributes()
                             .assertValue(ICFS_NAME, name)
@@ -761,7 +775,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     private void assertTest20xShadow(String name, Task task, OperationResult result) throws CommonException {
         assertShadowAfter(
                 findAccountByUsername(name, RESOURCE_SIMPLE_PRODUCTION_SOURCE.get(), task, result))
-                .assertKind(ShadowKindType.ACCOUNT)
+                .assertKind(ACCOUNT)
                 .assertIntent("default")
                 .assertIsExists()
                 .assertSynchronizationSituation(SynchronizationSituationType.UNMATCHED)
@@ -860,7 +874,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         PrismObject<ShadowType> shadow2 = findShadowByPrismName(accountName, resource.get(), result);
         assertShadow(shadow2, "after simulation")
                 .display()
-                .assertKind(ShadowKindType.ACCOUNT)
+                .assertKind(ACCOUNT)
                 .assertIntent("default");
 
         if (isProductionResource || isDevelopmentConfigurationSeen()) {
@@ -912,7 +926,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         PrismObject<ShadowType> shadow3 = findShadowByPrismName(accountName, resource.get(), result);
         assertShadow(shadow3, "after simulation")
                 .display()
-                .assertKind(ShadowKindType.ACCOUNT)
+                .assertKind(ACCOUNT)
                 .assertIntent("default");
 
         TestSimulationResult simResult3 = getTaskSimResult(taskOid3, result);
@@ -986,7 +1000,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         return po.assertEventMarks(MARK_SHADOW_CLASSIFICATION_CHANGED)
                 .delta()
                 .assertModify()
-                .assertModification(ShadowType.F_KIND, null, ShadowKindType.ACCOUNT)
+                .assertModification(ShadowType.F_KIND, null, ACCOUNT)
                 .assertModification(ShadowType.F_INTENT, null, intent)
                 .assertModifications(2)
                 .end();
@@ -1057,7 +1071,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 null, task, result);
         assertThat(objectsBefore).as("matching shadows").hasSize(1);
         assertShadow(objectsBefore.get(0), "before")
-                .assertKind(ShadowKindType.ACCOUNT)
+                .assertKind(ACCOUNT)
                 .assertIntent(INTENT_DEFAULT);
 
         when("shadow is changed so it will belong to 'person' type");
@@ -1078,12 +1092,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         if (!isProductionResource && isDevelopmentConfigurationSeen()) {
             then("the retrieved shadow has new intent");
             assertShadow(objectsAfter.get(0), "after")
-                    .assertKind(ShadowKindType.ACCOUNT)
+                    .assertKind(ACCOUNT)
                     .assertIntent("person");
         } else {
             then("the retrieved shadow has still old intent");
             assertShadow(objectsAfter.get(0), "after")
-                    .assertKind(ShadowKindType.ACCOUNT)
+                    .assertKind(ACCOUNT)
                     .assertIntent(INTENT_DEFAULT);
         }
     }
@@ -1114,7 +1128,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         when("account is imported in simulation mode");
         var simResult = importAccountsRequest()
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "employee"))
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, "employee"))
                 .withNameValue(name)
                 .withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION)
                 .withNotAssertingSuccess()
@@ -1151,8 +1165,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         OperationResult result = task.getResult();
 
         String name = "test240";
-        ResourceObjectTypeIdentification employeeTypeId =
-                ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "employee");
+        ResourceObjectTypeIdentification employeeTypeId = ResourceObjectTypeIdentification.of(ACCOUNT, "employee");
 
         given("an account on production source with an imported user");
         var account = RESOURCE_SIMPLE_PRODUCTION_SOURCE.addAccount(name);
@@ -1191,6 +1204,119 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         } else {
             a.assertSize(0); // Even the shadow is not visible, because the clockwork was not executed
         }
+    }
+
+    /**
+     * Checks the behavior of strong outbound password mapping related to import and reconciliation tasks.
+     *
+     * We have a user with accounts on source and target system, the later one having a strong outbound password.
+     *
+     * One could expect that such mapping will be always executed. But that is not the case. That mapping runs only
+     * for specific conditions, one of which is the presence of "reconciliation" flag. See the docs in
+     * {@link ProjectionCredentialsProcessor#processProjectionPasswordMapping(LensContext, LensProjectionContext,
+     * SecurityPolicyType, XMLGregorianCalendar, Task, OperationResult)}.
+     *
+     * Hence, import (both simulated and real) nor source reconciliation do not invoke the mapping.
+     * Only target reconciliation invokes it.
+     *
+     * MID-11161
+     */
+    @Test
+    public void test250ImportWithOutboundPassword() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        String userName = getTestNameShort();
+        String replacedPasswordValue = "replaced";
+        var targetObjectTypeId = ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_GENERATE_PASSWORD);
+
+        given("an account on production source with an imported user");
+        RESOURCE_SIMPLE_PRODUCTION_SOURCE.addAccount(userName);
+
+        and("its imported owner");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withTypeIdentification(ACCOUNT_DEFAULT)
+                .withNameValue(userName)
+                .executeOnForeground(result);
+        var userOid = assertUserBeforeByUsername(userName)
+                .getOid();
+
+        and("target account assigned");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(RESOURCE_SIMPLE_PRODUCTION_TARGET.assignmentTo(targetObjectTypeId))
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("password is generated on target resource");
+        DummyAccount targetAccount = RESOURCE_SIMPLE_PRODUCTION_TARGET.getDummyResource().getAccountByName(userName);
+        displayDumpable("target account", targetAccount);
+        String generatedPassword = targetAccount.getPassword();
+        assertThat(generatedPassword).isNotBlank();
+
+        and("password is changed manually on target resource");
+        targetAccount.setPassword(replacedPasswordValue);
+        assertThat(targetAccount.getPassword()).isEqualTo(replacedPasswordValue);
+
+        when("doing a simulated import from the source");
+        String simImportTaskOid = importAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withNameValue(userName)
+                .withTaskExecutionMode(getExecutionMode(false))
+                .execute(result);
+
+        then("password change is NOT reported");
+        assertProcessedObjects(getTaskSimResult(simImportTaskOid, result))
+                .by().resourceOid(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid).find()
+                .display()
+                .assertNoEventMarks();
+
+        when("doing real import from the source");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withNameValue(userName)
+                .execute(result);
+
+        then("password is NOT changed");
+        assertThat(targetAccount.getPassword()).isEqualTo(replacedPasswordValue);
+
+        when("doing a reconciliation with the source");
+        reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withNameValue(userName)
+                .execute(result);
+
+        then("password is NOT changed, because the target resource is not reconciled in this scenario");
+        assertThat(targetAccount.getPassword()).isEqualTo(replacedPasswordValue);
+
+        when("doing a simulated reconciliation with the target");
+        String simReconTaskOid = reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid)
+                .withTypeIdentification(targetObjectTypeId)
+                .withNameValue(userName)
+                .withTaskExecutionMode(getExecutionMode(false))
+                .execute(result);
+
+        then("password change is reported");
+        assertProcessedObjects(getTaskSimResult(simReconTaskOid, result))
+                .by().resourceOid(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid).find()
+                .display()
+                .assertEventMarks(
+                        MARK_PROJECTION_PASSWORD_CHANGED,
+                        MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED);
+
+        when("doing real reconciliation with the target");
+        reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid)
+                .withTypeIdentification(targetObjectTypeId)
+                .withNameValue(userName)
+                .execute(result);
+
+        then("password is changed on the target resource");
+        displayDumpable("target account", targetAccount);
+        assertThat(targetAccount.getPassword()).isNotEqualTo(replacedPasswordValue);
     }
 
     /**

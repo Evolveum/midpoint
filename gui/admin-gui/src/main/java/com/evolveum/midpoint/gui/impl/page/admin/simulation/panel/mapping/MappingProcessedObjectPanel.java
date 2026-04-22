@@ -7,14 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingUtil.createSituationMappingBadge;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
@@ -69,7 +65,7 @@ public abstract class MappingProcessedObjectPanel
     @Serial private static final long serialVersionUID = 1L;
 
     private final IModel<List<MarkType>> availableMarksModel;
-    String defaultMarkOidForSearch = MARK_SHADOW_CORRELATION_OWNER_FOUND.value();
+    String defaultMarkOidForSearch = null;
 
     public MappingProcessedObjectPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
@@ -86,7 +82,7 @@ public abstract class MappingProcessedObjectPanel
         return super.getAdditionalBoxCssClasses() + " table-td-middle";
     }
 
-    protected String getDefaultMarkOidForSearch() {
+    protected @Nullable String getDefaultMarkOidForSearch() {
         return null;
     }
 
@@ -103,7 +99,7 @@ public abstract class MappingProcessedObjectPanel
     @SuppressWarnings("unchecked")
     protected <T extends Serializable> Search<T> loadSearch(PageStorage storage) {
         Search<T> search = null;
-        if (storage != null && defaultMarkOidForSearch != null && defaultMarkOidForSearch.equals(getDefaultMarkOidForSearch())) {
+        if (storage != null && Objects.equals(defaultMarkOidForSearch, getDefaultMarkOidForSearch())) {
             search = storage.getSearch();
         }
 
@@ -112,6 +108,12 @@ public abstract class MappingProcessedObjectPanel
         }
         return search;
     }
+
+    @Override
+    protected String getStorageKey() {
+        return UserProfileStorage.TableId.PAGE_SIMULATION_RESULT_MAPPING_PROCESSED_OBJECTS.name();
+    }
+
 
     private List<DisplayableValue<String>> createSearchValuesForAvailableMarks() {
         return availableMarksModel.getObject().stream()

@@ -56,7 +56,7 @@ export default class MidPointAceEditor {
             minLines: 10,
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
-            enableSnippets: true,
+            enableSnippets: false,
             selectionStyle: "text",
             useSoftTabs: true,
             tabSize: 3,

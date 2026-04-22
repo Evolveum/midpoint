@@ -79,8 +79,11 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
     private static final String OP_DETERMINE_STATUSES =
             ResourceObjectTypesPanel.class.getName() + ".determineStatuses";
 
-    protected StatusAwareContainerListPanel(String id, Class<C> type) {
+    private final Class<?> statusResultClass;
+
+    protected StatusAwareContainerListPanel(String id, Class<C> type, Class<?> statusResultClass) {
         super(id, type);
+        this.statusResultClass = statusResultClass;
     }
 
     @Override
@@ -89,7 +92,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
         if (suggestionsModelDto == null) {
             return super.createProvider();
         }
-        return new StatusAwareDataProvider<>(this, Model.of(), suggestionsModelDto, false);
+        return new StatusAwareDataProvider<>(this, Model.of(), suggestionsModelDto, statusResultClass, false);
     }
 
     @Override
