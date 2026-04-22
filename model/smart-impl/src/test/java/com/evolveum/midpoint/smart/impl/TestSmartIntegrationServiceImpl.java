@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimpl
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,18 +31,22 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
@@ -70,10 +76,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     private static final File TEST_140_EXPECTED_OBJECT_TYPES = new File(TEST_DIR, "test-140-expected-object-types.xml");
     private static final File TEST_110_EXPECTED_REQUEST = new File(TEST_DIR, "test-110-expected-request.json");
 
-    private static final TestObject<?> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
-    private static final TestObject<?> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
-    private static final TestObject<?> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
-    private static final TestObject<?> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "30cef119-71b6-42b3-9762-5c649b2a2b6a");
+    private static final TestObject<UserType> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
+    private static final TestObject<UserType> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
+    private static final TestObject<UserType> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
+    private static final TestObject<UserType> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "30cef119-71b6-42b3-9762-5c649b2a2b6a");
+
+    private static final TestObject<UserType> USER1 = TestObject.file(TEST_DIR, "user1.xml", "00000000-0000-0000-0000-999000001001");
+    private static final TestObject<UserType> USER2 = TestObject.file(TEST_DIR, "user2.xml", "00000000-0000-0000-0000-999000001002");
+    private static final TestObject<UserType> USER3 = TestObject.file(TEST_DIR, "user3.xml", "00000000-0000-0000-0000-999000001003");
 
     private static final ResourceObjectTypeIdentification GENERIC_ORGANIZATIONAL_UNIT =
             ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, "organizationalUnit");
@@ -97,6 +107,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             TEST_DIR, "resource-dummy-for-suggest-mappings-and-correlation.xml", "a51dac70-6fbb-4c9a-9827-465c844afdc6",
             "for-suggest-mappings-and-correlation",
             c -> dummyForMappingsAndCorrelation = DummyScenario.on(c).initialize());
+    private static final DummyTestResource RESOURCE_DUMMY_FOR_STATS_CALCULATION = new DummyTestResource(
+            TEST_DIR, "resource-dummy-for-stats-calculation.xml", "c54f62c3-689b-4e99-9bde-4165559ed546",
+            "for-stats",
+            c -> DummyScenario.on(c).initialize());
+
+    @Autowired
+    private StatisticsService statisticsService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -108,11 +125,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_COUNTING_WITH_PAGING, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_DUMMY_FOR_STATS_CALCULATION, initTask, initResult);
 
         createDummyAccounts();
 
-        initTestObjects(initTask, initResult,
-                USER_JACK, USER_JIM, USER_ALICE, USER_BOB);
+        initTestObjects(initTask, initResult, USER_JACK, USER_JIM, USER_ALICE, USER_BOB, USER1, USER2, USER3);
         createAndLinkAccounts(initTask, initResult);
     }
 
@@ -1220,6 +1237,65 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         and("response is marked as generated by AI");
         assertAiProvidedMarkPresentRequired(correlationItem1, CorrelationItemType.F_REF); // selected by AI
         //assertAiProvidedMarkPresentRequired(correlationItem2, CorrelationItemType.F_REF); // selected by AI
+    }
+
+    @Test
+    public void test500FocusObjectStatisticsWithLinkedAndCorrelatedShadows() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("Three accounts exists on the resource");
+        createDummyAccounts(RESOURCE_DUMMY_FOR_STATS_CALCULATION, 1, 3);
+        var shadow1 = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_FOR_STATS_CALCULATION.getObjectable())
+                .withNameValue("account-0001")
+                .build().findRequired(task, result);
+
+        and("One account is linked with a user");
+        executeChanges(
+                PrismContext.get().deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .add(shadow1.getRef())
+                        .asObjectDelta(USER1.oid),
+                null, task, result);
+
+        and("One account is only correlated with another user");
+        var shadow2 = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_FOR_STATS_CALCULATION.getObjectable())
+                .withDefaultAccountType()
+                .withNameValue("account-0002")
+                .build().findRequired(task, result);
+        executeChanges(
+                PrismContext.get().deltaFor(ShadowType.class)
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
+                        .add(USER2.ref())
+                        .asObjectDelta(shadow2.getOid()),
+                null, task, result);
+
+        when("The task for focus objects statistics calculation is triggered");
+        String taskOid = statisticsService.regenerateFocusObjectStatistics(
+                UserType.COMPLEX_TYPE,
+                RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
+                ShadowKindType.ACCOUNT,
+                "default",
+                task,
+                result);
+
+        waitForTaskFinish(taskOid);
+
+        then("The statistics calculation task should contain stats about two users");
+        GenericObjectType statsObject = statisticsService.getLatestFocusObjectStatistics(
+                UserType.COMPLEX_TYPE,
+                RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
+                ShadowKindType.ACCOUNT,
+                "default",
+                result);
+        assertNotNull("Statistics object should exist", statsObject);
+
+        ShadowObjectClassStatisticsType stats = FocusObjectStatisticsTypeUtil.getFocusObjectStatisticsRequired(
+                statsObject.asPrismObject());
+        assertNotNull("Statistics should not be null", stats);
+        assertEquals("Should have 2 processed user (linked and correlated)", 2, stats.getSize());
     }
 
     private void assertCorrAttrSuggestion(
