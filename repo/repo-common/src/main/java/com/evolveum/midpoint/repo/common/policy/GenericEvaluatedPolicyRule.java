@@ -31,6 +31,8 @@ public interface GenericEvaluatedPolicyRule extends DebugDumpable {
 
     String getName();
 
+    Integer getOrder();
+
     @NotNull PolicyRuleIdentifier getRuleIdentifier();
 
     void setCount(Integer localValue, Integer totalValue);

@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -95,6 +96,12 @@ class PolicyRulesCollector<O extends ObjectType> {
         collectObjectRulesFromAssignments(rules);
         collectGlobalObjectRules(rules, result);
         resolveConstraintReferences(rules);
+
+        rules.sort(
+                Comparator.comparing(
+                        EvaluatedPolicyRuleImpl::getOrder,
+                        Comparator.nullsLast(Comparator.naturalOrder())));
+
         return rules;
     }
 

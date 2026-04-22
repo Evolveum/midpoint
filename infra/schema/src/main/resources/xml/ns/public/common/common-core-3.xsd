@@ -16603,7 +16603,7 @@
             <xsd:element name="enabled" type="xsd:boolean" default="true" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Whether the policy rule is enabled.
+                        Whether the policy rule will be evaluated.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

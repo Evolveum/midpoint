@@ -43,45 +43,60 @@ public class EvaluatedActivityPolicyRule implements GenericEvaluatedPolicyRule, 
     }
 
     @NotNull
+    @Override
     public PolicyRuleType getPolicyRule() {
         return policyRule.getPolicy();
     }
 
+    @Override
     public ActivityPath getPath() {
         return policyRule.getPath();
     }
 
+    @Override
     public String getName() {
         return policyRule.getName();
     }
 
+    @Override
+    public Integer getOrder() {
+        return policyRule.getOrder();
+    }
+
+    @Override
     public @NotNull PolicyRuleIdentifier getRuleIdentifier() {
         return policyRule.getRuleIdentifier();
     }
 
+    @Override
     public void setCount(Integer localValue, Integer totalValue) {
         policyRule.setCount(localValue, totalValue);
     }
 
+    @Override
     public void setCurrentState(ActivityPolicyStateType currentState) {
         policyRule.setCurrentState(currentState);
     }
 
     @NotNull
+    @Override
     public List<PolicyActionType> getActions() {
         return policyRule.getActions();
     }
 
+    @Override
     public boolean isTriggered() {
         ActivityPolicyStateType currentState = policyRule.getCurrentState();
         return !triggers.isEmpty() || (currentState != null && !currentState.getTrigger().isEmpty());
     }
 
     @NotNull
+    @Override
     public List<EvaluatedPolicyRuleTrigger<?>> getTriggers() {
         return triggers;
     }
 
+    @Override
     public void setTriggers(List<EvaluatedPolicyRuleTrigger<?>> triggers) {
         this.triggers.clear();
 

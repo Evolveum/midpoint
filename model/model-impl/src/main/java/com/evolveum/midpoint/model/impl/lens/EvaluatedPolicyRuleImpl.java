@@ -244,6 +244,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     }
 
     @Override
+    public Integer getOrder() {
+        return policyRuleBean.getOrder();
+    }
+
+    @Override
     public @NotNull PolicyRuleType getPolicyRule() {
         return policyRuleCI.value();
     }
