@@ -365,9 +365,6 @@
             </xsd:element>
             <xsd:element minOccurs="0" name="imageUploadProcessing" type="tns:ImageUploadProcessingType">
                 <xsd:annotation>
-                    <xsd:documentation>
-                        Describe options for image upload processing.
-                    </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AdminGuiConfigurationType.imageUploadProcessing</a:displayName>
                         <a:since>4.11</a:since>
@@ -5155,6 +5152,8 @@
         <xsd:annotation>
             <xsd:documentation>
                 Contains options for image upload processing.
+                It is possible to configure various types of sanitization
+                e.g. strip EXIF data or conversion to fixed format.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
@@ -5171,6 +5170,7 @@
             <xsd:documentation>
                 Type of processing for image upload.
                 Default value is preserveOriginalFormat.
+                If fixedFormat is set than one can configure expected output image format by "format" element.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -5182,6 +5182,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Fixed format to which is needed to convert uploaded image.
+                It is used only if "processing" is set to "fixedFormat".
                 Default value is jpeg, if fixedFormat is used.
             </xsd:documentation>
         </xsd:annotation>
@@ -5193,7 +5194,7 @@
     <xsd:simpleType name="StripExifDataType">
         <xsd:annotation>
             <xsd:documentation>
-                We use this flag in case we want to remove exif data of uploaded image.
+                We use this option in case we want to remove exif data of uploaded image.
                 Default value is false.
             </xsd:documentation>
         </xsd:annotation>
