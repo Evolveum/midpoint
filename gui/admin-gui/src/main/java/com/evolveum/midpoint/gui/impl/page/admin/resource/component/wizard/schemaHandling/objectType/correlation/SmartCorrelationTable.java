@@ -110,19 +110,6 @@ public abstract class SmartCorrelationTable
     }
 
     @Override
-    protected IModel<ConfirmationWithOptionsDto<DataAccessPermission>> buildSmartPermissionRecordDto() {
-        final ConfirmationWithOptionsDto<DataAccessPermission> confirmationWithOptionsDto =
-                ConfirmationWithOptionsDto.<DataAccessPermission>builder()
-                        .confirmationTitle(createStringResource("SmartSuggestConfirmationPanel.title"))
-                        .confirmationSubtitle(createStringResource("SmartSuggestConfirmationPanel.subtitle"))
-                        .confirmationOptionsTitle(createStringResource("SmartSuggestConfirmationPanel.request.component.title"))
-                        .confirmationInfoMessage(createStringResource("SmartSuggestConfirmationPanel.infoMessage"))
-                        .confirmationOptions(correlationPermissionsOptions())
-                        .build();
-        return () -> confirmationWithOptionsDto;
-    }
-
-    @Override
     protected Component getComponentToFocusAfterAiToggle() {
         return this.getParent();
     }

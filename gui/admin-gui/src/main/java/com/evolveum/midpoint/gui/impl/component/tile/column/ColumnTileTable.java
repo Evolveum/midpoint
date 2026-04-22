@@ -149,7 +149,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         IsolatedCheckBoxPanel selectCheckbox = new IsolatedCheckBoxPanel(idButton, selectModel) {
             @Override
             public void onUpdate(@NotNull AjaxRequestTarget target) {
-                refresh(target);
+                updateTileView(target);
             }
         };
 

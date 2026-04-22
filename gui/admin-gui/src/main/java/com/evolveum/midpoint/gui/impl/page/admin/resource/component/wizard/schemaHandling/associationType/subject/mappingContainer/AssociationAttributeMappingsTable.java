@@ -20,7 +20,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.SmartMappingTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.table.SmartMappingTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
@@ -63,7 +63,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
             @NotNull IModel<MappingDirection> mappingDirection,
             @NotNull IModel<Boolean> suggestionToggleModel,
             @NotNull IModel<PrismContainerValueWrapper<C>> refAttributeDefValue,
-            @Nullable String resourceOid) {
+            @NotNull String resourceOid) {
         super(id, mappingDirection, suggestionToggleModel, refAttributeDefValue, resourceOid);
     }
 
@@ -204,7 +204,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                         ? AssociationConstructionExpressionEvaluatorType.F_OBJECT_REF
                         : AssociationConstructionExpressionEvaluatorType.F_ATTRIBUTE;
 
-        PrismContainerValueWrapper<MappingType> newVirtualMappingValue = createNewVirtualMappingValue(
+        createNewVirtualMappingValue(
                 oldMappingValue,
                 getValueModel(),
                 associationType,
@@ -316,6 +316,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     protected boolean isAttributeRefMapping(@NotNull PrismContainerValue<MappingType> row) {
         return !row.getPath().containsNameExactly(AssociationConstructionExpressionEvaluatorType.F_OBJECT_REF);
     }
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getColumns() {

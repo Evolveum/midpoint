@@ -17,6 +17,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,7 +85,7 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
         super.detach();
     }
 
-    public void reset(){
+    public void reset() {
         loadedRowsCache = null;
         groupedDataCache = null;
 
@@ -220,4 +221,18 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
     public ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> getDelegateProvider() {
         return delegate;
     }
+
+    public @Nullable MappingDataDto findGroupedDto(@NotNull PrismContainerValueWrapper<MappingType> wrapper) {
+        MappingDataDto dto = dtoCache.get(resolveGroupingKey(wrapper));
+        if (dto != null && dto.getMappings().size() > 1) {
+            return dto;
+        }
+        return null;
+    }
+
+    public boolean isInGroupedRow(@NotNull PrismContainerValueWrapper<MappingType> wrapper) {
+        MappingDataDto dto = findGroupedDto(wrapper);
+        return dto != null && dto.getMappings().size() > 1;
+    }
+
 }

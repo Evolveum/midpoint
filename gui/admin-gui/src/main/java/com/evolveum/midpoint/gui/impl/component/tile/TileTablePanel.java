@@ -331,7 +331,6 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return page;
     }
 
-
     @SuppressWarnings("unchecked")
     public List<O> getCurrentPageItems() {
         if (isTileViewVisible()) {
@@ -486,8 +485,12 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
             target.add(get(ID_TABLE));
         } else {
-            target.add(get(ID_TILE_VIEW));
+            updateTileView(target);
         }
+    }
+
+    protected void updateTileView(@NotNull AjaxRequestTarget target) {
+        target.add(get(ID_TILE_VIEW));
     }
 
     public BoxedTablePanel<?> getBoxedTablePanelComponent() {
