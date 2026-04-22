@@ -39,12 +39,15 @@ public class XlsxDataExporter extends AbstractDataExporter {
             List<IExportableColumn<T, ?>> columns,
             OutputStream outputStream
     ) throws IOException {
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet();
-        writeHeaders(columns, sheet);
-        writeData(dataProvider, columns, sheet);
-        workbook.write(outputStream);
-        workbook.close();
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet();
+
+            writeHeaders(columns, sheet);
+            writeData(dataProvider, columns, sheet);
+
+            workbook.write(outputStream);
+            outputStream.close();
+        }
     }
 
     protected  <T> void writeHeaders(List<IExportableColumn<T, ?>> columns, Sheet sheet) {

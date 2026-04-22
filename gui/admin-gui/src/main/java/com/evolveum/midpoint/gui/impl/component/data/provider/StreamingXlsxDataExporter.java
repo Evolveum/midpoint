@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.component.button.XlsxDataExporter;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.wicket.Application;
 import org.apache.wicket.Session;
@@ -66,21 +67,15 @@ public class StreamingXlsxDataExporter extends XlsxDataExporter {
 
         Task task = pageBase.createSimpleTask(OPERATION_EXPORT_DATA);
         OperationResult result = task.getResult();
-
-        SXSSFWorkbook workbook = new SXSSFWorkbook();
-        Sheet sheet = workbook.createSheet();
-
-        try {
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(100)) {
+            workbook.setCompressTempFiles(true);
+            Sheet sheet = workbook.createSheet();
             writeHeaders(columns, sheet);
             writeDataIterative(dataProvider, iterativeProvider, columns, sheet, task, result);
-
             workbook.write(outputStream);
-        } catch (CommonException e) {
+        } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error during iterative XLSX export", e);
-            throw new IOException("Error during iterative XLSX export: " + e.getMessage(), e);
         } finally {
-            workbook.dispose(); // VERY IMPORTANT (cleans temp files)
-            workbook.close();
             result.computeStatusIfUnknown();
         }
     }
@@ -94,16 +89,19 @@ public class StreamingXlsxDataExporter extends XlsxDataExporter {
             OperationResult result) throws CommonException {
 
         final int[] rowIndex = {1}; // mutable counter
+        SXSSFSheet sxSheet = (SXSSFSheet) sheet;
 
         iterativeProvider.exportIterative(
                 (item, opResult) -> {
-                    try {
-                        writeRow(dataProvider, columns, item, sheet, rowIndex[0]++);
-                        return true;
-                    } catch (Exception e) {
-                        LOGGER.error("Error writing XLSX row", e);
-                        return false;
+                    writeRow(dataProvider, columns, item, sheet, rowIndex[0]++);
+                    if (rowIndex[0] % 100 == 0) {
+                        try {
+                            sxSheet.flushRows(100);
+                        } catch (IOException e) {
+                            //
+                        }
                     }
+                    return true;
                 },
                 task,
                 result
