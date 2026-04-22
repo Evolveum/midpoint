@@ -15,8 +15,8 @@
             </div>
 
             <div class="px-0 tile-column-icon" wicket:id="separator"></div>
-            <div class="px-0 tile-column-icon" wicket:id="expandCollapseArrowIcon"></div>
             <div class="col-6 d-flex p-0" wicket:id="headerTitle"></div>
+            <div class="px-0 tile-column-icon" wicket:id="separatorSecond"></div>
             <div class="col-2" wicket:id="targetRef"></div>
             <div class="ml-auto" wicket:id="showSuggestionLink"></div>
             <div class="ml-auto" wicket:id="acceptSelectedButton"></div>
@@ -46,9 +46,6 @@
     </wicket:fragment>
 
     <wicket:fragment wicket:id="headerTitleFragment">
-        <i wicket:id="helpInfo" data-toggle="tooltip" data-placement="right"
-                class="fa fa-info-circle text-secondary clickable-by-enter align-self-center d-flex align-items-center mr-1"
-                role="button"></i>
         <span wicket:id="text" class="align-self-center d-flex align-items-center"></span>
         <span wicket:id="badge" class="align-self-center ml-2 badge badge-ai-gradient badge-opaque" style="height: fit-content;"></span>
     </wicket:fragment>
