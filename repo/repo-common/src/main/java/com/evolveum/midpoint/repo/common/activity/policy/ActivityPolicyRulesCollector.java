@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ActivityPolicyRulesCollector {
 
@@ -89,7 +91,14 @@ public class ActivityPolicyRulesCollector {
 
         policyBeans.stream()
                 .filter(policy -> BooleanUtils.isNotFalse(policy.isEnabled()))
-                .map(policy -> new ActivityPolicyRule(policy, activityPath, getDataNeeds(policy)))
+                .map(policy -> {
+
+                    ConfigurationItemOrigin origin = ConfigurationItemOrigin.inObjectApproximate(
+                            activityRun.getRunningTask().getRawTaskObjectClonedIfNecessary().asObjectable(),
+                            TaskType.F_ACTIVITY);
+
+                    return new ActivityPolicyRule(policy, activityPath, origin, getDataNeeds(policy));
+                })
                 .sorted(
                         Comparator.comparing(
                                 ActivityPolicyRule::getOrder,

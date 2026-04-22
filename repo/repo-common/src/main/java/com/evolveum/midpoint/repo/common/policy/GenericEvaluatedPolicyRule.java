@@ -20,7 +20,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * TODO docs and probably better name [viliam]
+ * Common interface for policy rules obtained from different places.
+ * E.g. policy rules from task activities, task assignments or global rules from system configuration.
  */
 public interface GenericEvaluatedPolicyRule extends DebugDumpable {
 
@@ -50,6 +51,10 @@ public interface GenericEvaluatedPolicyRule extends DebugDumpable {
 
     Integer getCount();
 
+    /**
+     * Evaluates whether the current count is over the threshold defined in the policy rule.
+     * If there is no threshold, it returns true.
+     */
     default boolean isOverThreshold() {
         if (!hasThreshold()) {
             return true;

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -41,6 +42,8 @@ public class ActivityPolicyRule implements DebugDumpable {
 
     private final @NotNull ActivityPath path;
 
+    private final @NotNull ConfigurationItemOrigin origin;
+
     /** The bean recorded to the activity state (if any). */
     private ActivityPolicyStateType currentState;
 
@@ -60,9 +63,13 @@ public class ActivityPolicyRule implements DebugDumpable {
     private final @NotNull Set<DataNeed> dataNeeds;
 
     public ActivityPolicyRule(
-            @NotNull PolicyRuleType policy, @NotNull ActivityPath path, @NotNull Set<DataNeed> dataNeeds) {
+            @NotNull PolicyRuleType policy,
+            @NotNull ActivityPath path,
+            @NotNull ConfigurationItemOrigin origin,
+            @NotNull Set<DataNeed> dataNeeds) {
         this.policy = policy;
         this.path = path;
+        this.origin = origin;
         this.dataNeeds = dataNeeds;
     }
 
@@ -119,6 +126,11 @@ public class ActivityPolicyRule implements DebugDumpable {
     @NotNull
     public PolicyRuleType getPolicy() {
         return policy;
+    }
+
+    @NotNull
+    public ConfigurationItemOrigin getOrigin() {
+        return origin;
     }
 
     /** Does this policy rule need execution time to be evaluated? */

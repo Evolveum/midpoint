@@ -16,8 +16,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.policy.PolicyRuleApplicabilityUtil;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,8 +43,12 @@ import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
-import com.evolveum.midpoint.schema.config.*;
+import com.evolveum.midpoint.schema.config.ActivityPolicyRuleConfigItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.policy.PolicyRuleApplicabilityUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -122,8 +124,7 @@ class PolicyRulesCollector<O extends ObjectType> {
 
             String ruleId = rule.getRuleIdentifier().toString();
             ActivityPolicyRuleConfigItem ruleCI =
-                    // todo change configuration item origin to InObject -> have to put it to activity rule [viliam]
-                    ConfigurationItem.configItem(rule.getPolicy(), ConfigurationItemOrigin.generated(), ActivityPolicyRuleConfigItem.class);
+                    ConfigurationItem.configItem(rule.getPolicy(), rule.getOrigin(), ActivityPolicyRuleConfigItem.class);
 
             LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
             rules.add(new EvaluatedPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT, rule));
