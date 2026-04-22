@@ -261,7 +261,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);
             getDebugSettings().setDevelopmentUtilitiesEnabled(true);
-//            initializeDevelopmentSerializers();
+            initializeDevelopmentSerializers();
             mount(new MountedMapper("/inspector", InspectorPage.class, new PageParametersEncoder()));
             mount(new MountedMapper("/liveSession", LiveSessionsPage.class, new PageParametersEncoder()));
             mount(new MountedMapper("/pageStore", PageStorePage.class, new PageParametersEncoder()));
@@ -372,18 +372,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
                 return super.newPersistentStore();
             }
         });
-
-//        setPageManagerProvider(new DefaultPageManagerProvider(this) {
-//
-//            @Override
-//
-//            protected IPageStore newPersistentStore() {
-//
-//                return new org.apache.wicket.pageStore.NoopPageStore();
-//
-//            }
-//
-//        });
     }
 
     public DeploymentInformationType getDeploymentInfo() {
