@@ -734,10 +734,10 @@ public class SmartIntegrationUtils {
 
         return LambdaModel.of(
                 () -> pageBase.getSessionStorage()
-                        .getSuggestions()
+                        .getSuggestionsStorage()
                         .isEnabled(type),
                 value -> pageBase.getSessionStorage()
-                        .getSuggestions()
+                        .getSuggestionsStorage()
                         .setEnabled(type, Boolean.TRUE.equals(value))
         );
     }

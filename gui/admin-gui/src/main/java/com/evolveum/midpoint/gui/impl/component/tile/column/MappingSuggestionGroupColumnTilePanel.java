@@ -24,9 +24,13 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.data.column.IsolatedRadioPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
+import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
@@ -331,8 +335,14 @@ public class MappingSuggestionGroupColumnTilePanel<
             @Override
             public void onClick(AjaxRequestTarget target) {
                 PV selected = selectedRowModel.getObject();
-                if (selected != null) {
+                if (selected == null) {
+                    return;
+                }
+
+                if (isForceDiscardMappingEnabled()) {
                     onAcceptSelected(selected, target);
+                } else {
+                    showAcceptConfirmation(selected, target);
                 }
             }
         };
@@ -344,6 +354,62 @@ public class MappingSuggestionGroupColumnTilePanel<
         fragment.add(button);
         fragment.add(new VisibleBehaviour(() -> getModelValue().isExpanded()));
         container.add(fragment);
+    }
+
+    protected void showAcceptConfirmation(@NotNull PV selected, @NotNull AjaxRequestTarget target) {
+        IModel<Boolean> rememberChoiceModel = Model.of(false);
+
+        List<ConfirmationOption<Describable>> options = List.of(
+                new ConfirmationOption<>(
+                        rememberChoiceModel,
+                        new RememberDiscardSelection(),
+                        null
+                )
+        );
+
+        String targetName = String.valueOf(getModelObject().getValue().getKeyValue());
+
+        ConfirmationWithOptionsDto<Describable> dto = ConfirmationWithOptionsDto.builder()
+                .confirmationTitle(createStringResource("MappingSuggestionGroupColumnTilePanel.accept.confirmation.title"))
+                .confirmationSubtitle(createStringResource(
+                        "MappingSuggestionGroupColumnTilePanel.accept.confirmation.message",
+                        targetName))
+                .confirmationOptionsTitle(null)
+                .confirmationInfoMessage(null)
+                .confirmationButtonLabel(createStringResource("MappingSuggestionGroupColumnTilePanel.acceptSelected"))
+                .titleIconCssClass("text-danger")
+                .externalLinkUrl(null)
+                .confirmationOptions(options)
+                .build();
+
+        ConfirmationWithOptionsPanel<Describable> dialog =
+                new ConfirmationWithOptionsPanel<>(getPageBase().getMainPopupBodyId(), () -> dto) {
+                    @Override
+                    public void confirmationPerformed(
+                            AjaxRequestTarget target,
+                            IModel<List<ConfirmationOption<Describable>>> confirmedOptions) {
+
+                        if (Boolean.TRUE.equals(rememberChoiceModel.getObject())) {
+                            setForceDiscardMappingEnabled(true);
+                        }
+
+                        onAcceptSelected(selected, target);
+                    }
+                };
+
+        getPageBase().showMainPopup(dialog, target);
+    }
+
+    private class RememberDiscardSelection implements Describable {
+        @Override
+        public IModel<String> title() {
+            return createStringResource("MappingSuggestionGroupColumnTilePanel.accept.confirmation.option.hide.title");
+        }
+
+        @Override
+        public IModel<String> description() {
+            return Model.of("");
+        }
     }
 
     protected InlineMenuItem createDeleteSelectedItemMenu(IModel<PV> selectedRowModel) {
@@ -514,4 +580,19 @@ public class MappingSuggestionGroupColumnTilePanel<
 
     protected void onAcceptSelected(@NotNull PV selected, @NotNull AjaxRequestTarget target) {
     }
+
+    protected boolean isForceDiscardMappingEnabled() {
+        return getPageBase()
+                .getSessionStorage().getSuggestionsStorage()
+                .isForceDiscardMappingEnabled();
+    }
+
+    protected void setForceDiscardMappingEnabled(boolean value) {
+        getPageBase()
+                .getSessionStorage().getSuggestionsStorage()
+                .setForceDiscardMappingEnabled(value);
+    }
+
+
+
 }

@@ -30,6 +30,8 @@ public class SuggestionsStorage implements Serializable, DebugDumpable {
         ASSOCIATION
     }
 
+    private boolean forceDiscardMappingEnabled = false;
+
     private final Map<SuggestionType, Boolean> enabled = new EnumMap<>(SuggestionType.class);
 
     public boolean isEnabled(SuggestionType type) {
@@ -44,6 +46,14 @@ public class SuggestionsStorage implements Serializable, DebugDumpable {
         return enabled;
     }
 
+    public boolean isForceDiscardMappingEnabled() {
+        return forceDiscardMappingEnabled;
+    }
+
+    public void setForceDiscardMappingEnabled(boolean forceDiscardMappingEnabled) {
+        this.forceDiscardMappingEnabled = forceDiscardMappingEnabled;
+    }
+
     @Override
     public String debugDump() {
         return debugDump(0);
@@ -55,6 +65,7 @@ public class SuggestionsStorage implements Serializable, DebugDumpable {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("SuggestionsStorage\n");
         DebugUtil.debugDumpWithLabelLn(sb, "enabled", enabled, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "forceDiscardMappingEnabled", forceDiscardMappingEnabled, indent + 1);
         return sb.toString();
     }
 }
