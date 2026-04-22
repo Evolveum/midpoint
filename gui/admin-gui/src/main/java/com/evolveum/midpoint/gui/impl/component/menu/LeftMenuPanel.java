@@ -584,7 +584,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
             return false;
         }
 
-        return principal.getCompiledGuiProfile().findObjectCollectionView(TaskType.COMPLEX_TYPE, PageTasksCertScheduling.COLLECTION_NAME) != null;
+        var view  = principal.getCompiledGuiProfile()
+                .findObjectCollectionView(TaskType.COMPLEX_TYPE, PageTasksCertScheduling.COLLECTION_NAME);
+        return  view != null && WebComponentUtil.getElementVisibility(view.getVisibility());
     }
 
     private MainMenuItem createServerTasksItems() {
