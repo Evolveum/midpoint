@@ -10,6 +10,7 @@
     <inducement>
         <policyRule>
             <name>add-10-notification</name>
+            <order>10</order>
             <policyConstraints>
                 <modification>
                     <operation>add</operation>
@@ -17,8 +18,11 @@
             </policyConstraints>
             <policyThreshold>
                 <lowWaterMark>
-                    <count>10</count>
+                    <count>5</count>
                 </lowWaterMark>
+                <highWaterMark>
+                    <count>5</count>
+                </highWaterMark>
             </policyThreshold>
             <policyActions>
                 <notification/>

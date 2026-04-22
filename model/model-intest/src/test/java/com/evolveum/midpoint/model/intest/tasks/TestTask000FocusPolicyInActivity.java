@@ -8,7 +8,8 @@ package com.evolveum.midpoint.model.intest.tasks;
 
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 import org.testng.annotations.BeforeMethod;
@@ -24,9 +25,6 @@ import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class TestTask000FocusPolicyInActivity extends TestThresholds {
 
@@ -61,6 +59,8 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
     private static final TestTask TASK_RECONCILIATION_SIMULATE_EXECUTE =
             TestTask.file(TEST_DIR, "task-000-reconciliation-simulate-execute.xml", "53734bf9-7068-4ee6-8804-2be3f4fe31ee");
 
+    private static final String DUMMY_NOTIFICATION_TRANSPORT = "dummy:policyRuleNotifier";
+
     String roleAddNotificationId;
 
     @BeforeMethod
@@ -71,6 +71,24 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        SimpleActivityPolicyRuleNotifierType activityPolicyNotifier = new SimpleActivityPolicyRuleNotifierType();
+        activityPolicyNotifier.getTransport().add(DUMMY_NOTIFICATION_TRANSPORT);
+
+        SimplePolicyRuleNotifierType policyNotifier = new SimplePolicyRuleNotifierType();
+        policyNotifier.getTransport().add(DUMMY_NOTIFICATION_TRANSPORT);
+
+        EventHandlerType handler = new EventHandlerType();
+        handler.getSimpleActivityPolicyRuleNotifier().add(activityPolicyNotifier);
+        handler.getSimplePolicyRuleNotifier().add(policyNotifier);
+
+        modifyObjectAddContainer(
+                SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                ItemPath.create(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION, NotificationConfigurationType.F_HANDLER),
+                initTask,
+                initResult,
+                handler);
 
         repoAdd(ROLE_ADD_10_NOTIFICATION, initResult);
         roleAddNotificationId = determineSingleInducedRuleId(ROLE_ADD_10_NOTIFICATION.oid, initResult);
@@ -161,9 +179,9 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
                 .display()
                 .previewModePolicyRulesCounters()
                     .display()
+                    .assertCounterCount(3)
                     .assertCounterMinMax(roleAddNotificationId, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
                     .assertCounterMinMax(suspendPolicyIdentifier, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
-                    .assertTotal(2)
                 .end()
                 .progress()
                     .display()

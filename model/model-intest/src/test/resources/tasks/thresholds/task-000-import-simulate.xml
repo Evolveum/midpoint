@@ -43,6 +43,7 @@
                     </lowWaterMark>
                 </policyThreshold>
                 <policyActions>
+                    <notification/>
                     <suspendTask/>
                 </policyActions>
             </policy>
@@ -53,6 +54,32 @@
                         <exceeds>PT0S</exceeds>
                     </executionTime>
                 </policyConstraints>
+                <policyActions>
+                    <notification/>
+                </policyActions>
+            </policy>
+            <policy>
+                <name>assignment policy rule</name>
+                <policyConstraints>
+                    <assignmentState>
+                        <expression>
+                            <script>
+                                <code>
+                                    // let's trigger it always
+                                    true
+                                </code>
+                            </script>
+                        </expression>
+                    </assignmentState>
+                </policyConstraints>
+                <policyThreshold>
+                    <lowWaterMark>
+                        <count>5</count>
+                    </lowWaterMark>
+                    <highWaterMark>
+                        <count>5</count>
+                    </highWaterMark>
+                </policyThreshold>
                 <policyActions>
                     <notification/>
                 </policyActions>
