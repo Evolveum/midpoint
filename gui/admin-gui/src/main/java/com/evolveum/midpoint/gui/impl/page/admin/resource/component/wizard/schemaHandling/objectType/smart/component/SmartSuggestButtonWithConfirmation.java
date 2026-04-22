@@ -47,8 +47,6 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
                         .confirmationSubtitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.subtitle"))
                         .confirmationOptionsTitle(pageBase.createStringResource(
                                 "SmartSuggestConfirmationPanel.request.component.title"))
-                        .confirmationInfoMessage(pageBase.createStringResource(
-                                "SmartSuggestConfirmationPanel.infoMessage"))
                         .confirmationOptions(options)
                         .build();
         return new ButtonConfig<>(icon, title, () -> confirmationDialogConfig, () -> pageBase);

@@ -586,18 +586,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return List.of(generateButton, showSuggestionsButton);
     }
 
-    protected IModel<ConfirmationWithOptionsDto<DataAccessPermission>> buildSmartPermissionRecordDto() {
-        final ConfirmationWithOptionsDto<DataAccessPermission> confirmationWithOptionsDto =
-                ConfirmationWithOptionsDto.<DataAccessPermission>builder()
-                        .confirmationTitle(createStringResource("SmartSuggestConfirmationPanel.title"))
-                        .confirmationSubtitle(createStringResource("SmartSuggestConfirmationPanel.subtitle"))
-                        .confirmationOptionsTitle(createStringResource("SmartSuggestConfirmationPanel.request.component.title"))
-                        .confirmationInfoMessage(createStringResource("SmartSuggestConfirmationPanel.infoMessage"))
-                        .confirmationOptions(Collections.emptyList())
-                        .build();
-        return () -> confirmationWithOptionsDto;
-    }
-
     @NotNull
     protected ToggleCheckBoxPanel createToggleSuggestionButton(String idButton, IModel<Boolean> switchToggleModel) {
         return createToggleSuggestionVisibilityButton(getPageBase(), idButton, switchToggleModel,
