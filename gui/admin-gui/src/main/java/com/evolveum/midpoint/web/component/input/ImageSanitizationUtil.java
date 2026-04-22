@@ -20,7 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import static com.evolveum.midpoint.common.MimeTypeUtil.*;
-import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_CONTENT_TYPES;
+import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_FILE_EXTENSIONS;
 
 /**
  * Handle sanitization if images. Sanitization is configurable by input ImageUploadProcessingType configuration.
@@ -33,14 +33,14 @@ public final class ImageSanitizationUtil {
     private static final Trace LOGGER = TraceManager.getTrace(ImageSanitizationUtil.class);
 
     /**
-     * Determines ContentType by comparing first bytes of file byte array with known magic numbers of ContentTypes.
+     * Determines file extension by comparing first bytes of file byte array with known magic numbers.
      *
-     * @param fileBites file byte array to determine ContentType
-     * @return ContentType or null if ContentType was not possible to determine
+     * @param fileBites file byte array to determine file extension
+     * @return file extension or null if file extension was not possible to determine
      */
-    public static String getContentTypeFromFileMagicNumber(final byte[] fileBites) {
+    public static String getFileExtensionFromFileMagicNumber(final byte[] fileBites) {
         magicNumbersFor:
-        for (final byte[] magicNumber : MAGIC_NUMBERS_TO_CONTENT_TYPES.keySet()) {
+        for (final byte[] magicNumber : MAGIC_NUMBERS_TO_FILE_EXTENSIONS.keySet()) {
             if (fileBites == null || fileBites.length < magicNumber.length) {
                 return null;
             }
@@ -49,7 +49,7 @@ public final class ImageSanitizationUtil {
                     continue magicNumbersFor;
                 }
             }
-            return MAGIC_NUMBERS_TO_CONTENT_TYPES.get(magicNumber);
+            return MAGIC_NUMBERS_TO_FILE_EXTENSIONS.get(magicNumber);
         }
         return null;
     }
@@ -100,7 +100,7 @@ public final class ImageSanitizationUtil {
             }
             return getExtensionRaw(MIME_IMAGE_JPEG);
         }
-        return getContentTypeFromFileMagicNumber(originalBytes);
+        return getFileExtensionFromFileMagicNumber(originalBytes);
     }
 
     /**
