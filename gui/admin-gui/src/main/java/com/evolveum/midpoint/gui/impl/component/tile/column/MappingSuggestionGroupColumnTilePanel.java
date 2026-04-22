@@ -424,7 +424,7 @@ public class MappingSuggestionGroupColumnTilePanel<
         Fragment fragment = new Fragment("headerTitle", "headerTitleFragment", this);
 
         AjaxIconButton button = buildExpandableHeaderTitle("text");
-        button.add(AttributeAppender.append("class", " btn p-0"));
+        button.add(AttributeAppender.append("class", " btn p-0 text-dark"));
         fragment.add(button);
 
         Label label = new Label("badge", getModelObject().getValue().getCount());
