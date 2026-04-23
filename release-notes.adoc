@@ -72,6 +72,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
 * Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
 * Implemented new configuration options for processing uploaded images.
+* bug:MID-8802[] Added displayName and preferredName to UserType.
 
 === Major Bugfixes
 
