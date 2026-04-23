@@ -67,6 +67,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     @Deprecated
     private AdminGuiConfigurationRoleManagementType roleManagement;
     private AccessRequestType accessRequest;
+    private ImageUploadProcessingType imageUploadProcessing;
     private AdminGuiApprovalsConfigurationType approvals;
     private List<UserInterfaceFeatureType> features = new ArrayList<>();
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
@@ -521,6 +522,14 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public void setAccessRequest(AccessRequestType accessRequest) {
         this.accessRequest = accessRequest;
+    }
+
+    public ImageUploadProcessingType getImageUploadProcessing() {
+        return imageUploadProcessing;
+    }
+
+    public void setImageUploadProcessing(ImageUploadProcessingType imageUploadProcessing) {
+        this.imageUploadProcessing = imageUploadProcessing;
     }
 
     @Override

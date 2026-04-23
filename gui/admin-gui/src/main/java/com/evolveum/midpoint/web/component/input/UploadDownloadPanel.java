@@ -201,19 +201,6 @@ public class UploadDownloadPanel extends InputPanel {
         return file.getFileUpload();
     }
 
-    private ImageUploadProcessingType getImageUploadProcessingConfig() {
-        //TODO fix implementation
-        FocusType principalFocus = getPageBase().getPrincipalFocus();
-        if (!(principalFocus instanceof UserType)) {
-            return null;
-        }
-        AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
-        if (adminGui == null) {
-            return null;
-        }
-        return adminGui.getImageUploadProcessing();
-    }
-
     /**
      * Checks if ImageUploadProcessing is set to fixedFormat.
      * In case of fixedFormat the magic number check is performed in ImageSanitization.
@@ -222,7 +209,7 @@ public class UploadDownloadPanel extends InputPanel {
      * @return if ImageUploadProcessing is set to fixedFormat
      */
     private boolean isMagicNumberValidationEnabled() {
-        final ImageUploadProcessingType imageUploadProcessingConfig = getImageUploadProcessingConfig();
+        final ImageUploadProcessingType imageUploadProcessingConfig = getPageBase().getCompiledGuiProfile().getImageUploadProcessing();
         return imageUploadProcessingConfig == null || !ImageProcessingType.FIXEDFORMAT.equals(imageUploadProcessingConfig.getProcessing());
     }
 
@@ -230,7 +217,12 @@ public class UploadDownloadPanel extends InputPanel {
         Component input = getInputFile();
         try {
             FileUpload uploadedFile = getFileUpload();
-            updateValue(ImageSanitizationUtil.sanitizeImage(uploadedFile.getBytes(), getImageUploadProcessingConfig()));
+            updateValue(
+                    ImageSanitizationUtil.sanitizeImage(
+                            uploadedFile.getBytes(),
+                            getPageBase().getCompiledGuiProfile().getImageUploadProcessing()
+                    )
+            );
             LOGGER.trace("Upload file success.");
             input.success(getString("UploadPanel.message.uploadSuccess"));
         } catch (ImageSanitizationException e) {

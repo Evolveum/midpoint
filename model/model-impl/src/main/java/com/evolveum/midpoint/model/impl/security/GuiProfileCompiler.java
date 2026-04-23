@@ -498,6 +498,10 @@ public class GuiProfileCompiler {
             mergeAccessRequestConfiguration(composite, adminGuiConfiguration.getAccessRequest());
         }
 
+        if (adminGuiConfiguration.getImageUploadProcessing() != null) {
+            mergeImageUploadProcessingConfiguration(composite, adminGuiConfiguration.getImageUploadProcessing());
+        }
+
         if (adminGuiConfiguration.getHomePage() != null) {
             QName principalType = null;
             if (principal != null) {
@@ -639,6 +643,25 @@ public class GuiProfileCompiler {
 
         if (accessRequest.getCheckout() != null) {
             ar.setCheckout(accessRequest.getCheckout().cloneWithoutId());
+        }
+    }
+
+    private void mergeImageUploadProcessingConfiguration(CompiledGuiProfile composite, ImageUploadProcessingType imageUploadProcessing) {
+        if (composite.getImageUploadProcessing() == null) {
+            composite.setImageUploadProcessing(imageUploadProcessing.cloneWithoutId());
+        }
+
+        ImageUploadProcessingType iup = composite.getImageUploadProcessing();
+        if (imageUploadProcessing.getProcessing() != null) {
+            iup.setProcessing(imageUploadProcessing.getProcessing());
+        }
+
+        if (imageUploadProcessing.getFormat() != null) {
+            iup.setFormat(imageUploadProcessing.getFormat());
+        }
+
+        if (imageUploadProcessing.getStripExifData() != null) {
+            iup.setStripExifData(imageUploadProcessing.getStripExifData());
         }
     }
 

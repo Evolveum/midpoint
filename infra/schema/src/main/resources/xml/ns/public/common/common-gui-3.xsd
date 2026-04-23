@@ -5156,6 +5156,7 @@
                 e.g. strip EXIF data or conversion to fixed format.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:container>true</a:container>
                 <a:since>4.11</a:since>
             </xsd:appinfo>
         </xsd:annotation>
