@@ -147,7 +147,6 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
-//                        String exportId = UUID.randomUUID().toString();
                         Session session = Session.get();
                         SecurityContext context = SecurityContextHolder.getContext();
                         Application application = Application.get();
@@ -170,15 +169,6 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
                                     });
                                     return null;
                                 });
-//                        EXPORTS.put(exportId, future);
-
-//                        ajaxDownloadBehavior.setExportId(exportId);
-
-                        // start polling from browser
-//                        target.appendJavaScript(
-//                                "startExportPolling('" + exportId + "');"
-//                        );
-//                        ajaxDownloadBehavior.initiate(target);
                     }
 
                     @Override
