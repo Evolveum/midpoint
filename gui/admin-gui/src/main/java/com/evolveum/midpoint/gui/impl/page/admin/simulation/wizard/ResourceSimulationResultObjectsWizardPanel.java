@@ -87,6 +87,11 @@ public abstract class ResourceSimulationResultObjectsWizardPanel extends Abstrac
     }
 
     @Override
+    protected IModel<String> getBackLabel() {
+        return createStringResource("ResourceSimulationResultObjectsWizardPanel.back");
+    }
+
+    @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
         return createStringResource("ResourceSimulationResultObjectsWizardPanel.breadcrumb");
     }

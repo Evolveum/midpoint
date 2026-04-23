@@ -213,6 +213,11 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
             public void onBackPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTypePreview());
             }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("SimulationWizardPanel.back.objectType.wizard");
+            }
         };
     }
 
