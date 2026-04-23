@@ -512,6 +512,10 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         }
     }
 
+    public void updateTileView(AjaxRequestTarget target) {
+        getTable().updateTileView(target);
+    }
+
     protected @Nullable com.evolveum.midpoint.smart.api.info.StatusInfo<?> getStatusInfo(
             PrismContainerValueWrapper<MappingType> value) {
         return getTable().getStatusInfo(value);

@@ -314,7 +314,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                                     @Override
                                     protected void applyChanges(AjaxRequestTarget target) {
                                         super.applyChanges(target);
-                                        table.refreshAndDetach(target);
+                                        table.updateTileView(target);
                                     }
                                 };
 
@@ -612,9 +612,9 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
         List<MappingDataDto> selectedItems = table.getTable().getSelectedContainerItems();
 
         for (MappingDataDto item : selectedItems) {
-            PrismContainerValueWrapper<MappingType> primary = item.getPrimaryMapping();
-            if (primary != null) {
-                selectedValues.add(primary);
+            List<PrismContainerValueWrapper<MappingType>> primary = item.getColumnsValues();
+            if (primary != null && !primary.isEmpty()) {
+                selectedValues.addAll(primary);
             }
         }
         return selectedValues;
