@@ -909,13 +909,17 @@ public class SmartIntegrationStatusInfoUtils {
 
         if ("mappingsSuggestion".equals(operationKey)) {
             ActivityProgressInformation mappingsSuggestion = child.getChild(operationKey);
-            if (mappingsSuggestion != null && mappingsSuggestion.getItemsProgress() != null) {
-                ItemsProgressInformation itemsProgress = mappingsSuggestion.getItemsProgress();
+            ItemsProgressInformation itemsProgress =
+                    mappingsSuggestion != null ? mappingsSuggestion.getItemsProgress() : null;
+
+            if (itemsProgress != null) {
                 return pageBase.createStringResource(
                         "Activity.explanation." + operationKey,
                         itemsProgress.getProgress(),
                         itemsProgress.getExpectedProgress());
             }
+
+            return pageBase.createStringResource("Activity.explanation.text." + operationKey);
         }
 
         return pageBase.createStringResource("Activity.explanation." + operationKey);
