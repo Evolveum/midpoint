@@ -963,6 +963,23 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="regenerateMode" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Describes why the user is regenerating; absent for an initial suggestion run.
+                                One of: NEW_DATA_SPLIT, NEW_FILTER.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="previousDelineation" type="tns:SiSuggestedObjectTypeType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Previously suggested object type delineations for this object class. The microservice
+                                can use this context to avoid repeating the same suggestions and to produce
+                                complementary or improved ones.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
