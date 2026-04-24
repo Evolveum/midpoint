@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.isPreviewPolicyRulesEnforcement;
-import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.MessageKind.NORMAL;
-import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.extractMessages;
+import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.MessageKind.NORMAL;
+import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.extractMessages;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 import java.util.ArrayList;
@@ -17,7 +17,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.util.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -118,8 +119,8 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         }
     }
 
-    private void computeEnforcementForTriggeredRules(Collection<? extends EvaluatedPolicyRule> policyRules) {
-        for (EvaluatedPolicyRule policyRule: policyRules) {
+    private void computeEnforcementForTriggeredRules(Collection<? extends DirectlyEvaluatedClockworkPolicyRule> policyRules) {
+        for (DirectlyEvaluatedClockworkPolicyRule policyRule: policyRules) {
 
             Collection<EvaluatedPolicyRuleTrigger<?>> triggers = policyRule.getTriggers();
             if (triggers.isEmpty()) {
@@ -139,12 +140,14 @@ class PolicyRuleEnforcer<O extends ObjectType> {
                 }
             }
 
-            // TODO really include assignments content?
-            policyRule.addToEvaluatedPolicyRuleBeans(
-                    rulesBeans,
-                    new PolicyRuleExternalizationOptions(FULL, true),
-                    t -> enforceAll || t.isEnforcementOverride(),
-                    policyRule.getNewOwner());
+            rulesBeans.addAll(
+                    // TODO really include assignments content?
+                    policyRule.toEvaluatedPolicyRuleBeans(
+                            new PolicyRuleExternalizationOptions(
+                                    FULL,
+                                    true,
+                                    policyRule.getRelevantTriggersFilter()),
+                            t -> enforceAll || t.isEnforcementOverride()));
 
             List<TreeNode<LocalizableMessage>> messageTrees = extractMessages(enforcingTriggers, NORMAL);
             for (TreeNode<LocalizableMessage> messageTree : messageTrees) {
@@ -154,19 +157,19 @@ class PolicyRuleEnforcer<O extends ObjectType> {
     }
 
     private void enforceThresholds()
-            throws ThresholdPolicyViolationException, ConfigurationException {
+            throws ThresholdPolicyViolationException {
         if (isEnforcementPreviewMode()) {
             return; // preview should be already recorded
         }
         LensFocusContext<O> focusContext = context.getFocusContext();
         if (focusContext != null) {
-            for (EvaluatedPolicyRule policyRule : focusContext.getObjectPolicyRules()) {
+            for (DirectlyEvaluatedClockworkPolicyRule policyRule : focusContext.getObjectPolicyRules()) {
                 // In theory we could count events also for other kinds of actions (not only SuspendTask)
                 if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
                     if (policyRule.isOverThreshold()) {
                         throw new ThresholdPolicyViolationException(
-                                new SingleLocalizableMessage("PolicyRuleEnforces.policyViolationMessage", new Object[] { policyRule.getPolicyRule() }),
-                                "Policy rule violation: " + policyRule.getPolicyRule());
+                                new SingleLocalizableMessage("PolicyRuleEnforces.policyViolationMessage", new Object[] { policyRule.getPolicyRuleBean() }),
+                                "Policy rule violation: " + policyRule.getPolicyRuleBean());
                     }
                 }
             }

@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.context.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +69,7 @@ public class ExclusionRequirementConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedExclusionRequirementTrigger> evaluate(
             @NotNull JAXBElement<ExclusionPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NonNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
@@ -205,7 +206,7 @@ public class ExclusionRequirementConstraintEvaluator
     private <AH extends AssignmentHolderType> boolean sourceOrderConstraintsDoNotMatch(
             @NotNull JAXBElement<ExclusionPolicyConstraintType> constraint, AssignmentPolicyRuleEvaluationContext<AH> ctx) {
         List<OrderConstraintsType> sourceOrderConstraints = defaultIfEmpty(constraint.getValue().getOrderConstraint());
-        AssignmentPath assignmentPath = ctx.policyRule.getAssignmentPathRequired();
+        AssignmentPath assignmentPath = ctx.policyRule.getRuleAssignmentPathRequired();
         if (ctx.policyRule.isGlobal()) {
             if (!pathMatches(assignmentPath, sourceOrderConstraints)) {
                 LOGGER.trace("Assignment path to the global policy rule does not match source order constraints,"
@@ -256,8 +257,8 @@ public class ExclusionRequirementConstraintEvaluator
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        EvaluatedPolicyRule policyRule = ctx.policyRule;
-        AssignmentPath pathA = policyRule.getAssignmentPath();
+        DirectlyEvaluatedClockworkPolicyRule policyRule = ctx.policyRule;
+        AssignmentPath pathA = policyRule.getRuleAssignmentPath();
         @NotNull AssignmentPath pathB = targetB.getAssignmentPath();
         LocalizableMessage infoA = createObjectInfo(pathA, assignmentA.getTarget(), true);
         LocalizableMessage infoB = createObjectInfo(pathB, targetB.getTarget(), false);
@@ -288,8 +289,8 @@ public class ExclusionRequirementConstraintEvaluator
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        EvaluatedPolicyRule policyRule = ctx.policyRule;
-        AssignmentPath pathA = policyRule.getAssignmentPath();
+        DirectlyEvaluatedClockworkPolicyRule policyRule = ctx.policyRule;
+        AssignmentPath pathA = policyRule.getRuleAssignmentPath();
         LocalizableMessage infoA = createObjectInfo(pathA, assignmentA.getTarget(), false);
         ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
         ObjectReferenceType requiredObjectRef = constraintElement.getValue().getTargetRef();

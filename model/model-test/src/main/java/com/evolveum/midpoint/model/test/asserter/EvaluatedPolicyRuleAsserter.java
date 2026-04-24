@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 
@@ -20,9 +20,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstr
  */
 public class EvaluatedPolicyRuleAsserter<RA> extends AbstractAsserter<RA> {
 
-    private final EvaluatedPolicyRule evaluatedPolicyRule;
+    private final DirectlyEvaluatedClockworkPolicyRule evaluatedPolicyRule;
 
-    public EvaluatedPolicyRuleAsserter(EvaluatedPolicyRule evaluatedPolicyRule, RA returnAsserter, String desc) {
+    public EvaluatedPolicyRuleAsserter(DirectlyEvaluatedClockworkPolicyRule evaluatedPolicyRule, RA returnAsserter, String desc) {
         super(returnAsserter, desc);
         this.evaluatedPolicyRule = evaluatedPolicyRule;
     }

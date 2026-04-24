@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +15,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingResultPolicyConstraintType;
 
 public class EvaluatedItemProcessingResultTrigger
-        extends EvaluatedActivityPolicyRuleTrigger<ItemProcessingResultPolicyConstraintType> {
+        extends EvaluatedPolicyRuleTrigger<ItemProcessingResultPolicyConstraintType> {
 
     public EvaluatedItemProcessingResultTrigger(
             @NotNull ItemProcessingResultPolicyConstraintType constraint,

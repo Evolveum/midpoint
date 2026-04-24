@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
+
 import jakarta.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -16,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstr
 
 public interface ActivityPolicyConstraintEvaluator<
         C extends AbstractPolicyConstraintType,
-        T extends EvaluatedActivityPolicyRuleTrigger<C>> {
+        T extends EvaluatedPolicyRuleTrigger<C>> {
 
     /** Evaluates particular constraint; returns relevant triggers. */
     List<T> evaluate(JAXBElement<C> constraint, ActivityPolicyRuleEvaluationContext context, OperationResult result);

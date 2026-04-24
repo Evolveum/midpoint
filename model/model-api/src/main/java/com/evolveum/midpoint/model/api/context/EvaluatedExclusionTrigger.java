@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -62,6 +63,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedExclusionRequirementTrig
         return conflictingAssignment;
     }
 
+    /** TODO docs */
     public @NotNull EvaluatedAssignment getRealConflictingAssignment(@NotNull EvaluatedAssignment owner) {
         // We are relying on equals method here, but most probably the identity is (in fact) checked there, and it should be OK.
         if (conflictingAssignment.equals(owner)) {
@@ -112,10 +114,8 @@ public class EvaluatedExclusionTrigger extends EvaluatedExclusionRequirementTrig
     }
 
     @Override
-    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
-        fillCommonContent(rv);
+    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerBean(@NotNull PolicyRuleExternalizationOptions options) {
+        var rv = toEvaluatedPolicyRuleTriggerBean(options, EvaluatedExclusionTriggerType::new);
         if (options.isFullStorageStrategy()) {
             rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
             rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
@@ -133,8 +133,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedExclusionRequirementTrig
     }
 
     @Override
-    public boolean isRelevantForNewOwner(@Nullable EvaluatedAssignment newOwner) {
-        return newOwner == null
-                || conflictingAssignment.equals(newOwner);
+    public boolean isRelevantForAssignmentOverride(@NotNull EvaluatedAssignment assignmentOverride) {
+        return conflictingAssignment.equals(assignmentOverride);
     }
 }

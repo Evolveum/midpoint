@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -69,7 +70,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
     @Override
     public @NotNull <O extends ObjectType> Collection<EvaluatedStateTrigger> evaluate(
             @NotNull JAXBElement<StatePolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<O> rctx, OperationResult parentResult)
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
+            @NonNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 

@@ -19,6 +19,7 @@ import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -67,7 +68,7 @@ public class MultiplicityConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedMultiplicityTrigger> evaluate(
             @NotNull JAXBElement<MultiplicityPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NonNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)

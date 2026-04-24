@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 
 import jakarta.annotation.PostConstruct;
@@ -29,7 +31,7 @@ import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.*;
 // TODO too much code duplication with CompositeConstraintEvaluator, refactor !!!! [viliam]
 @Component
 public class ActivityCompositeConstraintEvaluator
-        implements ActivityPolicyConstraintEvaluator<PolicyConstraintsType, ActivityCompositeTrigger> {
+        implements ActivityPolicyConstraintEvaluator<PolicyConstraintsType, EvaluatedCompositeTrigger> {
 
     private static final String OP_EVALUATE = ActivityCompositeConstraintEvaluator.class.getName() + ".evaluate";
 
@@ -47,7 +49,7 @@ public class ActivityCompositeConstraintEvaluator
     }
 
     @Override
-    public List<ActivityCompositeTrigger> evaluate(
+    public List<EvaluatedCompositeTrigger> evaluate(
             JAXBElement<PolicyConstraintsType> constraint,
             ActivityPolicyRuleEvaluationContext context,
             OperationResult parentResult) {
@@ -62,7 +64,7 @@ public class ActivityCompositeConstraintEvaluator
             assert isAnd || isOr || isNot;
             List<EvaluatedPolicyRuleTrigger<?>> triggers =
                     activityPolicyConstraintsEvaluator.evaluateConstraints(constraint.getValue(), !isOr, context, result);
-            ActivityCompositeTrigger rv;
+            EvaluatedCompositeTrigger rv;
             if (isNot) {
                 if (triggers.isEmpty()) {
                     rv = createTrigger(NOT, constraint, triggers);
@@ -90,10 +92,15 @@ public class ActivityCompositeConstraintEvaluator
         return activityPolicyConstraintsEvaluator.getDataNeeds(constraint.getValue());
     }
 
-    private ActivityCompositeTrigger createTrigger(
+    private EvaluatedCompositeTrigger createTrigger(
             PolicyConstraintKind kind,
             JAXBElement<PolicyConstraintsType> element,
             List<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        return new ActivityCompositeTrigger(kind, element.getValue(), triggers);
+        return new EvaluatedCompositeTrigger(
+                kind,
+                element.getValue(),
+                null, // TODO what with this? [pavol]
+                null, // TODO what with this? [pavol]
+                triggers);
     }
 }

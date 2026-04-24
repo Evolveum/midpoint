@@ -36,7 +36,7 @@ import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.DummyOperationImpl;
@@ -661,7 +661,7 @@ public abstract class AbstractActivityRun<
         }
     }
 
-    public void sendActivityPolicyRuleTriggeredEvent(GenericEvaluatedPolicyRule policyRule, OperationResult result) {
+    public void sendActivityPolicyRuleTriggeredEvent(EvaluatedPolicyRule policyRule, OperationResult result) {
         for (ActivityListener activityListener : emptyIfNull(getBeans().activityListeners)) {
             try {
                 activityListener.onActivityPolicyRuleTriggered(this, policyRule, getRunningTask(), result);

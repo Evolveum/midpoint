@@ -6,8 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
@@ -26,7 +26,7 @@ class ActionContext {
 
     @NotNull final ScriptExecutionPolicyActionConfigItem actionCI;
     @NotNull final ScriptExecutionPolicyActionType action;
-    @NotNull final EvaluatedPolicyRuleImpl rule;
+    @NotNull final DirectlyEvaluatedClockworkPolicyRuleImpl rule;
     @NotNull final LensContext<?> context;
     @NotNull final LensFocusContext<?> focusContext;
     @NotNull final Task task;
@@ -34,7 +34,7 @@ class ActionContext {
 
     ActionContext(
             @NotNull PolicyActionConfigItem<ScriptExecutionPolicyActionType> action,
-            @NotNull EvaluatedPolicyRuleImpl rule,
+            @NotNull DirectlyEvaluatedClockworkPolicyRuleImpl rule,
             @NotNull LensContext<?> context,
             @NotNull Task task,
             @NotNull PolicyRuleScriptExecutor beans) {
@@ -49,6 +49,6 @@ class ActionContext {
 
     void putIntoVariables(VariablesMap variables) {
         variables.put(ExpressionConstants.VAR_POLICY_ACTION, action, ScriptExecutionPolicyActionType.class);
-        variables.put(ExpressionConstants.VAR_POLICY_RULE, rule, EvaluatedPolicyRule.class);
+        variables.put(ExpressionConstants.VAR_POLICY_RULE, rule, DirectlyEvaluatedClockworkPolicyRule.class);
     }
 }

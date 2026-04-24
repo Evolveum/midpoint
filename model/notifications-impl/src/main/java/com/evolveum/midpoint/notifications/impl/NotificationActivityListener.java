@@ -17,7 +17,7 @@ import com.evolveum.midpoint.notifications.impl.events.ActivityPolicyRuleEventIm
 import com.evolveum.midpoint.notifications.impl.events.ActivityRealizationCompleteEventImpl;
 import com.evolveum.midpoint.repo.common.activity.ActivityListener;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -40,7 +40,7 @@ public class NotificationActivityListener implements ActivityListener {
     @Override
     public void onActivityPolicyRuleTriggered(
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
-            @NotNull GenericEvaluatedPolicyRule policyRule,
+            @NotNull EvaluatedPolicyRule policyRule,
             @NotNull Task task,
             @NotNull OperationResult result) {
 

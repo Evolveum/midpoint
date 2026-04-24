@@ -21,6 +21,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
 
+/**
+ * Evaluated numerically-bound constraints like {@link PolicyConstraintKind#EXECUTION_ATTEMPTS}.
+ *
+ * Currently limited to activities!
+ */
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, EvaluatedNumericTrigger<C>> {
 

@@ -18,6 +18,7 @@ import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger.EvaluatedAssignmentModificationTrigger;
@@ -52,7 +53,7 @@ public class AssignmentModificationConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedAssignmentModificationTrigger> evaluate(
             @NotNull JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NonNull OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)

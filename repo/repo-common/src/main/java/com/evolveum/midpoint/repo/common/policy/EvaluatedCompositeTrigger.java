@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.model.api.context;
+package com.evolveum.midpoint.repo.common.policy;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -13,15 +13,20 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedLogicalTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
-public class EvaluatedCompositeTrigger extends EvaluatedFocusPolicyRuleTrigger<PolicyConstraintsType> {
+/**
+ * Trigger for
+ *
+ * - {@link PolicyConstraintKind#AND}
+ * - {@link PolicyConstraintKind#OR}
+ * - {@link PolicyConstraintKind#NOT}
+ */
+public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<PolicyConstraintsType> {
 
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
@@ -75,18 +80,14 @@ public class EvaluatedCompositeTrigger extends EvaluatedFocusPolicyRuleTrigger<P
     }
 
     @Override
-    public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedLogicalTriggerType rv = new EvaluatedLogicalTriggerType();
-        fillCommonContent(rv);
+    public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerBean(@NotNull PolicyRuleExternalizationOptions options) {
+        var rv = toEvaluatedPolicyRuleTriggerBean(options, EvaluatedLogicalTriggerType::new);
         if (!isFinal()) {
             innerTriggers.stream()
-                    .filter(t -> t instanceof EvaluatedFocusPolicyRuleTrigger<?>)   // todo is this ok? [viliam]
-                    .map(t -> (EvaluatedFocusPolicyRuleTrigger<?>) t)
-                    .filter(t -> t.isRelevantForNewOwner(newOwner))
+                    .filter(trigger -> options.matchesSelector(trigger))
                     .forEach(t ->
                             rv.getEmbedded().add(
-                                    t.toEvaluatedPolicyRuleTriggerBean(options, newOwner)));
+                                    t.toEvaluatedPolicyRuleTriggerBean(options)));
         }
         return rv;
     }

@@ -10,13 +10,13 @@ import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -27,14 +27,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public abstract class PolicyRuleEvaluationContext<O extends ObjectType> {
 
-    @NotNull public final EvaluatedPolicyRuleImpl policyRule;
+    @NotNull public final DirectlyEvaluatedClockworkPolicyRuleImpl policyRule;
     @NotNull public final LensContext<?> lensContext;
     @NotNull public final LensElementContext<O> elementContext;
     @NotNull public final Task task;
     @NotNull public final ObjectState state;
 
     protected PolicyRuleEvaluationContext(
-            @NotNull EvaluatedPolicyRuleImpl policyRule,
+            @NotNull DirectlyEvaluatedClockworkPolicyRuleImpl policyRule,
             @NotNull LensElementContext<O> elementContext,
             @NotNull Task task,
             @NotNull ObjectState state) {
@@ -54,7 +54,8 @@ public abstract class PolicyRuleEvaluationContext<O extends ObjectType> {
     }
 
     boolean hasPolicyRuleExceptions(
-            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+            @NotNull DirectlyEvaluatedClockworkPolicyRuleImpl policyRule,
+            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         return false; // FIXME not currently implemented for objects (only for assignments)
     }
 

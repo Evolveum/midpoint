@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -28,8 +28,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 /**
- * This class is responsible for updating the counters of evaluated activity policy rules.
- * It checks which rules have been triggered and have a threshold, and increments their counters accordingly.
+ * This class is responsible for updating the counters of evaluated activity (TODO - only activity [povol])
+ * policy rules. It checks which rules have been triggered and have a threshold, and increments their counters accordingly.
  */
 public abstract class PolicyRuleCounterUpdater {
 
@@ -54,7 +54,7 @@ public abstract class PolicyRuleCounterUpdater {
      * Returns list of evaluated policy rules that should be considered for counter updates.
      */
     @NotNull
-    protected abstract Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules();
+    protected abstract Collection<? extends EvaluatedPolicyRule> getPolicyRules();
 
     /**
      * Returns execution support (instance of activity run) that is used to handle
@@ -109,11 +109,11 @@ public abstract class PolicyRuleCounterUpdater {
     }
 
     /** Returns rules that should have their counters incremented, in a form of map: ID -> rule. */
-    private @NotNull Map<String, GenericEvaluatedPolicyRule> collectRulesToIncrement() {
-        Collection<? extends GenericEvaluatedPolicyRule> rules = getPolicyRules();
+    private @NotNull Map<String, EvaluatedPolicyRule> collectRulesToIncrement() {
+        Collection<? extends EvaluatedPolicyRule> rules = getPolicyRules();
 
-        Map<String, GenericEvaluatedPolicyRule> rulesToIncrementMap = new HashMap<>();
-        for (GenericEvaluatedPolicyRule rule : rules) {
+        Map<String, EvaluatedPolicyRule> rulesToIncrementMap = new HashMap<>();
+        for (EvaluatedPolicyRule rule : rules) {
             if (!rule.isTriggered()) {
                 LOGGER.trace("Rule {} is not triggered, skipping counter update", rule.getRuleIdentifier());
                 continue;

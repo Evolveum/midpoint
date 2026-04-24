@@ -6,8 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
-import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
-import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET;
+import static com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
+import static com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET;
 import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -19,15 +19,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType;
 import com.evolveum.midpoint.model.common.GlobalRuleWithId;
 import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -56,7 +56,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Collects relevant rules (for assignments, focus, or projection) from all relevant sources.
+ * Collects relevant rules (for assignments, focus, projection, or activity) from all relevant sources.
  *
  * @see #collectObjectRules(OperationResult)
  * @see #collectAllAssignmentRules(DeltaSetTriple, OperationResult)
@@ -85,10 +85,10 @@ class PolicyRulesCollector<O extends ObjectType> {
     }
 
     /** Collects "object rules" (i.e. for focus and assignments) from all sources: assignments and global config, incl. marks. */
-    @NotNull List<EvaluatedPolicyRuleImpl> collectObjectRules(OperationResult result)
+    @NotNull List<DirectlyEvaluatedClockworkPolicyRuleImpl> collectObjectRules(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
+        List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules = new ArrayList<>();
         collectActivityObjectRules(rules);
         collectObjectRulesFromAssignments(rules);
         collectGlobalObjectRules(rules, result);
@@ -96,7 +96,7 @@ class PolicyRulesCollector<O extends ObjectType> {
 
         rules.sort(
                 Comparator.comparing(
-                        EvaluatedPolicyRuleImpl::getOrder,
+                        DirectlyEvaluatedClockworkPolicyRuleImpl::getOrder,
                         Comparator.nullsLast(Comparator.naturalOrder())));
 
         return rules;
@@ -116,28 +116,29 @@ class PolicyRulesCollector<O extends ObjectType> {
         //  enabled switch is used mainly in GUI to disable activity policies, condition for more granular behavior changes
         //  fix enabled switch on other places where condition is used
         return activityRules.stream()
-                .filter(r -> BooleanUtils.isNotFalse(r.getPolicy().isEnabled()))
+                .filter(r -> BooleanUtils.isNotFalse(r.getPolicyBean().isEnabled()))
                 .toList();
     }
 
-    private void collectActivityObjectRules(List<EvaluatedPolicyRuleImpl> rules) {
+    // TODO what are "activity object rules"? [pavol]
+    private void collectActivityObjectRules(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules) {
         for (ActivityPolicyRule rule : getEnabledActivityRules()) {
-            if (PolicyRuleApplicabilityUtil.isApplicableToActivity(rule.getPolicy())) {
+            if (PolicyRuleApplicabilityUtil.isApplicableToActivity(rule.getPolicyBean())) {
                 continue; // activity rules are mutually exclusive with "normal" (object, projection, assignment) ones
             }
 
             String ruleId = rule.getRuleIdentifier().toString();
             PolicyRuleConfigItem ruleCI =
-                    ConfigurationItem.configItem(rule.getPolicy(), rule.getOrigin(), PolicyRuleConfigItem.class);
+                    ConfigurationItem.configItem(rule.getPolicyBean(), rule.getOrigin(), PolicyRuleConfigItem.class);
 
             LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
-            rules.add(new EvaluatedPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT, rule));
+            rules.add(new DirectlyEvaluatedClockworkPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT, rule));
         }
 
         LOGGER.trace("Collected activity policy rules {} for further evaluation", rules);
     }
 
-    private void collectObjectRulesFromAssignments(List<EvaluatedPolicyRuleImpl> rules) {
+    private void collectObjectRulesFromAssignments(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules) {
         // We intentionally evaluate rules also from negative (deleted) assignments.
         for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getAllEvaluatedAssignments()) {
             rules.addAll(evaluatedAssignment.getObjectPolicyRules());
@@ -145,7 +146,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     }
 
     /** [EP:M:PRC] DONE rules are from {@link #rulesWithIds} only */
-    private void collectGlobalObjectRules(List<EvaluatedPolicyRuleImpl> rules, OperationResult result)
+    private void collectGlobalObjectRules(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         PrismObject<O> focus = getFocusForSelection();
@@ -156,7 +157,7 @@ class PolicyRulesCollector<O extends ObjectType> {
             if (isRuleConditionTrue(ruleWithId, focus, null, result)) { // [EP:M:PRC] DONE^
                 LOGGER.trace("Collecting global policy rule '{}' ({})", ruleCI.getName(), ruleWithId.ruleId());
                 rules.add(
-                        new EvaluatedPolicyRuleImpl(
+                        new DirectlyEvaluatedClockworkPolicyRuleImpl(
                                 ruleCI.clone(), ruleWithId.ruleId(), null, TargetType.OBJECT));
                 globalRulesFound++;
             } else {
@@ -217,7 +218,7 @@ class PolicyRulesCollector<O extends ObjectType> {
                     LOGGER.trace("Collecting global policy rule '{}' in {}, considering target {} (applies directly: {})",
                             ruleCI.getName(), evaluatedAssignment, target, appliesDirectlyToTarget);
                     evaluatedAssignment.addTargetPolicyRule(
-                            new EvaluatedPolicyRuleImpl(
+                            new DirectlyEvaluatedClockworkPolicyRuleImpl(
                                     ruleCI.clone(),
                                     ruleWithId.ruleId(),
                                     target.getAssignmentPath().clone(),
@@ -248,7 +249,7 @@ class PolicyRulesCollector<O extends ObjectType> {
         int activityRulesInstantiated = 0;
 
         Collection<ActivityPolicyRule> activityRules = getEnabledActivityRules().stream()
-                .filter(r -> PolicyRuleApplicabilityUtil.isApplicableToAssignment(r.getPolicy()))
+                .filter(r -> PolicyRuleApplicabilityUtil.isApplicableToAssignment(r.getPolicyBean()))
                 .toList();
 
         for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
@@ -262,11 +263,11 @@ class PolicyRulesCollector<O extends ObjectType> {
                 for (ActivityPolicyRule rule : activityRules) {
                     String ruleId = rule.getRuleIdentifier().toString();
                     PolicyRuleConfigItem ci =
-                            ConfigurationItem.configItem(rule.getPolicy(), rule.getOrigin(), PolicyRuleConfigItem.class);
+                            ConfigurationItem.configItem(rule.getPolicyBean(), rule.getOrigin(), PolicyRuleConfigItem.class);
 
                     LOGGER.trace("Collecting activity policy rule for assignment '{}' ({})", ci.getName(), ruleId);
                     evaluatedAssignment.addTargetPolicyRule(
-                            new EvaluatedPolicyRuleImpl(
+                            new DirectlyEvaluatedClockworkPolicyRuleImpl(
                                     ci,
                                     ruleId,
                                     target.getAssignmentPath().clone(),
@@ -349,9 +350,9 @@ class PolicyRulesCollector<O extends ObjectType> {
     }
 
     void resolveConstraintReferences(
-            Collection<? extends EvaluatedPolicyRule> evaluatedRules) {
+            Collection<? extends DirectlyEvaluatedClockworkPolicyRule> evaluatedRules) {
         List<PolicyRuleType> rules = evaluatedRules.stream()
-                .map(EvaluatedPolicyRule::getPolicyRule)
+                .map(DirectlyEvaluatedClockworkPolicyRule::getPolicyRuleBean)
                 .collect(Collectors.toList());
         checkInitialized();
         Collection<GlobalPolicyRuleType> allGlobalRules = rulesWithIds.stream()

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import jakarta.xml.bind.JAXBElement;
 
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +61,7 @@ public class CustomConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedCustomConstraintTrigger> evaluate(
             @NotNull JAXBElement<CustomPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NonNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 

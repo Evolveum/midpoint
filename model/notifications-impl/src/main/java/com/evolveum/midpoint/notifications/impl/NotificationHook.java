@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
@@ -100,18 +100,18 @@ public class NotificationHook implements ChangeHook {
 
     private void emitPolicyRulesEvents(ModelContext<?> context, Task task, OperationResult result) {
         LensFocusContext<?> focusContext = (LensFocusContext<?>) context.getFocusContext();
-        for (EvaluatedPolicyRule rule : focusContext.getObjectPolicyRules()) {
+        for (DirectlyEvaluatedClockworkPolicyRule rule : focusContext.getObjectPolicyRules()) {
             emitPolicyEventIfPresent(rule, context, task, result);
         }
         // TODO why dealing only with non-negative assignments here?
         for (EvaluatedAssignment assignment : context.getNonNegativeEvaluatedAssignments()) {
-            for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
+            for (DirectlyEvaluatedClockworkPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
                 emitPolicyEventIfPresent(rule, context, task, result);
             }
         }
     }
 
-    private void emitPolicyEventIfPresent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
+    private void emitPolicyEventIfPresent(DirectlyEvaluatedClockworkPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
         if (rule.isTriggered()) {
             for (var notificationAction : rule.getEnabledActions(NotificationPolicyActionType.class)) {
                 emitPolicyEvent(notificationAction.value(), rule, context, task, result);
@@ -119,8 +119,12 @@ public class NotificationHook implements ChangeHook {
         }
     }
 
-    private void emitPolicyEvent(@SuppressWarnings("unused") NotificationPolicyActionType action, EvaluatedPolicyRule rule,
-            ModelContext<?> context, Task task, OperationResult result) {
+    private void emitPolicyEvent(
+            @SuppressWarnings("unused") NotificationPolicyActionType action,
+            DirectlyEvaluatedClockworkPolicyRule rule,
+            ModelContext<?> context,
+            Task task,
+            OperationResult result) {
         PolicyRuleEvent ruleEvent = createRuleEvent(rule, context, task, result);
         notificationManager.processEvent(ruleEvent, task, result);
     }
@@ -151,7 +155,11 @@ public class NotificationHook implements ChangeHook {
     }
 
     @NotNull
-    private PolicyRuleEvent createRuleEvent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
+    private PolicyRuleEvent createRuleEvent(
+            DirectlyEvaluatedClockworkPolicyRule rule,
+            ModelContext<?> context,
+            Task task,
+            OperationResult result) {
         PolicyRuleEventImpl ruleEvent = new PolicyRuleEventImpl(lightweightIdentifierGenerator, rule);
         setCommonEventProperties(getObject(context), task, context, ruleEvent, result);
         return ruleEvent;

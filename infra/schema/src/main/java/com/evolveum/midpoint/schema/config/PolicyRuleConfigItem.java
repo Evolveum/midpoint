@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.schema.config;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +15,10 @@ public class PolicyRuleConfigItem extends AbstractPolicyRuleConfigItem<PolicyRul
     @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
     public PolicyRuleConfigItem(@NotNull ConfigurationItem<PolicyRuleType> original) {
         super(original);
+    }
+
+    public static PolicyRuleConfigItem of(@NotNull PolicyRuleType value, @NotNull ConfigurationItemOrigin origin) {
+        return ConfigurationItem.configItem(value, origin, PolicyRuleConfigItem.class);
     }
 
     @Override

@@ -19,7 +19,8 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -617,7 +618,7 @@ public class RequestAccess implements Serializable, DebugDumpable {
         }
 
         for (EvaluatedAssignment evaluatedAssignment : assignments) {
-            for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+            for (DirectlyEvaluatedClockworkPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
                 if (!policyRule.isTriggered() || !policyRule.containsEnabledAction()) {
                     continue;
                 }
@@ -672,8 +673,12 @@ public class RequestAccess implements Serializable, DebugDumpable {
         }
     }
 
-    private void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,
-                                 Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
+    private void createConflicts(
+            ObjectReferenceType userRef,
+            Map<String, Conflict> conflicts,
+            EvaluatedAssignment evaluatedAssignment,
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers,
+            boolean warning) {
 
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger evaluatedExclusionTrigger) {

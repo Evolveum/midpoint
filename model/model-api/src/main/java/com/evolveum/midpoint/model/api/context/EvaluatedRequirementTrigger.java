@@ -6,13 +6,13 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -54,9 +54,8 @@ public class EvaluatedRequirementTrigger extends EvaluatedExclusionRequirementTr
 
     @Override
     public EvaluatedRequirementTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedRequirementTriggerType rv = new EvaluatedRequirementTriggerType();
-        fillCommonContent(rv);
+            @NotNull PolicyRuleExternalizationOptions options) {
+        var rv = toEvaluatedPolicyRuleTriggerBean(options, EvaluatedRequirementTriggerType::new);
         if (options.isFullStorageStrategy()) {
             rv.setRequirementObjectRef(ObjectTypeUtil.createObjectRef(requiredTargetRef));
             rv.setRequirementObjectArchetypeRef(ObjectTypeUtil.createObjectRef(requiredTargetArchetypeRef));

@@ -2124,7 +2124,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     @Experimental
     @NotNull
-    public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
+    public Collection<DirectlyEvaluatedClockworkPolicyRule> evaluateCollectionPolicyRules(
             @NotNull PrismObject<ObjectCollectionType> collection, // [EP:APSO] DONE 1/1
             @Nullable CompiledObjectCollectionView preCompiledView,
             @Nullable Class<? extends ObjectType> targetTypeClass,

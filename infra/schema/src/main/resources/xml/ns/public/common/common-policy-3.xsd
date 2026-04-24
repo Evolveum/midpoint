@@ -395,6 +395,9 @@
                                 time exceeds the specified value. When the below element is specified, constraint will
                                 trigger if the task execution time is below the specified value.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executionAttempts" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0">
@@ -406,6 +409,9 @@
                                 exceeds the specified value. When the "below" element is specified, constraint will trigger
                                 if the number of attempts is below the specified value.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="itemProcessingResult" type="tns:ItemProcessingResultPolicyConstraintType" minOccurs="0">
@@ -413,6 +419,9 @@
                             <xsd:documentation>
                                 Constraint that evaluates result of one item (object) that was processed by activity.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -1936,6 +1945,8 @@
                     <xsd:documentation>
                         <p>
                             When should this action be applied?
+
+                            Not supported for policy rules targeted at activities. (TODO specify more precisely)
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

@@ -6,17 +6,17 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is not used, because the preliminary code for triggering time validity was removed (from validity scanner)
  * by mistake; and the serious implementation (in clockwork) was never done.
  */
-public class EvaluatedTimeValidityTrigger extends EvaluatedFocusPolicyRuleTrigger<TimeValidityPolicyConstraintType> {
+public class EvaluatedTimeValidityTrigger extends EvaluatedClockworkPolicyRuleTrigger<TimeValidityPolicyConstraintType> {
 
     public EvaluatedTimeValidityTrigger(
             @NotNull PolicyConstraintKind kind,
@@ -27,10 +27,7 @@ public class EvaluatedTimeValidityTrigger extends EvaluatedFocusPolicyRuleTrigge
     }
 
     @Override
-    public EvaluatedTimeValidityTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedTimeValidityTriggerType rv = new EvaluatedTimeValidityTriggerType();
-        fillCommonContent(rv);
-        return rv;
+    public EvaluatedTimeValidityTriggerType toEvaluatedPolicyRuleTriggerBean(@NotNull PolicyRuleExternalizationOptions options) {
+        return toEvaluatedPolicyRuleTriggerBean(options, EvaluatedTimeValidityTriggerType::new);
     }
 }

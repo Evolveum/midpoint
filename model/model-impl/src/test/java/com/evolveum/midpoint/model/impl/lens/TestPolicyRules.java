@@ -21,8 +21,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedSituationTrigger;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedSituationTrigger;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -424,7 +424,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
         EvaluatedSituationTrigger triggerSituation = (EvaluatedSituationTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.SITUATION, 1, false);
         assertEquals("Wrong # of source rules", 1, triggerSituation.getSourceRules().size());
-        EvaluatedPolicyRule sourceRule = triggerSituation.getSourceRules().iterator().next();
+        var sourceRule = triggerSituation.getSourceRules().iterator().next();
         EvaluatedExclusionTrigger sourceTrigger = (EvaluatedExclusionTrigger) sourceRule.getTriggers().iterator().next();
         assertNotNull("No conflicting assignment in source trigger", sourceTrigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in source trigger", ROLE_JUDGE_OID, sourceTrigger.getConflictingAssignment().getTarget().getOid());
@@ -540,21 +540,21 @@ public class TestPolicyRules extends AbstractLensTest {
         assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1, false);
         assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.SITUATION, 1, false);
 
-        EvaluatedPolicyRule engineerRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION);
+        DirectlyEvaluatedClockworkPolicyRule engineerRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION);
         displayDumpable("exclusion rule for Engineer", engineerRule);
         displayDumpable("exclusion trigger for Engineer", engineerTrigger);
-        displayDumpable("Engineer: assignmentPath", engineerRule.getAssignmentPath());
+        displayDumpable("Engineer: assignmentPath", engineerRule.getRuleAssignmentPath());
         displayDumpable("Engineer: conflictingPath", engineerTrigger.getConflictingPath());
-        assertAssignmentPath(engineerRule.getAssignmentPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID, null);
+        assertAssignmentPath(engineerRule.getRuleAssignmentPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID, null);
         assertAssignmentPath(engineerTrigger.getConflictingPath(), ROLE_CORP_CONTRACTOR_OID);
 
-        EvaluatedPolicyRule contractorRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION);
+        DirectlyEvaluatedClockworkPolicyRule contractorRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION);
         EvaluatedExclusionTrigger contractorTrigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
         displayDumpable("exclusion rule for Contractor", contractorRule);
         displayDumpable("exclusion trigger for Contractor", contractorTrigger);
-        displayDumpable("Contractor: assignmentPath", contractorRule.getAssignmentPath());
+        displayDumpable("Contractor: assignmentPath", contractorRule.getRuleAssignmentPath());
         displayDumpable("Contractor: conflictingPath", contractorTrigger.getConflictingPath());
-        assertAssignmentPath(contractorRule.getAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
+        assertAssignmentPath(contractorRule.getRuleAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
         assertAssignmentPath(contractorTrigger.getConflictingPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID);
 
         assertSerializable(context);

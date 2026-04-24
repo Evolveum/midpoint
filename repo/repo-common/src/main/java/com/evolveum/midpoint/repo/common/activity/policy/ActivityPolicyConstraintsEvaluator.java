@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,7 @@ public class ActivityPolicyConstraintsEvaluator {
             ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
                     (ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) findEvaluator(element);
 
-            List<? extends EvaluatedActivityPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(element, context, result);
+            List<? extends EvaluatedPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(element, context, result);
             if (!newTriggers.isEmpty()) {
                 triggers.addAll(newTriggers);
             } else {

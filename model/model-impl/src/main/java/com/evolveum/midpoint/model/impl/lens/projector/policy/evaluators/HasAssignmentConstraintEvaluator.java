@@ -21,6 +21,7 @@ import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -65,7 +66,8 @@ public class HasAssignmentConstraintEvaluator
     @Override
     public @NotNull <O extends ObjectType> Collection<EvaluatedHasAssignmentTrigger> evaluate(
             @NotNull JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-            @NotNull PolicyRuleEvaluationContext<O> ctx, OperationResult parentResult)
+            @NotNull PolicyRuleEvaluationContext<O> ctx,
+            @NonNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 

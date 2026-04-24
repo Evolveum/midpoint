@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -83,7 +83,7 @@ public class ObjectPolicyAspectPart {
             PrismObject<T> object = focusContext.getObjectOld() != null ?
                     focusContext.getObjectOld() : focusContext.getObjectNew();
 
-            List<AssociatedPolicyRule> triggeredApprovalActionRules =
+            List<EvaluatedClockworkPolicyRule> triggeredApprovalActionRules =
                     main.selectTriggeredApprovalActionRules(focusContext.getObjectPolicyRules());
             LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}",
                     debugDumpLazily(triggeredApprovalActionRules));

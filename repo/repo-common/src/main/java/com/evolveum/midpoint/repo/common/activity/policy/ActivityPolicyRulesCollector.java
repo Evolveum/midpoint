@@ -11,6 +11,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+
+import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
+
 import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -97,7 +101,9 @@ public class ActivityPolicyRulesCollector {
                             activityRun.getRunningTask().getRawTaskObjectClonedIfNecessary().asObjectable(),
                             TaskType.F_ACTIVITY);
 
-                    return new ActivityPolicyRule(policy, activityPath, origin, getDataNeeds(policy));
+                    var policyCI = ConfigurationItem.configItem(policy, origin, PolicyRuleConfigItem.class);
+
+                    return new ActivityPolicyRule(policyCI, activityPath, getDataNeeds(policy));
                 })
                 .sorted(
                         Comparator.comparing(

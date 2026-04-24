@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,7 +25,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRulesE
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.repo.common.activity.policy.PolicyRuleCounterUpdater;
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.Task;
@@ -193,7 +194,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
         @NotNull
         @Override
-        protected Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules() {
+        protected Collection<? extends DirectlyEvaluatedClockworkPolicyRule> getPolicyRules() {
             LensFocusContext<?> focusContext = context.getFocusContext();
             if (focusContext == null) {
                 return List.of();
