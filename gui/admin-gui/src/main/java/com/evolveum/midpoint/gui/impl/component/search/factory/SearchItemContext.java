@@ -13,12 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.panel.NamedIntervalPreset;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.prism.path.PathKeyedMap;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
@@ -33,7 +27,11 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.panel.NamedIntervalPreset;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -101,8 +99,8 @@ public class SearchItemContext implements Serializable {
     private List<DisplayableValue<?>> getSearchItemAvailableValues(SearchItemType searchItem, ItemDefinition<?> def,
             ModelServiceLocator modelServiceLocator) {
         if (def instanceof PrismPropertyDefinition<?>) {
-            return CollectionUtils.isNotEmpty(((PrismPropertyDefinition<?>)def).getAllowedValues()) ?
-                    (List<DisplayableValue<?>>) ((PrismPropertyDefinition<?>)def).getAllowedValues()
+            return CollectionUtils.isNotEmpty(((PrismPropertyDefinition<?>) def).getAllowedValues()) ?
+                    (List<DisplayableValue<?>>) ((PrismPropertyDefinition<?>) def).getAllowedValues()
                     : getAllowedValues(ItemPath.create(def.getItemName()));
         }
         if (hasParameter()) {
@@ -128,7 +126,7 @@ public class SearchItemContext implements Serializable {
 
     private boolean hasLookupTableDefined(SearchItemType item) {
         ObjectReferenceType lookupTableRef = item.getParameter().getAllowedValuesLookupTable();
-        return  lookupTableRef != null && lookupTableRef.getOid() != null;
+        return lookupTableRef != null && lookupTableRef.getOid() != null;
     }
 
     private QName getSearchItemValueTypeName(SearchItemType searchItem, ItemDefinition<?> def) {
@@ -164,11 +162,13 @@ public class SearchItemContext implements Serializable {
         return lookupTableOid;
     }
 
-    @Nullable public ItemDefinition<?> getItemDef() {
+    @Nullable
+    public ItemDefinition<?> getItemDef() {
         return itemDef;
     }
 
-    @Nullable public ItemPath getPath() {
+    @Nullable
+    public ItemPath getPath() {
         return path;
     }
 
@@ -194,10 +194,7 @@ public class SearchItemContext implements Serializable {
     }
 
     public Integer getDisplayOrder() {
-        if (item.getDisplayOrder() != null) {
-            return item.getDisplayOrder();
-        }
-        return null;
+        return item.getDisplayOrder();
     }
 
     public IModel<String> getDisplayName() {
