@@ -102,7 +102,7 @@ podTemplate(
                             df -h
                         fi
 
-                        mvn -B -ntp -T 0.5C -Dmaven.test.failure.ignore -P sqale,dbtest,-dist clean install \
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P sqale,dbtest,-dist clean install \
                             -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
                             -Dmidpoint.internals.shadowCachingDefault=fullButUsingFresh
 
