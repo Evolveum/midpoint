@@ -1,0 +1,77 @@
+/*!
+ * Copyright (C) 2010-2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+.gen-step-title {
+  font-size: 1.5em;
+  font-weight: 600;
+ }
+
+.gen-menu-card {
+  padding: 0.5rem 0.875rem 0.765rem 0.875rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  margin-bottom:0;
+}
+
+.gen-menu-group {
+  .gen-menu-card {
+    &:first-child, &:only-child {
+      margin-top: 0.675rem;
+      margin-bottom:0;
+    }
+  }
+}
+
+.gen-list-group {
+  .gen-list-item {
+    border:1px solid $border-color;
+    border-top:unset;
+
+    &:has(input[type="checkbox"]:checked), &:has(input[type="radio"]:checked) {
+      background: var(--mp-bg-active-primary);
+      color: $primary;
+    }
+    &:first-child {
+      border-radius: 0.25rem 0.25rem 0 0;
+      border-top:1px solid $border-color;
+    }
+    &:last-child {
+      border-radius: 0 0 0.25rem 0.25rem;
+    }
+    &:only-child {
+      border-radius: 0.25rem;
+      border:1px solid $border-color !important;
+    }
+  }
+}
+
+.gen-menu-icon {
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+}
+
+.gen-tile {
+  &::before {
+    content: "";
+    border: 1px solid $card-border-color;
+    position: absolute;
+    border-radius: 0.25rem;
+    inset:0 8px 0 8px;
+    z-index:0;
+  }
+
+  &:hover::before {
+    border: 1px solid transparent;
+  }
+}
+
+.tile-panel.gen-tile {
+  &::before {
+    inset:4px !important;
+  }
+}
