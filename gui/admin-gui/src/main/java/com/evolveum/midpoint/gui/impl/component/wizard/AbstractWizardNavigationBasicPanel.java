@@ -21,6 +21,6 @@ public abstract class AbstractWizardNavigationBasicPanel<AHD extends AssignmentH
 
     @Override
     protected String getButtonContainerAdditionalCssClass() {
-        return "col-12 p-0";
+        return "col-12";
     }
 }

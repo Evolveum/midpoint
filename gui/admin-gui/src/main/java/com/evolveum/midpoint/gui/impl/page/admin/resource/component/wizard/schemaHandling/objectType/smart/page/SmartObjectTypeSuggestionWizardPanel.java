@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -106,7 +108,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                         },
                                 (target, confirmedOptions) -> {
                                     final QName objectClassName = selectedModel.getObject().getRealValue().getName();
-                                    processSuggestionActivity(target, objectClassName, false, confirmedOptions);
+                                    processSuggestionActivity(target, objectClassName, false, null, confirmedOptions);
                                 }),
                         getPageBase());
 
@@ -152,7 +154,9 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
     /**
      * Processes the suggestion activity for the given object class name.
      */
-    private void processSuggestionActivity(AjaxRequestTarget target, QName objectClassName, boolean resetSuggestion,
+    private void processSuggestionActivity(AjaxRequestTarget target, QName objectClassName,
+            boolean isRegenerate,
+            @Nullable RegenerateMode regenerateMode,
             IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
         String resourceOid = getAssignmentHolderModel().getObjectType().getOid();
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
@@ -163,7 +167,14 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
 
         boolean hasValidSuggestions = isSuccessfulSuggestion(suggestions);
 
-        if (hasValidSuggestions && resetSuggestion) {
+        List<ResourceObjectTypeDefinitionType> previousObjectTypes = List.of();
+        if (hasValidSuggestions && isRegenerate
+                && regenerateMode != null
+                && suggestions.getResult() != null) {
+            previousObjectTypes = suggestions.getResult().getObjectType();
+        }
+
+        if (hasValidSuggestions && isRegenerate) {
             removeWholeTaskObject(getPageBase(), task, result, suggestions.getToken());
             hasValidSuggestions = false;
         }
@@ -188,7 +199,8 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         }
 
         boolean executed = runSuggestionAction(
-                getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task, permissions);
+                getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task, permissions,
+                regenerateMode, previousObjectTypes);
 
         result.computeStatusIfUnknown();
 
@@ -279,9 +291,10 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
 
             @Override
             public void refreshSuggestionPerform(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+                    RegenerateMode regenerateMode) {
                 removeLastBreadcrumb();
-                processSuggestionActivity(target, objectClassName, true, confirmedOptions);
+                processSuggestionActivity(target, objectClassName, true, regenerateMode, confirmedOptions);
             }
 
             @Override

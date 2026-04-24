@@ -489,7 +489,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         }
     }
 
-    protected void updateTileView(@NotNull AjaxRequestTarget target) {
+    public void updateTileView(@NotNull AjaxRequestTarget target) {
         target.add(get(ID_TILE_VIEW));
     }
 

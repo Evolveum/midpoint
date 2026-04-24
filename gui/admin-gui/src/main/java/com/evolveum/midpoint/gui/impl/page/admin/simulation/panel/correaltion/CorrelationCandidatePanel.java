@@ -7,11 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.findCandidateMappingsAsWrapper;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.findResourceObjectTypeDefinitionType;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.getCorrelatedOwner;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.getCorrelationCandidateModel;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.getShadowAfterChanges;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -305,11 +301,11 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
         String displayName = WebModelServiceUtils.resolveReferenceName(ref, getPageBase());
         final AttributeModifier classModifier;
         if (isOwner) {
-            classModifier = AttributeModifier.append("class", "bg-success-light");
+            classModifier = AttributeModifier.append("class", "bg-success-subtle border-success-subtle text-success-emphasis");
             displayName += " (" + translate("CorrelationCandidatePanel.correlatedWithConfidence",
                     String.format("%.2f", confidence)) + ")";
         } else {
-            classModifier = AttributeModifier.append("class", "bg-warning-light");
+            classModifier = AttributeModifier.append("class", "bg-warning-subtle border-warning-subtle text-warning-emphasis");
             if (confidence != null) {
                 displayName += " (" + translate("CorrelationCandidatePanel.correlatedWithConfidence",
                         String.format("%.2f", confidence)) + ")";

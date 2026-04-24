@@ -190,6 +190,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         var token = smartIntegrationService.submitSuggestObjectTypesOperation(
                 RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME,
                 List.of(DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.STATISTICS_ACCESS),
+                null, null,
                 task, result);
 
         then("returned token is not null");
@@ -246,6 +247,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         var token = smartIntegrationService.submitSuggestObjectTypesOperation(
                 RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME,
                 List.of(DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.STATISTICS_ACCESS),
+                null, null,
                 task, result);
 
         then("returned token is not null");

@@ -215,7 +215,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel<String> {
 
     private Behavior getButtonContainerAdditionalCssClassBehavior() {
         return AttributeAppender.append("class", () ->
-                getButtonContainerAdditionalCssClass() + (isOnlyChildCentered() ? " only-child-centered" : ""));
+                getButtonContainerAdditionalCssClass() + (isOnlyChildCentered() ? " only-child-centered" : "") + (isOnlyChildLeft() ? " only-child-left" : ""));
     }
 
     protected String getButtonContainerAdditionalCssClass() {
@@ -223,6 +223,10 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel<String> {
     }
 
     protected boolean isOnlyChildCentered() {
+        return false;
+    }
+
+    protected boolean isOnlyChildLeft() {
         return false;
     }
 

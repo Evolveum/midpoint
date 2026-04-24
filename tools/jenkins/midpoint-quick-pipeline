@@ -6,10 +6,10 @@
 
 def verbose = params.VERBOSE ?: '0'
 
-// Make the cpuLimit integer from String Jenkins job parameter
-def cpuLimit = (params.BUILDER_CPU ?: '4').toInteger()
-// Request half the limit to reduce reserved capacity, allowing more concurrent pods to be scheduled
-def cpuRequest = cpuLimit.intdiv(2)
+// Make the cpuLimit integer from String Jenkins job parameter.
+def cpuLimit = (params.BUILDER_CPU ?: '8').toInteger()
+// Request quarter of the limit (min 1) to reduce reserved capacity, allowing more concurrent pods to be scheduled.
+def cpuRequest = Math.max(1, cpuLimit.intdiv(4))
 
 podTemplate(
         nodeSelector: params.NODE_SELECTOR,
@@ -33,7 +33,7 @@ podTemplate(
                         ttyEnabled: true,
                         command: 'cat',
                         resourceRequestCpu: "${cpuRequest}",
-                        resourceLimitCpu: "${cpuLimit}"
+                        resourceLimitCpu: "${cpuLimit}",
                         resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // by default -Xmx4g is set in main POM
         ]

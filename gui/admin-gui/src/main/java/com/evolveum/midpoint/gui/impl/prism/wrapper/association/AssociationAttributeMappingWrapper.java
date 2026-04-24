@@ -297,7 +297,7 @@ public class AssociationAttributeMappingWrapper extends PrismContainerWrapperImp
         DeltaWrapper foundDeltaWrapper = null;
         for (DeltaWrapper deltaWrapper : deltaWrappers) {
 
-            if (deltaWrapper.attributeRef.equivalent(virtualRef.getValue().getRealValue())) {
+            if (deltaWrapper.attributeRef != null && deltaWrapper.attributeRef.equivalent(virtualRef.getValue().getRealValue())) {
                 foundDeltaWrapper = deltaWrapper;
                 break;
             }
