@@ -8958,7 +8958,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="trigger" type="tns:EvaluatedActivityPolicyTriggerType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Triggers associated with the policy.
@@ -8968,24 +8968,6 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="activityPolicyState" type="tns:ActivityPolicyStateType"/>
-
-    <xsd:complexType name="EvaluatedActivityPolicyTriggerType">
-        <xsd:annotation>
-            <xsd:documentation>
-                A single policy trigger.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-                <a:since>4.10</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType"/>
-            <xsd:element name="constraintName" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="evaluatedActivityPolicyTrigger" type="tns:EvaluatedActivityPolicyTriggerType"/>
 
     <xsd:complexType name="ActivityCounterGroupsType">
         <xsd:annotation>

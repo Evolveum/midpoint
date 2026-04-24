@@ -16,14 +16,15 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Common abstract superclass for triggered exclusion and requirement constraints.
  */
-public abstract class EvaluatedExclusionRequirementTrigger extends EvaluatedFocusPolicyRuleTrigger<ExclusionPolicyConstraintType> {
+public abstract class EvaluatedExclusionRequirementTrigger
+        extends EvaluatedClockworkPolicyRuleTrigger<ExclusionPolicyConstraintType> {
 
     @NotNull private final EvaluatedAssignment thisAssignment;
     @NotNull private final ObjectType thisTarget;
     @NotNull private final AssignmentPath thisPath;
 
     // we keep thisTarget and thisPath here because in the future they might be useful
-    public EvaluatedExclusionRequirementTrigger(
+    EvaluatedExclusionRequirementTrigger(
             @NotNull PolicyConstraintKind policyConstraintKind,
             @NotNull ExclusionPolicyConstraintType constraint,
             LocalizableMessage message,

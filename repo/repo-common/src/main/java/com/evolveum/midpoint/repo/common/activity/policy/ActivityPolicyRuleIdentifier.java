@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -35,7 +36,7 @@ public record ActivityPolicyRuleIdentifier(
     }
 
     @Override
-    public String asString() {
+    public @NotNull String asString() {
         return path + ":" + policyId;
     }
 }

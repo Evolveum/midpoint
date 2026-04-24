@@ -20,7 +20,8 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -281,15 +282,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      *
      * Key for this map is policy rule identifier.
      * Value is a list different triggered policy instances with the same identifier.
-     * Equality is determined via {@link EvaluatedPolicyRuleImpl#isTheSameAs(EvaluatedPolicyRuleImpl)}.
+     * Equality is determined via {@link DirectlyEvaluatedClockworkPolicyRuleImpl#isTheSameAs(DirectlyEvaluatedClockworkPolicyRuleImpl)}.
      *
-     * TODO: Later on this field should be moved to {@Link com.evolveum.midpoint.model.impl.lens.PolicyRulesContext}
+     * TODO: Later on this field should be moved to {@link PolicyRulesContext}
      *  after {@link LensContext#historicResourceObjects} are made to contain full {@link LensProjectionContext}s
      *  not just their keys.
      *
      * TODO think about making this non-transient, it's not serializable now (MagicAssignment/Holder classes, etc.)
      */
-    @NotNull private transient final Map<String, List<EvaluatedPolicyRuleImpl>> triggeredObjectPolicyRules = new HashMap<>();
+    @NotNull private transient final Map<String, List<DirectlyEvaluatedClockworkPolicyRuleImpl>> triggeredObjectPolicyRules = new HashMap<>();
 
     public LensContext(@NotNull TaskExecutionMode taskExecutionMode) {
         this(null, taskExecutionMode);
@@ -1253,36 +1254,36 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     private void dumpPolicyRulesCollection(
-            String label, int indent, StringBuilder sb, Collection<? extends AssociatedPolicyRule> rules, boolean alsoMessages) {
+            String label, int indent, StringBuilder sb, Collection<? extends EvaluatedClockworkPolicyRule> rules, boolean alsoMessages) {
         sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(label).append(" (").append(rules.size()).append("):");
-        for (AssociatedPolicyRule rule : rules) {
+        for (EvaluatedClockworkPolicyRule rule : rules) {
             sb.append("\n");
             dumpPolicyRule(indent, sb, rule, alsoMessages);
         }
     }
 
     private void dumpPolicyRule(
-            int indent, StringBuilder sb, AssociatedPolicyRule rule, boolean alsoMessages) {
+            int indent, StringBuilder sb, EvaluatedClockworkPolicyRule rule, boolean alsoMessages) {
         if (alsoMessages) {
             sb.append("=============================================== RULE ===============================================\n");
         }
         DebugUtil.indentDebugDump(sb, indent + 1);
-        if (rule.getNewOwner() != null) {
-            sb.append(rule.getNewOwnerShortString()).append(" ");
+        String assignmentOverrideString = rule.getAssignmentOverrideShortDump();
+        if (assignmentOverrideString != null) {
+            sb.append(assignmentOverrideString).append(" ");
         }
-        EvaluatedPolicyRule evaluatedRule = rule.getEvaluatedPolicyRule();
-        if (evaluatedRule.isGlobal()) {
+        if (rule.isGlobal()) {
             sb.append("global ");
         }
-        sb.append("rule: ").append(evaluatedRule.toShortString());
-        dumpTriggersCollection(indent + 2, sb, evaluatedRule.getTriggers());
+        sb.append("rule: ").append(rule.toShortString());
+        dumpTriggersCollection(indent + 2, sb, rule.getTriggers());
         if (alsoMessages) {
-            if (evaluatedRule.isTriggered()) {
+            if (rule.isTriggered()) {
                 sb.append("\n\n");
                 sb.append("--------------------------------------------- MESSAGES ---------------------------------------------");
-                List<TreeNode<LocalizableMessage>> messageTrees = evaluatedRule.extractMessages();
+                List<TreeNode<LocalizableMessage>> messageTrees = rule.extractMessages();
                 for (TreeNode<LocalizableMessage> messageTree : messageTrees) {
                     sb.append("\n");
                     sb.append(messageTree.debugDump(indent));
@@ -1305,10 +1306,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                         ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment()
                                 .toHumanReadableString());
             }
-            if (trigger instanceof EvaluatedCompositeTrigger) {
-                dumpTriggersCollection(indent + 1, sb, ((EvaluatedCompositeTrigger) trigger).getInnerTriggers());
-            } else if (trigger instanceof EvaluatedTransitionTrigger) {
-                dumpTriggersCollection(indent + 1, sb, ((EvaluatedTransitionTrigger) trigger).getInnerTriggers());
+            if (trigger instanceof EvaluatedCompositeTrigger compositeTrigger) {
+                dumpTriggersCollection(indent + 1, sb, compositeTrigger.getInnerTriggers());
+            } else if (trigger instanceof EvaluatedTransitionTrigger transitionTrigger) {
+                dumpTriggersCollection(indent + 1, sb, transitionTrigger.getInnerTriggers());
             }
         }
     }
@@ -1329,19 +1330,19 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     private static void dumpRulesIfNotEmpty(
-            StringBuilder sb, String label, int indent, Collection<? extends AssociatedPolicyRule> policyRules) {
+            StringBuilder sb, String label, int indent, Collection<? extends EvaluatedClockworkPolicyRule> policyRules) {
         if (!policyRules.isEmpty()) {
             dumpRules(sb, label, indent, policyRules);
         }
     }
 
-    static void dumpRules(StringBuilder sb, String label, int indent, Collection<? extends AssociatedPolicyRule> policyRules) {
+    static void dumpRules(StringBuilder sb, String label, int indent, Collection<? extends EvaluatedClockworkPolicyRule> policyRules) {
         sb.append("\n");
-        int triggered = AssociatedPolicyRule.getTriggeredRulesCount(policyRules);
+        int triggered = EvaluatedClockworkPolicyRule.getTriggeredRulesCount(policyRules);
         DebugUtil.debugDumpLabel(sb, label + " (total " + policyRules.size() + ", triggered " + triggered + ")", indent);
         // not triggered rules are dumped in one line
         boolean first = true;
-        for (AssociatedPolicyRule rule : policyRules) {
+        for (EvaluatedClockworkPolicyRule rule : policyRules) {
             if (rule.isTriggered()) {
                 continue;
             }
@@ -1354,7 +1355,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             sb.append(rule.toShortString());
         }
         // now triggered rules, each on separate line
-        for (AssociatedPolicyRule rule : policyRules) {
+        for (EvaluatedClockworkPolicyRule rule : policyRules) {
             if (rule.isTriggered()) {
                 sb.append("\n");
                 DebugUtil.indentDebugDump(sb, indent + 1);
@@ -2062,7 +2063,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return SystemConfigurationTypeUtil.isAccessesMetadataEnabled(getSystemConfigurationBean());
     }
 
-    public Collection<EvaluatedPolicyRuleImpl> getTriggeredObjectPolicyRules() {
+    public Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> getTriggeredObjectPolicyRules() {
         return triggeredObjectPolicyRules.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
     }
 
@@ -2070,11 +2071,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return !triggeredObjectPolicyRules.getOrDefault(identifier, List.of()).isEmpty();
     }
 
-    public void addTriggeredObjectPolicyRule(EvaluatedPolicyRuleImpl triggeredPolicyRule) {
-        List<EvaluatedPolicyRuleImpl> rules =
-                triggeredObjectPolicyRules.computeIfAbsent(triggeredPolicyRule.getPolicyRuleIdentifier(), id -> new ArrayList<>());
+    public void addTriggeredObjectPolicyRule(DirectlyEvaluatedClockworkPolicyRuleImpl triggeredPolicyRule) {
+        List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules =
+                triggeredObjectPolicyRules.computeIfAbsent(
+                        triggeredPolicyRule.getRuleIdentifier().asString(),
+                        id -> new ArrayList<>());
 
-        EvaluatedPolicyRuleImpl existing = findEquivalentPolicyRule(rules, triggeredPolicyRule);
+        DirectlyEvaluatedClockworkPolicyRuleImpl existing = findEquivalentPolicyRule(rules, triggeredPolicyRule);
         if (existing != null) {
             rules.remove(existing);
         }
@@ -2082,8 +2085,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         rules.add(triggeredPolicyRule);
     }
 
-    private EvaluatedPolicyRuleImpl findEquivalentPolicyRule(List<EvaluatedPolicyRuleImpl> rules, EvaluatedPolicyRuleImpl rule) {
-        for (EvaluatedPolicyRuleImpl r : rules) {
+    private DirectlyEvaluatedClockworkPolicyRuleImpl findEquivalentPolicyRule(
+            List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules, DirectlyEvaluatedClockworkPolicyRuleImpl rule) {
+        for (DirectlyEvaluatedClockworkPolicyRuleImpl r : rules) {
             if (rule.isTheSameAs(r)) {
                 return r;
             }

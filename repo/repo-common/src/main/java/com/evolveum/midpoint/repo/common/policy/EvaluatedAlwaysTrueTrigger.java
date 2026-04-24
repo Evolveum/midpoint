@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.model.api.context;
+package com.evolveum.midpoint.repo.common.policy;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -13,7 +13,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AlwaysTruePolicyCons
 
 import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ALWAYS_TRUE;
 
-public class EvaluatedAlwaysTrueTrigger extends EvaluatedFocusPolicyRuleTrigger<AlwaysTruePolicyConstraintType> {
+/**
+ * Triggered by {@link AlwaysTruePolicyConstraintType}.
+ */
+public class EvaluatedAlwaysTrueTrigger extends EvaluatedPolicyRuleTrigger<AlwaysTruePolicyConstraintType> {
 
     public EvaluatedAlwaysTrueTrigger(
             @NotNull AlwaysTruePolicyConstraintType constraint,

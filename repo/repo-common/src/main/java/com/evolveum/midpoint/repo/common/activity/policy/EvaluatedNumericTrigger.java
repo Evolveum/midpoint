@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.NumericConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 
 import org.jetbrains.annotations.NotNull;
@@ -13,8 +15,13 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
 
+/**
+ * Trigger for constraints that act on numeric values.
+ *
+ * @see NumericConstraintEvaluator
+ */
 public class EvaluatedNumericTrigger<C extends NumericThresholdPolicyConstraintType>
-        extends EvaluatedActivityPolicyRuleTrigger<C> {
+        extends EvaluatedPolicyRuleTrigger<C> {
 
     public EvaluatedNumericTrigger(
             @NotNull PolicyConstraintKind constraintKind,

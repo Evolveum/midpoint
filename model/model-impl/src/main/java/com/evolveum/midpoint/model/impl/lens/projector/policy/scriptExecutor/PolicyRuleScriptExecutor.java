@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.LinkManager;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.model.impl.security.RunAsRunner;
@@ -63,7 +63,7 @@ public class PolicyRuleScriptExecutor {
     public void execute(@NotNull LensContext<?> context, Task task, OperationResult parentResult)
             throws SchemaException {
         if (context.hasFocusContext()) {
-            List<EvaluatedPolicyRuleImpl> rules = collectRelevantPolicyRules(context);
+            List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules = collectRelevantPolicyRules(context);
             if (!rules.isEmpty()) {
                 executeScriptsFromCollectedRules(rules, context, task, parentResult);
             } else {
@@ -74,24 +74,24 @@ public class PolicyRuleScriptExecutor {
         }
     }
 
-    private List<EvaluatedPolicyRuleImpl> collectRelevantPolicyRules(LensContext<?> context) {
-        List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
+    private List<DirectlyEvaluatedClockworkPolicyRuleImpl> collectRelevantPolicyRules(LensContext<?> context) {
+        List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules = new ArrayList<>();
 
-        for (EvaluatedPolicyRuleImpl rule : context.getTriggeredObjectPolicyRules()) {
+        for (DirectlyEvaluatedClockworkPolicyRuleImpl rule : context.getTriggeredObjectPolicyRules()) {
             collectRule(rules, rule);
         }
 
         return rules;
     }
 
-    private void collectRule(List<EvaluatedPolicyRuleImpl> rules, EvaluatedPolicyRuleImpl rule) {
+    private void collectRule(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules, DirectlyEvaluatedClockworkPolicyRuleImpl rule) {
         if (rule.isTriggered() && rule.containsEnabledAction(ScriptExecutionPolicyActionType.class)) {
             rules.add(rule);
         }
     }
 
     private <O extends ObjectType> void executeScriptsFromCollectedRules(
-            List<EvaluatedPolicyRuleImpl> rules,
+            List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules,
             LensContext<O> context,
             Task task,
             OperationResult parentResult) {
@@ -100,7 +100,7 @@ public class PolicyRuleScriptExecutor {
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPTS_FROM_RULES);
         RunAsRunner runAsRunner = runAsRunnerFactory.runner();
         try {
-            for (EvaluatedPolicyRuleImpl rule : rules) {
+            for (DirectlyEvaluatedClockworkPolicyRuleImpl rule : rules) {
                 var enabledActions = rule.getEnabledActions(ScriptExecutionPolicyActionType.class);
                 LOGGER.trace("Rule {} has {} enabled script execution actions", rule, enabledActions.size());
                 for (var action : enabledActions) {

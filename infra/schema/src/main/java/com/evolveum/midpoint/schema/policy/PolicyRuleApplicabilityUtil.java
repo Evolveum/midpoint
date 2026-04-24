@@ -33,7 +33,6 @@ import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.getConstr
  * . If it's not (which is good for simplicity), we apply some heuristics based on the constraints used in the rule.
  * See specific methods for details.
  */
-
 public class PolicyRuleApplicabilityUtil {
 
     /** Names of constraints suggesting {@link ApplicabilityHint#ASSIGNMENT} use. */
@@ -53,6 +52,8 @@ public class PolicyRuleApplicabilityUtil {
 
     /**
      * Returns {@code true} if this policy rule can be applied to an assignment.
+     *
+     * @see PolicyRuleApplicabilityUtil
      */
     public static boolean isApplicableToAssignment(PolicyRuleType rule) {
         PolicyRuleEvaluationTargetType evaluationTarget = rule.getEvaluationTarget();
@@ -70,6 +71,8 @@ public class PolicyRuleApplicabilityUtil {
 
     /**
      * Returns {@code true} if this policy rule can be applied to a focus object as a whole.
+     *
+     * @see PolicyRuleApplicabilityUtil
      */
     public static boolean isApplicableToFocusObject(PolicyRuleType rule) {
         PolicyRuleEvaluationTargetType evaluationTarget = rule.getEvaluationTarget();
@@ -85,6 +88,8 @@ public class PolicyRuleApplicabilityUtil {
      * Returns {@code true} if this policy rule can be applied to a projection.
      *
      * Currently, we don't provide heuristics here. These rules must be explicitly marked by `evaluationTarget`.
+     *
+     * @see PolicyRuleApplicabilityUtil
      */
     public static boolean isApplicableToProjection(PolicyRuleType rule) {
         return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.PROJECTION;

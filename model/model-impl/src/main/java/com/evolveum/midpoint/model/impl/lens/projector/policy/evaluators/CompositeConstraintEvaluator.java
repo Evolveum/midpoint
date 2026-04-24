@@ -9,17 +9,19 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsTyp
 
 import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.*;
 
+/** TODO deduplicate with {@link ActivityCompositeConstraintEvaluator} */
 @Component
 public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<PolicyConstraintsType, EvaluatedCompositeTrigger> {
 
@@ -54,7 +57,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
     public @NotNull <O extends ObjectType> Collection<EvaluatedCompositeTrigger> evaluate(
             @NotNull JAXBElement<PolicyConstraintsType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NonNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 

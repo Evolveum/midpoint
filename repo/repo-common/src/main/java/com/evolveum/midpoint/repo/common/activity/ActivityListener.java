@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRule;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -35,7 +35,7 @@ public interface ActivityListener {
      */
     void onActivityPolicyRuleTriggered(
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
-            @NotNull GenericEvaluatedPolicyRule policyRule,
+            @NotNull EvaluatedPolicyRule policyRule,
             @NotNull Task task,
             @NotNull OperationResult result);
 }

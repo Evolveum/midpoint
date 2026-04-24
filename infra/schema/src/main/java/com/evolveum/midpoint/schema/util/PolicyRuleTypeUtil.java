@@ -80,7 +80,7 @@ public class PolicyRuleTypeUtil {
     }
 
     public static <T extends PolicyActionType> List<PolicyActionConfigItem<T>> filterActions(
-            @NotNull List<? extends PolicyActionConfigItem<?>> actionsConfigItems, @NotNull Class<T> actionBeanClass) {
+            @NotNull Collection<? extends PolicyActionConfigItem<?>> actionsConfigItems, @NotNull Class<T> actionBeanClass) {
         //noinspection unchecked
         return actionsConfigItems.stream()
                 .filter(a -> actionBeanClass.isAssignableFrom(a.value().getClass()))

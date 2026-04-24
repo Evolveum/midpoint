@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,7 +24,7 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 public class EvaluatedModificationTrigger<C extends ModificationPolicyConstraintType>
-        extends EvaluatedFocusPolicyRuleTrigger<C> {
+        extends EvaluatedClockworkPolicyRuleTrigger<C> {
 
     @NotNull private final Collection<PrismObject<?>> matchingTargets;
 
@@ -39,10 +40,8 @@ public class EvaluatedModificationTrigger<C extends ModificationPolicyConstraint
 
     @Override
     public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedModificationTriggerType rv = new EvaluatedModificationTriggerType();
-        fillCommonContent(rv);
-        return rv;
+            @NotNull PolicyRuleExternalizationOptions options) {
+        return toEvaluatedPolicyRuleTriggerBean(options, EvaluatedModificationTriggerType::new);
     }
 
     @Override

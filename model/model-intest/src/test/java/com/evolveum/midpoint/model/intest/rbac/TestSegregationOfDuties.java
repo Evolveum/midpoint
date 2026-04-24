@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1739,10 +1739,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles = rolesTriple.getZeroSet();
         assertEquals("Wrong number of evaluated role", 1, evaluatedRoles.size());
         assertEvaluatedRole(evaluatedRoles, ROLE_MINISTER_OID);
-        Collection<? extends EvaluatedPolicyRule> allTargetsPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
+        Collection<? extends DirectlyEvaluatedClockworkPolicyRule> allTargetsPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
         display("Evaluated policy rules", allTargetsPolicyRules);
         assertEquals("Wrong number of evaluated policy rules", 2, allTargetsPolicyRules.size());
-        EvaluatedPolicyRule evaluatedSodPolicyRule = getEvaluatedPolicyRule(allTargetsPolicyRules, GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME);
+        DirectlyEvaluatedClockworkPolicyRule evaluatedSodPolicyRule = getEvaluatedPolicyRule(allTargetsPolicyRules, GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME);
         EvaluatedPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
         displayDumpable("Own trigger", sodTrigger);
         assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
@@ -1869,18 +1869,18 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
     }
 
-    private void assertPolicyActionApproval(EvaluatedPolicyRule evaluatedPolicyRule) {
+    private void assertPolicyActionApproval(DirectlyEvaluatedClockworkPolicyRule evaluatedPolicyRule) {
         PolicyActionsType actions = evaluatedPolicyRule.getRawActions();
         assertNotNull("No policy actions in " + evaluatedPolicyRule, actions);
         assertFalse("No approval action in " + evaluatedPolicyRule, actions.getApproval().isEmpty());
     }
 
-    private void assertEvaluatedPolicyRuleTriggers(EvaluatedPolicyRule evaluatedPolicyRule,
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
+    private void assertEvaluatedPolicyRuleTriggers(DirectlyEvaluatedClockworkPolicyRule evaluatedPolicyRule,
+                                                   Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
         assertEquals("Wrong number of triggers in evaluated policy rule " + evaluatedPolicyRule.getName(), expectedNumberOfTriggers, triggers.size());
     }
 
-    private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+    private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(DirectlyEvaluatedClockworkPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         assertEvaluatedPolicyRuleTriggers(evaluatedPolicyRule, triggers, 1);
         return triggers.iterator().next();
     }
@@ -1892,7 +1892,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     }
 
     @SuppressWarnings("SameParameterValue")
-    private EvaluatedPolicyRule getEvaluatedPolicyRule(Collection<? extends EvaluatedPolicyRule> evaluatedPolicyRules, String ruleName) {
+    private DirectlyEvaluatedClockworkPolicyRule getEvaluatedPolicyRule(Collection<? extends DirectlyEvaluatedClockworkPolicyRule> evaluatedPolicyRules, String ruleName) {
         return evaluatedPolicyRules.stream().filter(rule -> ruleName.equals(rule.getName())).findFirst().get();
     }
 

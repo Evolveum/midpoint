@@ -29,7 +29,7 @@
                                         <code>
                                             // variable
                                             assert policyRule != null // EvaluatedPolicyRule
-                                            assert policyRule.assignmentPath != null
+                                            assert policyRule.ruleAssignmentPath != null
 
                                             // pushed expression environment
                                             assert midpoint.modelContext != null

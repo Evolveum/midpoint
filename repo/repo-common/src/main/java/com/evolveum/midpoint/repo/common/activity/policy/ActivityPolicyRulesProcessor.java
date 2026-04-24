@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
 import com.evolveum.midpoint.schema.policy.PolicyRuleApplicabilityUtil;
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompo
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunPolicyException;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -67,9 +68,9 @@ public class ActivityPolicyRulesProcessor {
             return;
         }
 
-        Collection<GenericEvaluatedPolicyRule> evaluatedRules = rules.stream()
-                .filter(rule -> PolicyRuleApplicabilityUtil.isApplicableToActivity(rule.getPolicy()))
-                .map(EvaluatedActivityPolicyRule::new)
+        Collection<EvaluatedActivityPolicyRuleImpl> evaluatedRules = rules.stream()
+                .filter(rule -> PolicyRuleApplicabilityUtil.isApplicableToActivity(rule.getPolicyBean()))
+                .map(EvaluatedActivityPolicyRuleImpl::new)
                 .collect(Collectors.toList());
 
         evaluateRules(evaluatedRules, processingResult, result);
@@ -80,31 +81,31 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void evaluateRules(
-            Collection<GenericEvaluatedPolicyRule> rules, ItemProcessingResult processingResult, OperationResult result) {
+            Collection<EvaluatedActivityPolicyRuleImpl> rules, ItemProcessingResult processingResult, OperationResult result) {
 
-        for (GenericEvaluatedPolicyRule rule : rules) {
+        for (var rule : rules) {
             evaluateRule(rule, processingResult, result);
         }
     }
 
-    private void updateCounters(Collection<GenericEvaluatedPolicyRule> evaluatedRules, OperationResult result)
+    private void updateCounters(Collection<EvaluatedActivityPolicyRuleImpl> evaluatedRules, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         new ActivityPolicyRuleCounterUpdater(activityRun, evaluatedRules).updateCounters(result);
     }
 
-    private ActivityPolicyStateType createPolicyState(GenericEvaluatedPolicyRule rule) {
+    private ActivityPolicyStateType createPolicyState(EvaluatedPolicyRule rule) {
         ActivityPolicyStateType state = new ActivityPolicyStateType();
         state.setIdentifier(rule.getRuleIdentifier().asString());
         state.setName(rule.getName());
 
         rule.getTriggers().stream()
-                .map(t -> t.toActivityPolicyTriggerType())
+                .map(t -> t.toEvaluatedPolicyRuleTriggerBean())
                 .forEach(t -> state.getTrigger().add(t));
 
         return state;
     }
 
-    private void executeAndStoreState(Collection<GenericEvaluatedPolicyRule> evaluatedRules, OperationResult result)
+    private void executeAndStoreState(Collection<EvaluatedActivityPolicyRuleImpl> evaluatedRules, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, ActivityRunPolicyException {
 
         // These will be written to activity state at the end
@@ -114,7 +115,7 @@ public class ActivityPolicyRulesProcessor {
             LOGGER.trace("Executing activity policy rules for {} ({})",
                     activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
 
-            for (GenericEvaluatedPolicyRule rule : evaluatedRules) {
+            for (EvaluatedActivityPolicyRuleImpl rule : evaluatedRules) {
                 if (!rule.isTriggered()) {
                     LOGGER.trace("Policy rule {} was not triggered, not executing actions", rule);
                     continue;
@@ -131,7 +132,7 @@ public class ActivityPolicyRulesProcessor {
             }
         } finally {
             // update policy states after all rules were enforced (even if ThresholdPolicyViolationException was thrown)
-            Map<String, GenericEvaluatedPolicyRule> ruleMap = evaluatedRules.stream()
+            Map<String, EvaluatedActivityPolicyRuleImpl> ruleMap = evaluatedRules.stream()
                     .collect(Collectors.toMap(r -> r.getRuleIdentifier().asString(), r -> r));
 
             Map<String, ActivityPolicyStateType> updated = activityRun.updateActivityPolicyState(policyStates, result);
@@ -140,18 +141,18 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void evaluateRule(
-            GenericEvaluatedPolicyRule rule, ItemProcessingResult processingResult, OperationResult result) {
+            EvaluatedActivityPolicyRuleImpl rule, ItemProcessingResult processingResult, OperationResult result) {
 
         LOGGER.trace("Starting evaluation of rule {}, name: {}", rule.getRuleIdentifier(), rule.getName());
 
-        JAXBElement<PolicyConstraintsType> element = createRootConstraintElement(rule.getPolicyRule());
+        JAXBElement<PolicyConstraintsType> element = createRootConstraintElement(rule.getPolicyRuleBean());
 
         ActivityPolicyRuleEvaluationContext context = new ActivityPolicyRuleEvaluationContext(rule, activityRun, processingResult);
 
         ActivityCompositeConstraintEvaluator evaluator = ActivityCompositeConstraintEvaluator.get();
 
-        List<ActivityCompositeTrigger> compositeTriggers = evaluator.evaluate(element, context, result);
-        ActivityCompositeTrigger compositeTrigger = MiscUtil.extractSingleton(compositeTriggers);
+        List<EvaluatedCompositeTrigger> compositeTriggers = evaluator.evaluate(element, context, result);
+        EvaluatedCompositeTrigger compositeTrigger = MiscUtil.extractSingleton(compositeTriggers);
         if (compositeTrigger != null && !compositeTrigger.getInnerTriggers().isEmpty()) {
             rule.setTriggers(List.copyOf(compositeTrigger.getInnerTriggers()));
         }
@@ -167,7 +168,7 @@ public class ActivityPolicyRulesProcessor {
                 policyBean.getPolicyConstraints());
     }
 
-    private void executeActions(GenericEvaluatedPolicyRule rule, OperationResult result) throws ActivityRunPolicyException {
+    private void executeActions(EvaluatedActivityPolicyRuleImpl rule, OperationResult result) throws ActivityRunPolicyException {
         for (PolicyActionType action : rule.getActions()) {
             if (action instanceof NotificationPolicyActionType) {
                 LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
@@ -186,7 +187,7 @@ public class ActivityPolicyRulesProcessor {
             if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {
                 LOGGER.debug("Aborting activity because of policy violation, rule: {}", rule);
                 var abortInfo = new ActivityAbortingInformationType()
-                        .activityPath(rule.getPath().toBean())
+                        .activityPath(rule.getActivityPath().toBean())
                         .policyAction(action.clone());
                 var cause = new ActivityPolicyBasedAbortException(message, defaultMessage, abortInfo);
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, ABORTED, cause);
@@ -204,17 +205,17 @@ public class ActivityPolicyRulesProcessor {
 
         @NotNull private final AbstractActivityRun<?, ?, ?> activityRun;
 
-        @NotNull private final Collection<GenericEvaluatedPolicyRule> evaluatedRules;
+        @NotNull private final Collection<EvaluatedActivityPolicyRuleImpl> evaluatedRules;
 
         public ActivityPolicyRuleCounterUpdater(
                 @NotNull AbstractActivityRun<?, ?, ?> activityRun,
-                @NotNull Collection<GenericEvaluatedPolicyRule> evaluatedRules) {
+                @NotNull Collection<EvaluatedActivityPolicyRuleImpl> evaluatedRules) {
             this.activityRun = activityRun;
             this.evaluatedRules = evaluatedRules;
         }
 
         @Override
-        protected @NotNull Collection<? extends GenericEvaluatedPolicyRule> getPolicyRules() {
+        protected @NotNull Collection<? extends EvaluatedPolicyRule> getPolicyRules() {
             return evaluatedRules;
         }
 

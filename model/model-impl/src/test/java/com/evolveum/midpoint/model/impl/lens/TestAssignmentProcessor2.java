@@ -24,8 +24,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -34,25 +32,19 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.assignments.*;
 import com.evolveum.midpoint.model.impl.lens.construction.AbstractConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -64,7 +56,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -2463,7 +2454,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private void assertFocusPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedItems) {
-        assertUnsortedListsEquals("Wrong focus policy rules", expectedItems, evaluatedAssignment.getObjectPolicyRules(), EvaluatedPolicyRule::getName);
+        assertUnsortedListsEquals("Wrong focus policy rules", expectedItems, evaluatedAssignment.getObjectPolicyRules(), DirectlyEvaluatedClockworkPolicyRule::getName);
     }
 
     private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
@@ -2476,9 +2467,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         expectedOtherTargetsItems = CollectionUtils.emptyIfNull(expectedOtherTargetsItems);
         expectedThisTargetItems = CollectionUtils.emptyIfNull(expectedThisTargetItems);
         assertUnsortedListsEquals("Wrong other targets policy rules", expectedOtherTargetsItems,
-                evaluatedAssignment.getOtherTargetsPolicyRules(), EvaluatedPolicyRule::getName);
+                evaluatedAssignment.getOtherTargetsPolicyRules(), DirectlyEvaluatedClockworkPolicyRule::getName);
         assertUnsortedListsEquals("Wrong this target policy rules", expectedThisTargetItems,
-                evaluatedAssignment.getThisTargetPolicyRules(), EvaluatedPolicyRule::getName);
+                evaluatedAssignment.getThisTargetPolicyRules(), DirectlyEvaluatedClockworkPolicyRule::getName);
     }
 
     private void assertTargets(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,

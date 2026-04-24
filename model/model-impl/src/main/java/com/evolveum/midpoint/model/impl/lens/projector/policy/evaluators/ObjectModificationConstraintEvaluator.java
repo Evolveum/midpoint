@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger.EvaluatedObjectModificationTrigger;
@@ -63,7 +64,7 @@ public class ObjectModificationConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedObjectModificationTrigger> evaluate(
             @NotNull JAXBElement<ModificationPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NonNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 

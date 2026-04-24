@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.model.api.context;
+package com.evolveum.midpoint.repo.common.policy;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,11 +12,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
@@ -24,21 +23,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolic
 
 import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.SITUATION;
 
-public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<PolicySituationPolicyConstraintType> {
+/** Trigger for {@link PolicyConstraintKind#SITUATION}. */
+public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<PolicySituationPolicyConstraintType> {
 
+    /** Rules that caused this trigger to be fired. Immutable. */
     @NotNull private final Collection<EvaluatedPolicyRule> sourceRules;
 
     public EvaluatedSituationTrigger(
             @NotNull PolicySituationPolicyConstraintType constraint,
             LocalizableMessage message, LocalizableMessage shortMessage,
-            @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
+            @NotNull Collection<? extends EvaluatedPolicyRule> sourceRules) {
         super(SITUATION, constraint, message, shortMessage, false);
-        this.sourceRules = sourceRules;
+        this.sourceRules = List.copyOf(sourceRules);
     }
 
     @NotNull
     public Collection<EvaluatedPolicyRule> getSourceRules() {
-        return sourceRules;
+        return List.copyOf(sourceRules);
     }
 
     // lists all source rules (recursively)
@@ -91,14 +92,15 @@ public class EvaluatedSituationTrigger extends EvaluatedFocusPolicyRuleTrigger<P
         DebugUtil.debugDumpWithLabel(sb, "sourceRules", sourceRules.stream().map(Object::toString).collect(Collectors.toList()), indent + 1);
     }
 
-    @Override
-    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
-        fillCommonContent(rv);
+    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerBean(@NotNull PolicyRuleExternalizationOptions options) {
+        var rv = toEvaluatedPolicyRuleTriggerBean(options, EvaluatedSituationTriggerType::new);
         if (!isFinal()) {
-            sourceRules.forEach(
-                    r -> r.addToEvaluatedPolicyRuleBeans(rv.getSourceRule(), options, null, newOwner));
+            var sourceRuleBeans = rv.getSourceRule();
+            for (EvaluatedPolicyRule sourceRule : sourceRules) {
+                // TODO check if we propagate the selectors (in options + explicit one) correctly
+                sourceRuleBeans.addAll(
+                        sourceRule.toEvaluatedPolicyRuleBeans(options, null));
+            }
         }
         return rv;
     }

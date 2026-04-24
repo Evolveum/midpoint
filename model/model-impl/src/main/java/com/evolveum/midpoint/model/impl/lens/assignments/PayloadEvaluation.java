@@ -12,9 +12,9 @@ import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.OriginType;
@@ -209,8 +209,9 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         return zeroOrderCount == 1;
     }
 
-    private @NotNull EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleConfigItem policyRuleCI, TargetType targetType) {
-        return new EvaluatedPolicyRuleImpl(
+    private @NotNull DirectlyEvaluatedClockworkPolicyRuleImpl createEvaluatedPolicyRule(
+            PolicyRuleConfigItem policyRuleCI, TargetType targetType) {
+        return new DirectlyEvaluatedClockworkPolicyRuleImpl(
                 policyRuleCI.clone(), // TODO why clone?
                 PolicyRuleTypeUtil.createId(segment.getSourceOid(), segment.getAssignmentId()),
                 ctx.assignmentPath.clone(),

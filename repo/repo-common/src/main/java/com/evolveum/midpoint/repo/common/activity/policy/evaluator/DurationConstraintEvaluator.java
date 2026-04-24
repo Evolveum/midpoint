@@ -23,6 +23,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPolicyConstraintType;
 
+/**
+ * Evaluated duration-related constraints like {@link PolicyConstraintKind#EXECUTION_TIME}.
+ *
+ * Currently limited to activities!
+ */
 public abstract class DurationConstraintEvaluator<C extends DurationThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, EvaluatedDurationTrigger<C>> {
 

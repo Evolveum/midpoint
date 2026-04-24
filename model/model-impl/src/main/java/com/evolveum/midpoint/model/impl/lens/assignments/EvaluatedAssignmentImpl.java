@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.AssignedResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -97,14 +97,14 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * A typical focus-assigned policy rule is e.g. "forbid focus modifications".
      * Shadow-related rules can be present here as well.
      */
-    @NotNull private final Collection<EvaluatedPolicyRuleImpl> objectPolicyRules = new ArrayList<>();
+    @NotNull private final Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> objectPolicyRules = new ArrayList<>();
 
     /**
      * Policy rules assigned to the target of this assignment, directly or indirectly.
      * Typically e.g. "approve the creation or modification of the assignment".
      * They may or may not be really applicable during the current clockwork operation.
      */
-    @NotNull private final List<EvaluatedPolicyRuleImpl> targetPolicyRules = new ArrayList<>();
+    @NotNull private final List<DirectlyEvaluatedClockworkPolicyRuleImpl> targetPolicyRules = new ArrayList<>();
 
     /**
      * Policy rules from other assignments relevant to this one, typically those with an exclusion constraint.
@@ -113,11 +113,11 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * Some of them may be the same as in {@link #targetPolicyRules} (but wrapped).
      *
      * Any given policy rule is here only once.
-     * But beware of non-determinism, see {@link #registerAsForeignRule(EvaluatedPolicyRuleImpl)}.
+     * But beware of non-determinism, see {@link #registerAsForeignRule(DirectlyEvaluatedClockworkPolicyRuleImpl)}.
      *
      * Set up during policy rules evaluation.
      */
-    @NotNull private final List<ForeignPolicyRuleImpl> foreignPolicyRules = new ArrayList<>();
+    @NotNull private final List<ForeignEvaluatedClockworkPolicyRuleImpl> foreignPolicyRules = new ArrayList<>();
 
     private String tenantOid;
 
@@ -422,35 +422,35 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     @Override
     @NotNull
-    public Collection<EvaluatedPolicyRuleImpl> getObjectPolicyRules() {
+    public Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> getObjectPolicyRules() {
         return objectPolicyRules;
     }
 
-    void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
+    void addObjectPolicyRule(DirectlyEvaluatedClockworkPolicyRuleImpl policyRule) {
         objectPolicyRules.add(policyRule);
     }
 
     @Override
     @NotNull
-    public Collection<EvaluatedPolicyRuleImpl> getAllTargetsPolicyRules() {
+    public Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> getAllTargetsPolicyRules() {
         return Collections.unmodifiableList(targetPolicyRules);
     }
 
     @Override
-    public @NotNull Collection<EvaluatedPolicyRuleImpl> getThisTargetPolicyRules() {
+    public @NotNull Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> getThisTargetPolicyRules() {
         return getAllTargetsPolicyRules().stream()
-                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET)
+                .filter(r -> r.getTargetType() == DirectlyEvaluatedClockworkPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public @NotNull Collection<EvaluatedPolicyRuleImpl> getOtherTargetsPolicyRules() {
+    public @NotNull Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> getOtherTargetsPolicyRules() {
         return getAllTargetsPolicyRules().stream()
-                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET)
+                .filter(r -> r.getTargetType() == DirectlyEvaluatedClockworkPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET)
                 .collect(Collectors.toList());
     }
 
-    public void addTargetPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
+    public void addTargetPolicyRule(DirectlyEvaluatedClockworkPolicyRuleImpl policyRule) {
         targetPolicyRules.add(policyRule);
     }
 
@@ -459,15 +459,15 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return targetPolicyRules.size();
     }
 
-    public @NotNull List<ForeignPolicyRuleImpl> getForeignPolicyRules() {
+    public @NotNull List<? extends ForeignEvaluatedClockworkPolicyRule> getForeignPolicyRules() {
         return Collections.unmodifiableList(foreignPolicyRules);
     }
 
     @Override
-    public @NotNull Collection<AssociatedPolicyRule> getAllAssociatedPolicyRules() {
-        ArrayList<AssociatedPolicyRule> allRules = new ArrayList<>(targetPolicyRules);
-        for (AssociatedPolicyRule foreignRule : foreignPolicyRules) {
-            if (!AssociatedPolicyRule.contains(allRules, foreignRule)) {
+    public @NotNull Collection<EvaluatedClockworkPolicyRule> getAllAssociatedPolicyRules() {
+        ArrayList<EvaluatedClockworkPolicyRule> allRules = new ArrayList<>(targetPolicyRules);
+        for (EvaluatedClockworkPolicyRule foreignRule : foreignPolicyRules) {
+            if (!foreignRule.isContainedIn(allRules)) {
                 allRules.add(foreignRule);
             }
         }
@@ -482,15 +482,15 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * in this collection. This may result in phantom updates if full policy situation recording is enabled. However,
      * that is an experimental feature anyway.
      */
-    public void registerAsForeignRule(EvaluatedPolicyRuleImpl rule) {
-        if (!AssociatedPolicyRule.contains(foreignPolicyRules, rule)) {
+    public void registerAsForeignRule(DirectlyEvaluatedClockworkPolicyRuleImpl rule) {
+        if (!rule.isContainedIn(foreignPolicyRules)) {
             foreignPolicyRules.add(
-                    ForeignPolicyRuleImpl.of(rule, this));
+                    ForeignEvaluatedClockworkPolicyRuleImpl.of(rule, this));
         }
     }
 
     public boolean hasPolicyRuleException(
-            @NotNull EvaluatedPolicyRuleImpl rule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+            @NotNull DirectlyEvaluatedClockworkPolicyRuleImpl rule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
 
         if (hasDirectPolicyRuleException(rule, triggers)) {
             return true;
@@ -510,7 +510,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     private boolean hasDirectPolicyRuleException(
-            @NotNull EvaluatedPolicyRule rule,
+            @NotNull DirectlyEvaluatedClockworkPolicyRule rule,
             @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         for (PolicyExceptionType policyException : getAssignment().getPolicyException()) {
             String ruleName = rule.getName();
@@ -589,18 +589,18 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(
                 sb, "objectPolicyRules " + ruleCountInfo(objectPolicyRules), objectPolicyRules, indent + 1);
-        Collection<EvaluatedPolicyRuleImpl> thisTargetRules = getThisTargetPolicyRules();
+        Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> thisTargetRules = getThisTargetPolicyRules();
         DebugUtil.debugDumpWithLabelLn(
                 sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetRules), thisTargetRules, indent + 1);
-        Collection<EvaluatedPolicyRuleImpl> otherTargetsRules = getOtherTargetsPolicyRules();
+        Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> otherTargetsRules = getOtherTargetsPolicyRules();
         DebugUtil.debugDumpWithLabelLn(
                 sb, "otherTargetsRules " + ruleCountInfo(otherTargetsRules), otherTargetsRules, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "origin", origin.toString(), indent + 1);
         return sb.toString();
     }
 
-    private String ruleCountInfo(Collection<? extends AssociatedPolicyRule> rules) {
-        return "(" + rules.size() + ", triggered " + AssociatedPolicyRule.getTriggeredRulesCount(rules) + ")";
+    private String ruleCountInfo(Collection<? extends EvaluatedClockworkPolicyRule> rules) {
+        return "(" + rules.size() + ", triggered " + EvaluatedClockworkPolicyRule.getTriggeredRulesCount(rules) + ")";
     }
 
     private void dumpRefList(int indent, StringBuilder sb, String label, Collection<PrismReferenceValue> referenceValues) {

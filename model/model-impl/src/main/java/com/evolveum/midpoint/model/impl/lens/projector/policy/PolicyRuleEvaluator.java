@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.CompositeConstraintEvaluator;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -99,9 +99,9 @@ abstract class PolicyRuleEvaluator {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        EvaluatedPolicyRuleImpl rule = ctx.policyRule;
+        DirectlyEvaluatedClockworkPolicyRuleImpl rule = ctx.policyRule;
         String ruleShortString = rule.toShortString();
-        String ruleIdentifier = rule.getPolicyRuleIdentifier();
+        String ruleIdentifier = rule.getRuleIdentifier().asString();
 
         // MID-10779 disabled now, since this would cause problems with unevaluated rules in some
         // situations: e.g. assignment exclusion policies.
@@ -170,7 +170,7 @@ abstract class PolicyRuleEvaluator {
         }
     }
 
-    private void traceRuleEvaluationResult(EvaluatedPolicyRule rule, PolicyRuleEvaluationContext<?> ctx) {
+    private void traceRuleEvaluationResult(DirectlyEvaluatedClockworkPolicyRule rule, PolicyRuleEvaluationContext<?> ctx) {
         if (LOGGER.isTraceEnabled()) {
             StringBuilder sb = new StringBuilder();
             sb.append("\n---[ POLICY RULE ");
@@ -190,7 +190,7 @@ abstract class PolicyRuleEvaluator {
 
     abstract void record(OperationResult result) throws SchemaException;
 
-    @NotNull <R extends AssociatedPolicyRule> List<R> selectRulesToRecord(@NotNull Collection<R> allRules) {
+    @NotNull <R extends EvaluatedClockworkPolicyRule> List<R> selectRulesToRecord(@NotNull Collection<R> allRules) {
         return allRules.stream()
                 .filter(rule -> rule.isTriggered() && rule.containsEnabledAction(RecordPolicyActionType.class))
                 .collect(Collectors.toList());

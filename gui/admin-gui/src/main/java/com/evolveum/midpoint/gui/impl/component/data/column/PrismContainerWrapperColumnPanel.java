@@ -48,6 +48,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
             return "";
         }
 
+        // TODO how is this supposed to work? [pavol]
         if (PolicyConstraintsType.class.isAssignableFrom(realValue.getClass())) {
             return PolicyRuleDumpUtil.toShortString((PolicyConstraintsType) realValue);
         }

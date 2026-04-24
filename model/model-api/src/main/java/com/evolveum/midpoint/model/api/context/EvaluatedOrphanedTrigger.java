@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrphanedPolicyConstraintType;
 
-public class EvaluatedOrphanedTrigger extends EvaluatedFocusPolicyRuleTrigger<OrphanedPolicyConstraintType> {
+public class EvaluatedOrphanedTrigger extends EvaluatedClockworkPolicyRuleTrigger<OrphanedPolicyConstraintType> {
 
     public EvaluatedOrphanedTrigger(
             @NotNull OrphanedPolicyConstraintType constraint, LocalizableMessage message, LocalizableMessage shortMessage) {

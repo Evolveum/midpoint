@@ -6,8 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -27,12 +27,12 @@ import java.util.Collection;
 /**
  * Evaluates given policy constraint within specific context.
  */
-public interface PolicyConstraintEvaluator<C extends AbstractPolicyConstraintType, T extends EvaluatedFocusPolicyRuleTrigger<C>> {
+public interface PolicyConstraintEvaluator<C extends AbstractPolicyConstraintType, T extends EvaluatedPolicyRuleTrigger<C>> {
 
     <O extends ObjectType> @NotNull Collection<T> evaluate(
             @NotNull JAXBElement<C> constraint,
             @NotNull PolicyRuleEvaluationContext<O> ctx,
-            OperationResult result)
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 }

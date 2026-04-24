@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.repo.common.policy.GenericEvaluatedPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,14 +20,14 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingR
  */
 public class ActivityPolicyRuleEvaluationContext {
 
-    private final @NotNull GenericEvaluatedPolicyRule rule;
+    private final @NotNull EvaluatedActivityPolicyRuleImpl rule;
 
     private final @NotNull AbstractActivityRun<?, ?, ?> activityRun;
 
     private final ItemProcessingResult processingResult;
 
     public ActivityPolicyRuleEvaluationContext(
-            @NotNull GenericEvaluatedPolicyRule rule,
+            @NotNull EvaluatedActivityPolicyRuleImpl rule,
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
             ItemProcessingResult processingResult) {
 
@@ -40,7 +40,7 @@ public class ActivityPolicyRuleEvaluationContext {
         return activityRun;
     }
 
-    public @NotNull GenericEvaluatedPolicyRule getRule() {
+    public @NotNull EvaluatedPolicyRule getRule() {
         return rule;
     }
 
@@ -51,12 +51,12 @@ public class ActivityPolicyRuleEvaluationContext {
     public @Nullable Duration getPreexistingExecutionTime() {
         return activityRun.getActivityPolicyRulesContext()
                 .getPreexistingValues()
-                .getExecutionTime(rule.getPath());
+                .getExecutionTime(rule.getActivityPath());
     }
 
     public @Nullable Integer getPreexistingExecutionAttemptNumber() {
         return activityRun.getActivityPolicyRulesContext()
                 .getPreexistingValues()
-                .getExecutionAttemptNumber(rule.getPath());
+                .getExecutionAttemptNumber(rule.getActivityPath());
     }
 }

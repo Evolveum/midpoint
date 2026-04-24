@@ -10,8 +10,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedFocusPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType;
 import com.evolveum.midpoint.schema.config.AbstractAssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
@@ -30,9 +30,9 @@ import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.ConditionState;
@@ -77,7 +77,7 @@ public class CollectionProcessor {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private SchemaService schemaService;
 
-    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
+    Collection<DirectlyEvaluatedClockworkPolicyRule> evaluateCollectionPolicyRules(
             PrismObject<ObjectCollectionType> collection, // [EP:APSO] DONE 1/1
             CompiledObjectCollectionView preCompiledCollectionView,
             Class<? extends ObjectType> targetTypeClass,
@@ -95,7 +95,7 @@ public class CollectionProcessor {
                     collectionView, null, collectionBean, targetTypeClass, task, result);
         }
 
-        Collection<EvaluatedPolicyRule> evaluatedPolicyRules = new ArrayList<>();
+        Collection<DirectlyEvaluatedClockworkPolicyRule> evaluatedPolicyRules = new ArrayList<>();
         for (AssignmentType assignmentBean : collectionBean.getAssignment()) {
             PolicyRuleType policyRuleBean = assignmentBean.getPolicyRule();
             if (policyRuleBean != null) {
@@ -116,7 +116,7 @@ public class CollectionProcessor {
      * Assumes the assignment has a policy rule.
      */
     @NotNull
-    private EvaluatedPolicyRule evaluatePolicyRule(
+    private DirectlyEvaluatedClockworkPolicyRule evaluatePolicyRule(
             @NotNull PrismObject<ObjectCollectionType> collection,
             @NotNull CompiledObjectCollectionView collectionView,
             @NotNull AbstractAssignmentConfigItem assignmentCI, // [EP:APSO] DONE 1/1
@@ -144,8 +144,8 @@ public class CollectionProcessor {
         String ruleId = PolicyRuleTypeUtil.createId(collection.getOid(), assignmentCI.value().getId());
 
         PolicyRuleConfigItem policyRule = Objects.requireNonNull(assignmentCI.getPolicyRule());
-        EvaluatedPolicyRuleImpl evaluatedPolicyRule = // TODO why cloning here?
-                new EvaluatedPolicyRuleImpl(policyRule.clone(), ruleId, assignmentPath, TargetType.OBJECT);
+        DirectlyEvaluatedClockworkPolicyRuleImpl evaluatedPolicyRule = // TODO why cloning here?
+                new DirectlyEvaluatedClockworkPolicyRuleImpl(policyRule.clone(), ruleId, assignmentPath, TargetType.OBJECT);
 
         PolicyConstraintsType policyConstraints = policyRule.value().getPolicyConstraints();
         if (policyConstraints == null) {
@@ -157,7 +157,7 @@ public class CollectionProcessor {
         for (CollectionStatsPolicyConstraintType collectionStatsPolicy : policyConstraints.getCollectionStats()) {
             CollectionStats stats = determineCollectionStats(collectionView, task, result);
             if (isThresholdTriggered(stats, collection, policyThreshold)) {
-                EvaluatedFocusPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(
+                EvaluatedClockworkPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(
                         collectionStatsPolicy,
                         new LocalizableMessageBuilder()
                                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
@@ -169,7 +169,7 @@ public class CollectionProcessor {
                                 .arg(ObjectTypeUtil.createDisplayInformation(collection, false))
                                 .args(/* TODO */)
                                 .build());
-                evaluatedPolicyRule.addTrigger(trigger);
+                evaluatedPolicyRule.trigger(trigger);
             }
         }
 
