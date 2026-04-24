@@ -379,8 +379,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             if (regenerateMode != null) {
                 workDef.setRegenerateMode(regenerateMode.name());
             }
-            if (regenerateMode != RegenerateMode.HARD_REFRESH
-                    && previousObjectTypes != null && !previousObjectTypes.isEmpty()) {
+            if (previousObjectTypes != null && !previousObjectTypes.isEmpty()) {
                 for (var objectType : previousObjectTypes) {
                     workDef.getPreviousDelineation().add(
                             (ResourceObjectTypeDefinitionType) objectType.asPrismContainerValue().clone().asContainerable());

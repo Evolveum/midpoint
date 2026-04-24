@@ -46,7 +46,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SiPreviousDelineationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestedObjectTypeType;
@@ -253,7 +252,7 @@ class ObjectTypesSuggestionOperation {
         }
         if (previousObjectTypes != null && !previousObjectTypes.isEmpty()) {
             for (var objectType : previousObjectTypes) {
-                siRequest.getPreviousDelineation().add(toSiPreviousDelineation(objectType));
+                siRequest.getPreviousDelineation().add(toSiSuggestedObjectType(objectType));
             }
         }
         var siResponse = ctx.serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class);
@@ -270,11 +269,13 @@ class ObjectTypesSuggestionOperation {
         }
     }
 
-    private static @NotNull SiPreviousDelineationType toSiPreviousDelineation(
-            @NotNull ResourceObjectTypeDefinitionType objectType) {
-        var si = new SiPreviousDelineationType()
+    private static SiSuggestedObjectTypeType toSiSuggestedObjectType(
+            ResourceObjectTypeDefinitionType objectType) {
+        var si = new SiSuggestedObjectTypeType()
                 .kind(objectType.getKind() != null ? objectType.getKind().value() : null)
-                .intent(objectType.getIntent());
+                .intent(objectType.getIntent())
+                .displayName(objectType.getDisplayName())
+                .description(objectType.getDescription());
         var delineation = objectType.getDelineation();
         if (delineation != null) {
             for (var filter : delineation.getFilter()) {
@@ -284,8 +285,13 @@ class ObjectTypesSuggestionOperation {
                 }
             }
             var baseCtx = delineation.getBaseContext();
-            if (baseCtx != null && baseCtx.getFilter() != null) {
-                si.setBaseContextFilter(baseCtx.getFilter().getText());
+            if (baseCtx != null) {
+                if (baseCtx.getFilter() != null) {
+                    si.setBaseContextFilter(baseCtx.getFilter().getText());
+                }
+                if (baseCtx.getObjectClass() != null) {
+                    si.setBaseContextObjectClassName(baseCtx.getObjectClass().getLocalPart());
+                }
             }
         }
         return si;

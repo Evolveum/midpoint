@@ -170,7 +170,6 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         List<ResourceObjectTypeDefinitionType> previousObjectTypes = List.of();
         if (hasValidSuggestions && isRegenerate
                 && regenerateMode != null
-                && regenerateMode != RegenerateMode.HARD_REFRESH
                 && suggestions.getResult() != null) {
             previousObjectTypes = suggestions.getResult().getObjectType();
         }

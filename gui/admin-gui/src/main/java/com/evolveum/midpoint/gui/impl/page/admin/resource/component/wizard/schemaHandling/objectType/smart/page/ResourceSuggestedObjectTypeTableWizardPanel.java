@@ -261,10 +261,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                         RegenerateMode.NEW_DATA_SPLIT),
                 createRefreshMenuItem(
                         createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.newFilter"),
-                        RegenerateMode.NEW_FILTER),
-                createRefreshMenuItem(
-                        createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.hardRefresh"),
-                        RegenerateMode.HARD_REFRESH));
+                        RegenerateMode.NEW_FILTER));
 
         DropdownButtonDto dropdownModel = new DropdownButtonDto(
                 null,

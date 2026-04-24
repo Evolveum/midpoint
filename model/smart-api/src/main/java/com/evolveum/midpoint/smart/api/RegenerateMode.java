@@ -21,11 +21,5 @@ public enum RegenerateMode {
     /**
      * The data split looks good but the filter / classification criteria are wrong.
      */
-    NEW_FILTER,
-
-    /**
-     * Hard refresh: discard all previous suggestion history and start completely from scratch.
-     * No previous delineations are passed to the AI.
-     */
-    HARD_REFRESH
+    NEW_FILTER
 }

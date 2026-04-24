@@ -10617,7 +10617,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Describes why the user is regenerating; absent for an initial suggestion run.
-                                One of: NEW_DATA_SPLIT, NEW_FILTER, HARD_REFRESH.
+                                One of: NEW_DATA_SPLIT, NEW_FILTER.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ObjectTypesSuggestionWorkDefinitionType.regenerateMode</a:displayName>
@@ -10631,7 +10631,7 @@
                                 Previously suggested object type definitions (kind, intent, delineation) passed as
                                 context to the AI. For NEW_DATA_SPLIT and NEW_FILTER regeneration modes these are
                                 provided so the AI can avoid repeating the same mistakes or improve on existing
-                                groupings. For HARD_REFRESH mode this list is left empty.
+                                groupings.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ObjectTypesSuggestionWorkDefinitionType.previousDelineation</a:displayName>
