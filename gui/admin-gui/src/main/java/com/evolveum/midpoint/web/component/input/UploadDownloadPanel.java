@@ -31,10 +31,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
 
 /**
  * @author shood
@@ -209,8 +210,8 @@ public class UploadDownloadPanel extends InputPanel {
      * @return if ImageUploadProcessing is set to fixedFormat
      */
     private boolean isMagicNumberValidationEnabled() {
-        final ImageUploadProcessingType imageUploadProcessingConfig = getPageBase().getCompiledGuiProfile().getImageUploadProcessing();
-        return imageUploadProcessingConfig == null || !ImageProcessingType.FIXEDFORMAT.equals(imageUploadProcessingConfig.getProcessing());
+        final ImageUploadProcessingType config = getPageBase().getCompiledGuiProfile().getImageUploadProcessing();
+        return config == null || !ImageProcessingType.FIXED.equals(config.getProcessing());
     }
 
     public void uploadFilePerformed(AjaxRequestTarget target) {

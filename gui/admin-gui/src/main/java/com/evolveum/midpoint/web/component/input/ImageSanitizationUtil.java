@@ -6,21 +6,23 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StripExifDataType;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
+import static com.evolveum.midpoint.common.MimeTypeUtil.getExtensionRaw;
+import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_FILE_EXTENSIONS;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import javax.imageio.ImageIO;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.*;
-import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_FILE_EXTENSIONS;
+import org.apache.commons.lang3.BooleanUtils;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
 
 /**
  * Handle sanitization if images. Sanitization is configurable by input ImageUploadProcessingType configuration.
@@ -30,7 +32,10 @@ import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumbe
  *
  */
 public final class ImageSanitizationUtil {
+
     private static final Trace LOGGER = TraceManager.getTrace(ImageSanitizationUtil.class);
+
+    private static final Color BACKGROUND_COLOR = Color.WHITE;
 
     /**
      * Determines file extension by comparing first bytes of file byte array with known magic numbers.
@@ -38,7 +43,7 @@ public final class ImageSanitizationUtil {
      * @param fileBites file byte array to determine file extension
      * @return file extension or null if file extension was not possible to determine
      */
-    public static String getFileExtensionFromFileMagicNumber(final byte[] fileBites) {
+    public static String getFileExtensionFromFileMagicNumber(byte[] fileBites) {
         magicNumbersFor:
         for (final byte[] magicNumber : MAGIC_NUMBERS_TO_FILE_EXTENSIONS.keySet()) {
             if (fileBites == null || fileBites.length < magicNumber.length) {
@@ -58,14 +63,14 @@ public final class ImageSanitizationUtil {
      * Sanitize image based on ImageUploadProcessingType configuration.
      *
      * @param originalBytes image to sanitize
-     * @param imageUploadProcessingConfig configuration what conversion is needed with input image
+     * @param config configuration what conversion is needed with input image
      * e.g. remove EXIF data or convert to fixed format
      * @return image updated based on given configuration
      * @throws ImageSanitizationException if there was error during sanitization process
      */
-    public static byte[] sanitizeImage(final byte[] originalBytes, final ImageUploadProcessingType imageUploadProcessingConfig)
+    public static byte[] sanitizeImage(byte[] originalBytes, ImageUploadProcessingType config)
             throws ImageSanitizationException {
-        if (imageUploadProcessingConfig == null) {
+        if (config == null) {
             LOGGER.debug("There are no sanitization configured.");
             return originalBytes;
         }
@@ -75,13 +80,12 @@ public final class ImageSanitizationUtil {
             return null;
         }
 
-        if (!ImageProcessingType.FIXEDFORMAT.equals(imageUploadProcessingConfig.getProcessing()) &&
-                !StripExifDataType.TRUE.equals(imageUploadProcessingConfig.getStripExifData())) {
+        if (ImageProcessingType.FIXED != config.getProcessing() && BooleanUtils.isNotTrue(config.getStripExifData())) {
             LOGGER.debug("There are no sanitization enabled in configuration.");
             return originalBytes;
         }
 
-        final String imageFormatName = getOutputImageFormatName(originalBytes, imageUploadProcessingConfig);
+        final String imageFormatName = getOutputImageFormatName(originalBytes, config);
         if (imageFormatName == null) {
             throw new ImageSanitizationException("File format for sanitization is not recognized.");
         }
@@ -93,10 +97,10 @@ public final class ImageSanitizationUtil {
         return writeImage(image, imageFormatName);
     }
 
-    private static String getOutputImageFormatName(final byte[] originalBytes, final ImageUploadProcessingType imageUploadProcessingConfig) {
-        if (ImageProcessingType.FIXEDFORMAT.equals(imageUploadProcessingConfig.getProcessing())) {
-            if (imageUploadProcessingConfig.getFormat() != null) {
-                return imageUploadProcessingConfig.getFormat().value();
+    private static String getOutputImageFormatName(byte[] originalBytes, ImageUploadProcessingType config) {
+        if (ImageProcessingType.FIXED == config.getProcessing()) {
+            if (config.getFormat() != null) {
+                return config.getFormat().value();
             }
             return getExtensionRaw(MIME_IMAGE_JPEG);
         }
@@ -110,8 +114,7 @@ public final class ImageSanitizationUtil {
      * @return image as BufferedImage
      * @throws ImageSanitizationException if read of image ends with error
      */
-    private static BufferedImage readImage(final byte[] imageBytes)
-            throws ImageSanitizationException {
+    private static BufferedImage readImage(byte[] imageBytes) throws ImageSanitizationException {
         BufferedImage image;
         try {
             image = ImageIO.read(new ByteArrayInputStream(imageBytes));
@@ -132,7 +135,7 @@ public final class ImageSanitizationUtil {
      * @return image as byte array of given output image file format
      * @throws ImageSanitizationException if write of image ends with error
      */
-    private static byte[] writeImage(final BufferedImage image, final String outputImageFormatName)
+    private static byte[] writeImage(BufferedImage image, String outputImageFormatName)
             throws ImageSanitizationException {
         try {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -160,7 +163,7 @@ public final class ImageSanitizationUtil {
      * @param inputImage for which we need to fill any transparent parts
      * @return image where originally transparent parts was replaced by Color.WHITE
      */
-    private static BufferedImage handleTransparency(final BufferedImage inputImage) {
+    private static BufferedImage handleTransparency(BufferedImage inputImage) {
         // Create a new blank RGB image (no transparency)
         BufferedImage outputImage = new BufferedImage(
                 inputImage.getWidth(),
@@ -170,7 +173,8 @@ public final class ImageSanitizationUtil {
 
         // Draw the original image onto the new RGB canvas
         // Use Color.WHITE as a background to fill any transparent parts
-        outputImage.createGraphics().drawImage(inputImage, 0, 0, Color.WHITE, null);
+        outputImage.createGraphics().drawImage(inputImage, 0, 0, BACKGROUND_COLOR, null);
+
         return outputImage;
     }
 }

@@ -5161,47 +5161,61 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="processing" minOccurs="0" type="tns:ImageProcessingType"/>
-            <xsd:element name="format" minOccurs="0" type="tns:ImageFormatType"/>
-            <xsd:element name="stripExifData" minOccurs="0" type="tns:StripExifDataType"/>
+            <xsd:element name="processing" minOccurs="0" type="tns:ImageProcessingType" default="preserveOriginal"/>
+            <xsd:element name="format" minOccurs="0" type="tns:ImageFormatType" default="jpg"/>
+            <xsd:element name="stripExifData" minOccurs="0" type="xsd:boolean" default="false"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:simpleType name="ImageProcessingType">
         <xsd:annotation>
             <xsd:documentation>
-                Type of processing for image upload.
-                Default value is preserveOriginalFormat.
-                If fixedFormat is set than one can configure expected output image format by "format" element.
+                Type of processing for uploaded image.
+                Format can be specified using `format` for `fixed` processing.
+
+                Default value is `preserveOriginal`.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="preserveOriginalFormat"/>
-            <xsd:enumeration value="fixedFormat"/>
+            <xsd:enumeration value="preserveOriginal">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRESERVE_ORIGINAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fixed">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FIXED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
     <xsd:simpleType name="ImageFormatType">
         <xsd:annotation>
             <xsd:documentation>
-                Fixed format to which is needed to convert uploaded image.
-                It is used only if "processing" is set to "fixedFormat".
-                Default value is jpeg, if fixedFormat is used.
+                Image format that is used to store uploaded image.
+                It is used only if `processing` is set to `fixed`.
+
+                Default value is jpg.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="jpg"/>
-            <xsd:enumeration value="png"/>
-        </xsd:restriction>
-    </xsd:simpleType>
-    <xsd:simpleType name="StripExifDataType">
-        <xsd:annotation>
-            <xsd:documentation>
-                We use this option in case we want to remove exif data of uploaded image.
-                Default value is false.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="true"/>
-            <xsd:enumeration value="false"/>
+            <xsd:enumeration value="jpg">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JPG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="png">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PNG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 </xsd:schema>

@@ -6,21 +6,18 @@
 
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageFormatType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StripExifDataType;
-
-import jakarta.activation.MimeType;
+import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
-import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES;
+import jakarta.activation.MimeType;
+
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageFormatType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
 
 /**
  * Constants used in tests for file validation and sanitization.
@@ -63,35 +60,35 @@ public final class FileTestConstants {
 
     public static ImageUploadProcessingType getImageUploadProcessingPreserve() {
         final ImageUploadProcessingType imageUploadProcessing = new ImageUploadProcessingType();
-        imageUploadProcessing.setProcessing(ImageProcessingType.PRESERVEORIGINALFORMAT);
+        imageUploadProcessing.setProcessing(ImageProcessingType.PRESERVE_ORIGINAL);
         imageUploadProcessing.setFormat(ImageFormatType.PNG);
         return imageUploadProcessing;
     }
 
     public static ImageUploadProcessingType getImageUploadProcessingFixedDefault() {
         final ImageUploadProcessingType imageUploadProcessing = new ImageUploadProcessingType();
-        imageUploadProcessing.setProcessing(ImageProcessingType.FIXEDFORMAT);
+        imageUploadProcessing.setProcessing(ImageProcessingType.FIXED);
         return imageUploadProcessing;
     }
 
     public static ImageUploadProcessingType getImageUploadProcessingFixedPng() {
         final ImageUploadProcessingType imageUploadProcessing = new ImageUploadProcessingType();
-        imageUploadProcessing.setProcessing(ImageProcessingType.FIXEDFORMAT);
+        imageUploadProcessing.setProcessing(ImageProcessingType.FIXED);
         imageUploadProcessing.setFormat(ImageFormatType.PNG);
         return imageUploadProcessing;
     }
 
     public static ImageUploadProcessingType getImageUploadProcessingFixedPngStripExifFalse() {
         final ImageUploadProcessingType imageUploadProcessing = new ImageUploadProcessingType();
-        imageUploadProcessing.setProcessing(ImageProcessingType.FIXEDFORMAT);
+        imageUploadProcessing.setProcessing(ImageProcessingType.FIXED);
         imageUploadProcessing.setFormat(ImageFormatType.PNG);
-        imageUploadProcessing.setStripExifData(StripExifDataType.FALSE);
+        imageUploadProcessing.setStripExifData(false);
         return imageUploadProcessing;
     }
 
     public static ImageUploadProcessingType getImageUploadProcessingStripExifTrue() {
         final ImageUploadProcessingType imageUploadProcessing = new ImageUploadProcessingType();
-        imageUploadProcessing.setStripExifData(StripExifDataType.TRUE);
+        imageUploadProcessing.setStripExifData(true);
         return imageUploadProcessing;
     }
 }

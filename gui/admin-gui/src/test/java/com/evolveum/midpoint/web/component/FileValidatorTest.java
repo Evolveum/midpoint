@@ -6,22 +6,22 @@
 
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
-
-import org.springframework.test.context.ActiveProfiles;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import static com.evolveum.midpoint.common.MimeTypeUtil.*;
 import static com.evolveum.midpoint.web.component.FileTestConstants.*;
 
-import static org.testng.Assert.*;
+import org.springframework.test.context.ActiveProfiles;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 
 /**
  * Tests of methods for file validation.
  * E.g. if contentType is from allowed list or if inputStream begins with magic number of expected contentType.
  *
  * @author matisovaa
- *
  */
 @ActiveProfiles("test")
 public class FileValidatorTest {
