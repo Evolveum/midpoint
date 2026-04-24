@@ -12,8 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
 
-import org.jspecify.annotations.NonNull;
-
 /**
  * Policy rule identifier based on a plain string.
  */
@@ -29,7 +27,7 @@ public record PlainPolicyRuleIdentifier(String ruleId) implements Serializable, 
     }
 
     @Override
-    public @NonNull String asString() {
+    public @NotNull String asString() {
         return ruleId;
     }
 

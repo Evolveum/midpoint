@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +44,7 @@ public class PolicySituationConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedSituationTrigger> evaluate(
             @NotNull JAXBElement<PolicySituationPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            @NonNull OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
@@ -125,7 +124,6 @@ public class PolicySituationConstraintEvaluator
         }
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }
-
 
     private Collection<DirectlyEvaluatedClockworkPolicyRule> selectTriggeredRules(PolicyRuleEvaluationContext<?> rctx, List<String> situations) {
         Collection<? extends DirectlyEvaluatedClockworkPolicyRule> rules;

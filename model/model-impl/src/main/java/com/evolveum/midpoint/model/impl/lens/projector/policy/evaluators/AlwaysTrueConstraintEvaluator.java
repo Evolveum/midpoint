@@ -11,17 +11,15 @@ import java.util.Collection;
 import java.util.List;
 
 import jakarta.xml.bind.JAXBElement;
-
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.common.policy.EvaluatedAlwaysTrueTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedAlwaysTrueTrigger;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -50,7 +48,7 @@ public class AlwaysTrueConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedAlwaysTrueTrigger> evaluate(
             @NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            @NonNull OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 

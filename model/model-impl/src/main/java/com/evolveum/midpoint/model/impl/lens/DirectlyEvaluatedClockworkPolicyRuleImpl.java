@@ -93,8 +93,8 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
     /**
      * Filled in only if rule was loaded from specific activity.
      * E.g. not for global policy rules or rules obtained from task assignments.
-     *
-     * TODO reconsider [pavol]
+     *     *
+     * TODO vysvetlit preco to tu teraz je (data needs, counters sa handluju inak ked je rule z aktivity a nie so sysconfigu
      */
     private final ActivityPolicyRule activityPolicyRule;
 

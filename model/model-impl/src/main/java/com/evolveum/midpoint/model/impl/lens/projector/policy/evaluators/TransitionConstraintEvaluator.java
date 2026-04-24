@@ -12,7 +12,6 @@ import java.util.List;
 
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +42,7 @@ public class TransitionConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedTransitionTrigger> evaluate(
             @NotNull JAXBElement<TransitionPolicyConstraintType> constraintElement,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            @NonNull OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 

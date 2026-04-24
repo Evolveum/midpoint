@@ -12,20 +12,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-
-import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
-
-import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedHasAssignmentTrigger;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
@@ -36,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -67,7 +63,7 @@ public class HasAssignmentConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedHasAssignmentTrigger> evaluate(
             @NotNull JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
             @NotNull PolicyRuleEvaluationContext<O> ctx,
-            @NonNull OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -240,7 +236,6 @@ public class HasAssignmentConstraintEvaluator
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-
     private Collection<EvaluatedHasAssignmentTrigger> createTriggerIfShouldNotExist(
             boolean shouldExist,
             JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
@@ -270,7 +265,7 @@ public class HasAssignmentConstraintEvaluator
                                 PolicyConstraintKind.HAS_NO_ASSIGNMENT, constraint, emptySet(),
                                 createNegativeMessage(constraintElement, ctx, targetType, targetOid, result),
                                 createNegativeShortMessage(constraintElement, ctx, targetType, targetOid, result)));
-                        // targetName seems to be always null, even if specified in the policy rule
+                // targetName seems to be always null, even if specified in the policy rule
             }
         }
     }
