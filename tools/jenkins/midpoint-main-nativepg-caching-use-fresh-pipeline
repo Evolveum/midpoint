@@ -48,7 +48,7 @@ podTemplate(
                         ttyEnabled: true,
                         command: 'cat',
                         resourceRequestCpu: "${cpuRequest}",
-                        resourceLimitCpu: "${cpuLimit}"
+                        resourceLimitCpu: "${cpuLimit}",
                         resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // see also -Xmx flag lower
         ]
