@@ -7,19 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.util;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.CorrelationStatus.UNCERTAIN;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 import org.apache.wicket.model.IModel;
@@ -38,14 +30,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -66,9 +51,9 @@ public class CorrelationUtil {
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationUtil.class);
 
     public enum CorrelationStatus {
-        CORRELATED("info-badge success-light", "Correlation.simulation.state.correlated"),
-        UNCERTAIN("info-badge warning-light", "Correlation.simulation.state.uncertain"),
-        NOT_CORRELATED("info-badge secondary-light", "Correlation.simulation.state.notCorrelated");
+        CORRELATED("badge badge-success badge-opaque", "Correlation.simulation.state.correlated"),
+        UNCERTAIN("badge badge-warning badge-opaque", "Correlation.simulation.state.uncertain"),
+        NOT_CORRELATED("badge badge-secondary badge-opaque", "Correlation.simulation.state.notCorrelated");
         private final String cssClass;
         private final String translationKey;
 

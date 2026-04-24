@@ -5,6 +5,16 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.util;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.*;
+
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -14,22 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_ITEM_VALUE_CHANGE_NOT_APPLIED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_ITEM_VALUE_MODIFIED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_ITEM_VALUE_REMOVED;
 
 /**
  * Utility methods for extracting mapping information and building
@@ -40,11 +35,11 @@ public class MappingUtil {
     private static final Trace LOGGER = TraceManager.getTrace(MappingUtil.class);
 
     public enum MappingStatus {
-        ADDED("info-badge success-light py-1", "Correlation.simulation.state.added"),
-        REMOVED("info-badge danger-light py-1", "Correlation.simulation.state.removed"),
-        MODIFIED("info-badge info-light py-1", "Correlation.simulation.state.modified"),
-        NOT_CHANGED("info-badge secondary-light py-1", "Correlation.simulation.state.notChanged"),
-        CHANGE_NOT_APPLIED("info-badge secondary-light py-1", "Correlation.simulation.state.changeNotApplied");
+        ADDED("badge badge-success badge-opaque", "Correlation.simulation.state.added"),
+        REMOVED("badge badge-danger badge-opaque", "Correlation.simulation.state.removed"),
+        MODIFIED("badge badge-info badge-opaque", "Correlation.simulation.state.modified"),
+        NOT_CHANGED("badge badge-secondary badge-opaque", "Correlation.simulation.state.notChanged"),
+        CHANGE_NOT_APPLIED("badge badge-secondary badge-opaque", "Correlation.simulation.state.changeNotApplied");
 
         private final String cssClass;
         private final String translationKey;
@@ -89,7 +84,7 @@ public class MappingUtil {
             String label = pageBase.getString(MappingStatus.CHANGE_NOT_APPLIED.translationKey);
             return new Badge(MappingStatus.CHANGE_NOT_APPLIED.cssClass(), label);
         } else {
-            return new Badge("info-badge secondary-light py-1", pageBase.getString("Correlation.simulation.state.unknown"));
+            return new Badge("badge badge-secondary badge-opaque", pageBase.getString("Correlation.simulation.state.unknown"));
         }
     }
 
