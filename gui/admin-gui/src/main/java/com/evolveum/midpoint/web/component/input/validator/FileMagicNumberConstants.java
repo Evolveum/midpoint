@@ -35,7 +35,7 @@ public final class FileMagicNumberConstants {
     );
 
     public static final Map<byte[], String> MAGIC_NUMBERS_TO_FILE_EXTENSIONS = Map.of(
-            MAGIC_NUMBER_BYTE_JPEG, getExtensionRaw(MIME_IMAGE_JPEG),
-            MAGIC_NUMBER_BYTE_PNG, getExtensionRaw(MIME_IMAGE_PNG)
+            MAGIC_NUMBER_BYTE_JPEG, getExtension(MIME_IMAGE_JPEG),
+            MAGIC_NUMBER_BYTE_PNG, getExtension(MIME_IMAGE_PNG)
     );
 }

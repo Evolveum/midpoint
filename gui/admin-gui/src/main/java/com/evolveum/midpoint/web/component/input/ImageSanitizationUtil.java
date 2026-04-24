@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.component.input;
 
 import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
-import static com.evolveum.midpoint.common.MimeTypeUtil.getExtensionRaw;
+import static com.evolveum.midpoint.common.MimeTypeUtil.getExtension;
 import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_FILE_EXTENSIONS;
 
 import java.awt.*;
@@ -102,7 +102,7 @@ public final class ImageSanitizationUtil {
             if (config.getFormat() != null) {
                 return config.getFormat().value();
             }
-            return getExtensionRaw(MIME_IMAGE_JPEG);
+            return getExtension(MIME_IMAGE_JPEG);
         }
         return getFileExtensionFromFileMagicNumber(originalBytes);
     }
@@ -145,7 +145,7 @@ public final class ImageSanitizationUtil {
             }
 
             // try to handle PNG to JPG conversion
-            if (getExtensionRaw(MIME_IMAGE_JPEG).equals(outputImageFormatName)
+            if (getExtension(MIME_IMAGE_JPEG).equals(outputImageFormatName)
                     && ImageIO.write(handleTransparency(image), outputImageFormatName, byteArrayOutputStream)) {
                 return byteArrayOutputStream.toByteArray();
             }

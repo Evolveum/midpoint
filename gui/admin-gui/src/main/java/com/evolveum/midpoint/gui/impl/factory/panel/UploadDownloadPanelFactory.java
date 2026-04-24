@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
-import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -72,7 +71,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
                 ItemName name = panelCtx.getDefinitionName();
                 if (name != null) {
                     String fileName = name.getLocalPart();
-                    String extension = MimeTypeUtil.getExtension(getDownloadContentType());
+                    String extension = MimeTypeUtil.getDotExtension(getDownloadContentType());
 
                     return extension != null ? fileName + extension : fileName;
                 }

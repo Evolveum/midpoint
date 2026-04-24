@@ -416,7 +416,7 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
                     }
                 }
                 if (!fileName.contains(".")) {
-                    fileName += MimeTypeUtil.getExtension(attachment.getContentType());
+                    fileName += MimeTypeUtil.getDotExtension(attachment.getContentType());
                 }
                 attachmentBody.setFileName(fileName);
                 if (!StringUtils.isBlank(attachment.getContentId())) {

@@ -63,21 +63,21 @@ public class ImageSanitizationTest {
         final byte[] jpgWithoutMetadata = ImageSanitizationUtil.sanitizeImage(JPG_METADATA_ARRAY, getImageUploadProcessingFixedDefault());
         assertNotSame(jpgWithoutMetadata, JPG_METADATA_ARRAY);
         assertTrue(JPG_METADATA_ARRAY.length > Objects.requireNonNull(jpgWithoutMetadata).length);
-        assertEquals(getFileExtensionFromFileMagicNumber(jpgWithoutMetadata), getExtensionRaw(MIME_IMAGE_JPEG));
+        assertEquals(getFileExtensionFromFileMagicNumber(jpgWithoutMetadata), getExtension(MIME_IMAGE_JPEG));
     }
 
     @Test
     public void test4299_55ImageSanitization_fixedFormatJPG_PNGInput() throws Exception {
         final byte[] jpgWithoutMetadata = ImageSanitizationUtil.sanitizeImage(PNG_ARRAY, getImageUploadProcessingFixedDefault());
         assertNotSame(jpgWithoutMetadata, PNG_ARRAY);
-        assertEquals(getFileExtensionFromFileMagicNumber(jpgWithoutMetadata), getExtensionRaw(MIME_IMAGE_JPEG));
+        assertEquals(getFileExtensionFromFileMagicNumber(jpgWithoutMetadata), getExtension(MIME_IMAGE_JPEG));
     }
 
     @Test
     public void test4299_60ImageSanitization_fixedFormatPNG_removeEXIF() throws Exception {
         final byte[] pngWithoutMetadata = ImageSanitizationUtil.sanitizeImage(JPG_METADATA_ARRAY, getImageUploadProcessingFixedPng());
         assertNotSame(pngWithoutMetadata, JPG_METADATA_ARRAY);
-        assertEquals(getFileExtensionFromFileMagicNumber(pngWithoutMetadata), getExtensionRaw(MIME_IMAGE_PNG));
+        assertEquals(getFileExtensionFromFileMagicNumber(pngWithoutMetadata), getExtension(MIME_IMAGE_PNG));
     }
 
     @Test
@@ -85,7 +85,7 @@ public class ImageSanitizationTest {
         final byte[] pngWithoutMetadata = ImageSanitizationUtil.sanitizeImage(PNG_ARRAY, getImageUploadProcessingFixedPng());
         assertNotSame(pngWithoutMetadata, PNG_ARRAY);
         assertTrue(JPG_METADATA_ARRAY.length > Objects.requireNonNull(pngWithoutMetadata).length);
-        assertEquals(getFileExtensionFromFileMagicNumber(pngWithoutMetadata), getExtensionRaw(MIME_IMAGE_PNG));
+        assertEquals(getFileExtensionFromFileMagicNumber(pngWithoutMetadata), getExtension(MIME_IMAGE_PNG));
     }
 
     @Test
@@ -93,7 +93,7 @@ public class ImageSanitizationTest {
         final byte[] pngWithoutMetadata = ImageSanitizationUtil.sanitizeImage(JPG_METADATA_ARRAY, getImageUploadProcessingFixedPngStripExifFalse());
         assertNotSame(pngWithoutMetadata, JPG_METADATA_ARRAY);
         assertTrue(JPG_METADATA_ARRAY.length > Objects.requireNonNull(pngWithoutMetadata).length);
-        assertEquals(getFileExtensionFromFileMagicNumber(pngWithoutMetadata), getExtensionRaw(MIME_IMAGE_PNG));
+        assertEquals(getFileExtensionFromFileMagicNumber(pngWithoutMetadata), getExtension(MIME_IMAGE_PNG));
     }
 
     @Test
@@ -101,7 +101,7 @@ public class ImageSanitizationTest {
         final byte[] jpgWithoutMetadata = ImageSanitizationUtil.sanitizeImage(JPG_METADATA_ARRAY, getImageUploadProcessingStripExifTrue());
         assertNotSame(jpgWithoutMetadata, JPG_METADATA_ARRAY);
         assertTrue(JPG_METADATA_ARRAY.length > Objects.requireNonNull(jpgWithoutMetadata).length);
-        assertEquals(getFileExtensionFromFileMagicNumber(jpgWithoutMetadata), getExtensionRaw(MIME_IMAGE_JPEG));
+        assertEquals(getFileExtensionFromFileMagicNumber(jpgWithoutMetadata), getExtension(MIME_IMAGE_JPEG));
     }
 
     @Test
@@ -114,12 +114,12 @@ public class ImageSanitizationTest {
 
     @Test
     public void test4299_100ImageSanitization_validJPEG() throws Exception {
-        assertEquals(ImageSanitizationUtil.getFileExtensionFromFileMagicNumber(JPG_START_ARRAY), getExtensionRaw(MIME_IMAGE_JPEG));
+        assertEquals(ImageSanitizationUtil.getFileExtensionFromFileMagicNumber(JPG_START_ARRAY), getExtension(MIME_IMAGE_JPEG));
     }
 
     @Test
     public void test4299_110ImageSanitization_validPNG() throws Exception {
-        assertEquals(ImageSanitizationUtil.getFileExtensionFromFileMagicNumber(PNG_ARRAY), getExtensionRaw(MIME_IMAGE_PNG));
+        assertEquals(ImageSanitizationUtil.getFileExtensionFromFileMagicNumber(PNG_ARRAY), getExtension(MIME_IMAGE_PNG));
     }
 
     @Test
