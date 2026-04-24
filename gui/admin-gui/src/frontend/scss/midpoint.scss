@@ -39,6 +39,7 @@
 
 @import "form-validation";
 @import "smart-int";
+//@import "con-gen";
 
 body.custom-hold-transition {
   .content-wrapper,
@@ -2628,4 +2629,10 @@ footer.main-footer a {
       justify-content: center;
     }
   }
+  &.only-child-left .wizard-actions-container {
+      &:only-child {
+        display: flex;
+        justify-content: left;
+      }
+    }
 }
