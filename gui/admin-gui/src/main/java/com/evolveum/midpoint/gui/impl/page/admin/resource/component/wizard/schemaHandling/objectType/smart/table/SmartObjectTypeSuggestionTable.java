@@ -7,16 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectContainerTileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import java.io.Serial;
+import java.util.Iterator;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -33,10 +27,14 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.io.Serial;
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectContainerTileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> extends SingleSelectContainerTileTablePanel<ResourceObjectTypeDefinitionType> {
 
@@ -211,7 +209,7 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
 
     @Override
     protected String getTileCssClasses() {
-        return "col-12 p-2";
+        return "col-12 px-0 pb-2";
     }
 
     @Override

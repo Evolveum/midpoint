@@ -6,6 +6,30 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadWrapper;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.performMarkObjects;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
@@ -44,30 +68,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadWrapper;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.performMarkObjects;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND;
 
 //TODO remove duplication with ProcessedObjectsPanel
 public abstract class CorrelationProcessedObjectPanel
@@ -419,7 +419,6 @@ public abstract class CorrelationProcessedObjectPanel
                 BadgeListPanel statusPanel =
                         new BadgeListPanel(componentId, () -> Collections.singletonList(badge));
                 statusPanel.add(AttributeModifier.append("class", "font-weight-semibold"));
-                statusPanel.add(AttributeModifier.append("style", "font-size:12px"));
                 cellItem.add(statusPanel);
             }
 

@@ -10,7 +10,7 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="d-flex flex-column gap-3 align-items-center mt-1">
+    <div class="d-flex flex-column gap-3 align-items-center mt-2">
         <div>
             <ol class="breadcrumb p-0 bg-transparent m-0">
                 <li class="breadcrumb-item" wicket:id="breadcrumb">
@@ -21,13 +21,13 @@
         </div>
 
         <i class="text-center font-weight-bold fa-xl" wicket:id="titleIcon"></i>
-        <h2 class="text-center font-weight-bold" wicket:id="text"></h2>
-        <h5 class="text-center text-secondary col-xxl-8 col-10 lh-2" wicket:id="subText"></h5>
+        <h2 class="text-center font-weight-bold mb-1" wicket:id="text"></h2>
+        <h5 class="text-center text-secondary col-xxl-8 col-10 lh-2 mb-4" wicket:id="subText"></h5>
         <div class="col-12">
             <div wicket:id="feedbackContainer" class="feedbackContainer mx-auto p-0">
                 <div wicket:id="feedback" class="messagePanel"></div>
             </div>
-            <div class="card-body table-td-middle" wicket:id="table"></div>
+            <div class="table-td-middle" wicket:id="table"></div>
         </div>
 
         <div class="d-flex gap-3 justify-content-center" wicket:id="buttonsContainer"></div>

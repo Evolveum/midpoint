@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -51,24 +50,25 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             int maxExamples)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
-        var ownedShadows = new ArrayList<ShadowWithOwner>(maxExamples);
+        final ArrayList<ShadowWithOwner> ownedShadows = new ArrayList<>(maxExamples);
+        final CorrelationDefinitionType correlationDef =
+                new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();
         ctx.b.modelService.searchObjectsIterative(
                 ShadowType.class,
                 Resource.of(ctx.resource)
                         .queryFor(ctx.typeDefinition.getTypeIdentification())
                         .build(),
-                addOwnerOrOwnerCandidate(ctx, state, result, maxExamples, ownedShadows),
+                addOwnerOrOwnerCandidate(correlationDef, ctx, state, result, maxExamples, ownedShadows),
                 null, ctx.task, result);
         return ownedShadows;
     }
 
-    private ResultHandler<ShadowType> addOwnerOrOwnerCandidate(TypeOperationContext ctx,
-            OperationContext.StateHolder state, OperationResult result, int maxExamples,
+    private ResultHandler<ShadowType> addOwnerOrOwnerCandidate(CorrelationDefinitionType correlationDef,
+            TypeOperationContext ctx, OperationContext.StateHolder state, OperationResult result, int maxExamples,
             ArrayList<ShadowWithOwner> shadowWithOwners) {
         return (shadow, lResult) -> {
+            state.flushIfNeeded(lResult);
             try {
-                final CorrelationDefinitionType correlationDef =
-                        new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();
                 this.correlationService
                         .findLinkedOrCorrelatedFocus(shadow.asObjectable(), ctx.resource, ctx.typeDefinition,
                                 correlationDef, ctx.task, result)
@@ -76,8 +76,6 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
                             shadowWithOwners.add(new ShadowWithOwner(shadow.asObjectable(), focus));
                             state.incrementProgress(result);
                         });
-            } catch (TunnelException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't fetch owner for {}", e.getCause(), shadow);
             } catch (Exception e) {
                 LoggingUtils.logException(LOGGER, "Couldn't fetch owner for {}", e, shadow);
             }

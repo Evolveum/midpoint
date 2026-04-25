@@ -261,6 +261,10 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
                 panelType);
     }
 
+    private ResourceType getResourceTypeObject() {
+        return getAssignmentHolderDetailsModel().getObjectType();
+    }
+
     private ITab createInboundTableTab() {
         return new IconPanelTab(
                 getPageBase().createStringResource("AssociationMappingsTableWizardPanel.inbound")) {
@@ -268,7 +272,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new AssociationAttributeMappingsTable<>(panelId, Model.of(MappingDirection.INBOUND),
-                        Model.of(false), inboundEvalModel(), null) {
+                        Model.of(false), inboundEvalModel(), getResourceTypeObject().getOid()) {
 
                     @Override
                     protected ResourceType getResourceType() {
@@ -307,7 +311,6 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
         };
     }
 
-
     protected void creatEditMainConfigurationButton(@NotNull RepeatingView repeatingView) {
         AjaxIconButton newObjectButton = new AjaxIconButton(repeatingView.newChildId(),
                 Model.of("fa fa-cog"),
@@ -336,7 +339,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new AssociationAttributeMappingsTable<>(panelId, Model.of(MappingDirection.OUTBOUND),
-                        Model.of(false), outboundEvalModel(), null) {
+                        Model.of(false), outboundEvalModel(), getResourceTypeObject().getOid()) {
 
                     @Override
                     protected ResourceType getResourceType() {
@@ -396,8 +399,9 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-       //TBD
+        //TBD
     }
+
     @Override
     protected String getButtonContainerAdditionalCssClass() {
         return "col-12 p-0";

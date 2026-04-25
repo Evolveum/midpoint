@@ -149,7 +149,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         IsolatedCheckBoxPanel selectCheckbox = new IsolatedCheckBoxPanel(idButton, selectModel) {
             @Override
             public void onUpdate(@NotNull AjaxRequestTarget target) {
-                refresh(target);
+                updateTileView(target);
             }
         };
 
@@ -578,24 +578,43 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
 
     private void detachProvider() {
         ISortableDataProvider<O, String> provider = getProvider();
-        if (provider != null) {
-            provider.detach();
+        if (provider == null) {
+            return;
         }
 
-        if (provider instanceof GroupedMappingDataProvider groupedMappingDataProvider) {
-            ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> delegateProvider = groupedMappingDataProvider.getDelegateProvider();
-            if (delegateProvider instanceof StatusAwareDataProvider<MappingType> statusAwareDataProvider) {
-                if (statusAwareDataProvider.getModel() instanceof LoadableModel<List<PrismContainerValueWrapper<MappingType>>> loadableModel) {
-                    groupedMappingDataProvider.reset();
-                    loadableModel.reset();
-                }
+        provider.detach();
 
-                statusAwareDataProvider.getModel().detach();
-                return;
+        if (provider instanceof GroupedMappingDataProvider groupedProvider) {
+            groupedProvider.reset();
+            ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> delegate = groupedProvider.getDelegateProvider();
+
+            detachDelegateProvider(delegate);
+            return;
+        }
+
+        //noinspection rawtypes
+        if (provider instanceof MultivalueContainerListDataProvider multivalueProvider) {
+            multivalueProvider.getModel().detach();
+        }
+    }
+
+    private void detachDelegateProvider(
+            ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> delegateProvider) {
+
+        if (delegateProvider instanceof StatusAwareDataProvider<MappingType> statusAwareProvider) {
+            IModel<List<PrismContainerValueWrapper<MappingType>>> model = statusAwareProvider.getModel();
+
+            if (model instanceof LoadableModel<List<PrismContainerValueWrapper<MappingType>>> loadableModel) {
+                loadableModel.reset();
             }
+
+            model.detach();
+            return;
         }
-        if (provider instanceof MultivalueContainerListDataProvider mvProvider) {
-            mvProvider.getModel().detach();
+
+        //noinspection rawtypes
+        if (delegateProvider instanceof MultivalueContainerListDataProvider multivalueProvider) {
+            multivalueProvider.getModel().detach();
         }
     }
 

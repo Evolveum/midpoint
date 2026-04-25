@@ -13,11 +13,27 @@
     --bs-#{$color}-bg-subtle: #{map-get($theme-bg-subtle, $color)};
   }
   @each $color, $value in $theme-border-subtle {
-      --bs-#{$color}-border-subtle: #{map-get($theme-border-subtle, $color)};
+    --bs-#{$color}-border-subtle: #{map-get($theme-border-subtle, $color)};
   }
   @each $color, $value in $theme-text-emphasis {
-      --bs-#{$color}-text-emphasis: #{map-get($theme-text-emphasis, $color)};
+    --bs-#{$color}-text-emphasis: #{map-get($theme-text-emphasis, $color)};
     }
+  @each $color, $value in $theme-colors {
+    --mp-bg-active-#{$color}: #{mix(#fff, $value, 90%)};
+  }
+}
+
+//BS5 color variables as classes for use
+@each $color, $value in $theme-colors {
+  .bg-#{$color}-subtle {
+    background: var(--bs-#{$color}-bg-subtle);
+  }
+  .text-#{$color}-emphasis {
+    color: var(--bs-#{$color}-text-emphasis);
+  }
+  .border-#{$color}-subtle {
+    border: 1px solid var(--bs-#{$color}-border-subtle);
+  }
 }
 
 // simple width, mainly usable for table columns. Bootstrap has only w-* for 25%, 50%, 75%, 100%
@@ -329,6 +345,37 @@ font-weight: 600;
         background: var(--mp-alert-icon-ai-gradient) text;
         color: transparent;
       }
+    }
+  }
+}
+
+.z-n1 {
+  z-index: -1 !important;
+}
+
+.z-0 {
+  z-index: 0 !important;
+}
+
+.z-1 {
+  z-index: 1 !important;
+}
+
+.z-2 {
+  z-index: 2 !important;
+}
+
+.z-3 {
+  z-index: 3 !important;
+}
+
+@each $color, $value in $theme-colors {
+  .mp-bg-hoverable-#{$color} {
+    &:hover {
+      background: $table-hover-bg;
+    }
+    &:active {
+      background: var(--mp-bg-active-#{$color});
     }
   }
 }

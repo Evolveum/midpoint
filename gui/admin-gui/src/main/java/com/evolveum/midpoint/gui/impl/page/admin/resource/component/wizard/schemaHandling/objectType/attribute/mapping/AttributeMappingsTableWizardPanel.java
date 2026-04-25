@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.table.SmartMappingTable;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -268,7 +270,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                     }
 
                     @Override
-                    protected void refreshAndDetach(AjaxRequestTarget target) {
+                    public void refreshAndDetach(AjaxRequestTarget target) {
                         suggestionModel.detach();
                         super.refreshAndDetach(target);
 
@@ -449,9 +451,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             protected void onRefresh(@NotNull AjaxRequestTarget target) {
                 SmartMappingTable<?> smartMappingTable = getTable();
-                if (smartMappingTable != null) {
-                    smartMappingTable.refreshAndDetach(target);
-                }
+                smartMappingTable.refreshAndDetach(target);
             }
         };
 
@@ -522,7 +522,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 getPageBase().createStringResource("AttributeMappingsTableWizardPanel.showOverrides")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (getTable() != null && getTable().isValidFormComponents(target)) {
+                if (getTable().isValidFormComponents(target)) {
                     onShowOverrides(target, getSelectedMappingType());
                 }
             }
@@ -596,11 +596,9 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     @SuppressWarnings("unchecked")
-    protected @Nullable SmartMappingTable<MappingType> getTable() {
+    protected @NotNull SmartMappingTable<MappingType> getTable() {
         Component component = getTabPanel().get(TabbedPanel.TAB_PANEL_ID);
-        return component instanceof SmartMappingTable<?>
-                ? (SmartMappingTable<MappingType>) component
-                : null;
+        return (SmartMappingTable<MappingType>) component;
     }
 
     protected SmartAlertGeneratingPanel getAiPanel() {
