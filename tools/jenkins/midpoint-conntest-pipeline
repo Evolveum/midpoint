@@ -1,9 +1,17 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
+
+echo "Attempting to acquire conntest lock..."
+lock('ad-servers') { // whole pipeline is guarded, content is NOT indented
+
+// Make the cpuLimit integer from String Jenkins job parameter.
+def cpuLimit = (params.BUILDER_CPU ?: '4').toInteger() * 2
+// Request quarter of the limit (min 1) to reduce reserved capacity, allowing more concurrent pods to be scheduled.
+def cpuRequest = Math.max(1, cpuLimit.intdiv(4))
 
 podTemplate(
         nodeSelector: params.NODE_SELECTOR,
@@ -13,12 +21,11 @@ podTemplate(
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
-                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        image: 'jenkins/inbound-agent:4.13.3-2-alpine',
                         runAsUser: '0',
-                        resourceLimitCpu: '900m',
-                        resourceLimitMemory: '2Gi',
-                        resourceRequestCpu: '900m',
-                        resourceRequestMemory: '2Gi'),
+                        resourceRequestCpu: '500m',
+                        resourceLimitCpu: '2',
+                        resourceLimitMemory: '4Gi'),
                 containerTemplate(name: 'postgres',
                         image: params.POSTGRES_IMAGE ?: 'postgres:13-alpine',
                         runAsUser: '0',
@@ -39,7 +46,8 @@ podTemplate(
                         runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
-                        resourceLimitCpu: '4',
+                        resourceRequestCpu: "${cpuRequest}",
+                        resourceLimitCpu: "${cpuLimit}",
                         resourceLimitMemory: '8Gi')
         ]
 ) {
@@ -148,4 +156,5 @@ podTemplate(
             }
         }
     }
+}
 }
