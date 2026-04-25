@@ -256,7 +256,7 @@ class OperationContext {
             }
         }
 
-        void flush(OperationResult result) {
+        synchronized void flush(OperationResult result) {
             if (activityState == null) {
                 return;
             }
@@ -269,7 +269,7 @@ class OperationContext {
             }
         }
 
-        void flushIfNeeded(OperationResult result) {
+        synchronized void flushIfNeeded(OperationResult result) {
             if (activityState == null) {
                 return;
             }

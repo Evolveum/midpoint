@@ -141,6 +141,8 @@ public interface SmartIntegrationService {
             String resourceOid,
             QName objectClassName,
             List<DataAccessPermissionType> permissions,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task,
             OperationResult result)
             throws CommonException;
@@ -183,6 +185,8 @@ public interface SmartIntegrationService {
             String resourceOid,
             QName objectClassName,
             ShadowObjectClassStatisticsType statistics,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,

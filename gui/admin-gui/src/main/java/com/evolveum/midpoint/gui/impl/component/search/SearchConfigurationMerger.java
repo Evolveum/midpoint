@@ -9,14 +9,12 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -77,7 +75,7 @@ public class SearchConfigurationMerger {
             return searchItems;
         }
 
-        final List<SearchItemType> customSearchItemsWithDisplayOrder = getSearchItemsWithDisplayOrder(customSearchItems);
+        final List<SearchItemType> customSearchItemsWithDisplayOrder = getItemsWithUpdatedDisplayOrder(customSearchItems);
 
         if (searchItems == null || CollectionUtils.isEmpty(searchItems.getSearchItem())) {
             customSearchItems.getSearchItem().clear();
@@ -86,7 +84,7 @@ public class SearchConfigurationMerger {
         }
 
         final List<SearchItemType> mergedItems = pageBase.getAdminGuiConfigurationMergeManager().mergeContainers(
-                getSearchItemsWithRemovedVisibleByDefault(searchItems),
+                getItemsWithClearedVisibleByDefault(searchItems),
                 customSearchItemsWithDisplayOrder,
                 SearchConfigurationMerger::searchItemMatch,
                 SearchConfigurationMerger::mergeSearchItem
@@ -97,25 +95,24 @@ public class SearchConfigurationMerger {
         return searchItems;
     }
 
-    private static List<SearchItemType> getSearchItemsWithDisplayOrder(SearchItemsType searchItems) {
-        return IntStream
-                .range(0, searchItems.getSearchItem().size())
-                .mapToObj(i -> {
-                    final SearchItemType customSearchItem = searchItems.getSearchItem().get(i);
-                    if (customSearchItem.getDisplayOrder() == null) {
-                        customSearchItem.setDisplayOrder(i);
+    private static List<SearchItemType> getItemsWithUpdatedDisplayOrder(SearchItemsType items) {
+        return items.getSearchItem().stream()
+                .map(i -> {
+                    if (i.getDisplayOrder() == null) {
+                        i.setDisplayOrder(items.getSearchItem().indexOf(i));
                     }
-                    return customSearchItem;
-                }).collect(Collectors.toList());
+                    return i;
+                })
+                .collect(Collectors.toList());
     }
 
-    private static List<SearchItemType> getSearchItemsWithRemovedVisibleByDefault(SearchItemsType searchItems) {
-        return searchItems.getSearchItem().stream()
-                .peek(searchItem -> {
-                    if (searchItem.isVisibleByDefault() != null) {
-                        searchItem.setVisibleByDefault(null);
-                    }
-                }).toList();
+    private static List<SearchItemType> getItemsWithClearedVisibleByDefault(SearchItemsType items) {
+        return items.getSearchItem().stream()
+                .map(i -> {
+                    i.setVisibleByDefault(null);
+                    return i;
+                })
+                .collect(Collectors.toList());
     }
 
     private static Predicate<SearchItemType> searchItemMatch(SearchItemType searchItem) {

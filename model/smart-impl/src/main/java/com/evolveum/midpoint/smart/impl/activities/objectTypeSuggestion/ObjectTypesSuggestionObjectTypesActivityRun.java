@@ -81,7 +81,9 @@ class ObjectTypesSuggestionObjectTypesActivityRun
                     ShadowObjectClassUtil.getStatisticsRequired(
                             getBeans().repositoryService.getObject(GenericObjectType.class, statisticsOid, null, result)));
             suggestedTypes = SmartIntegrationBeans.get().smartIntegrationService.suggestObjectTypes(
-                    resourceOid, objectClassName, statistics, task, result);
+                    resourceOid, objectClassName, statistics,
+                    getWorkDefinition().getRegenerateMode(),
+                    getWorkDefinition().getPreviousDelineations(), task, result);
             LOGGER.debug("AI-based suggestions to be written to the work state:\n{}",
                     suggestedTypes.debugDump(1));
         } else {

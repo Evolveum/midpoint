@@ -456,7 +456,6 @@ public abstract class AssociationTablePanel
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
                 performAcceptOperationAction(target, object);
-                refreshAndDetach(target);
             }
         };
 

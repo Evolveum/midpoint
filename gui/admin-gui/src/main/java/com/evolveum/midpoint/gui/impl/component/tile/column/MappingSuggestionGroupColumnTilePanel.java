@@ -29,9 +29,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -107,9 +104,9 @@ public class MappingSuggestionGroupColumnTilePanel<
         fragment.add(createHeaderContainer());
         fragment.add(createRowsContainer(columnValues));
 
-        initSeparator(fragment);
-        initExpandCollapseArrowIcon(fragment);
+        initSeparator(fragment, "separator");
         initHeaderTitle(fragment);
+        initSeparator(fragment, "separatorSecond");
         initTargetRef(fragment);
         initShowSuggestionLink(fragment);
         initAcceptSelectedButton(fragment);
@@ -118,8 +115,8 @@ public class MappingSuggestionGroupColumnTilePanel<
         return fragment;
     }
 
-    private void initSeparator(@NotNull Fragment fragment) {
-        WebMarkupContainer separator = new WebMarkupContainer("separator");
+    private void initSeparator(@NotNull Fragment fragment, String id) {
+        WebMarkupContainer separator = new WebMarkupContainer(id);
         separator.add(new VisibleBehaviour(this::isInbound));
         fragment.add(separator);
     }
@@ -334,9 +331,11 @@ public class MappingSuggestionGroupColumnTilePanel<
             @Override
             public void onClick(AjaxRequestTarget target) {
                 PV selected = selectedRowModel.getObject();
-                if (selected != null) {
-                    onAcceptSelected(selected, target);
+                if (selected == null) {
+                    return;
                 }
+
+                performOnAccept(target, selected);
             }
         };
 
@@ -347,6 +346,10 @@ public class MappingSuggestionGroupColumnTilePanel<
         fragment.add(button);
         fragment.add(new VisibleBehaviour(() -> getModelValue().isExpanded()));
         container.add(fragment);
+    }
+
+    protected void performOnAccept(AjaxRequestTarget target, PV selected) {
+            onAcceptSelected(selected, target);
     }
 
     protected InlineMenuItem createDeleteSelectedItemMenu(IModel<PV> selectedRowModel) {
@@ -423,12 +426,24 @@ public class MappingSuggestionGroupColumnTilePanel<
         container.add(fragment);
     }
 
-    private void initExpandCollapseArrowIcon(@NotNull WebMarkupContainer container) {
-        Fragment fragment = createToolbarFragment("expandCollapseArrowIcon");
+    private void initHeaderTitle(@NotNull WebMarkupContainer container) {
+        Fragment fragment = new Fragment("headerTitle", "headerTitleFragment", this);
 
-        AjaxIconButton button = new AjaxIconButton("item", () -> getModelValue().isExpanded()
+        AjaxIconButton button = buildExpandableHeaderTitle("text");
+        button.add(AttributeAppender.append("class", " btn p-0 text-dark"));
+        fragment.add(button);
+
+        Label label = new Label("badge", getModelObject().getValue().getCount());
+        label.add(AttributeAppender.append("style", "height: fit-content;"));
+        fragment.add(label);
+
+        container.add(fragment);
+    }
+
+    private @NotNull AjaxIconButton buildExpandableHeaderTitle(String text) {
+        AjaxIconButton button = new AjaxIconButton(text, () -> getModelValue().isExpanded()
                 ? "fa-solid fa-chevron-up"
-                : "fa-solid fa-chevron-down", Model.of()) {
+                : "fa-solid fa-chevron-down", createStringResource("MappingSuggestionGroupColumnTilePanel.headerTitle")) {
 
             @Override
             public void onClick(@NotNull AjaxRequestTarget ajaxRequestTarget) {
@@ -436,38 +451,9 @@ public class MappingSuggestionGroupColumnTilePanel<
                 ajaxRequestTarget.add(MappingSuggestionGroupColumnTilePanel.this);
             }
         };
-        fragment.add(button);
-        container.add(fragment);
-    }
-
-    private void initHeaderTitle(@NotNull WebMarkupContainer container) {
-
-        Fragment fragment = new Fragment("headerTitle", "headerTitleFragment", this);
-
-        WebMarkupContainer helpInfoPanel = new WebMarkupContainer("helpInfo");
-        helpInfoPanel.setOutputMarkupId(true);
-        helpInfoPanel.add(new TooltipBehavior());
-        helpInfoPanel.add(AttributeModifier.append("title",
-                createStringResource("MappingSuggestionGroupColumnTilePanel.headerTitle.help").getString()));
-        fragment.add(helpInfoPanel);
-
-        Label headerTitle = new Label(
-                "text",
-                createStringResource(
-                        "MappingSuggestionGroupColumnTilePanel.headerTitle",
-                        getModelObject().getValue().getGroupDisplayName()));
-        headerTitle.setEscapeModelStrings(false);
-        fragment.add(headerTitle);
-
-        Label label = new Label(
-                "badge",
-                createStringResource(
-                        "MappingSuggestionGroupColumnTilePanel.count",
-                        getModelObject().getValue().getCount()));
-        label.add(AttributeAppender.append("style", "height: fit-content;"));
-        fragment.add(label);
-
-        container.add(fragment);
+        button.setOutputMarkupId(true);
+        button.showTitleAsLabel(true);
+        return button;
     }
 
     private void initTargetRef(@NotNull WebMarkupContainer container) {
@@ -534,4 +520,5 @@ public class MappingSuggestionGroupColumnTilePanel<
 
     protected void onAcceptSelected(@NotNull PV selected, @NotNull AjaxRequestTarget target) {
     }
+
 }

@@ -579,7 +579,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, null, null, task, result);
 
         then("there is at least one suggested object type");
         assertSuccess(result);
@@ -625,7 +625,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, null, null, task, result);
 
         then("there is at least one suggested object type");
         assertSuccess(result);
@@ -696,7 +696,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types with invalid filter");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, new ShadowObjectClassStatisticsType(), task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, new ShadowObjectClassStatisticsType(), null, null, task, result);
 
         then("there is at least one suggestion with non-empty filter");
         assertSuccess(result);
@@ -743,7 +743,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
                 RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME,
-                new ShadowObjectClassStatisticsType(), task, result);
+                new ShadowObjectClassStatisticsType(), null, null, task, result);
 
         then("validation error is handled and partial result is returned");
         assertSuccess(result);
@@ -787,7 +787,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, null, null, task, result);
 
         then("suggested types are correct");
         assertSuccess(result);
