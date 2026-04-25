@@ -7,7 +7,7 @@
 def verbose = params.VERBOSE ?: '0'
 
 // Make the cpuLimit integer from String Jenkins job parameter.
-def cpuLimit = (params.BUILDER_CPU ?: '8').toInteger()
+def cpuLimit = (params.BUILDER_CPU ?: '4').toInteger() * 2
 // Request quarter of the limit (min 1) to reduce reserved capacity, allowing more concurrent pods to be scheduled.
 def cpuRequest = Math.max(1, cpuLimit.intdiv(4))
 
@@ -23,10 +23,9 @@ podTemplate(
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
                         runAsUser: '0',
-                        resourceRequestCpu: '100m',
-                        resourceLimitCpu: '500m',
-                        resourceRequestMemory: '2Gi',
-                        resourceLimitMemory: '2Gi'),
+                        resourceRequestCpu: '500m',
+                        resourceLimitCpu: '2',
+                        resourceLimitMemory: '4Gi'),
                 containerTemplate(name: 'maven',
                         image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
                         runAsUser: '0',
