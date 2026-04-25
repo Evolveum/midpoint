@@ -4,6 +4,9 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
+echo "Attempting to acquire conntest lock..."
+lock('ad-servers') { // whole pipeline is guarded, content is NOT indented
+
 // Make the cpuLimit integer from String Jenkins job parameter.
 def cpuLimit = (params.BUILDER_CPU ?: '4').toInteger() * 2
 // Request quarter of the limit (min 1) to reduce reserved capacity, allowing more concurrent pods to be scheduled.
@@ -151,4 +154,5 @@ podTemplate(
             }
         }
     }
+}
 }
