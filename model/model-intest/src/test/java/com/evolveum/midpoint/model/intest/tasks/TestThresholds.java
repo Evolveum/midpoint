@@ -160,6 +160,10 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         return roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid);
     }
 
+    protected  Consumer<PrismObject<TaskType>> getRoleAssignmentDelete() {
+        return roleAssignmentCustomizer(ROLE_DELETE_5.oid);
+    }
+
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Simulate() {
         return task -> {
             // intentionally empty
@@ -203,6 +207,12 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     }
 
     protected Consumer<PrismObject<TaskType>> customizePoliciesReconModifyFullName5SimulateExecute() {
+        return task -> {
+            // intentionally empty
+        };
+    }
+
+    protected Consumer<PrismObject<TaskType>> customizePoliciesReconcileDelete5Simulate() {
         return task -> {
             // intentionally empty
         };
@@ -559,7 +569,8 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
-                        roleAssignmentCustomizer(ROLE_DELETE_5.oid),
+                        customizePoliciesReconcileDelete5Simulate(),
+                        getRoleAssignmentDelete(),
                         getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
 

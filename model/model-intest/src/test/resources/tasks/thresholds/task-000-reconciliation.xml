@@ -6,12 +6,10 @@
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="385b2498-bf8b-4e31-a807-71c312cc2e29">
-    <name>task-000-reconciliation-simulate</name>
+    <name>task-000-reconciliation-execute</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
     <activity>
-        <order>20</order>
-        <identifier>second</identifier>
         <work>
             <reconciliation>
                 <resourceObjects>
@@ -26,7 +24,7 @@
                 <name>Execution time</name>
                 <policyConstraints>
                     <executionTime>
-                        <exceeds>PT8S</exceeds>
+                        <exceeds>PT0S</exceeds>
                     </executionTime>
                 </policyConstraints>
                 <policyActions>

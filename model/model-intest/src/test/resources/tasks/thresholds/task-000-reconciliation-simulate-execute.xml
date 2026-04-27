@@ -10,77 +10,15 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
     <activity>
-        <composition>
-            <activity>
-                <order>10</order>
-                <identifier>first</identifier>
-                <work>
-                    <noOp>
-                        <steps>1</steps>
-                        <delay>4000</delay>
-                    </noOp>
-                </work>
-            </activity>
-            <activity>
-                <order>20</order>
-                <identifier>second</identifier>
-                <work>
-                    <reconciliation>
-                        <resourceObjects>
-                            <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5" />
-                            <kind>account</kind>
-                            <intent>default</intent>
-                        </resourceObjects>
-                    </reconciliation>
-                </work>
-                <tailoring>
-                    <change>
-                        <reference>resourceObjectsPreview</reference>
-                        <controlFlow>
-                            <processingOption>process</processingOption>
-                        </controlFlow>
-                        <reporting>
-                            <simulationResult>
-                                <enabled>false</enabled>
-                            </simulationResult>
-                        </reporting>
-                    </change>
-                    <change>
-                        <reference>remainingShadowsPreview</reference>
-                        <controlFlow>
-                            <processingOption>process</processingOption>
-                        </controlFlow>
-                        <reporting>
-                            <simulationResult>
-                                <enabled>false</enabled>
-                            </simulationResult>
-                        </reporting>
-                    </change>
-                    <change>
-                        <reference>resourceObjects</reference>
-                        <controlFlow>
-                            <processingOption>process</processingOption>
-                        </controlFlow>
-                    </change>
-                    <change>
-                        <reference>remainingShadows</reference>
-                        <controlFlow>
-                            <processingOption>process</processingOption>
-                        </controlFlow>
-                    </change>
-                </tailoring>
-            </activity>
-            <activity>
-                <order>30</order>
-                <identifier>third</identifier>
-                <work>
-                    <noOp>
-                        <steps>3</steps>
-                        <delay>100</delay>
-                    </noOp>
-                </work>
-            </activity>
-        </composition>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </reconciliation>
+        </work>
         <policies>
             <policy>
                 <name>Execution time</name>
@@ -94,5 +32,41 @@
                 </policyActions>
             </policy>
         </policies>
+        <tailoring>
+            <change>
+                <reference>resourceObjectsPreview</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
+            </change>
+            <change>
+                <reference>remainingShadowsPreview</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
+            </change>
+            <change>
+                <reference>resourceObjects</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+            </change>
+            <change>
+                <reference>remainingShadows</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+            </change>
+        </tailoring>
     </activity>
 </task>

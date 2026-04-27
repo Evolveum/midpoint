@@ -30,14 +30,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
-/**
- * TODO [viliam]
- *  - lots of assertions are copied, will be same/simliar to other activity/focus policy tests
- *  - policies copied from roles to proper place in policy, figure out how to do it without creating almost the same files over and over again
- */
-public class TestTask000FocusPolicyInActivity extends TestThresholds {
+public class TestFocusPolicyInActivity extends TestThresholds {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestTask000FocusPolicyInActivity.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestFocusPolicyInActivity.class);
 
     private static final long TIMEOUT = 60000;
 
@@ -73,7 +68,9 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
     private static final TestTask TASK_RECONCILIATION_SIMULATE_EXECUTE =
             TestTask.file(TEST_DIR, "task-000-reconciliation-simulate-execute.xml", "53734bf9-7068-4ee6-8804-2be3f4fe31ee");
 
-    private static final String DUMMY_NOTIFICATION_TRANSPORT = "dummy:policyRuleNotifier";
+    private static final String DUMMY_ACTIVITY_POLICY_NOTIFIER = "dummy:activityPolicyNotifier";
+
+    private static final String DUMMY_POLICY_NOTIFIER = "dummy:policyNotifier";
 
     String ruleAddNotificationId;
     String ruleModifyCostCenterNotificationId;
@@ -90,10 +87,10 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
         super.initSystem(initTask, initResult);
 
         SimpleActivityPolicyRuleNotifierType activityPolicyNotifier = new SimpleActivityPolicyRuleNotifierType();
-        activityPolicyNotifier.getTransport().add("dummy:activityPolicyNotifier");
+        activityPolicyNotifier.getTransport().add(DUMMY_ACTIVITY_POLICY_NOTIFIER);
 
         SimplePolicyRuleNotifierType policyNotifier = new SimplePolicyRuleNotifierType();
-        policyNotifier.getTransport().add("dummy:policyNotifier");
+        policyNotifier.getTransport().add(DUMMY_POLICY_NOTIFIER);
 
         EventHandlerType handler = new EventHandlerType();
         handler.getSimpleActivityPolicyRuleNotifier().add(activityPolicyNotifier);
@@ -133,6 +130,11 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
     @Override
     protected Consumer<PrismObject<TaskType>> getRoleAssignmentModifyFullName() {
         return roleAssignmentCustomizer(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION.oid);
+    }
+
+    @Override
+    protected Consumer<PrismObject<TaskType>> getRoleAssignmentDelete() {
+        return roleAssignmentCustomizer(ROLE_DELETE_5_NOTIFICATION.oid);
     }
 
     @Override
@@ -177,7 +179,18 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
                         ROLE_MODIFY_5_FULL_NAME_NOTIFICATION,
                         new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
                         task,
-                        ActivityPath.fromId("second")
+                        ActivityPath.empty()
+                );
+    }
+
+    @Override
+    protected Consumer<PrismObject<TaskType>> customizePoliciesReconcileDelete5Simulate() {
+        return task ->
+                transplantRolePolicy(
+                        ROLE_DELETE_5_NOTIFICATION,
+                        new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
+                        task,
+                        ActivityPath.empty()
                 );
     }
 
@@ -337,30 +350,30 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after repeated execution")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
+                .display()
+                .previewModePolicyRulesCounters()
                     .display()
-                    .previewModePolicyRulesCounters()
-                        .display()
-                        .end()
-                    .progress()
-                        .display()
-                        .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .end()
-                    .previewModePolicyRulesCounters()
-                        .assertCounter(ruleAddNotificationId, USER_ADD_ALLOWED + 2 )
-                        .assertCounter(suspendPolicyIdentifier, USER_ADD_ALLOWED + 2)
-                        .assertCounterCount(2)
-                        .end()
-                    .progress()
-                        .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters
-                        .end()
-                    .itemProcessingStatistics()
-                        .assertTotalCounts(USER_ADD_ALLOWED, 2, 0)
-                    .end();
+                    .end()
+                .progress()
+                    .display()
+                    .end()
+                .itemProcessingStatistics()
+                    .display()
+                    .end()
+                .previewModePolicyRulesCounters()
+                    .assertCounter(ruleAddNotificationId, USER_ADD_ALLOWED + 2 )
+                    .assertCounter(suspendPolicyIdentifier, USER_ADD_ALLOWED + 2)
+                    .assertCounterCount(2)
+                    .end()
+                .progress()
+                    .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters
+                    .end()
+                .itemProcessingStatistics()
+                    .assertTotalCounts(USER_ADD_ALLOWED, 2, 0)
+                .end();
         // @formatter:on
     }
 
@@ -368,25 +381,25 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
     void assertTest110TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
-                .assertSuspended()
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
+                .assertInProgressLocal()
                 .assertFatalError()
-                .rootActivityState()
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                    .end()
-                .activityState(SIMULATE)
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                    .progress()
-                        .display()
-                        .assertSuccessCount(USER_ADD_ALLOWED, true)
-                        .assertFailureCount(1, getThreads(), true)
-                        .end()
-                    .end()
-                .activityState(EXECUTE)
+                .end()
+            .activityState(SIMULATE)
+                .assertInProgressLocal()
+                .assertFatalError()
+                .progress()
                     .display()
-                    .assertRealizationState(null) // this should not even start
-                    .end();
+                    .assertSuccessCount(USER_ADD_ALLOWED, true)
+                    .assertFailureCount(1, getThreads(), true)
+                    .end()
+                .end()
+            .activityState(EXECUTE)
+                .display()
+                .assertRealizationState(null) // this should not even start
+                .end();
         // @formatter:on
     }
 
@@ -394,94 +407,89 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
     void assertTest120TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
-                .assertSuspended()
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
+                .assertInProgressLocal()
                 .assertFatalError()
-                .rootActivityState()
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                    .progress()
+                .progress()
+                    .display()
+                    .assertSuccessCount(USER_ADD_ALLOWED, true)
+                    .assertFailureCount(1, getThreads(), true)
+                    .end()
+                .itemProcessingStatistics()
+                    .display()
+                    .end()
+                .actionsExecuted()
+                    .resulting()
                         .display()
-                        .assertSuccessCount(USER_ADD_ALLOWED, true)
-                        .assertFailureCount(1, getThreads(), true)
+                        .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, USER_ADD_ALLOWED, 0)
                         .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .end()
-                    .actionsExecuted()
-                        .resulting()
-                            .display()
-                            .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, USER_ADD_ALLOWED, 0)
-                            .end()
-                        .end();
+                    .end();
         // @formatter:on
     }
 
     @Override
     void assertTest200TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        dumpSimplifiedTaskActivityState(importTask);
-
         // @formatter:off
-        var asserter = assertTaskTree(importTask.oid, "task after")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
+        assertTaskTree(importTask.oid, "task after")
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
                 .display()
                 .previewModePolicyRulesCounters()
-                .display()
-                .assertCounterMinMax(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
-                .end()
-                .itemProcessingStatistics().display().end()
+                    .display()
+                    .assertCounterMinMax(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
+                    .end()
                 .progress()
-                .display()
-                .assertSuccessCount(USER_MODIFY_ALLOWED, ACCOUNTS, true) // this is quite a broad range :)
-                .assertFailureCount(1, getThreads(), true)
-                .end();
-        asserter
+                    .display()
+                    .assertSuccessCount(USER_MODIFY_ALLOWED, ACCOUNTS, true) // this is quite a broad range :)
+                    .assertFailureCount(1, getThreads(), true)
+                    .end()
                 .itemProcessingStatistics()
-                .assertTotalCounts(USER_MODIFY_ALLOWED*4, 1, 0)
-                .end();
+                    .assertTotalCounts(USER_MODIFY_ALLOWED * 4, 1, 0)
+                    .end();
         // @formatter:on
     }
 
     @Override
     void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-// @formatter:off
-        var asserter = assertTaskTree(importTask.oid, "task after repeated execution")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
+        // @formatter:off
+        assertTaskTree(importTask.oid, "task after repeated execution")
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
                 .display()
-                .previewModePolicyRulesCounters().display().end()
-                .itemProcessingStatistics().display().end();
-        asserter
                 .previewModePolicyRulesCounters()
-                .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 2)
-                .end()
+                    .display()
+                    .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 2)
+                    .end()
                 .itemProcessingStatistics()
-                .assertTotalCounts(USER_MODIFY_ALLOWED*4, 2, 0)
-                .end();
+                    .display()
+                    .assertTotalCounts(USER_MODIFY_ALLOWED*4, 2, 0)
+                    .end();
         // @formatter:on
     }
 
     @Override
     void assertTest210TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-// @formatter:off
+        // @formatter:off
         assertTaskTree(importTask.oid, "after")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
                 .assertInProgressLocal()
                 .assertFatalError()
                 .end()
-                .activityState(SIMULATE)
+            .activityState(SIMULATE)
                 .assertInProgressLocal()
                 .assertFatalError()
                 .progress()
-                .display()
-                .assertFailureCount(1, getThreads(), true)
+                    .display()
+                    .assertFailureCount(1, getThreads(), true)
+                    .end()
                 .end()
-                .end()
-                .activityState(EXECUTE)
+            .activityState(EXECUTE)
                 .display()
                 .assertRealizationState(null) // this should not even start
                 .end();
@@ -490,51 +498,49 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
 
     @Override
     void assertTest220TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-// @formatter:off
+        // @formatter:off
         assertTaskTree(importTask.oid, "after")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
                 .assertInProgressLocal()
                 .assertFatalError()
                 .progress()
-                .display()
-                .assertFailureCount(1, getThreads(), true)
-                .end();
+                    .display()
+                    .assertFailureCount(1, getThreads(), true)
+                    .end();
         // @formatter:on
     }
 
     @Override
     void assertTest300TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        dumpSimplifiedTaskActivityState(importTask);
-
-// @formatter:off
+        // @formatter:off
         assertTaskTree(importTask.oid, "after")
-                .assertClosed()
-                .assertSuccess()
-                .activityState(SIMULATE)
+            .assertClosed()
+            .assertSuccess()
+            .activityState(SIMULATE)
                 .assertComplete()
                 .assertSuccess()
                 .previewModePolicyRulesCounters()
-                .display()
-                .assertCounter(ruleModifyFullNameNotificationId, 4)
-                .end()
+                    .display()
+                    .assertCounter(ruleModifyFullNameNotificationId, 4)
+                    .end()
                 .itemProcessingStatistics()
-                .display()
-                .assertTotalCounts(ACCOUNTS, 0, 0)
+                    .display()
+                    .assertTotalCounts(ACCOUNTS, 0, 0)
+                    .end()
                 .end()
-                .end()
-                .activityState(EXECUTE)
+            .activityState(EXECUTE)
                 .assertComplete()
                 .assertSuccess()
                 .fullExecutionModePolicyRulesCounters()
-                .display()
-                .assertCounter(ruleModifyFullNameNotificationId, 4)
-                .end()
+                    .display()
+                    .assertCounter(ruleModifyFullNameNotificationId, 4)
+                    .end()
                 .itemProcessingStatistics()
-                .display()
-                .assertTotalCounts(ACCOUNTS, 0, 0)
-                .end()
+                    .display()
+                    .assertTotalCounts(ACCOUNTS, 0, 0)
+                    .end()
                 .end();
         // @formatter:on
     }
@@ -543,124 +549,122 @@ public class TestTask000FocusPolicyInActivity extends TestThresholds {
     void assertTest310TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
-                .assertClosed()
-                .assertSuccess()
-                .rootActivityState()
-                    .previewModePolicyRulesCounters()
+            .assertClosed()
+            .assertSuccess()
+            .rootActivityState()
+                .previewModePolicyRulesCounters()
+                    .display()
+                    .assertCounter(ruleModifyFullNameNotificationId, 4)
+                    .end()
+                .fullExecutionModePolicyRulesCounters()
+                    .display()
+                    .assertCounter(ruleModifyFullNameNotificationId, 4)
+                    .end()
+                .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PREVIEW_ID)
+                    .assertComplete()
+                    .assertSuccess()
+                    .itemProcessingStatistics()
                         .display()
-                        .assertCounter(ruleModifyFullNameNotificationId, 4)
+                        .assertTotalCounts(ACCOUNTS, 0, 0)
                         .end()
-                    .fullExecutionModePolicyRulesCounters()
+                    .end()
+                .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
+                    .assertComplete()
+                    .assertSuccess()
+                    .itemProcessingStatistics()
                         .display()
-                        .assertCounter(ruleModifyFullNameNotificationId, 4)
+                        .assertTotalCounts(ACCOUNTS, 0, 0)
                         .end()
-                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PREVIEW_ID)
-                        .assertComplete()
-                        .assertSuccess()
-                        .itemProcessingStatistics()
-                            .display()
-                            .assertTotalCounts(ACCOUNTS, 0, 0)
-                            .end()
-                        .end()
-                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
-                        .assertComplete()
-                        .assertSuccess()
-                        .itemProcessingStatistics()
-                            .display()
-                            .assertTotalCounts(ACCOUNTS, 0, 0)
-                            .end()
-                        .end()
-                    .end();
+                    .end()
+                .end();
         // @formatter:on
     }
 
     @Override
     void assertTest400TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
-// @formatter:off
+        // @formatter:off
         assertTaskTree(reconTask.oid, "after")
                 .display()
                 .assertSuspended()
                 .assertFatalError()
                 .rootActivityState()
-                .display()
-                .previewModePolicyRulesCounters()
-                .display()
-                .assertCounterMinMax(ruleDeleteNotificationId, USER_DELETE_ALLOWED + 1, USER_DELETE_ALLOWED + getThreads())
-                .end();
+                    .display()
+                    .previewModePolicyRulesCounters()
+                        .display()
+                        .assertCounterMinMax(ruleDeleteNotificationId, USER_DELETE_ALLOWED + 1, USER_DELETE_ALLOWED + getThreads())
+                        .end();
         // @formatter:on
     }
 
     @Override
     void assertTest400TaskAfterRepeatedExecution(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
-// @formatter:off
-        var asserter = assertTaskTree(reconTask.oid, "after repeated execution")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
+        // @formatter:off
+        assertTaskTree(reconTask.oid, "after repeated execution")
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
                 .display()
-                .previewModePolicyRulesCounters().display().end();
-        asserter
                 .previewModePolicyRulesCounters()
-                .display()
-                .assertCounter(ruleDeleteNotificationId, USER_DELETE_ALLOWED + 2)
-                .end();
+                    .display()
+                    .assertCounter(ruleDeleteNotificationId, USER_DELETE_ALLOWED + 2)
+                    .end();
         // @formatter:on
     }
 
     @Override
     void assertTest410TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-// @formatter:off
+        // @formatter:off
         assertTaskTree(importTask.oid, "after")
-                .display()
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
+            .display()
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
                 .assertInProgressLocal()
                 .assertFatalError()
                 .previewModePolicyRulesCounters()
-                .display()
-                .end()
+                    .display()
+                    .end()
                 .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PREVIEW_ID)
-                .assertInProgressLocal()
-                .assertFatalError()
-                .progress()
-                .display()
-                .assertSuccessCount(USER_DELETE_ALLOWED, true)
-                .assertFailureCount(1, getThreads(), true)
-                .end()
-                .end()
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .progress()
+                        .display()
+                        .assertSuccessCount(USER_DELETE_ALLOWED, true)
+                        .assertFailureCount(1, getThreads(), true)
+                        .end()
+                    .end()
                 .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
-                .display()
-                .assertRealizationState(null) // this should not even start
-                .end()
+                    .display()
+                    .assertRealizationState(null) // this should not even start
+                    .end()
                 .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID)
-                .display()
-                .assertRealizationState(null) // this should not even start
-                .end()
+                    .display()
+                    .assertRealizationState(null) // this should not even start
+                    .end()
                 .end();
         // @formatter:on
     }
 
     @Override
     void assertTest420TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-// @formatter:off
+        // @formatter:off
         assertTaskTree(importTask.oid, "after")
-                .display()
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
+            .display()
+            .assertSuspended()
+            .assertFatalError()
+            .rootActivityState()
                 .fullExecutionModePolicyRulesCounters()
-                .display()
+                    .display()
+                    .end()
                 .end()
-                .end()
-                .activityState(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH)
+            .activityState(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH)
                 .assertInProgressLocal()
                 .assertFatalError()
                 .progress()
-                .display()
-                .assertSuccessCount(USER_DELETE_ALLOWED, true)
-                .assertFailureCount(1, getThreads(), true)
-                .end();
+                    .display()
+                    .assertSuccessCount(USER_DELETE_ALLOWED, true)
+                    .assertFailureCount(1, getThreads(), true)
+                    .end();
         // @formatter:on
     }
 }
