@@ -208,10 +208,13 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
     private SearchItemType createAxiomSearchItem() {
         try {
             SearchItemType axiomSearchItem = new SearchItemType();
-            ObjectFilter axiomFilter = PrismContext.get()
+            ObjectFilter axiomFilter = getPageBase()
+                    .getPrismContext()
                     .createQueryParser(PrismContext.get().getSchemaRegistry().staticNamespaceContext().allPrefixes())
                     .parseFilter(getModelObject().getTypeClass(), getModelObject().getDslQuery());
-            axiomSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(axiomFilter, true));
+            SearchFilterType filter = getPageBase().getQueryConverter().createSearchFilterType(axiomFilter);
+            filter.setText(getModelObject().getDslQuery());
+            axiomSearchItem.setFilter(filter);
             return axiomSearchItem;
         } catch (SchemaException e) {
             LOGGER.error("Unable to parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
