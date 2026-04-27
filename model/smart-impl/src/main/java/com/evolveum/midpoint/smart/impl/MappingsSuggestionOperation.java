@@ -189,9 +189,13 @@ class MappingsSuggestionOperation {
                         String matchPairDescription = shadowAttrPath + " <-> " + focusPropPath;
                         var op = mappingsSuggestionState.recordProcessingStart(matchPairDescription);
 
+                        operationReference.set(op);
+                        OperationResult mappingResult = result.createSubresult(
+                                "Mapping suggestion for the %s pair".formatted(matchPairDescription));
+                        mappingResultReference.set(mappingResult);
+
                         if (shouldSkipReadOnlyAttribute(shadowAttrPath)) {
                             LOGGER.debug("Skipping read-only attribute for {} mapping: {}", direction, shadowAttrPath);
-                            mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
                             return null;
                         }
 
@@ -201,10 +205,6 @@ class MappingsSuggestionOperation {
                                 .from(shadowsForValidation);
 
                         mappingsSuggestionState.flush(result);
-                        operationReference.set(op);
-                        OperationResult mappingResult = result.createSubresult(
-                                "Mapping suggestion for the %s pair".formatted(matchPairDescription));
-                        mappingResultReference.set(mappingResult);
                         return suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, mappingResult);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -212,7 +212,9 @@ class MappingsSuggestionOperation {
                 }).thenAccept(aiMapping -> {
                     Operation op = operationReference.get();
                     if (aiMapping != null) {
-                        mappingCandidates.propose(aiMapping);
+                        synchronized (mappingCandidates) {
+                            mappingCandidates.propose(aiMapping);
+                        }
                         mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                     } else {
                         mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
