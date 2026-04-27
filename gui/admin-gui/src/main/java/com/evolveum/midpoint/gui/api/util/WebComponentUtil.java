@@ -22,13 +22,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerOptions;
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
@@ -4343,5 +4341,30 @@ public final class WebComponentUtil {
         }
 
         return valueWrapper.toShortString();
+    }
+
+    // Ugly hack to make the backdrop static (clicking outside the popup does not close it).
+    public static void applyStaticPopupBackdrop(@NotNull PageBase pageBase) {
+        WebMarkupContainer overlay = (WebMarkupContainer) pageBase.getMainPopup().get("overlay");
+        if (overlay == null) return;
+
+        // Bootstrap 5
+        overlay.add(AttributeModifier.replace("data-bs-backdrop", "static"));
+        overlay.add(AttributeModifier.replace("data-bs-keyboard", "false"));
+
+        // Bootstrap 4
+        overlay.add(AttributeModifier.replace("data-backdrop", "static"));
+        overlay.add(AttributeModifier.replace("data-keyboard", "false"));
+    }
+
+    // Remove the static backdrop so future popups use their own defaults. TBD (not safe)
+    public static void restoreBackdropPopupDefaults(@NotNull PageBase pageBase) {
+        WebMarkupContainer overlay = (WebMarkupContainer) pageBase.getMainPopup().get("overlay");
+        if (overlay == null) return;
+
+        overlay.add(AttributeModifier.remove("data-bs-backdrop"));
+        overlay.add(AttributeModifier.remove("data-bs-keyboard"));
+        overlay.add(AttributeModifier.remove("data-backdrop"));
+        overlay.add(AttributeModifier.remove("data-keyboard"));
     }
 }

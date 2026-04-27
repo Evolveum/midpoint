@@ -5,10 +5,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.Toggle;
-import com.evolveum.midpoint.gui.api.component.TogglePanel;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.FocusStatisticsButton;
@@ -17,21 +15,24 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValueCountType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValuePatternCountType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -40,6 +41,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -52,39 +54,41 @@ import org.danekja.java.util.function.serializable.SerializableToIntFunction;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.applyStaticPopupBackdrop;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.restoreBackdropPopupDefaults;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
 /**
- * Popup panel that displays computed statistics for a resource object class.
- *
- * <p>The panel visualizes object class statistics such as attribute values,
- * value patterns, frequencies, and basic summary metrics. Users can browse
- * individual attributes, inspect their statistics, and trigger regeneration
- * of statistics if needed.</p>
- *
- * <p>The panel is shown in a modal dialog and serves purely as a presentation
- * layer for already computed statistics.</p>
- */
-//TODO (this is initial implementation)
+ * Popup panel that displays computed statistics for a resource object class, object type and focus type
+ * (depending on the context of invocation). It includes a list of attributes with their respective statistics,
+ * and for each selected attribute, it shows the most common values and value patterns.
+ **/
 public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsType> implements Popupable {
+
+    private static final String ID_SEARCH_CONTAINER = "searchContainer";
+    private static final String ID_SEARCH_INPUT = "searchInput";
 
     private static final String ID_CLOSE_BUTTON = "closeButton";
     private static final String ID_FOOTER_BUTTONS = "footerButtons";
+    private static final String ID_SHOW_ALL_BUTTON = "showAllButton";
 
     private static final String ID_LEFT_PANEL = "leftPanelContainer";
     private static final String ID_CHIPS_CONTAINER = "chipsContainer";
     private static final String ID_TOTAL_OBJECTS = "totalObjects";
     private static final String ID_COVERAGE = "coverage";
-    private static final String ID_TOGGLE_PANEL = "togglePanel";
+    private static final String ID_SORT_TOOGLE = "sortToggle";
     private static final String ID_LIST_VIEW_CONTAINER = "listViewContainer";
     private static final String ID_LIST_VIEW = "listView";
     private static final String ID_TEXT = "text";
@@ -94,7 +98,6 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     private static final String ID_WIDGETS_CONTAINER = "widgetsContainer";
     private static final String ID_TABLE_PATTERN_CONTAINER = "tablePatternContainer";
     private static final String ID_TABLE_FREQ_CONTAINER = "tableFreqContainer";
-    private static final String ID_TABLE_COMB_CONTAINER = "tableCombContainer";
 
     private static final String ID_TABLE_FRAGMENT = "tableFragment";
     private static final String ID_TABLE_HEADER_FRAGMENT = "tableHeader";
@@ -106,23 +109,34 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     private static final String ID_TIMESTAMP = "timestamp";
     private static final String ID_RECREATE_BUTTON = "recreateButton";
 
+    private IModel<String> searchModel = Model.of("");
+
+    private final IModel<Boolean> isAllAttributesDisplayed = Model.of(false);
+
     private final String resourceOid;
     private final QName objectClassName;
     private final ResourceObjectTypeIdentification objectTypeIdentification;
-    QName focusType;
+    private final QName focusType;
 
-    private boolean isAttributeTuple = false;
-
-    private IModel<ShadowAttributeTupleStatisticsType> selectedTuple;
     private IModel<ShadowAttributeStatisticsType> selectedAttribute;
 
-    PanelType panelType;
+    private final PanelType panelType;
 
     enum PanelType {
         OBJECT_CLASS, FOCUS, OBJECT_TYPE
     }
 
-    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, String resourceOid, QName objectClassName) {
+    private enum SortMode {
+        COUNT, ALPHABETICAL
+    }
+
+    private final IModel<SortMode> sortModeModel = Model.of(SortMode.COUNT);
+
+    public SmartStatisticsPanel(
+            String id,
+            IModel<ShadowObjectClassStatisticsType> model,
+            String resourceOid,
+            QName objectClassName) {
         super(id, model);
         this.resourceOid = resourceOid;
         this.objectClassName = objectClassName;
@@ -131,7 +145,11 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         this.panelType = PanelType.OBJECT_CLASS;
     }
 
-    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, String resourceOid, ResourceObjectTypeIdentification objectTypeIdentification) {
+    public SmartStatisticsPanel(
+            String id,
+            IModel<ShadowObjectClassStatisticsType> model,
+            String resourceOid,
+            ResourceObjectTypeIdentification objectTypeIdentification) {
         super(id, model);
         this.resourceOid = resourceOid;
         this.objectClassName = null;
@@ -140,10 +158,15 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         this.panelType = PanelType.OBJECT_TYPE;
     }
 
-    public SmartStatisticsPanel(String id, IModel<ShadowObjectClassStatisticsType> model, String resourceOid, ResourceObjectTypeIdentification objectTypeIdentification, QName focusType) {
+    public SmartStatisticsPanel(
+            String id,
+            IModel<ShadowObjectClassStatisticsType> model,
+            String resourceOid,
+            ResourceObjectTypeIdentification objectTypeIdentification,
+            QName focusType) {
         super(id, model);
-        this.objectClassName = null;
         this.resourceOid = resourceOid;
+        this.objectClassName = null;
         this.objectTypeIdentification = objectTypeIdentification;
         this.focusType = focusType;
         this.panelType = PanelType.FOCUS;
@@ -152,21 +175,23 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        initSearchModel();
+
+        applyStaticPopupBackdrop(getPageBase());
+
         add(AttributeModifier.append("class", "p-0"));
-        initSelectionModels();
+        initSelectionModel();
+
         add(buildLeftPanel(getModelObject()));
         add(buildMainPanel().setOutputMarkupId(true));
     }
 
-    //TODO
-    protected void initSelectionModels() {
-        selectedTuple = new LoadableModel<>() {
-            @Override
-            protected @NotNull ShadowAttributeTupleStatisticsType load() {
-                return new ShadowAttributeTupleStatisticsType();
-            }
-        };
+    private void initSearchModel() {
+        searchModel = getDefaultSearchModel();
+    }
 
+    protected void initSelectionModel() {
         selectedAttribute = new LoadableModel<>() {
             @Override
             protected @NotNull ShadowAttributeStatisticsType load() {
@@ -182,63 +207,79 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             }
         }
 
-        //temporary
-        renderListViewRows(getModelObject(), true);
-        renderListViewRows(getModelObject(), false);
+        renderListViewRows(getModelObject());
     }
 
-    protected List<ListViewRow> renderListViewRows(ShadowObjectClassStatisticsType statistics, boolean isAttributeTuple) {
-        Stream<ListViewRow> rows = isAttributeTuple
-                ? statistics.getAttributeTuple().stream().map(this::toTupleRow)
-                : statistics.getAttribute().stream().map(item -> toAttributeRow(item, statistics));
+    protected List<ListViewRow> renderListViewRows(@NotNull ShadowObjectClassStatisticsType statistics) {
+        Stream<ListViewRow> rows = statistics.getAttribute().stream()
+                .map(item -> toAttributeRow(item, statistics));
 
-        ItemPathType defaultSelected = getDefaultSelectedAttributePath();
-
-        Comparator<ListViewRow> byCountDesc = Comparator.comparing(
-                (ListViewRow r) -> extractCount(r.subText != null ? r.subText.getObject() : null),
-                Comparator.reverseOrder()
-        );
-
-        if (isAttributeTuple || defaultSelected == null) {
-            return rows
-                    .sorted(byCountDesc)
-                    .peek(this::initInitialSelection)
-                    .collect(Collectors.toList());
+        String normalizedSearch = normalizeSearch(searchModel.getObject());
+        if (!normalizedSearch.isEmpty()) {
+            rows = rows.filter(row -> matchesSearch(row, normalizedSearch));
         }
 
-        Comparator<ListViewRow> defaultFirst = Comparator.comparing((ListViewRow r) -> {
-            if (!(r.item instanceof ShadowAttributeStatisticsType attr)) {
-                return true; // non-attributes go after
-            }
-            if (attr.getRef() == null) {
-                return true; // missing ref goes after
-            }
-            return !attr.getRef().getItemPath().endsWith(defaultSelected.getItemPath());
-        });
-
-        return rows
-                .sorted(defaultFirst.thenComparing(byCountDesc))
+        List<ListViewRow> result = rows
+                .sorted(createRowComparator())
                 .peek(this::initInitialSelection)
                 .collect(Collectors.toList());
+
+        isAllAttributesDisplayed.setObject(
+                result.size() == statistics.getAttribute().size()
+        );
+        return result;
     }
 
-    private @NotNull ListViewRow toTupleRow(@NotNull ShadowAttributeTupleStatisticsType item) {
-        String refStr = item.getRef() != null
-                ? item.getRef().stream()
-                .map(r -> r.getItemPath().lastName().toString())
-                .collect(Collectors.joining(" + "))
-                : "";
-        int combinations = item.getTupleCount() != null ? item.getTupleCount().size() : 0;
-        return new ListViewRow(Model.of(refStr), Model.of(combinations + " combinations"), item);
+    private @NotNull Comparator<ListViewRow> createRowComparator() {
+        Comparator<ListViewRow> alphabetical = Comparator.comparing(
+                row -> extractSortableText(row.text),
+                String.CASE_INSENSITIVE_ORDER);
+
+        Comparator<ListViewRow> byCountDesc = Comparator.comparingInt(this::extractRowCount).reversed();
+
+        if (sortModeModel.getObject() == SortMode.ALPHABETICAL) {
+            return alphabetical.thenComparing(byCountDesc);
+        }
+
+        return byCountDesc.thenComparing(alphabetical);
     }
 
-    private @NotNull ListViewRow toAttributeRow(@NotNull ShadowAttributeStatisticsType item, @NotNull ShadowObjectClassStatisticsType statistics) {
+    private int extractRowCount(@NotNull ListViewRow row) {
+        return extractCount(row.subText != null ? row.subText.getObject() : null);
+    }
+
+    private @NotNull String extractSortableText(IModel<String> model) {
+        return model == null || model.getObject() == null ? "" : model.getObject();
+    }
+
+    private @NotNull String normalizeSearch(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private boolean matchesSearch(@NotNull ListViewRow row, @NotNull String normalized) {
+        String text = row.text != null ? row.text.getObject() : null;
+        String subText = row.subText != null ? row.subText.getObject() : null;
+
+        return containsIgnoreCase(text, normalized) || containsIgnoreCase(subText, normalized);
+    }
+
+    private boolean containsIgnoreCase(String value, String normalizedNeedle) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(normalizedNeedle);
+    }
+
+    private @NotNull ListViewRow toAttributeRow(
+            @NotNull ShadowAttributeStatisticsType item,
+            @NotNull ShadowObjectClassStatisticsType statistics) {
         String refStr = item.getRef().getItemPath().lastName().toString();
         int count = statistics.getSize() - item.getMissingValueCount();
+
         return new ListViewRow(Model.of(refStr), Model.of(count + " values"), item);
     }
 
-    public record ListViewRow(IModel<String> text, IModel<String> subText, Object item) implements Serializable {
+    public record ListViewRow(
+            IModel<String> text,
+            IModel<String> subText,
+            ShadowAttributeStatisticsType item) implements Serializable {
     }
 
     private @NotNull WebMarkupContainer buildLeftPanel(ShadowObjectClassStatisticsType statistics) {
@@ -246,138 +287,179 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         left.setOutputMarkupId(true);
 
         left.add(buildChips(statistics));
-        left.add(buildToggle());
-        left.add(buildListView(statistics, selectedAttribute, selectedTuple));
+        left.add(buildSearch());
+        left.add(buildListView(statistics, selectedAttribute));
+
+        AjaxIconButton showAllButton = new AjaxIconButton(
+                ID_SHOW_ALL_BUTTON,
+                Model.of("fa fa-eye"),
+                createStringResource("SmartStatisticsPanel.showAll")) {
+
+            @Override
+            public void onClick(@NotNull AjaxRequestTarget target) {
+                searchModel.setObject("");
+
+                target.add(getSearchContainer());
+                target.add(getListViewContainer());
+                target.add(this);
+            }
+        };
+
+        showAllButton.setOutputMarkupId(true);
+        showAllButton.setOutputMarkupPlaceholderTag(true);
+        showAllButton.showTitleAsLabel(true);
+        showAllButton.add(new VisibleBehaviour(() -> !isAllAttributesDisplayed.getObject()));
+        left.add(showAllButton);
 
         return left;
     }
 
-    private @NotNull WebMarkupContainer buildChips(ShadowObjectClassStatisticsType statistics) {
+    protected WebMarkupContainer getSearchContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_LEFT_PANEL, ID_SEARCH_CONTAINER));
+    }
+
+    private @NotNull Component buildSearch() {
+        Fragment fragment = new Fragment(ID_SEARCH_CONTAINER, ID_SEARCH_CONTAINER, this);
+
+        TextField<String> search = new TextField<>(ID_SEARCH_INPUT, searchModel);
+        search.setOutputMarkupId(true);
+        search.add(AttributeModifier.append(
+                "onkeydown",
+                "if (event.key === 'Enter') { event.preventDefault(); return false; }"));
+        search.add(new AjaxFormComponentUpdatingBehavior("input") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(getListViewContainer());
+                target.add(getShowAllButton());
+            }
+        });
+        fragment.add(search);
+
+        AjaxIconButton sortToggle = buildSortToggleButton();
+        fragment.add(sortToggle);
+        fragment.setOutputMarkupId(true);
+
+        return fragment;
+    }
+
+    private @NotNull AjaxIconButton buildSortToggleButton() {
+        AjaxIconButton sortToggle = new AjaxIconButton(
+                ID_SORT_TOOGLE,
+                () -> sortModeModel.getObject() == SortMode.COUNT
+                        ? "fa fa-sort-amount-desc"
+                        : "fa fa-sort-alpha-down",
+                Model.of()) {
+
+            @Override
+            public void onClick(@NotNull AjaxRequestTarget target) {
+                SortMode current = sortModeModel.getObject();
+                sortModeModel.setObject(
+                        current == SortMode.COUNT ? SortMode.ALPHABETICAL : SortMode.COUNT);
+
+                target.add(getListViewContainer(), this);
+            }
+        };
+
+        sortToggle.setOutputMarkupId(true);
+        return sortToggle;
+    }
+
+    private Component getShowAllButton(){
+        return get(ID_LEFT_PANEL).get(ID_SHOW_ALL_BUTTON);
+    }
+
+    private @NotNull WebMarkupContainer buildChips(@NotNull ShadowObjectClassStatisticsType statistics) {
         WebMarkupContainer chips = new WebMarkupContainer(ID_CHIPS_CONTAINER);
         chips.setOutputMarkupId(true);
 
         chips.add(createMetricPanel(
                 ID_TOTAL_OBJECTS,
                 createStringResource("SmartStatisticsPanel.totalObjects"),
-                () -> String.valueOf(statistics.getSize()),
+                createStringResource(
+                        "SmartStatisticsPanel.totalObjects.value",
+                        statistics.getSize(),
+                        statistics.getSize()),
+                createStringResource("SmartStatisticsPanel.totalObjects.help"),
                 Model.of("fa fa-cube fa-2x text-primary")));
+
         chips.add(createMetricPanel(
                 ID_COVERAGE,
                 createStringResource("SmartStatisticsPanel.coverage"),
-                () -> String.format("%.2f%%", statistics.getCoverage() * 100),
+                () -> String.valueOf(statistics.getAttribute().size()),
+                createStringResource("SmartStatisticsPanel.coverage.help"),
                 Model.of("fa fa-adjust fa-2x text-primary")));
+
         return chips;
-    }
-
-    private @NotNull TogglePanel<String> buildToggle() {
-        IModel<List<Toggle<String>>> toggleModel = () -> List.of(
-//                createToggle("Tuples", isAttributeTuple), // cross table disabled
-                createToggle("Attributes", !isAttributeTuple)
-        );
-
-        return new TogglePanel<>(ID_TOGGLE_PANEL, toggleModel) {
-            @Override
-            protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<String>> item) {
-                isAttributeTuple = "Tuples".equals(item.getObject().getValue());
-
-                renderListViewRows(SmartStatisticsPanel.this.getModelObject(), isAttributeTuple);
-                target.add(getListViewContainer());
-                target.add(this);
-                refreshMainPanel(target);
-            }
-
-            @Override
-            protected String getDefaultCssClass() {
-                return "btn-group d-flex w-100 border rounded";
-            }
-
-            @Override
-            protected String getButtonCssClass() {
-                return null;
-            }
-
-            @Override
-            public @NotNull String getActiveCssClass() {
-                return "btn btn-default btn-sm px-3 active";
-            }
-
-            @Override
-            public String getInactiveCssClass() {
-                return "btn btn-sm px-3";
-            }
-        };
-    }
-
-    private @NotNull Toggle<String> createToggle(String value, boolean active) {
-        Toggle<String> t = new Toggle<>(null, value);
-        t.setActive(active);
-        t.setValue(value);
-        t.setBadgeCss(active ? Badge.State.PRIMARY.getCss() : Badge.State.SECONDARY.getCss());
-        return t;
     }
 
     private @NotNull WebMarkupContainer buildListView(
             ShadowObjectClassStatisticsType statistics,
-            @NotNull IModel<ShadowAttributeStatisticsType> selectedAttribute,
-            @NotNull IModel<ShadowAttributeTupleStatisticsType> selectedTuple) {
+            @NotNull IModel<ShadowAttributeStatisticsType> selectedAttribute) {
+
         WebMarkupContainer container = new WebMarkupContainer(ID_LIST_VIEW_CONTAINER);
         container.setOutputMarkupId(true);
 
-        ListView<ListViewRow> listView = new ListView<>(ID_LIST_VIEW, () -> renderListViewRows(statistics, isAttributeTuple)) {
-            @Override
-            protected void populateItem(@NotNull ListItem<ListViewRow> item) {
-                ListViewRow row = item.getModelObject();
-                item.add(new Label(ID_TEXT, row.text));
-                item.add(new Label(ID_SUBTEXT, row.subText));
+        ListView<ListViewRow> listView =
+                new ListView<>(ID_LIST_VIEW, () -> renderListViewRows(statistics)) {
 
-                Object rowItem = row.item;
-                if (rowItem.equals(selectedTuple.getObject()) || rowItem.equals(selectedAttribute.getObject())) {
-                    item.add(AttributeModifier.append(CLASS_CSS, "cursor-pointer border-primary"));
-                }
-
-                item.add(new AjaxEventBehavior("click") {
                     @Override
-                    protected void onEvent(AjaxRequestTarget target) {
-                        if (row.item instanceof ShadowAttributeTupleStatisticsType tupleStats) {
-                            selectedTuple.setObject(tupleStats);
-                        } else if (row.item instanceof ShadowAttributeStatisticsType attrStats) {
-                            selectedAttribute.setObject(attrStats);
+                    protected void populateItem(@NotNull ListItem<ListViewRow> item) {
+                        ListViewRow row = item.getModelObject();
+
+                        item.add(new Label(ID_TEXT, row.text));
+                        item.add(new Label(ID_SUBTEXT, row.subText));
+
+                        if (row.item.equals(selectedAttribute.getObject())) {
+                            item.add(AttributeModifier.append(CLASS_CSS, "cursor-pointer border-primary"));
                         }
-                        target.add(getListViewContainer());
-                        refreshMainPanel(target);
+
+                        item.add(new AjaxEventBehavior("click") {
+                            @Override
+                            protected void onEvent(AjaxRequestTarget target) {
+                                selectedAttribute.setObject(row.item);
+
+                                target.add(getListViewContainer());
+                                refreshMainPanel(target);
+                            }
+                        });
                     }
-                });
-            }
-        };
+                };
 
         listView.setOutputMarkupId(true);
         container.add(listView);
+
         return container;
     }
 
-    private @NotNull WebMarkupContainer buildWidgetsContainer(int totalValues, int uniqueValues, int missingValues) {
+    private @NotNull WebMarkupContainer buildWidgetsContainer(
+            int totalValues,
+            int uniqueValues,
+            int missingValues) {
+
         RepeatingView widgets = new RepeatingView(ID_WIDGETS_CONTAINER);
         widgets.setOutputMarkupId(true);
 
         widgets.add(createMetricPanel(
                 widgets.newChildId(),
+                createStringResource("SmartStatisticsPanel.totalValues"),
+                () -> String.valueOf(totalValues),
+                Model.of(),
+                Model.of("")));
+
+        widgets.add(createMetricPanel(
+                widgets.newChildId(),
                 createStringResource("SmartStatisticsPanel.uniqueValues"),
                 () -> String.valueOf(uniqueValues),
+                Model.of(),
                 Model.of("")));
 
         widgets.add(createMetricPanel(
                 widgets.newChildId(),
                 createStringResource("SmartStatisticsPanel.missingValues"),
                 () -> String.valueOf(missingValues),
+                Model.of(),
                 Model.of("")));
 
-        widgets.add(createMetricPanel(
-                widgets.newChildId(),
-                createStringResource("SmartStatisticsPanel.totalValues"),
-                () -> String.valueOf(totalValues),
-                Model.of("")));
-
-        widgets.add(new VisibleBehaviour(() -> !isAttributeTuple));
         return widgets;
     }
 
@@ -385,7 +467,10 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         WebMarkupContainer main = new WebMarkupContainer(ID_MAIN_PANEL_CONTAINER);
         main.setOutputMarkupId(true);
 
-        int total = 0, unique = 0, missing = 0;
+        int total = 0;
+        int unique = 0;
+        int missing = 0;
+
         ShadowAttributeStatisticsType object = selectedAttribute.getObject();
         if (object != null && object.getValueCount() != null) {
             total = getModelObject().getSize() - object.getMissingValueCount();
@@ -394,80 +479,70 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         }
 
         main.addOrReplace(buildWidgetsContainer(total, unique, missing));
-        main.addOrReplace(buildPatternTable(selectedAttribute.getObject()));
         main.addOrReplace(buildFrequencyTable(selectedAttribute.getObject(), total));
-        main.addOrReplace(buildTupleTable(selectedTuple.getObject()));
+        main.addOrReplace(buildPatternTable(selectedAttribute.getObject()));
 
         return main;
     }
 
     private @NotNull Fragment buildPatternTable(@NotNull ShadowAttributeStatisticsType stat) {
         List<ShadowAttributeValuePatternCountType> valuePatternCount = stat.getValuePatternCount();
+
         List<IColumn<ShadowAttributeValuePatternCountType, String>> cols = List.of(
                 badgeColumn(r -> r.getType().value()),
-                new PropertyColumn<>(createStringResource("SmartStatisticsPanel.valuePatterns.value"),
-                        ShadowAttributeValuePatternCountType.F_VALUE.getLocalPart(), "value"),
-                new PropertyColumn<>(createStringResource("SmartStatisticsPanel.valuePatterns.count"),
-                        ShadowAttributeValuePatternCountType.F_COUNT.getLocalPart(), "count")
+                new PropertyColumn<>(
+                        createStringResource("SmartStatisticsPanel.valuePatterns.value"),
+                        ShadowAttributeValuePatternCountType.F_VALUE.getLocalPart(),
+                        "value"),
+                new PropertyColumn<>(
+                        createStringResource("SmartStatisticsPanel.valuePatterns.count"),
+                        ShadowAttributeValuePatternCountType.F_COUNT.getLocalPart(),
+                        "count")
         );
-        Fragment components = tableFragment(SmartStatisticsPanel.ID_TABLE_PATTERN_CONTAINER,
-                "SmartStatisticsPanel.valuePatterns.header", cols,
-                new ListDataProvider<>(this, () -> valuePatternCount));
-        components.add(new VisibleBehaviour(() -> !isAttributeTuple));
-        return components;
+
+        return tableFragment(
+                ID_TABLE_PATTERN_CONTAINER,
+                "SmartStatisticsPanel.valuePatterns.header",
+                cols,
+                new ListDataProvider<>(this, () -> valuePatternCount),
+                createStringResource("SmartStatisticsPanel.valuePatterns.help"));
     }
 
-    private @NotNull Fragment buildFrequencyTable(@NotNull ShadowAttributeStatisticsType stat, int total) {
+    private @NotNull Fragment buildFrequencyTable(
+            @NotNull ShadowAttributeStatisticsType stat,
+            int total) {
+
         List<IColumn<ShadowAttributeValueCountType, String>> cols = List.of(
-                new PropertyColumn<>(createStringResource("SmartStatisticsPanel.valueFrequency.value"),
-                        ShadowAttributeValueCountType.F_VALUE.getLocalPart(), "value"),
-                new PropertyColumn<>(createStringResource("SmartStatisticsPanel.valuePatterns.count"),
-                        ShadowAttributeValueCountType.F_COUNT.getLocalPart(), "count"),
+                new PropertyColumn<>(
+                        createStringResource("SmartStatisticsPanel.valueFrequency.value"),
+                        ShadowAttributeValueCountType.F_VALUE.getLocalPart(),
+                        "value"),
+                new PropertyColumn<>(
+                        createStringResource("SmartStatisticsPanel.valuePatterns.count"),
+                        ShadowAttributeValueCountType.F_COUNT.getLocalPart(),
+                        "count"),
                 percentageColumn(total, ShadowAttributeValueCountType::getCount)
         );
-        Fragment components = tableFragment(SmartStatisticsPanel.ID_TABLE_FREQ_CONTAINER,
-                "SmartStatisticsPanel.valueFrequency.header", cols,
-                new ListDataProvider<>(this, stat::getValueCount));
-        components.add(new VisibleBehaviour(() -> !isAttributeTuple));
-        return components;
+
+        return tableFragment(
+                ID_TABLE_FREQ_CONTAINER,
+                "SmartStatisticsPanel.valueFrequency.header",
+                cols,
+                new ListDataProvider<>(this, stat::getValueCount),
+                createStringResource("SmartStatisticsPanel.valueFrequency.help"));
     }
 
-    private @NotNull Fragment buildTupleTable(@NotNull ShadowAttributeTupleStatisticsType stat) {
-        List<IColumn<ShadowAttributeTupleCountType, String>> cols = new ArrayList<>();
-        List<ItemPathType> refs = stat.getRef();
-        for (int i = 0; i < refs.size(); i++) {
-            final int index = i;
-            cols.add(simpleColumn(StringUtils.capitalize(refs.get(i).getItemPath().lastName().toString()),
-                    r -> safeIndex(r.getValue(), index)));
-        }
-        cols.add(new PropertyColumn<>(createStringResource("SmartStatisticsPanel.valuePatterns.count"),
-                ShadowAttributeTupleCountType.F_COUNT.getLocalPart(), "count"));
-        int total = getModelObject() != null ? getModelObject().getSize() : 0;
-        cols.add(percentageColumn(total, ShadowAttributeTupleCountType::getCount));
+    private <R> @NotNull AbstractColumn<R, String> badgeColumn(
+            SerializableFunction<R, String> getter) {
 
-        Fragment components = tableFragment(SmartStatisticsPanel.ID_TABLE_COMB_CONTAINER,
-                "SmartStatisticsPanel.valueFrequency.header", cols,
-                new ListDataProvider<>(this, stat::getTupleCount));
-        components.add(new VisibleBehaviour(() -> isAttributeTuple));
-        return components;
-    }
-
-    private <R> @NotNull AbstractColumn<R, String> simpleColumn(String header, SerializableFunction<R, String> getter) {
-        return new AbstractColumn<>(Model.of(header)) {
-            @Override
-            public void populateItem(Item<ICellPopulator<R>> cell, String cid, IModel<R> row) {
-                cell.add(new Label(cid, getter.apply(row.getObject())));
-            }
-        };
-    }
-
-    private <R> @NotNull AbstractColumn<R, String> badgeColumn(SerializableFunction<R, String> getter) {
         return new AbstractColumn<>(createStringResource("SmartStatisticsPanel.valuePatterns.type")) {
             @Override
             public void populateItem(Item<ICellPopulator<R>> cell, String cid, IModel<R> row) {
                 String type = getter.apply(row.getObject());
                 String css = getBadgeTypeCss(type);
-                cell.add(new Label(cid, type).add(AttributeModifier.replace("class", css)));
+
+                cell.add(new Label(cid, type)
+                        .add(AttributeModifier.replace("class", css)));
             }
         };
     }
@@ -477,27 +552,46 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             return "badge badge-info px-2 py-1";
         } else if (type.equals("suffix") || type.equals("lastToken")) {
             return "badge badge-success px-2 py-1";
-        } else {
-            return "badge badge-secondary px-2 py-1";
         }
+
+        return "badge badge-secondary px-2 py-1";
     }
 
-    private <R> @NotNull AbstractColumn<R, String> percentageColumn(int total, SerializableToIntFunction<R> countFn) {
+    private <R> @NotNull AbstractColumn<R, String> percentageColumn(
+            int total,
+            SerializableToIntFunction<R> countFn) {
+
         return new AbstractColumn<>(createStringResource("SmartStatisticsPanel.valueFrequency.percentage")) {
             @Override
             public void populateItem(Item<ICellPopulator<R>> cell, String cid, IModel<R> row) {
                 int count = countFn.applyAsInt(row.getObject());
                 String txt = total == 0 ? "0%" : String.format("%.2f%%", count * 100.0 / total);
+
                 cell.add(new Label(cid, txt));
             }
         };
     }
 
-    private <R extends Serializable> @NotNull Fragment tableFragment(String id, String headerKey,
+    private <R extends Serializable> @NotNull Fragment tableFragment(
+            String id,
+            String headerKey,
             List<IColumn<R, String>> cols,
-            ListDataProvider<R> provider) {
+            ListDataProvider<R> provider,
+            IModel<String> helpModel) {
+
         Fragment frag = new Fragment(id, ID_TABLE_FRAGMENT, this);
-        frag.add(new Label(ID_TABLE_HEADER_FRAGMENT, createStringResource(headerKey)));
+
+        LabelWithHelpPanel label = new LabelWithHelpPanel(
+                ID_TABLE_HEADER_FRAGMENT,
+                createStringResource(headerKey)) {
+
+            @Override
+            protected IModel<String> getHelpModel() {
+                return helpModel;
+            }
+        };
+        frag.add(label);
+
         BoxedTablePanel<R> table = new BoxedTablePanel<>(ID_TABLE_PANEL_FRAGMENT, provider, cols) {
             @Override
             protected boolean hideFooterIfSinglePage() {
@@ -513,9 +607,16 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
                 return createStringResource("SmartStatisticsPanel.noValuePanel.customSubTitle");
             }
+
+            @Override
+            protected @NotNull @Unmodifiable List<Integer> getPagingSizes() {
+                return List.of(5, 10, 20, 50, 100);
+            }
         };
+
         table.setItemsPerPage(5);
         frag.add(table);
+
         return frag;
     }
 
@@ -523,12 +624,14 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             String id,
             IModel<String> title,
             IModel<String> valueCount,
+            IModel<String> helpText,
             IModel<String> iconCss) {
+
         MetricValuePanel panel = new MetricValuePanel(id) {
             @Contract("_ -> new")
             @Override
             protected @NotNull Component getTitleComponent(String id) {
-                return new IconWithLabel(id, title) {
+                IconWithLabel components = new IconWithLabel(id, title) {
                     @Override
                     protected String getIconCssClass() {
                         return iconCss.getObject();
@@ -544,14 +647,20 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                         return super.getComponentCssClass() + "mb-1 gap-2";
                     }
                 };
+
+                components.add(new TooltipBehavior());
+                components.add(AttributeModifier.append("title", helpText.getObject()));
+
+                return components;
             }
 
             @Contract("_ -> new")
             @Override
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, valueCount);
-                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1"));
+                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-4 m-0 lh-1"));
                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:20px"));
+
                 return label;
             }
 
@@ -561,11 +670,14 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                 return iconCss.getObject().isEmpty() ? "" : super.getContainerCssClass();
             }
         };
+
         panel.setOutputMarkupId(true);
+
         return panel;
     }
 
     protected void noPerformed(AjaxRequestTarget target) {
+        restoreBackdropPopupDefaults(getPageBase());
         getPageBase().hideMainPopup(target);
     }
 
@@ -580,6 +692,32 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     @Override
     public @NotNull Component getFooter() {
         Fragment footer = new Fragment(Popupable.ID_FOOTER, ID_FOOTER_BUTTONS, this);
+        initCloseButton(footer);
+
+        StringResourceModel timestampLabel = null;
+        XMLGregorianCalendar timestamp = getModelObject().getTimestamp();
+        if (timestamp != null) {
+            timestampLabel = createStringResource(
+                    "SmartStatisticsPanel.title.timestamped",
+                    timestamp.toXMLFormat());
+        }
+
+        footer.add(new Label(ID_TIMESTAMP, timestampLabel).setVisible(timestampLabel != null));
+
+        if (panelType == PanelType.FOCUS) {
+            footer.add(buildFocusStatisticsButton());
+        } else if (panelType == PanelType.OBJECT_CLASS) {
+            footer.add(buildObjectClassStatisticsButton());
+        } else {
+            footer.add(buildObjectTypeStatisticsButton());
+        }
+
+        footer.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1"));
+
+        return footer;
+    }
+
+    private void initCloseButton(@NotNull Fragment footer) {
         AjaxLinkPanel closeButton = new AjaxLinkPanel(ID_CLOSE_BUTTON, getCloseButtonModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -589,30 +727,16 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         closeButton.setOutputMarkupId(true);
         closeButton.add(new VisibleBehaviour(this::isCloseButtonVisible));
         footer.add(closeButton);
+    }
 
-        StringResourceModel timestampLabel = null;
-        XMLGregorianCalendar timestamp = getModelObject().getTimestamp();
-        if (timestamp != null) {
-            timestampLabel = createStringResource("SmartStatisticsPanel.title.timestamped",
-                    timestamp.toXMLFormat());
-        }
+    @Override
+    public int getHeight() {
+        return 80;
+    }
 
-        footer.add(new Label(ID_TIMESTAMP, timestampLabel).setVisible(timestampLabel != null));
-
-        if (panelType == PanelType.FOCUS) {
-            FocusStatisticsButton statisticsButton = buildFocusStatisticsButton();
-            footer.add(statisticsButton);
-        } else if (panelType == PanelType.OBJECT_CLASS) {
-            ObjectClassStatisticsButton statisticsButton = buildObjectClassStatisticsButton();
-            footer.add(statisticsButton);
-        } else {
-            ObjectTypeStatisticsButton statisticsButton = buildObjectTypeStatisticsButton();
-            footer.add(statisticsButton);
-        }
-
-        footer.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1"));
-
-        return footer;
+    @Override
+    public String getHeightUnit() {
+        return "vh";
     }
 
     @Override
@@ -621,17 +745,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     }
 
     @Override
-    public int getHeight() {
-        return 60;
-    }
-
-    @Override
     public String getWidthUnit() {
-        return "%";
-    }
-
-    @Override
-    public String getHeightUnit() {
         return "%";
     }
 
@@ -645,12 +759,15 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         if (panelType == PanelType.FOCUS) {
             return createStringResource("SmartStatisticsPanel.title.focus", focusType.getLocalPart());
         } else if (panelType == PanelType.OBJECT_TYPE) {
-            return createStringResource("SmartStatisticsPanel.title.objectType",
+            return createStringResource(
+                    "SmartStatisticsPanel.title.objectType",
                     objectTypeIdentification != null
                             ? objectTypeIdentification.getKind() + "/" + objectTypeIdentification.getIntent()
                             : "");
         } else if (panelType == PanelType.OBJECT_CLASS) {
-            return createStringResource("SmartStatisticsPanel.title.objectClass", objectClassName.getLocalPart());
+            return createStringResource(
+                    "SmartStatisticsPanel.title.objectClass",
+                    objectClassName.getLocalPart());
         }
 
         return createStringResource("SmartStatisticsPanel.title");
@@ -667,7 +784,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     }
 
     private @NotNull Fragment createHeaderFragment() {
-        Fragment header = new Fragment(SmartStatisticsPanel.ID_HEADER_FRAGMENT, ID_HEADER_FRAGMENT, this);
+        Fragment header = new Fragment(ID_HEADER_FRAGMENT, ID_HEADER_FRAGMENT, this);
         header.add(new Label(ID_HEADER_PRIMARY_TITLE, getTitle()));
 
         AjaxLink<Void> closeButton = new AjaxLink<>(ID_CLOSE_BUTTON) {
@@ -680,57 +797,70 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         header.add(closeButton);
 
         header.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1 mt-1"));
+
         return header;
     }
 
     private @NotNull ObjectTypeStatisticsButton buildObjectTypeStatisticsButton() {
-        ObjectTypeStatisticsButton statisticsButton = new ObjectTypeStatisticsButton(ID_RECREATE_BUTTON,
-                () -> objectTypeIdentification, resourceOid) {
-            @Override
-            protected boolean forceRegeneration() {
-                return true;
-            }
+        ObjectTypeStatisticsButton statisticsButton =
+                new ObjectTypeStatisticsButton(ID_RECREATE_BUTTON, () -> objectTypeIdentification, resourceOid) {
+                    @Override
+                    protected boolean forceRegeneration() {
+                        return true;
+                    }
 
-            @Override
-            protected boolean isRegenerateMode() {
-                return true;
-            }
-        };
+                    @Override
+                    protected boolean isRegenerateMode() {
+                        return true;
+                    }
+                };
+
         statisticsButton.setOutputMarkupId(true);
+
         return statisticsButton;
     }
 
     private @NotNull ObjectClassStatisticsButton buildObjectClassStatisticsButton() {
-        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_RECREATE_BUTTON,
-                () -> objectClassName, resourceOid) {
-            @Override
-            protected boolean forceRegeneration() {
-                return true;
-            }
+        ObjectClassStatisticsButton statisticsButton =
+                new ObjectClassStatisticsButton(ID_RECREATE_BUTTON, () -> objectClassName, resourceOid) {
+                    @Override
+                    protected boolean forceRegeneration() {
+                        return true;
+                    }
 
-            @Override
-            protected boolean isRegenerateMode() {
-                return true;
-            }
-        };
+                    @Override
+                    protected boolean isRegenerateMode() {
+                        return true;
+                    }
+                };
+
         statisticsButton.setOutputMarkupId(true);
+
         return statisticsButton;
     }
 
     protected FocusStatisticsButton buildFocusStatisticsButton() {
-        FocusStatisticsButton statisticsButton = new FocusStatisticsButton(ID_RECREATE_BUTTON,
-                () -> focusType, () -> resourceOid, objectTypeIdentification::getKind, objectTypeIdentification::getIntent) {
-            @Override
-            protected boolean forceRegeneration() {
-                return true;
-            }
+        FocusStatisticsButton statisticsButton =
+                new FocusStatisticsButton(
+                        ID_RECREATE_BUTTON,
+                        () -> focusType,
+                        () -> resourceOid,
+                        objectTypeIdentification::getKind,
+                        objectTypeIdentification::getIntent) {
 
-            @Override
-            protected boolean isRegenerateMode() {
-                return true;
-            }
-        };
+                    @Override
+                    protected boolean forceRegeneration() {
+                        return true;
+                    }
+
+                    @Override
+                    protected boolean isRegenerateMode() {
+                        return true;
+                    }
+                };
+
         statisticsButton.setOutputMarkupId(true);
+
         return statisticsButton;
     }
 
@@ -748,25 +878,18 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         target.add(newMainPanel);
     }
 
-    private String safeIndex(List<String> list, int i) {
-        return list != null && list.size() > i ? list.get(i) : "";
-    }
-
     private int extractCount(String text) {
-        if (text == null) {return 0;}
+        if (text == null) {
+            return 0;
+        }
+
         String digits = text.replaceAll("\\D+", "");
         return digits.isEmpty() ? 0 : Integer.parseInt(digits);
     }
 
     private void initInitialSelection(@NotNull ListViewRow row) {
-        if (row.item instanceof ShadowAttributeTupleStatisticsType tupleStats) {
-            if (selectedTuple.getObject().getRef() == null || selectedTuple.getObject().getRef().isEmpty()) {
-                selectedTuple.setObject(tupleStats);
-            }
-        } else if (row.item instanceof ShadowAttributeStatisticsType attrStats) {
-            if (selectedAttribute.getObject().getRef() == null) {
-                selectedAttribute.setObject(attrStats);
-            }
+        if (selectedAttribute.getObject().getRef() == null) {
+            selectedAttribute.setObject(row.item);
         }
     }
 
@@ -776,14 +899,21 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             @NotNull ItemPathType path) {
 
         return statistics.getAttribute().stream()
-                .filter(a ->
-                        a.getRef() != null
-                                && a.getRef().getItemPath().endsWith(path.getItemPath()))
+                .filter(a -> a.getRef() != null
+                        && a.getRef().getItemPath().endsWith(path.getItemPath()))
                 .findFirst()
                 .orElse(null);
     }
 
     protected ItemPathType getDefaultSelectedAttributePath() {
         return null;
+    }
+
+    public IModel<String> getDefaultSearchModel() {
+        ItemPathType defaultSelectedAttributePath = getDefaultSelectedAttributePath();
+        if (defaultSelectedAttributePath != null) {
+            return Model.of(defaultSelectedAttributePath.getItemPath().lastName().toString());
+        }
+        return Model.of("");
     }
 }

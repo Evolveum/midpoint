@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -118,7 +120,7 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
 
             @Override
             protected Consumer<Task> createProviderSearchTaskCustomizer() {
-                return (Consumer<Task> & Serializable) (task) -> task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
+                return (Consumer<Task> & Serializable) ConnectorDevelopmentWizardUtil::enableConnectorLogCapture;
             }
 
             @Override
@@ -137,9 +139,9 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             }
 
             @Override
-            protected void processErrorResult(OperationResult errorResult) {
+            protected void processResult(OperationResult result) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                    wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", errorResult);
+                    wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", result);
                 }
             }
 

@@ -401,10 +401,9 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
     }
 
     @NotNull InlineMenuItem createFocusAttributeStatisticsMenu(ResourceObjectTypeDefinitionType objectTypeDef) {
-        boolean isOutbound = table.isOutbound();
 
         return InlineMenuItemBuilder.create()
-                .label(table.createStringResource("SmartMappingTable.objectTypeStatistics.focusAttribute.outbound." + isOutbound))
+                .label(table.createStringResource("SmartMappingTable.objectTypeStatistics.target"))
                 .icon("fa fa-line-chart")
                 .action(new ColumnMenuAction<>() {
                     @Override
