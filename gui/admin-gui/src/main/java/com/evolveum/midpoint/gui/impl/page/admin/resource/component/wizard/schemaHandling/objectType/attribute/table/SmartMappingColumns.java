@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.AttributeModifier;
@@ -123,27 +125,9 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
 
             @Override
             protected Component createHeader(String componentId, IModel mainModel) {
-                ItemName itemName = ResourceAttributeDefinitionType.F_REF;
-                return new PrismPropertyHeaderPanel<ItemPathType>(
-                        componentId,
-                        new PrismPropertyWrapperHeaderModel<>(mainModel, itemName, table.getPageBase())) {
-
-                    @Override
-                    protected boolean isAddButtonVisible() {
-                        return false;
-                    }
-
-                    @Override
-                    protected boolean isButtonEnabled() {
-                        return false;
-                    }
-
-                    @Override
-                    protected Component createTitle(IModel<String> label) {
-                        return super.createTitle(table.getPageBase().createStringResource(
-                                table.getMappingDirectionType().name() + "." + ResourceAttributeDefinitionType.F_REF));
-                    }
-                };
+                return createPropertyHeader(componentId, itemName,
+                        table.getMappingDirectionType().name() + "." + ResourceAttributeDefinitionType.F_REF,
+                        mainModel);
             }
 
             @Override
@@ -228,6 +212,11 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
             }
 
             @Override
+            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+                return createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
+            }
+
+            @Override
             public String getCssClass() {
                 return "col-2 header-border-right";
             }
@@ -242,8 +231,40 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
                 table.getPageBase()) {
 
             @Override
+            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+                return createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
+            }
+
+            @Override
             public String getCssClass() {
                 return "col-2 header-border-right";
+            }
+        };
+    }
+
+    private @NotNull PrismPropertyHeaderPanel<ItemPathType> createPropertyHeader(
+            String componentId,
+            ItemPath itemName,
+            String headerLabelKey,
+            IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+        return new PrismPropertyHeaderPanel<>(
+                componentId,
+                new PrismPropertyWrapperHeaderModel<>(mainModel, itemName, table.getPageBase())) {
+
+            @Override
+            protected boolean isAddButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isButtonEnabled() {
+                return false;
+            }
+
+            @Override
+            protected Component createTitle(IModel<String> label) {
+                return super.createTitle(table.getPageBase()
+                        .createStringResource(headerLabelKey));
             }
         };
     }
