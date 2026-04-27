@@ -9,9 +9,6 @@ package com.evolveum.midpoint.test;
 import java.io.File;
 import java.util.Objects;
 
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -21,6 +18,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Task that is to be used in tests.
@@ -207,8 +209,6 @@ public class TestTask extends TestObject<TaskType> {
             throw new IllegalStateException("No activity policy matching '" + policyIdentifier + "' for path " + path + " in task " + oid);
         }
 
-        String identifier = def.getIdentifier() != null ? def.getIdentifier() : "";
-
-        return identifier + ":" + policy.getId();
+        return path + ":" + policy.getId();
     }
 }

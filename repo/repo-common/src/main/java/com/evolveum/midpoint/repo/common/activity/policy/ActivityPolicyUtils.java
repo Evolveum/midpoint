@@ -101,8 +101,6 @@ public class ActivityPolicyUtils {
             throw new IllegalStateException("No activity policy matching '" + policyIdentifier + "' for path " + path + " in task " + taskType);
         }
 
-        String identifier = def.getIdentifier() != null ? def.getIdentifier() : "";
-
-        return identifier + ":" + policy.getId();
+        return new ActivityPolicyRuleIdentifier(path, policy.getId()).asString();
     }
 }

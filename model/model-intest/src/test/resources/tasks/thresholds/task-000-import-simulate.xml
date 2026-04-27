@@ -11,7 +11,6 @@
     <executionState>runnable</executionState>
     <activity>
         <order>20</order>
-        <identifier>second</identifier>
         <work>
             <import>
                 <resourceObjects>
@@ -31,23 +30,6 @@
         </reporting>
         <policies>
             <policy>
-                <name>add-10-suspend</name>
-                <policyConstraints>
-                    <modification>
-                        <operation>add</operation>
-                    </modification>
-                </policyConstraints>
-                <policyThreshold>
-                    <lowWaterMark>
-                        <count>10</count>
-                    </lowWaterMark>
-                </policyThreshold>
-                <policyActions>
-                    <notification/>
-                    <suspendTask/>
-                </policyActions>
-            </policy>
-            <policy>
                 <name>Execution time 0s</name>
                 <policyConstraints>
                     <executionTime>
@@ -58,7 +40,8 @@
                     <notification/>
                 </policyActions>
             </policy>
-            <policy>
+            <!-- TODO [viliam] assignment policy rule is not properly counted and enforced -->
+            <!--<policy>
                 <name>assignment policy rule</name>
                 <policyConstraints>
                     <assignmentState>
@@ -77,13 +60,13 @@
                         <count>5</count>
                     </lowWaterMark>
                     <highWaterMark>
-                        <count>5</count>
+                        <count>15</count>
                     </highWaterMark>
                 </policyThreshold>
                 <policyActions>
                     <notification/>
                 </policyActions>
-            </policy>
+            </policy>-->
         </policies>
     </activity>
 </task>

@@ -86,7 +86,7 @@
                 <name>Execution time</name>
                 <policyConstraints>
                     <executionTime>
-                        <exceeds>PT8S</exceeds>
+                        <exceeds>PT0S</exceeds>
                     </executionTime>
                 </policyConstraints>
                 <policyActions>

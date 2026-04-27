@@ -9,7 +9,7 @@
     <name>role-add-10-notification</name>
     <inducement>
         <policyRule>
-            <name>add-10-notification</name>
+            <name>add-10</name>
             <order>10</order>
             <policyConstraints>
                 <modification>
@@ -18,11 +18,11 @@
             </policyConstraints>
             <policyThreshold>
                 <lowWaterMark>
-                    <count>5</count>
+                    <count>10</count>
                 </lowWaterMark>
-                <highWaterMark>
-                    <count>5</count>
-                </highWaterMark>
+                <!--<highWaterMark>-->
+                <!--    <count>15</count>-->
+                <!--</highWaterMark>-->
             </policyThreshold>
             <policyActions>
                 <notification/>

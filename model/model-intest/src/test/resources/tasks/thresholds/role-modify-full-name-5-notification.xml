@@ -6,9 +6,10 @@
 
 <role oid="6b76ce6f-0ca0-4e86-9209-8d734851348d"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>role-modify-employee-number-5</name>
+    <name>role-modify-employee-number-5-notification</name>
     <inducement>
         <policyRule>
+            <name>role-modify-5-fullname</name>
             <policyConstraints>
                 <modification>
                     <operation>modify</operation>

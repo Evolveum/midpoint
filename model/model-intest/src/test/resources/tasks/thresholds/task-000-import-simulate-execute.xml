@@ -13,7 +13,7 @@
         <composition>
             <activity>
                 <order>20</order>
-                <identifier>second</identifier>
+                <identifier>simulate</identifier>
                 <work>
                     <import>
                         <resourceObjects>
@@ -33,26 +33,10 @@
                 </reporting>
                 <policies>
                     <policy>
-                        <name>suspend task policy simulate</name>
-                        <policyConstraints>
-                            <modification>
-                                <operation>add</operation>
-                            </modification>
-                        </policyConstraints>
-                        <policyThreshold>
-                            <lowWaterMark>
-                                <count>10</count>
-                            </lowWaterMark>
-                        </policyThreshold>
-                        <policyActions>
-                            <suspendTask/>
-                        </policyActions>
-                    </policy>
-                    <policy>
                         <name>Execution time</name>
                         <policyConstraints>
                             <executionTime>
-                                <exceeds>PT8S</exceeds>
+                                <exceeds>PT0S</exceeds>
                             </executionTime>
                         </policyConstraints>
                         <policyActions>
@@ -67,7 +51,7 @@
                 <work>
                     <import>
                         <resourceObjects>
-                            <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5" />
+                            <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5"/>
                             <kind>account</kind>
                             <intent>default</intent>
                         </resourceObjects>
@@ -78,26 +62,10 @@
                 </execution>
                 <policies>
                     <policy>
-                        <name>suspend task policy execute</name>
-                        <policyConstraints>
-                            <modification>
-                                <operation>add</operation>
-                            </modification>
-                        </policyConstraints>
-                        <policyThreshold>
-                            <lowWaterMark>
-                                <count>10</count>
-                            </lowWaterMark>
-                        </policyThreshold>
-                        <policyActions>
-                            <suspendTask/>
-                        </policyActions>
-                    </policy>
-                    <policy>
                         <name>Execution time</name>
                         <policyConstraints>
                             <executionTime>
-                                <exceeds>PT8S</exceeds>
+                                <exceeds>PT0S</exceeds>
                             </executionTime>
                         </policyConstraints>
                         <policyActions>

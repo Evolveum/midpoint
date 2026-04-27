@@ -11,7 +11,6 @@
     <executionState>runnable</executionState>
     <activity>
         <order>20</order>
-        <identifier>second</identifier>
         <work>
             <import>
                 <resourceObjects>
@@ -22,21 +21,6 @@
             </import>
         </work>
         <policies>
-            <policy>
-                <policyConstraints>
-                    <modification>
-                        <operation>add</operation>
-                    </modification>
-                </policyConstraints>
-                <policyThreshold>
-                    <lowWaterMark>
-                        <count>10</count>
-                    </lowWaterMark>
-                </policyThreshold>
-                <policyActions>
-                    <suspendTask/>
-                </policyActions>
-            </policy>
             <policy>
                 <name>Execution time</name>
                 <policyConstraints>

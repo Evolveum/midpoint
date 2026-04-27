@@ -4,16 +4,14 @@
   ~ Licensed under the EUPL-1.2 or later.
   -->
 
-<role oid="719eb6bc-6a89-4baf-a125-2482b9502ad1"
+<role oid="552d2465-6531-4742-8626-7c9559ec8ff7"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>role-modify-cost-center-5-notification</name>
+    <name>role-delete-5-notification</name>
     <inducement>
         <policyRule>
-            <name>modify-5-costCenter</name>
             <policyConstraints>
                 <modification>
-                    <operation>modify</operation>
-                    <item>costCenter</item>
+                    <operation>delete</operation>
                 </modification>
             </policyConstraints>
             <policyThreshold>
