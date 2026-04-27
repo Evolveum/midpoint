@@ -2,6 +2,8 @@
 :page-toc: top
 :toclevels: 1
 :page-nav-title: Standard functions
+:page-keywords: function, midpoint functions, function library, script, script function, groovy,
+:page-description: The built-in midPoint functions expose all core operations, such as object creation, retrieval, or invitation link generation to expression scripts.
 
 The `MidpointFunctions` interface defines the built‑in midPoint functions that you can use in scripts.
 These functions expose the core model operations (object creation, retrieval, modification, search, workflow, cryptography, etc.) as a concise, script‑friendly API.
@@ -40,14 +42,13 @@ i.e., they are variants of the same function accepting different sets of paramet
 These variant sets of acceptable parameters are listed under _parameters_ for each such function.
 ====
 
-== Create objects
-
-These `createEmptyObject` and `createEmptyObjectWithName` functions are used to construct Java instances of an object before adding them to the repository.
-Note that these functions construct the objects *in memory only*.
-// TODO: add anchor links
-If you intend to create an object in the repository or on a resource, you need to populate this object with data and then invoke the `addObject()` or `executeChanges()` function.
+== Create and change objects
 
 === createEmptyObject()
+
+The `createEmptyObject` and `createEmptyObjectWithName` functions are used to construct Java instances of an object before adding them to the repository.
+Note that these functions construct the objects *in memory only*.
+If you intend to create an object in the repository or on a resource, you need to populate this object with data and then invoke the link:#addobject[`addObject()`] or link:#executechanges[`executeChanges()`] functions.
 
 Creates an empty Prism object of the given type in memory.
 
@@ -60,6 +61,10 @@ Creates an empty Prism object of the given type in memory.
 
 === createEmptyObjectWithName()
 
+The `createEmptyObject` and `createEmptyObjectWithName` functions are used to construct Java instances of an object before adding them to the repository.
+Note that these functions construct the objects *in memory only*.
+If you intend to create an object in the repository or on a resource, you need to populate this object with data and then invoke the link:#addobject[`addObject()`] or link:#executechanges[`executeChanges()`] functions.
+
 Creates an empty prism object of the given type with a `name` property in memory.
 
 * parameters:
@@ -71,7 +76,155 @@ Creates an empty prism object of the given type with a `name` property in memory
 * throws:
     ** `SchemaException`
 
+=== addObject()
+
+Adds the specified object to repository and to the resource (if applicable).
+// Taken from https://docs.evolveum.com/midpoint/reference/support-4.10/expressions/expressions/script/functions/midpoint/
+Returns the OID of the added object.
+Use `options` to influence processing.
+
+* parameters:
+    ** `PrismObject<T> newObject`
+    ** `PrismObject<T> newObject, ModelExecuteOptions options`
+    ** `T newObject`
+    ** `T newObject, ModelExecuteOptions options`
+* returns:
+    ** `String`
+* throws:
+    ** `CommunicationException`
+    ** `ConfigurationException`
+    ** `ExpressionEvaluationException`
+    ** `ObjectAlreadyExistsException`
+    ** `ObjectNotFoundException`
+    ** `PolicyViolationException`
+    ** `SchemaException`
+    ** `SecurityViolationException`
+
+=== modifyObject()
+
+Modifies the specified existing object using the supplied delta in repository and on the resource (if applicable)..
+Use `options` to influence processing.
+
+* parameters:
+    ** `ObjectDelta<T> modifyDelta`
+    ** `ObjectDelta<T> modifyDelta, ModelExecuteOptions options`
+* returns:
+    ** `void`
+* throws:
+    ** `CommunicationException`
+    ** `ConfigurationException`
+    ** `ExpressionEvaluationException`
+    ** `ObjectAlreadyExistsException`
+    ** `ObjectNotFoundException`
+    ** `PolicyViolationException`
+    ** `SchemaException`
+    ** `SecurityViolationException`
+
+=== deleteObject()
+
+Delete the specified object from the repository and the resource (if applicable).
+Use `options` to influence processing.
+
+* parameters:
+    ** `Class<T> type, String oid`
+    ** `Class<T> type, String oid, ModelExecuteOptions options`
+* returns:
+    ** `void`
+* throws:
+    ** `CommunicationException`
+    ** `ConfigurationException`
+    ** `ExpressionEvaluationException`
+    ** `ObjectAlreadyExistsException`
+    ** `ObjectNotFoundException`
+    ** `PolicyViolationException`
+    ** `SchemaException`
+    ** `SecurityViolationException`
+
+=== applyDefinition()
+
+Applies a definition to a `ShadowType` or `ResourceType` object.
+// Taken from https://github.com/Evolveum/midpoint/blob/ffb9ce0e4f63f3d347fb2efa8100db1a3fee01fe/docs/misc/bulk/index.adoc?plain=1#L371
+
+* parameters:
+    ** `T object`
+* returns:
+    ** `void`
+* throws:
+    ** `CommunicationException`
+    ** `ConfigurationException`
+    ** `ExpressionEvaluationException`
+    ** `ObjectNotFoundException`
+    ** `SchemaException`
+
 == Search, count, and get objects
+
+=== getObject()
+
+Returns the object with the provided OID.
+
+The function retrieves the object from a source appropriate for the given object type (e.g., internal repository, resource, or both), merging data as necessary and processing any policies and caching mechanisms.
+This can be influenced by using `options`.
+
+Fails if the object with the given OID does not exist.
+
+* parameters:
+    ** `Class<T> type, String oid`
+    ** `Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options`
+* returns:
+    ** `T`
+* throws:
+    ** `CommunicationException`
+    ** `ConfigurationException`
+    ** `ExpressionEvaluationException`
+    ** `ObjectNotFoundException`
+    ** `SchemaException`
+    ** `SecurityViolationException`
+
+=== getUserByOid()
+
+Fetches a user object by its OID.
+Uses the repository service directly, bypassing authorization checks.
+
+Fails if the user with the given OID does not exist.
+
+* parameters:
+    ** `String oid`
+* returns:
+    ** `UserType`
+* throws:
+    ** `ObjectNotFoundException`
+    ** `SchemaException`
+
+=== resolveReference()
+
+Resolves a reference to an object.
+
+* parameters:
+    ** `ObjectReferenceType reference`
+* returns:
+    ** `T`
+* throws:
+    ** `CommunicationException`
+    ** `ConfigurationException`
+    ** `ExpressionEvaluationException`
+    ** `ObjectNotFoundException`
+    ** `SchemaException`
+    ** `SecurityViolationException`
+
+=== resolveReferenceIfExists()
+
+Resolves a reference if it exists.
+
+* parameters:
+    ** `ObjectReferenceType reference`
+* returns:
+    ** `T`
+* throws:
+    ** `CommunicationException`
+    ** `ConfigurationException`
+    ** `ExpressionEvaluationException`
+    ** `SchemaException`
+    ** `SecurityViolationException`
 
 === queryFor()
 
@@ -95,6 +248,18 @@ Creates a prepared query for the given query string.
 * throws:
     ** `SchemaException`
 
+=== getOperationOptionsBuilder()
+
+Creates a builder for constructing query options structure.
+See xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[] for examples.
+
+* parameters:
+    ** The function does not accept any parameters.
+* returns:
+    ** `GetOperationOptionsBuilder`
+* throws:
+    ** The function does not throw any exceptions.
+
 === searchObjects()
 
 Searches for objects of the given type using the supplied query.
@@ -105,8 +270,7 @@ Fails if the object type is wrong.
 This function has a very limited scaling capability as all the results are stored in memory.
 DO NOT USE on large datasets.
 Recommended usage is only when using queries that cannot return a large number of results (e.g., queries for unique values) or when combined with paging capability.
-// TODO add anchor link
-For other cases, use `searchObjectsIterative()`.
+For other cases, use link:#searchobjectsiterative[`searchObjectsIterative()`].
 
 Use `options` to influence retrieval and processing of the objects.
 
@@ -195,86 +359,6 @@ Use `options` to influence retrieval and processing of the objects.
     ** `SchemaException`
     ** `SecurityViolationException`
 
-=== getObject()
-
-Returns the object with the provided OID.
-
-The function retrieves the object from a source appropriate for the given object type (e.g., internal repository, resource, or both), merging data as necessary and processing any policies and caching mechanisms.
-This can be influenced by using `options`.
-
-Fails if the object with the given OID does not exist.
-
-* parameters:
-    ** `Class<T> type, String oid`
-    ** `Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options`
-* returns:
-    ** `T`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
-=== getUserByOid()
-
-Fetches a user object by its OID.
-Uses the repository service directly, bypassing authorization checks.
-
-Fails if the user with the given OID does not exist.
-
-* parameters:
-    ** `String oid`
-* returns:
-    ** `UserType`
-* throws:
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
-
-=== resolveReference()
-
-Resolves a reference to an object.
-
-* parameters:
-    ** `ObjectReferenceType reference`
-* returns:
-    ** `T`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
-=== resolveReferenceIfExists()
-
-Resolves a reference if it exists.
-
-* parameters:
-    ** `ObjectReferenceType reference`
-* returns:
-    ** `T`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
-=== getOperationOptionsBuilder()
-
-Creates a builder for constructing query options structure.
-See xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[] for examples.
-
-* parameters:
-    ** The function does not accept any parameters.
-* returns:
-    ** `GetOperationOptionsBuilder`
-* throws:
-    ** The function does not throw any exceptions.
-
 === onlyBaseObject()
 
 Returns the `getOperationOptionsBuilder` configured to get only the base object, excluding all separately stored items.
@@ -287,71 +371,18 @@ Returns the `getOperationOptionsBuilder` configured to get only the base object,
 * throws:
     ** The function does not throw any exceptions.
 
-== Execute changes
+== Deltas
 
-=== addObject()
+=== deltaFor()
 
-Adds the specified object to repository and to the resource (if applicable).
-// Taken from https://docs.evolveum.com/midpoint/reference/support-4.10/expressions/expressions/script/functions/midpoint/
-Returns the OID of the added object.
-Use `options` to influence processing.
+Creates a delta builder for the specified object class.
 
 * parameters:
-    ** `PrismObject<T> newObject`
-    ** `PrismObject<T> newObject, ModelExecuteOptions options`
-    ** `T newObject`
-    ** `T newObject, ModelExecuteOptions options`
+    ** `Class<C> objectClass`
 * returns:
-    ** `String`
+    ** `S_ItemEntry`
 * throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectAlreadyExistsException`
-    ** `ObjectNotFoundException`
-    ** `PolicyViolationException`
     ** `SchemaException`
-    ** `SecurityViolationException`
-
-=== modifyObject()
-
-Modifies the specified existing object using the supplied delta in repository and on the resource (if applicable)..
-Use `options` to influence processing.
-
-* parameters:
-    ** `ObjectDelta<T> modifyDelta`
-    ** `ObjectDelta<T> modifyDelta, ModelExecuteOptions options`
-* returns:
-    ** `void`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectAlreadyExistsException`
-    ** `ObjectNotFoundException`
-    ** `PolicyViolationException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
-=== deleteObject()
-
-Delete the specified object from the repository and the resource (if applicable).
-Use `options` to influence processing.
-
-* parameters:
-    ** `Class<T> type, String oid`
-    ** `Class<T> type, String oid, ModelExecuteOptions options`
-* returns:
-    ** `void`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectAlreadyExistsException`
-    ** `ObjectNotFoundException`
-    ** `PolicyViolationException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
 
 === executeChanges()
 
@@ -422,33 +453,6 @@ Use `options` to influence processing of the deltas.
     ** `PolicyViolationException`
     ** `SchemaException`
     ** `SecurityViolationException`
-
-=== deltaFor()
-
-Creates a delta builder for the specified object class.
-
-* parameters:
-    ** `Class<C> objectClass`
-* returns:
-    ** `S_ItemEntry`
-* throws:
-    ** `SchemaException`
-
-=== applyDefinition()
-
-Applies a definition to a `ShadowType` or `ResourceType` object.
-// Taken from https://github.com/Evolveum/midpoint/blob/ffb9ce0e4f63f3d347fb2efa8100db1a3fee01fe/docs/misc/bulk/index.adoc?plain=1#L371
-
-* parameters:
-    ** `T object`
-* returns:
-    ** `void`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
 
 == Organizations
 
@@ -726,25 +730,6 @@ Returns `true` if the given user is a member of the given organization.
 
 == Focal objects
 
-=== recompute()
-
-xref:/midpoint/reference/tasks/recompute-task/[Recomputes] a focal object with the specified OID.
-The operation considers all applicable policies and mappings and tries to re-apply them as necessary.
-
-* parameters:
-    ** `Class<F> type, String oid`
-* returns:
-    ** `void`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectAlreadyExistsException`
-    ** `ObjectNotFoundException`
-    ** `PolicyViolationException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
 === isFocusActivated()
 
 Returns `true` if the current clockwork operation brings the focus into existence and into an effectively enabled state.
@@ -955,6 +940,25 @@ A convenience function to allow writing `midpoint.evaluateNew` in Groovy.
     ** `Boolean`
 * throws:
     ** The function does not throw any exceptions.
+
+=== recompute()
+
+xref:/midpoint/reference/tasks/recompute-task/[Recomputes] a focal object with the specified OID.
+The operation considers all applicable policies and mappings and tries to re-apply them as necessary.
+
+* parameters:
+    ** `Class<F> type, String oid`
+* returns:
+    ** `void`
+* throws:
+    ** `CommunicationException`
+    ** `ConfigurationException`
+    ** `ExpressionEvaluationException`
+    ** `ObjectAlreadyExistsException`
+    ** `ObjectNotFoundException`
+    ** `PolicyViolationException`
+    ** `SchemaException`
+    ** `SecurityViolationException`
 
 == Shadows and projections
 
@@ -1303,25 +1307,6 @@ Note that `shadowType` should have an OID, and when constructing the query, the 
 
 == Resources
 
-=== testResource()
-
-Tests the resource connection and basic resource connector functionality.
-This operation will NOT throw an exception if the resource connection fails;
-in that case, the failure is indicated in the returned `OperationResult`, but the operation itself succeeds.
-This operation fails only if the provided arguments are wrong, or in case of a system error or system misconfiguration.
-
-* parameters:
-    ** `String resourceOid`
-* returns:
-    ** `OperationResult`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
 === executeAdHocProvisioningScript()
 
 Executes an ad-hoc provisioning script on the given resource.
@@ -1413,6 +1398,25 @@ See also link:#describeresourceobjectsetlong[`describeResourceObjectSetLong()`] 
     ** `SchemaException`
     ** `SecurityViolationException`
 
+=== testResource()
+
+Tests the resource connection and basic resource connector functionality.
+This operation will NOT throw an exception if the resource connection fails;
+in that case, the failure is indicated in the returned `OperationResult`, but the operation itself succeeds.
+This operation fails only if the provided arguments are wrong, or in case of a system error or system misconfiguration.
+
+* parameters:
+    ** `String resourceOid`
+* returns:
+    ** `OperationResult`
+* throws:
+    ** `CommunicationException`
+    ** `ConfigurationException`
+    ** `ExpressionEvaluationException`
+    ** `ObjectNotFoundException`
+    ** `SchemaException`
+    ** `SecurityViolationException`
+
 == Triggers
 
 === addRecomputeTrigger()
@@ -1474,23 +1478,23 @@ Customizes a trigger.
 
 == Passwords and cryptography
 
-=== getPlaintextUserPassword()
-
-Decrypts and returns the plaintext password for the given user focus.
-
-* parameters:
-    ** `FocusType user`
-* returns:
-    ** `String`
-* throws:
-    ** `EncryptionException`
-
 === getPlaintext()
 
 Decrypts and returns the plaintext value of the given protected string.
 
 * parameters:
     ** `ProtectedStringType user`
+* returns:
+    ** `String`
+* throws:
+    ** `EncryptionException`
+
+=== getPlaintextUserPassword()
+
+Decrypts and returns the plaintext password for the given user focus.
+
+* parameters:
+    ** `FocusType user`
 * returns:
     ** `String`
 * throws:
@@ -1507,23 +1511,23 @@ Decrypts and returns the plaintext password for the given account shadow.
 * throws:
     ** `EncryptionException`
 
-=== getPlaintextAccountPasswordFromDelta()
-
-Decrypts and returns the plaintext password contained in the given account delta.
-
-* parameters:
-    ** `ObjectDelta<? extends ShadowType> delta`
-* returns:
-    ** `String`
-* throws:
-    ** `EncryptionException`
-
 === getPlaintextUserPasswordFromDeltas()
 
 Decrypts and returns the plaintext password from a list of focus-related deltas.
 
 * parameters:
     ** `List<ObjectDelta<? extends FocusType>> deltas`
+* returns:
+    ** `String`
+* throws:
+    ** `EncryptionException`
+
+=== getPlaintextAccountPasswordFromDelta()
+
+Decrypts and returns the plaintext password contained in the given account delta.
+
+* parameters:
+    ** `ObjectDelta<? extends ShadowType> delta`
 * returns:
     ** `String`
 * throws:
@@ -1589,20 +1593,18 @@ Returns the last modification timestamp for the given object.
 * throws:
     ** The function does not throw any exceptions.
 
-=== getCreateApproverRefs()
+== Notification links
 
-Returns approver references from the given object or assignment.
+=== createInvitationLink()
+
+Creates an invitation link for the given user.
 
 * parameters:
-    ** `ObjectType object`
-    ** `AssignmentType assignment`
+    ** `UserType userType`
 * returns:
-    ** `List<ObjectReferenceType>` (for `ObjectType`)
-    ** `Collection<ObjectReferenceType>` (for `AssignmentType`)
+    ** `String`
 * throws:
     ** The function does not throw any exceptions.
-
-== Links and notifications
 
 === createRegistrationConfirmationLink()
 
@@ -1615,9 +1617,9 @@ Creates a registration/confirmation URL for the given user.
 * throws:
     ** The function does not throw any exceptions.
 
-=== createInvitationLink()
+=== createAccountActivationLink()
 
-Creates an invitation link for the given user.
+Creates an account activation URL for the given user.
 
 * parameters:
     ** `UserType userType`
@@ -1644,17 +1646,6 @@ Returns `null` if such a link cannot be created.
 
 * parameters:
     ** `WorkItemId workItemId`
-* returns:
-    ** `String`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== createAccountActivationLink()
-
-Creates an account activation URL for the given user.
-
-* parameters:
-    ** `UserType userType`
 * returns:
     ** `String`
 * throws:
@@ -1789,41 +1780,6 @@ Returns the given model context wrapped into a lens context.
 
 == Principal and channel
 
-=== getPrincipal()
-
-Returns the principal representing the user whose identity is used to execute the expression.
-
-* parameters:
-    ** The function does not accept any parameters.
-* returns:
-    ** `MidPointPrincipal`
-* throws:
-    ** `SecurityViolationException`
-
-=== getPrincipalOid()
-
-Returns the OID of the current principal.
-After login is complete, the returned OID is the same as `getPrincipal().getOid()`.
-However, during the login process, this function returns the OID of the user that is being authenticated or logged in.
-
-* parameters:
-    ** The function does not accept any parameters.
-* returns:
-    ** `String`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getChannel()
-
-Returns the used channel.
-
-* parameters:
-    ** The function does not accept any parameters.
-* returns:
-    ** `String`
-* throws:
-    ** The function does not throw any exceptions.
-
 == Translation
 
 === translate()
@@ -1885,87 +1841,6 @@ Finds objects that conflict on a given property value.
 
 == Miscellaneous
 
-=== getMapping()
-
-Returns the current mapping (generic over `PrismValue` and `ItemDefinition`).
-
-* parameters:
-    ** The function does not accept any parameters.
-* returns:
-    ** `Mapping<V,D>`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getSequenceCounter()
-
-Returns the current value of the given sequence.
-Uses the repository service directly, bypassing authorization checking.
-
-* parameters:
-    ** `String sequenceOid`
-* returns:
-    ** `long`
-* throws:
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
-
-=== getModifyApproverRefs()
-
-Returns the collection of modification approver references for the given assignment.
-
-// TODO Move approver ref fns together
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<ObjectReferenceType>`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getModifyApprovalComments()
-
-Returns approval comments for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<String>`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getRequestTimestamp()
-
-Returns the request timestamp for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `XMLGregorianCalendar`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getRequestorRefs()
-
-Returns the list of requester references for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<ObjectReferenceType>`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getRequestorComments()
-
-Returns a collection of requester comments for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<String>`
-* throws:
-    ** The function does not throw any exceptions.
-
 === getCertifierRefs()
 
 Returns a collection of certifier references for the given assignment.
@@ -1988,14 +1863,14 @@ Returns a collection of certifier comments for the given assignment.
 * throws:
     ** The function does not throw any exceptions.
 
-=== toList()
+=== getChannel()
 
-Converts a var-args array of strings into a `List`.
+Returns the used channel.
 
 * parameters:
-    ** `String... s`
+    ** The function does not accept any parameters.
 * returns:
-    ** `List<String>`
+    ** `String`
 * throws:
     ** The function does not throw any exceptions.
 
@@ -2010,18 +1885,75 @@ Looks up a constant by its name.
 * throws:
     ** The function does not throw any exceptions.
 
-=== parseXmlToMap()
+=== getCreateApproverRefs()
 
-Returns a map of attribute-value pairs parsed from the given XML string.
+Returns create approver references from the given object or assignment.
 
 * parameters:
-    ** `String xml`
+    ** `ObjectType object`
+    ** `AssignmentType assignment`
 * returns:
-    ** `Map<String,String>`
+    ** `List<ObjectReferenceType>` (for `ObjectType`)
+    ** `Collection<ObjectReferenceType>` (for `AssignmentType`)
 * throws:
-    ** SystemException
-// The function in MidpointFunctions.java - https://github.com/Evolveum/midpoint/blob/14fff75cf2416e8224094aaae6b09e8abeef6872/model/model-api/src/main/java/com/evolveum/midpoint/model/api/expr/MidpointFunctions.java#L1172 - does not throw any exception but the docstring says it does and the override in https://github.com/Evolveum/midpoint/blob/14fff75cf2416e8224094aaae6b09e8abeef6872/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/expr/MidpointFunctionsImpl.java#L1502 indeed does throw SystemException.
-// ** The function does not throw any exceptions.
+    ** The function does not throw any exceptions.
+
+=== getMapping()
+
+Returns the current mapping (generic over `PrismValue` and `ItemDefinition`).
+
+* parameters:
+    ** The function does not accept any parameters.
+* returns:
+    ** `Mapping<V,D>`
+* throws:
+    ** The function does not throw any exceptions.
+   ** The function does not throw any exceptions.
+
+=== getModifyApprovalComments()
+
+Returns approval comments for the given assignment.
+
+* parameters:
+    ** `AssignmentType assignment`
+* returns:
+    ** `Collection<String>`
+* throws:
+
+=== getModifyApproverRefs()
+
+Returns modification approver references from the given assignment.
+
+* parameters:
+    ** `AssignmentType assignment`
+* returns:
+    ** `Collection<ObjectReferenceType>`
+* throws:
+    ** The function does not throw any exceptions.
+
+=== getPrincipal()
+
+Returns the principal representing the user whose identity is used to execute the expression.
+
+* parameters:
+    ** The function does not accept any parameters.
+* returns:
+    ** `MidPointPrincipal`
+* throws:
+    ** `SecurityViolationException`
+
+=== getPrincipalOid()
+
+Returns the OID of the current principal.
+After login is complete, the returned OID is the same as `getPrincipal().getOid()`.
+However, during the login process, this function returns the OID of the user that is being authenticated or logged in.
+
+* parameters:
+    ** The function does not accept any parameters.
+* returns:
+    ** `String`
+* throws:
+    ** The function does not throw any exceptions.
 
 === getPrismContext()
 
@@ -2053,5 +1985,75 @@ Returns the `RepositoryService`.
     ** The function does not accept any parameters.
 * returns:
     ** `RepositoryService`
+* throws:
+    ** The function does not throw any exceptions.
+
+=== getRequestTimestamp()
+
+Returns the request timestamp for the given assignment.
+
+* parameters:
+    ** `AssignmentType assignment`
+* returns:
+    ** `XMLGregorianCalendar`
+* throws:
+    ** The function does not throw any exceptions.
+
+=== getRequestorComments()
+
+Returns a collection of requester comments for the given assignment.
+
+* parameters:
+    ** `AssignmentType assignment`
+* returns:
+    ** `Collection<String>`
+* throws:
+    ** The function does not throw any exceptions.
+
+=== getSequenceCounter()
+
+Returns the current value of the given sequence.
+Uses the repository service directly, bypassing authorization checking.
+
+* parameters:
+    ** `String sequenceOid`
+* returns:
+    ** `long`
+* throws:
+    ** `ObjectNotFoundException`
+    ** `SchemaException`
+
+=== getRequestorRefs()
+
+Returns the list of requester references for the given assignment.
+
+* parameters:
+    ** `AssignmentType assignment`
+* returns:
+    ** `Collection<ObjectReferenceType>`
+* throws:
+    ** The function does not throw any exceptions.
+
+=== parseXmlToMap()
+
+Returns a map of attribute-value pairs parsed from the given XML string.
+
+* parameters:
+    ** `String xml`
+* returns:
+    ** `Map<String,String>`
+* throws:
+    ** SystemException
+// The function in MidpointFunctions.java - https://github.com/Evolveum/midpoint/blob/14fff75cf2416e8224094aaae6b09e8abeef6872/model/model-api/src/main/java/com/evolveum/midpoint/model/api/expr/MidpointFunctions.java#L1172 - does not throw any exception but the docstring says it does and the override in https://github.com/Evolveum/midpoint/blob/14fff75cf2416e8224094aaae6b09e8abeef6872/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/expr/MidpointFunctionsImpl.java#L1502 indeed does throw SystemException.
+// ** The function does not throw any exceptions.
+
+=== toList()
+
+Converts a var-args array of strings into a `List`.
+
+* parameters:
+    ** `String... s`
+* returns:
+    ** `List<String>`
 * throws:
     ** The function does not throw any exceptions.
