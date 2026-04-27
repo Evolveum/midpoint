@@ -5,8 +5,8 @@
   -->
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="7534f9eb-6139-4db5-a1d5-8e699a057e8a">
-    <name>task-000-reconciliation-simulate</name>
+        oid="4a0e5fe6-b512-4fb0-a750-7bec5d6e0fbb">
+    <name>task-100-reconciliation-simulate-execute</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
     <activity>
@@ -58,13 +58,13 @@
             <change>
                 <reference>resourceObjects</reference>
                 <controlFlow>
-                    <processingOption>skip</processingOption>
+                    <processingOption>process</processingOption>
                 </controlFlow>
             </change>
             <change>
                 <reference>remainingShadows</reference>
                 <controlFlow>
-                    <processingOption>skip</processingOption>
+                    <processingOption>process</processingOption>
                 </controlFlow>
             </change>
         </tailoring>

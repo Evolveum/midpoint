@@ -5,8 +5,8 @@
   -->
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="4ba70403-424c-410d-a3b0-e3b7719063dc">
-    <name>task-000-import-simulate</name>
+        oid="0bc80ef5-9ad9-4343-b4be-1a588070c6a9">
+    <name>task-100-import-simulate</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
     <activity>

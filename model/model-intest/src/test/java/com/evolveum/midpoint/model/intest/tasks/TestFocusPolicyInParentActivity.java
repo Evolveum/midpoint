@@ -16,28 +16,32 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
-public class TestFocusPolicyInActivity extends TestFocusPolicies {
+public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TestFocusPolicyInParentActivity.class);
 
     private static final TestTask TASK_IMPORT =
-            TestTask.file(TEST_DIR, "task-000-import.xml", "385b2498-bf8b-4e31-a807-71c312cc2e29");
+            TestTask.file(TEST_DIR, "task-100-import.xml", "cb9319a6-add7-4841-bfb1-f3f3f3a4a435");
 
     private static final TestTask TASK_IMPORT_SIMULATE =
-            TestTask.file(TEST_DIR, "task-000-import-simulate.xml", "4ba70403-424c-410d-a3b0-e3b7719063dc");
+            TestTask.file(TEST_DIR, "task-100-import-simulate.xml", "0bc80ef5-9ad9-4343-b4be-1a588070c6a9");
 
     private static final TestTask TASK_IMPORT_SIMULATE_EXECUTE =
-            TestTask.file(TEST_DIR, "task-000-import-simulate-execute.xml", "c865c889-238b-47f2-b05b-445d1c21259f");
+            TestTask.file(TEST_DIR, "task-100-import-simulate-execute.xml", "d3326c20-6607-4cd4-a1be-f55189fbc71a");
 
     private static final TestTask TASK_RECONCILIATION =
-            TestTask.file(TEST_DIR, "task-000-reconciliation.xml", "385b2498-bf8b-4e31-a807-71c312cc2e29");
+            TestTask.file(TEST_DIR, "task-100-reconciliation.xml", "ee5791ed-b3af-43b2-bc5e-644d4b020100");
 
     private static final TestTask TASK_RECONCILIATION_SIMULATE =
-            TestTask.file(TEST_DIR, "task-000-reconciliation-simulate.xml", "7534f9eb-6139-4db5-a1d5-8e699a057e8a");
+            TestTask.file(TEST_DIR, "task-100-reconciliation-simulate.xml", "74094e36-c3fb-4ed6-8a72-73ea23626fa2");
 
     private static final TestTask TASK_RECONCILIATION_SIMULATE_EXECUTE =
-            TestTask.file(TEST_DIR, "task-000-reconciliation-simulate-execute.xml", "53734bf9-7068-4ee6-8804-2be3f4fe31ee");
+            TestTask.file(TEST_DIR, "task-100-reconciliation-simulate-execute.xml", "4a0e5fe6-b512-4fb0-a750-7bec5d6e0fbb");
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Simulate() {
@@ -126,6 +130,8 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
         return TASK_RECONCILIATION;
     }
 
+    // todo check usage and move to parent class if possible
+
     /**
      * Transplant for simulate OR execute task. If task have simulate-execute,
      * please use {@link #transplantRolePolicyForSimulateExecuteTask(TestObject)}.
@@ -138,6 +144,8 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                         task,
                         ActivityPath.empty());
     }
+
+    // todo check usage and move to parent class if possible
 
     /**
      * Transplant role policy for simulate-execute task. If task has simulate OR execute ONLY

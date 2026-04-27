@@ -17,10 +17,6 @@ import java.net.ConnectException;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -32,6 +28,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,6 +39,8 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests the thresholds functionality.
@@ -148,7 +147,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         return tailoringWorkerThreadsCustomizer(getWorkerThreads());
     }
 
-    protected Consumer<PrismObject<TaskType>> getRoleAssignmentImportAddCustomizer() {
+    protected Consumer<PrismObject<TaskType>> getRoleAssignmentImportAdd() {
         return roleAssignmentCustomizer(ROLE_ADD_10.oid);
     }
 
@@ -160,7 +159,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         return roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid);
     }
 
-    protected  Consumer<PrismObject<TaskType>> getRoleAssignmentDelete() {
+    protected Consumer<PrismObject<TaskType>> getRoleAssignmentDelete() {
         return roleAssignmentCustomizer(ROLE_DELETE_5.oid);
     }
 
@@ -235,7 +234,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         addObject(importTask, task, result,
                 aggregateCustomizer(
                         customizePoliciesImportAdd10Simulate(),
-                        getRoleAssignmentImportAddCustomizer(),
+                        getRoleAssignmentImportAdd(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
@@ -280,7 +279,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         addObject(importTask, task, result,
                 aggregateCustomizer(
                         customizePoliciesImportAdd10SimulateExecute(),
-                        getRoleAssignmentImportAddCustomizer(),
+                        getRoleAssignmentImportAdd(),
                         getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
@@ -309,7 +308,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         addObject(importTask, task, result,
                 aggregateCustomizer(
                         customizePoliciesImportAdd10Execute(),
-                        getRoleAssignmentImportAddCustomizer(),
+                        getRoleAssignmentImportAdd(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
