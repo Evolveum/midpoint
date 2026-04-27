@@ -9,14 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import java.io.Serializable;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConfirmationPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,20 +21,28 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConfirmationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 /**
  * @author lskublik
@@ -73,9 +76,9 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
     }
 
     private void initLayout() {
-        getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getTextLabel().add(AttributeAppender.replace("class", "mb-2 col-12 gen-step-title"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
         getSubmit().add(AttributeAppender.replace("class", "btn btn-primary"));
 
@@ -117,7 +120,7 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
 
             @Override
             protected Consumer<Task> createProviderSearchTaskCustomizer() {
-                return (Consumer<Task> & Serializable) (task) -> task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
+                return (Consumer<Task> & Serializable) ConnectorDevelopmentWizardUtil::enableConnectorLogCapture;
             }
 
             @Override
@@ -136,9 +139,9 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             }
 
             @Override
-            protected void processErrorResult(OperationResult errorResult) {
+            protected void processResult(OperationResult result) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                    wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", errorResult);
+                    wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", result);
                 }
             }
 
@@ -196,5 +199,10 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         super.onSubmitPerformed(target);
         onNextPerformed(target);
+    }
+
+    @Override
+    protected String getSubTextContainerCssClass() {
+        return "text-secondary col-12 pb-4";
     }
 }

@@ -66,12 +66,21 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     protected void onBeforeRender() {
         super.onBeforeRender();
         if (getDataProvider() instanceof SelectableBeanDataProvider<?> selectableBeanDataProvider
-                && selectableBeanDataProvider.getErrorResult() != null) {
-            processErrorResult(selectableBeanDataProvider.getErrorResult());
+                && selectableBeanDataProvider.getResult() != null) {
+            OperationResult result = selectableBeanDataProvider.getResult();
+            processResult(result);
         }
     }
 
-    protected void processErrorResult(OperationResult errorResult) {
+    /**
+     * Allows customizing processing of the result of an operation executed within this panel.
+     * Updates the interface state based on the operation outcome, including error handling
+     * and success notifications.
+     *
+     * @param result the OperationResult containing the execution status and messages
+     */
+    protected void processResult(OperationResult result) {
+        // Intentional NOOP
     }
 
     protected String getSearchByNameParameterValue() {

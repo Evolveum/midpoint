@@ -8,21 +8,25 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div class="alert alert-info d-flex flex-row mb-3 w-100 px-2">
-            <span>
-                <i class="fa fa fa-info-circle fa-sm p-2"/>
+    <div class="col-12">
+        <div class="d-flex flex-row flex-wrap alert alert-info alert-opaque px-3">
+            <span class="d-flex py-2 pr-2 align-items-start alert-icon">
+                <i class="fa fa fa-info-circle"></i>
             </span>
-        <div class="font-weight-bold pr-1">
-            <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.title"/>
-        </div>
-        <div>
-            <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.description"/>
+            <div class="d-flex flex-column justify-content-center align-items-start">
+                <div class="text-bold">
+                    <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.title"/>
+                </div>
+                <div class="">
+                    <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.description"/>.
+                </div>
+            </div>
         </div>
     </div>
     <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
-    <div class="d-flex flex-row col-12 px-0 pb-2">
+    <div class="d-flex flex-row col-12 pb-2">
         <div class="mr-auto">
             <wicket:message key="ObjectClassSelectConnectorStepPanel.title"/>
         </div>

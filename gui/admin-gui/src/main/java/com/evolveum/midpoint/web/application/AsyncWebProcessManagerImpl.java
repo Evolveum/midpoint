@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
 import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.HttpSession;
 
@@ -75,14 +76,10 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
 
         AsyncWebProcess<T> process = new AsyncWebProcess<>(key.processId, application);
         process.setData(data);
+
         processes.put(key, process);
 
         return process;
-    }
-
-    @Override
-    public <T> AsyncWebProcess<T> createProcess() {
-        return createProcess(null);
     }
 
     @Override
@@ -174,8 +171,8 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) { return true; }
-            if (o == null || getClass() != o.getClass()) { return false; }
+            if (this == o) {return true;}
+            if (o == null || getClass() != o.getClass()) {return false;}
 
             Key key = (Key) o;
 

@@ -6,8 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -33,14 +44,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-
-import java.util.List;
-
 /**
  * @author lskublik
  */
@@ -57,7 +60,9 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     public static final ItemName SCIM_BASE_URL_ITEM_NAME = ItemName.from("", "scimBaseUrl");
 
     private static final ItemName DEVELOPMENT_MODE_ITEM_NAME = ItemName.from("", "developmentMode");
-    private static final ItemPath CONNECTOR_CONFIGURATION = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
+    private static final ItemPath CONNECTOR_CONFIGURATION_PROPERTIES = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
+
+    private static final ItemPath PRODUCER_BUFFER_SIZE = ItemPath.create("connectorConfiguration", "producerBufferSize");
 
     private static final String ID_AI_ALERT = "aiAlert";
 
@@ -72,12 +77,11 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
         try {
             ObjectDetailsModels<ResourceType> objectDetailsModel =
                     ConnectorDevelopmentWizardUtil.getTestingResourceModel(getDetailsModel(), getPanelType());
-            ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
 
             try {
-                // Enable development mode (slower  requests, more verbose login, native schema as resources)
-                objectDetailsModel.getObjectWrapper().findProperty(CONNECTOR_CONFIGURATION.append(DEVELOPMENT_MODE_ITEM_NAME)).getValue().setRealValue(true);
 
+                disableConnIdProducerProxy(objectDetailsModel);
+                enableConnectorDevelopmentMode(objectDetailsModel);
                 // Mark resource as down
                 PrismPropertyWrapper<Object> stateProperty = objectDetailsModel.getObjectWrapper().findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
                 stateProperty.getValue().setRealValue(AvailabilityStatusType.DOWN);
@@ -85,10 +89,24 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
                 throw new RuntimeException(e);
             }
 
-            return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), path);
+            return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), CONNECTOR_CONFIGURATION_PROPERTIES);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void enableConnectorDevelopmentMode(ObjectDetailsModels<ResourceType> objectDetailsModel) throws SchemaException {
+        objectDetailsModel.getObjectWrapper().findProperty(CONNECTOR_CONFIGURATION_PROPERTIES.append(DEVELOPMENT_MODE_ITEM_NAME)).getValue().setRealValue(true);
+    }
+
+    /**
+     * Disables ConnID producer proxy which breaks log capture in tracing mode.
+     *
+     * @param objectDetailsModel model for resource
+     * @throws SchemaException
+     */
+    private void disableConnIdProducerProxy(ObjectDetailsModels<ResourceType> objectDetailsModel) throws SchemaException {
+        objectDetailsModel.getObjectWrapper().findProperty(PRODUCER_BUFFER_SIZE).getValue().setRealValue(0);
     }
 
     @Override
@@ -127,9 +145,9 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     @Override
     protected void initLayout() {
 //        getTopLevelContainer().add(AttributeAppender.replace("class", "d-flex flex-column col-9 mt-2"));
-        getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary lh-2 mb-3 w-100"));
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getTextLabel().add(AttributeAppender.replace("class", "mb-2 col-12 gen-step-title"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
         WebMarkupContainer aiAlert = new WebMarkupContainer(ID_AI_ALERT);
@@ -256,7 +274,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     @Override
     public String appendCssToWizard() {
-        return "col-10";
+        return "col-12 col-xl-10 col-xxl-8";
     }
 
     @Override
@@ -286,5 +304,9 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
         ItemName fieldToCheck = isScim() ? SCIM_BASE_URL_ITEM_NAME : BASE_ADDRESS_ITEM_NAME;
         return ConnectorDevelopmentWizardUtil.existTestingResourcePropertyValue(
                 getDetailsModel(), getPanelType(), fieldToCheck);
+    }
+    @Override
+    protected String getSubTextContainerCssClass() {
+        return "text-secondary col-12 pb-4";
     }
 }
