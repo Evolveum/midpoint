@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
@@ -38,11 +39,17 @@ import org.apache.commons.lang3.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LogSegmentType;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public class ConnectorDevelopmentWizardUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorDevelopmentWizardUtil.class);
+    private static final String POLYGON_SCIMREST = "com.evolveum.polygon.scimrest";
 
     public static PrismObject<TaskType> getTask(
             ItemName activityType,
@@ -512,5 +519,56 @@ public class ConnectorDevelopmentWizardUtil {
                 detailsModel.getPageAssignmentHolder())
                 || existScript(detailsModel, classification, objectClassName);
 
+    }
+
+    public static boolean isOperationCompleted(
+            ConnectorDevelopmentDetailsModel detailsModel,
+            ConnectorDevelopmentArtifacts.KnownArtifactType classification,
+            String objectClassName) {
+
+        return existScript(detailsModel, classification, objectClassName)
+                && isScriptConfirmed(detailsModel, classification, objectClassName);
+
+    }
+
+    private static final String CONNECTOR_FACADE_PREFIX = "org.identityconnectors.framework.api.ConnectorFacade";
+
+    public static Collection<String> getConnectorLogs(OperationResult result) {
+        List<String> logs = new ArrayList<>();
+        collectConnectorLogs(result, logs);
+        return logs;
+    }
+
+    private static void collectConnectorLogs(OperationResult result, List<String> logs) {
+        if (result == null) {
+            return;
+        }
+
+        String operation = result.getOperation();
+        if (operation != null && operation.startsWith(CONNECTOR_FACADE_PREFIX)) {
+            List<LogSegmentType> logSegments = result.getLogSegments();
+            if (logSegments != null) {
+                for (LogSegmentType segment : logSegments) {
+                    if (segment.getEntry() != null) {
+                        logs.addAll(segment.getEntry());
+                    }
+                }
+            }
+        }
+
+        for (OperationResult subresult : result.getSubresults()) {
+            collectConnectorLogs(subresult, logs);
+        }
+    }
+
+    public static void enableConnectorLogCapture(Task task) {
+        task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
+        task.addTracingRequest(TracingRootType.CONNECTOR_OPERATION);
+        task.setTracingProfile(new TracingProfileType()
+                .collectLogEntries(true)
+                .loggingOverride(new LoggingOverrideType()
+                        .levelOverride(new ClassLoggerLevelOverrideType()
+                                .logger(POLYGON_SCIMREST)
+                                .level(LoggingLevelType.TRACE))));
     }
 }

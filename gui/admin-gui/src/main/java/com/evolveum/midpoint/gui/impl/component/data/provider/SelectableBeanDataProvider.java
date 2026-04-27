@@ -318,7 +318,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     }
 
     @Nullable
-    public OperationResult getErrorResult() {
+    public OperationResult getResult() {
         return result;
     }
 
