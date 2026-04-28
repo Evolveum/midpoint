@@ -280,6 +280,8 @@
         <owasp-java-html-sanitizer.version>20260102.1</owasp-java-html-sanitizer.version>
         <qrcodegen.version>1.8.0</qrcodegen.version>
         <java-otp.version>1.7.1</java-otp.version>
+
+        <mcp.sdk.version>1.1.1</mcp.sdk.version>
     </properties>
 
     <dependencyManagement>
@@ -1673,6 +1675,17 @@
                 <groupId>dev.samstevens.totp</groupId>
                 <artifactId>totp</artifactId>
                 <version>${java-otp.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp-core</artifactId>
+                <version>${mcp.sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp-json-jackson2</artifactId>
+                <version>${mcp.sdk.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

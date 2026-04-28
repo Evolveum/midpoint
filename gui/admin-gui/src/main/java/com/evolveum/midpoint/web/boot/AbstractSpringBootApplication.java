@@ -90,6 +90,7 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
         FilterRegistrationBean<MidPointProfilingServletFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new MidPointProfilingServletFilter());
         registration.addUrlPatterns("/*");
+        registration.setAsyncSupported(true);
         return registration;
     }
 
@@ -100,6 +101,7 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
         registration.addUrlPatterns("/*");
         // Ensure it runs before Wicket filter by giving it a higher precedence (lower order value)
         registration.setOrder(-100);
+        registration.setAsyncSupported(true);
 
         return registration;
     }
@@ -116,6 +118,7 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
         registration.addInitParameter(Application.CONFIGURATION, "deployment");
         registration.addInitParameter("applicationBean", "midpointApplication");
         registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
+        registration.setAsyncSupported(true);
 
         return registration;
     }
@@ -128,6 +131,7 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
         FilterRegistrationBean<DelegatingFilterProxy> registration = new FilterRegistrationBean<>();
         registration.setFilter(new DelegatingFilterProxy());
         registration.addUrlPatterns("/*");
+        registration.setAsyncSupported(true);
         return registration;
     }
 

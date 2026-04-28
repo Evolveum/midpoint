@@ -42,6 +42,8 @@
         <module>smart-api</module>
         <module>smart-impl</module>
         <!-- TODO separate rest-api after PoC is finished -->
+        <module>mcp-api</module>
+        <module>mcp-impl</module>
         <module>rest-impl</module>
     </modules>
 </project>
