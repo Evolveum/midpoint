@@ -472,6 +472,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
                 .replace(PolyString.fromOrig("new full name"))
+                .item(UserType.F_DISPLAY_NAME)
+                .replace(PolyString.fromOrig("new full name"))
                 .asObjectDelta(USER_JACK.oid);
 
         // +THEN
@@ -595,6 +597,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
                 .replace(PolyString.fromOrig("new full name 2"))
+                .item(UserType.F_DISPLAY_NAME)
+                .replace(PolyString.fromOrig("new full name 2"))
                 .asObjectDelta(USER_JACK.oid);
 
         // +THEN
@@ -717,6 +721,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
                 .replace(PolyString.fromOrig("new full name 3"))
+                .item(UserType.F_DISPLAY_NAME)
+                .replace(PolyString.fromOrig("new full name 3"))
                 .asObjectDelta(USER_JACK.oid);
 
         PrismObject<UserType> jackBefore = getUser(USER_JACK.oid);
@@ -829,6 +835,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
                 .replace(PolyString.fromOrig("new full name 4"))
+                .item(UserType.F_DISPLAY_NAME)
+                .replace(PolyString.fromOrig("new full name 4"))
                 .asObjectDelta(USER_JACK.oid);
 
         // +THEN
@@ -933,6 +941,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .asObjectDelta(USER_JACK.oid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
+                .replace(PolyString.fromOrig("new full name 5"))
+                .item(UserType.F_DISPLAY_NAME)
                 .replace(PolyString.fromOrig("new full name 5"))
                 .asObjectDelta(USER_JACK.oid);
 

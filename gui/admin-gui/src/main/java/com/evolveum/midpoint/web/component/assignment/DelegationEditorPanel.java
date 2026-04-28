@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
@@ -624,8 +625,8 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         } else {
             UserType delegationUser = getModelObject().getDelegationOwner();
             if (getModelObject().getDelegationOwner() != null) {
-                if (delegationUser.getFullName() != null && StringUtils.isNotEmpty(delegationUser.getFullName().getOrig())) {
-                    displayName = delegationUser.getFullName().getOrig() + " (" + delegationUser.getName().getOrig() + ")";
+                if (delegationUser.getDisplayName() != null && StringUtils.isNotEmpty(delegationUser.getDisplayName().getOrig())) {
+                    displayName = delegationUser.getDisplayName().getOrig() + " (" + delegationUser.getName().getOrig() + ")";
                 } else {
                     displayName = delegationUser.getName() != null ? delegationUser.getName().getOrig() : "";
                 }

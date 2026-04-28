@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -327,11 +328,11 @@ public class ValueFormatter {
     }
 
     public String formatUserName(UserType user, String oid) {
-        if (user == null || (user.getName() == null && user.getFullName() == null)) {
+        if (user == null || (user.getName() == null && user.getDisplayName() == null)) {
             return oid;
         }
-        if (user.getFullName() != null) {
-            return getOrig(user.getFullName()) + " (" + getOrig(user.getName()) + ")";
+        if (user.getDisplayName() != null) {
+            return getOrig(user.getDisplayName()) + " (" + getOrig(user.getName()) + ")";
         } else {
             return getOrig(user.getName());
         }

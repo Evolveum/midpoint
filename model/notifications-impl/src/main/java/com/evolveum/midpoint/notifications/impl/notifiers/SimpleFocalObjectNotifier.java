@@ -123,7 +123,7 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         AssignmentHolderType focus = focusObject.asObjectable();
         String oid = focusContext.getOid();
 
-        String fullName = emptyIfNull(getFullName(focus));
+        String displayName = emptyIfNull(getDisplayName(focus));
 
         ObjectDelta<AssignmentHolderType> delta = ObjectDeltaCollectionsUtil.summarize(event.getFocusDeltas());
 
@@ -133,7 +133,7 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         String attemptedTo = event.isSuccess() ? "" : "(attempted to be) ";
 
         body.append("Notification about ").append(typeNameLower).append("-related operation (status: ").append(status).append(")\n\n");
-        body.append(typeName).append(": ").append(fullName).append(" (").append(focus.getName()).append(", oid ").append(oid).append(")\n");
+        body.append(typeName).append(": ").append(displayName).append(" (").append(focus.getName()).append(", oid ").append(oid).append(")\n");
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
         boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration.value());
@@ -164,16 +164,16 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
     }
 
     @Nullable
-    private String getFullName(AssignmentHolderType focus) {
-        String fullName;
+    private String getDisplayName(AssignmentHolderType focus) {
+        String displayName;
         if (focus instanceof UserType) {
-            fullName = PolyString.getOrig(((UserType) focus).getFullName());
+            displayName = PolyString.getOrig(((UserType) focus).getDisplayName());
         } else if (focus instanceof AbstractRoleType) {
-            fullName = PolyString.getOrig(((AbstractRoleType) focus).getDisplayName());
+            displayName = PolyString.getOrig(((AbstractRoleType) focus).getDisplayName());
         } else {
-            fullName = "";          // TODO
+            displayName = "";          // TODO
         }
-        return fullName;
+        return displayName;
     }
 
     @Override

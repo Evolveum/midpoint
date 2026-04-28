@@ -950,7 +950,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         ObjectDeltaOperation<?> objectDeltaOperation =
                 dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, UserType.class);
         assertEquals("unexpected number of modifications in audited delta",
-                10, objectDeltaOperation.getObjectDelta().getModifications().size()); // givenName + badLuck + modifyTimestamp
+                11, objectDeltaOperation.getObjectDelta().getModifications().size()); // givenName + displayName + badLuck + modifyTimestamp
         PropertyDelta<?> badLuckDelta = objectDeltaOperation.getObjectDelta().findPropertyDelta(
                 ItemPath.create(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
         assertNotNull("badLuck delta was not found", badLuckDelta);

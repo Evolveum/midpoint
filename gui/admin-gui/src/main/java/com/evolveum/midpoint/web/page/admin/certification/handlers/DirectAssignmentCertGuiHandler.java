@@ -73,16 +73,16 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
         String objectType = getLocalizedTypeName(acase.getObjectRef().getType(), page);
         String objectName = dto.getObjectName();
 
-        // If object is UserType, display user's fullName in addition to the name
+        // If object is UserType, display user's displayName in addition to the name
         if (QNameUtil.match(acase.getObjectRef().getType(), UserType.COMPLEX_TYPE)) {
             try {
                 PrismObject<UserType> object = page.getModelService().getObject(UserType.class, acase.getObjectRef().getOid(), null, page.getPageTask(), page.getPageTask().getResult());
 
                 if (object != null) {
                     UserType userObj = object.asObjectable();
-                    PolyStringType fullName = userObj.getFullName();
-                    if (fullName != null && !StringUtils.isEmpty(fullName.getOrig())) {
-                        objectName = fullName.getOrig() + " (" + objectName + ")";
+                    PolyStringType displayName = userObj.getDisplayName();
+                    if (displayName != null && !StringUtils.isEmpty(displayName.getOrig())) {
+                        objectName = displayName.getOrig() + " (" + objectName + ")";
                     }
                 }
             } catch (Exception e) {
