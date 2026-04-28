@@ -598,7 +598,7 @@ Suitable for listing role owners, approvers, and similar governance users.
 
 === getServiceMemberUsers()
 
-Lists all user members of the specified role with the given relation to the service.
+Lists all user members of the specified service with the given relation to the service.
 Suitable for listing service owners, approvers, and similar governance users.
 
 * parameters:
