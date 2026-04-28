@@ -127,11 +127,9 @@ public class GuiDisplayTypeUtil {
                         null, null, pageBase.createSimpleTask(result.getOperation()), result);
                 if (archetype != null) {
                     DisplayType archetypeDisplayType = archetype.getArchetypePolicy() != null ? archetype.getArchetypePolicy().getDisplay() : null;
-                    String archetypeTooltip = archetypeDisplayType != null && archetypeDisplayType.getLabel() != null &&
-                            StringUtils.isNotEmpty(archetypeDisplayType.getLabel().getOrig()) ?
-                            archetypeDisplayType.getLabel().getOrig() :
-                            (archetype.getName() != null && StringUtils.isNotEmpty(archetype.getName().getOrig()) ?
-                                    archetype.getName().getOrig() : null);
+                    String archetypeTooltip = StringUtils.defaultIfEmpty(
+                            getTranslatedLabel(archetypeDisplayType),
+                            archetype.getName() != null ? LocalizationUtil.translatePolyString(archetype.getName()) : null);
                     typeValue = archetypeTooltip;
                     typeTitle = StringUtils.isNotEmpty(archetypeTooltip) ?
                             pageBase.createStringResource("abstractRoleMemberPanel.withType", archetypeTooltip).getString() : "";
