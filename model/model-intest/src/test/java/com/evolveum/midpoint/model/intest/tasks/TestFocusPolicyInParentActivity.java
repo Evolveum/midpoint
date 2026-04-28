@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
@@ -16,14 +17,13 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SuspendTaskPolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestFocusPolicyInParentActivity.class);
 
     private static final TestTask TASK_IMPORT =
             TestTask.file(TEST_DIR, "task-100-import.xml", "cb9319a6-add7-4841-bfb1-f3f3f3a4a435");
@@ -45,17 +45,20 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Simulate() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(
+                ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10SimulateExecute() {
-        return transplantRolePolicyForSimulateExecuteTask(ROLE_ADD_10_NOTIFICATION);
+        return transplantRolePolicyForSimulateExecuteTask(
+                ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Execute() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(
+                ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
     }
 
     @Override
@@ -130,45 +133,10 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
         return TASK_RECONCILIATION;
     }
 
-    // todo check usage and move to parent class if possible
-
-    /**
-     * Transplant for simulate OR execute task. If task have simulate-execute,
-     * please use {@link #transplantRolePolicyForSimulateExecuteTask(TestObject)}.
-     */
-    private Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateOrExecuteTask(TestObject<RoleType> source) {
-        return task ->
-                transplantRolePolicy(
-                        source,
-                        new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
-                        task,
-                        ActivityPath.empty());
-    }
-
-    // todo check usage and move to parent class if possible
-
-    /**
-     * Transplant role policy for simulate-execute task. If task has simulate OR execute ONLY
-     * please use {@link #transplantRolePolicyForSimulateOrExecuteTask(TestObject)}.
-     */
-    private Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateExecuteTask(TestObject<RoleType> source) {
-        return task -> {
-            transplantRolePolicy(
-                    source,
-                    new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
-                    task,
-                    ActivityPath.fromId("simulate"));
-
-            transplantRolePolicy(
-                    source,
-                    new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
-                    task,
-                    ActivityPath.fromId("execute"));
-        };
-    }
-
     @Override
     void assertTest100Task(TestObject<TaskType> importTask) throws Exception {
+        dumpSimplifiedTaskActivityState(importTask);
+
         // todo assert notifications
 
         PrismObject<TaskType> task = getTask(importTask.oid);
@@ -180,24 +148,24 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
             .assertFatalError()
             .rootActivityState()
                 .display()
-                .previewModePolicyRulesCounters()
-                    .display()
-                    .assertCounterMinMax(ruleAddNotificationId, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
-                    .assertCounterMinMax(suspendPolicyIdentifier, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
-                    .assertCounterCount(2)
-                .end()
-                .progress()
-                    .display()
+                .child("main")
+                    .previewModePolicyRulesCounters()
+                        .display()
+                        .assertCounterMinMax(ruleAddNotificationId, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
+                        .assertCounterMinMax(suspendPolicyIdentifier, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
+                        .assertCounterCount(3)
                     .end()
-                .itemProcessingStatistics()
-                    .display()
+                    .progress()
+                        .display()
+                        .assertUncommitted(USER_ADD_ALLOWED, 1, 0)
+                        .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
+                        .end()
                     .end()
-            .progress()
-                .assertUncommitted(USER_ADD_ALLOWED, 1, 0)
-                .end()
-                .itemProcessingStatistics()
-                .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
-            .end();
+                .child("last")
+                    .assertNotStarted();
         // @formatter:on
     }
 
@@ -214,26 +182,27 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
             .assertFatalError()
             .rootActivityState()
                 .display()
-                .previewModePolicyRulesCounters()
-                    .display()
-                    .end()
-                .progress()
-                    .display()
-                    .end()
-                .itemProcessingStatistics()
-                    .display()
-                    .end()
-                .previewModePolicyRulesCounters()
-                    .assertCounter(ruleAddNotificationId, USER_ADD_ALLOWED + 2 )
-                    .assertCounter(suspendPolicyIdentifier, USER_ADD_ALLOWED + 2)
-                    .assertCounterCount(2)
-                    .end()
-                .progress()
-                    .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters
-                    .end()
-                .itemProcessingStatistics()
-                    .assertTotalCounts(USER_ADD_ALLOWED, 2, 0)
-                .end();
+                .child("main")
+                    .previewModePolicyRulesCounters()
+                        .display()
+                        .end()
+                    .progress()
+                        .display()
+                        .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .end()
+                    .previewModePolicyRulesCounters()
+                        .assertCounter(ruleAddNotificationId, USER_ADD_ALLOWED + 2 )
+                        .assertCounter(suspendPolicyIdentifier, USER_ADD_ALLOWED + 2)
+                        .assertCounterCount(3)
+                        .end()
+                    .progress()
+                        .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters
+                        .end()
+                    .itemProcessingStatistics()
+                        .assertTotalCounts(USER_ADD_ALLOWED, 2, 0)
+                    .end();
         // @formatter:on
     }
 

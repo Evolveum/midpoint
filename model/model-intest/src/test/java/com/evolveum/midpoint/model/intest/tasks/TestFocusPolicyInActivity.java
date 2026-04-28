@@ -6,9 +6,15 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.assertj.core.api.Assertions;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -41,17 +47,17 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Simulate() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10SimulateExecute() {
-        return transplantRolePolicyForSimulateExecuteTask(ROLE_ADD_10_NOTIFICATION);
+        return transplantRolePolicyForSimulateExecuteTask(ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Execute() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
     }
 
     @Override
@@ -126,42 +132,10 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
         return TASK_RECONCILIATION;
     }
 
-    /**
-     * Transplant for simulate OR execute task. If task have simulate-execute,
-     * please use {@link #transplantRolePolicyForSimulateExecuteTask(TestObject)}.
-     */
-    private Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateOrExecuteTask(TestObject<RoleType> source) {
-        return task ->
-                transplantRolePolicy(
-                        source,
-                        new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
-                        task,
-                        ActivityPath.empty());
-    }
-
-    /**
-     * Transplant role policy for simulate-execute task. If task has simulate OR execute ONLY
-     * please use {@link #transplantRolePolicyForSimulateOrExecuteTask(TestObject)}.
-     */
-    private Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateExecuteTask(TestObject<RoleType> source) {
-        return task -> {
-            transplantRolePolicy(
-                    source,
-                    new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
-                    task,
-                    ActivityPath.fromId("simulate"));
-
-            transplantRolePolicy(
-                    source,
-                    new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
-                    task,
-                    ActivityPath.fromId("execute"));
-        };
-    }
-
     @Override
     void assertTest100Task(TestObject<TaskType> importTask) throws Exception {
-        // todo assert notifications
+        assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 10);
+//        assertNotifications(DUMMY_POLICY_NOTIFIER, "add-10", 5); // todo fix this [viliam]
 
         PrismObject<TaskType> task = getTask(importTask.oid);
         var suspendPolicyIdentifier = ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
@@ -176,7 +150,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                     .display()
                     .assertCounterMinMax(ruleAddNotificationId, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
                     .assertCounterMinMax(suspendPolicyIdentifier, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
-                    .assertCounterCount(2)
+                    .assertCounterCount(3)
                 .end()
                 .progress()
                     .display()
@@ -187,7 +161,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
             .progress()
                 .assertUncommitted(USER_ADD_ALLOWED, 1, 0)
                 .end()
-                .itemProcessingStatistics()
+            .itemProcessingStatistics()
                 .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
             .end();
         // @formatter:on
@@ -218,7 +192,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .previewModePolicyRulesCounters()
                     .assertCounter(ruleAddNotificationId, USER_ADD_ALLOWED + 2 )
                     .assertCounter(suspendPolicyIdentifier, USER_ADD_ALLOWED + 2)
-                    .assertCounterCount(2)
+                    .assertCounterCount(3)
                     .end()
                 .progress()
                     .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters

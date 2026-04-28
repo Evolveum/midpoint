@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
 
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
 
-public class ActivityPoliciesDefinition {
+public class ActivityPoliciesDefinition implements DebugDumpable, Cloneable {
 
     @NotNull private ActivityPoliciesType bean;
 
@@ -54,5 +56,10 @@ public class ActivityPoliciesDefinition {
         } else {
             // null means we do not want it to change.
         }
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        return bean.debugDump(indent);
     }
 }

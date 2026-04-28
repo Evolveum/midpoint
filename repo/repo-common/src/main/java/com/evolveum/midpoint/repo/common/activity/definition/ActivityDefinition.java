@@ -188,7 +188,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "work", workDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "control flow", controlFlowDefinition, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "distribution", distributionDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "distribution", distributionDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "policies", policiesDefinition, indent + 1);
         return sb.toString();
     }
 

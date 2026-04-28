@@ -31,19 +31,6 @@
                         <enabled>false</enabled>
                     </simulationResult>
                 </reporting>
-                <policies>
-                    <policy>
-                        <name>Execution time</name>
-                        <policyConstraints>
-                            <executionTime>
-                                <exceeds>PT0S</exceeds>
-                            </executionTime>
-                        </policyConstraints>
-                        <policyActions>
-                            <notification/>
-                        </policyActions>
-                    </policy>
-                </policies>
             </activity>
             <activity>
                 <order>25</order>
@@ -60,20 +47,20 @@
                 <execution>
                     <mode>full</mode>
                 </execution>
-                <policies>
-                    <policy>
-                        <name>Execution time</name>
-                        <policyConstraints>
-                            <executionTime>
-                                <exceeds>PT0S</exceeds>
-                            </executionTime>
-                        </policyConstraints>
-                        <policyActions>
-                            <notification/>
-                        </policyActions>
-                    </policy>
-                </policies>
             </activity>
         </composition>
+        <policies>
+            <policy>
+                <name>Execution time</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT0S</exceeds>
+                    </executionTime>
+                </policyConstraints>
+                <policyActions>
+                    <notification/>
+                </policyActions>
+            </policy>
+        </policies>
     </activity>
 </task>

@@ -9,6 +9,11 @@ package com.evolveum.midpoint.model.intest.tasks;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeMethod;
@@ -24,6 +29,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 public abstract class TestFocusPolicies extends TestThresholds {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestFocusPolicies.class);
@@ -32,9 +41,9 @@ public abstract class TestFocusPolicies extends TestThresholds {
 
     private static final int WORKER_THREADS = 1;
 
-    private static final String DUMMY_ACTIVITY_POLICY_NOTIFIER = "dummy:activityPolicyNotifier";
+    protected static final String DUMMY_ACTIVITY_POLICY_NOTIFIER = "dummy:activityPolicyNotifier";
 
-    private static final String DUMMY_POLICY_NOTIFIER = "dummy:policyNotifier";
+    protected static final String DUMMY_POLICY_NOTIFIER = "dummy:policyNotifier";
 
     protected static final TestObject<RoleType> ROLE_ADD_10_NOTIFICATION =
             TestObject.file(TEST_DIR, "role-add-10-notification.xml", "79d1d4e7-408c-4255-9386-5697892691df");
@@ -84,16 +93,31 @@ public abstract class TestFocusPolicies extends TestThresholds {
                 handler);
 
         repoAdd(ROLE_ADD_10_NOTIFICATION, initResult);
-        ruleAddNotificationId = determineSingleInducedRuleId(ROLE_ADD_10_NOTIFICATION.oid, initResult);
+        ruleAddNotificationId = determineInducedRuleId(ROLE_ADD_10_NOTIFICATION.oid, "add-10", initResult);
 
         repoAdd(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION, initResult);
-        ruleModifyCostCenterNotificationId = determineSingleInducedRuleId(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION.oid, initResult);
+        ruleModifyCostCenterNotificationId = determineInducedRuleId(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION.oid, "modify-5-costCenter",initResult);
 
         repoAdd(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION, initResult);
-        ruleModifyFullNameNotificationId = determineSingleInducedRuleId(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION.oid, initResult);
+        ruleModifyFullNameNotificationId = determineInducedRuleId(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION.oid,"modify-5-fullName",initResult);
 
         repoAdd(ROLE_DELETE_5_NOTIFICATION, initResult);
-        ruleDeleteNotificationId = determineSingleInducedRuleId(ROLE_DELETE_5_NOTIFICATION.oid, initResult);
+        ruleDeleteNotificationId = determineInducedRuleId(ROLE_DELETE_5_NOTIFICATION.oid,"delete-5", initResult);
+    }
+
+    protected String determineInducedRuleId(String roleOid, String policyId, OperationResult result)
+            throws CommonException {
+
+        RoleType role = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable();
+        List<AssignmentType> ruleInducements = role.getInducement().stream()
+                .filter(i -> i.getPolicyRule() != null)
+                .filter(i -> Objects.equals(policyId, i.getPolicyRule().getName()))
+                .collect(Collectors.toList());
+
+        assertThat(ruleInducements).as("policy rule inducements in " + role).hasSize(1);
+        Long id = ruleInducements.get(0).getId();
+        argCheck(id != null, "Policy rule inducement in %s has no PCV ID", roleOid);
+        return roleOid + ":" + id;
     }
 
     @Override
@@ -116,8 +140,83 @@ public abstract class TestFocusPolicies extends TestThresholds {
         return roleAssignmentCustomizer(ROLE_DELETE_5_NOTIFICATION.oid);
     }
 
+    protected void assertNotifications(String transport, String contains, int count) {
+        List<Message> messages = dummyTransport.getMessages(transport);
+        Assertions.assertThat(messages)
+                .withFailMessage("Expected some notifications in transport %s, but got none", transport)
+                .isNotNull();
+
+        messages = messages.stream()
+                .filter(m -> m.getBody() != null && m.getBody().contains(contains))
+                .toList();
+
+        Assertions.assertThat(messages)
+                .withFailMessage("Expected %d notifications containing '%s' in transport %s, but got %d: %s",
+                        count, contains, transport, messages.size(), messages)
+                .hasSize(count);
+    }
+
+    protected Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateOrExecuteTask(TestObject<RoleType> source) {
+        return transplantRolePolicyForSimulateOrExecuteTask(source, policy -> true);
+    }
+
+    /**
+     * Transplant for simulate OR execute task. If task have simulate-execute,
+     * please use {@link #transplantRolePolicyForSimulateExecuteTask(TestObject)}.
+     */
+    protected Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateOrExecuteTask(
+            TestObject<RoleType> source, Function<PolicyRuleType, Boolean> policyMatcher) {
+
+        return task ->
+                transplantRolePolicy(
+                        source,
+                        policyMatcher,
+                        new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
+                        task,
+                        ActivityPath.empty());
+    }
+
+    protected Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateExecuteTask(
+            TestObject<RoleType> source) {
+        return transplantRolePolicyForSimulateOrExecuteTask(source, p -> true);
+    }
+
+    /**
+     * Transplant role policy for simulate-execute task. If task has simulate OR execute ONLY
+     * please use {@link #transplantRolePolicyForSimulateOrExecuteTask(TestObject)}.
+     */
+    protected Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateExecuteTask(
+            TestObject<RoleType> source, Function<PolicyRuleType, Boolean> policyMatcher) {
+
+        return task -> {
+            transplantRolePolicy(
+                    source,
+                    policyMatcher,
+                    new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
+                    task,
+                    ActivityPath.fromId("simulate"));
+
+            transplantRolePolicy(
+                    source,
+                    policyMatcher,
+                    new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
+                    task,
+                    ActivityPath.fromId("execute"));
+        };
+    }
+
     protected void transplantRolePolicy(
             TestObject<RoleType> source,
+            PolicyActionsType actionOverrides,
+            PrismObject<TaskType> target,
+            ActivityPath activityPath) {
+
+        transplantRolePolicy(source, p -> true, actionOverrides,  target, activityPath);
+    }
+
+    protected void transplantRolePolicy(
+            TestObject<RoleType> source,
+            Function<PolicyRuleType, Boolean> policyMatcher,
             PolicyActionsType actionOverrides,
             PrismObject<TaskType> target,
             ActivityPath activityPath) {
@@ -128,6 +227,7 @@ public abstract class TestFocusPolicies extends TestThresholds {
                 .filter(i -> Objects.equals(2, i.getOrder()))
                 .filter(inducement -> inducement.getPolicyRule() != null)
                 .map(AssignmentType::getPolicyRule)
+                .filter(policy -> policyMatcher == null || policyMatcher.apply(policy))
                 .toList();
 
         ActivityDefinitionType def = target.asObjectable().getActivity();
