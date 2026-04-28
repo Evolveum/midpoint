@@ -579,40 +579,6 @@ Only works for organizations.
     ** `SchemaException`
     ** `SecurityViolationException`
 
-=== getRoleMemberUsers()
-
-Lists all user members of the specified role with the given relation to the role.
-Suitable for listing role owners, approvers, and similar governance users.
-
-* parameters:
-    ** `String roleOid, QName relation`
-* returns:
-    ** `List<UserType>`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
-=== getServiceMemberUsers()
-
-Lists all user members of the specified role with the given relation to the service.
-Suitable for listing service owners, approvers, and similar governance users.
-
-* parameters:
-    ** `String serviceOid, QName relation`
-* returns:
-    ** `List<UserType>`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
 === getManagers()
 
 Returns a collection of users who are managers of the given user.
