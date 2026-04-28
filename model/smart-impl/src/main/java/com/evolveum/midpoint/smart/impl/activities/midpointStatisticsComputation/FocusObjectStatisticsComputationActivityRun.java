@@ -124,12 +124,14 @@ public class FocusObjectStatisticsComputationActivityRun extends PlainIterativeA
                 .build();
         // @formatter:on
         iterationFactory.iterationForType(getWorkDefinition().getObjectType())
-                .iterate(shadowQuery, opResult)
-                .consumeItemsWith((focus, parentResult) -> {
-                    final var processingRequest = ObjectProcessingRequest.create(this.objectsCounter.getAndIncrement(),
-                            focus.asObjectable(), this);
-                    return this.coordinator.submit(processingRequest, parentResult);
-                });
+                .iterate(shadowQuery)
+                .consumeItemsWith(
+                        (focus, lResult) -> {
+                            final var processingRequest = ObjectProcessingRequest.create(this.objectsCounter.getAndIncrement(),
+                                    focus.asObjectable(), this);
+                            return this.coordinator.submit(processingRequest, lResult);
+                        },
+                        opResult);
     }
 
     @Override

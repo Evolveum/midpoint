@@ -75,21 +75,17 @@ public class FocusObjectsByAssociatedShadowsIteration {
      * @param repositoryService The repository service for object searches
      * @param focusType The focus type to search for
      */
-    public FocusObjectsByAssociatedShadowsIteration(RepositoryService repositoryService, QName focusType) {
+    FocusObjectsByAssociatedShadowsIteration(RepositoryService repositoryService, QName focusType) {
         this.repositoryService = repositoryService;
         this.focusType = focusType;
         this.focusTypeClass = ObjectTypes.getObjectTypeClass(focusType);
     }
 
     /**
-     * Iterate over focus objects and shadows.
-     *
-     * @param opResult The operation result
-     * @throws SchemaException if an error occurs during the search
+     * Returns an "iteration object" that walks through focus objects related to shadows matching provided shadows query.
      */
-    public IterationItemConsumer iterate(ObjectQuery associatedShadowsQuery, OperationResult opResult)
-            throws SchemaException {
-        return handler -> {
+    IterationItemConsumer iterate(ObjectQuery associatedShadowsQuery) {
+        return (handler, opResult) -> {
             try {
                 iterateOverFocusObjects(associatedShadowsQuery.getFilter(), handler, opResult);
                 iterateOverShadowsForCorrelatedOwners(associatedShadowsQuery, handler, opResult);
@@ -189,6 +185,12 @@ public class FocusObjectsByAssociatedShadowsIteration {
     }
 
     public interface IterationItemConsumer {
-        void consumeItemsWith(ResultHandler<FocusType> itemHandler);
+        /**
+         * Iterates through the relevant focus objects, calling the provided handler for each of them.
+         *
+         * @param itemHandler The handler to process each focus object
+         * @param opResult The operation result used to searching for the focus objects
+         */
+        void consumeItemsWith(ResultHandler<FocusType> itemHandler, OperationResult opResult);
     }
 }
