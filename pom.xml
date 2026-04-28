@@ -227,8 +227,8 @@
         <!-- security fixes -->
         <postgresql.version>42.7.7</postgresql.version>
 
-        <!-- Groovy 4.0.24 is also default for Spring Boot 3.4.0 -->
-        <groovy.version>4.0.24</groovy.version>
+        <!-- Groovy 4.0.x supports Java 25 class files (major version 69). -->
+        <groovy.version>4.0.31</groovy.version>
 
         <cel.version>0.12.0</cel.version>
 
@@ -253,12 +253,9 @@
         <classgraph.version>4.8.162</classgraph.version>
         <guava.version>32.1.2-jre</guava.version>
         <jcommander.version>1.82</jcommander.version>
-        <qpid-broker.version>8.0.4</qpid-broker.version>
-        <!--
-        name matches property from Boot parent
-        <artemis.version>2.33.0</artemis.version>
-        -->
-        <asm.version>9.5</asm.version>
+        <!-- name matches property from Boot parent -->
+        <artemis.version>2.44.0</artemis.version>
+        <asm.version>9.8</asm.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <checkstyle.version>3.1.2</checkstyle.version>
         <xerces.version>2.12.2</xerces.version>
@@ -280,6 +277,7 @@
         <owasp-java-html-sanitizer.version>20260102.1</owasp-java-html-sanitizer.version>
         <qrcodegen.version>1.8.0</qrcodegen.version>
         <java-otp.version>1.7.1</java-otp.version>
+        <byte-buddy.version>1.17.8</byte-buddy.version>
     </properties>
 
     <dependencyManagement>
@@ -675,7 +673,7 @@
             <dependency>
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations</artifactId>
-                <version>21.0.1</version>
+                <version>26.0.2</version>
             </dependency>
             <dependency>
                 <groupId>javax.annotation</groupId>
@@ -1491,21 +1489,6 @@
                 <version>${jetty.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.qpid</groupId>
-                <artifactId>qpid-broker-core</artifactId>
-                <version>${qpid-broker.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.qpid</groupId>
-                <artifactId>qpid-broker-plugins-amqp-0-8-protocol</artifactId>
-                <version>${qpid-broker.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.qpid</groupId>
-                <artifactId>qpid-broker-plugins-memory-store</artifactId>
-                <version>${qpid-broker.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>artemis-server</artifactId>
                 <version>${artemis.version}</version>
@@ -1586,9 +1569,14 @@
             </dependency>
 
             <dependency>
-               <groupId>net.bytebuddy</groupId>
-               <artifactId>byte-buddy</artifactId>
-               <version>1.14.9</version>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${byte-buddy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy-agent</artifactId>
+                <version>${byte-buddy.version}</version>
             </dependency>
             <dependency>
                 <groupId>jakarta.xml.ws</groupId>
@@ -1897,6 +1885,7 @@
                                 <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                             <ignoredNonTestScopedDependencies>
+                                <ignoredNonTestScopedDependency>com.evolveum.axiom:axiom</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>com.evolveum.midpoint.*:*</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>org.slf4j:slf4j-api</ignoredNonTestScopedDependency>
                                 <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/compile
@@ -1968,10 +1957,9 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
+                    <version>3.14.1</version>
                     <configuration>
-                        <source>${project.source.version}</source>
-                        <target>${project.source.version}</target>
+                        <release>${project.source.version}</release>
                     </configuration>
                 </plugin>
                 <plugin>
