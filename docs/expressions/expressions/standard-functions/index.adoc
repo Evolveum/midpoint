@@ -277,6 +277,7 @@ Use `options` to influence retrieval and processing of the objects.
 * parameters:
     ** `Class<T> type, ObjectQuery query`
     ** `Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options`
+    ** `Class<T> type, String filter`
     ** `TypedQuery<T> query`
     ** `TypedQuery<T> query, Collection<SelectorOptions<GetOperationOptions>> options`
 * returns:
