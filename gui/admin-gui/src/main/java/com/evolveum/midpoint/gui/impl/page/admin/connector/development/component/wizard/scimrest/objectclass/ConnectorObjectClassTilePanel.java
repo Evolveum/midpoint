@@ -159,7 +159,7 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
             }
         });
 
-        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.searchById")) {
+        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.get")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
