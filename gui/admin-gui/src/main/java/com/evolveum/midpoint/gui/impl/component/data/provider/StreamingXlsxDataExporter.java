@@ -13,8 +13,8 @@ import com.evolveum.midpoint.gui.api.component.button.XlsxDataExporter;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFSheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.wicket.Application;
 import org.apache.wicket.Session;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
@@ -67,12 +67,15 @@ public class StreamingXlsxDataExporter extends XlsxDataExporter {
 
         Task task = pageBase.createSimpleTask(OPERATION_EXPORT_DATA);
         OperationResult result = task.getResult();
-        try (SXSSFWorkbook workbook = new SXSSFWorkbook(100)) {
-            workbook.setCompressTempFiles(true);
+
+        try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet();
+
             writeHeaders(columns, sheet);
             writeDataIterative(dataProvider, iterativeProvider, columns, sheet, task, result);
+
             workbook.write(outputStream);
+            outputStream.close();
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error during iterative XLSX export", e);
         } finally {
@@ -88,19 +91,10 @@ public class StreamingXlsxDataExporter extends XlsxDataExporter {
             Task task,
             OperationResult result) throws CommonException {
 
-        final int[] rowIndex = {1}; // mutable counter
-        SXSSFSheet sxSheet = (SXSSFSheet) sheet;
-
+        final int[] rowIndex = {1};
         iterativeProvider.exportIterative(
                 (item, opResult) -> {
                     writeRow(dataProvider, columns, item, sheet, rowIndex[0]++);
-                    if (rowIndex[0] % 100 == 0) {
-                        try {
-                            sxSheet.flushRows(100);
-                        } catch (IOException e) {
-                            //
-                        }
-                    }
                     return true;
                 },
                 task,
