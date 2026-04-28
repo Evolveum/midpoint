@@ -29,7 +29,7 @@ import java.util.Collection;
 public interface OperationResultBuilder {
     OperationResult build();
 
-    OperationResult addQualifier(String value);
+    OperationResultBuilder addQualifier(String value);
 
     OperationResultBuilder addParam(String name, String value);
 
@@ -92,7 +92,7 @@ public interface OperationResultBuilder {
 
     OperationResultBuilder setMinor();
 
-    OperationResult setImportance(OperationResultImportanceType value);
+    OperationResultBuilder setImportance(OperationResultImportanceType value);
 
     OperationResultBuilder tracingProfile(CompiledTracingProfile profile);
 

@@ -193,8 +193,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  * @author Radovan Semancik
  */
 public class OperationResult
-        implements Serializable, DebugDumpable, ShortDumpable, Cloneable,
-        OperationResultBuilder, Visitable<OperationResult> {
+        implements Serializable, DebugDumpable, ShortDumpable, Cloneable, Visitable<OperationResult> {
 
     @Serial private static final long serialVersionUID = -2467406395542291044L;
     private static final String VARIOUS_VALUES = "[various values]";
@@ -421,7 +420,11 @@ public class OperationResult
     public static OperationResultBuilder newResult(String operation) {
         OperationResult result = new OperationResult(operation);
         result.building = true;
-        return result;
+        return result.builder();
+    }
+
+    private OperationResultBuilder builder() {
+        return new Builder();
     }
 
     public OperationResultBuilder subresult(String operation) {
@@ -433,32 +436,18 @@ public class OperationResult
         subresult.recordingValues = recordingValues;
         subresult.parentLogRecorder = logRecorder;
         subresult.propagateHandledErrorAsSuccess = propagateHandledErrorAsSuccess;
-        return subresult;
+        return subresult.builder();
     }
 
     public static OperationResultBuilder createFor(String operation) {
         OperationResult rv = new OperationResult(operation);
         rv.building = true;
-        return rv;
-    }
-
-    @Override
-    public OperationResult build() {
-        if (!building) {
-            throw new IllegalStateException("Not being built");
-        }
-        recordStart(operation, createArguments());
-        building = false;
-        if (futureParent != null) {
-            futureParent.addSubresult(this);
-            recordCallerReason(futureParent);
-        }
-        return this;
+        return rv.builder();
     }
 
     private void recordCallerReason(OperationResult parent) {
         if (parent.getCallerReason() != null) {
-            addContext(CONTEXT_REASON, parent.getCallerReason());
+            builder().addContext(CONTEXT_REASON, parent.getCallerReason());
             parent.setCallerReason(null);
         }
     }
@@ -1155,19 +1144,317 @@ public class OperationResult
         traces.add(trace);
     }
 
-    /** TEMPORARY. We need to find a way how to override this when we need the recording for specific task. */
-    public OperationResultBuilder notRecordingValues() {
-        this.recordingValues = false;
-        return this;
-    }
+    private class Builder implements OperationResultBuilder  {
 
-    @Override
-    public OperationResultBuilder tracingProfile(CompiledTracingProfile profile) {
-        this.tracingProfile = profile;
-        if (profile != null) {
-            this.recordingValues = true;
+        @Override
+        public OperationResultBuilder addQualifier(String value) {
+            qualifiers.add(value);
+            return this;
         }
-        return this;
+
+        @Override
+        public OperationResultBuilder addParam(String name, String value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(value));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, PrismObject<? extends ObjectType> value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, ObjectType value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, boolean value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, long value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, int value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public OperationResultBuilder addParam(String name, Class<?> value) {
+            if (recordingValues) {
+                if (value != null && ObjectType.class.isAssignableFrom(value)) {
+                    getParams().put(
+                            name,
+                            collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
+                } else {
+                    getParams().put(name, collectionize(stringify(value)));
+                }
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, QName value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, PolyString value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(value == null ? null : value.getOrig()));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, ResourceObjectTypeIdentification value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, ObjectQuery value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, ObjectDelta<?> value) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addParam(String name, String... values) {
+            if (recordingValues) {
+                getParams().put(name, collectionize(values));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addArbitraryObjectAsParam(String paramName, Object paramValue) {
+            if (recordingValues) {
+                getParams().put(paramName, collectionize(stringify(paramValue)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
+            if (recordingValues) {
+                getParams().put(name, stringifyCol(value));
+            }
+            return this;
+        }
+
+        /** TEMPORARY. We need to find a way how to override this when we need the recording for specific task. */
+        public OperationResultBuilder notRecordingValues() {
+            recordingValues = false;
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder operationKind(OperationKindType value) {
+            operationKind = value;
+            return this;
+        }
+
+
+        @Override
+        public OperationResultBuilder setImportance(OperationResultImportanceType value) {
+            importance = value;
+            return this;
+        }
+
+
+        @Override
+        public OperationResultBuilder preserve() {
+            preserve = true;
+            recordingValues = true;
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder setMinor() {
+            return setImportance(MINOR);
+        }
+
+
+        @Override
+        public OperationResultBuilder tracingProfile(CompiledTracingProfile profile) {
+            tracingProfile = profile;
+            if (profile != null) {
+                recordingValues = true;
+            }
+            return this;
+        }
+
+
+
+        @Override
+        public OperationResultBuilder addContext(String name, String value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(value));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, PrismObject<? extends ObjectType> value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, ObjectType value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, boolean value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, long value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, int value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public OperationResultBuilder addContext(String name, Class<?> value) {
+            if (recordingValues) {
+                if (value != null && ObjectType.class.isAssignableFrom(value)) {
+                    getContext().put(
+                            name,
+                            collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
+                } else {
+                    getContext().put(name, collectionize(stringify(value)));
+                }
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, QName value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, PolyString value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(value == null ? null : value.getOrig()));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, ObjectQuery value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, ObjectDelta<?> value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addContext(String name, String... values) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(values));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addArbitraryObjectAsContext(String name, Object value) {
+            if (recordingValues) {
+                getContext().put(name, collectionize(stringify(value)));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResultBuilder addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
+            if (recordingValues) {
+                getContext().put(paramName, stringifyCol(paramValue));
+            }
+            return this;
+        }
+
+        @Override
+        public OperationResult build() {
+            if (!building) {
+                throw new IllegalStateException("Not being built");
+            }
+            recordStart(operation, createArguments());
+            building = false;
+            if (futureParent != null) {
+                futureParent.addSubresult(OperationResult.this);
+                recordCallerReason(futureParent);
+            }
+            return OperationResult.this;
+        }
     }
 
     public <T> T getFirstTrace(Class<T> traceClass) {
@@ -1409,138 +1696,7 @@ public class OperationResult
         return values.iterator().next();
     }
 
-    @Override
-    public OperationResult addQualifier(String value) {
-        qualifiers.add(value);
-        return this;
-    }
 
-    @Override
-    public OperationResult addParam(String name, String value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(value));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, PrismObject<? extends ObjectType> value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, ObjectType value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, boolean value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, long value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, int value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public OperationResult addParam(String name, Class<?> value) {
-        if (recordingValues) {
-            if (value != null && ObjectType.class.isAssignableFrom(value)) {
-                getParams().put(
-                        name,
-                        collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
-            } else {
-                getParams().put(name, collectionize(stringify(value)));
-            }
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, QName value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, PolyString value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(value == null ? null : value.getOrig()));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, ResourceObjectTypeIdentification value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, ObjectQuery value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, ObjectDelta<?> value) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, String... values) {
-        if (recordingValues) {
-            getParams().put(name, collectionize(values));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addArbitraryObjectAsParam(String paramName, Object paramValue) {
-        if (recordingValues) {
-            getParams().put(paramName, collectionize(stringify(paramValue)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
-        if (recordingValues) {
-            getParams().put(name, stringifyCol(value));
-        }
-        return this;
-    }
 
     public @NotNull Map<String, Collection<String>> getContext() {
         if (context == null) {
@@ -1553,124 +1709,7 @@ public class OperationResult
         return ParamsTypeUtil.toParamsType(getContext());
     }
 
-    @Override
-    public OperationResult addContext(String name, String value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(value));
-        }
-        return this;
-    }
 
-    @Override
-    public OperationResult addContext(String name, PrismObject<? extends ObjectType> value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, ObjectType value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, boolean value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, long value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, int value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public OperationResult addContext(String name, Class<?> value) {
-        if (recordingValues) {
-            if (value != null && ObjectType.class.isAssignableFrom(value)) {
-                getContext().put(
-                        name,
-                        collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
-            } else {
-                getContext().put(name, collectionize(stringify(value)));
-            }
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, QName value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, PolyString value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(value == null ? null : value.getOrig()));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, ObjectQuery value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, ObjectDelta<?> value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, String... values) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(values));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addArbitraryObjectAsContext(String name, Object value) {
-        if (recordingValues) {
-            getContext().put(name, collectionize(stringify(value)));
-        }
-        return this;
-    }
-
-    @Override
-    public OperationResult addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
-        if (recordingValues) {
-            getContext().put(paramName, stringifyCol(paramValue));
-        }
-        return this;
-    }
 
     @NotNull
     public Map<String, Collection<String>> getReturns() {
@@ -2172,9 +2211,10 @@ public class OperationResult
                 OperationResultStatus.parseStatusType(bean.getStatus()), or0(bean.getToken()),
                 bean.getMessageCode(), bean.getMessage(), localizableMessage, null,
                 subresults);
-        result.operationKind(bean.getOperationKind());
+        result.builder()
+                .setImportance(bean.getImportance())
+                .operationKind(bean.getOperationKind());
         result.getQualifiers().addAll(bean.getQualifier());
-        result.setImportance(bean.getImportance());
         result.setAsynchronousOperationReference(bean.getAsynchronousOperationReference());
         if (bean.getCount() != null) {
             result.setCount(bean.getCount());
@@ -2752,41 +2792,19 @@ public class OperationResult
         setAsynchronousOperationReference(CASE_OID_PREFIX + oid);
     }
 
-    @Override
-    public OperationResult operationKind(OperationKindType value) {
-        this.operationKind = value;
-        return this;
-    }
-
     public OperationKindType getOperationKind() {
         return operationKind;
-    }
-
-    @Override
-    public OperationResultBuilder preserve() {
-        this.preserve = true;
-        this.recordingValues = true;
-        return this;
     }
 
     public boolean isPreserve() {
         return preserve;
     }
 
-    @Override
-    public OperationResultBuilder setMinor() {
-        return setImportance(MINOR);
-    }
 
     public OperationResultImportanceType getImportance() {
         return importance;
     }
 
-    @Override
-    public OperationResult setImportance(OperationResultImportanceType value) {
-        this.importance = value;
-        return this;
-    }
 
     public void recordThrowableIfNeeded(Throwable t) {
         if (isUnknown()) {
