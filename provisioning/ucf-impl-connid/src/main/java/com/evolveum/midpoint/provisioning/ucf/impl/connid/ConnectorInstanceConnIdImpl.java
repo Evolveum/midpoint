@@ -1516,8 +1516,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             var resultBuilder = result.subresult(FACADE_OP_SYNC)
                     .addContext("connector", getConnIdConnectorFacadeRequired().getClass())
                     .addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass)
-                    .addArbitraryObjectAsParam("initialToken", initialToken)
-                    .build();
+                    .addArbitraryObjectAsParam("initialToken", initialToken);
             startTracingIfConfigured(ctx, result, resultBuilder);
             OperationResult connIdResult = resultBuilder.build();
             try {
