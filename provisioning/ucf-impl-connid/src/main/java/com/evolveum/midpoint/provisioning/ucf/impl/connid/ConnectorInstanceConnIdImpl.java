@@ -917,7 +917,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         Set<AttributeDelta> attributesDelta = converter.getAttributesDeltas();
         if (!attributesDelta.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            var resultBuilder = result.createSubresult(FACADE_OP_UPDATE_DELTA)
+            var resultBuilder = result.subresult(FACADE_OP_UPDATE_DELTA)
                     .addParam("objectClass", objectClassDef.toString())
                     .addParam("uid", uid.getUidValue())
                     .addParam("attributesDelta", attributesDelta.toString())

@@ -54,7 +54,6 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.CollectionInstance;
@@ -520,16 +519,15 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
         try {
             SearchFilterType configuredFilter = axiomSearchItem.getFilter();
             ObjectFilter objectFilter;
-            if (StringUtils.isEmpty(configuredFilter.getText())) {
+            String filterText = configuredFilter.getText();
+            if (StringUtils.isEmpty(filterText)) {
                 //we try to parse xml query into axiom
                 objectFilter = getPageBase().getQueryConverter().parseFilter(configuredFilter, getModelObject().getTypeClass());
                 getPageBase().warn(createStringResource("SearchPanel.saved.filter.wrong.configuration").getString());
-            } else {
-                objectFilter = getPageBase().getQueryConverter().createObjectFilter(
-                        getModelObject().getTypeClass(), axiomSearchItem.getFilter());
+                PrismQuerySerialization serializer = PrismContext.get().querySerializer().serialize(objectFilter);
+                filterText = serializer.filterText();
             }
-            PrismQuerySerialization serializer = PrismContext.get().querySerializer().serialize(objectFilter);
-            getModelObject().setDslQuery(serializer.filterText());
+            getModelObject().setDslQuery(filterText);
         } catch (Exception e) {
             LOG.error("Unable to parse filter {}, {}", axiomSearchItem.getFilter(), e.getLocalizedMessage());
             getPageBase().error("Unable to parse filter: " + axiomSearchItem.getFilter() + ", {}" + e.getLocalizedMessage());
