@@ -1014,7 +1014,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         skipTestIf(DefaultServiceClientImpl.hasServiceUrlOverride(), "Not applicable with a real service");
     }
 
-    @Test(enabled = false)
+    @Test
     public void test300SuggestMappings() throws CommonException, ActivityInterruptedException {
         skipIfRealService();
 
