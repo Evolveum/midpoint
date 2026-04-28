@@ -11,18 +11,6 @@ import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
-
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -33,11 +21,17 @@ import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 @PanelType(name = "ra-process")
 @PanelInstance(identifier = "ra-process",
@@ -152,4 +146,13 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
         return createStringResource("PageRoleAnalysisSession.wizard.step.choice.analysis.process.mode.subText");
     }
 
+    @Override
+    protected @NotNull String getBackButtonCssClass() {
+        return "btn btn-outline-primary";
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
+    }
 }

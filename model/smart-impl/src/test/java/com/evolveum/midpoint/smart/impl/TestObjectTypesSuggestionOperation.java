@@ -160,7 +160,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
         ObjectTypesSuggestionType suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(1);
@@ -201,7 +201,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
         var suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(2);
@@ -237,7 +237,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
         var suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(1);
@@ -267,7 +267,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
         var suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(1);
@@ -455,65 +455,6 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
                     assertThat(vc.getValue()).isEqualTo("Sales");
                     assertThat(vc.getCount()).isEqualTo(1);
                 });
-    }
-
-    @Test
-    public void test201StatisticsComputer_ValueCountsMinRepeatFilter() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        var a = dummyScenario.account;
-        a.add("stat-user10").addAttributeValues("cn", "A");
-        a.add("stat-user11").addAttributeValues("cn", "B");
-        a.add("stat-user12").addAttributeValues("cn", "C");
-        a.add("stat-user13").addAttributeValues("cn", "D");
-        a.add("stat-user14").addAttributeValues("cn", "E");
-
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        var cnStats = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().getItemPath().lastName().getLocalPart().equals("cn"))
-                .findFirst();
-
-        cnStats.ifPresent(shadowAttributeStatisticsType -> assertThat(shadowAttributeStatisticsType.getValueCount()).isEmpty());
-    }
-
-    @Test
-    public void test202StatisticsComputer_ValueCountsTopNLimit() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        var a = dummyScenario.account;
-        a.add("stat-user-topn-0").addAttributeValues("type", "A");
-        a.add("stat-user-topn-1").addAttributeValues("type", "A");
-        a.add("stat-user-topn-2").addAttributeValues("type", "A");
-        a.add("stat-user-topn-3").addAttributeValues("type", "B");
-        a.add("stat-user-topn-4").addAttributeValues("type", "B");
-        a.add("stat-user-topn-5").addAttributeValues("type", "C");
-        a.add("stat-user-topn-6").addAttributeValues("type", "C");
-        a.add("stat-user-topn-7").addAttributeValues("type", "unique1");
-        a.add("stat-user-topn-8").addAttributeValues("type", "unique2");
-        a.add("stat-user-topn-9").addAttributeValues("type", "unique3");
-        a.add("stat-user-topn-10").addAttributeValues("type", "unique4");
-        a.add("stat-user-topn-11").addAttributeValues("type", "unique5");
-        a.add("stat-user-topn-12").addAttributeValues("type", "unique6");
-        a.add("stat-user-topn-13").addAttributeValues("type", "unique7");
-        a.add("stat-user-topn-14").addAttributeValues("type", "unique8");
-        a.add("stat-user-topn-15").addAttributeValues("type", "unique9");
-
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        var typeStats = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().getItemPath().lastName().getLocalPart().equals("type"))
-                .findFirst();
-
-        assertThat(typeStats).isPresent();
-        var stats = typeStats.get();
-
-        assertThat(stats.getUniqueValueCount()).isEqualTo(12);
-        assertThat(stats.getValueCount()).hasSize(3);
-        assertThat(stats.getValueCount()).allSatisfy(vc ->
-                assertThat(vc.getCount()).isGreaterThanOrEqualTo(2));
     }
 
     @Test

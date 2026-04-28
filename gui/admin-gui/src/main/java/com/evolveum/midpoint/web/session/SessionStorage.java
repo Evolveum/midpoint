@@ -112,7 +112,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
                 .forEach(BrowserTabSessionStorage::clearPageStorage);
     }
 
-    public SuggestionsStorage getSuggestions() {
+    public SuggestionsStorage getSuggestionsStorage() {
         if (suggestions == null) {
             suggestions = new SuggestionsStorage();
         }

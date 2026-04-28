@@ -56,7 +56,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
 
         try {
             QName objectClassQName = QName.valueOf(objectClass);
-            var oid = smartIntegrationService.submitSuggestObjectTypesOperation(resourceOid, objectClassQName, List.of(), task, result);
+            var oid = smartIntegrationService.submitSuggestObjectTypesOperation(resourceOid, objectClassQName, List.of(), null, null, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestObjectTypesOperationStatus(oid, task, result);

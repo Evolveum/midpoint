@@ -10,7 +10,6 @@ import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -22,16 +21,15 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
 import com.evolveum.midpoint.gui.impl.component.search.SearchItemWrapperComparator;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.BasicQueryWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import org.apache.wicket.model.Model;
 
 public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
 
@@ -93,22 +91,24 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         };
         add(items);
 
-        currentBiggestDisplayOrder = getModelObject().getItemsList().stream()
-                .peek(item -> {
-                    // add displayOrder for default search items which are visible, so they are properly sorted before items added by More button
-                    // this case occurs when only default search items are in search box
-                    if (item.isVisible() && item.getDisplayOrder() == null) {
-                        item.setDisplayOrder(++currentBiggestDisplayOrder);
-                    }
-                    // it is needed to remove displayOrder for not visible search items, so they are properly sorted in More button alphabetically
-                    // this case occurs when you switch between Saved filters
-                    if (!item.isVisible() && item.getDisplayOrder() != null) {
-                        item.setDisplayOrder(null);
-                    }
-                })
-                .map(FilterableSearchItemWrapper::getDisplayOrder)
-                .filter(Objects::nonNull)
-                .reduce(0, Integer::max);
+        currentBiggestDisplayOrder = 0;
+        for (FilterableSearchItemWrapper<?> item : getModelObject().getItemsList()) {
+            // add displayOrder for default search items which are visible, so they are properly sorted before items added by More button
+            // this case occurs when only default search items are in search box
+            if (item.isVisible() && item.getDisplayOrder() == null) {
+                item.setDisplayOrder(++currentBiggestDisplayOrder);
+            }
+
+            // it is needed to remove displayOrder for not visible search items, so they are properly sorted in More button alphabetically
+            // this case occurs when you switch between Saved filters
+            if (!item.isVisible() && item.getDisplayOrder() != null) {
+                item.setDisplayOrder(null);
+            }
+
+            if (item.getDisplayOrder() != null) {
+                currentBiggestDisplayOrder = Math.max(currentBiggestDisplayOrder, item.getDisplayOrder());
+            }
+        }
 
         // it is needed to sort search items after removal of displayOrder for not visible search items,
         // so they are properly sorted in More button alphabetically
@@ -158,6 +158,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
                     protected IModel<String> getPopoverTitleModel() {
                         return createStringResource("SearchPanel.properties");
                     }
+
                     @Override
                     protected void closeMorePopoverPerformed(AjaxRequestTarget target) {
                         togglePopover(target);
@@ -210,7 +211,8 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         try {
             constructor = panelClass.getConstructor(String.class, IModel.class);
             return (SIP) constructor.newInstance(panelId, searchItemModel);
-        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException |
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException |
+                IllegalArgumentException |
                 InvocationTargetException e) {
             throw new SystemException("Cannot instantiate " + panelClass, e);
         }

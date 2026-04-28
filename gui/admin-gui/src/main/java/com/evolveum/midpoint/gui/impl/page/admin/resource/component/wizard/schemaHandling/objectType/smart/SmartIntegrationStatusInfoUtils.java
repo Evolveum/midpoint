@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.ItemsProgressInformation;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -260,7 +261,12 @@ public class SmartIntegrationStatusInfoUtils {
         var isInbound = mappingDirection == MappingDirection.INBOUND;
 
         try {
-            return smart.listSuggestMappingsOperationStatuses(resourceOid, objectTypeIdentification, isInbound, task, result);
+            List<StatusInfo<MappingsSuggestionType>> statusInfos = smart.listSuggestMappingsOperationStatuses(
+                    resourceOid, objectTypeIdentification, isInbound, task, result);
+            LOGGER.debug("Loaded mapping suggestions statuses for resource {} and object type identification {}",
+                    resourceOid, objectTypeIdentification);
+            return statusInfos;
+
         } catch (Throwable t) {
             result.recordException(t);
             LoggingUtils.logException(LOGGER, "Couldn't load mapping status for {}", t, resourceOid);
@@ -742,7 +748,7 @@ public class SmartIntegrationStatusInfoUtils {
                 return;
             }
 
-            if(si.getStatus() == OperationResultStatusType.SUCCESS
+            if (si.getStatus() == OperationResultStatusType.SUCCESS
                     && (si.getResult() == null || si.getResult().getObjectType().isEmpty())) {
                 return;
             }
@@ -794,7 +800,7 @@ public class SmartIntegrationStatusInfoUtils {
                 return;
             }
 
-            if(si.getStatus() == OperationResultStatusType.SUCCESS
+            if (si.getStatus() == OperationResultStatusType.SUCCESS
                     && (si.getResult() == null || si.getResult().getAssociation().isEmpty())) {
                 return;
             }
@@ -877,22 +883,45 @@ public class SmartIntegrationStatusInfoUtils {
         }
 
         if (children.isEmpty()) {
-            rows.add(new StatusRowRecord(pageBase.createStringResource(
-                    "SmartGeneratingDto." + progressInformation.getRealizationState()),
-                    progressInformation.getRealizationState(),
+            ActivityProgressInformation.RealizationState realizationState = progressInformation.getRealizationState();
+            rows.add(new StatusRowRecord(
+                    pageBase.createStringResource("SmartGeneratingDto." + realizationState),
+                    realizationState,
                     suggestion));
             return rows;
         }
+
         for (ActivityProgressInformation child : children) {
-            String activityIdentifier = child.getActivityIdentifier();
             ActivityProgressInformation.RealizationState realizationState = child.getRealizationState();
             rows.add(new StatusRowRecord(
-                    buildProgressMessageModel(pageBase, activityIdentifier), realizationState, suggestion));
+                    buildProgressMessageModel(pageBase, child.getActivityIdentifier(), child),
+                    realizationState,
+                    suggestion));
         }
+
         return rows;
     }
 
-    protected static IModel<String> buildProgressMessageModel(@NotNull PageBase pageBase, String operationKey) {
+    protected static IModel<String> buildProgressMessageModel(
+            @NotNull PageBase pageBase,
+            String operationKey,
+            @NotNull ActivityProgressInformation child) {
+
+        if ("mappingsSuggestion".equals(operationKey)) {
+            ActivityProgressInformation mappingsSuggestion = child.getChild(operationKey);
+            ItemsProgressInformation itemsProgress =
+                    mappingsSuggestion != null ? mappingsSuggestion.getItemsProgress() : null;
+
+            if (itemsProgress != null) {
+                return pageBase.createStringResource(
+                        "Activity.explanation." + operationKey,
+                        itemsProgress.getProgress(),
+                        itemsProgress.getExpectedProgress());
+            }
+
+            return pageBase.createStringResource("Activity.explanation.text." + operationKey);
+        }
+
         return pageBase.createStringResource("Activity.explanation." + operationKey);
     }
 

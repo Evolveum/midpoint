@@ -7,10 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
 import java.time.Duration;
-
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.TimerProgressPanel;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.exception.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
@@ -21,13 +18,13 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.TimerProgressPanel;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 public class ResourceTestPanel extends BasePanel<String> {
 
@@ -85,6 +82,8 @@ public class ResourceTestPanel extends BasePanel<String> {
         return new AbstractAjaxTimerBehavior(getRefreshInterval()) {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
+                onTestingStarted(target);
+
                 try {
                     boolean failed;
                     Task task = getPageBase().createSimpleTask("testResource");
@@ -164,7 +163,7 @@ public class ResourceTestPanel extends BasePanel<String> {
                     return "fa fa-times-circle text-danger";
                 }
                 default -> {
-                    return "fa fa-tower-broadcast text-primary";
+                    return "fa fa-tower-broadcast text-primary spinner-fade-fast";
                 }
             }
         };
@@ -192,5 +191,8 @@ public class ResourceTestPanel extends BasePanel<String> {
     public void refresh() {
         state = State.RUNNING;
         timerBehavior.restart(null);
+    }
+
+    protected void onTestingStarted(AjaxRequestTarget target) {
     }
 }

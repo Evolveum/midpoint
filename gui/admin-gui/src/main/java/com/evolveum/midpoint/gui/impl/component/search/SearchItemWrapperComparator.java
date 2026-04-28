@@ -8,10 +8,10 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import java.util.Comparator;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
-
 import org.apache.commons.lang3.StringUtils;
+
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 
 /**
  * @author matisovaa
@@ -40,8 +40,8 @@ public class SearchItemWrapperComparator<IW extends FilterableSearchItemWrapper>
         if (searchItemWrapper == null) {
             return "";
         }
-        return StringUtils.isEmpty(searchItemWrapper.getName().getObject()) ?
-                "" :
-                PageBase.createStringResourceStatic(searchItemWrapper.getName().getObject()).getString();
+
+        String name = searchItemWrapper.getName().getObject();
+        return StringUtils.isNotEmpty(name) ? LocalizationUtil.translate(name) : "";
     }
 }

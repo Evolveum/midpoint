@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.util.DOMUtil.LOGGER;
+
 /**
  * Centralized utility for building {@link SuggestionsModelDto} for various Smart Integration suggestion types.
  * <p>
@@ -147,7 +149,7 @@ public final class StatusAwareDataFactory {
 
         final Map<PrismContainerValueWrapper<MappingType>, StatusInfo<MappingsSuggestionType>> suggestionsIndex = new HashMap<>();
 
-        IModel<List<PrismContainerValueWrapper<MappingType>>> valuesModel = new LoadableModel<>() {
+        LoadableModel<List<PrismContainerValueWrapper<MappingType>>> valuesModel = new LoadableModel<>(false) {
             @Override
             protected @NotNull List<PrismContainerValueWrapper<MappingType>> load() {
                 suggestionsIndex.clear();
@@ -158,6 +160,8 @@ public final class StatusAwareDataFactory {
 
                 // Only load Smart suggestions for inbound mappings
                 if (Boolean.TRUE.equals(switchSuggestionModel.getObject())) {
+                    LOGGER.debug("Loading mapping suggestions for resource {}, object type {}, direction {}",
+                            resourceOid, parentWrapper.getRealValue(), mappingDirection);
                     loadSuggestions(suggestions);
                 }
 

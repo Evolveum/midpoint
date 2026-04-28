@@ -148,7 +148,14 @@ public class SmartIntegrationWrapperUtils {
         var newValue = container.getItem().createNewValue();
         CorrelationItemType bean = newValue.asContainerable();
         bean.setName(realValueMapping.getName());
-        bean.setRef(realValueMapping.getTarget().getPath());
+        VariableBindingDefinitionType valueMappingTarget = realValueMapping.getTarget();
+
+        if (valueMappingTarget != null) {
+            bean.setRef(valueMappingTarget.getPath());
+        } else {
+            LOGGER.warn("Mapping target is null. Cannot set reference for mapping '{}'.", realValueMapping.getName());
+        }
+
         bean.setDescription(realValueMapping.getDescription());
 
         WebPrismUtil.createNewValueWrapper(container, newValue, pageBase, target);
@@ -168,6 +175,11 @@ public class SmartIntegrationWrapperUtils {
             @NotNull ItemPath parentPath,
             @NotNull MappingDirection mappingDirection) {
         ItemPathType correlationItemRef = correlationItemWrapper.getRealValue().getRef();
+
+        if (correlationItemRef == null) {
+            LOGGER.error("Correlation item reference is null. Processed mapping likely has no target configured.");
+            return null;
+        }
         List<PrismContainerValueWrapper<MappingType>> allInboundMappings = new ArrayList<>();
 
         try {

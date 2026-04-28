@@ -6,25 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.StatusRowRecord;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
-import com.evolveum.midpoint.web.component.util.SerializableConsumer;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.TaskOperationUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
+
+import java.io.Serial;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -44,12 +31,24 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serial;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.StatusRowRecord;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TaskOperationUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Panel for monitoring and controlling a "smart generating" task.
@@ -243,7 +242,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
      * @return CSS class string, e.g. "fa-spin", "fa-pulse", "spinner-grow-slow" or "spinner-blur-slow" (FontAwesome classes)
      */
     protected String getIconSpecialEffectCss() {
-        return "spinner-fade-slow";
+        return "spinner-fade-fast";
     }
 
     protected @Nullable String getTitleCssClass() {
@@ -398,7 +397,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             return;
         }
 
-        TaskOperationUtils.runNowPerformed(ObjectTypeUtil.getOids(Collections.singletonList(taskObject)), pageBase);
+        TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
 
         timerBehavior.restart(target);
         if (target != null) {

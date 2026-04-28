@@ -201,9 +201,9 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         if (isTile) {
             switch (value.getStatus()) {
                 case DELETED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger border-large-left"));
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger"));
                 case ADDED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success border-large-left"));
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success"));
                 default -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0"));
             }
             return;
@@ -267,7 +267,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(AttributeAppender.replace("class",
-                "text-nowrap btn btn-primary rounded text-nowrap ml-2"));
+                "text-nowrap btn btn-outline-primary text-nowrap ml-2"));
         return newObjectButton;
     }
 
@@ -586,18 +586,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return List.of(generateButton, showSuggestionsButton);
     }
 
-    protected IModel<ConfirmationWithOptionsDto<DataAccessPermission>> buildSmartPermissionRecordDto() {
-        final ConfirmationWithOptionsDto<DataAccessPermission> confirmationWithOptionsDto =
-                ConfirmationWithOptionsDto.<DataAccessPermission>builder()
-                        .confirmationTitle(createStringResource("SmartSuggestConfirmationPanel.title"))
-                        .confirmationSubtitle(createStringResource("SmartSuggestConfirmationPanel.subtitle"))
-                        .confirmationOptionsTitle(createStringResource("SmartSuggestConfirmationPanel.request.component.title"))
-                        .confirmationInfoMessage(createStringResource("SmartSuggestConfirmationPanel.infoMessage"))
-                        .confirmationOptions(Collections.emptyList())
-                        .build();
-        return () -> confirmationWithOptionsDto;
-    }
-
     @NotNull
     protected ToggleCheckBoxPanel createToggleSuggestionButton(String idButton, IModel<Boolean> switchToggleModel) {
         return createToggleSuggestionVisibilityButton(getPageBase(), idButton, switchToggleModel,
@@ -761,7 +749,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     @Override
     protected String getAdditionalHeaderContainerCssClasses() {
-        return isTileViewVisible() ? "border-0 p-0" : "";
+        return isTileViewVisible() ? "border-0 p-0" : "card-header";
     }
 
     @Override

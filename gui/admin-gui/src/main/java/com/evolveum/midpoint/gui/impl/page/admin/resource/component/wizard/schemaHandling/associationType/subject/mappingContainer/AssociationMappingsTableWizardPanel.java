@@ -6,6 +6,20 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer;
 
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -17,7 +31,9 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceNavigationWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
@@ -36,20 +52,6 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 @PanelType(name = "rw-association-mappings")
 @PanelInstance(identifier = "rw-association-inbounds",
@@ -259,6 +261,10 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
                 panelType);
     }
 
+    private ResourceType getResourceTypeObject() {
+        return getAssignmentHolderDetailsModel().getObjectType();
+    }
+
     private ITab createInboundTableTab() {
         return new IconPanelTab(
                 getPageBase().createStringResource("AssociationMappingsTableWizardPanel.inbound")) {
@@ -266,7 +272,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new AssociationAttributeMappingsTable<>(panelId, Model.of(MappingDirection.INBOUND),
-                        Model.of(false), inboundEvalModel(), null) {
+                        Model.of(false), inboundEvalModel(), getResourceTypeObject().getOid()) {
 
                     @Override
                     protected ResourceType getResourceType() {
@@ -305,7 +311,6 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
         };
     }
 
-
     protected void creatEditMainConfigurationButton(@NotNull RepeatingView repeatingView) {
         AjaxIconButton newObjectButton = new AjaxIconButton(repeatingView.newChildId(),
                 Model.of("fa fa-cog"),
@@ -334,7 +339,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new AssociationAttributeMappingsTable<>(panelId, Model.of(MappingDirection.OUTBOUND),
-                        Model.of(false), outboundEvalModel(), null) {
+                        Model.of(false), outboundEvalModel(), getResourceTypeObject().getOid()) {
 
                     @Override
                     protected ResourceType getResourceType() {
@@ -394,6 +399,11 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-       //TBD
+        //TBD
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-12 p-0";
     }
 }

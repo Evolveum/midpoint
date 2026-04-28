@@ -7,39 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
-import com.evolveum.midpoint.gui.api.component.Toggle;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectContainerTileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CardWithTablePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.schema.component.PrismItemDefinitionsTable;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.RadioColumn;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeObjectClassSizeEstimationType;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
+import java.io.Serial;
+import java.util.*;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -53,16 +32,43 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.io.Serial;
-import java.util.*;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeObjectClassSizeEstimationType;
+import com.evolveum.midpoint.gui.api.component.Toggle;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectContainerTileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CardWithTablePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectClassStatisticsActions;
+import com.evolveum.midpoint.gui.impl.page.admin.schema.component.PrismItemDefinitionsTable;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.RadioColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexTypeDefinitionType>> extends SingleSelectContainerTileTablePanel<ComplexTypeDefinitionType> {
 
@@ -133,11 +139,6 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     }
 
     @Override
-    protected boolean isFullTextSearchEnabled() {
-        return true;
-    }
-
-    @Override
     public Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
         return super.getSearchOptions();
     }
@@ -162,6 +163,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         tiles.setOutputMarkupId(true);
 
         RadioGroup<PrismContainerValueWrapper<ComplexTypeDefinitionType>> radioGroup = buildRadioGroup(ID_TILES_RADIO);
+        radioGroup.add(AttributeAppender.append("style", "margin:-0.5rem;"));
         radioGroup.add(tiles);
 
         Form<Void> form = new Form<>(ID_TILES_RADIO_FORM);
@@ -442,40 +444,58 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("")) {
+        columns.add(createLinkStyleActionsColumn(getPageBase(), createInlineMenu()));
+        return columns;
+    }
 
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
+    protected List<InlineMenuItem> createInlineMenu() {
+        List<InlineMenuItem> inlineMenu = new ArrayList<>();
+        inlineMenu.add(createViewStatisticsInlineMenuButton());
+        inlineMenu.add(createStatisticsInlineMenuAction());
+        return inlineMenu;
+    }
 
-            @Override
-            public void populateItem(
-                    Item<ICellPopulator<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> item,
-                    String componentId,
-                    IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> rowModel) {
-
-                AjaxIconButton viewSchemaLink = new AjaxIconButton(componentId, Model.of("fa fa-eye"),
-                        createStringResource("SuggestTilePanel.view.schema")) {
+    protected InlineMenuItem createViewStatisticsInlineMenuButton() {
+        return InlineMenuItemBuilder.create()
+                .headerMenuItem(false)
+                .menuLinkVisible(false)
+                .labelVisible(true)
+                .label(createStringResource("SuggestTilePanel.view.schema"))
+                .icon("fa fa-eye")
+                .action(new ColumnMenuAction<PrismContainerValueWrapper<ComplexTypeDefinitionType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        displaySchemaViewTablePopup(target, rowModel);
+                        displaySchemaViewTablePopup(target, getRowModel());
                     }
-                };
-                viewSchemaLink.setOutputMarkupId(true);
-                viewSchemaLink.add(AttributeModifier.append("class", "btn btn-link"));
-                viewSchemaLink.showTitleAsLabel(true);
-                item.add(viewSchemaLink);
+                })
+                .additionalCssClass("btn btn-link")
+                .buildButtonMenu();
+    }
 
-            }
-
-            @Override
-            public String getCssClass() {
-                return "text-right";
-            }
-        });
-
-        return columns;
+    protected InlineMenuItem createStatisticsInlineMenuAction() {
+        return InlineMenuItemBuilder.create()
+                .icon("fa-solid fa-chart-bar")
+                .headerMenuItem(false)
+                .label(createStringResource("SmartObjectClassPanel.statistics.title"))
+                .action(new ColumnMenuAction<PrismContainerValueWrapper<ComplexTypeDefinitionType>>() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null
+                                || getRowModel().getObject() == null
+                                || getRowModel().getObject().getRealValue() == null) {
+                            return;
+                        }
+                        PrismContainerValueWrapper<ComplexTypeDefinitionType> object = getRowModel().getObject();
+                        ObjectClassStatisticsActions.handleClick(
+                                target,
+                                getPageBase(),
+                                getPageBase().getSmartIntegrationService(),
+                                resourceOid,
+                                object.getRealValue().getName(),
+                                false);
+                    }
+                })
+                .buildInlineMenu();
     }
 
     @Override
@@ -495,7 +515,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     protected String getTileCssClasses() {
-        return "col-12 col-sm-12 col-md-6 col-lg-4 p-2";
+        return "col-12 col-sm-12 col-md-12 col-lg-6 col-xl-4 p-2";
     }
 
     @Override

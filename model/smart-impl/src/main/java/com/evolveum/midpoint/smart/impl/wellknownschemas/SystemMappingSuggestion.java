@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.smart.impl.wellknownschemas;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
@@ -25,13 +27,20 @@ public record SystemMappingSuggestion(
         MappingStrengthType strength) {
 
     /**
+     * Returns a single-segment ItemPath for a shadow attribute in the ri: namespace.
+     */
+    public static ItemPath riAttr(String localName) {
+        return ItemPath.create(ItemName.from(SchemaConstants.NS_RI, localName));
+    }
+
+    /**
      * Creates a simple as-is mapping suggestion without any script transformation.
      */
     public static SystemMappingSuggestion createAsIsSuggestion(
             String shadowAttrName,
             ItemPath focusPropertyPath) {
         return new SystemMappingSuggestion(
-                ItemPath.create(ShadowType.F_ATTRIBUTES, shadowAttrName),
+                ItemPath.create(ShadowType.F_ATTRIBUTES, ItemName.from(SchemaConstants.NS_RI, shadowAttrName)),
                 focusPropertyPath,
                 null,
                 MappingStrengthType.STRONG);
@@ -45,7 +54,7 @@ public record SystemMappingSuggestion(
             ItemPath focusPropertyPath,
             MappingStrengthType strength) {
         return new SystemMappingSuggestion(
-                ItemPath.create(ShadowType.F_ATTRIBUTES, shadowAttrName),
+                ItemPath.create(ShadowType.F_ATTRIBUTES, ItemName.from(SchemaConstants.NS_RI, shadowAttrName)),
                 focusPropertyPath,
                 null,
                 strength);
@@ -66,7 +75,7 @@ public record SystemMappingSuggestion(
                         new ObjectFactory().createScript(
                                 new ScriptExpressionEvaluatorType().code(script)));
         return new SystemMappingSuggestion(
-                ItemPath.create(ShadowType.F_ATTRIBUTES, shadowAttrName),
+                ItemPath.create(ShadowType.F_ATTRIBUTES, ItemName.from(SchemaConstants.NS_RI, shadowAttrName)),
                 focusPropertyPath,
                 expression,
                 strength);

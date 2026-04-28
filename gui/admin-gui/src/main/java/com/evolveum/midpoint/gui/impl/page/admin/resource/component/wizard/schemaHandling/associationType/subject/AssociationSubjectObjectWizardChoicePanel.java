@@ -6,16 +6,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject;
 
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
-
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AssociationSubjectObjectWizardChoicePanel
         extends ResourceWizardChoicePanel<AssociationSubjectObjectWizardChoicePanel.AssociationSubjectObjectPreviewTileType> {
@@ -89,5 +89,10 @@ public abstract class AssociationSubjectObjectWizardChoicePanel
     @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("AssociationSubjectWizardChoicePanel.text");
+    }
+
+    @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
     }
 }

@@ -4,12 +4,11 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
@@ -19,7 +18,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -30,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadTask;
+
 /**
  * Utility class encapsulating the UI workflow for loading and regenerating
  * Smart Integration focus object statistics (e.g. UserType).
@@ -38,7 +38,6 @@ public final class FocusStatisticsActions {
 
     private static final String OPERATION_GET_FOCUS_STATISTICS = "getFocusObjectStatistics";
     private static final String OPERATION_REGENERATE_FOCUS_STATISTICS = "regenerateFocusObjectStatistics";
-    private static final String OP_LOAD_TASK = "loadTask";
 
     private FocusStatisticsActions() {
     }
@@ -183,14 +182,5 @@ public final class FocusStatisticsActions {
         } finally {
             task.getResult().computeStatusIfUnknown();
         }
-    }
-
-    private static @Nullable TaskType loadTask(@NotNull PageBase pageBase, @NotNull String taskOid) {
-        Task task = pageBase.createSimpleTask(OP_LOAD_TASK);
-
-        PrismObject<TaskType> taskObject = WebModelServiceUtils.loadObject(
-                TaskType.class, taskOid, null, true, pageBase, task, task.getResult());
-
-        return taskObject != null ? taskObject.asObjectable() : null;
     }
 }

@@ -6,13 +6,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.web.session.ResourceWizardStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.web.session.ResourceWizardStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Represents UI state of tiles in the Schema Handling wizard.
@@ -24,7 +25,7 @@ public enum ResourceGuideSchemaHandlingWizardTileState {
     NORMAL(null),
 
     RECOMMENDED(new BadgeSpec(
-            "badge bg-light text-primary border border-primary",
+            "badge badge-primary badge-opaque",
             "",
             "ResourceWizard.recommended")),
 

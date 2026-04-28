@@ -39,6 +39,7 @@
 
 @import "form-validation";
 @import "smart-int";
+@import "con-gen";
 
 body.custom-hold-transition {
   .content-wrapper,
@@ -2602,4 +2603,36 @@ footer.main-footer a {
   > .body {
     @extend .p-3;
   }
+}
+
+//Wizard stepper button navigation scaling
+.wizard-actions-strip {
+  .wizard-actions-container {
+    flex-shrink: 1;
+    flex-grow: 0;
+
+    &:first-child {
+      flex-grow: 1;
+    }
+
+    &:only-child {
+      flex-grow: 1;
+    }
+    &:last-child, &:only-child {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+  &.only-child-centered .wizard-actions-container {
+    &:only-child {
+      display: flex;
+      justify-content: center;
+    }
+  }
+  &.only-child-left .wizard-actions-container {
+      &:only-child {
+        display: flex;
+        justify-content: left;
+      }
+    }
 }

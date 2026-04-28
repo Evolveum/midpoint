@@ -7,14 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectClassStatisticsButton;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,10 +22,18 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serial;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectClassStatisticsActions;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexTypeDefinitionType>>
         extends TemplateTilePanel<C, SmartObjectClassTileModel<C>> {
@@ -40,7 +46,7 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
     private static final String ID_COUNT = "count";
     private static final String ID_VIEW_SCHEMA_LINK = "viewSchemaLink";
     private static final String ID_SELECT_CHECKBOX = "selectCheckbox";
-    private static final String ID_STATISTICS_BUTTON = "statisticsButton";
+    private static final String ID_ACTIONS = "actions";
 
     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel;
 
@@ -66,7 +72,7 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
         initCount();
         initViewSchemaLink();
         initSelectRadio();
-        initStatisticsButton();
+        initActionsDropdownPanel();
     }
 
     @Override
@@ -123,11 +129,52 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
         add(viewSchemaLink);
     }
 
-    private void initStatisticsButton() {
-        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_STATISTICS_BUTTON,
-                () -> getModelObject().getObjectClassName(), getModelObject().getResourceOid());
-        statisticsButton.setOutputMarkupId(true);
-        add(statisticsButton);
+    protected InlineMenuItem createStatisticsInlineMenuAction() {
+        return InlineMenuItemBuilder.create()
+                .icon("fa-solid fa-chart-bar")
+                .label(createStringResource("SmartObjectClassPanel.statistics.title"))
+                .action(new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ObjectClassStatisticsActions.handleClick(
+                                target,
+                                getPageBase(),
+                                getPageBase().getSmartIntegrationService(),
+                                getModelObject().getResourceOid(),
+                                getModelObject().getObjectClassName(),
+                                false);
+                    }
+                })
+                .buildInlineMenu();
+    }
+
+    private void initActionsDropdownPanel() {
+        List<InlineMenuItem> menuItems = new ArrayList<>();
+        menuItems.add(createStatisticsInlineMenuAction());
+
+        DropdownButtonPanel inlineMenu = new DropdownButtonPanel(
+                ID_ACTIONS,
+                new DropdownButtonDto(null, "fa fa-ellipsis-h", null, menuItems)) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected @NotNull String getSpecialButtonClass() {
+                return "btn-tool m-0";
+            }
+
+            @Override
+            protected boolean hasToggleIcon() {
+                return false;
+            }
+
+            @Override
+            protected boolean showIcon() {
+                return true;
+            }
+        };
+
+        add(inlineMenu);
     }
 
     private void initDefaultCssStyle() {
@@ -188,6 +235,6 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
 
     protected String getDefaultTileCss() {
         return "simple-tile selectable clickable-by-enter tile-panel d-flex flex-column align-items-center "
-                + "rounded p-3 justify-content-center";
+                + "rounded p-4 justify-content-center";
     }
 }

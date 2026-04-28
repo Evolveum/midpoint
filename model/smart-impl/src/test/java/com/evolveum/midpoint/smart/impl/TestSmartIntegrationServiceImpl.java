@@ -579,7 +579,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, null, null, task, result);
 
         then("there is at least one suggested object type");
         assertSuccess(result);
@@ -625,7 +625,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, null, null, task, result);
 
         then("there is at least one suggested object type");
         assertSuccess(result);
@@ -696,7 +696,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types with invalid filter");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, new ShadowObjectClassStatisticsType(), task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, new ShadowObjectClassStatisticsType(), null, null, task, result);
 
         then("there is at least one suggestion with non-empty filter");
         assertSuccess(result);
@@ -743,7 +743,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
                 RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME,
-                new ShadowObjectClassStatisticsType(), task, result);
+                new ShadowObjectClassStatisticsType(), null, null, task, result);
 
         then("validation error is handled and partial result is returned");
         assertSuccess(result);
@@ -787,7 +787,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, null, null, task, result);
 
         then("suggested types are correct");
         assertSuccess(result);
@@ -815,22 +815,18 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         Set<String> attributeNames = statistics.getAttribute().stream()
                 .map(attr -> attr.getRef().toString())
                 .collect(Collectors.toSet());
-        // Only attributes with repeating values (count ≥ 2) are included
-        assertThat(attributeNames).containsExactlyInAnyOrder(
-                s(Account.AttributeNames.PERSONAL_NUMBER.q()),
-                s(Account.AttributeNames.TYPE.q()),
-                s(Account.AttributeNames.STATUS.q())
-        );
-        assertThat(attributeNames).doesNotContain(
+        // All defined attributes are included, even those with no values
+        assertThat(attributeNames).contains(
                 s(ICFS_NAME),
                 s(ICFS_UID),
+                s(Account.AttributeNames.PERSONAL_NUMBER.q()),
+                s(Account.AttributeNames.TYPE.q()),
+                s(Account.AttributeNames.STATUS.q()),
                 s(Account.AttributeNames.FULLNAME.q()),
                 s(Account.AttributeNames.EMAIL.q()),
-                s(Account.AttributeNames.LAST_LOGIN.q()),
-                s(Account.AttributeNames.DESCRIPTION.q()),
-                s(Account.AttributeNames.PHONE.q()),       // all unique values
-                s(Account.AttributeNames.CREATED.q()),     // only 1 value (count=1)
-                s(Account.AttributeNames.DEPARTMENT.q())   // all unique values
+                s(Account.AttributeNames.PHONE.q()),
+                s(Account.AttributeNames.CREATED.q()),
+                s(Account.AttributeNames.DEPARTMENT.q())
         );
 
         var personalNumberAttribute = statistics.getAttribute().stream()
@@ -903,41 +899,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         return true;
     }
 
-    /** Tests the accounts statistics computer after adding more accounts, exceeding percentage limit for some attributes. */
-    @Test
-    public void test210ComputeAccountStatisticsExceedingTopNLimit() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        when("additional accounts are created, exceeding the percentage limit for unique attribute values");
-        addDummyAccountsExceedingLimit();
-
-        when("computing statistics for accounts");
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        then("the statistics are OK, value stats for particular attributes are eliminated");
-        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
-        assertThat(statistics).isNotNull();
-        assertThat(statistics.getAttribute()).isNotEmpty();
-        assertThat(statistics.getSize()).isEqualTo(105);
-        for (var attribute : statistics.getAttribute()) {
-            // All attributes must have either value counts or patterns (noise filtered)
-            assertThat(attribute.getValueCount().isEmpty() && attribute.getValuePatternCount().isEmpty()).isFalse();
-            if (attribute.getMissingValueCount() < 105) {
-                assertThat(attribute.getUniqueValueCount()).isGreaterThan(0);
-            }
-            assertThat(attribute.getValueCount().size()).isLessThanOrEqualTo(30);
-            if (!attribute.getValueCount().isEmpty()) {
-                assertThat(isSortedDesc(attribute.getValueCount(), ShadowAttributeValueCountType::getCount)).isTrue();
-            }
-        }
-        // Attributes with all unique values (name, uid) are filtered out as noise
-        Set<String> attributeNames = statistics.getAttribute().stream()
-                .map(attr -> attr.getRef().toString())
-                .collect(Collectors.toSet());
-        assertThat(attributeNames).doesNotContain(s(ICFS_NAME), s(ICFS_UID));
-    }
-
     @Test
     public void test220ComputeAffixesStatistics() throws Exception {
         var task = getTestTask();
@@ -954,17 +915,12 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(statistics).isNotNull();
         assertThat(statistics.getAttribute()).isNotEmpty();
 
-        // All attributes must have either value counts or patterns (noise filtered)
-        for (var attribute : statistics.getAttribute()) {
-            assertThat(attribute.getValueCount().isEmpty() && attribute.getValuePatternCount().isEmpty()).isFalse();
-        }
-
         // PersonalNumber should have patterns detected
         var personalNumberAttr = statistics.getAttribute().stream()
                 .filter(attribute -> attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q())))
                 .findFirst().orElseThrow();
         assertThat(personalNumberAttr.getValuePatternCount()).isNotEmpty();
-        assertThat(personalNumberAttr.getValuePatternCount().size()).isEqualTo(9);
+        assertThat(personalNumberAttr.getValuePatternCount().size()).isEqualTo(20);
         for (ShadowAttributeValuePatternCountType patternCount : personalNumberAttr.getValuePatternCount()) {
             assertThat(patternCount.getValue()).isNotEmpty();
             assertThat(patternCount.getType()).isNotNull();

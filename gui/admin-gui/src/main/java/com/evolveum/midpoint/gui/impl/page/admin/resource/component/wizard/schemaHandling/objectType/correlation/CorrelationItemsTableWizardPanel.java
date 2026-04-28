@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createMappingsValueIfRequired;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.collectRequiredResourceAttributeDefs;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.isSuggestionExists;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadCorrelationTypeSuggestion;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestionNew;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
@@ -21,6 +19,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,6 +90,17 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
     private SerializableConsumer<AjaxRequestTarget> restartTime;
+
+    LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
+        @Override
+        protected @NotNull SmartGeneratingAlertDto load() {
+            if (!Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
+                return new SmartGeneratingAlertDto(null, switchToggleModel, getPageBase());
+            }
+
+            return new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase());
+        }
+    };
 
     public CorrelationItemsTableWizardPanel(
             String id,
@@ -169,6 +179,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
             @Override
             public void refreshAndDetach(AjaxRequestTarget target) {
+                suggestionModel.detach();
                 super.refreshAndDetach(target);
 
                 if (getFeedback().hasErrorMessage()) {
@@ -308,8 +319,15 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
             String resourceOid,
             @NotNull IModel<Boolean> switchToggleModel) {
-        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
-                () -> new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase())) {
+
+        LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
+            @Override
+            protected @NotNull SmartGeneratingAlertDto load() {
+                return new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase());
+            }
+        };
+
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
@@ -621,8 +639,21 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         // override in case of simulation result panel is needed
     }
 
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-12";
+    }
+
     protected boolean isAssociationView() {
         return false;
     }
 
+    @Override
+    protected String getExitButtonCssClass() {
+        return "";
+    }
+
+    protected IModel<Boolean> getSwitchToggleModel(){
+        return switchToggleModel;
+    }
 }

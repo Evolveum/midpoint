@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate oid="11111111-1111-1111-1111-111111111111"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:t10834="http://midpoint.evolveum.com/xml/ns/test/mql-ticket-10834">
+    <name>object-template-user-service-mql-ticket-10834</name>
+    <mapping>
+        <name>Add initial service owner</name>
+        <trace>true</trace>
+        <strength>strong</strength>
+        <source>
+            <path>$focus/name</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:ServiceType</targetType>
+                <filter>
+                    <q:text>
+                        extension/initialOwnerName exists and extension/initialOwnerName = ```
+                            log.info("Checking Add initial service owner: " + name);
+                            return name;
+                        ```
+                    </q:text>
+                </filter>
+                <assignmentProperties>
+                    <relation>owner</relation>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code>name != null</code>
+            </script>
+        </condition>
+    </mapping>
+</objectTemplate>

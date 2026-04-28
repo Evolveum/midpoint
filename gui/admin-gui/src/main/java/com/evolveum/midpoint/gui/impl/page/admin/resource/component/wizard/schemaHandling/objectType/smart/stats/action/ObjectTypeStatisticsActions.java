@@ -4,13 +4,12 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
@@ -23,14 +22,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadTask;
 
 /**
  * Utility class encapsulating the UI workflow for loading and regenerating
@@ -46,7 +45,6 @@ public final class ObjectTypeStatisticsActions {
 
     private static final String OPERATION_GET_STATISTICS = "getObjectClassStatistics";
     private static final String OPERATION_REGENERATE_STATISTICS = "regenerateObjectClassStatistics";
-    private static final String OP_LOAD_TASK = "loadTask";
 
     private ObjectTypeStatisticsActions() {
     }
@@ -186,14 +184,5 @@ public final class ObjectTypeStatisticsActions {
         } finally {
             task.getResult().computeStatusIfUnknown();
         }
-    }
-
-    private static @Nullable TaskType loadTask(@NotNull PageBase pageBase, @NotNull String taskOid) {
-        Task task = pageBase.createSimpleTask(OP_LOAD_TASK);
-
-        PrismObject<TaskType> taskObject = WebModelServiceUtils.loadObject(
-                TaskType.class, taskOid, null, true, pageBase, task, task.getResult());
-
-        return taskObject != null ? taskObject.asObjectable() : null;
     }
 }

@@ -6,11 +6,26 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -19,34 +34,18 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import org.apache.wicket.model.Model;
 
 /**
  * @author lskublik
@@ -62,6 +61,8 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
     private static final String PANEL_TYPE = "cdw-endpoint-path";
 
     public static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "restTestEndpoint");
+
+    private PrismContainerWrapper<? extends Containerable> containerWrapper;
 
     public EndpointConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -90,6 +91,12 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
 
     @Override
     protected void onBeforeRender() {
+        PrismContainerWrapper<?> wrapper = getContainerFormModel().getObject();
+        if (containerWrapper != null && containerWrapper != wrapper) {
+            initLayout();
+        }
+        containerWrapper = wrapper;
+
         super.onBeforeRender();
         ((VerticalFormPrismContainerPanel)getVerticalForm().getSingleContainerPanel().getContainer().get("1"))
                 .getContainer().add(AttributeAppender.remove("class"));
@@ -98,13 +105,13 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
     @Override
     protected void initLayout() {
 //        getTopLevelContainer().add(AttributeAppender.replace("class", "d-flex flex-column col-9 mt-2"));
-        getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getTextLabel().add(AttributeAppender.replace("class", "mb-2 col-12 gen-step-title"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
 
-                ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(this::checkMandatory)
                 .build();
@@ -141,7 +148,7 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
         };
         panel.setOutputMarkupId(true);
         panel.add(AttributeAppender.replace("class", "col-12"));
-        add(panel);
+        addOrReplace(panel);
     }
 
     protected String getPanelType() {
@@ -192,7 +199,7 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
 
     @Override
     public String appendCssToWizard() {
-        return "col-10";
+        return "col-12 col-xl-10 col-xxl-8";
     }
 
     @Override
@@ -237,5 +244,10 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
     public boolean isCompleted() {
         return ConnectorDevelopmentWizardUtil.existTestingResourcePropertyValue(
                 getDetailsModel(), getPanelType(), PROPERTY_ITEM_NAME);
+    }
+
+    @Override
+    protected String getSubTextContainerCssClass() {
+        return "text-secondary col-12 pb-4";
     }
 }

@@ -8,8 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -23,9 +21,9 @@ import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -177,4 +175,13 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
         return createStringResource("PageRoleAnalysisSession.wizard.step.choice.analysis.category.subText");
     }
 
+    @Override
+    protected @NotNull String getBackButtonCssClass() {
+        return "btn btn-outline-primary";
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
+    }
 }

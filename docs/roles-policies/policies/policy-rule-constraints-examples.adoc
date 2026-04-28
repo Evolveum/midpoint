@@ -191,7 +191,65 @@ Refer to xref:/midpoint/reference/roles-policies/policies/policy-rules/#policy_c
 ----
 
 == modification
-.Example
+
+The `modification` constraint triggers when one of the following operations is executed:
+
+* `add` - A new object is being added, i.e., created in midPoint.
+* `modify` - An existing object is being modified in midPoint.
+* `delete` - An existing object is being deleted from midPoint.
+
+If you specify more than one operation, the constraint will trigger if any of the specified operations is executed.
+If you do not specify an operation, the constraint will trigger for all operations.
+
+You can narrow down the operations using the following elements:
+
+* `item` - Defines which item of the object the operation applies to, irrespective of whether the item is being added, modified, or deleted.
+The constraint triggers for the combination of the operation and the item. +
+For example, if you specify the `add` operation and the `emailAddress` item, the constraint will trigger only if an object with an `emailAddress` item is being added.
+It will not trigger when adding `emailAddress` to an existing object, or when modifying or deleting `emailAddress` of an existing object.
+
++
+[source,xml]
+----
+<modification>
+    <operation>add</operation>
+    <item>emailAddress</item>
+</modification>
+----
+
+* `exactPathMatch` - If set to `true`, items paths to be matched must match exactly.
+For example, if an inducement is specified as an item to be matched, only modifications with and inducement in the path (i.e., the whole inducement that is being added, modified, or deleted) will match. +
+Used only if `item` is set to `modify`.
+For `add` and `delete` operations, `exactPathMatch` is ignored.
+The default value is `false`.
+
+* `specialItem` - A supplement to `item` that specifies special items that cannot be described using a regular item path.
+This is supported for MODIFY deltas only.
+The following values are valid:
+
+** `resourceObjectNamingAttribute` - The naming attribute of the resource object that is being modified.
+** `resourceObjectIdentifier` - A primary or secondary identifier of the resource object that is being modified.
+** `resourceObjectEntitlement` - An entitlement of the resource object that is being modified.
+** `resourceObjectItem` - Any item on the resource object that is being modified.
+
++
+If you define more than one value, all of them have to match.
+
+* `expression` - Expression that is used to determine the result.
+This is evaluated in addition to all other conditions, and it must be `true` for the constraint to trigger.
+
++
+.Expression example
+[source,xml]
+----
+<expression>
+    <script>
+        <code>return true</code>
+    </script>
+</expression>
+----
+
+.Modification example
 [source,xml]
 ----
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

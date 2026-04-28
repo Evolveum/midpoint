@@ -6,6 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.getEnabledCapability;
+
+import java.util.List;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -17,15 +26,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
 /**
  * Represents UI state of tiles in the Resource Object Type wizard.
@@ -36,11 +38,11 @@ public enum ResourceGuideObjectTypeTileState {
 
     NORMAL(null),
     CONFIGURED(new BadgeSpec(
-            "badge bg-light text-success border border-success",
+            "badge badge-success badge-opaque",
             "",
             "ResourceObjectTypeWizardChoicePanel.configured")),
     RECOMMENDED(new BadgeSpec(
-            "badge bg-light text-primary border border-primary",
+            "badge badge-primary badge-opaque",
             "",
             "ResourceObjectTypeWizardChoicePanel.recommended")),
     TEMPORARY_LOCKED(null);
@@ -70,6 +72,7 @@ public enum ResourceGuideObjectTypeTileState {
 
     public static @NotNull ResourceGuideObjectTypeTileState computeState(
             @NotNull ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType tile,
+            ResourceType resource,
             @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
             ResourceObjectTypeWizardChoicePanel components) {
 
@@ -127,9 +130,9 @@ public enum ResourceGuideObjectTypeTileState {
             }
             case CAPABILITIES, POLICIES -> NORMAL;
 
-            case ACTIVATION -> isActivationEnabled(real) ? NORMAL : TEMPORARY_LOCKED;
+            case ACTIVATION -> isActivationEnabled(resource, real) ? NORMAL : TEMPORARY_LOCKED;
 
-            case CREDENTIALS -> isCredentialsEnabled(real) ? NORMAL : TEMPORARY_LOCKED;
+            case CREDENTIALS -> isCredentialsEnabled(resource, real) ? NORMAL : TEMPORARY_LOCKED;
         };
     }
 
@@ -186,24 +189,14 @@ public enum ResourceGuideObjectTypeTileState {
         }
     }
 
-    private static boolean isActivationEnabled(@NotNull ResourceObjectTypeDefinitionType real) {
-        CapabilityCollectionType caps = real.getConfiguredCapabilities();
-
-        if (caps == null || caps.getActivation() == null) {
-            return true; // default enabled
-        }
-
-        return !Boolean.FALSE.equals(caps.getActivation().isEnabled());
+    private static boolean isActivationEnabled(ResourceType resource, @NotNull ResourceObjectTypeDefinitionType real) {
+        ActivationCapabilityType activationCap = getEnabledCapability(resource, real, ActivationCapabilityType.class);
+        return activationCap != null && Boolean.TRUE.equals(activationCap.isEnabled());
     }
 
-    private static boolean isCredentialsEnabled(@NotNull ResourceObjectTypeDefinitionType real) {
-        CapabilityCollectionType caps = real.getConfiguredCapabilities();
-
-        if (caps == null || caps.getCredentials() == null) {
-            return true; // default enabled
-        }
-
-        return !Boolean.FALSE.equals(caps.getCredentials().isEnabled());
+    private static boolean isCredentialsEnabled(ResourceType resource, @NotNull ResourceObjectTypeDefinitionType real) {
+        CredentialsCapabilityType credentialsCap = getEnabledCapability(resource, real, CredentialsCapabilityType.class);
+        return credentialsCap != null && Boolean.TRUE.equals(credentialsCap.isEnabled());
     }
 
     private static boolean isCorrelationConfigured(@NotNull ResourceObjectTypeDefinitionType real) {
@@ -240,12 +233,12 @@ public enum ResourceGuideObjectTypeTileState {
 
     public static @Nullable String getTooltipKey(
             @NotNull ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType tile,
-            @NotNull ResourceObjectTypeDefinitionType real) {
+            @NotNull ResourceType resource, @NotNull ResourceObjectTypeDefinitionType real) {
         return switch (tile) {
-            case ACTIVATION -> isActivationEnabled(real)
+            case ACTIVATION -> isActivationEnabled(resource, real)
                     ? null
                     : "ResourceObjectTypeWizardChoicePanel.activationLocked";
-            case CREDENTIALS -> isCredentialsEnabled(real)
+            case CREDENTIALS -> isCredentialsEnabled(resource, real)
                     ? null
                     : "ResourceObjectTypeWizardChoicePanel.credentialsLocked";
             default -> null;

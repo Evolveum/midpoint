@@ -119,7 +119,7 @@ public class DropDownChoiceSuggestPanel<T> extends InputPanel implements Seriali
                 () -> dataAccessPermissionButtonHandlers,
                 getPageBase());
 
-        suggestButton.add(AttributeModifier.replace("class", "btn bg-purple"));
+        suggestButton.add(AttributeModifier.replace("class", "btn btn-outline-purple"));
         suggestButton.setOutputMarkupId(true);
         suggestButton.showTitleAsLabel(true);
         suggestContainer.add(suggestButton);

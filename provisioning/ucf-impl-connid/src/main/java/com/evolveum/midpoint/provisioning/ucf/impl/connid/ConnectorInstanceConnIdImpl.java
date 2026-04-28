@@ -24,7 +24,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.result.OperationResultBuilder;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
@@ -68,10 +73,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -110,6 +111,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
     /** MidPoint connector definition bean. */
     @NotNull private final ConnectorType connectorBean;
+
+    /** MidPoint Tracer **/
+    @Nullable private final Tracer tracer;
 
     /**
      * MidPoint connector instance configuration (if this instance is configured).
@@ -175,13 +179,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             @NotNull ConnectorType connectorBean,
             @Nullable ConnectorSchema connectorSchema,
             @NotNull String instanceName,
-            @NotNull String description) {
+            @NotNull String description,
+            @Nullable Tracer tracer) {
         this.connIdConnectorInfo = connIdConnectorInfo;
         this.connectorBean = connectorBean;
         this.connectorSchema = connectorSchema;
         this.connIdObjectConvertor = new ConnIdObjectConvertor(this);
         this.instanceName = instanceName;
         this.description = description;
+        this.tracer = tracer;
     }
 
     public @NotNull String getDescription() {
@@ -560,13 +566,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             SchemaException, ConfigurationException {
 
         // Connector operation cannot create result for itself, so we need to create result for it
-        OperationResult icfResult = parentResult.createMinorSubresult(FACADE_OP_GET_OBJECT);
-        icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
-        icfResult.addParam("uid", uid.getUidValue());
-        icfResult.addArbitraryObjectAsParam("options", options);
-        icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
+        var resultBuilder = parentResult.subresult(FACADE_OP_GET_OBJECT)
+                .setMinor()
+                .addArbitraryObjectAsParam("objectClass", icfObjectClass)
+                .addParam("uid", uid.getUidValue())
+                .addArbitraryObjectAsParam("options", options)
+                .addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+        startTracingIfConfigured(reporter, parentResult, resultBuilder);
+        OperationResult connIdResult = resultBuilder.build();
         InternalMonitor.recordConnectorOperation("getObject");
+
+        // Injection here
         ConnIdOperation operation = recordIcfOperationStart(reporter, ProvisioningOperation.ICF_GET, objectDefinition, uid);
 
         LOGGER.trace("Fetching connector object ObjectClass={}, UID={}, operation id={}, options={}",
@@ -577,17 +587,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             // Invoke the ConnId connector
             co = getConnIdConnectorFacadeRequired().getObject(icfObjectClass, uid, options);
             recordIcfOperationEnd(reporter, operation, null);
-            icfResult.recordSuccess();
+            connIdResult.recordSuccess();
         } catch (Throwable ex) {
             recordIcfOperationEnd(reporter, operation, ex);
             String desc = this.getHumanReadableName() + " while getting object identified by ConnId UID '"+uid.getUidValue()+"'";
-            Throwable midpointEx = processConnIdException(ex, desc, icfResult);
-            icfResult.computeStatus("Add object failed");
+            Throwable midpointEx = processConnIdException(ex, desc, connIdResult);
+            connIdResult.computeStatus("Add object failed");
 
             // Do some kind of acrobatics to do proper throwing of checked
             // exception
             if (midpointEx instanceof CommunicationException communicationException) {
-                icfResult.muteError();
+                connIdResult.muteError();
                 throw communicationException;
             } else if (midpointEx instanceof GenericFrameworkException genericFrameworkException) {
                 throw genericFrameworkException;
@@ -742,14 +752,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
             OperationOptions options = operationOptionsBuilder.build();
 
-            OperationResult connIdResult = result.createSubresult(FACADE_OP_CREATE);
-            connIdResult.addArbitraryObjectAsParam("objectClass", connIdInfo.objectClass());
-            connIdResult.addArbitraryObjectCollectionAsParam("auxiliaryObjectClasses", connIdInfo.auxiliaryObjectClasses());
-            connIdResult.addArbitraryObjectCollectionAsParam("attributes", connIdInfo.attributes());
-            connIdResult.addArbitraryObjectAsParam("options", options);
-            connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            var connIdResultBuilder = result.subresult(FACADE_OP_CREATE)
+                .addArbitraryObjectAsParam("objectClass", connIdInfo.objectClass())
+                .addArbitraryObjectCollectionAsParam("auxiliaryObjectClasses", connIdInfo.auxiliaryObjectClasses())
+                .addArbitraryObjectCollectionAsParam("attributes", connIdInfo.attributes())
+                .addArbitraryObjectAsParam("options", options)
+                .addContext("connector", getConnIdConnectorFacadeRequired().getClass());
 
+            startTracingIfConfigured(ctx, parentResult, connIdResultBuilder);
             // CALL THE ConnId FRAMEWORK
+            OperationResult connIdResult = connIdResultBuilder.build();
+
             InternalMonitor.recordConnectorOperation("create");
             InternalMonitor.recordConnectorModification("create");
             ConnIdOperation operation = recordIcfOperationStart(ctx, ProvisioningOperation.ICF_CREATE, objDef, null);
@@ -904,12 +917,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         Set<AttributeDelta> attributesDelta = converter.getAttributesDeltas();
         if (!attributesDelta.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            connIdResult = result.createSubresult(FACADE_OP_UPDATE_DELTA);
-            connIdResult.addParam("objectClass", objectClassDef.toString());
-            connIdResult.addParam("uid", uid.getUidValue());
-            connIdResult.addParam("attributesDelta", attributesDelta.toString());
-            connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
-            connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            var resultBuilder = result.createSubresult(FACADE_OP_UPDATE_DELTA)
+                    .addParam("objectClass", objectClassDef.toString())
+                    .addParam("uid", uid.getUidValue())
+                    .addParam("attributesDelta", attributesDelta.toString())
+                    .addArbitraryObjectAsParam("options", connIdOptions)
+                    .addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            startTracingIfConfigured(ctx, result, resultBuilder);
+            connIdResult = resultBuilder.build();
 
             InternalMonitor.recordConnectorOperation("update");
             InternalMonitor.recordConnectorModification("update");
@@ -1043,7 +1058,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         LOGGER.trace("converted attributes:\n{}", converter.debugDumpLazily(1));
 
         // Needs three complete try-catch blocks because we need to create
-        // icfResult for each operation
+        // connIdResult for each operation
         // and handle the faults individually
 
         OperationResult connIdResult;
@@ -1051,13 +1066,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         if (!attributesToAdd.isEmpty()) {
 
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            connIdResult = result.createSubresult(FACADE_OP_ADD_ATTRIBUTE_VALUES);
-            connIdResult.addArbitraryObjectAsParam("objectClass", objectClassDef);
-            connIdResult.addParam("uid", uid.getUidValue());
-            connIdResult.addArbitraryObjectAsParam("attributes", attributesToAdd);
-            connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
-            connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
+            var resultBuilder = result.createSubresult(FACADE_OP_ADD_ATTRIBUTE_VALUES)
+                    .addArbitraryObjectAsParam("objectClass", objectClassDef)
+                    .addParam("uid", uid.getUidValue())
+                    .addArbitraryObjectAsParam("attributes", attributesToAdd)
+                    .addArbitraryObjectAsParam("options", connIdOptions)
+                    .addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            startTracingIfConfigured(ctx, result, resultBuilder);
+            connIdResult = resultBuilder.build();
             InternalMonitor.recordConnectorOperation("addAttributeValues");
             InternalMonitor.recordConnectorModification("addAttributeValues");
             @Nullable ConnIdOperation operation =
@@ -1110,13 +1126,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         Set<Attribute> attributesToUpdate = converter.getAttributesToUpdate();
         if (!attributesToUpdate.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            connIdResult = result.createSubresult(FACADE_OP_UPDATE);
-            connIdResult.addArbitraryObjectAsParam("objectClass", objectClassDef);
-            connIdResult.addParam("uid", uid==null?"null":uid.getUidValue());
-            connIdResult.addArbitraryObjectAsParam("attributes", attributesToUpdate);
-            connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
-            connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            var resultBuilder = result.createSubresult(FACADE_OP_UPDATE)
+                    .addArbitraryObjectAsParam("objectClass", objectClassDef)
+                    .addParam("uid", uid==null?"null":uid.getUidValue())
+                    .addArbitraryObjectAsParam("attributes", attributesToUpdate)
+                    .addArbitraryObjectAsParam("options", connIdOptions)
+                    .addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            startTracingIfConfigured(ctx, result, resultBuilder);
 
+            connIdResult = resultBuilder.build();
             InternalMonitor.recordConnectorOperation("update");
             InternalMonitor.recordConnectorModification("update");
             @Nullable ConnIdOperation operation =
@@ -1169,13 +1187,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         if (!attributesToRemove.isEmpty()) {
 
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            connIdResult = result.createSubresult(FACADE_OP_REMOVE_ATTRIBUTE_VALUES);
-            connIdResult.addArbitraryObjectAsParam("objectClass", objectClassDef);
-            connIdResult.addParam("uid", uid.getUidValue());
-            connIdResult.addArbitraryObjectAsParam("attributes", attributesToRemove);
-            connIdResult.addArbitraryObjectAsParam("options", connIdOptions);
-            connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
+            var resultBuilder = result.createSubresult(FACADE_OP_REMOVE_ATTRIBUTE_VALUES)
+                    .addArbitraryObjectAsParam("objectClass", objectClassDef)
+                    .addParam("uid", uid.getUidValue())
+                    .addArbitraryObjectAsParam("attributes", attributesToRemove)
+                    .addArbitraryObjectAsParam("options", connIdOptions)
+                    .addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            startTracingIfConfigured(ctx, result, resultBuilder);
+            connIdResult = resultBuilder.build();
             InternalMonitor.recordConnectorOperation("removeAttributeValues");
             InternalMonitor.recordConnectorModification("removeAttributeValues");
             @Nullable ConnIdOperation operation =
@@ -1343,11 +1362,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             InternalMonitor.recordConnectorModification("delete");
             ConnIdOperation operation = recordIcfOperationStart(ctx, ProvisioningOperation.ICF_DELETE, objectDefinition, uid);
 
-            OperationResult icfResult = result.createSubresult(FACADE_OP_DELETE);
-            icfResult.addArbitraryObjectAsParam("uid", uid);
-            icfResult.addArbitraryObjectAsParam("objectClass", objClass);
-            icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
+            var resultBuilder = result.subresult(FACADE_OP_DELETE)
+                    .addArbitraryObjectAsParam("uid", uid)
+                    .addArbitraryObjectAsParam("objectClass", objClass)
+                    .addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+            startTracingIfConfigured(ctx, result, resultBuilder);
+            OperationResult connIdResult = resultBuilder.build();
             try {
                 LOGGER.trace("Invoking ConnId delete operation: {}", operation);
 
@@ -1358,7 +1378,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
                 recordIcfOperationEnd(ctx, operation, ex);
                 String desc = "%s while deleting object identified by ConnId UID '%s'".formatted(
                         getHumanReadableName(), uid.getUidValue());
-                Throwable midpointEx = processConnIdException(ex, desc, icfResult);
+                Throwable midpointEx = processConnIdException(ex, desc, connIdResult);
                 // Do some kind of acrobatics to do proper throwing of checked exception
                 if (midpointEx instanceof ObjectNotFoundException objectNotFoundException) {
                     throw objectNotFoundException;
@@ -1377,7 +1397,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
                     throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
                 }
             } finally {
-                icfResult.close();
+                connIdResult.close();
             }
         } catch (Throwable t) {
             result.recordException(t);
@@ -1404,9 +1424,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             icfObjectClass = objectClassToConnId(objectDefinition);
         }
 
-        OperationResult icfResult = result.createSubresult(FACADE_OP_SYNC);
-        icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-        icfResult.addArbitraryObjectAsParam("icfObjectClass", icfObjectClass);
+        var resultBuilder = result.subresult(FACADE_OP_SYNC)
+                .addContext("connector", getConnIdConnectorFacadeRequired().getClass())
+                .addArbitraryObjectAsParam("icfObjectClass", icfObjectClass);
+        startTracingIfConfigured(ctx, parentResult, resultBuilder);
+        OperationResult connIdResult = resultBuilder.build();
 
         SyncToken syncToken;
         InternalMonitor.recordConnectorOperation("getLatestSyncToken");
@@ -1415,11 +1437,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         try {
             syncToken = getConnIdConnectorFacadeRequired().getLatestSyncToken(icfObjectClass);
             recordIcfOperationEnd(ctx, operation, null);
-            icfResult.recordSuccess();
-            icfResult.addReturn("syncToken", syncToken==null?null:String.valueOf(syncToken.getValue()));
+            connIdResult.recordSuccess();
+            connIdResult.addReturn("syncToken", syncToken==null?null:String.valueOf(syncToken.getValue()));
         } catch (Throwable ex) {
             recordIcfOperationEnd(ctx, operation, ex);
-            Throwable midpointEx = processConnIdException(ex, this, icfResult);
+            Throwable midpointEx = processConnIdException(ex, this, connIdResult);
             result.computeStatus();
             // Do some kind of acrobatics to do proper throwing of checked
             // exception
@@ -1491,11 +1513,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             AtomicBoolean allChangesFetched = new AtomicBoolean(true);
             UcfFetchChangesResult fetchChangesResult;
 
-            OperationResult connIdResult = result.subresult(FACADE_OP_SYNC)
+            var resultBuilder = result.subresult(FACADE_OP_SYNC)
                     .addContext("connector", getConnIdConnectorFacadeRequired().getClass())
                     .addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass)
                     .addArbitraryObjectAsParam("initialToken", initialToken)
                     .build();
+            startTracingIfConfigured(ctx, result, resultBuilder);
+            OperationResult connIdResult = resultBuilder.build();
             try {
 
                 InternalMonitor.recordConnectorOperation("sync");
@@ -1781,10 +1805,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
         // Connector operation cannot create result for itself, so we need to
         // create result for it
-        OperationResult icfResult = result.createSubresult(FACADE_OP_SEARCH);
-        icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
-        icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-
+        OperationResult connIdResult = result.createSubresult(FACADE_OP_SEARCH);
+        connIdResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
+        connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+        startTracingIfConfigured(ctx, result, connIdResult);
         int retval;
 
         InternalMonitor.recordConnectorOperation("search");
@@ -1817,21 +1841,21 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
                 retval = fetched.getValue() + searchResult.getRemainingPagedResults();
             }
 
-            icfResult.recordSuccess();
+            connIdResult.recordSuccess();
         } catch (IntermediateSchemaException inEx) {
             recordIcfOperationEnd(ctx, operation, inEx);
             var ex = inEx.getSchemaException();
-            icfResult.recordFatalError(ex);
+            connIdResult.recordFatalError(ex);
             result.recordFatalError(ex);
             throw ex;
         } catch (UnsupportedOperationException uoe) {
             recordIcfOperationEnd(ctx, operation, uoe);
-            icfResult.recordFatalError(uoe);
+            connIdResult.recordFatalError(uoe);
             result.recordFatalError(uoe);
             throw uoe;
         } catch (Throwable ex) {
             recordIcfOperationEnd(ctx, operation, ex);
-            Throwable midpointEx = processConnIdException(ex, this, icfResult);
+            Throwable midpointEx = processConnIdException(ex, this, connIdResult);
             result.computeStatus();
             // Do some kind of acrobatics to do proper throwing of checked
             // exception
@@ -1959,15 +1983,16 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         // the connector
         ScriptContext scriptContext = convertToScriptContext(scriptOperation);
 
-        OperationResult icfResult = parentResult.createSubresult(opName);
-        icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+        var resultBuilder = parentResult.subresult(opName)
+                .addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+        startTracingIfConfigured(reporter, parentResult, resultBuilder);
 
+        OperationResult connIdResult = resultBuilder.build();
         ConnIdOperation operation = recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SCRIPT, null);
 
         Object output = null;
 
         try {
-
             LOGGER.trace("Running script ({}): {}", icfOpName, operation);
 
             if (scriptOperation.isConnectorHost()) {
@@ -1981,7 +2006,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             }
             recordIcfOperationEnd(reporter, operation, null);
 
-            icfResult.recordSuccess();
+            connIdResult.recordSuccess();
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Finished running script ({}), script result: {}", icfOpName, PrettyPrinter.prettyPrint(output));
@@ -1993,7 +2018,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
             LOGGER.debug("Finished running script ({}), ERROR: {}", icfOpName, ex.getMessage());
 
-            Throwable midpointEx = processConnIdException(ex, this, icfResult);
+            Throwable midpointEx = processConnIdException(ex, this, connIdResult);
 
             CriticalityType criticality = scriptOperation.getCriticality();
             if (criticality == null || criticality == CriticalityType.FATAL) {
@@ -2016,7 +2041,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
                 }
 
             } else if (criticality == CriticalityType.PARTIAL) {
-                icfResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
+                connIdResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
                 parentResult.computeStatus();
             }
         }
@@ -2055,6 +2080,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             connIdConnectorFacade.dispose();
             connIdConnectorFacade = null;
         }
+    }
+
+    void startTracingIfConfigured(UcfExecutionContext context, OperationResult parentResult, OperationResultBuilder connIdResult) {
+        if (context.getTask().isTracingRequestedFor(TracingRootType.CONNECTOR_OPERATION) && tracer != null) {
+            try {
+                connIdResult.tracingProfile(tracer.compileProfile(context.getTask().getTracingProfile(), parentResult));
+            } catch (SchemaException e) {
+                throw new SystemException("Can not compile tracing profile", e);
+            }
+        }
+
     }
 
     @Contract("!null, _, _, _ -> !null; null, _, _, _ -> null")

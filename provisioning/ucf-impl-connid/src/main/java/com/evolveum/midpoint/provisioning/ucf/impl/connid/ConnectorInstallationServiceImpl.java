@@ -38,7 +38,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 public class ConnectorInstallationServiceImpl implements ConnectorInstallationService {
 
     private static final String TMP_SUFFIX = ".tmp";
-
+    private static final String PREFERRED_DIRECTORY = "connid-connectors";
     //private final WebClient webClient;
 
     private static final Attributes.Name MANIFEST_CONNECTOR_CLASS = new Attributes.Name("ConnectorBundle-ConnectorClass");
@@ -59,10 +59,16 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
     public void init() {
         Configuration config = configuration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
         List<Object> dirs = config.getList("scanDirectory");
-        if (!dirs.isEmpty()) {
+
+        downloadDirectory = dirs.stream().filter( d -> d.toString().contains(PREFERRED_DIRECTORY))
+                .findFirst()
+                .map(Object::toString)
+                .map(File::new)
+                .orElse(null);
+
+        if (downloadDirectory == null && !dirs.isEmpty()) {
             downloadDirectory = new File(dirs.iterator().next().toString());
         }
-
     }
 
     @Override
