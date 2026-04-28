@@ -163,9 +163,9 @@ public abstract class ExportingPanel extends BasePanel<ExportingPanel> implement
     private IModel<List<String>> getWarningMessagesModel() {
         return () -> {
             List<String> messages = new ArrayList<>();
-//            if (exportSizeLimit != null) {
+            if (exportSizeLimit != null) {
                 messages.add(getSizeLimitConfirmationMessage(exportSizeLimit).getObject());
-//            }
+            }
             messages.add("After confirming the export, please wait for the download to begin before performing other actions. This ensures the export is processed correctly.");
             return messages;
         };
