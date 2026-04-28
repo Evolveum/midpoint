@@ -228,13 +228,14 @@
   z-index: 1;
 }
 
-
 .border-ai {
   border-color: #6610f2 !important;
+  border-left-width: 2px !important;
 }
 
 .border-system {
   border-color: #0d6efd !important;
+  border-left-width: 2px !important;
 }
 
 .border-danger.border-large-left::before {

@@ -212,9 +212,7 @@ class MappingsSuggestionOperation {
                 }).thenAccept(aiMapping -> {
                     Operation op = operationReference.get();
                     if (aiMapping != null) {
-                        synchronized (mappingCandidates) {
-                            mappingCandidates.propose(aiMapping);
-                        }
+                        mappingCandidates.propose(aiMapping);
                         mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                     } else {
                         mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
@@ -362,20 +360,6 @@ class MappingsSuggestionOperation {
         } finally {
             state.close(result);
         }
-    }
-
-    private CompletableFuture<AttributeMappingsSuggestionType> suggestMappingAsync(
-            SchemaMatchOneResultType matchPair,
-            ValuesPairSample<?, ?> valuePairsForLLM,
-            ValuesPairSample<?, ?> valuePairsForValidation,
-            OperationResult parentResult) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, parentResult);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
     }
 
     private AttributeMappingsSuggestionType suggestMapping(
@@ -679,6 +663,7 @@ class MappingsSuggestionOperation {
         return MappingEvaluationResult.of(bestExpression, bestExpectedQuality, isSystemProvided);
     }
 
+    @Nullable
     private ExpressionType evaluateAiMappingWithRetry(
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuePairsForLLM,
@@ -699,7 +684,6 @@ class MappingsSuggestionOperation {
                 if (aiAssessment != null && aiAssessment.status() == MappingsQualityAssessor.AssessmentStatus.OK) {
                     return aiExpression;
                 }
-                break;
             } catch (ExpressionEvaluationException | SecurityViolationException e) {
                 if (attempt < retryCount) {
                     errorLog = e.getMessage();

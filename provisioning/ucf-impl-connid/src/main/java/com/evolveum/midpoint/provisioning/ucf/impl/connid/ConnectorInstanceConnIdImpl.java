@@ -917,7 +917,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         Set<AttributeDelta> attributesDelta = converter.getAttributesDeltas();
         if (!attributesDelta.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            var resultBuilder = result.createSubresult(FACADE_OP_UPDATE_DELTA)
+            var resultBuilder = result.subresult(FACADE_OP_UPDATE_DELTA)
                     .addParam("objectClass", objectClassDef.toString())
                     .addParam("uid", uid.getUidValue())
                     .addParam("attributesDelta", attributesDelta.toString())
@@ -1516,8 +1516,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             var resultBuilder = result.subresult(FACADE_OP_SYNC)
                     .addContext("connector", getConnIdConnectorFacadeRequired().getClass())
                     .addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass)
-                    .addArbitraryObjectAsParam("initialToken", initialToken)
-                    .build();
+                    .addArbitraryObjectAsParam("initialToken", initialToken);
             startTracingIfConfigured(ctx, result, resultBuilder);
             OperationResult connIdResult = resultBuilder.build();
             try {
