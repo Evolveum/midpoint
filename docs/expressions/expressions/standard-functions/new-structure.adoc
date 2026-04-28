@@ -1778,8 +1778,6 @@ Returns the given model context wrapped into a lens context.
 * throws:
     ** `SchemaException`
 
-== Principal and channel
-
 == Translation
 
 === translate()
