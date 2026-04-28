@@ -33,7 +33,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -49,7 +48,6 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
     private static final Trace LOGGER = TraceManager.getTrace(Amqp091AsyncUpdateSource.class);
     private static final int DEFAULT_PREFETCH = 10;
     private static final int DEFAULT_NUMBER_OF_THREADS = 10;
-    private static volatile Supplier<ConnectionFactory> connectionFactoryOverride;
 
     @NotNull private final Amqp091SourceType sourceConfiguration;
     @NotNull private final PrismContext prismContext;
@@ -65,12 +63,6 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
         this.connectorInstance = connectorInstance;
         this.connectionHandlingExecutor = createConnectionHandlingExecutor(sourceConfiguration);
         this.connectionFactory = createConnectionFactory(connectionHandlingExecutor);
-    }
-
-    public static AutoCloseable useConnectionFactoryOverrideForTesting(@NotNull Supplier<ConnectionFactory> override) {
-        Supplier<ConnectionFactory> previousOverride = connectionFactoryOverride;
-        connectionFactoryOverride = override;
-        return () -> connectionFactoryOverride = previousOverride;
     }
 
     private enum State {
@@ -290,8 +282,7 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
     @NotNull
     private ConnectionFactory createConnectionFactory(ExecutorService connectionHandlingExecutor) {
         try {
-            ConnectionFactory connectionFactory =
-                    connectionFactoryOverride != null ? connectionFactoryOverride.get() : new ConnectionFactory();
+            ConnectionFactory connectionFactory = new ConnectionFactory();
             connectionFactory.setSharedExecutor(connectionHandlingExecutor);
             connectionFactory.setUri(sourceConfiguration.getUri());
             connectionFactory.setUsername(sourceConfiguration.getUsername());

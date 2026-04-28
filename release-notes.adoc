@@ -197,6 +197,8 @@ Note that production deployments in Windows environments are supported only for 
 
 Following Java platform versions are supported:
 
+* Java 25.
+
 * Java 21.
 This is a *recommended* platform.
 

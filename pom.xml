@@ -253,7 +253,6 @@
         <classgraph.version>4.8.162</classgraph.version>
         <guava.version>32.1.2-jre</guava.version>
         <jcommander.version>1.82</jcommander.version>
-        <rabbitmq-mock.version>1.2.0</rabbitmq-mock.version>
         <!-- name matches property from Boot parent -->
         <artemis.version>2.44.0</artemis.version>
         <asm.version>9.8</asm.version>
@@ -278,6 +277,7 @@
         <owasp-java-html-sanitizer.version>20260102.1</owasp-java-html-sanitizer.version>
         <qrcodegen.version>1.8.0</qrcodegen.version>
         <java-otp.version>1.7.1</java-otp.version>
+        <byte-buddy.version>1.17.8</byte-buddy.version>
     </properties>
 
     <dependencyManagement>
@@ -1489,11 +1489,6 @@
                 <version>${jetty.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.fridujo</groupId>
-                <artifactId>rabbitmq-mock</artifactId>
-                <version>${rabbitmq-mock.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>artemis-server</artifactId>
                 <version>${artemis.version}</version>
@@ -1576,12 +1571,12 @@
             <dependency>
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
-                <version>1.17.8</version>
+                <version>${byte-buddy.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy-agent</artifactId>
-                <version>1.17.8</version>
+                <version>${byte-buddy.version}</version>
             </dependency>
             <dependency>
                 <groupId>jakarta.xml.ws</groupId>
