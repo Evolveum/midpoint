@@ -159,7 +159,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
         if (statusInfo != null && statusInfo.getStatus() != null) {
             SuggestionUiStyle uiStyle =
                     SuggestionUiStyle.from(statusInfo, rowValue);
-            return "border-large-left " + uiStyle.tileClass;
+            return uiStyle.tileClass;
         }
         return "";
     }

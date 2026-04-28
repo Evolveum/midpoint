@@ -24,6 +24,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingPro
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.preview.PreviewMappingPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -158,10 +158,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
                 Component panel = super.createColumnPanel(componentId, rowModel);
                 panel.setOutputMarkupId(true);
 
-                if (rowModel != null
-                        && rowModel.getObject() != null
-                        && rowModel.getObject().getParent() != null
-                        && rowModel.getObject().getParent().getRealValue() instanceof MappingType) {
+                if (isMappingTypeRealValue(rowModel)) {
 
                     //noinspection unchecked
                     PrismContainerValueWrapper<MappingType> mappingWrapper =
@@ -183,6 +180,13 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
                 return panel;
             }
         };
+    }
+
+    private static <IW extends ItemWrapper<?, ?>> boolean isMappingTypeRealValue(IModel<IW> rowModel) {
+        return rowModel != null
+                && rowModel.getObject() != null
+                && rowModel.getObject().getParent() != null
+                && rowModel.getObject().getParent().getRealValue() instanceof MappingType;
     }
 
     private IColumn<PrismContainerValueWrapper<MappingType>, String> createSourceColumn() {
@@ -269,8 +273,22 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
         };
     }
 
-    private IColumn<PrismContainerValueWrapper<MappingType>, String> createLifecycleColumn() {
+    private @NotNull IColumn<PrismContainerValueWrapper<MappingType>, String> createLifecycleColumn() {
         return new LifecycleStateColumn<>(table.getMappingTypeDefinition(), table.getPageBase()) {
+            @Override
+            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                if (isMappingTypeRealValue(rowModel)) {
+                    //noinspection unchecked
+                    PrismContainerValueWrapper<MappingType> mappingWrapper =
+                            (PrismContainerValueWrapper<MappingType>) rowModel.getObject().getParent();
+
+                    if (table.getStatusInfo(mappingWrapper) != null) {
+                        return new EmptyPanel(componentId);
+                    }
+                }
+                return super.createColumnPanel(componentId, rowModel);
+            }
+
             @Override
             public String getCssClass() {
                 return "col-auto";

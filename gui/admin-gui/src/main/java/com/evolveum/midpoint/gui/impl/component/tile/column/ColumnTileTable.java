@@ -104,9 +104,9 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         if (columnValue instanceof PrismContainerValueWrapper<?> pcvw) {
             switch (pcvw.getStatus()) {
                 case DELETED -> tile.add(AttributeModifier.append(
-                        "class", "border border-danger border-large-left" + applyIfSelectedCssClass(item.getValue())));
+                        "class", "border border-danger" + applyIfSelectedCssClass(item.getValue())));
                 case ADDED -> tile.add(AttributeModifier.append(
-                        "class", "border border-success border-large-left" + applyIfSelectedCssClass(item.getValue())));
+                        "class", "border border-success" + applyIfSelectedCssClass(item.getValue())));
                 default -> applyDefaultRowCss(
                         tile,
                         item.getValue(),
@@ -305,7 +305,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
 
     @Override
     protected String getTileCssClasses() {
-        return "col-12 h-100 justify-content-center mb-2 p-0 bg-white";
+        return "col-12 h-100 justify-content-center mb-2 p-0 bg-white rounded";
     }
 
     protected String getTileContainerCssClass() {
@@ -629,7 +629,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
             if (statusInfo != null && statusInfo.getStatus() != null) {
                 SmartIntegrationUtils.SuggestionUiStyle uiStyle =
                         SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, wrapper);
-                tile.add(AttributeModifier.append("class", baseCss + " border-large-left " + uiStyle.tileClass));
+                tile.add(AttributeModifier.append("class", baseCss + " " + uiStyle.tileClass));
             }
         }
     }

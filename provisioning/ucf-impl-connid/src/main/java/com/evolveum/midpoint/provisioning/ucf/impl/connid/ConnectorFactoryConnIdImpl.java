@@ -160,7 +160,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     @Autowired private PrismContext prismContext;
     @Autowired private LocalizationService localizationService;
     private CopyOnWriteArrayList<ConnectorDiscoveryListener> listeners = new CopyOnWriteArrayList<>();
-    @Autowired private Tracer tracer;
+    @Autowired private Optional<Tracer> tracer;
 
     public ConnectorFactoryConnIdImpl() {
     }
@@ -245,7 +245,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
 
         return new ConnectorInstanceConnIdImpl(
-                cinfo, connectorBean, connectorSchema, instanceName, instanceDescription, tracer);
+                cinfo, connectorBean, connectorSchema, instanceName, instanceDescription, tracer.orElse(null));
     }
 
     /**

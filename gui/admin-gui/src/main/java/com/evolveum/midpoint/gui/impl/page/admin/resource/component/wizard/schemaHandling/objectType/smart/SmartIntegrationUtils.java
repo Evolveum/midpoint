@@ -258,7 +258,7 @@ public class SmartIntegrationUtils {
                 "SuggestionUiStyle.inProgress"),
         NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
-        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-purple",
+        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-ai",
                 "SuggestionUiStyle.default"),
         DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system",
                 "SuggestionUiStyle.default");

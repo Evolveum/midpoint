@@ -6,19 +6,17 @@
  */
 package com.evolveum.midpoint.smart.impl.activities.midpointStatisticsComputation;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Activity handler for focus object statistics computation.
@@ -33,6 +31,13 @@ public class FocusObjectStatisticsComputationActivityHandler
         FocusObjectStatisticsComputationActivityHandler> {
 
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+
+    private final FocusObjectStatisticsIterationFactory iterationFactory;
+
+    public FocusObjectStatisticsComputationActivityHandler(
+            FocusObjectStatisticsIterationFactory iterationFactory) {
+        this.iterationFactory = iterationFactory;
+    }
 
     @PostConstruct
     public void register() {
@@ -70,6 +75,6 @@ public class FocusObjectStatisticsComputationActivityHandler
     public AbstractActivityRun<FocusObjectStatisticsComputationWorkDefinition, FocusObjectStatisticsComputationActivityHandler, ?> createActivityRun(
             @NotNull ActivityRunInstantiationContext<FocusObjectStatisticsComputationWorkDefinition, FocusObjectStatisticsComputationActivityHandler> context,
             @NotNull OperationResult result) {
-        return new FocusObjectStatisticsComputationActivityRun(context, "Focus object statistics computation");
+        return new FocusObjectStatisticsComputationActivityRun(context, "Focus object statistics computation", iterationFactory);
     }
 }
