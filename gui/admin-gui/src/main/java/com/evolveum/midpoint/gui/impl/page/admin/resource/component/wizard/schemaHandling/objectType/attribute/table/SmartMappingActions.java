@@ -298,7 +298,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         List<PrismContainerValueWrapper<MappingType>> selectedMappings =
-                                getSelectedMappings();
+                                getAllSelectedItemsWithStatus();
 
                         if (selectedMappings.isEmpty()) {
                             table.getPageBase().warn(table.createStringResource(
