@@ -138,11 +138,11 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         new MyPolicyRuleCounterUpdater(context, task).updateCounters(result);
     }
 
-    public <O extends ObjectType> void enforce(@NotNull LensContext<O> context, OperationResult parentResult)
+    public <O extends ObjectType> void enforce(@NotNull LensContext<O> context, Task task, OperationResult parentResult)
             throws PolicyViolationException, ConfigurationException {
         OperationResult result = parentResult.createMinorSubresult(OP_ENFORCE);
         try {
-            new PolicyRuleEnforcer<>(context)
+            new PolicyRuleEnforcer<>(context, task.getExecutionSupport())
                     .enforce(result);
         } catch (Throwable t) {
             result.recordException(t);

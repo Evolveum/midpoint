@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.TreeNode;
@@ -39,6 +40,8 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     /** Automatically generated identifier that - we hope - uniquely identifies the policy rule. */
     @NotNull PolicyRuleIdentifier getRuleIdentifier();
+
+    ActivityPath getActivityPath();
 
     /**
      * Returns all triggers of given type, stepping down to situation policy rules and composite triggers.

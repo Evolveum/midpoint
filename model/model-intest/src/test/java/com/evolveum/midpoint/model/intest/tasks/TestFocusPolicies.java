@@ -6,18 +6,20 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeMethod;
 
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,13 +27,10 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class TestFocusPolicies extends TestThresholds {
 
@@ -96,13 +95,13 @@ public abstract class TestFocusPolicies extends TestThresholds {
         ruleAddNotificationId = determineInducedRuleId(ROLE_ADD_10_NOTIFICATION.oid, "add-10", initResult);
 
         repoAdd(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION, initResult);
-        ruleModifyCostCenterNotificationId = determineInducedRuleId(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION.oid, "modify-5-costCenter",initResult);
+        ruleModifyCostCenterNotificationId = determineInducedRuleId(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION.oid, "modify-5-costCenter", initResult);
 
         repoAdd(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION, initResult);
-        ruleModifyFullNameNotificationId = determineInducedRuleId(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION.oid,"modify-5-fullName",initResult);
+        ruleModifyFullNameNotificationId = determineInducedRuleId(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION.oid, "modify-5-fullName", initResult);
 
         repoAdd(ROLE_DELETE_5_NOTIFICATION, initResult);
-        ruleDeleteNotificationId = determineInducedRuleId(ROLE_DELETE_5_NOTIFICATION.oid,"delete-5", initResult);
+        ruleDeleteNotificationId = determineInducedRuleId(ROLE_DELETE_5_NOTIFICATION.oid, "delete-5", initResult);
     }
 
     protected String determineInducedRuleId(String roleOid, String policyId, OperationResult result)
@@ -160,18 +159,22 @@ public abstract class TestFocusPolicies extends TestThresholds {
         return transplantRolePolicyForSimulateOrExecuteTask(source, policy -> true);
     }
 
+    protected PolicyActionsType createPolicyActionsReplacement() {
+        return new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType());
+    }
+
     /**
      * Transplant for simulate OR execute task. If task have simulate-execute,
      * please use {@link #transplantRolePolicyForSimulateExecuteTask(TestObject)}.
      */
     protected Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateOrExecuteTask(
-            TestObject<RoleType> source, Function<PolicyRuleType, Boolean> policyMatcher) {
+            TestObject<RoleType> source, Predicate<PolicyRuleType> policyMatcher) {
 
         return task ->
                 transplantRolePolicy(
                         source,
                         policyMatcher,
-                        new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
+                        createPolicyActionsReplacement(),
                         task,
                         ActivityPath.empty());
     }
@@ -186,20 +189,20 @@ public abstract class TestFocusPolicies extends TestThresholds {
      * please use {@link #transplantRolePolicyForSimulateOrExecuteTask(TestObject)}.
      */
     protected Consumer<PrismObject<TaskType>> transplantRolePolicyForSimulateExecuteTask(
-            TestObject<RoleType> source, Function<PolicyRuleType, Boolean> policyMatcher) {
+            TestObject<RoleType> source, Predicate<PolicyRuleType> policyMatcher) {
 
         return task -> {
             transplantRolePolicy(
                     source,
                     policyMatcher,
-                    new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
+                    createPolicyActionsReplacement(),
                     task,
                     ActivityPath.fromId("simulate"));
 
             transplantRolePolicy(
                     source,
                     policyMatcher,
-                    new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
+                    createPolicyActionsReplacement(),
                     task,
                     ActivityPath.fromId("execute"));
         };
@@ -211,12 +214,12 @@ public abstract class TestFocusPolicies extends TestThresholds {
             PrismObject<TaskType> target,
             ActivityPath activityPath) {
 
-        transplantRolePolicy(source, p -> true, actionOverrides,  target, activityPath);
+        transplantRolePolicy(source, p -> true, actionOverrides, target, activityPath);
     }
 
     protected void transplantRolePolicy(
             TestObject<RoleType> source,
-            Function<PolicyRuleType, Boolean> policyMatcher,
+            Predicate<PolicyRuleType> policyMatcher,
             PolicyActionsType actionOverrides,
             PrismObject<TaskType> target,
             ActivityPath activityPath) {
@@ -227,7 +230,7 @@ public abstract class TestFocusPolicies extends TestThresholds {
                 .filter(i -> Objects.equals(2, i.getOrder()))
                 .filter(inducement -> inducement.getPolicyRule() != null)
                 .map(AssignmentType::getPolicyRule)
-                .filter(policy -> policyMatcher == null || policyMatcher.apply(policy))
+                .filter(policy -> policyMatcher == null || policyMatcher.test(policy))
                 .toList();
 
         ActivityDefinitionType def = target.asObjectable().getActivity();

@@ -21,6 +21,8 @@ import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions
 import com.evolveum.midpoint.repo.common.policy.BaseEvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,6 +148,11 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
                 CloneUtil.cloneCloneable(ruleAssignmentPath),
                 originatingAssignment,
                 targetType);
+    }
+
+    @Override
+    public ActivityPath getActivityPath() {
+        return activityPolicyRule != null ? activityPolicyRule.getPath() : null;
     }
 
     @Override

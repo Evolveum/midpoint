@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
 import com.evolveum.midpoint.repo.common.policy.TriggerFilter;
 import com.evolveum.midpoint.schema.config.AbstractPolicyRuleConfigItem;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 
@@ -54,6 +55,11 @@ public class ForeignEvaluatedClockworkPolicyRuleImpl implements ForeignEvaluated
     public static ForeignEvaluatedClockworkPolicyRuleImpl of(
             @NotNull DirectlyEvaluatedClockworkPolicyRuleImpl rule, @NotNull EvaluatedAssignmentImpl<?> newOwner) {
         return new ForeignEvaluatedClockworkPolicyRuleImpl(rule, newOwner);
+    }
+
+    @Override
+    public ActivityPath getActivityPath() {
+        return originalPolicyRule.getActivityPath();
     }
 
     @Override

@@ -211,7 +211,7 @@ public class ClockworkClick<F extends ObjectType> {
     private void processInitialToPrimary(OperationResult result)
             throws PolicyViolationException, ConfigurationException {
         // To mimic operation of the original enforcer hook, we execute the following only in the initial state.
-        beans.policyRuleProcessor.enforce(context, result);
+        beans.policyRuleProcessor.enforce(context, task, result);
 
         switchState(ModelState.PRIMARY);
     }

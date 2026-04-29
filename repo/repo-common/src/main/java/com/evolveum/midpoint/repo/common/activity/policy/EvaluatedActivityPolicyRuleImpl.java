@@ -57,6 +57,7 @@ public class EvaluatedActivityPolicyRuleImpl
     }
 
     /** Activity for which this rule was defined. */
+    @NotNull
     public ActivityPath getActivityPath() {
         return policyRule.getPath();
     }

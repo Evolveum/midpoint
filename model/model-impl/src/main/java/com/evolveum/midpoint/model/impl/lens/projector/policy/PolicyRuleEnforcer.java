@@ -7,8 +7,10 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.isPreviewPolicyRulesEnforcement;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.ABORTED;
 import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.MessageKind.NORMAL;
 import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.extractMessages;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 import java.util.ArrayList;
@@ -17,9 +19,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedAbortException;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedHaltException;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunPolicyException;
 import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.util.*;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -50,12 +61,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 class PolicyRuleEnforcer<O extends ObjectType> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleEnforcer.class);
+
     @NotNull private final LensContext<O> context;
+    /**
+     * Execution support might be null for policies enforced outsize real task execution (transient/lightweight tasks)
+     */
+    private final ExecutionSupport executionSupport;
     @NotNull private final List<LocalizableMessage> messages = new ArrayList<>();
     @NotNull private final List<EvaluatedPolicyRuleType> rulesBeans = new ArrayList<>();
 
-    PolicyRuleEnforcer(@NotNull LensContext<O> context) {
+    PolicyRuleEnforcer(@NotNull LensContext<O> context, ExecutionSupport executionSupport) {
         this.context = context;
+        this.executionSupport = executionSupport;
     }
 
     public void enforce(OperationResult result) throws PolicyViolationException, ConfigurationException {
@@ -156,20 +174,54 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         }
     }
 
+    private ActivityPath getActivityPath(DirectlyEvaluatedClockworkPolicyRule rule) {
+        ActivityPath path = rule.getActivityPath();
+        if (path != null) {
+            return path;
+        }
+
+        if (executionSupport != null) {
+            return executionSupport.getActivityPath();
+        }
+
+        return ActivityPath.empty();
+    }
+
     private void enforceThresholds()
-            throws ThresholdPolicyViolationException {
+            throws PolicyViolationException {
         if (isEnforcementPreviewMode()) {
             return; // preview should be already recorded
         }
         LensFocusContext<O> focusContext = context.getFocusContext();
         if (focusContext != null) {
             for (DirectlyEvaluatedClockworkPolicyRule policyRule : focusContext.getObjectPolicyRules()) {
-                // In theory we could count events also for other kinds of actions (not only SuspendTask)
-                if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
-                    if (policyRule.isOverThreshold()) {
-                        throw new ThresholdPolicyViolationException(
-                                new SingleLocalizableMessage("PolicyRuleEnforces.policyViolationMessage", new Object[] { policyRule.getPolicyRuleBean() }),
-                                "Policy rule violation: " + policyRule.getPolicyRuleBean());
+                if (!policyRule.isOverThreshold()) {
+                    continue;
+                }
+
+                for (PolicyActionConfigItem<?> actionCI : policyRule.getEnabledActions()) {
+                    PolicyActionType action = actionCI.value();
+
+                    String defaultMessage = "Policy rule violation: " + policyRule.getPolicyRuleBean();
+                    LocalizableMessage message =
+                            new SingleLocalizableMessage("PolicyRuleEnforces.policyViolationMessage", new Object[] { policyRule.getPolicyRuleBean() });
+
+                    if (action instanceof SuspendTaskPolicyActionType) {
+                        LOGGER.debug("Suspending task because of policy violation, rule: {}", policyRule);
+                        var cause = new ActivityPolicyBasedHaltException(message, defaultMessage);
+
+                        throw new ThresholdPolicyViolationException(message, defaultMessage, cause);
+                    } else if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {
+                        LOGGER.debug("Aborting activity because of policy violation, rule: {}", policyRule);
+
+                        var activityPath = getActivityPath(policyRule);
+
+                        var abortInfo = new ActivityAbortingInformationType()
+                                .activityPath(activityPath != null ? activityPath.toBean() : null)
+                                .policyAction(action.clone());
+                        var cause = new ActivityPolicyBasedAbortException(message, defaultMessage, abortInfo);
+
+                        throw new ThresholdPolicyViolationException(message,defaultMessage, cause);
                     }
                 }
             }
