@@ -3,16 +3,92 @@
 :page-toc: top
 :page-since: "4.9"
 :experimental:
+:page-keywords: capabilities, object type capabilities, resource capabilities, resource configuration, resource wizard
+:page-description: This page describes the capabilities that can be configured for an object type in midPoint GUI.
 
-Capabilities panel informs you about the supported capabilities for the resource with selected connector and allows to override them.
-Capabilities can be simply _disabled_, e.g. disable operation can be disabled for this resource object type.
-This does not require any change in the connector.
 
-Capabilities can be also _configured_, e.g. for LDAP resources, you can define which account attribute is used to set/indicate the status of the account.
+== Introduction
 
-TIP: Capabilities can be configured also on the resource level, not just for specific object types by navigating to resource's *Details* panel.
+Object type capabilities define what operations and behaviors are supported for a specific object type within a resource.
+They describe the functional contract between midPoint and the resource, determining which actions can be executed (such as read, create, update, delete, or synchronization-related operations) and how those actions behave.
+
+Each capability represents a particular aspect of resource functionality.
+Some can only be turned on/off, while others can be configured to reflect real-world constraints or requirements.
+
+This is a midPoint GUI guide.
+For more technical details about capabilities, see xref:/midpoint/reference/resources/resource-configuration/capabilities/[].
+
+== Capabilities levels
+
+In midPoint, capabilities are defined at the following levels:
+
+* *Resource* - These capabilities apply to all object types within a resource. +
+You can access them by going to [.nowrap]#icon:database[] btn:[Resources]# > [.nowrap]#icon:database[] btn:[All resources]# > _resource_ > [.nowrap]#icon:info[] btn:[Details]#.
+* *Object type* - These capabilities apply only to a specific object type within a resource. +
+You can access them in your resource by going to [.nowrap]#icon:gears[] btn:[Schema handling]# > [.nowrap]#icon:exchange-alt[] btn:[Object types]# > _object type_ > [.nowrap]#icon:atom[] btn:[Capabilities]#.
+
+This two-level structure allows for a flexible and granular configuration of capabilities, enabling you to tailor the behavior of each object type while maintaining a consistent baseline defined at the resource level. +
+For example, you can have a read-only resource in which you have separate object types for external and internal accounts, where the external accounts are read-only, while the internal accounts support all operations.
+In such a scenario, you would disable the update and delete capabilities at the resource level, and then enable them for the internal accounts object type. 
+
+// The resource level capabilities define the upper limit.
+// The object type configuration can refine/restrict the capabilities defined at the resource level, it cannot expand them. +
+// For example, if the resource level capabilities indicate that the resource supports the delete operation, you can disable the delete operation for a specific object type, but you cannot enable it if it is disabled at the resource level.
+
+== Configure capabilities
 
 .Capabilities configuration
 image::step-5-capabilities.png[100%,title=Capabilities configuration]
 
-Click btn:[Save capabilities] when done to return to the previous page from which you started the capabilities editor.
+The capabilities panel informs you about the supported capabilities for the resource/object type with the selected connector, and allows you to override them.
+Capabilities can be simply _disabled_ without requiring any changes in the connector.
+
+While some capabilities can only be enabled/disabled, others can be configured to reflect specific requirements or constraints of the resource.
+These are the capabilities that can be configured:
+
+* *Activation* - Enables the activation capability, i.e., the ability to control the lifecycle state of objects, such as if objects are enabled/disabled, their validity and lockout status. +
+This setting combines also the *Activation status*, *Activation validity from/to*, and *Activation lockout* capabilities, which are only relevant if the activation capability is enabled.
+* *Activation status* - Further defines activation capability by specifying the attribute used to determine the activation status of an account. +
+** *Enabled* - Set to _True_ to enable this capability.
+** *Returned by default* - Set to _True_ to include this attribute in the default set of attributes returned by the resource. +
+See xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/#_attributes_not_returned_by_default[].
+** *Attribute* - Defines the name of the attribute that stores the information about the activation status of an account.
+** *Enable value* - Defines the value of the attribute that indicates that the account is enabled.
+** *Disable value* - Defines the value of the attribute that indicates that the account is disabled.
+** *Ignore attribute* -
+// What is the relationship between Attribute and Ignore attribute?
+* *Activation validity from/to* - When enabled, enables midPoint to use the resource's validity timestamps of individual objects (i.e., map them to `activation/validFrom` and `activation/validTo` properties).
+Typically, this is used to determine if an account is valid at a given point in time, and to automatically disable accounts that are not valid.
+* *Activation lockout* - Facilitates activation lockout management by defining the attribute that indicates whether an account is locked out, and the value that represents the locked-out state. +
+This is used, for example, to provide status for accounts that have been locked after a certain number of failed login attempts.
+// * *References* -
+// * *Credentials* -
+// * *Password* -
+* *Live Sync* - Enables xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization/[live synchronization], i.e., allows you to detect changes almost in real time. +
+By setting *Precise token value* to _True_, you can ensure that the synchronization token value is precise enough to guarantee correct restart of live sync after a change (i.e., a new xref:/midpoint/devel/prism/concepts/deltas/[delta]).
+This may be crucial for certain resources to avoid missing changes because some resources may use, for example, timestamps as synchronization tokens, and so they may not distinguish individual changes if those timestamps are not granular enough.
+Other resources may use appropriate token values but they may not guarantee correct ordering of changes, which may also lead to missing changes during live sync restart.
+* *Read* - Enables reading objects from the resource. +
+Set *Caching only* to _True_ if the resource does not have a native read capability but you want to use the data cached by midPoint as read approximation. +
+Set *Return default attributes* option to _True_ if the resource supports returning a default set of attributes.
+// Why would I do that? Is this a performance optimization?
+* *Update* - Enables updating objects on the resource. +
+** Set *Manual* to _True_ if there is no online connection to the resource, and operations are executed manually by a human operator, i.e., the resource enables you to execute operations asynchronously.
+// Is this done in CSV connectors?
+** Set *Add/Remove attribute values* to _True_ if the resource supports adding and removing individual attribute values..
+// This allows midPoint to optimize update operations by only sending the changes instead of the whole object.
+* *Script* - Enables executing scripts on the connector or resource defined in *Host Type* using a specified *Language*.
+* *Paged search* - Enable paged searches. +
+** You can specify the *Default sort field* that will apply if no sorting is specified by client (i.e., at a higher level).
+** Also, in *Default sort direction*, define if the default sorting will be ascending or descending.
+* *Count objects* - Enables determining the number of objects on the resource without retrieving them. +
+In the *Simulate* dropdown menu, you can choose to simulate this capability using:
+** *Paged search estimate* 
+** *Sequential search*
+// what are these options? Is simulation a workaround for resources that do not support counting objects natively?
+* *Behavior*  -
+// It seems to only have Last login timestamp.
+* *Last login timestamp* - Enables the resource to provide the last login timestamp information. +
+This is useful for determining inactive accounts and for other purposes related to account management and security. +
+This capability is also accessible in the *Behavior* capability.
+
