@@ -360,6 +360,10 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         };
 
         sortToggle.setOutputMarkupId(true);
+        sortToggle.add(new TooltipBehavior());
+        sortToggle.add(AttributeModifier.append("title", () -> sortModeModel.getObject().equals(SortMode.COUNT)
+                ? createStringResource("SmartStatisticsPanel.sortByCount").getObject()
+                : createStringResource("SmartStatisticsPanel.sortAlphabetically").getObject()));
         return sortToggle;
     }
 
