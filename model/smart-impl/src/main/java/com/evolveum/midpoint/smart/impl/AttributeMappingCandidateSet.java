@@ -100,6 +100,12 @@ class AttributeMappingCandidateSet {
      */
     synchronized void proposeSystemMapping(AttributeMappingsSuggestionType suggestion) {
         var mappingContext = MappingContext.extract(suggestion);
+
+        // Deduplicate against existing mappings by target path only
+        if (excludedTargetPaths.contains(mappingContext.targetPath())) {
+            return;
+        }
+
         candidates.add(new Candidate(mappingContext, suggestion));
     }
 
