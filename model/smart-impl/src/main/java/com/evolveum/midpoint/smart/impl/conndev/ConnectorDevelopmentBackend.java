@@ -97,12 +97,17 @@ public abstract class ConnectorDevelopmentBackend {
         if (type.asPrismContainerValue().isEmpty()) {
             return;
         }
-        if (development.getApplication() == null) {
-            var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
-                    .item(ConnectorDevelopmentType.F_APPLICATION).replace(type.clone())
-                    .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
-            beans.modelService.executeChanges(List.of(delta), null, task, result);
-        }
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_APPLICATION_NAME)
+                .replace(type.getApplicationName() != null ? type.getApplicationName().toPolyString() : null)
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_VERSION)
+                .replace(type.getVersion())
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE)
+                .replace(type.getIntegrationType())
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_BASE_API_ENDPOINT)
+                .replace(type.getBaseApiEndpoint())
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
     }
 
