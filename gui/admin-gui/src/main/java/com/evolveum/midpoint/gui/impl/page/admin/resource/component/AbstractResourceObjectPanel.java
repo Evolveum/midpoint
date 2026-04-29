@@ -7,17 +7,16 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import static com.evolveum.midpoint.common.LocalizationTestUtil.getLocalizationService;
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.saveTask;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
@@ -152,18 +151,26 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
         OperationResult result = task.getResult();
 
         PrismObject<TaskType> prismObject = newTask.asPrismObject();
-        PrismObjectWrapper<TaskType> objectWrapper;
+        PrismObjectWrapper<TaskType> taskObjectWrapper;
 
         WrapperContext context = new WrapperContext(task, result);
         context.setCreateIfEmpty(true);
 
         try {
-            objectWrapper = factory.createObjectWrapper(prismObject, ItemStatus.ADDED, context);
-            ObjectDelta<TaskType> objectDelta = objectWrapper.getObjectDelta();
+            taskObjectWrapper = factory.createObjectWrapper(prismObject, ItemStatus.ADDED, context);
             WebComponentUtil.setTaskStateBeforeSave(
-                    objectWrapper, false, page, target);
+                    taskObjectWrapper, true, page, target);
 
-            saveTask(objectDelta, task.getResult(), getPageBase());
+            ObjectDelta<TaskType> delta = taskObjectWrapper.getObjectDelta();
+            ObjectChangeExecutor executor = new ObjectChangesExecutorImpl();
+
+            executor.executeChanges(
+                    Collections.singleton(delta),
+                    false,
+                    task,
+                    result,
+                    target);
+
             getPageBase().showResult(result);
         } catch (CommonException e) {
             LOGGER.error("Couldn't create task", e);
