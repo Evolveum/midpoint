@@ -81,7 +81,7 @@ public class ExceptionUtil {
             return ErrorCategoryType.NETWORK;
         } else if (exception instanceof SecurityViolationException) {
             return ErrorCategoryType.SECURITY;
-        } else if (exception instanceof ThresholdPolicyViolationException) {
+        } else if (findCause(exception, ThresholdPolicyViolationException.class) != null) {  // Threshold violations can be wrapped by script/expression evaluation.
             return ErrorCategoryType.POLICY_THRESHOLD;
         } else if (exception instanceof PolicyViolationException) {
             return ErrorCategoryType.POLICY;

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        oid="7636e8df-26e1-4b49-a86a-b707a97b44d9">
+    <name>Iterative scripting task - threshold</name>
+
+    <assignment>
+        <targetRef oid="1692d0e8-04e5-4aa4-a60c-3653ac77efa1"
+                relation="org:default"
+                type="c:RoleType"/>
+    </assignment>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"
+            relation="org:default"
+            type="c:UserType"/>
+    <executionState>runnable</executionState>
+
+    <activity>
+        <work>
+            <iterativeScripting>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:text>name startsWith "test920-threshold-test-"</q:text>
+                        </q:filter>
+                    </query>
+                </objects>
+                <scriptExecutionRequest>
+                    <s:execute>
+                        <s:script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+                                def processedUser = input as UserType
+                                def userBefore = processedUser.clone()
+
+                                processedUser.setTelephoneNumber("1000000")
+
+                                def delta = userBefore
+                                        .asPrismObject()
+                                        .diff(processedUser.asPrismObject(), EquivalenceStrategy.IGNORE_METADATA)
+
+                                midpoint.modifyObject(delta)
+                            ]]></code>
+                        </s:script>
+                    </s:execute>
+                </scriptExecutionRequest>
+            </iterativeScripting>
+        </work>
+    </activity>
+</task>

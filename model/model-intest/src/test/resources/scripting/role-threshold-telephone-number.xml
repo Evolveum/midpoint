@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role oid="1692d0e8-04e5-4aa4-a60c-3653ac77efa1"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>role-threshold-telephone-number</name>
+    <inducement>
+        <policyRule>
+            <name>telephone-number-threshold</name>
+            <policyConstraints>
+                <transition>
+                    <stateBefore>false</stateBefore>
+                    <stateAfter>true</stateAfter>
+                    <constraints>
+                        <objectState>
+                            <filter>
+                                <q:text>telephoneNumber = "1000000"</q:text>
+                            </filter>
+                        </objectState>
+                    </constraints>
+                </transition>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>3</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
+</role>
