@@ -53,6 +53,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * bug:MID-11036[] Implemented export to XLSX.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
 * bug:MID-9476[] Improved Search Box in Object Collection View.
+* bug:MID-10867[] Added support for java 25.
 
 === Major Bugfixes
 
@@ -99,6 +100,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Improved login and self-dashboard performance. See bug:MID-10972[]
 * Fixed hide export button in the popup. See bug:MID-11160[]
 * Delineation suggestions: filter parsing broken after recent GUI change. See bug:MID-11175[]
+* Fixed work item search by name causing repository mapping error. See bug:MID-8834[]
 
 
 === Releases Of Other Components
@@ -195,6 +197,8 @@ Note that production deployments in Windows environments are supported only for 
 === Java
 
 Following Java platform versions are supported:
+
+* Java 25.
 
 * Java 21.
 This is a *recommended* platform.
