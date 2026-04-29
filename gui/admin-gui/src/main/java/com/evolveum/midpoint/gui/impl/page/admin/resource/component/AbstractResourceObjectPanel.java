@@ -7,16 +7,27 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import static com.evolveum.midpoint.common.LocalizationTestUtil.getLocalizationService;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.saveTask;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
@@ -56,6 +67,7 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
     private static final String DOT_CLASS = AbstractResourceObjectPanel.class.getName() + ".";
     private static final String OP_COUNT_TASKS = DOT_CLASS + "countTasks";
     private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
+    private static final String OP_CREATE_AND_EXECUTE_TASK = DOT_CLASS + "createAndExecuteTask";
 
     public AbstractResourceObjectPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -119,8 +131,47 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
 
     protected abstract TaskCreationPopup<?> createNewTaskPopup();
 
-    protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean isSimulation, AjaxRequestTarget target) {
-        var newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
+    protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean isSimulation, AjaxRequestTarget target,
+            boolean showConfigurationWizard) {
+        TaskType newTask = createNewTask(flavor, isSimulation, target);
+
+        if (newTask != null) {
+            if (!showConfigurationWizard) {
+                saveAndExecuteTask(target, newTask);
+                return;
+            }
+
+            DetailsPageUtil.dispatchToObjectDetailsPage(newTask.asPrismObject(), true, true, getPageBase());
+        }
+    }
+
+    private void saveAndExecuteTask(AjaxRequestTarget target, @NotNull TaskType newTask) {
+        PageBase page = getPageBase();
+        PrismObjectWrapperFactory<TaskType> factory = page.findObjectWrapperFactory(newTask.asPrismObject().getDefinition());
+        Task task = page.createSimpleTask(OP_CREATE_AND_EXECUTE_TASK);
+        OperationResult result = task.getResult();
+
+        PrismObject<TaskType> prismObject = newTask.asPrismObject();
+        PrismObjectWrapper<TaskType> objectWrapper;
+
+        WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
+
+        try {
+            objectWrapper = factory.createObjectWrapper(prismObject, ItemStatus.ADDED, context);
+            ObjectDelta<TaskType> objectDelta = objectWrapper.getObjectDelta();
+            WebComponentUtil.setTaskStateBeforeSave(
+                    objectWrapper, false, page, target);
+
+            saveTask(objectDelta, task.getResult(), getPageBase());
+            getPageBase().showResult(result);
+        } catch (CommonException e) {
+            LOGGER.error("Couldn't create task", e);
+        }
+    }
+
+    private @Nullable TaskType createNewTask(ResourceTaskFlavor<?> flavor, boolean isSimulation, AjaxRequestTarget target) {
+        return getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
                 .hideSuccessfulStatus()
                 .run((task, result) -> {
 
@@ -145,10 +196,6 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
 
                     return creator.create(task, result);
                 });
-
-        if (newTask != null) {
-            DetailsPageUtil.dispatchToObjectDetailsPage(newTask.asPrismObject(), true, true, getPageBase());
-        }
     }
 
     protected void customizeTaskCreator(ResourceTaskCreator<?> creator, boolean isSimulation) {

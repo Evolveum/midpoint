@@ -44,6 +44,7 @@ public class TaskCreationFoCategorizedObjectsPopup extends TaskCreationPopup<Com
             @Override
             protected void onTemplateChosePerformed(CompiledObjectCollectionView view, AjaxRequestTarget target) {
                 getFlavorModel().setObject(determineTaskFlavour(view.getArchetypeOid()));
+                target.add(getFooterFragment());
             }
 
             @Override

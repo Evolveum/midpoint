@@ -3010,7 +3010,7 @@ public final class WebComponentUtil {
         return false;
     }
 
-    private static Collection<ObjectDeltaOperation<? extends ObjectType>> saveTask(ObjectDelta<TaskType> delta, OperationResult result, PageBase pageBase) {
+    public static Collection<ObjectDeltaOperation<? extends ObjectType>> saveTask(ObjectDelta<TaskType> delta, OperationResult result, PageBase pageBase) {
         Task opTask = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveTask");
 
         if (LOGGER.isTraceEnabled()) {
