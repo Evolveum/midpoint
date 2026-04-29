@@ -1066,7 +1066,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         if (!attributesToAdd.isEmpty()) {
 
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            var resultBuilder = result.createSubresult(FACADE_OP_ADD_ATTRIBUTE_VALUES)
+            var resultBuilder = result.subresult(FACADE_OP_ADD_ATTRIBUTE_VALUES)
                     .addArbitraryObjectAsParam("objectClass", objectClassDef)
                     .addParam("uid", uid.getUidValue())
                     .addArbitraryObjectAsParam("attributes", attributesToAdd)
@@ -1126,7 +1126,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         Set<Attribute> attributesToUpdate = converter.getAttributesToUpdate();
         if (!attributesToUpdate.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            var resultBuilder = result.createSubresult(FACADE_OP_UPDATE)
+            var resultBuilder = result.subresult(FACADE_OP_UPDATE)
                     .addArbitraryObjectAsParam("objectClass", objectClassDef)
                     .addParam("uid", uid==null?"null":uid.getUidValue())
                     .addArbitraryObjectAsParam("attributes", attributesToUpdate)
@@ -1187,7 +1187,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         if (!attributesToRemove.isEmpty()) {
 
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            var resultBuilder = result.createSubresult(FACADE_OP_REMOVE_ATTRIBUTE_VALUES)
+            var resultBuilder = result.subresult(FACADE_OP_REMOVE_ATTRIBUTE_VALUES)
                     .addArbitraryObjectAsParam("objectClass", objectClassDef)
                     .addParam("uid", uid.getUidValue())
                     .addArbitraryObjectAsParam("attributes", attributesToRemove)
@@ -1516,8 +1516,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             var resultBuilder = result.subresult(FACADE_OP_SYNC)
                     .addContext("connector", getConnIdConnectorFacadeRequired().getClass())
                     .addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass)
-                    .addArbitraryObjectAsParam("initialToken", initialToken)
-                    .build();
+                    .addArbitraryObjectAsParam("initialToken", initialToken);
             startTracingIfConfigured(ctx, result, resultBuilder);
             OperationResult connIdResult = resultBuilder.build();
             try {
@@ -1805,10 +1804,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
         // Connector operation cannot create result for itself, so we need to
         // create result for it
-        OperationResult connIdResult = result.createSubresult(FACADE_OP_SEARCH);
-        connIdResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
-        connIdResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
-        startTracingIfConfigured(ctx, result, connIdResult);
+        var connIdResultBuilder = result.subresult(FACADE_OP_SEARCH)
+                .addArbitraryObjectAsParam("objectClass", icfObjectClass)
+                .addContext("connector", getConnIdConnectorFacadeRequired().getClass());
+        startTracingIfConfigured(ctx, result, connIdResultBuilder);
+        var connIdResult = connIdResultBuilder.build();
         int retval;
 
         InternalMonitor.recordConnectorOperation("search");

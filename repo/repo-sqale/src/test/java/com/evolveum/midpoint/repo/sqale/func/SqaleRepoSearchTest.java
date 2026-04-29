@@ -2507,6 +2507,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test611SearchCaseWIContainerByParentCaseName() throws SchemaException {
+        SearchResultList<CaseWorkItemType> result = searchContainerTest(
+                "by parent case name", CaseWorkItemType.class,
+                f -> f.item(T_PARENT, CaseType.F_NAME).eq(new PolyString("case-1")));
+        assertThat(result)
+                .extracting(CaseWorkItemType::getStageNumber)
+                .containsExactlyInAnyOrder(1, 2);
+    }
+
+    @Test
     public void test615SearchAssignmentByApproverNameWithOrder() throws SchemaException {
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "by approver name", AssignmentType.class,
