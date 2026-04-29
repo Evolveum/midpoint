@@ -47,6 +47,11 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     private static final File EXECUTE_CUSTOM_DELTA = new File(TEST_DIR, "execute-custom-delta.xml");
 
     private static final TestObject<TaskType> TASK_DELETE_SHADOWS_MULTINODE = TestObject.file(TEST_DIR, "task-delete-shadows-multinode.xml", "931e34be-5cf0-46c6-8cc1-90812a66d5cb");
+    private static final TestObject<RoleType> ROLE_THRESHOLD_TELEPHONE_NUMBER = TestObject.file(TEST_DIR, "role-threshold-telephone-number.xml", "1692d0e8-04e5-4aa4-a60c-3653ac77efa1");
+    private static final TestObject<TaskType> TASK_ITERATIVE_SCRIPTING_THRESHOLD = TestObject.file(TEST_DIR, "task-iterative-scripting-threshold.xml", "7636e8df-26e1-4b49-a86a-b707a97b44d9");
+
+    private static final String THRESHOLD_TEST_USER_NAME_PREFIX = "test920-threshold-test-";
+    private static final int THRESHOLD_TEST_USERS = 10;
 
     @Override
     String getSuffix() {
@@ -268,6 +273,52 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         assertThat(record.getTaskOid()).as("task OID in audit record").isEqualTo(TASK_DELETE_SHADOWS_MULTINODE.oid);
     }
 
+    @Test
+    public void test920IterativeScriptingTaskSuspendsOnThresholdViolation() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        addObject(ROLE_THRESHOLD_TELEPHONE_NUMBER, task, result);
+        for (int i = 1; i <= THRESHOLD_TEST_USERS; i++) {
+            addObject(
+                    new UserType()
+                            .name(THRESHOLD_TEST_USER_NAME_PREFIX + String.format("%03d", i))
+                            .asPrismObject(),
+                    task,
+                    result);
+        }
+        addObject(TASK_ITERATIVE_SCRIPTING_THRESHOLD, task, result);
+
+        when();
+        waitForTaskTreeCloseCheckingSuspensionWithError(TASK_ITERATIVE_SCRIPTING_THRESHOLD.oid, result, 20000);
+
+        then();
+        dumpTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD.oid, result);
+
+        assertTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD.oid, "after")
+                .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .progress()
+                        .display()
+                        .assertSuccessCount(2, true)
+                        .assertFailureCount(1, true)
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(2, 1, 0)
+                    .end();
+
+        int modified = countThresholdTestUsersWithTelephoneNumber(result);
+        displayValue("threshold test users with telephone number", modified);
+        assertThat(modified)
+                .as("modified users")
+                .isEqualTo(2);
+    }
+
     private int countDummyAccountShadows(OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
@@ -276,5 +327,13 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         displayValue("objects",
                 DebugUtil.debugDump(repositoryService.searchObjects(ShadowType.class, query, null, result)));
         return repositoryService.countObjects(ShadowType.class, query, null, result);
+    }
+
+    private int countThresholdTestUsersWithTelephoneNumber(OperationResult result) throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_NAME).startsWith(THRESHOLD_TEST_USER_NAME_PREFIX)
+                .and().item(UserType.F_TELEPHONE_NUMBER).eq("1000000")
+                .build();
+        return repositoryService.countObjects(UserType.class, query, null, result);
     }
 }
