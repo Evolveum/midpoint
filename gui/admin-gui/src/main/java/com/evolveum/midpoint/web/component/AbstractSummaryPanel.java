@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -353,9 +354,18 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     private String getArchetypeLabel() {
         if (getModelObject() instanceof AssignmentHolderType) {
             DisplayType displayType = getArchetypePolicyDisplayType();
-            return displayType == null || displayType.getLabel() == null ? "" : displayType.getLabel().getOrig();
+            return translateDisplayLabelOrDefault(displayType);
         }
         return "";
+    }
+
+    protected String translateDisplayLabelOrDefault(DisplayType display) {
+        if (display == null || display.getLabel() == null) {
+            return "";
+        }
+
+        String translatedLabel = LocalizationUtil.translatePolyString(display.getLabel());
+        return StringUtils.isNotEmpty(translatedLabel) ? translatedLabel : "";
     }
 
     private String getArchetypeIconCssClass() {
