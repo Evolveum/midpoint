@@ -108,7 +108,7 @@ public enum ResourceGuideObjectTypeTileState {
                 if (mappingConfigured) {
                     yield CONFIGURED;
                 }
-                if (correlationConfigured) {
+                if (correlationConfigured && synchronizationConfigured) {
                     yield RECOMMENDED;
                 }
 
