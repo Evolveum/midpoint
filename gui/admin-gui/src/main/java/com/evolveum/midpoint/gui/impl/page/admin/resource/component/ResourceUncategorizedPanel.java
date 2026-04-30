@@ -95,8 +95,9 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     protected TaskCreationPopup<?> createNewTaskPopup() {
         return new TaskCreationForUncategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
             @Override
-            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate, AjaxRequestTarget target) {
-                ResourceUncategorizedPanel.this.createNewTaskPerformed(flavor, simulate, target);
+            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate,
+                    AjaxRequestTarget target, boolean showConfigurationWizard) {
+                ResourceUncategorizedPanel.this.createNewTaskPerformed(flavor, simulate, target, showConfigurationWizard);
             }
         };
     }
@@ -320,7 +321,6 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
                 ResourceUncategorizedPanel.this.processResult(result);
             }
 
-
             @Override
             public Component getFeedbackPanel() {
                 return ResourceUncategorizedPanel.this.getPageBase().getFeedbackPanel();
@@ -329,7 +329,6 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
     }
-
 
     protected void processResult(OperationResult result) {
 
@@ -394,7 +393,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         return null;
     }
 
-    protected boolean showPopupShadowDetailsOnClick(){
+    protected boolean showPopupShadowDetailsOnClick() {
         return false;
     }
 }

@@ -14,9 +14,9 @@ import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.bySuggesti
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -298,7 +298,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         List<PrismContainerValueWrapper<MappingType>> selectedMappings =
-                                getSelectedMappings();
+                                getSelectedItemsWithoutStatus();
 
                         if (selectedMappings.isEmpty()) {
                             table.getPageBase().warn(table.createStringResource(
@@ -607,40 +607,31 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
     }
 
     private @NotNull List<PrismContainerValueWrapper<MappingType>> getSelectedMappings() {
-        List<PrismContainerValueWrapper<MappingType>> selectedValues = new ArrayList<>();
-        List<MappingDataDto> selectedItems = table.getTable().getSelectedContainerItems();
+        return getMappings(table.getTable().getSelectedContainerItems(), null);
+    }
 
-        for (MappingDataDto item : selectedItems) {
-            List<PrismContainerValueWrapper<MappingType>> primary = item.getColumnsValues();
-            if (primary != null && !primary.isEmpty()) {
-                selectedValues.addAll(primary);
-            }
-        }
-        return selectedValues;
+    private @NotNull List<PrismContainerValueWrapper<MappingType>> getSelectedItemsWithoutStatus() {
+        return getMappings(table.getTable().getSelectedContainerItems(), false);
     }
 
     private @NotNull List<PrismContainerValueWrapper<MappingType>> getAllSelectedItemsWithStatus() {
-        List<PrismContainerValueWrapper<MappingType>> result = new ArrayList<>();
-        for (MappingDataDto item : table.getTable().getSelectedContainerItems()) {
-            for (PrismContainerValueWrapper<MappingType> mapping : item.getMappings()) {
-                if (table.getStatusInfo(mapping) != null) {
-                    result.add(mapping);
-                }
-            }
-        }
-        return result;
+        return getMappings(table.getTable().getSelectedContainerItems(), true);
     }
 
     private @NotNull List<PrismContainerValueWrapper<MappingType>> getAllItemsWithStatus() {
-        List<PrismContainerValueWrapper<MappingType>> result = new ArrayList<>();
-        for (MappingDataDto item : table.getTable().getAllItems()) {
-            for (PrismContainerValueWrapper<MappingType> mapping : item.getMappings()) {
-                if (table.getStatusInfo(mapping) != null) {
-                    result.add(mapping);
-                }
-            }
-        }
-        return result;
+        return getMappings(table.getTable().getAllItems(), true);
+    }
+
+    private @NotNull List<PrismContainerValueWrapper<MappingType>> getMappings(
+            @NotNull List<MappingDataDto> items,
+            @Nullable Boolean withStatus) {
+
+        return items.stream()
+                .flatMap(item -> item.getMappings().stream())
+                .filter(mapping ->
+                        withStatus == null
+                                || (table.getStatusInfo(mapping) != null) == withStatus)
+                .collect(Collectors.toList()); //
     }
 
     private StringResourceModel discardConfirmationTitle(int selectedCount, int allCount) {
