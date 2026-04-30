@@ -815,7 +815,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 StatusInfo<?> statusInfo = table.getStatusInfo(mappingWrapper.getObject());
                 if (statusInfo != null) {
                     AjaxIconButton discard = buildDiscardButton(repeater, mappingWrapper);
-                    discard.add(AttributeModifier.replace("class", "btn-link text-danger ml-auto"));
+                    discard.add(AttributeModifier.replace("class", "btn btn-link text-danger ml-auto"));
                     repeater.add(discard);
 
                     AjaxIconButton accept = buildAcceptInGroupButton(repeater, mappingWrapper);

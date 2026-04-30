@@ -23,7 +23,7 @@
             <div wicket:id="actions"></div>
         </div>
 
-        <div wicket:id="rowsContainer" class="col-12 d-flex flex-column p-3 border-top bg-light">
+        <div wicket:id="rowsContainer" class="col-12 d-flex flex-column p-3 border-top bg-light rounded">
 
             <div class="py-2" wicket:id="columnHeader"></div>
 
@@ -47,7 +47,9 @@
 
     <wicket:fragment wicket:id="headerTitleFragment">
         <span wicket:id="text" class="align-self-center d-flex align-items-center"></span>
-        <span wicket:id="badge" class="align-self-center ml-2 badge badge-ai-gradient" style="height: fit-content;"></span>
+        <span wicket:id="badge" class="align-self-center ml-2 badge badge-ai-gradient mr-1" style="height: fit-content;"></span>
+        <wicket:message key="MappingSuggestionGroupColumnTilePanel.for"></wicket:message>
+        <span wicket:id="targetText" class="ml-1 align-self-center d-flex align-items-center font-weight-semibold"></span>
     </wicket:fragment>
 </wicket:panel>
 </html>
