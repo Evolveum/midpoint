@@ -278,7 +278,6 @@ Use `options` to influence retrieval and processing of the objects.
     ** `Class<T> type, ObjectQuery query`
     ** `Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options`
     ** `TypedQuery<T> query`
-    ** `TypedQuery<T> query, Collection<SelectorOptions<GetOperationOptions>> options`
 * returns:
     ** `List<T>`
 * throws:
@@ -301,8 +300,6 @@ Use `options` to influence retrieval and processing of the objects.
 * parameters:
     ** `Class<T> type, ObjectQuery query, ResultHandler<T> handler`
     ** `Class<T> type, ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options`
-    ** `TypedQuery<T> query, ResultHandler<T> handler`
-    ** `TypedQuery<T> query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options`
 * returns:
     ** `void`
 * throws:
@@ -358,18 +355,6 @@ Use `options` to influence retrieval and processing of the objects.
     ** `ObjectNotFoundException`
     ** `SchemaException`
     ** `SecurityViolationException`
-
-=== onlyBaseObject()
-
-Returns the `getOperationOptionsBuilder` configured to get only the base object, excluding all separately stored items.
-// Based on the method name + code callout in https://github.com/Evolveum/midpoint/blob/ffb9ce0e4f63f3d347fb2efa8100db1a3fee01fe/docs/expressions/expressions/script/functions/get-and-search.adoc?plain=1#L39
-
-* parameters:
-    ** The function does not accept any parameters.
-* returns:
-    ** `Collection<SelectorOptions<GetOperationOptions>>`
-* throws:
-    ** The function does not throw any exceptions.
 
 == Deltas
 
@@ -571,23 +556,6 @@ Only works for organizations.
     ** `String orgOid`
 * returns:
     ** `List<ObjectReferenceType>`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
-=== getRoleMemberUsers()
-
-Lists all user members of the specified role with the given relation to the role.
-Suitable for listing role owners, approvers, and similar governance users.
-
-* parameters:
-    ** `String roleOid, QName relation`
-* returns:
-    ** `List<UserType>`
 * throws:
     ** `CommunicationException`
     ** `ConfigurationException`
@@ -901,18 +869,6 @@ Currently, these OIDs are taken from archetype assignments;
 * throws:
     ** The function does not throw any exceptions.
 
-=== hasEffectiveMark()
-
-Returns `true` if the given object has an effective mark with the specified OID.
-Use only when you know the provided object has effective marks computed.
-
-* parameters:
-    ** `ObjectType object, String markOid`
-* returns:
-    ** `boolean`
-* throws:
-    ** The function does not throw any exceptions.
-
 === isEvaluateNew()
 
 Returns indication whether a script code is evaluating a new value.
@@ -1058,22 +1014,6 @@ Returns `true` if the current shadow object is freshly and fully loaded.
     ** `boolean`
 * throws:
     ** The function does not throw any exceptions.
-
-=== isAttributeLoaded()
-
-Returns `true` if the specified attribute is available for processing.
-That is, it is either freshly loaded (in the `isFullShadow()` sense) or it is cached and the use of the cache for computations is allowed.
-
-NOTE: This function is experimental.
-
-* parameters:
-    ** `QName attrName`
-    ** `String attrName`
-* returns:
-    ** `boolean`
-* throws:
-    ** `ConfigurationException`
-    ** `SchemaException`
 
 === isProjectionExists()
 
@@ -1234,43 +1174,9 @@ Returns the cached entitlement (target object) for the given association value.
 Returns a value only if the object is present in the lens context cache.
 
 * parameters:
-    ** `ShadowAssociationValueType associationValue`
+    ** `ShadowAssociationType ShadowAssociationType`
 * returns:
     ** `ShadowType`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getObjectRef()
-
-Returns the object reference for a given association value.
-Assumes that the association has no content and that it references exactly one object, otherwise returns `null`.
-
-* parameters:
-    ** `ShadowAssociationValueType associationValueBean`
-* returns:
-    ** `ObjectReferenceType`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getObjectOid()
-
-Returns the OID of the reference returned by `getObjectRef()`.
-
-* parameters:
-    ** `ShadowAssociationValueType associationValueBean`
-* returns:
-    ** `String`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getObjectName()
-
-Returns the name of the object of a given (no-content) association value, if present.
-
-* parameters:
-    ** `ShadowAssociationValueType associationValueBean`
-* returns:
-    ** `PolyStringType`
 * throws:
     ** The function does not throw any exceptions.
 
@@ -1344,9 +1250,8 @@ Returns a definition of the given simple attribute for the given resource and ob
     ** `PrismObject<ResourceType> resource, QName objectClassName, QName attributeName`
     ** `PrismObject<ResourceType> resource, String objectClassName, String attributeName`
 * returns:
-    ** `ShadowSimpleAttributeDefinition<T>`
+    ** `ResourceAttributeDefinition<T>`
 * throws:
-    ** `ConfigurationException`
     ** `SchemaException`
 
 === describeResourceObjectSetLong()
@@ -1542,54 +1447,6 @@ Returns the protector.
     ** The function does not accept any parameters.
 * returns:
     ** `Protector`
-* throws:
-    ** The function does not throw any exceptions.
-
-== Metadata
-
-=== getMetadata()
-
-Returns the given object metadata.
-
-* parameters:
-    ** `ObjectType object`
-    ** `AbstractCredentialType credential`
-* returns:
-    ** `ValueMetadataType`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getCreateTimestamp()
-
-Returns the creation timestamp for the given object or assignment.
-
-* parameters:
-    ** `ObjectType object`
-    ** `AssignmentType assignment`
-* returns:
-    ** `XMLGregorianCalendar`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getModifyTimestamp()
-
-Returns the modification timestamp for the given object.
-
-* parameters:
-    ** `ObjectType object`
-* returns:
-    ** `XMLGregorianCalendar`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getLastChangeTimestamp()
-
-Returns the last modification timestamp for the given object.
-
-* parameters:
-    ** `ObjectType object`
-* returns:
-    ** `XMLGregorianCalendar`
 * throws:
     ** The function does not throw any exceptions.
 
@@ -1839,28 +1696,6 @@ Finds objects that conflict on a given property value.
 
 == Miscellaneous
 
-=== getCertifierRefs()
-
-Returns a collection of certifier references for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<ObjectReferenceType>`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getCertifierComments()
-
-Returns a collection of certifier comments for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<String>`
-* throws:
-    ** The function does not throw any exceptions.
-
 === getChannel()
 
 Returns the used channel.
@@ -1883,19 +1718,6 @@ Looks up a constant by its name.
 * throws:
     ** The function does not throw any exceptions.
 
-=== getCreateApproverRefs()
-
-Returns create approver references from the given object or assignment.
-
-* parameters:
-    ** `ObjectType object`
-    ** `AssignmentType assignment`
-* returns:
-    ** `List<ObjectReferenceType>` (for `ObjectType`)
-    ** `Collection<ObjectReferenceType>` (for `AssignmentType`)
-* throws:
-    ** The function does not throw any exceptions.
-
 === getMapping()
 
 Returns the current mapping (generic over `PrismValue` and `ItemDefinition`).
@@ -1904,28 +1726,6 @@ Returns the current mapping (generic over `PrismValue` and `ItemDefinition`).
     ** The function does not accept any parameters.
 * returns:
     ** `Mapping<V,D>`
-* throws:
-    ** The function does not throw any exceptions.
-   ** The function does not throw any exceptions.
-
-=== getModifyApprovalComments()
-
-Returns approval comments for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<String>`
-* throws:
-
-=== getModifyApproverRefs()
-
-Returns modification approver references from the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<ObjectReferenceType>`
 * throws:
     ** The function does not throw any exceptions.
 
@@ -1986,28 +1786,6 @@ Returns the `RepositoryService`.
 * throws:
     ** The function does not throw any exceptions.
 
-=== getRequestTimestamp()
-
-Returns the request timestamp for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `XMLGregorianCalendar`
-* throws:
-    ** The function does not throw any exceptions.
-
-=== getRequestorComments()
-
-Returns a collection of requester comments for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<String>`
-* throws:
-    ** The function does not throw any exceptions.
-
 === getSequenceCounter()
 
 Returns the current value of the given sequence.
@@ -2020,17 +1798,6 @@ Uses the repository service directly, bypassing authorization checking.
 * throws:
     ** `ObjectNotFoundException`
     ** `SchemaException`
-
-=== getRequestorRefs()
-
-Returns the list of requester references for the given assignment.
-
-* parameters:
-    ** `AssignmentType assignment`
-* returns:
-    ** `Collection<ObjectReferenceType>`
-* throws:
-    ** The function does not throw any exceptions.
 
 === parseXmlToMap()
 
