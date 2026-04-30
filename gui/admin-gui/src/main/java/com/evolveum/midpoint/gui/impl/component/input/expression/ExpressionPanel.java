@@ -70,6 +70,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private LoadableModel<RecognizedEvaluator> typeModel;
     private LoadableModel<String> helpModel;
     private boolean isEvaluatorPanelExpanded = false;
+    private boolean displayHelp = true;
 
     Model<String> infoLabelModel = Model.of("");
 
@@ -215,7 +216,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         setOutputMarkupId(true);
         WebMarkupContainer infoContainer = new WebMarkupContainer(ID_INFO_CONTAINER);
         infoContainer.setOutputMarkupId(true);
-        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && (!isInTable() || isReadOnly())));
+        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && (!isInTable() || isReadOnly()) && displayHelp));
         add(infoContainer);
 
         Label infoLabel = new Label(ID_INFO_LABEL, infoLabelModel);
@@ -503,5 +504,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     protected boolean isReadOnly() {
         return false;
+    }
+
+    public void setDisplayHelp(boolean displayHelp) {
+        this.displayHelp = displayHelp;
     }
 }

@@ -258,9 +258,11 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         List<InlineMenuItem> dropdownItems = List.of(
                 createRefreshMenuItem(
                         createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.newDataSplit"),
+                        createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.newDataSplit.help"),
                         RegenerateMode.NEW_DATA_SPLIT),
                 createRefreshMenuItem(
                         createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.newFilter"),
+                        createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.newFilter.help"),
                         RegenerateMode.NEW_FILTER));
 
         DropdownButtonDto dropdownModel = new DropdownButtonDto(
@@ -277,7 +279,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         };
     }
 
-    private InlineMenuItem createRefreshMenuItem(IModel<String> label, RegenerateMode mode) {
+    private InlineMenuItem createRefreshMenuItem(IModel<String> label, @Nullable IModel<String> help, RegenerateMode mode) {
         return new InlineMenuItem(label) {
             @Override
             public InlineMenuItemAction initAction() {
@@ -287,6 +289,11 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                         refreshSuggestionPerform(target, ConfirmationOption::delineationPermissionsOptions, mode);
                     }
                 };
+            }
+
+            @Override
+            public IModel<String> getTooltip() {
+                return help;
             }
         };
     }

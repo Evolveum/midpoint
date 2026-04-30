@@ -104,6 +104,8 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
         };
 
         createNewTask.showTitleAsLabel(true);
+        createNewTask.setOutputMarkupId(true);
+        createNewTask.add(new EnableBehaviour(() -> flavorModel.getObject() != null));
         footer.add(createNewTask);
 
         footer.add(new AjaxLink<>(ID_CLOSE) {

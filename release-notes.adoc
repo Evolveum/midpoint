@@ -101,7 +101,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed hide export button in the popup. See bug:MID-11160[]
 * Delineation suggestions: filter parsing broken after recent GUI change. See bug:MID-11175[]
 * Fixed work item search by name causing repository mapping error. See bug:MID-8834[]
-* Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-10834[]
+* Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
 
 === Releases Of Other Components
 

@@ -158,7 +158,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             }
         };
         footerContainer.add(tilesPaging);
-        tilesPaging.add(new VisibleBehaviour(() -> getProvider().size() > getTiles().getItemsPerPage()));
+        tilesPaging.add(isNavigatorPanelVisible());
 
         WebMarkupContainer buttonToolbar = createTilesButtonToolbar(ID_BUTTON_TOOLBAR);
         footerContainer.add(buttonToolbar);
@@ -168,6 +168,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         table.setOutputMarkupPlaceholderTag(true);
         table.setOutputMarkupId(true);
         initTable(table);
+    }
+
+    protected @NotNull VisibleBehaviour isNavigatorPanelVisible() {
+        return new VisibleBehaviour(() -> getProvider().size() > getTiles().getItemsPerPage());
     }
 
     protected void initTable(@NotNull WebMarkupContainer table) {

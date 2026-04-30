@@ -188,7 +188,7 @@ public class ColumnTileHeaderPanel<O extends ColumnValueProvider<PV>, PV extends
 
             @Override
             protected void onAjaxClick(AjaxRequestTarget target) {
-                target.add(table);
+                table.refreshAndDetach(target);
             }
         };
     }

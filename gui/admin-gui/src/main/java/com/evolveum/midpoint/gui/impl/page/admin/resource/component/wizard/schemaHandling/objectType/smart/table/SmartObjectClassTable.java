@@ -14,6 +14,10 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.panel.SimpleCustomSearchPanel;
+
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,6 +36,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,6 +95,8 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     String resourceOid;
     Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache;
 
+    private final IModel<String> searchTextModel = Model.of("");
+
     public SmartObjectClassTable(
             @NotNull String id,
             UserProfileStorage.@NotNull TableId tableId,
@@ -103,9 +110,33 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         setDefaultPagingSize(tableId);
     }
 
+    protected @NotNull Component createSearchHeader(String id) {
+        return new SimpleCustomSearchPanel(id, getSearchTextModel()) {
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                refresh(target);
+            }
+        };
+    }
+
+    protected IModel<String> getSearchTextModel() {
+        return searchTextModel;
+    }
+
+    protected @NotNull String getSearchText() {
+        return searchTextModel.getObject() != null ? searchTextModel.getObject() : "";
+    }
+
     @Override
     protected MultivalueContainerListDataProvider<ComplexTypeDefinitionType> createProvider() {
         return super.createProvider();
+    }
+
+    @Override
+    public ObjectQuery getCustomQuery() {
+        return getPageBase().getPrismContext().queryFor(ComplexTypeDefinitionType.class)
+                .item(ComplexTypeDefinitionType.F_NAME).contains(getSearchText())
+                .build();
     }
 
     @Override
@@ -122,6 +153,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         super.togglePanelItemSelectPerformed(target, item);
     }
 
+    @SuppressWarnings("all")
     @Override
     protected IModel<Search> createSearchModel() {
 
@@ -136,6 +168,11 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         };
 
         return (IModel) searchModel;
+    }
+
+    @Override
+    protected Component createHeader(String id) {
+        return SmartObjectClassTable.this.createSearchHeader(id);
     }
 
     @Override
@@ -313,11 +350,6 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         RepeatingView repView = new RepeatingView(id);
         createToolbarButtons(repView);
         return repView;
-    }
-
-    @Override
-    protected Component createHeader(String id) {
-        return super.createHeader(id);
     }
 
     private IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> getSelectedTileModel() {
@@ -557,7 +589,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     public void refresh(AjaxRequestTarget target) {
-
+        super.refresh(target);
     }
 
     @Override

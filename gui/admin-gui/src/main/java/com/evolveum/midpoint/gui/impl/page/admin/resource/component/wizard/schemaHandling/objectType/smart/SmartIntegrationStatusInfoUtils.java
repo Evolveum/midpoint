@@ -913,10 +913,13 @@ public class SmartIntegrationStatusInfoUtils {
                     mappingsSuggestion != null ? mappingsSuggestion.getItemsProgress() : null;
 
             if (itemsProgress != null) {
-                return pageBase.createStringResource(
-                        "Activity.explanation." + operationKey,
-                        itemsProgress.getProgress(),
-                        itemsProgress.getExpectedProgress());
+                int progress = itemsProgress.getProgress();
+                int expected = itemsProgress.getExpectedProgress();
+                String percent = expected == 0
+                        ? "0%"
+                        : String.format("%.0f%%", (progress * 100.0) / expected);
+
+                return pageBase.createStringResource("Activity.explanation." + operationKey, percent);
             }
 
             return pageBase.createStringResource("Activity.explanation.text." + operationKey);
