@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -451,13 +452,13 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return sb.toString();
     }
 
-    private String translateDisplayLabelOrDefault(DisplayType display, String defValue) {
+    protected String translateDisplayLabelOrDefault(DisplayType display, String defValue) {
         if (display == null || display.getLabel() == null) {
             return defValue;
         }
-        String label = display.getLabel().getOrig();
 
-        return getString(label, Model.of(), label);
+        String translatedLabel = LocalizationUtil.translatePolyString(display.getLabel());
+        return StringUtils.isNotEmpty(translatedLabel) ? translatedLabel : defValue;
     }
 
     private String getArchetypeIconCssClass() {
