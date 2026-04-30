@@ -458,23 +458,23 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response in detail.
         } else {
-            var mockClient = new MockServiceClientImpl(request -> {
-                if (request instanceof SiMatchSchemaRequestType) {
-                    return new SiMatchSchemaResponseType()
+            @SuppressWarnings("resource")
+            var mockClient = new MockServiceClientImpl()
+                    .onRequestOfType(SiMatchSchemaRequestType.class)
+                    .respondWith(new SiMatchSchemaResponseType()
                             .attributeMatch(new SiAttributeMatchSuggestionType()
                                     .applicationAttribute(asStringSimple(
                                             DummyBasicScenario.Account.AttributeNames.STATUS.path()))
                                     .midPointAttribute(asStringSimple(
-                                            ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS))));
-                } else if (request instanceof SiSuggestCategoricalMappingRequestType) {
-                    return new SiSuggestMappingResponseType()
-                            .transformationScript(
-                                    "// Map status to lockoutStatus\n"
-                                            + "input == null ? null"
-                                            + " : input.equalsIgnoreCase(\"inactive\") ? \"locked\" : \"normal\"");
-                }
-                return null;
-            });
+                                            ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)))))
+                    .onRequestOfType(SiSuggestCategoricalMappingRequestType.class)
+                    .respondWith(new SiSuggestMappingResponseType()
+                            .transformationScript("""
+                                    // Map status to lockoutStatus
+                                    input == null
+                                        ? null
+                                        : input.equalsIgnoreCase("inactive") ? "locked" : "normal"
+                             """));
             TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
         }
 
@@ -529,20 +529,19 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response in detail.
         } else {
-            var mockClient = new MockServiceClientImpl(request -> {
-                if (request instanceof SiMatchSchemaRequestType) {
-                    return new SiMatchSchemaResponseType()
+            @SuppressWarnings("resource")
+            var mockClient = new MockServiceClientImpl()
+                    .onRequestOfType(SiMatchSchemaRequestType.class)
+                    .respondWith(new SiMatchSchemaResponseType()
                             .attributeMatch(new SiAttributeMatchSuggestionType()
                                     .applicationAttribute(asStringSimple(
                                             DummyBasicScenario.Account.AttributeNames.STATUS.path()))
                                     .midPointAttribute(asStringSimple(
-                                            ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS))));
-                } else if (request instanceof SiSuggestCategoricalMappingRequestType) {
-                    throw new AssertionError(
-                            "SUGGEST_CATEGORICAL_MAPPING must not be called without RAW_DATA_ACCESS (useAiService=false)");
-                }
-                return null;
-            });
+                                            ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)))))
+                    .onRequestOfType(SiSuggestCategoricalMappingRequestType.class)
+                    .respondWith(
+                            new AssertionError("SUGGEST_CATEGORICAL_MAPPING must not be called without RAW_DATA_ACCESS "
+                                    + "(useAiService=false)"));
             TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
         }
 

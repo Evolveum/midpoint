@@ -148,28 +148,6 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 null, task, result);
     }
 
-    private ServiceClient createClient(List<ItemPath> focusPaths, List<ItemPath> shadowPaths, String... scripts) {
-        SiMatchSchemaResponseType matchResponse = new SiMatchSchemaResponseType();
-        for (int i = 0; i < focusPaths.size(); i++) {
-            matchResponse.attributeMatch(
-                    new SiAttributeMatchSuggestionType()
-                            .applicationAttribute(asStringSimple(shadowPaths.get(i)))
-                            .midPointAttribute(asStringSimple(focusPaths.get(i)))
-            );
-        }
-
-        if (scripts == null || scripts.length == 0) {
-            return new MockServiceClientImpl(matchResponse);
-        } else {
-            List<Object> responses = new ArrayList<>();
-            responses.add(matchResponse);
-            for (String script : scripts) {
-                responses.add(new SiSuggestMappingResponseType().transformationScript(script));
-            }
-            return new MockServiceClientImpl(responses);
-        }
-    }
-
     private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
         executeChanges(
                 deltaFor(UserType.class)
@@ -195,7 +173,10 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         refreshShadows();
 
-        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                .respondWith(new SiMatchSchemaResponseType());
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
@@ -251,11 +232,11 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         refreshShadows();
 
-        var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_FULL_NAME)),
-                List.of(DISPLAY_NAME.path()),
-                null, null, null, null, null, null, null
-        );
+        PropertyAttributePair attributePair = PropertyAttributePair.of(UserType.F_FULL_NAME, DISPLAY_NAME);
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                .respondWith(new SiMatchSchemaResponseType().attributeMatch(attributePair.toAttributeMatchResponse()));
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
@@ -302,11 +283,11 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         refreshShadows();
 
-        var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_FULL_NAME)),
-                List.of(CN.path()),
-                null, null, null, null, null, null, null
-        );
+        PropertyAttributePair attributePair = PropertyAttributePair.of(UserType.F_FULL_NAME, CN);
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                .respondWith(new SiMatchSchemaResponseType().attributeMatch(attributePair.toAttributeMatchResponse()));
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
@@ -360,7 +341,10 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var acceptedSuggestionPaths = List.of(ItemPath.create(UserType.F_TELEPHONE_NUMBER));
 
-        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                .respondWith(new SiMatchSchemaResponseType());
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
@@ -400,7 +384,10 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         refreshShadows();
 
-        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                .respondWith(new SiMatchSchemaResponseType());
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
@@ -495,7 +482,10 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         refreshShadows();
 
-        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                .respondWith(new SiMatchSchemaResponseType());
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
@@ -543,7 +533,10 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                         .build(),
                 null, task, result);
 
-        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                .respondWith(new SiMatchSchemaResponseType());
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_AD.oid, ACCOUNT_DEFAULT, null, task, result);
 
@@ -619,7 +612,10 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                         .build(),
                 null, task, result);
 
-        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                .respondWith(new SiMatchSchemaResponseType());
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_AD.oid, ACCOUNT_DEFAULT, null, task, result);
 
@@ -667,7 +663,10 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                         .build(),
                 null, task, result);
 
-        var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                .respondWith(new SiMatchSchemaResponseType());
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_AD.oid, ACCOUNT_DEFAULT, null, task, result);
 

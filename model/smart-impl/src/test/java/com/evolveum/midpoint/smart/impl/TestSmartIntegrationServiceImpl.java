@@ -1035,6 +1035,10 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test300SuggestMappings() throws CommonException, ActivityInterruptedException {
         skipIfRealService();
 
+        PropertyAttributePair typeToDescPair = PropertyAttributePair.of(UserType.F_DESCRIPTION,
+                Account.AttributeNames.TYPE);
+        PropertyAttributePair phoneToTelephonePair = PropertyAttributePair.of(UserType.F_TELEPHONE_NUMBER,
+                Account.AttributeNames.PHONE);
         var schemaMatchResponse = new SiMatchSchemaResponseType()
                 .attributeMatch(new SiAttributeMatchSuggestionType()
                         .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
@@ -1042,29 +1046,19 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .attributeMatch(new SiAttributeMatchSuggestionType()
                         .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
                         .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
-                .attributeMatch(new SiAttributeMatchSuggestionType()
-                        .applicationAttribute(asStringSimple(Account.AttributeNames.TYPE.path()))
-                        .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
-                .attributeMatch(new SiAttributeMatchSuggestionType()
-                        .applicationAttribute(asStringSimple(Account.AttributeNames.PHONE.path()))
-                        .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER)));
+                .attributeMatch(typeToDescPair.toAttributeMatchResponse())
+                .attributeMatch(phoneToTelephonePair.toAttributeMatchResponse());
 
-        var mockClient = new MockServiceClientImpl(request -> {
-            if (request instanceof SiMatchSchemaRequestType) {
-                return schemaMatchResponse;
-            } else if (request instanceof SiSuggestMappingRequestType mappingRequest) {
-                var appAttr = mappingRequest.getApplicationAttribute();
-                if (!appAttr.isEmpty()) {
-                    String attrName = appAttr.get(0).getName();
-                    if (attrName.contains("type")) {
-                        throw new RuntimeException("LLM went crazy here");
-                    } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
-                        return new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')");
-                    }
-                }
-            }
-            return null;
-        });
+        @SuppressWarnings("resource")
+        var mockClient = new MockServiceClientImpl()
+                .onRequestOfType(SiMatchSchemaRequestType.class)
+                    .respondWith(request -> schemaMatchResponse)
+                .onRequestOfType(SiSuggestMappingRequestType.class)
+                .andWhenRequestMatches(typeToDescPair::matchesMappingRequest)
+                    .respondWith(new RuntimeException("LLM went crazy here"))
+                .onRequestOfType(SiSuggestMappingRequestType.class)
+                .andWhenRequestMatches(phoneToTelephonePair::matchesMappingRequest)
+                    .respondWith(new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')"));
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();

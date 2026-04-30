@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.assertj.core.api.ThrowingConsumer;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = "classpath:ctx-model-test-main.xml")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CorrelationDefinitionUtilTest extends AbstractEmptyInternalModelTest {
 
     @Test
