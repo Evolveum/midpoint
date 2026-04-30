@@ -59,7 +59,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -510,34 +509,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        PageBase pageBase = getPageBase();
         super.onSubmitPerformed(target);
-        displaySynchronizationDialog(pageBase, target);
-    }
-
-    protected void displaySynchronizationDialog(@NotNull PageBase pageBase, AjaxRequestTarget target) {
-        ResourceObjectTypeDefinitionType resourceObjectDefinition = getResourceObjectDefinition();
-        if (resourceObjectDefinition == null) {
-            return;
-        }
-        SynchronizationReactionsType synchronization = getResourceObjectDefinition().getSynchronization();
-        if (synchronization == null
-                || synchronization.getReaction() == null
-                || synchronization.getReaction().isEmpty()) {
-
-            ConfirmationPanel confirmPanel = new ConfirmationPanel(
-                    pageBase.getMainPopupBodyId(),
-                    pageBase.createStringResource("CorrelationWizardPanelWizardPanel.noSynchronization.info")) {
-                @Override
-                public void yesPerformed(AjaxRequestTarget target) {
-                    navigateToSynchronizationPanel(target);
-                }
-            };
-            pageBase.showMainPopup(confirmPanel, target);
-        }
-    }
-
-    protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
     }
 
     @Override
