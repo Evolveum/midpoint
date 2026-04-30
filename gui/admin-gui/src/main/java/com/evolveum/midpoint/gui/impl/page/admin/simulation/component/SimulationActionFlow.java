@@ -296,7 +296,7 @@ public class SimulationActionFlow<T> implements Serializable {
                     .withSubmissionOptions(ActivitySubmissionOptions.create()
                             .withTaskTemplate(new TaskType()
                                     .name("Preview of " + flavor.flavorName()
-                                            + ":" + resource.getName() + ":" + displayName)))
+                                            + ": " + resource.getName() + ": " + displayName)))
                     .withSimulationResultDefinition(
                             new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false))
                     .create(task, result);
