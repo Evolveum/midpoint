@@ -564,23 +564,6 @@ Only works for organizations.
     ** `SchemaException`
     ** `SecurityViolationException`
 
-=== getServiceMemberUsers()
-
-Lists all user members of the specified service with the given relation to the service.
-Suitable for listing service owners, approvers, and similar governance users.
-
-* parameters:
-    ** `String serviceOid, QName relation`
-* returns:
-    ** `List<UserType>`
-* throws:
-    ** `CommunicationException`
-    ** `ConfigurationException`
-    ** `ExpressionEvaluationException`
-    ** `ObjectNotFoundException`
-    ** `SchemaException`
-    ** `SecurityViolationException`
-
 === getManagers()
 
 Returns a collection of users who are managers of the given user.
