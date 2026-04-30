@@ -1906,7 +1906,6 @@ Returns the current mapping (generic over `PrismValue` and `ItemDefinition`).
     ** `Mapping<V,D>`
 * throws:
     ** The function does not throw any exceptions.
-   ** The function does not throw any exceptions.
 
 === getModifyApprovalComments()
 
