@@ -46,8 +46,8 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: "${cpuRequest}",
                         resourceLimitCpu: "${cpuLimit}",
-                        resourceRequestMemory: '8Gi',
-                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+                        // With 8Gi it got OOMKilled, raised to 10Gi, see also -Xmx flag lower
+                        resourceLimitMemory: '10Gi')
         ],
         envVars: [envVar(key: 'MIDPOINT_BUILD_ALIAS', value: params.KEY_ALIAS_SINGING_JAR)]
 ) {

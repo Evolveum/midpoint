@@ -46,8 +46,8 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: "${cpuRequest}",
                         resourceLimitCpu: "${cpuLimit}",
-                        resourceRequestMemory: '8Gi',
-                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+                        // With 8Gi it got OOMKilled, raised to 10Gi, see also -Xmx flag lower
+                        resourceLimitMemory: '10Gi')
         ]
 ) {
     node(POD_LABEL) {
@@ -111,7 +111,7 @@ podTemplate(
             }
             stage("tests-extra") {
                 container('maven') {
-                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    // -Xmx6g to fit into container memory limit, 4g is on the edge for some tests
                     sh """#!/bin/bash -ex
                         if [ "${verbose}" -ge 1 ]
                         then

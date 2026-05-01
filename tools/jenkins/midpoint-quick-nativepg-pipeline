@@ -47,7 +47,6 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: "${cpuRequest}",
                         resourceLimitCpu: "${cpuLimit}",
-                        resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // by default -Xmx4g is set in main POM
         ]
 ) {
