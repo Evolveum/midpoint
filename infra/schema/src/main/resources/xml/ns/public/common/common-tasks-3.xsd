@@ -1981,6 +1981,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="virtualAssignments" type="tns:VirtualAssignmentsType" minOccurs="0"/>
             <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1991,6 +1992,25 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="VirtualAssignmentsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Virtual assignments for the activity. This is a list of assignments that are not assigned to processed
+                object for real, just during the processing of task. This can be used to assign roles with policies.
+
+                <!-- todo fix documentation [viliam] -->
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="virtualAssignments" type="tns:VirtualAssignmentsType"/>
 
     <xsd:complexType name="ActivityPoliciesType">
         <xsd:annotation>
@@ -2004,6 +2024,14 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="policy" type="tns:PolicyRuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="policyRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to a policy type object.
+                        <!-- todo doc [viliam] -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="activityPolicies" type="tns:ActivityPoliciesType"/>

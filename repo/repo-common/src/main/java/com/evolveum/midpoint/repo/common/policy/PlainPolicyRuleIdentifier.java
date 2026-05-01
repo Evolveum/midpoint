@@ -4,13 +4,11 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.repo.common.policy;
 
 import java.io.Serializable;
 
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
 
 /**
  * Policy rule identifier based on a plain string.
@@ -24,6 +22,11 @@ public record PlainPolicyRuleIdentifier(String ruleId) implements Serializable, 
     @NotNull
     public static PlainPolicyRuleIdentifier of(String ruleId) {
         return new PlainPolicyRuleIdentifier(ruleId);
+    }
+
+    @NotNull
+    public static PlainPolicyRuleIdentifier of(@NotNull String objectOid, @NotNull Long inducementCID) {
+        return of(objectOid + ":" + inducementCID);
     }
 
     @Override

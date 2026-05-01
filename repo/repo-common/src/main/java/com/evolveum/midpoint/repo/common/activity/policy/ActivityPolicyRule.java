@@ -66,12 +66,19 @@ public class ActivityPolicyRule implements DebugDumpable {
 
     private final @NotNull Set<DataNeed> dataNeeds;
 
+    /**
+     * Useful in case when policy rule comes via activity/policyRef -> identifier should be REF_OID:INDUCEMENT_CID.
+     */
+    private final PolicyRuleIdentifier customPolicyRuleIdentifier;
+
     public ActivityPolicyRule(
             @NotNull PolicyRuleConfigItem policy,
             @NotNull ActivityPath path,
+            PolicyRuleIdentifier  customPolicyRuleIdentifier,
             @NotNull Set<DataNeed> dataNeeds) {
         this.policyRuleCI = policy;
         this.path = path;
+        this.customPolicyRuleIdentifier = customPolicyRuleIdentifier;
         this.dataNeeds = dataNeeds;
     }
 
@@ -84,6 +91,10 @@ public class ActivityPolicyRule implements DebugDumpable {
     }
 
     public @NotNull PolicyRuleIdentifier getRuleIdentifier() {
+        if (customPolicyRuleIdentifier != null) {
+            return customPolicyRuleIdentifier;
+        }
+
         return ActivityPolicyRuleIdentifier.of(getPolicyBean(), path);
     }
 

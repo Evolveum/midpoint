@@ -11,30 +11,32 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
-
-import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
-
 import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.policy.PlainPolicyRuleIdentifier;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ActivityPolicyRulesCollector {
 
@@ -42,9 +44,15 @@ public class ActivityPolicyRulesCollector {
 
     @NotNull
     private final AbstractActivityRun<?, ?, ?> activityRun;
+    @NotNull
+    private final ObjectResolver objectResolver;
 
-    public ActivityPolicyRulesCollector(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
+    public ActivityPolicyRulesCollector(
+            @NotNull AbstractActivityRun<?, ?, ?> activityRun,
+            @NotNull ObjectResolver objectResolver) {
+
         this.activityRun = activityRun;
+        this.objectResolver = objectResolver;
     }
 
     private ActivityPolicyRulesContext getPolicyRulesContext() {
@@ -58,8 +66,10 @@ public class ActivityPolicyRulesCollector {
      * TODO Currently returns "doubled" policies when activity has embedded child activities (e.g. reconciliation).
      *  Reason is that embedded activities do inherit definition from parent activity (if there's no tailoring in place).
      */
-    public void collectRulesAndPreexistingValues(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        List<ActivityPolicyRule> rules = collectRulesFromActivity(activityRun.getActivity());
+    public void collectRulesAndPreexistingValues(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+
+        List<ActivityPolicyRule> rules = collectRulesFromActivity(activityRun.getActivity(), result);
         getPolicyRulesContext().setPolicyRules(rules);
 
         LOGGER.trace("Found {} activity policy rules for activity hierarchy, activity: '{}', rules: {}",
@@ -82,38 +92,119 @@ public class ActivityPolicyRulesCollector {
      * @param activity The activity from which to start collecting policy rules (null to stop).
      * @return List of evaluated activity policy rules, ordered by their defined order.
      */
-    private List<ActivityPolicyRule> collectRulesFromActivity(@Nullable Activity<?, ?> activity) {
+    private List<ActivityPolicyRule> collectRulesFromActivity(
+            @Nullable Activity<?, ?> activity, @NotNull OperationResult result) throws ConfigurationException {
+
         if (activity == null) {
             return List.of();
         }
 
-        var rules = new ArrayList<>(collectRulesFromActivity(activity.getParent()));
+        var rules = new ArrayList<>(collectRulesFromActivity(activity.getParent(), result));
 
         ActivityPath activityPath = activity.getPath();
         ActivityPoliciesType activityPoliciesBean = activity.getDefinition().getPoliciesDefinition().getPolicies();
-        List<PolicyRuleType> policyBeans = activityPoliciesBean.getPolicy();
 
-        policyBeans.stream()
-                .filter(policy -> BooleanUtils.isNotFalse(policy.isEnabled()))
-                .map(policy -> {
+        List<ActivityPolicyRule> activityRules = new ArrayList<>();
 
-                    ConfigurationItemOrigin origin = ConfigurationItemOrigin.inObjectApproximate(
-                            activityRun.getRunningTask().getRawTaskObjectClonedIfNecessary().asObjectable(),
-                            TaskType.F_ACTIVITY);
+        collectRulesFromActivityPolicies(activityPoliciesBean, activityPath, activityRules);
 
-                    var policyCI = ConfigurationItem.configItem(policy, origin, PolicyRuleConfigItem.class);
+        collectRulesFromActivityPolicyRefs(
+                activityPoliciesBean, activityPath, activityRules, activityRun.getRunningTask(), result);
 
-                    return new ActivityPolicyRule(policyCI, activityPath, getDataNeeds(policy));
-                })
-                .sorted(
-                        Comparator.comparing(
-                                ActivityPolicyRule::getOrder,
-                                Comparator.nullsLast(Comparator.naturalOrder())))
-                .forEach(r -> rules.add(r));
+        activityRules.sort(
+                Comparator.comparing(
+                        ActivityPolicyRule::getOrder,
+                        Comparator.nullsLast(Comparator.naturalOrder())));
+
+        rules.addAll(activityRules);
 
         LOGGER.trace("Found {} activity policy rules for activity '{}' (including ancestors)", rules.size(), activityPath);
 
         return rules;
+    }
+
+    private void collectRulesFromActivityPolicies(
+            ActivityPoliciesType activityPoliciesBean, ActivityPath activityPath, List<ActivityPolicyRule> rules) {
+
+        ConfigurationItemOrigin origin = ConfigurationItemOrigin.inObjectApproximate(
+                activityRun.getRunningTask().getRawTaskObjectClonedIfNecessary().asObjectable(),
+                TaskType.F_ACTIVITY);
+
+        for (PolicyRuleType rule : activityPoliciesBean.getPolicy()) {
+            if (BooleanUtils.isFalse(rule.isEnabled())) {
+                continue;
+            }
+
+            addActivityPolicyRule(rule, activityPath, origin, null, rules);
+        }
+    }
+
+    private void collectRulesFromActivityPolicyRefs(
+            ActivityPoliciesType activityPoliciesBean, ActivityPath activityPath, List<ActivityPolicyRule> rules, Task task,
+            OperationResult result) throws ConfigurationException {
+
+        for (ObjectReferenceType policyRef : activityPoliciesBean.getPolicyRef()) {
+            ObjectType object = null;
+            try {
+                object = objectResolver.resolve(policyRef, AbstractRoleType.class, null, "resolving policyRef", task, result);
+            } catch (ObjectNotFoundException ex) {
+                LOGGER.warn(
+                        "Referenced object for policyRef {} not found, skipping. Activity path: {}",
+                        policyRef, activityPath);
+            } catch (CommonException ex) {
+                LOGGER.warn(
+                        "Error resolving object for policyRef {}, skipping. Activity path: {}. Error: {}",
+                        policyRef, activityPath, ex.getMessage());
+            }
+
+            if (object == null) {
+                continue;
+            }
+
+            if (!(object instanceof AbstractRoleType role)) {
+                LOGGER.debug(
+                        "Referenced object for policyRef {} is not a abstract role, skipping. Activity path: {}. Object type: {}",
+                        policyRef, activityPath, object.getClass().getName());
+                continue;
+            }
+
+            for (AssignmentType inducement : role.getInducement()) {
+                PolicyRuleType rule = inducement.getPolicyRule();
+                if (rule == null || BooleanUtils.isFalse(rule.isEnabled())) {
+                    continue;
+                }
+
+                if (inducement.getOrder() != null) {
+                    throw new ConfigurationException(
+                            "Inducement-based policy rules do not support order, but rule %s in role %s has order defined"
+                                    .formatted(rule.getName(), role.getName())
+                    );
+                }
+
+                if (inducement.getCondition() != null) {
+                    throw new ConfigurationException(
+                            "Inducement-based policy rules do not support condition, but rule %s in role %s has condition defined"
+                                    .formatted(rule.getName(), role.getName())
+                    );
+                }
+
+                ConfigurationItemOrigin origin = ConfigurationItemOrigin.inObject(
+                        object, ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, rule.getId()));
+
+                PolicyRuleIdentifier identifier = PlainPolicyRuleIdentifier.of(object.getOid(), inducement.getId());
+
+                addActivityPolicyRule(rule, activityPath, origin, identifier, rules);
+            }
+        }
+    }
+
+    private void addActivityPolicyRule(
+            PolicyRuleType rule, ActivityPath activityPath, ConfigurationItemOrigin origin,
+            PolicyRuleIdentifier customPolicyRuleIdentifier, List<ActivityPolicyRule> rules) {
+
+        var policyCI = ConfigurationItem.configItem(rule, origin, PolicyRuleConfigItem.class);
+
+        rules.add(new ActivityPolicyRule(policyCI, activityPath, customPolicyRuleIdentifier, getDataNeeds(rule)));
     }
 
     private static Set<DataNeed> getDataNeeds(PolicyRuleType policyBean) {

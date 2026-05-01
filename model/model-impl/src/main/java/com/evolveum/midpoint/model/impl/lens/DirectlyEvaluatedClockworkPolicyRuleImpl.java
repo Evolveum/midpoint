@@ -15,18 +15,13 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.repo.common.policy.EvaluatedSituationTrigger;
-import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
-
-import com.evolveum.midpoint.repo.common.policy.BaseEvaluatedPolicyRuleImpl;
-import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
-
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
@@ -39,14 +34,16 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
-import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.repo.common.policy.*;
 import com.evolveum.midpoint.schema.config.AbstractPolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -95,7 +92,7 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
     /**
      * Filled in only if rule was loaded from specific activity.
      * E.g. not for global policy rules or rules obtained from task assignments.
-     *     *
+     * *
      * TODO vysvetlit preco to tu teraz je (data needs, counters sa handluju inak ked je rule z aktivity a nie so sysconfigu
      */
     private final ActivityPolicyRule activityPolicyRule;
@@ -399,7 +396,6 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
 
         return count;
     }
-
 
     @Override
     public @NotNull DirectlyEvaluatedClockworkPolicyRule.TargetType getTargetType() {
