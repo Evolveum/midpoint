@@ -256,7 +256,8 @@ public abstract class ConnectorDevelopmentBackend {
                     .embedded(v.getEmbedded())
                     ._abstract(v.isAbstract())
                     .superclass(v.getSuperclass())
-                    .relevant(v.getRelevant());
+                    .relevant(v.getRelevant())
+                    .relevancy(v.getRelevancy());
             v.getRelevantDocumentations().forEach(chunk ->
                     oc.relevantDocumentations(new ConnDevRelevantDocumentationsType().docId(chunk.getDocId()).chunkId(chunk.getChunkId())));
             return oc;
