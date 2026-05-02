@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2025 Evolveum and contributors
+ * Copyright (c) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -16,6 +16,11 @@
  */
 
 def verbose = params.VERBOSE ?: '0'
+
+// Make the cpuLimit integer from String Jenkins job parameter.
+def cpuLimit = (params.BUILDER_CPU ?: '4').toInteger() * 2
+// Request quarter of the limit (min 1) to reduce reserved capacity, allowing more concurrent pods to be scheduled.
+def cpuRequest = Math.max(1, cpuLimit.intdiv(4))
 
 def oraclePDB = "${params.ORACLE_PDB ?: 'xepdb1'}" // xepdb1 for Oracle 21c freepdb1 or Oracle 23ai
 
@@ -38,10 +43,9 @@ podTemplate(
                 containerTemplate(name: "jnlp",
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
                         runAsUser: '0',
-                        resourceRequestCpu: '1',
-                        resourceLimitCpu: '1',
-                        resourceRequestMemory: '2Gi',
-                        resourceLimitMemory: '2Gi'),
+                        resourceRequestCpu: '500m',
+                        resourceLimitCpu: '2',
+                        resourceLimitMemory: '4Gi'),
                 // kubectl container for controlling "side-car" Oracle pod
                 containerTemplate(
                         name: "kubectl",
@@ -54,8 +58,8 @@ podTemplate(
                         runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
-                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
-                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
+                        resourceRequestCpu: "${cpuRequest}",
+                        resourceLimitCpu: "${cpuLimit}",
                         resourceRequestMemory: '10Gi',
                         resourceLimitMemory: '10Gi') // see also -Xmx flag lower
         ]
@@ -299,7 +303,7 @@ EOF
             }
             stage("tests-extra") {
                 container('maven') {
-                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    // -Xmx6g to fit into container memory limit, 4g is on the edge for some tests
                     sh """#!/bin/bash -ex
                             mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing ${dbprops} \
                                 -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
