@@ -90,8 +90,9 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     protected Integer countObjects(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions,
             Task task, OperationResult result) throws CommonException {
+        // Use the query passed from internalSize(); it is also used for the count cache key.
         return getModelService().countObjects(
-                type, getQuery(), currentOptions, task, result);
+                type, query, currentOptions, task, result);
     }
 
     protected boolean isMemberPanel() {

@@ -127,6 +127,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String OP_MODIFY_OBJECT_DYNAMICALLY = "modifyObjectDynamically";
     String OP_GET_VERSION = "getVersion";
     String OP_IS_DESCENDANT = "isDescendant";
+    String OP_IS_DESCENDANT_OF_ANY = "isDescendantOfAny";
     String OP_IS_ANCESTOR = "isAncestor";
     String OP_ADVANCE_SEQUENCE = "advanceSequence";
     String OP_RETURN_UNUSED_VALUES_TO_SEQUENCE = "returnUnusedValuesToSequence";

@@ -1037,6 +1037,30 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
+    public <O extends ObjectType> boolean isDescendantOfAny(
+            PrismObject<O> object, Collection<String> ancestorOrgOids) {
+        if (ancestorOrgOids == null || ancestorOrgOids.isEmpty()) {
+            return false;
+        }
+
+        List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
+        List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
+        for (ObjectReferenceType objParentOrgRef : objParentOrgRefs) {
+            objParentOrgOids.add(objParentOrgRef.getOid());
+        }
+        if (objParentOrgOids.isEmpty()) {
+            return false;
+        }
+
+        for (String ancestorOrgOid : ancestorOrgOids) {
+            if (isAnySubordinate(ancestorOrgOid, objParentOrgOids)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public <O extends ObjectType> boolean isAncestor(
             PrismObject<O> object, String descendantOrgOid) {
         // object is not considered ancestor of itself

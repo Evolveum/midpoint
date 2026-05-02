@@ -11,6 +11,7 @@
         <classes>
             <class name="com.evolveum.midpoint.web.TestUnitObjectWrapperFactory"/>
             <class name="com.evolveum.midpoint.web.TestPageMounter"/>
+            <class name="com.evolveum.midpoint.gui.SelectableBeanDataProviderCountCacheTest"/>
         </classes>
     </test>
 </suite>

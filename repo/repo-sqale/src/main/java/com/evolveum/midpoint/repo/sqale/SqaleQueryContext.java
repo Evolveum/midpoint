@@ -15,6 +15,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
@@ -134,6 +135,9 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             return new InOidFilterProcessor(this).process((InOidFilter) filter);
         } else if (filter instanceof OrgFilter) {
             return new OrgFilterProcessor(this).process((OrgFilter) filter);
+        } else if (filter instanceof OrFilter) {
+            @Nullable Predicate predicate = new OrgFilterOrOptimizer(this).process((OrFilter) filter);
+            return predicate != null ? predicate : super.process(filter);
         } else if (filter instanceof FullTextFilter) {
             return new FullTextFilterProcessor(this).process((FullTextFilter) filter);
         } else if (filter instanceof ExistsFilter) {

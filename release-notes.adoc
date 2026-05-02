@@ -32,6 +32,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 * Improved login and self-dashboard performance. See bug:MID-10972[]
 * Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
+* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
 
 == Changes with Respect To Version 4.8.11
 

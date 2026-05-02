@@ -400,6 +400,11 @@ public class MockFactory {
             }
 
             @Override
+            public <O extends ObjectType> boolean isDescendantOfAny(PrismObject<O> object, Collection<String> ancestorOrgOids) throws SchemaException {
+                return false;
+            }
+
+            @Override
             public <O extends ObjectType> boolean isAncestor(
                     PrismObject<O> object, String descendantOrgOid) {
                 return false;
