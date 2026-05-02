@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.schema.selector.eval;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -53,6 +55,19 @@ public interface OrgTreeEvaluator {
      * @param ancestorOrgOid identifier of ancestor organization
      */
     <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String ancestorOrgOid)
+            throws SchemaException;
+
+    /**
+     * Returns `true` if the `object` is under the organization identified with `ancestorOrgOids`.
+     *
+     * The `object` can be an Org or any other object; all targets of its
+     * `parentOrgRef`s are tested. The object is not considered to be its own
+     * descendant. An empty or null ancestor collection returns `false`.
+     *
+     * @param object object of any type tested to belong under one of the ancestor orgs
+     * @param ancestorOrgOids identifiers of ancestor organizations
+     */
+     <O extends ObjectType> boolean isDescendantOfAny(PrismObject<O> object, Collection<String> ancestorOrgOids)
             throws SchemaException;
 
 }
