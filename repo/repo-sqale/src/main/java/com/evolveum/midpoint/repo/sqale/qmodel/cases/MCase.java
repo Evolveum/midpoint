@@ -9,13 +9,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 
 /**
  * Querydsl "row bean" type related to {@link QCase}.
  */
-public class MCase extends MObject {
+public class MCase extends MFocus {
 
     public String state;
     public Instant closeTimestamp;

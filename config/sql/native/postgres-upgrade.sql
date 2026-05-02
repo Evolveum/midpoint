@@ -1159,6 +1159,7 @@ call apply_change(56, $aa$
     DROP INDEX IF EXISTS m_connector_typeVersion_key;
     DROP INDEX IF EXISTS m_connector_typeversionhost_key;
 $aa$);
+
 call apply_change(57, $aa$
 CREATE INDEX m_connector_typeVersion_key
     ON m_connector (connectorType, connectorVersion)
@@ -1166,6 +1167,42 @@ CREATE INDEX m_connector_typeVersion_key
 CREATE INDEX m_connector_typeVersionHost_key
     ON m_connector (connectorType, connectorVersion, connectorHostRefTargetOid)
     WHERE connectorHostRefTargetOid IS NOT NULL;
+$aa$);
+
+-- TODO review this!
+call apply_change(58, $aa$
+
+ALTER TABLE m_case NO INHERIT m_assignment_holder;
+
+ALTER TABLE m_case
+    ADD COLUMN costCenter TEXT,
+    ADD COLUMN emailAddress TEXT,
+    ADD COLUMN photo BYTEA, -- will be TOAST-ed if necessary
+    ADD COLUMN locale TEXT,
+    ADD COLUMN localityOrig TEXT,
+    ADD COLUMN localityNorm TEXT,
+    ADD COLUMN preferredLanguage TEXT,
+    ADD COLUMN telephoneNumber TEXT,
+    ADD COLUMN timezone TEXT,
+    -- credential/password/metadata
+    ADD COLUMN passwordCreateTimestamp TIMESTAMPTZ,
+    ADD COLUMN passwordModifyTimestamp TIMESTAMPTZ,
+    -- activation
+    ADD COLUMN administrativeStatus ActivationStatusType,
+    ADD COLUMN effectiveStatus ActivationStatusType,
+    ADD COLUMN enableTimestamp TIMESTAMPTZ,
+    ADD COLUMN disableTimestamp TIMESTAMPTZ,
+    ADD COLUMN disableReason TEXT,
+    ADD COLUMN validityStatus TimeIntervalStatusType,
+    ADD COLUMN validFrom TIMESTAMPTZ,
+    ADD COLUMN validTo TIMESTAMPTZ,
+    ADD COLUMN validityChangeTimestamp TIMESTAMPTZ,
+    ADD COLUMN archiveTimestamp TIMESTAMPTZ,
+    ADD COLUMN lockoutStatus LockoutStatusType,
+    ADD COLUMN normalizedData JSONB;
+
+ALTER TABLE m_case INHERIT m_focus;
+
 $aa$);
 
 ---

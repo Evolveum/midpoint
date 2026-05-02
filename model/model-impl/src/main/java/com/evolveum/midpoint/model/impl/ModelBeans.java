@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
@@ -125,6 +126,7 @@ public class ModelBeans {
     @Autowired public TaskManager taskManager;
     @Autowired public ExpressionFactory expressionFactory;
     @Autowired(required = false) public CaseManager caseManager; // not available e.g. during tests
+    @Autowired(required = false) public CaseEventDispatcher caseEventDispatcher;
     @Autowired public ClockworkConflictResolver clockworkConflictResolver;
     @Autowired public ContextFactory contextFactory;
     @Autowired public Clockwork clockwork;

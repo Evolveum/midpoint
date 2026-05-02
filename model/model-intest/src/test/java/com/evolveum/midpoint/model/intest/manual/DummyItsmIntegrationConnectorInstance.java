@@ -64,8 +64,9 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     }
 
     @Override
-    public OperationResultStatus queryOperationStatus(String asynchronousOperationReference,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+    public OperationResultStatus queryOperationStatus(
+            String asynchronousOperationReference, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
         DummyItsm itsm = DummyItsm.getInstance();
         DummyItsmTicket ticket;
         try {

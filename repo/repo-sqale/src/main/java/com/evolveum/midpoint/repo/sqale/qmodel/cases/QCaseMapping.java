@@ -13,12 +13,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
  * Mapping between {@link QCase} and {@link CaseType}.
  */
 public class QCaseMapping
-        extends QAssignmentHolderMapping<CaseType, QCase, MCase> {
+        extends QFocusMapping<CaseType, QCase, MCase> {
 
     public static final String DEFAULT_ALIAS_NAME = "cs";
     private static QCaseMapping instance;

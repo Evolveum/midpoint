@@ -1859,7 +1859,7 @@ CREATE TABLE m_case (
     targetRefTargetType ObjectType,
     targetRefRelationId INTEGER REFERENCES m_uri(id)
 )
-    INHERITS (m_assignment_holder);
+    INHERITS (m_focus);
 
 CREATE TRIGGER m_case_oid_insert_tr BEFORE INSERT ON m_case
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();

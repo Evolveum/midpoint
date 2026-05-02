@@ -162,6 +162,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                         .build(),
                 readOnly(),
                 result);
+        LOGGER.trace("Owners found by search operation: {}", owners);
 
         if (owners.isEmpty()) {
             return null;

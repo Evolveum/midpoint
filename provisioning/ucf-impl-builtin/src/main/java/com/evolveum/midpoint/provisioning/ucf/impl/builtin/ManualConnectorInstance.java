@@ -14,6 +14,9 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.provisioning.ucf.api.TicketingService.TicketingResourceSpec;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,8 +65,8 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  * @author Radovan Semancik
  */
 @ManagedConnector(type = "ManualConnector", version = "1.0.0")
-public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware,
-        CaseEventDispatcherAware, TaskManagerAware {
+public class ManualConnectorInstance extends AbstractManualConnectorInstance
+        implements RepositoryAware, CaseEventDispatcherAware, TaskManagerAware, TicketingServiceAware {
 
     private static final String OP_QUERY_CASE = ManualConnectorInstance.class.getName() + ".queryCase";
     private static final String OP_TEST = ManualConnectorInstance.class.getName() + ".test";
@@ -75,6 +78,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     private RepositoryService repositoryService;
     private CaseEventDispatcher caseEventDispatcher;
     private TaskManager taskManager;
+    private TicketingService ticketingService;
 
     private boolean connected = false;
 
@@ -129,6 +133,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     @Override
+    public void setTicketingService(TicketingService ticketingService) {
+        this.ticketingService = ticketingService;
+    }
+
+    @Override
     protected String createTicketAdd(PrismObject<? extends ShadowType> object, Task task, OperationResult result) throws SchemaException,
             ObjectAlreadyExistsException {
         LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
@@ -140,7 +149,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         } else {
             shadowName = getShadowIdentifier(ShadowUtil.getPrimaryIdentifiers(object));
         }
-        PrismObject<CaseType> aCase = addCase(
+        return addCase(
                 "create",
                 ShadowUtil.getResourceOid(object.asObjectable()),
                 shadowName,
@@ -148,7 +157,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
                 objectDeltaType,
                 task,
                 result);
-        return aCase.getOid();
     }
 
     @Override
@@ -170,9 +178,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
         objectDeltaType.setOid(shadow.getOid());
         String shadowName = shadow.getName().toString();
-        PrismObject<CaseType> aCase =
-                addCase("modify", resourceOid, shadowName, shadow.asObjectable(), objectDeltaType, task, result);
-        return aCase.getOid();
+        return addCase("modify", resourceOid, shadowName, shadow.asObjectable(), objectDeltaType, task, result);
     }
 
     @Override
@@ -192,12 +198,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         objectDeltaType.getItemDelta().add(itemDeltaType);
         PrismObject<CaseType> aCase;
         try {
-            aCase = addCase("delete", resourceOid, shadowName, shadow.asObjectable(), objectDeltaType, task, result);
+            return addCase("delete", resourceOid, shadowName, shadow.asObjectable(), objectDeltaType, task, result);
         } catch (ObjectAlreadyExistsException e) {
             // should not happen
             throw new SystemException(e.getMessage(), e);
         }
-        return aCase.getOid();
     }
 
     private PolyStringType createCaseName(String operation, String shadowName, String resourceName) {
@@ -229,7 +234,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     // Note that shadow may be without OID and even without name.
-    private PrismObject<CaseType> addCase(
+    private String addCase(
             String operation,
             String resourceOid,
             String shadowName,
@@ -286,15 +291,27 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         // TODO: case payload
         // TODO: a lot of other things
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("CREATING CASE:\n{}", aCase.debugDumpLazily(1));
+        LOGGER.trace("CREATING CASE:\n{}", aCase.debugDumpLazily(1));
+
+        String caseOid;
+        String ticketingResourceOid = configuration.getTicketingResourceOid();
+        if (ticketingService != null && ticketingResourceOid != null) {
+            // Here we try to create the ticket on a real ITSM system, accessed via "ticketingResourceOid".
+            var ticketingResourceSpec = new TicketingResourceSpec(
+                    ticketingResourceOid,
+                    ResourceObjectTypeIdentification.of(
+                            ShadowKindType.fromValue(configuration.getTicketingObjectKind()),
+                            configuration.getTicketingObjectIntent()));
+            caseOid = ticketingService.addCase(aCase, ticketingResourceSpec, task, result);
+        } else {
+            // Here we create the case to be managed by midPoint itself.
+            caseOid = repositoryService.addObject(aCase.asPrismObject(), null, result);
+            // "Admitting" the case into case management: e.g. sending notifications, auditing the case creation, and so on
+            // Ticketing service (in the branch above) does this automatically
+            caseEventDispatcher.dispatchCaseCreationEvent(aCase, task, result);
         }
 
-        repositoryService.addObject(aCase.asPrismObject(), null, result);
-
-        // "Admitting" the case into case management: e.g. sending notifications, auditing the case creation, and so on
-        caseEventDispatcher.dispatchCaseCreationEvent(aCase, task, result);
-        return aCase.asPrismObject();
+        return caseOid;
     }
 
     private static ObjectReferenceType createTargetRef(ShadowType shadow, String shadowName) {
@@ -323,36 +340,42 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     @Override
-    public OperationResultStatus queryOperationStatus(String asynchronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    public OperationResultStatus queryOperationStatus(String asynchronousOperationReference, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_QUERY_CASE);
-
-        InternalMonitor.recordConnectorOperation("queryOperationStatus");
-
-        PrismObject<CaseType> aCase;
         try {
-            aCase = repositoryService.getObject(CaseType.class, asynchronousOperationReference, null, result);
-        } catch (ObjectNotFoundException | SchemaException e) {
-            result.recordFatalError(e);
-            throw e;
-        }
+            InternalMonitor.recordConnectorOperation("queryOperationStatus");
 
-        CaseType caseType = aCase.asObjectable();
-        CaseState state = CaseState.of(caseType);
+            CaseType aCase;
 
-        // States "open" and "created" are the same from the factual point of view
-        // They differ only in level of processing carried out by case manager (audit, notifications, etc).
-        if (state.isCreated() || state.isOpen()) {
-            result.recordSuccess();
-            return OperationResultStatus.IN_PROGRESS;
-        } else if (state.isClosing() || state.isClosed()) {
-            String outcome = caseType.getOutcome();
-            OperationResultStatus status = ManualCaseUtils.translateOutcomeToStatus(outcome);
-            result.recordSuccess();
-            return status;
-        } else {
-            SchemaException e = new SchemaException("Unknown case state " + state);
-            result.recordFatalError(e);
-            throw e;
+            String ticketingResourceOid = configuration.getTicketingResourceOid();
+            if (ticketingService != null && ticketingResourceOid != null) {
+                // Real ITSM system, accessed via "ticketingResourceOid"
+                aCase = ticketingService.getCase(asynchronousOperationReference, task, result);
+            } else {
+                // Case managed by midPoint itself
+                aCase = repositoryService
+                        .getObject(CaseType.class, asynchronousOperationReference, null, result)
+                        .asObjectable();
+            }
+
+            CaseState state = CaseState.of(aCase);
+
+            // States "open" and "created" are the same from the factual point of view
+            // They differ only in level of processing carried out by case manager (audit, notifications, etc).
+            if (state.isCreated() || state.isOpen()) {
+                return OperationResultStatus.IN_PROGRESS;
+            } else if (state.isClosing() || state.isClosed()) {
+                return ManualCaseUtils.translateOutcomeToStatus(aCase.getOutcome());
+            } else {
+                throw new SchemaException("Unknown case state " + state);
+            }
+
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 

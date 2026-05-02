@@ -47,7 +47,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AssignmentHolderType">
+            <xsd:extension base="tns:FocusType">
                 <xsd:sequence>
                     <!-- TODO payload -->
                     <xsd:element name="parentRef" type="tns:ObjectReferenceType" minOccurs="0">

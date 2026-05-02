@@ -28,7 +28,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
+import com.evolveum.midpoint.provisioning.ucf.api.AsynchronousOperationQueryable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -412,7 +412,7 @@ public class ResourceObjectConverter {
                 LOGGER.trace("PROVISIONING REFRESH operation ref={} on {}, object: {}",
                         asyncRef, resource, shadow);
 
-                status = queryableConnector.queryOperationStatus(asyncRef, result);
+                status = queryableConnector.queryOperationStatus(asyncRef, ctx.getTask(), result);
 
                 LOGGER.debug("PROVISIONING REFRESH ref={} successful on {} {}, returned status: {}",
                         asyncRef, resource, shadow, status);

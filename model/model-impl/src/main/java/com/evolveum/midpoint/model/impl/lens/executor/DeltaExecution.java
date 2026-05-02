@@ -543,6 +543,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         } else {
             FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
             oid = b.cacheRepositoryService.addObject(objectToAdd, createRepoAddOptions(), result);
+            if (objectBeanToAdd instanceof CaseType aCase && b.caseEventDispatcher != null) {
+                b.caseEventDispatcher.dispatchCaseCreationEvent(aCase, task, result);
+            }
         }
         return oid;
     }

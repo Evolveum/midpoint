@@ -17,7 +17,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
+import com.evolveum.midpoint.provisioning.ucf.api.AsynchronousOperationQueryable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;

@@ -10,6 +10,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -80,6 +81,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private UcfExpressionEvaluator ucfExpressionEvaluator;
     @Autowired private Tracer tracer;
+    @Autowired private Optional<TicketingService> ticketingService;
 
     private final Object connectorDiscovery = new Object();
 
@@ -273,30 +275,29 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
                     instanceName,
                     false);
         }
-        if (connectorInstance instanceof AbstractManagedConnectorInstance) {
-            setupAbstractConnectorInstance(
-                    (AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorBean, struct);
+        if (connectorInstance instanceof AbstractManagedConnectorInstance abstractManagedConnectorInstance) {
+            setupAbstractConnectorInstance(abstractManagedConnectorInstance, instanceName, connectorBean, struct);
         }
-        if (connectorInstance instanceof RepositoryAware) {
-            ((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
+        if (connectorInstance instanceof RepositoryAware repositoryAware) {
+            repositoryAware.setRepositoryService(repositoryService);
         }
-        if (connectorInstance instanceof CaseEventDispatcherAware) {
-            ((CaseEventDispatcherAware)connectorInstance).setDispatcher(caseManager);
+        if (connectorInstance instanceof CaseEventDispatcherAware caseEventDispatcherAware) {
+            caseEventDispatcherAware.setDispatcher(caseManager);
         }
-        if (connectorInstance instanceof TaskManagerAware) {
-            ((TaskManagerAware)connectorInstance).setTaskManager(taskManager);
+        if (connectorInstance instanceof TaskManagerAware taskManagerAware) {
+            taskManagerAware.setTaskManager(taskManager);
         }
-        if (connectorInstance instanceof SecurityContextManagerAware) {
-            ((SecurityContextManagerAware) connectorInstance).setSecurityContextManager(securityContextManager);
+        if (connectorInstance instanceof SecurityContextManagerAware securityContextManagerAware) {
+            securityContextManagerAware.setSecurityContextManager(securityContextManager);
         }
-        if (connectorInstance instanceof UcfExpressionEvaluatorAware) {
-            ((UcfExpressionEvaluatorAware) connectorInstance).setUcfExpressionEvaluator(ucfExpressionEvaluator);
+        if (connectorInstance instanceof UcfExpressionEvaluatorAware ucfExpressionEvaluatorAware) {
+            ucfExpressionEvaluatorAware.setUcfExpressionEvaluator(ucfExpressionEvaluator);
         }
-        if (connectorInstance instanceof TracerAware) {
-            ((TracerAware) connectorInstance).setTracer(tracer);
+        if (connectorInstance instanceof TracerAware tracerAware) {
+            tracerAware.setTracer(tracer);
         }
-        if (connectorInstance instanceof RepositoryAware) {
-            ((RepositoryAware) connectorInstance).setRepositoryService(repositoryService);
+        if (connectorInstance instanceof TicketingServiceAware ticketingServiceAware) {
+            ticketingServiceAware.setTicketingService(ticketingService.orElse(null));
         }
         return connectorInstance;
     }

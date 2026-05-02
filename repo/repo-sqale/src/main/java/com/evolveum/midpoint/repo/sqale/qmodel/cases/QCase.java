@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
+
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -23,7 +25,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QCase extends QAssignmentHolder<MCase> {
+public class QCase extends QFocus<MCase> {
 
     private static final long serialVersionUID = -5546874425855732858L;
 
