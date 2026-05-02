@@ -2091,28 +2091,68 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         Validate.notNull(ancestorOrgOid, "ancestorOrgOid must not be null");
 
         logger.trace("Querying if object {} is descendant of {}", object.getOid(), ancestorOrgOid);
+        return isDescendantOfAnyInternal(object, List.of(ancestorOrgOid), OP_IS_DESCENDANT);
+    }
+
+    /**
+     * Batched variant of {@link #isDescendant(PrismObject, String)} used by selector post-filtering.
+     * It checks all supplied ancestors against all parentOrgRefs of the object with a single closure query.
+     */
+    @Override
+    public <O extends ObjectType> boolean isDescendantOfAny(
+            PrismObject<O> object, Collection<String> ancestorOrgOids) {
+        Validate.notNull(object, "object must not be null");
+
+        logger.trace("Querying if object {} is descendant of any of {}", object.getOid(), ancestorOrgOids);
+        if (ancestorOrgOids == null || ancestorOrgOids.isEmpty()) {
+            return false;
+        }
+
+        return isDescendantOfAnyInternal(object, ancestorOrgOids, OP_IS_DESCENDANT_OF_ANY);
+    }
+
+    private <O extends ObjectType> boolean isDescendantOfAnyInternal(
+            PrismObject<O> object, Collection<String> ancestorOrgOids, String operationName) {
         List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
         if (objParentOrgRefs == null || objParentOrgRefs.isEmpty()) {
             return false;
         }
 
-        List<UUID> objParentOrgOids = objParentOrgRefs.stream()
-                .map(ref -> UUID.fromString(ref.getOid()))
-                .collect(Collectors.toList());
-
-        long opHandle = registerOperationStart(OP_IS_DESCENDANT, OrgType.class);
+        Set<UUID> objParentOrgOids = new LinkedHashSet<>();
+        Set<UUID> ancestorUuids = new LinkedHashSet<>();
         try {
-            return executeRetriable(OP_IS_DESCENDANT, SqaleUtils.oidToUuid(object.getOid()), opHandle, () -> {
+            for (ObjectReferenceType ref : objParentOrgRefs) {
+                String parentOrgOid = ref.getOid();
+                if (parentOrgOid == null) {
+                    throw new SystemException("Object parentOrgRef without OID cannot be used for descendant check");
+                }
+                objParentOrgOids.add(UUID.fromString(parentOrgOid));
+            }
+            for (String ancestorOrgOid : ancestorOrgOids) {
+                if (ancestorOrgOid == null) {
+                    throw new SystemException("Null ancestor org OID cannot be used for descendant check");
+                }
+                ancestorUuids.add(UUID.fromString(ancestorOrgOid));
+            }
+        } catch (IllegalArgumentException e) {
+            throw new SystemException("Cannot convert org OID to UUID for descendant check", e);
+        }
+
+        long opHandle = registerOperationStart(operationName, OrgType.class);
+        try {
+            return executeRetriable(operationName, SqaleUtils.oidToUuid(object.getOid()), opHandle, () -> {
                 try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
                     jdbcSession.executeStatement("CALL m_refresh_org_closure()");
 
                     QOrgClosure oc = new QOrgClosure();
-                    long count = jdbcSession.newQuery()
+                    Integer one = jdbcSession.newQuery()
+                            .select(Expressions.ONE)
                             .from(oc)
-                            .where(oc.ancestorOid.eq(UUID.fromString(ancestorOrgOid))
+                            .where(oc.ancestorOid.in(ancestorUuids)
                                     .and(oc.descendantOid.in(objParentOrgOids)))
-                            .fetchCount();
-                    return count != 0L;
+                            .limit(1)
+                            .fetchFirst();
+                    return one != null;
                 }
             });
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RepositoryException e) {

@@ -58,7 +58,8 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     protected Integer countObjects(Class<C> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
             throws CommonException {
-        return getModelService().countContainers(type, getQuery(), currentOptions, task, result);
+        // Use the query passed from internalSize(); it is also used for the count cache key.
+        return getModelService().countContainers(type, query, currentOptions, task, result);
     }
 
     @Override

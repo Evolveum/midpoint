@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -65,6 +66,14 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     private boolean useObjectCounting = true;
 
     private boolean export;
+
+    private OperationResult result;
+
+    // Short-lived count cache for repeated Wicket size/page-count calls in one render.
+    // Cleared on detach and provider state changes; independent of row/object caching.
+    private CountCacheKey cachedCountKey;
+    private Integer cachedCount;
+    private boolean cachedCountAvailable;
 
     public Set<T> getSelected() {
         return selected;
@@ -240,11 +249,20 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             return Integer.MAX_VALUE;
         }
         int count = 0;
-        Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
-        OperationResult result = task.getResult();
+        Task task = createCountTask();
+        OperationResult result = createCountResult(task);
         try {
             Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge( getSearchOptions(), null);
-            Integer counted = countObjects(getType(), getQuery(), currentOptions, task, result);
+            Class<T> type = getType();
+            ObjectQuery query = getQuery();
+            CountCacheKey countKey = new CountCacheKey(type, query, currentOptions);
+            Integer counted;
+            if (isCountCached(countKey)) {
+                counted = cachedCount;
+            } else {
+                counted = countObjects(type, query, currentOptions, task, result);
+                cacheCount(countKey, counted);
+            }
             count = defaultIfNull(counted, defaultCountIfNull);
         } catch (Exception ex) {
             setupUserFriendlyMessage(result, ex);
@@ -264,10 +282,34 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         return count;
     }
 
+    private boolean isCountCached(CountCacheKey countKey) {
+        return cachedCountAvailable && Objects.equals(cachedCountKey, countKey);
+    }
+
+    private void cacheCount(CountCacheKey countKey, Integer count) {
+        cachedCountKey = countKey;
+        cachedCount = count;
+        cachedCountAvailable = true;
+    }
+
+    private void clearCountCache() {
+        cachedCountKey = null;
+        cachedCount = null;
+        cachedCountAvailable = false;
+    }
+
     protected abstract Integer countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions,
             Task task, OperationResult result)
             throws CommonException;
+
+    protected Task createCountTask() {
+        return getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
+    }
+
+    protected OperationResult createCountResult(Task task) {
+        return task.getResult();
+    }
 
     public boolean isUseObjectCounting() {
         CompiledObjectCollectionView guiObjectListViewType = getCompiledObjectCollectionView();
@@ -279,6 +321,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
 
 
     public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+        clearCountCache();
         this.options = options;
     }
 
@@ -295,6 +338,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     }
 
     public void setForPreview(boolean forPreview) {
+        clearCountCache();
         isForPreview = forPreview;
     }
 
@@ -306,4 +350,41 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         this.export = export;
     }
 
+    @Nullable
+    public OperationResult getResult() {
+        return result;
+    }
+
+    @Override
+    public void detach() {
+        super.detach();
+        result = null;
+        clearCountCache();
+    }
+
+    @Override
+    public void clearCache() {
+        super.clearCache();
+        clearCountCache();
+    }
+
+    @Override
+    public void setCompiledObjectCollectionView(CompiledObjectCollectionView objectCollectionView) {
+        clearCountCache();
+        super.setCompiledObjectCollectionView(objectCollectionView);
+    }
+
+    private record CountCacheKey(Class<?> type, ObjectQuery query,
+                                 Collection<SelectorOptions<GetOperationOptions>> options) implements Serializable {
+
+            private CountCacheKey(
+                    Class<?> type,
+                    ObjectQuery query,
+                    Collection<SelectorOptions<GetOperationOptions>> options) {
+                this.type = type;
+                this.query = query != null ? query.clone() : null;
+                this.options = options != null ? List.copyOf(options) : null;
+            }
+
+    }
 }

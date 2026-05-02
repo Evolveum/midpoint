@@ -44,6 +44,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.impl.query.InOidFilterImpl;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -60,6 +62,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -1087,6 +1090,251 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 f -> f.isChildOf(org2Oid)
                         .and().item(FocusType.F_COST_CENTER).startsWith("5"),
                 org21Oid, user3Oid);
+    }
+
+    @Test
+    public void test240QueryForChildrenUsingOptimizedOrgOr() throws SchemaException {
+        searchObjectTest("anywhere under any of multiple orgs", ObjectType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or().isChildOf(org21Oid)
+                        .endBlock(),
+                org111Oid, org112Oid, orgXOid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test241QueryForChildrenUsingOptimizedOrgOrWithSelfBranch() throws SchemaException {
+        searchObjectTest("anywhere under any of multiple orgs or the orgs themselves", ObjectType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or().id(org11Oid)
+                        .or().isChildOf(org21Oid)
+                        .or().id(org21Oid)
+                        .endBlock(),
+                org11Oid, org21Oid, org111Oid, org112Oid, orgXOid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test243QueryForChildrenUsingOptimizedOrgOrWithAnyTargetParentRelation() throws SchemaException {
+        searchObjectTest("anywhere under any org with any target parent-org relation", UserType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or().isChildOf(org21Oid)
+                        .endBlock(),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test244QueryForChildrenUsingOptimizedOrgOrWithExplicitTargetParentRelation() throws SchemaException {
+        searchObjectTest("anywhere under any org with explicit target parent-org relation",
+                UserType.class,
+                f -> f.block()
+                        .isChildOf(ref(org11Oid, OrgType.COMPLEX_TYPE, relation1))
+                        .or().isChildOf(ref(org21Oid, OrgType.COMPLEX_TYPE, relation1))
+                        .endBlock(),
+                user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test246QueryForChildrenUsingOptimizedOrgOrDoesNotDuplicateRowsOrCount() throws SchemaException {
+        when("searching with optimized OR where users can match via multiple parent-org paths");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .block()
+                    .isChildOf(org11Oid)
+                    .or().isChildOf(org21Oid)
+                .endBlock()
+                .build();
+
+        SearchResultList<UserType> result = searchObjects(UserType.class, query, operationResult);
+        int count = repositoryService.countObjects(UserType.class, query, null, operationResult);
+
+        then("search and count both see each user only once");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user2Oid, user3Oid, user4Oid);
+        assertThat(count).isEqualTo(result.size());
+    }
+
+    @Test
+    public void test247QueryForChildrenUsingOptimizedOrgOrAndArchetypeConjunct() throws Exception {
+        given("a user under matching org with archetype and another user under matching org without it");
+        OperationResult operationResult = createOperationResult();
+        String matchingUserOid = null;
+        String nonMatchingUserOid = null;
+        try {
+            matchingUserOid = repositoryService.addObject(
+                    new UserType()
+                            .name("user-org-or-archetype")
+                            .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE)
+                            .archetypeRef(archetypeOid, ArchetypeType.COMPLEX_TYPE)
+                            .asPrismObject(),
+                    null, operationResult);
+            nonMatchingUserOid = repositoryService.addObject(
+                    new UserType()
+                            .name("user-org-or-no-archetype")
+                            .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE)
+                            .asPrismObject(),
+                    null, operationResult);
+
+            when("searching with archetype AND optimized org OR");
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeOid)
+                    .and()
+                    .block()
+                        .isChildOf(org11Oid)
+                        .or().isChildOf(org21Oid)
+                    .endBlock()
+                    .build();
+            SearchResultList<UserType> result = searchObjects(UserType.class, query, operationResult);
+            int count = repositoryService.countObjects(UserType.class, query, null, operationResult);
+
+            then("only users satisfying both conjuncts are returned and counted");
+            assertThatOperationResult(operationResult).isSuccess();
+            assertThat(result)
+                    .extracting(o -> o.getOid())
+                    .containsExactlyInAnyOrder(matchingUserOid);
+            assertThat(count).isEqualTo(result.size());
+        } finally {
+            OperationResult cleanupResult = createOperationResult();
+            if (nonMatchingUserOid != null) {
+                repositoryService.deleteObject(UserType.class, nonMatchingUserOid, cleanupResult);
+            }
+            if (matchingUserOid != null) {
+                repositoryService.deleteObject(UserType.class, matchingUserOid, cleanupResult);
+            }
+        }
+    }
+
+    @Test
+    public void test248QueryForChildrenUsingOptimizedOrgOrPreservesLeftoverOidBranch() throws SchemaException {
+        searchObjectTest("optimized org OR preserves an unrelated OID branch", ObjectType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or().id(org11Oid)
+                        .or().isChildOf(org21Oid)
+                        .or().id(org21Oid)
+                        .or().id(user1Oid)
+                        .endBlock(),
+                org11Oid, org21Oid, org111Oid, org112Oid, orgXOid, user1Oid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test249QueryForChildrenUsingOptimizedOrgOrSplitsMixedInOidBranch() throws SchemaException {
+        searchObjectTest("optimized org OR splits matching and unrelated OIDs from one ID branch", ObjectType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or().isChildOf(org21Oid)
+                        .or().id(org11Oid, org21Oid, user1Oid)
+                        .endBlock(),
+                org11Oid, org21Oid, org111Oid, org112Oid, orgXOid, user1Oid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test250QueryForChildrenUsingOptimizedOrgOrWithMixedRelationGroups() throws SchemaException {
+        searchObjectTest("optimized org OR handles separate relation groups", UserType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or().isChildOf(org21Oid)
+                        .or().isChildOf(ref(org11Oid, OrgType.COMPLEX_TYPE, relation1))
+                        .or().isChildOf(ref(org21Oid, OrgType.COMPLEX_TYPE, relation1))
+                        .endBlock(),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test251QueryForChildrenUsingOptimizedOrgOrDoesNotMixAnyAndDefaultRelation() throws SchemaException {
+        searchObjectTest("explicit default relation remains separate from null/any relation", UserType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or().isChildOf(org21Oid)
+                        .or().isChildOf(ref(org11Oid, OrgType.COMPLEX_TYPE, ORG_DEFAULT))
+                        .or().isChildOf(ref(org21Oid, OrgType.COMPLEX_TYPE, ORG_DEFAULT))
+                        .endBlock(),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test252QueryForChildrenUsingOptimizedOrgOrPreservesOtherFilterBranch() throws SchemaException {
+        searchObjectTest("optimized org OR preserves an unrelated filter branch", UserType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or().isChildOf(org21Oid)
+                        .or().item(F_NAME).eq(PolyString.fromOrig("creator"))
+                        .endBlock(),
+                creatorOid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test253QueryForChildrenUsingOptimizedOrgOrWithNestedOr() throws SchemaException {
+        searchObjectTest("optimized org OR flattens only nested OR branches", ObjectType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or()
+                        .block()
+                            .isChildOf(org21Oid)
+                            .or().id(org21Oid)
+                        .endBlock()
+                        .or().id(org11Oid)
+                        .endBlock(),
+                org11Oid, org21Oid, org111Oid, org112Oid, orgXOid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test254QueryForChildrenUsingOptimizedOrgOrReportsMalformedOid() {
+        ObjectQuery query = prismContext.queryFor(ObjectType.class)
+                .block()
+                    .isChildOf(org11Oid)
+                    .or().isChildOf(org21Oid)
+                    .or().id("not-a-uuid")
+                .endBlock()
+                .build();
+
+        assertThatThrownBy(() -> searchObjects(ObjectType.class, query, createOperationResult()))
+                .isInstanceOf(SystemException.class)
+                .hasCauseInstanceOf(QueryException.class);
+    }
+
+    @Test
+    public void test255QueryForChildrenUsingOptimizedOrgOrPreservesSingletonOrgGroup() throws SchemaException {
+        searchObjectTest("singleton org group is preserved by normal OR processing", ObjectType.class,
+                f -> f.block()
+                        .isChildOf(org11Oid)
+                        .or().id(user1Oid)
+                        .endBlock(),
+                org111Oid, org112Oid, user1Oid, user2Oid, user4Oid);
+    }
+
+    @Test
+    public void test256QueryForChildrenUsingOptimizedOrgOrPreservesUnsupportedInOidBranch() throws SchemaException {
+        ObjectFilter orgOr = prismContext.queryFor(ObjectType.class)
+                .block()
+                    .isChildOf(org11Oid)
+                    .or().isChildOf(org21Oid)
+                .endBlock()
+                .buildFilter();
+        ObjectQuery query = prismContext.queryFactory().createQuery(
+                ObjectQueryUtil.filterOr(
+                        orgOr,
+                        InOidFilterImpl.createOwnerHasOidIn(user1Oid)));
+
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class, query, createOperationResult());
+
+        assertThat(result)
+                .extracting(ObjectType::getOid)
+                .containsExactlyInAnyOrder(
+                        org111Oid, org112Oid, orgXOid, user1Oid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test257QueryForChildrenUsingOptimizedOrgOrWithExplicitDefaultRelation() throws SchemaException {
+        searchObjectTest("explicit default relation does not match non-default target parent-org refs", UserType.class,
+                f -> f.block()
+                        .isChildOf(ref(org11Oid, OrgType.COMPLEX_TYPE, ORG_DEFAULT))
+                        .or().isChildOf(ref(org21Oid, OrgType.COMPLEX_TYPE, ORG_DEFAULT))
+                        .endBlock(),
+                user2Oid, user4Oid);
     }
     // endregion
 
@@ -3400,6 +3648,40 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         expect("isDescendant returns false for reverse relationship");
         assertFalse(repositoryService.isDescendant(org11, org112Oid));
+    }
+
+    @Test
+    public void test972IsDescendantOfAny() throws Exception {
+        OperationResult operationResult = createOperationResult();
+
+        expect("isDescendantOfAny returns true when object is under one of many ancestors");
+        PrismObject<UserType> user3 =
+                repositoryService.getObject(UserType.class, user3Oid, null, operationResult);
+        assertTrue(repositoryService.isDescendantOfAny(user3, List.of(org1Oid, org11Oid, org2Oid)));
+
+        expect("isDescendantOfAny returns false when object is outside all ancestors");
+        PrismObject<UserType> user1 =
+                repositoryService.getObject(UserType.class, user1Oid, null, operationResult);
+        assertFalse(repositoryService.isDescendantOfAny(user1, List.of(org1Oid, org2Oid)));
+
+        expect("isDescendantOfAny handles multiple target parent org refs");
+        PrismObject<UserType> user2 =
+                repositoryService.getObject(UserType.class, user2Oid, null, operationResult);
+        assertTrue(repositoryService.isDescendantOfAny(user2, List.of(org2Oid)));
+        assertFalse(repositoryService.isDescendantOfAny(user2, List.of(org111Oid)));
+
+        expect("isDescendantOfAny does not treat an org as its own descendant");
+        PrismObject<OrgType> org11 =
+                repositoryService.getObject(OrgType.class, org11Oid, null, operationResult);
+        assertFalse(repositoryService.isDescendantOfAny(org11, List.of(org11Oid)));
+
+        expect("isDescendantOfAny handles a large ancestor set in one call");
+        List<String> ancestorOids = new java.util.ArrayList<>();
+        for (int i = 0; i < 99; i++) {
+            ancestorOids.add(UUID.randomUUID().toString());
+        }
+        ancestorOids.add(org2Oid);
+        assertTrue(repositoryService.isDescendantOfAny(user3, ancestorOids));
     }
 
     @Test
