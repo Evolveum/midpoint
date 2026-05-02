@@ -46,11 +46,11 @@ public class WaitingSearchFilterConnectorStepPanel extends WaitingObjectClassScr
     }
 
     @Override
-    protected String getNewTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateSearchFilterScript(
-                realValue.getName(), realValue.getEndpoint(), task, result);
+                realValue.getName(), realValue.getEndpoint(), regenerate, task, result);
     }
 
     @Override

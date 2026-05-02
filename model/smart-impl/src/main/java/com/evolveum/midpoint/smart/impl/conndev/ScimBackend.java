@@ -21,9 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 public class ScimBackend extends RestBackend {
 
@@ -36,8 +34,8 @@ public class ScimBackend extends RestBackend {
     }
 
     @Override
-    public List<ConnDevDocumentationSourceType> discoverDocumentation() {
-        return super.discoverDocumentation();
+    public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) {
+        return super.discoverDocumentation(skipCache);
     }
 
     @Override

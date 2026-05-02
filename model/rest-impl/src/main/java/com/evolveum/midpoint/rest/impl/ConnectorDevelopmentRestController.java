@@ -245,7 +245,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         return handleStatus(
                 connectorDevelopmentOid,
                 OPERATION_GENERATE_ARTIFACT_STATUS,
-                (op, task, result) -> op.submitGenerateArtifact(null, task, result),
+                (op, task, result) -> op.submitGenerateArtifact(null, false, task, result),
                 (token, task) -> {
                     try {
                         return connectorDevelopmentService.getGenerateArtifactStatus(
