@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,11 +7,15 @@
 
 def verbose = params.VERBOSE ?: '0'
 
+// Make the cpuLimit integer from String Jenkins job parameter.
+def cpuLimit = (params.BUILDER_CPU ?: '6').toInteger() * 2
+// Request quarter of the limit (min 1) to reduce reserved capacity, allowing more concurrent pods to be scheduled.
+def cpuRequest = Math.max(1, cpuLimit.intdiv(4))
+
 podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 21600, // 6h total build limit
         idleMinutes: 10,
-        // No need for secret volume, no mvn deploy done here.
         volumes: [ secretVolume(secretName: "jenkins-nexus", mountPath: "/root/jenkins-nexus"),
                    persistentVolumeClaim(claimName: "${JOB_NAME}-m2repo", mountPath: "/root/.m2/repository")],
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
@@ -19,10 +23,9 @@ podTemplate(
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
                         runAsUser: '0',
-                        resourceRequestCpu: '1',
-                        resourceLimitCpu: '1',
-                        resourceRequestMemory: '2Gi',
-                        resourceLimitMemory: '2Gi'),
+                        resourceRequestCpu: '500m',
+                        resourceLimitCpu: '2',
+                        resourceLimitMemory: '4Gi'),
                 containerTemplate(name: 'postgres',
                         image: params.POSTGRES_IMAGE ?: 'postgres:13-alpine',
                         runAsUser: '0',
@@ -35,7 +38,6 @@ podTemplate(
                             envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
                             envVar(key: 'POSTGRES_USER', value: 'midtest'),
                             envVar(key: 'POSTGRES_PASSWORD', value: 'password'),
-                            // TODO is separate mount for data necessary?
                         ],
                         ports: [portMapping(name: 'postgres', containerPort: 5432)]),
                 containerTemplate(name: 'maven',
@@ -43,10 +45,10 @@ podTemplate(
                         runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
-                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
-                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
-                        resourceRequestMemory: '8Gi',
-                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+                        resourceRequestCpu: "${cpuRequest}",
+                        resourceLimitCpu: "${cpuLimit}",
+                        // With 8Gi it got OOMKilled, raised to 10Gi, see also -Xmx flag lower
+                        resourceLimitMemory: '10Gi')
         ],
         envVars: [envVar(key: 'MIDPOINT_BUILD_ALIAS', value: params.KEY_ALIAS_SINGING_JAR)]
 ) {
@@ -143,7 +145,7 @@ podTemplate(
             }
             stage("tests-extra") {
                 container('maven') {
-                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    // -Xmx6g to fit into container memory limit, 4g is on the edge for some tests
                     sh """#!/bin/bash -ex
                         if [ "${verbose}" -ge 1 ]
                         then

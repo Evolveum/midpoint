@@ -38,7 +38,6 @@ podTemplate(
                             envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
                             envVar(key: 'POSTGRES_USER', value: 'midtest'),
                             envVar(key: 'POSTGRES_PASSWORD', value: 'password'),
-                            // TODO is separate mount for data necessary?
                         ],
                         ports: [portMapping(name: 'postgres', containerPort: 5432)]),
                 containerTemplate(name: 'maven',
@@ -54,11 +53,9 @@ podTemplate(
     node(POD_LABEL) {
         try {
             stage("checkout") {
-                retry(3) {
-                    git branch: "${BRANCH}",
-                            url: 'https://github.com/Evolveum/midpoint.git'
-                    echo "git checkout done..."
-                }
+                git branch: "${BRANCH}",
+                        url: 'https://github.com/Evolveum/midpoint.git'
+                echo "git checkout done..."
             }
             stage("db-init") {
                 container('postgres') {
