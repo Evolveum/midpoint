@@ -166,7 +166,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     .skipCache(retry)
                     .artifact(artifact.clone());
             customizer.accept(definition);
-            return submitTask("Generating script " + artifact.getFilename(),
+            return submitTask("Generating script " + artifact.getFilename() + " for " + connectorNameForTasks(),
                     new WorkDefinitionsType().generateConnectorArtifact(definition), task, result);
         }
 
