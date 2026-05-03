@@ -256,7 +256,8 @@ public abstract class ConnectorDevelopmentBackend {
                     .embedded(v.getEmbedded())
                     ._abstract(v.isAbstract())
                     .superclass(v.getSuperclass())
-                    .relevant(v.getRelevant());
+                    .relevant(v.getRelevant())
+                    .relevancy(v.getRelevancy());
             v.getRelevantDocumentations().forEach(chunk ->
                     oc.relevantDocumentations(new ConnDevRelevantDocumentationsType().docId(chunk.getDocId()).chunkId(chunk.getChunkId())));
             return oc;
@@ -319,14 +320,14 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
-    public abstract ConnDevApplicationInfoType discoverBasicInformation();
-    public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation();
-    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation();
-    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
-    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
-    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated);
-    public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass);
-    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass);
+    public abstract ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache);
+    public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache);
+    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache);
+    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
+    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
+    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache);
+    public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache);
+    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache);
 
     public ConnDevArtifactType getArtifactContent(ConnDevArtifactType type) throws IOException {
         var ret = type.clone();
@@ -373,11 +374,11 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
-    public abstract void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+    public abstract void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
 
     public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         if (development.getProcessedDocumentation().isEmpty()) {
-            processDocumentation();
+            processDocumentation(false);
             reload();
         }
     }
@@ -395,7 +396,7 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
 
-    public abstract List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered);
+    public abstract List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered, boolean skipCache);
 
     public void updateRelations(List<ConnDevRelationInfoType> relations) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
