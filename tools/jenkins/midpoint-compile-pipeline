@@ -14,7 +14,6 @@ def cpuRequest = Math.max(1, cpuLimit.intdiv(4))
 podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 900,
-        idleMinutes: 1,
         volumes: [ persistentVolumeClaim(claimName: "midpoint-compile-pipeline-m2repo", mountPath: "/root/.m2/repository")],
         //workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
         workspaceVolume: persistentVolumeClaimWorkspaceVolume(claimName: "midpoint-compile-pipeline-workspace"),

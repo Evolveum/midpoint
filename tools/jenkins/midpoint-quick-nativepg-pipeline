@@ -14,7 +14,6 @@ def cpuRequest = Math.max(1, cpuLimit.intdiv(4))
 podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 7200,
-        idleMinutes: 5,
         // No need for secret volume, no mvn deploy done here.
         volumes: [ persistentVolumeClaim(claimName: "midpoint-quick-pipeline-m2repo", mountPath: "/root/.m2/repository")],
         //workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
