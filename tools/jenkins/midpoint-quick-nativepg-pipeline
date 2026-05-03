@@ -15,9 +15,9 @@ podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 7200,
         // No need for secret volume, no mvn deploy done here.
-        volumes: [ persistentVolumeClaim(claimName: "midpoint-quick-pipeline-m2repo", mountPath: "/root/.m2/repository")],
+        volumes: [ persistentVolumeClaim(claimName: "pipeline-${env.JOB_NAME}-m2repo", mountPath: "/root/.m2/repository")],
         //workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
-        workspaceVolume: persistentVolumeClaimWorkspaceVolume(claimName: "midpoint-quick-pipeline-workspace"),
+        workspaceVolume: persistentVolumeClaimWorkspaceVolume(claimName: "pipeline-${env.JOB_NAME}-workspace"),
         containers: [
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
