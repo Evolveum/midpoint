@@ -15,7 +15,6 @@ def cpuRequest = Math.max(1, cpuLimit.intdiv(4))
 podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 900,
-        idleMinutes: 1,
         workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
