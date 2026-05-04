@@ -126,6 +126,10 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         initLayout();
     }
 
+    protected void resetToken() {
+        tokenModel.reset();
+    }
+
     private void createStatusModel() {
         statusModel = new LoadableModel<>() {
             @Override
@@ -135,7 +139,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                 OperationResult result = task.getResult();
 
                 if (StringUtils.isEmpty(tokenModel.getObject())) {
-                    tokenModel.setObject(getNewTaskToken(task, result));
+                    tokenModel.setObject(getNewTaskToken(task, result, isReloaded));
                 }
                 Optional.ofNullable(getKeyForStoringToken()).ifPresent(key -> getHelper().putVariable(key, tokenModel.getObject()));
 
@@ -182,7 +186,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
     protected abstract StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    protected abstract String getNewTaskToken(Task task, OperationResult result);
+    protected abstract String getNewTaskToken(Task task, OperationResult result, boolean regenerate);
 
     private void initLayout() {
         getTextLabel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);

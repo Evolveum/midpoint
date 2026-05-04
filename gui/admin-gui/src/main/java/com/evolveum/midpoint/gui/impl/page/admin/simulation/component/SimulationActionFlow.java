@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -275,6 +276,11 @@ public class SimulationActionFlow<T> implements Serializable {
             ResourceTaskFlavor<T> flavor,
             PredefinedConfigurationType cfg) {
 
+        String displayName = def.getDisplayName();
+        if (displayName == null || displayName.isEmpty()) {
+            displayName = def.getKind() + "/" + def.getIntent();
+        }
+
         try {
             return ResourceTaskCreator.of(flavor, pageBase)
                     .forResource(resource)
@@ -290,7 +296,7 @@ public class SimulationActionFlow<T> implements Serializable {
                     .withSubmissionOptions(ActivitySubmissionOptions.create()
                             .withTaskTemplate(new TaskType()
                                     .name("Preview of " + flavor.flavorName()
-                                            + " on " + resource.getName() + " resource")))
+                                            + ": " + resource.getName() + ": " + displayName)))
                     .withSimulationResultDefinition(
                             new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false))
                     .create(task, result);

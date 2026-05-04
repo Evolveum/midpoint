@@ -41,6 +41,7 @@ public class ConnDevJsonMapper {
         objClass.setAbstract(toBoolean(json.get("abstract")));
         objClass.setEmbedded(toBoolean(json.get("embedded")));
         objClass.setDescription(json.get("description").asText());
+        objClass.setRelevancy(relevancyFromJson(json.get("confidence")));
         var jsonRelevantDocs = json.get("relevantDocumentations");
         if (jsonRelevantDocs != null) {
             for (var jsonDoc : jsonRelevantDocs) {
@@ -52,6 +53,8 @@ public class ConnDevJsonMapper {
         }
         return objClass;
     }
+
+
 
     // ---- Endpoints ----
 
@@ -265,5 +268,12 @@ public class ConnDevJsonMapper {
             jsonRelevantDocs.add(jsonDoc);
         }
         return jsonRelevantDocs;
+    }
+
+    private static ConnDevRelevancyLevelType relevancyFromJson(JsonNode confidence) {
+        if (confidence == null || confidence.textValue() == null || confidence.textValue().isEmpty()) {
+            return null;
+        }
+        return ConnDevRelevancyLevelType.fromValue(confidence.textValue());
     }
 }

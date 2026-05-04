@@ -487,7 +487,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         target.add(get(ID_NO_VALUE_PANEL));
 
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
-            target.add(get(ID_TABLE));
+            target.add(getTileTableComponent());
         } else {
             updateTileView(target);
         }
@@ -498,10 +498,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     public BoxedTablePanel<?> getBoxedTablePanelComponent() {
-        if (get(ID_TABLE) instanceof ContainerableListPanel<?, ?>) {
-            return ((ContainerableListPanel<?, ?>) get(ID_TABLE)).getTable();
+        if (getTileTableComponent() instanceof ContainerableListPanel<?, ?>) {
+            return ((ContainerableListPanel<?, ?>) getTileTableComponent()).getTable();
         }
-        return (BoxedTablePanel<?>) get(ID_TABLE);
+        return (BoxedTablePanel<?>) getTileTableComponent();
     }
 
     protected NavigatorPanel getTilesNavigation() {
@@ -604,8 +604,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     protected void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
     }
 
-    public WebMarkupContainer getTileTableComponent() {
-        return (WebMarkupContainer) get(ID_TABLE);
+    public Component getTileTableComponent() {
+        return get(ID_TABLE);
     }
 
     /**

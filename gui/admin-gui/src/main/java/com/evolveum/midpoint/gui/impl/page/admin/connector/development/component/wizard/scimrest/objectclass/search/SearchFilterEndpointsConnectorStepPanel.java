@@ -43,7 +43,7 @@ public class SearchFilterEndpointsConnectorStepPanel extends EndpointsConnectorS
 
     @Override
     protected Collection<ConnDevHttpEndpointIntentType> getEndpointIntents() {
-        return List.of(ConnDevHttpEndpointIntentType.SEARCH);
+        return List.of(ConnDevHttpEndpointIntentType.SEARCH, ConnDevHttpEndpointIntentType.LIST, ConnDevHttpEndpointIntentType.GET_ALL);
     }
 
     protected String getPanelType() {

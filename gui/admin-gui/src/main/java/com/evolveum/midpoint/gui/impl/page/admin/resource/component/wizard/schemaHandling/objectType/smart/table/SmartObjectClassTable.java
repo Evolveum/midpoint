@@ -346,6 +346,11 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     }
 
     @Override
+    protected boolean isTableRowSelectable() {
+        return false;
+    }
+
+    @Override
     protected WebMarkupContainer createTilesButtonToolbar(String id) {
         RepeatingView repView = new RepeatingView(id);
         createToolbarButtons(repView);
@@ -597,4 +602,8 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         return getProvider().size() == 0;
     }
 
+    @Override
+    public Component getTileTableComponent() {
+        return get(createComponentPath(ID_TABLE_RADIO_FORM, ID_TABLE_RADIO, ID_TABLE));
+    }
 }

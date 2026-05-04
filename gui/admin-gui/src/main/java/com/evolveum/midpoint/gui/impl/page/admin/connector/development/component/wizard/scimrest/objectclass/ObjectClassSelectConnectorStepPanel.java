@@ -63,12 +63,14 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
     private static final String ID_MORE_OBJECT_CLASSES_BUTTON = "moreObjectClassesButton";
 
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
+    private boolean showAllClasses;
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>> valuesModel;
 
     public ObjectClassSelectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
         super(helper);
         this.valueModel = valueModel;
+        this.showAllClasses = false;
     }
 
     @Override
@@ -96,6 +98,11 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
                         .filter(value ->
                                 getDetailsModel().getObjectType().getConnector().getObjectClass().stream()
                                         .noneMatch(savedObjectClass -> StringUtils.equals(savedObjectClass.getName(), value.getRealValue().getName())))
+                        .filter(value ->
+                                showAllClasses // show all classes options
+                                        || value.getRealValue().getRelevancy() == null // backwards compatibility
+                                        || ConnDevRelevancyLevelType.HIGH.equals(value.getRealValue().getRelevancy()) // high relevancy
+                        )
                         .toList();
             }
         };
@@ -138,6 +145,9 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                showAllClasses = true;
+                valuesModel.reset();
+                target.add(ObjectClassSelectConnectorStepPanel.this);
             }
         };
 

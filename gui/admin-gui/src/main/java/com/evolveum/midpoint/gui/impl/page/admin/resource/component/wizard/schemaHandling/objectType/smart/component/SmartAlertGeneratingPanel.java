@@ -157,12 +157,23 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
 
     /** Restarts the polling timer if it exists. */
     public void restartTimeBehavior(AjaxRequestTarget target) {
+        SmartGeneratingAlertDto dto = getModelObject();
+        if (!shouldStartPolling(dto)) {
+            return;
+        }
+
         if (timerBehavior != null) {
             try {
                 timerBehavior.restart(target);
             } catch (Exception e) {
                 LOGGER.debug("Unable to restart timer for {}: {}", getId(), e.getMessage());
             }
+        }
+    }
+
+    public void stopTimeBehavior(AjaxRequestTarget target) {
+        if (timerBehavior != null) {
+            timerBehavior.stop(target);
         }
     }
 
@@ -192,15 +203,15 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                         return;
                     }
 
-                    boolean finished = dto.isFinished();
-                    boolean failed = dto.isFailed();
-                    boolean suspended = dto.isSuspended();
-
                     if (dto.getStatusInfo() != null) {
                         dto.getStatusInfo().reset();
                     } else {
                         LOGGER.debug("StatusInfo is null for DTO {}", dto);
                     }
+
+                    boolean finished = dto.isFinished();
+                    boolean failed = dto.isFailed();
+                    boolean suspended = dto.isSuspended();
 
                     if (finished && !failed && !suspended) {
                         try {

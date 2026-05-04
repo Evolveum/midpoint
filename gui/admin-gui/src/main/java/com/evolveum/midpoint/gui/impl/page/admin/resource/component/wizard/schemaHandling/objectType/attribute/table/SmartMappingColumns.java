@@ -190,7 +190,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
                     protected void onEvent(AjaxRequestTarget target) {
                         PreviewMappingPanel preview =
                                 SmartMappingColumns.this.table.getActions().buildPreviewMappingPanelPopup(() -> mappingWrapper);
-                        SmartMappingColumns.this.table.getPageBase().showMainPopup(preview, target);
+                        SmartMappingColumns.this.table.getPageBase().replaceMainPopup(preview, target);
                     }
                 });
 

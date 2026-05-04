@@ -2,7 +2,6 @@ package com.evolveum.midpoint.model.intest.smart.conndev;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -22,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -202,7 +200,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
 
         // Lets refresh development type
         development = continueDevelopment(getTestTask(), getTestOperationResult());
-        var token = development.submitGenerateAuthenticationScript(task, result);
+        var token = development.submitGenerateAuthenticationScript(false, task, result);
         var response = waitForFinish(() -> connectorService.getGenerateArtifactStatus(token, task, result),
                 TIMEOUT);
         assertThat(response).isNotNull();
@@ -296,7 +294,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         assertThat(appObjectClass).isNotNull();
         assertThat(appObjectClass.getAttribute()).isNotEmpty();
 
-        var scriptToken = development.submitGenerateNativeSchema("User", task, result);
+        var scriptToken = development.submitGenerateNativeSchema("User", false, task, result);
         var scriptResponse = waitForFinish(
                 () -> connectorService.getGenerateArtifactStatus(scriptToken, task, result),
                 TIMEOUT);
@@ -305,7 +303,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         // Here script should be displayed and provided to the user for checking
         development.saveNativeSchemaScript(scriptResponse.getArtifact(), task, result);
 
-        var connidToken = development.submitGenerateConnIdSchema("User",getTestTask(), getTestOperationResult());
+        var connidToken = development.submitGenerateConnIdSchema("User", verbose, getTestTask(), getTestOperationResult());
         var connidResponse = waitForFinish(
                 () -> connectorService.getGenerateArtifactStatus(connidToken, task, result),
                 TIMEOUT);
@@ -339,7 +337,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         List<ConnDevHttpEndpointType> suggested = development.suggestedEndpointsFor("User", ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION);
         //assertThat(suggested).isNotEmpty();
 
-        var token = development.submitGenerateSearchScript("User", suggested, task, result);
+        var token = development.submitGenerateSearchScript("User", suggested, false, task, result);
 
         // save to /connector/objectClass/endpoint
 

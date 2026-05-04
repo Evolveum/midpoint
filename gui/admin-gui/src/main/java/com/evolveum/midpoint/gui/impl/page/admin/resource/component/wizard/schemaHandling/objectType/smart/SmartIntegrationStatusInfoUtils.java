@@ -753,7 +753,7 @@ public class SmartIntegrationStatusInfoUtils {
                 return;
             }
 
-            if (si.getResult() == null) {
+            if (si.getResult() == null || si.getStatus() == OperationResultStatusType.IN_PROGRESS) {
                 ObjectTypesSuggestionType tmp = new ObjectTypesSuggestionType();
                 tmp.getObjectType().add(new ResourceObjectTypeDefinitionType());
                 suggestion = tmp;
@@ -805,7 +805,8 @@ public class SmartIntegrationStatusInfoUtils {
                 return;
             }
 
-            if (si.getResult() == null || si.getResult().getAssociation().isEmpty()) {
+            if (si.getResult() == null || si.getResult().getAssociation().isEmpty()
+                    || si.getStatus() == OperationResultStatusType.IN_PROGRESS) {
                 AssociationsSuggestionType tmp = new AssociationsSuggestionType();
                 tmp.getAssociation().add(new AssociationSuggestionType());
                 suggestion = tmp;
