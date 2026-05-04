@@ -121,6 +121,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             MappingDirection initialTab) {
         super(id, superHelper);
         this.initialTab = initialTab;
+        this.isInboundTabSelected = initialTab == MappingDirection.INBOUND;
     }
 
     @Override
@@ -165,17 +166,23 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
         TabSeparatedTabbedPanel<ITab> tabPanel = new TabSeparatedTabbedPanel<>(ID_TAB_TABLE, tabs) {
             @Override
+
             protected void onAjaxUpdate(@NotNull Optional<AjaxRequestTarget> optional) {
+
                 optional.ifPresent(target -> {
-                    suggestionModel.detach();
+                    SmartAlertGeneratingPanel aiPanel = getAiPanel();
+                    aiPanel.stopTimeBehavior(target); //stop old polling
+                    suggestionModel.detach(); // force reload for new tab (inbound/outbound)
                     target.add(getButtonsContainer());
-                    target.add(getAiPanel());
-                    getAiPanel().restartTimeBehavior(target);
+                    target.add(aiPanel);
+                    aiPanel.restartTimeBehavior(target); // restart if needed
                 });
+
             }
 
             @Override
             protected void onClickTabPerformed(int index, @NotNull Optional<AjaxRequestTarget> target) {
+
                 isInboundTabSelected = index == 0;
                 if (getTable().isValidFormComponents(target.orElse(null))) {
                     super.onClickTabPerformed(index, target);
@@ -192,9 +199,11 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     private void switchTabs(TabSeparatedTabbedPanel<ITab> tabPanel) {
         switch (initialTab) {
             case INBOUND:
+                isInboundTabSelected = true;
                 tabPanel.setSelectedTab(0);
                 break;
             case OUTBOUND:
+                isInboundTabSelected = false;
                 tabPanel.setSelectedTab(1);
                 break;
         }

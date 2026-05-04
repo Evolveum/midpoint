@@ -171,6 +171,12 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         }
     }
 
+    public void stopTimeBehavior(AjaxRequestTarget target) {
+        if (timerBehavior != null) {
+            timerBehavior.stop(target);
+        }
+    }
+
     /** Initializes the timer polling behaviour. */
     private void initAjaxTimeBehaviour(WebMarkupContainer alertContainer) {
         this.timerBehavior = createSuggestionAjaxTimerBehavior(
