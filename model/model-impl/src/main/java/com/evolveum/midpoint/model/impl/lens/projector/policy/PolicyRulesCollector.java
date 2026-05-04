@@ -18,9 +18,9 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.common.GlobalRuleWithId;
 import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
@@ -89,7 +89,7 @@ class PolicyRulesCollector<O extends ObjectType> {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules = new ArrayList<>();
-        collectActivityObjectRules(rules);
+        collectActivityRules(rules);
         collectObjectRulesFromAssignments(rules);
         collectGlobalObjectRules(rules, result);
         resolveConstraintReferences(rules);
@@ -103,25 +103,22 @@ class PolicyRulesCollector<O extends ObjectType> {
     }
 
     private Collection<ActivityPolicyRule> getEnabledActivityRules() {
-        Collection<ActivityPolicyRule> activityRules;
-        // todo this doesn't seem right [viliam]
-        if (task.getExecutionSupport() instanceof AbstractActivityRun<?, ?, ?> activityRun) {
-            activityRules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
-        } else {
-            activityRules = Collections.emptyList();
+        // todo this instanceof cast doesn't seem right [viliam]
+        if (!(task.getExecutionSupport() instanceof AbstractActivityRun<?, ?, ?> activityRun)) {
+            return Collections.emptyList();
         }
 
         // todo filter out policies that have non-focus constraints [viliam]
         //  check enabled condition, and expression condition ->
         //  enabled switch is used mainly in GUI to disable activity policies, condition for more granular behavior changes
         //  fix enabled switch on other places where condition is used
+        Collection<ActivityPolicyRule> activityRules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
         return activityRules.stream()
                 .filter(r -> BooleanUtils.isNotFalse(r.getPolicyBean().isEnabled()))
                 .toList();
     }
 
-    // TODO what are "activity object rules"? [pavol]
-    private void collectActivityObjectRules(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules) {
+    private void collectActivityRules(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules) {
         for (ActivityPolicyRule rule : getEnabledActivityRules()) {
             if (PolicyRuleApplicabilityUtil.isApplicableToActivity(rule.getPolicyBean())) {
                 continue; // activity rules are mutually exclusive with "normal" (object, projection, assignment) ones

@@ -92,8 +92,10 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
     /**
      * Filled in only if rule was loaded from specific activity.
      * E.g. not for global policy rules or rules obtained from task assignments.
-     * *
-     * TODO vysvetlit preco to tu teraz je (data needs, counters sa handluju inak ked je rule z aktivity a nie so sysconfigu
+     *
+     * This is needed to properly handle data needs and counters for activity rules,
+     * which are handled differently than for "normal" policy rules. They have to
+     * take into account activity tree - where policy rule came from, etc.
      */
     private final ActivityPolicyRule activityPolicyRule;
 

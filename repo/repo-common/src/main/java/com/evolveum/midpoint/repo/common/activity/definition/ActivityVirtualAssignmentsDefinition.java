@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualAssignmentsTy
  */
 public class ActivityVirtualAssignmentsDefinition implements Cloneable, DebugDumpable {
 
-    @NotNull private VirtualAssignmentsType bean;
+    @NotNull private final VirtualAssignmentsType bean;
 
     public ActivityVirtualAssignmentsDefinition(@NotNull VirtualAssignmentsType bean) {
         this.bean = bean;
