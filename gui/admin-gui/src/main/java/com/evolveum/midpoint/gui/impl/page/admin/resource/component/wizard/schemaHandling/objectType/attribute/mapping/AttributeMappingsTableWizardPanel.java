@@ -154,8 +154,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         form.setMultiPart(true);
         add(form);
 
-        add(form);
-
         String resourceOid = getResourceOid();
         SmartAlertGeneratingPanel aiPanel = createSmartAlertGeneratingPanel(resourceOid);
         this.restartTime = aiPanel::restartTimeBehavior;
@@ -169,8 +167,10 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             protected void onAjaxUpdate(@NotNull Optional<AjaxRequestTarget> optional) {
                 optional.ifPresent(target -> {
+                    suggestionModel.detach();
                     target.add(getButtonsContainer());
                     target.add(getAiPanel());
+                    getAiPanel().restartTimeBehavior(target);
                 });
             }
 
@@ -180,10 +180,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 if (getTable().isValidFormComponents(target.orElse(null))) {
                     super.onClickTabPerformed(index, target);
                 }
-                target.ifPresent(t -> {
-                    suggestionModel.detach();
-                    t.add(getAiPanel());
-                });
             }
         };
 
