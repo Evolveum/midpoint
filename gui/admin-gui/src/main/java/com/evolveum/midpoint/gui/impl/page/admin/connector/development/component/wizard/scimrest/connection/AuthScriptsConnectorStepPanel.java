@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.task.api.Task;
@@ -71,19 +73,9 @@ public class AuthScriptsConnectorStepPanel extends ScriptConnectorStepPanel {
 
     @Override
     public IModel<Boolean> isStepVisible() {
-        return () -> {
-            if (getValueModel() == null || !getValueModel().isLoaded()) {
-                return false;
-            }
-
-            if (getValueModel().getObject() == null) {
-                getValueModel().detach();
-                return false;
-            }
-
-            ConnDevArtifactType result = getValueModel().getObject();
-            return StringUtils.isNotBlank(result.getContent());
-        };
+        return () -> ConnectorDevelopmentWizardUtil.existContainerValue(
+                getDetailsModel().getObjectWrapper(),
+                ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH));
     }
 
     @Override
