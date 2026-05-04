@@ -18,6 +18,12 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityUtil;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -167,9 +173,36 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                         .toList();
         LOGGER.trace("Task assignment: {}", taskAssignments);
 
+        Collection<AssignmentConfigItem> taskActivityAssignments = createTaskActivityAssignments(task);
+        LOGGER.trace("Task activity assignments: {}", taskActivityAssignments);
+
         List<AssignmentConfigItem> virtualAssignments = new ArrayList<>(forcedAssignments);
         virtualAssignments.addAll(taskAssignments);
+        virtualAssignments.addAll(taskActivityAssignments);
+
         return virtualAssignments;
+    }
+
+    private Collection<AssignmentConfigItem> createTaskActivityAssignments(Task fromTask) {
+        ExecutionSupport support = fromTask.getExecutionSupport();
+        if (!(support instanceof AbstractActivityRun<?,?,?> run)) {
+            return List.of();
+        }
+
+        // todo this should go to parent activities as well...
+        //  It should be probably implemented somewhere in repo-common activity package and return more stuff related to activity like assignment path as well...
+        // todo implement [viliam]
+        AbstractActivityRun<?, ?, ?> activityRun = (AbstractActivityRun<?, ?, ?>) support;
+
+        return ActivityUtil.getAllVirtualAssignments(activityRun.getActivity())
+                .stream()
+                .map(p -> createActivityAssignmentItem(p.getLeft(), p.getRight()))
+                .toList();
+    }
+
+    // todo how to pass activity path here to CI? [viliam]
+    private AssignmentConfigItem createActivityAssignmentItem(AssignmentType assignment, ActivityPath path) {
+        return AssignmentConfigItem.of(assignment, OriginProvider.generated());
     }
 
     // [EP:APSO] DONE

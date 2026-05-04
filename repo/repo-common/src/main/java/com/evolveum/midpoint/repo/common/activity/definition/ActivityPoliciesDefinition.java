@@ -20,7 +20,7 @@ public class ActivityPoliciesDefinition implements DebugDumpable, Cloneable {
 
     @NotNull private ActivityPoliciesType bean;
 
-    public ActivityPoliciesDefinition(ActivityPoliciesType bean) {
+    public ActivityPoliciesDefinition(@NotNull ActivityPoliciesType bean) {
         this.bean = bean;
     }
 
