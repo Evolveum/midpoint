@@ -176,13 +176,13 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                         IModel<PrismContainerValueWrapper<MappingType>> selectedRowModel,
                                         AjaxRequestTarget target) {
                                     deleteItemPerform(selectedRowModel.getObject());
-                                    refreshAndDetach(target);
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override
                                 protected void refresh(AjaxRequestTarget target) {
                                     super.refresh(target);
-                                    refreshAndDetach(target);
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override
