@@ -23,7 +23,7 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                 .applicationName("Dummy Connector")
                 .description("Dummy Backend Application")
                 .version("2.0")
-                .integrationType(ConnDevIntegrationType.DUMMY);
+                .integrationType(ConnDevIntegrationType.REST);
 
     }
 

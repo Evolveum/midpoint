@@ -74,7 +74,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
     }
 
     protected ConnDevIntegrationType targetConnectorIntegration() {
-        return ConnDevIntegrationType.DUMMY;
+        return ConnDevIntegrationType.REST;
     }
 
     protected String targetConnectorVersion() {

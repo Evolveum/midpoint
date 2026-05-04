@@ -65,7 +65,7 @@ public enum SupportedAuthorization {
     public List<ItemName> attributesFor(ConnDevIntegrationType integration) {
         return (List) switch (integration) {
             case SCIM -> scimProperties;
-            case DUMMY, REST -> restProperties;
+            case REST -> restProperties;
         };
     }
 
