@@ -49,6 +49,9 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 if (jsonInfo.get("applicationVersion") != null) {
                     ret.version(jsonInfo.get("applicationVersion").asText());
                 }
+                if (jsonInfo.get("apiVersion") != null) {
+                    ret.apiVersion(jsonInfo.get("apiVersion").asText());
+                }
                 // FIXME for proper detection
                 ret.integrationType(ConnDevIntegrationType.REST);
                 if (jsonInfo.get("baseApiEndpoint") != null) {
@@ -226,6 +229,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     protected void restoreSession(ServiceClient.RestorationClient client) throws IOException {
+        restoreMetadata(client);
         ensureDocumentationIsUploaded(client);
         restoreObjectClasses(client);
         restoreRelations(client);
