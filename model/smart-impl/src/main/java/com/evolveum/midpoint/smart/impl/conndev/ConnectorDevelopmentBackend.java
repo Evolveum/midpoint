@@ -466,6 +466,46 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
+    protected void restoreMetadata(ServiceClient.RestorationClient client) throws IOException {
+        var app = developmentObject().getApplication();
+        if (app == null) return;
+
+        var infoMetadata = JSON_FACTORY.objectNode();
+
+        if (app.getApplicationName() != null) {
+            infoMetadata.set("name", JSON_FACTORY.textNode(app.getApplicationName().getOrig()));
+        }
+        if (app.getVersion() != null) {
+            infoMetadata.set("applicationVersion", JSON_FACTORY.textNode(app.getVersion()));
+        }
+        if (app.getApiVersion() != null) {
+            infoMetadata.set("apiVersion", JSON_FACTORY.textNode(app.getApiVersion()));
+        }
+        if (app.getIntegrationType() != null) {
+            var apiTypeArray = JSON_FACTORY.arrayNode();
+            apiTypeArray.add(app.getIntegrationType().value());
+            infoMetadata.set("apiType", apiTypeArray);
+        }
+        if (app.getBaseApiEndpoint() != null) {
+            var endpointEntry = JSON_FACTORY.objectNode();
+            endpointEntry.set("uri", JSON_FACTORY.textNode(app.getBaseApiEndpoint()));
+            endpointEntry.set("type", JSON_FACTORY.textNode("constant"));
+            var endpointsArray = JSON_FACTORY.arrayNode();
+            endpointsArray.add(endpointEntry);
+            infoMetadata.set("baseApiEndpoint", endpointsArray);
+        }
+
+        var body = JSON_FACTORY.objectNode();
+        body.set("infoMetadata", infoMetadata);
+        var bodyText = body.toPrettyString();
+
+        client.put("digester/{sessionId}/metadata", () ->
+                EntityBuilder.create()
+                        .setContentType(ContentType.APPLICATION_JSON)
+                        .setText(bodyText)
+                        .build());
+    }
+
     protected void restoreRelations(ServiceClient.RestorationClient client) throws IOException {
         var app = developmentObject().getApplication();
         if (app == null) return;
