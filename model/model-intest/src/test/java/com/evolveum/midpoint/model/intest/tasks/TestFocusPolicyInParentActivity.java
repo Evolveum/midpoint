@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
@@ -23,6 +22,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
+/**
+ * This test class is similar to {@link TestThresholdsSingleThread}, however
+ * role assigned to task contains policy that just creates notifications.
+ *
+ * Clockwork policy that suspends task is "transplanted" from role to parent activity instead of current (main) activity.
+ */
 public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
 
     private static final TestTask TASK_IMPORT =
@@ -45,47 +50,44 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Simulate() {
-        return transplantRolePolicyForSimulateOrExecuteTask(
-                ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10SimulateExecute() {
-        return transplantRolePolicyForSimulateExecuteTask(
-                ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
+        return transplantRolePolicyForSimulateExecuteTask(ROLE_ADD_10);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Execute() {
-        return transplantRolePolicyForSimulateOrExecuteTask(
-                ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
+        return transplantRolePolicyForSimulateExecuteTask(ROLE_ADD_10);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5Execute() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_COST_CENTER_5);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5SimulateExecute() {
-        return transplantRolePolicyForSimulateExecuteTask(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION);
+        return transplantRolePolicyForSimulateExecuteTask(ROLE_MODIFY_COST_CENTER_5);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5Simulate() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_COST_CENTER_5);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyFullName5SimulateExecute() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_FULL_NAME_5);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesReconModifyFullName5SimulateExecute() {
         return task ->
                 transplantRolePolicy(
-                        ROLE_MODIFY_5_FULL_NAME_NOTIFICATION,
+                        ROLE_MODIFY_FULL_NAME_5,
                         new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
                         task,
                         ActivityPath.empty()
@@ -96,7 +98,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
     protected Consumer<PrismObject<TaskType>> customizePoliciesReconcileDelete5Simulate() {
         return task ->
                 transplantRolePolicy(
-                        ROLE_DELETE_5_NOTIFICATION,
+                        ROLE_DELETE_5,
                         new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
                         task,
                         ActivityPath.empty()
@@ -153,7 +155,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
                         .display()
                         .assertCounterMinMax(ruleAddNotificationId, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
                         .assertCounterMinMax(suspendPolicyIdentifier, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
-                        .assertCounterCount(3)
+                        .assertCounterCount(2)
                     .end()
                     .progress()
                         .display()
@@ -195,7 +197,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
                     .previewModePolicyRulesCounters()
                         .assertCounter(ruleAddNotificationId, USER_ADD_ALLOWED + 2 )
                         .assertCounter(suspendPolicyIdentifier, USER_ADD_ALLOWED + 2)
-                        .assertCounterCount(3)
+                        .assertCounterCount(2)
                         .end()
                     .progress()
                         .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters

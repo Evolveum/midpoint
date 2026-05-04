@@ -92,7 +92,7 @@ public abstract class TestFocusPolicies extends TestThresholds {
                 handler);
 
         repoAdd(ROLE_ADD_10_NOTIFICATION, initResult);
-        ruleAddNotificationId = determineInducedRuleId(ROLE_ADD_10_NOTIFICATION.oid, "add-10", initResult);
+        ruleAddNotificationId = determineInducedRuleId(ROLE_ADD_10_NOTIFICATION.oid, "add-10-notification", initResult);
 
         repoAdd(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION, initResult);
         ruleModifyCostCenterNotificationId = determineInducedRuleId(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION.oid, "modify-5-costCenter", initResult);
@@ -150,8 +150,8 @@ public abstract class TestFocusPolicies extends TestThresholds {
                 .toList();
 
         Assertions.assertThat(messages)
-                .withFailMessage("Expected %d notifications containing '%s' in transport %s, but got %d: %s",
-                        count, contains, transport, messages.size(), messages)
+                .withFailMessage("Expected %d notifications containing '%s' in transport %s, but got %d",
+                        count, contains, transport, messages.size())
                 .hasSize(count);
     }
 

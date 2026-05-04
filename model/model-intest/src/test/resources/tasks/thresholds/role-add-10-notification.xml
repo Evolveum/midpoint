@@ -9,7 +9,7 @@
     <name>role-add-10-notification</name>
     <inducement>
         <policyRule>
-            <name>add-10</name>
+            <name>add-10-notification</name>
             <order>10</order>
             <policyConstraints>
                 <modification>
@@ -20,30 +20,6 @@
                 <lowWaterMark>
                     <count>10</count>
                 </lowWaterMark>
-            </policyThreshold>
-            <policyActions>
-                <notification/>
-            </policyActions>
-        </policyRule>
-        <order>2</order>
-    </inducement>
-    <inducement>
-        <policyRule>
-            <!-- this policy rule is not copied to activity during test -->
-            <name>add-10-notify</name>
-            <order>0</order>
-            <policyConstraints>
-                <modification>
-                    <operation>add</operation>
-                </modification>
-            </policyConstraints>
-            <policyThreshold>
-                <lowWaterMark>
-                    <count>5</count>
-                </lowWaterMark>
-                <highWaterMark>
-                    <count>10</count>
-                </highWaterMark>
             </policyThreshold>
             <policyActions>
                 <notification/>

@@ -67,10 +67,10 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     /** Used also for "import without limits" in {@link #test130ImportWithoutLimits()}. */
     static final TestObject<TaskType> TASK_IMPORT_EXECUTE_SINGLE = TestObject.file(TEST_DIR, "task-import-execute-single.xml", "8576985e-79e4-4d0c-bedd-72652db3c760");
 
-    private static final TestObject<RoleType> ROLE_ADD_10 = TestObject.file(TEST_DIR, "role-add-10.xml", "8f91bccf-fc4b-4987-8232-2e06d174dc37");
-    private static final TestObject<RoleType> ROLE_MODIFY_COST_CENTER_5 = TestObject.file(TEST_DIR, "role-modify-cost-center-5.xml", "6b0003a4-65bf-471d-af2c-ed575deaf199");
-    private static final TestObject<RoleType> ROLE_MODIFY_FULL_NAME_5 = TestObject.file(TEST_DIR, "role-modify-full-name-5.xml", "11562df4-c3e7-4e9e-a8f9-0b7f1bb7df75");
-    private static final TestObject<RoleType> ROLE_DELETE_5 = TestObject.file(TEST_DIR, "role-delete-5.xml", "9447439f-e6fd-4fb8-bf30-e918e16b42be");
+    public static final TestObject<RoleType> ROLE_ADD_10 = TestObject.file(TEST_DIR, "role-add-10.xml", "8f91bccf-fc4b-4987-8232-2e06d174dc37");
+    public static final TestObject<RoleType> ROLE_MODIFY_COST_CENTER_5 = TestObject.file(TEST_DIR, "role-modify-cost-center-5.xml", "6b0003a4-65bf-471d-af2c-ed575deaf199");
+    public static final TestObject<RoleType> ROLE_MODIFY_FULL_NAME_5 = TestObject.file(TEST_DIR, "role-modify-full-name-5.xml", "11562df4-c3e7-4e9e-a8f9-0b7f1bb7df75");
+    public static final TestObject<RoleType> ROLE_DELETE_5 = TestObject.file(TEST_DIR, "role-delete-5.xml", "9447439f-e6fd-4fb8-bf30-e918e16b42be");
 
     private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(TEST_DIR, "resource-dummy-source.xml",
             "40f8fb21-a473-4da7-bbd0-7019d3d450a5", "source", DummyResourceContoller::populateWithDefaultSchema);

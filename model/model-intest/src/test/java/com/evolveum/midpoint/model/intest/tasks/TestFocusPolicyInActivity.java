@@ -6,15 +6,9 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
-
-import org.assertj.core.api.Assertions;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -22,9 +16,16 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
+/**
+ * This test class is similar to {@link TestThresholdsSingleThread}, however
+ * role assigned to task contains policy that just creates notifications.
+ *
+ * Clockwork policy that suspends task is "transplanted" from role to current (main) activity.
+ */
 public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     private static final TestTask TASK_IMPORT =
@@ -47,45 +48,45 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Simulate() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10SimulateExecute() {
-        return transplantRolePolicyForSimulateExecuteTask(ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
+        return transplantRolePolicyForSimulateExecuteTask(ROLE_ADD_10);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Execute() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10_NOTIFICATION, p -> Objects.equals(p.getName(), "add-10"));
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5Execute() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_COST_CENTER_5);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5SimulateExecute() {
-        return transplantRolePolicyForSimulateExecuteTask(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION);
+        return transplantRolePolicyForSimulateExecuteTask(ROLE_MODIFY_COST_CENTER_5);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5Simulate() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_COST_CENTER_5);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyFullName5SimulateExecute() {
-        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION);
+        return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_FULL_NAME_5);
     }
 
     @Override
     protected Consumer<PrismObject<TaskType>> customizePoliciesReconModifyFullName5SimulateExecute() {
         return task ->
                 transplantRolePolicy(
-                        ROLE_MODIFY_5_FULL_NAME_NOTIFICATION,
-                        new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
+                        ROLE_MODIFY_FULL_NAME_5,
+                        createPolicyActionsReplacement(),
                         task,
                         ActivityPath.empty()
                 );
@@ -95,8 +96,8 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
     protected Consumer<PrismObject<TaskType>> customizePoliciesReconcileDelete5Simulate() {
         return task ->
                 transplantRolePolicy(
-                        ROLE_DELETE_5_NOTIFICATION,
-                        new PolicyActionsType().suspendTask(new SuspendTaskPolicyActionType()),
+                        ROLE_DELETE_5,
+                        createPolicyActionsReplacement(),
                         task,
                         ActivityPath.empty()
                 );
@@ -134,7 +135,9 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest100Task(TestObject<TaskType> importTask) throws Exception {
-        assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 10);
+        // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
+        // because task is suspended from clockwork policy rule (before activity policies evaluation).
+        assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
 //        assertNotifications(DUMMY_POLICY_NOTIFIER, "add-10", 5); // todo fix this [viliam]
 
         PrismObject<TaskType> task = getTask(importTask.oid);
@@ -150,7 +153,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                     .display()
                     .assertCounterMinMax(ruleAddNotificationId, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
                     .assertCounterMinMax(suspendPolicyIdentifier, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
-                    .assertCounterCount(3)
+                    .assertCounterCount(2)
                 .end()
                 .progress()
                     .display()
@@ -169,7 +172,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest100TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws Exception {
-        // todo assert notifications
+        // todo assert notifications, counters
 
         PrismObject<TaskType> task = getTask(importTask.oid);
         var suspendPolicyIdentifier = ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
@@ -192,7 +195,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .previewModePolicyRulesCounters()
                     .assertCounter(ruleAddNotificationId, USER_ADD_ALLOWED + 2 )
                     .assertCounter(suspendPolicyIdentifier, USER_ADD_ALLOWED + 2)
-                    .assertCounterCount(3)
+                    .assertCounterCount(2)
                     .end()
                 .progress()
                     .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters
@@ -205,6 +208,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest110TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
@@ -231,6 +235,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest120TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
@@ -257,6 +262,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest200TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "task after")
             .assertSuspended()
@@ -280,6 +286,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "task after repeated execution")
             .assertSuspended()
@@ -299,6 +306,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest210TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
@@ -324,6 +332,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest220TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
@@ -340,6 +349,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest300TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertClosed()
@@ -373,6 +383,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest310TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
             .assertClosed()
@@ -408,6 +419,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest400TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
                 .display()
