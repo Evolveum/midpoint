@@ -318,7 +318,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest120TaskAfter(importTask);
     }
 
-    abstract void assertTest120TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest120TaskAfter(TestObject<TaskType> importTask) throws Exception;
 
     /**
      * Imports all accounts. This sets the scene for testing modification policy rules.

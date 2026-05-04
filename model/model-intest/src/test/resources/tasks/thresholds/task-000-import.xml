@@ -22,10 +22,10 @@
         </work>
         <policies>
             <policy>
-                <name>Execution time</name>
+                <name>Execution time 0s</name>
                 <policyConstraints>
                     <executionTime>
-                        <exceeds>PT8S</exceeds>
+                        <exceeds>PT0S</exceeds>
                     </executionTime>
                 </policyConstraints>
                 <policyActions>

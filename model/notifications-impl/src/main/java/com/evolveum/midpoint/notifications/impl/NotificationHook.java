@@ -112,7 +112,7 @@ public class NotificationHook implements ChangeHook {
     }
 
     private void emitPolicyEventIfPresent(DirectlyEvaluatedClockworkPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
-        if (rule.isTriggered()) {
+        if (rule.isTriggered() && rule.isOverThreshold()) {
             for (var notificationAction : rule.getEnabledActions(NotificationPolicyActionType.class)) {
                 emitPolicyEvent(notificationAction.value(), rule, context, task, result);
             }

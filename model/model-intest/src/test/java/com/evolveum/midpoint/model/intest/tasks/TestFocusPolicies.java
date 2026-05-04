@@ -141,6 +141,10 @@ public abstract class TestFocusPolicies extends TestThresholds {
 
     protected void assertNotifications(String transport, String contains, int count) {
         List<Message> messages = dummyTransport.getMessages(transport);
+        if (messages == null && count == 0) {
+            return;
+        }
+
         Assertions.assertThat(messages)
                 .withFailMessage("Expected some notifications in transport %s, but got none", transport)
                 .isNotNull();

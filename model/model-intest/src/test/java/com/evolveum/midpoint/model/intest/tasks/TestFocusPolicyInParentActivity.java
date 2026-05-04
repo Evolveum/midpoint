@@ -137,8 +137,6 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
 
     @Override
     void assertTest100Task(TestObject<TaskType> importTask) throws Exception {
-        dumpSimplifiedTaskActivityState(importTask);
-
         // todo assert notifications
 
         PrismObject<TaskType> task = getTask(importTask.oid);
@@ -236,6 +234,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
 
     @Override
     void assertTest120TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        dumpSimplifiedTaskActivityState(importTask);
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
@@ -243,43 +242,51 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
             .rootActivityState()
                 .assertInProgressLocal()
                 .assertFatalError()
-                .progress()
-                    .display()
-                    .assertSuccessCount(USER_ADD_ALLOWED, true)
-                    .assertFailureCount(1, getThreads(), true)
-                    .end()
-                .itemProcessingStatistics()
-                    .display()
-                    .end()
-                .actionsExecuted()
-                    .resulting()
+                // todo assert local state
+                .child("main")
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .progress()
                         .display()
-                        .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, USER_ADD_ALLOWED, 0)
+                        .assertSuccessCount(USER_ADD_ALLOWED, true)
+                        .assertFailureCount(1, getThreads(), true)
                         .end()
-                    .end();
+                    .itemProcessingStatistics()
+                        .display()
+                        .end()
+                    .actionsExecuted()
+                        .resulting()
+                            .display()
+                            .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, USER_ADD_ALLOWED, 0)
+                            .end()
+                        .end();
         // @formatter:on
     }
 
     @Override
     void assertTest200TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        dumpSimplifiedTaskActivityState(importTask);
+
         // @formatter:off
         assertTaskTree(importTask.oid, "task after")
             .assertSuspended()
             .assertFatalError()
             .rootActivityState()
                 .display()
-                .previewModePolicyRulesCounters()
-                    .display()
-                    .assertCounterMinMax(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
-                    .end()
-                .progress()
-                    .display()
-                    .assertSuccessCount(USER_MODIFY_ALLOWED, ACCOUNTS, true) // this is quite a broad range :)
-                    .assertFailureCount(1, getThreads(), true)
-                    .end()
-                .itemProcessingStatistics()
-                    .assertTotalCounts(USER_MODIFY_ALLOWED * 4, 1, 0)
-                    .end();
+                // todo assert root state
+                .child("main")
+                    .previewModePolicyRulesCounters()
+                        .display()
+                        .assertCounterMinMax(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
+                        .end()
+                    .progress()
+                        .display()
+                        .assertSuccessCount(USER_MODIFY_ALLOWED, ACCOUNTS, true) // this is quite a broad range :)
+                        .assertFailureCount(1, getThreads(), true)
+                        .end()
+                    .itemProcessingStatistics()
+                        .assertTotalCounts(USER_MODIFY_ALLOWED * 4, 1, 0)
+                        .end();
         // @formatter:on
     }
 
@@ -291,14 +298,16 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
             .assertFatalError()
             .rootActivityState()
                 .display()
-                .previewModePolicyRulesCounters()
-                    .display()
-                    .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 2)
-                    .end()
-                .itemProcessingStatistics()
-                    .display()
-                    .assertTotalCounts(USER_MODIFY_ALLOWED*4, 2, 0)
-                    .end();
+                // todo assert root state
+                .child("main")
+                    .previewModePolicyRulesCounters()
+                        .display()
+                        .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 2)
+                        .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(USER_MODIFY_ALLOWED*4, 2, 0)
+                        .end();
         // @formatter:on
     }
 
@@ -329,17 +338,21 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
 
     @Override
     void assertTest220TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        dumpSimplifiedTaskActivityState(importTask);
+
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
             .assertFatalError()
             .rootActivityState()
-                .assertInProgressLocal()
-                .assertFatalError()
-                .progress()
-                    .display()
-                    .assertFailureCount(1, getThreads(), true)
-                    .end();
+                // todo assert root state more
+                .child("main")
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .progress()
+                        .display()
+                        .assertFailureCount(1, getThreads(), true)
+                        .end();
         // @formatter:on
     }
 

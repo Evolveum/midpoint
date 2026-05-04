@@ -121,7 +121,7 @@ public class ActivityPolicyRulesProcessor {
                     continue;
                 }
 
-                if (rule.hasThreshold() && !rule.isOverThreshold()) {
+                if (!rule.isOverThreshold()) {
                     LOGGER.trace("Policy rule {} was triggered, still not yet over threshold, therefore not executing actions", rule);
                     continue;
                 }

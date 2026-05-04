@@ -18,8 +18,11 @@
             </policyConstraints>
             <policyThreshold>
                 <lowWaterMark>
-                    <count>10</count>
+                    <count>5</count>
                 </lowWaterMark>
+                <highWaterMark>
+                    <count>10</count>
+                </highWaterMark>
             </policyThreshold>
             <policyActions>
                 <notification/>

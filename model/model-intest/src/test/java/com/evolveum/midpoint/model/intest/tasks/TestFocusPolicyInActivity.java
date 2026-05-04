@@ -135,10 +135,11 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest100Task(TestObject<TaskType> importTask) throws Exception {
+        // we're in simulation so clockwork notifier hook will be skipped
+        assertNotifications(DUMMY_POLICY_NOTIFIER, "add-10-notification", 0);
         // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
         // because task is suspended from clockwork policy rule (before activity policies evaluation).
         assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
-//        assertNotifications(DUMMY_POLICY_NOTIFIER, "add-10", 5); // todo fix this [viliam]
 
         PrismObject<TaskType> task = getTask(importTask.oid);
         var suspendPolicyIdentifier = ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
@@ -172,6 +173,11 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest100TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws Exception {
+        // we're in simulation so clockwork notifier hook will be skipped
+        assertNotifications(DUMMY_POLICY_NOTIFIER, "add-10-notification", 0);
+        // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
+        // because task is suspended from clockwork policy rule (before activity policies evaluation).
+        assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
         // todo assert notifications, counters
 
         PrismObject<TaskType> task = getTask(importTask.oid);
@@ -234,7 +240,15 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
     }
 
     @Override
-    void assertTest120TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest120TaskAfter(TestObject<TaskType> importTask) throws Exception {
+        assertNotifications(DUMMY_POLICY_NOTIFIER, "add-10-notification", 5);
+        // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
+        // because task is suspended from clockwork policy rule (before activity policies evaluation).
+        assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
+
+        PrismObject<TaskType> task = getTask(importTask.oid);
+        var suspendPolicyIdentifier = ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
+
         // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
@@ -250,6 +264,12 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                     .end()
                 .itemProcessingStatistics()
                     .display()
+                    .end()
+                .fullExecutionModePolicyRulesCounters()
+                    .display()
+                    .assertCounterMinMax(ruleAddNotificationId, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
+                    .assertCounterMinMax(suspendPolicyIdentifier, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
+                    .assertCounterCount(2)
                     .end()
                 .actionsExecuted()
                     .resulting()
