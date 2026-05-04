@@ -40,52 +40,6 @@
                     <notification/>
                 </policyActions>
             </policy>
-            <!--<policy>-->
-            <!--    <name>Suspend after two attempts</name>-->
-            <!--    &lt;!&ndash; policy used to test restart action &ndash;&gt;-->
-            <!--    <policyConstraints>-->
-            <!--        <executionAttempts>-->
-            <!--            <exceeds>2</exceeds>-->
-            <!--        </executionAttempts>-->
-            <!--    </policyConstraints>-->
-            <!--    <policyActions>-->
-            <!--        <suspendTask/>-->
-            <!--    </policyActions>-->
-            <!--</policy>-->
-            <!--<policyRef oid="79d1d4e7-408c-4255-9386-5697892691df" type="RoleType"/>-->
-            <!-- TODO [viliam] assignment policy rule is not properly counted and enforced -->
-            <!--<policy>
-                <name>assignment policy rule</name>
-                <policyConstraints>
-                    <assignmentState>
-                        <expression>
-                            <script>
-                                <code>
-                                    // let's trigger it always
-                                    true
-                                </code>
-                            </script>
-                        </expression>
-                    </assignmentState>
-                </policyConstraints>
-                <policyThreshold>
-                    <lowWaterMark>
-                        <count>5</count>
-                    </lowWaterMark>
-                    <highWaterMark>
-                        <count>15</count>
-                    </highWaterMark>
-                </policyThreshold>
-                <policyActions>
-                    <notification/>
-                </policyActions>
-            </policy>-->
         </policies>
-        <!-- toto preskumat -->
-        <virtualAssignments>
-            <!--<assignment>-->
-            <!--    <targetRef oid="POLICY_RULE"/>-->
-            <!--</assignment>-->
-        </virtualAssignments>
     </activity>
 </task>

@@ -6,24 +6,30 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.*;
+
 import java.util.List;
 import java.util.Set;
-
-import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
-import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.common.activity.policy.*;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyConstraintsEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.DataNeed;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-
-import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.*;
 
 // TODO create package com.evolveum.midpoint.repo.common.policy and merge this class with
 //  CompositeConstraintEvaluator (from model) it will be quite a lot of refactoring moving
@@ -96,11 +102,48 @@ public class ActivityCompositeConstraintEvaluator
             PolicyConstraintKind kind,
             JAXBElement<PolicyConstraintsType> element,
             List<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        return new EvaluatedCompositeTrigger(
-                kind,
-                element.getValue(),
-                null, // TODO what with this? [pavol]
-                null, // TODO what with this? [pavol]
-                triggers);
+
+        LocalizableMessage message = createLocalizableMessage(kind, element);
+        LocalizableMessage shortMessage = createLocalizableShortMessage(kind, element);
+
+        return new EvaluatedCompositeTrigger(kind, element.getValue(), message, shortMessage, triggers);
+    }
+
+    private LocalizableMessage createLocalizableMessage(
+            PolicyConstraintKind kind,
+            JAXBElement<? extends AbstractPolicyConstraintType> constraintElement) {
+
+        LocalizableMessage fallback = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.getSerializableVersion().value())
+                .build();
+
+        AbstractPolicyConstraintType constraint = constraintElement.getValue();
+        if (constraint.getName() != null) {
+            return new LocalizableMessageBuilder()
+                    .key(SchemaConstants.POLICY_CONSTRAINT_KEY_PREFIX + constraint.getName())
+                    .fallbackLocalizableMessage(fallback)
+                    .build();
+        }
+
+        return fallback;
+    }
+
+    private LocalizableMessage createLocalizableShortMessage(
+            PolicyConstraintKind kind,
+            JAXBElement<? extends AbstractPolicyConstraintType> constraintElement) {
+
+        LocalizableMessage fallback = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.getSerializableVersion().value())
+                .build();
+
+        AbstractPolicyConstraintType constraint = constraintElement.getValue();
+        if (constraint.getName() != null) {
+            return new LocalizableMessageBuilder()
+                    .key(SchemaConstants.POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraint.getName())
+                    .fallbackLocalizableMessage(fallback)
+                    .build();
+        }
+
+        return fallback;
     }
 }

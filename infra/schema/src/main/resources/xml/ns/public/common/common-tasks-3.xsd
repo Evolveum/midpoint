@@ -1981,7 +1981,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="virtualAssignments" type="tns:VirtualAssignmentsType" minOccurs="0"/>
+            <xsd:element name="virtualAssignments" type="tns:VirtualAssignmentsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Virtual assignments for the activity. These assignments are not persisted in
+                        the processed object; they exist only while the current activity is being processed.
+
+                        Virtual assignments are collected from the current activity and all of its parent
+                        activities, and are applied on top of the regular assignments.
+
+                        It is recommended that roles contain only policies; otherwise phantom
+                        roleMembershipRefs may be added to the processed object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1995,12 +2008,6 @@
 
     <xsd:complexType name="VirtualAssignmentsType">
         <xsd:annotation>
-            <xsd:documentation>
-                Virtual assignments for the activity. This is a list of assignments that are not assigned to processed
-                object for real, just during the processing of task. This can be used to assign roles with policies.
-
-                <!-- todo fix documentation [viliam] -->
-            </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <a:container>true</a:container>

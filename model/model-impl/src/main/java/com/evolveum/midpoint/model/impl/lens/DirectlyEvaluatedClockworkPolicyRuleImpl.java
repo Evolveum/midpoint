@@ -71,7 +71,13 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
     /** See {@link DirectlyEvaluatedClockworkPolicyRule#getTargetType()}. */
     @NotNull private final TargetType targetType;
 
-    // TODO what is this? [pavol]
+    /**
+     * Policy rule counter, used when {@link #activityPolicyRule} is not available,
+     * e.g. policy rule wasn't collected from activity.
+     *
+     * If policy rule was collected from activity, then counting happens via {@link #activityPolicyRule}
+     * and it's local/total count.
+     */
     private int count;
 
     /**
