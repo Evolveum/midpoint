@@ -192,15 +192,15 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                         return;
                     }
 
-                    boolean finished = dto.isFinished();
-                    boolean failed = dto.isFailed();
-                    boolean suspended = dto.isSuspended();
-
                     if (dto.getStatusInfo() != null) {
                         dto.getStatusInfo().reset();
                     } else {
                         LOGGER.debug("StatusInfo is null for DTO {}", dto);
                     }
+
+                    boolean finished = dto.isFinished();
+                    boolean failed = dto.isFailed();
+                    boolean suspended = dto.isSuspended();
 
                     if (finished && !failed && !suspended) {
                         try {

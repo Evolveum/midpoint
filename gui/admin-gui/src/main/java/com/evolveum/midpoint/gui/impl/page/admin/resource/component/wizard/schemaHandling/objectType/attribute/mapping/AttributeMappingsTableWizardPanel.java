@@ -180,6 +180,10 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 if (getTable().isValidFormComponents(target.orElse(null))) {
                     super.onClickTabPerformed(index, target);
                 }
+                target.ifPresent(t -> {
+                    suggestionModel.detach();
+                    t.add(getAiPanel());
+                });
             }
         };
 
