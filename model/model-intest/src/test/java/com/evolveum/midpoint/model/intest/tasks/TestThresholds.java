@@ -97,16 +97,16 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        repoAdd(ROLE_ADD_10, initResult);
+        repoAddObject(customizeRoleAdd10BeforeRepoAdd(ROLE_ADD_10), initResult);
         ruleAddId = determineSingleInducedRuleId(ROLE_ADD_10.oid, initResult);
 
-        repoAdd(ROLE_MODIFY_COST_CENTER_5, initResult);
+        repoAddObject(customizeRoleModifyCostCenter5(ROLE_MODIFY_COST_CENTER_5), initResult);
         ruleModifyCostCenterId = determineSingleInducedRuleId(ROLE_MODIFY_COST_CENTER_5.oid, initResult);
 
-        repoAdd(ROLE_MODIFY_FULL_NAME_5, initResult);
+        repoAddObject(customizeRoleModifyFullName5(ROLE_MODIFY_FULL_NAME_5), initResult);
         ruleModifyFullNameId = determineSingleInducedRuleId(ROLE_MODIFY_FULL_NAME_5.oid, initResult);
 
-        repoAdd(ROLE_DELETE_5, initResult);
+        repoAddObject(customizeRoleDelete5(ROLE_DELETE_5), initResult);
         ruleDeleteId = determineSingleInducedRuleId(ROLE_DELETE_5.oid, initResult);
 
         initDummyResource(RESOURCE_SOURCE, initTask, initResult);
@@ -115,6 +115,22 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         displayValue("users before", usersBefore);
 
         createAccounts();
+    }
+
+    protected PrismObject<RoleType> customizeRoleAdd10BeforeRepoAdd(TestObject<RoleType> object) {
+        return object.get();
+    }
+
+    protected PrismObject<RoleType> customizeRoleModifyCostCenter5(TestObject<RoleType> object) {
+        return object.get();
+    }
+
+    protected PrismObject<RoleType> customizeRoleModifyFullName5(TestObject<RoleType> object) {
+        return object.get();
+    }
+
+    protected PrismObject<RoleType> customizeRoleDelete5(TestObject<RoleType> object) {
+        return object.get();
     }
 
     private void createAccounts() throws Exception {
@@ -211,7 +227,19 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesReconcileDelete5Simulate() {
+    protected Consumer<PrismObject<TaskType>> customizePoliciesReconDelete5Simulate() {
+        return task -> {
+            // intentionally empty
+        };
+    }
+
+    protected  Consumer<PrismObject<TaskType>> customizePoliciesReconDelete5SimulateExecute() {
+        return task -> {
+            // intentionally empty
+        };
+    }
+
+    protected Consumer<PrismObject<TaskType>> customizePoliciesReconDelete5Execute() {
         return task -> {
             // intentionally empty
         };
@@ -568,7 +596,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesReconcileDelete5Simulate(),
+                        customizePoliciesReconDelete5Simulate(),
                         getRoleAssignmentDelete(),
                         getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
@@ -611,6 +639,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
+                        customizePoliciesReconDelete5SimulateExecute(),
                         roleAssignmentCustomizer(ROLE_DELETE_5.oid),
                         getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
@@ -641,6 +670,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
+                        customizePoliciesReconDelete5Execute(),
                         roleAssignmentCustomizer(ROLE_DELETE_5.oid),
                         getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());

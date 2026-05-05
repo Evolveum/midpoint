@@ -95,7 +95,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesReconcileDelete5Simulate() {
+    protected Consumer<PrismObject<TaskType>> customizePoliciesReconDelete5Simulate() {
         return task ->
                 transplantRolePolicy(
                         ROLE_DELETE_5,

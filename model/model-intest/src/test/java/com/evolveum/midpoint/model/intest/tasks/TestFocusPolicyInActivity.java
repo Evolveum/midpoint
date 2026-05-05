@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -93,7 +94,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesReconcileDelete5Simulate() {
+    protected Consumer<PrismObject<TaskType>> customizePoliciesReconDelete5Simulate() {
         return task ->
                 transplantRolePolicy(
                         ROLE_DELETE_5,
@@ -133,6 +134,11 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
         return TASK_RECONCILIATION;
     }
 
+    protected String createSuspendPolicyIdentifier(TestObject<TaskType> object) throws CommonException {
+        PrismObject<TaskType> task = getTask(object.oid);
+        return ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
+    }
+
     @Override
     void assertTest100Task(TestObject<TaskType> importTask) throws Exception {
         // we're in simulation so clockwork notifier hook will be skipped
@@ -141,8 +147,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
         // because task is suspended from clockwork policy rule (before activity policies evaluation).
         assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
 
-        PrismObject<TaskType> task = getTask(importTask.oid);
-        var suspendPolicyIdentifier = ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
+        var suspendPolicyIdentifier = createSuspendPolicyIdentifier(importTask);
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
@@ -180,8 +185,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
         assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
         // todo assert notifications, counters
 
-        PrismObject<TaskType> task = getTask(importTask.oid);
-        var suspendPolicyIdentifier = ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
+        var suspendPolicyIdentifier = createSuspendPolicyIdentifier(importTask);
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after repeated execution")
@@ -246,8 +250,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
         // because task is suspended from clockwork policy rule (before activity policies evaluation).
         assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
 
-        PrismObject<TaskType> task = getTask(importTask.oid);
-        var suspendPolicyIdentifier = ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
+        var suspendPolicyIdentifier = createSuspendPolicyIdentifier(importTask);
 
         // todo assert notifications, counters
         // @formatter:off
