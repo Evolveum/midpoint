@@ -33,7 +33,7 @@
                 </reporting>
                 <policies>
                     <policy>
-                        <name>Execution time</name>
+                        <name>Execution time 0s</name>
                         <policyConstraints>
                             <executionTime>
                                 <exceeds>PT0S</exceeds>
@@ -62,7 +62,7 @@
                 </execution>
                 <policies>
                     <policy>
-                        <name>Execution time</name>
+                        <name>Execution time 0s</name>
                         <policyConstraints>
                             <executionTime>
                                 <exceeds>PT0S</exceeds>

@@ -63,8 +63,17 @@ public class TestVirtualAssignmentInActivity extends TestFocusPolicyInActivity {
     }
 
     @Override
-    protected String createSuspendPolicyIdentifier(TestObject<TaskType> object) throws CommonException {
-        String oid = ROLE_ADD_10.oid;
+    protected String createRuleAddIdentifier(TestObject<TaskType> object) throws CommonException {
+        return createRuleIdentifier(object, ROLE_ADD_10);
+    }
+
+    @Override
+    protected String createRuleModifyCostCenterIdentifier(TestObject<TaskType> object) throws CommonException {
+        return createRuleIdentifier(object, ROLE_MODIFY_COST_CENTER_5);
+    }
+
+    private String createRuleIdentifier(TestObject<TaskType> object, TestObject<RoleType> roleObject) throws CommonException {
+        String oid = roleObject.oid;
         PrismObject<RoleType> role = getObject(RoleType.class, oid);
         List<AssignmentType> inducements = role.asObjectable().getInducement();
         Assertions.assertThat(inducements)

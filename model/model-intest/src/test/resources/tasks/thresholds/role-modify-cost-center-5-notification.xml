@@ -9,7 +9,7 @@
     <name>role-modify-cost-center-5-notification</name>
     <inducement>
         <policyRule>
-            <name>modify-5-costCenter</name>
+            <name>modify-5-costCenter-notification</name>
             <policyConstraints>
                 <modification>
                     <operation>modify</operation>
@@ -20,6 +20,9 @@
                 <lowWaterMark>
                     <count>5</count>
                 </lowWaterMark>
+                <highWaterMark>
+                    <count>10</count>
+                </highWaterMark>
             </policyThreshold>
             <policyActions>
                 <notification/>

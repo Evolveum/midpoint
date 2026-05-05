@@ -136,20 +136,28 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
         return TASK_RECONCILIATION;
     }
 
-    protected String createSuspendPolicyIdentifier(TestObject<TaskType> object) throws CommonException {
+    protected String createRuleAddIdentifier(TestObject<TaskType> object) throws CommonException {
+        return createRuleIdentifier(object, RULE_ADD_NAME);
+    }
+
+    protected String createRuleModifyCostCenterIdentifier(TestObject<TaskType> object) throws CommonException {
+        return createRuleIdentifier(object, RULE_MODIFY_COST_CENTER_NAME);
+    }
+
+    private String createRuleIdentifier(TestObject<TaskType> object, String policyName) throws CommonException {
         PrismObject<TaskType> task = getTask(object.oid);
-        return ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
+        return ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), policyName, true);
     }
 
     @Override
     void assertTest100Task(TestObject<TaskType> importTask) throws Exception {
         // we're in simulation so clockwork notifier hook will be skipped
-        assertNotifications(DUMMY_POLICY_NOTIFIER, "add-10-notification", 0);
+        assertNotifications(DUMMY_POLICY_NOTIFIER, RULE_ADD_NOTIFICATION_NAME, 0);
         // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
         // because task is suspended from clockwork policy rule (before activity policies evaluation).
         assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
 
-        var suspendPolicyIdentifier = createSuspendPolicyIdentifier(importTask);
+        var suspendPolicyIdentifier = createRuleAddIdentifier(importTask);
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
@@ -181,13 +189,12 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
     @Override
     void assertTest100TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws Exception {
         // we're in simulation so clockwork notifier hook will be skipped
-        assertNotifications(DUMMY_POLICY_NOTIFIER, "add-10-notification", 0);
+        assertNotifications(DUMMY_POLICY_NOTIFIER, RULE_ADD_NOTIFICATION_NAME, 0);
         // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
         // because task is suspended from clockwork policy rule (before activity policies evaluation).
         assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
-        // todo assert notifications, counters
 
-        var suspendPolicyIdentifier = createSuspendPolicyIdentifier(importTask);
+        var suspendPolicyIdentifier = createRuleAddIdentifier(importTask);
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after repeated execution")
@@ -220,7 +227,12 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest110TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
+        // task should stop in simulation activity so clockwork notifier hook will be skipped
+        assertNotifications(DUMMY_POLICY_NOTIFIER, RULE_ADD_NOTIFICATION_NAME, 0);
+        // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
+        // because task is suspended from clockwork policy rule (before activity policies evaluation).
+        assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
+
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
@@ -247,14 +259,13 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest120TaskAfter(TestObject<TaskType> importTask) throws Exception {
-        assertNotifications(DUMMY_POLICY_NOTIFIER, "add-10-notification", 5);
+        assertNotifications(DUMMY_POLICY_NOTIFIER, RULE_ADD_NOTIFICATION_NAME, 5);
         // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
         // because task is suspended from clockwork policy rule (before activity policies evaluation).
         assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
 
-        var suspendPolicyIdentifier = createSuspendPolicyIdentifier(importTask);
+        var suspendPolicyIdentifier = createRuleAddIdentifier(importTask);
 
-        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
@@ -286,8 +297,15 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
     }
 
     @Override
-    void assertTest200TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
+    void assertTest200TaskAfter(TestObject<TaskType> importTask) throws Exception {
+        // we're in simulation so clockwork notifier hook will be skipped
+        assertNotifications(DUMMY_POLICY_NOTIFIER, "modify-5-costCenter-notification", 0);
+        // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
+        // because task is suspended from clockwork policy rule (before activity policies evaluation).
+        assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", USER_MODIFY_ALLOWED * 4);
+
+        var suspendPolicyIdentifier = createRuleModifyCostCenterIdentifier(importTask);
+
         // @formatter:off
         assertTaskTree(importTask.oid, "task after")
             .assertSuspended()
@@ -297,6 +315,8 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .previewModePolicyRulesCounters()
                     .display()
                     .assertCounterMinMax(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
+                    .assertCounterMinMax(suspendPolicyIdentifier, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
+                    .assertCounterCount(2)
                     .end()
                 .progress()
                     .display()
@@ -310,8 +330,15 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
     }
 
     @Override
-    void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
+    void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws Exception {
+        // we're in simulation so clockwork notifier hook will be skipped
+        assertNotifications(DUMMY_POLICY_NOTIFIER, "modify-5-costCenter-notification", 0);
+        // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
+        // because task is suspended from clockwork policy rule (before activity policies evaluation).
+        assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", USER_MODIFY_ALLOWED * 4);
+
+        var suspendPolicyIdentifier = createRuleModifyCostCenterIdentifier(importTask);
+
         // @formatter:off
         assertTaskTree(importTask.oid, "task after repeated execution")
             .assertSuspended()
@@ -321,17 +348,26 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .previewModePolicyRulesCounters()
                     .display()
                     .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 2)
+                    .assertCounter(suspendPolicyIdentifier, USER_MODIFY_ALLOWED + 2)
+                    .assertCounterCount(2)
                     .end()
                 .itemProcessingStatistics()
                     .display()
-                    .assertTotalCounts(USER_MODIFY_ALLOWED*4, 2, 0)
+                    .assertTotalCounts(USER_MODIFY_ALLOWED * 4, 2, 0)
                     .end();
         // @formatter:on
     }
 
     @Override
-    void assertTest210TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
+    void assertTest210TaskAfter(TestObject<TaskType> importTask) throws Exception {
+        // task should stop in simulation activity so clockwork notifier hook will be skipped
+        assertNotifications(DUMMY_POLICY_NOTIFIER, RULE_MODIFY_COST_CENTER_NOTIFICATION_NAME, 0);
+        // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
+        // because task is suspended from clockwork policy rule (before activity policies evaluation).
+        assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", USER_MODIFY_ALLOWED * 4);
+
+        var suspendPolicyIdentifier = createRuleModifyCostCenterIdentifier(importTask);
+
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
@@ -346,6 +382,12 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .progress()
                     .display()
                     .assertFailureCount(1, getThreads(), true)
+                    .end()
+                .previewModePolicyRulesCounters()
+                    .display()
+                    .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 2)
+                    .assertCounterMinMax(suspendPolicyIdentifier, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
+                    .assertCounterCount(2)
                     .end()
                 .end()
             .activityState(EXECUTE)
@@ -461,6 +503,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest400TaskAfterRepeatedExecution(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(reconTask.oid, "after repeated execution")
             .assertSuspended()
@@ -476,6 +519,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest410TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .display()
@@ -510,6 +554,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest420TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .display()

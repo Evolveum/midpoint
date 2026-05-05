@@ -56,6 +56,11 @@ public abstract class TestFocusPolicies extends TestThresholds {
     protected static final TestObject<RoleType> ROLE_DELETE_5_NOTIFICATION =
             TestObject.file(TEST_DIR, "role-delete-5-notification.xml", "552d2465-6531-4742-8626-7c9559ec8ff7");
 
+    public static final String RULE_ADD_NOTIFICATION_NAME = "add-10-notification";
+    public static final String RULE_MODIFY_COST_CENTER_NOTIFICATION_NAME = "modify-cost-center-5-notification";
+    public static final String RULE_MODIFY_FULL_NAME_NOTIFICATION_NAME = "modify-full-name-5-notification";
+    public static final String RULE_DELETE_NOTIFICATION_NAME = "delete-5-notification";
+
     protected String ruleAddNotificationId;
 
     protected String ruleModifyCostCenterNotificationId;
@@ -95,13 +100,13 @@ public abstract class TestFocusPolicies extends TestThresholds {
         ruleAddNotificationId = determineInducedRuleId(ROLE_ADD_10_NOTIFICATION.oid, "add-10-notification", initResult);
 
         repoAdd(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION, initResult);
-        ruleModifyCostCenterNotificationId = determineInducedRuleId(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION.oid, "modify-5-costCenter", initResult);
+        ruleModifyCostCenterNotificationId = determineInducedRuleId(ROLE_MODIFY_5_COST_CENTER_NOTIFICATION.oid, "modify-5-costCenter-notification", initResult);
 
         repoAdd(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION, initResult);
-        ruleModifyFullNameNotificationId = determineInducedRuleId(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION.oid, "modify-5-fullName", initResult);
+        ruleModifyFullNameNotificationId = determineInducedRuleId(ROLE_MODIFY_5_FULL_NAME_NOTIFICATION.oid, "modify-5-fullName-notification", initResult);
 
         repoAdd(ROLE_DELETE_5_NOTIFICATION, initResult);
-        ruleDeleteNotificationId = determineInducedRuleId(ROLE_DELETE_5_NOTIFICATION.oid, "delete-5", initResult);
+        ruleDeleteNotificationId = determineInducedRuleId(ROLE_DELETE_5_NOTIFICATION.oid, "delete-5-notification", initResult);
     }
 
     protected String determineInducedRuleId(String roleOid, String policyId, OperationResult result)

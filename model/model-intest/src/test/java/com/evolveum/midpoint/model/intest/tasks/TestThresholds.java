@@ -72,6 +72,11 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     public static final TestObject<RoleType> ROLE_MODIFY_FULL_NAME_5 = TestObject.file(TEST_DIR, "role-modify-full-name-5.xml", "11562df4-c3e7-4e9e-a8f9-0b7f1bb7df75");
     public static final TestObject<RoleType> ROLE_DELETE_5 = TestObject.file(TEST_DIR, "role-delete-5.xml", "9447439f-e6fd-4fb8-bf30-e918e16b42be");
 
+    public static final String RULE_ADD_NAME = "add-10";
+    public static final String RULE_MODIFY_COST_CENTER_NAME = "modify-cost-center-5";
+    public static final String RULE_MODIFY_FULL_NAME_NAME = "modify-full-name-5";
+    public static final String RULE_DELETE_NAME = "delete-5";
+
     private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(TEST_DIR, "resource-dummy-source.xml",
             "40f8fb21-a473-4da7-bbd0-7019d3d450a5", "source", DummyResourceContoller::populateWithDefaultSchema);
 
@@ -445,9 +450,8 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest200TaskAfterRepeatedExecution(importTask);
     }
 
-    abstract void assertTest200TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
-    abstract void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask)
-            throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest200TaskAfter(TestObject<TaskType> importTask) throws Exception;
+    abstract void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws Exception;
 
     /**
      * Re-imports accounts from the source in "simulate then execute" mode. Should stop on 5th modified user.
@@ -476,7 +480,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest210TaskAfter(importTask);
     }
 
-    abstract void assertTest210TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest210TaskAfter(TestObject<TaskType> importTask) throws Exception;
 
     /**
      * Re-imports accounts from the source in "execute" mode. Should modify 4 users and then stop on 5th user.

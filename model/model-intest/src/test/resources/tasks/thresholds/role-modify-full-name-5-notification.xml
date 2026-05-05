@@ -9,7 +9,7 @@
     <name>role-modify-full-name-5-notification</name>
     <inducement>
         <policyRule>
-            <name>modify-5-fullName</name>
+            <name>modify-5-fullName-notification</name>
             <policyConstraints>
                 <modification>
                     <operation>modify</operation>
