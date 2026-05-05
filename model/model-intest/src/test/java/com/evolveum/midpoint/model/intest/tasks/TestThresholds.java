@@ -179,67 +179,82 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         return roleAssignmentCustomizer(ROLE_DELETE_5.oid);
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Simulate() {
+    /**
+     * Update policies in task activity to represent current test case before import simulate task is executed.
+     *
+     * @see {@link #getSimulateTask()}
+     */
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportAdd10SimulateCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10SimulateExecute() {
+    /**
+     * Update policies in task activity to represent current test case before import simulate-execute task is executed.
+     *
+     * @see {@link #getSimulateExecuteTask()}
+     */
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportAdd10SimulateExecuteCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Execute() {
+    /**
+     * Update policies in task activity to represent current test case before import simulate task is executed.
+     *
+     * @see {@link #getExecuteTask()}
+     */
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportAdd10ExecuteCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5Simulate() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportModifyCostCenter5SimulateCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5SimulateExecute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportModifyCostCenter5SimulateExecuteCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5Execute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportModifyCostCenter5ExecuteCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyFullName5SimulateExecute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportModifyFullName5SimulateExecuteCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesReconModifyFullName5SimulateExecute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesReconModifyFullName5SimulateExecuteCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesReconDelete5Simulate() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesReconDelete5SimulateCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected  Consumer<PrismObject<TaskType>> customizePoliciesReconDelete5SimulateExecute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesReconDelete5SimulateExecuteCustomizer() {
         return task -> {
             // intentionally empty
         };
     }
 
-    protected Consumer<PrismObject<TaskType>> customizePoliciesReconDelete5Execute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesReconDelete5ExecuteCustomizer() {
         return task -> {
             // intentionally empty
         };
@@ -261,7 +276,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesImportAdd10Simulate(),
+                        getPoliciesImportAdd10SimulateCustomizer(),
                         getRoleAssignmentImportAdd(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
@@ -306,7 +321,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesImportAdd10SimulateExecute(),
+                        getPoliciesImportAdd10SimulateExecuteCustomizer(),
                         getRoleAssignmentImportAdd(),
                         getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
@@ -335,7 +350,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesImportAdd10Execute(),
+                        getPoliciesImportAdd10ExecuteCustomizer(),
                         getRoleAssignmentImportAdd(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
@@ -409,7 +424,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesImportModifyCostCenter5Simulate(),
+                        getPoliciesImportModifyCostCenter5SimulateCustomizer(),
                         getRoleAssignmentModifyCostCenter(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
@@ -450,7 +465,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesImportModifyCostCenter5SimulateExecute(),
+                        getPoliciesImportModifyCostCenter5SimulateExecuteCustomizer(),
                         getRoleAssignmentModifyCostCenter(),
                         getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
@@ -479,7 +494,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesImportModifyCostCenter5Execute(),
+                        getPoliciesImportModifyCostCenter5ExecuteCustomizer(),
                         getRoleAssignmentModifyCostCenter(),
                         getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
@@ -515,7 +530,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(importTask, result);
         addObject(importTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesImportModifyFullName5SimulateExecute(),
+                        getPoliciesImportModifyFullName5SimulateExecuteCustomizer(),
                         getRoleAssignmentModifyFullName(),
                         getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
@@ -550,7 +565,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesReconModifyFullName5SimulateExecute(),
+                        getPoliciesReconModifyFullName5SimulateExecuteCustomizer(),
                         getRoleAssignmentModifyFullName(),
                         getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, 5 * getTimeout());
@@ -596,7 +611,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesReconDelete5Simulate(),
+                        getPoliciesReconDelete5SimulateCustomizer(),
                         getRoleAssignmentDelete(),
                         getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
@@ -639,7 +654,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesReconDelete5SimulateExecute(),
+                        getPoliciesReconDelete5SimulateExecuteCustomizer(),
                         roleAssignmentCustomizer(ROLE_DELETE_5.oid),
                         getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
@@ -670,7 +685,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
-                        customizePoliciesReconDelete5Execute(),
+                        getPoliciesReconDelete5ExecuteCustomizer(),
                         roleAssignmentCustomizer(ROLE_DELETE_5.oid),
                         getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());

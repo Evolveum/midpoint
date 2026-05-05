@@ -49,42 +49,42 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
             TestTask.file(TEST_DIR, "task-100-reconciliation-simulate-execute.xml", "4a0e5fe6-b512-4fb0-a750-7bec5d6e0fbb");
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Simulate() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportAdd10SimulateCustomizer() {
         return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10);
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10SimulateExecute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportAdd10SimulateExecuteCustomizer() {
         return transplantRolePolicyForSimulateExecuteTask(ROLE_ADD_10);
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportAdd10Execute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportAdd10ExecuteCustomizer() {
         return transplantRolePolicyForSimulateExecuteTask(ROLE_ADD_10);
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5Execute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportModifyCostCenter5ExecuteCustomizer() {
         return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_COST_CENTER_5);
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5SimulateExecute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportModifyCostCenter5SimulateExecuteCustomizer() {
         return transplantRolePolicyForSimulateExecuteTask(ROLE_MODIFY_COST_CENTER_5);
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyCostCenter5Simulate() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportModifyCostCenter5SimulateCustomizer() {
         return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_COST_CENTER_5);
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesImportModifyFullName5SimulateExecute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesImportModifyFullName5SimulateExecuteCustomizer() {
         return transplantRolePolicyForSimulateOrExecuteTask(ROLE_MODIFY_FULL_NAME_5);
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesReconModifyFullName5SimulateExecute() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesReconModifyFullName5SimulateExecuteCustomizer() {
         return task ->
                 transplantRolePolicy(
                         ROLE_MODIFY_FULL_NAME_5,
@@ -95,7 +95,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
     }
 
     @Override
-    protected Consumer<PrismObject<TaskType>> customizePoliciesReconDelete5Simulate() {
+    protected Consumer<PrismObject<TaskType>> getPoliciesReconDelete5SimulateCustomizer() {
         return task ->
                 transplantRolePolicy(
                         ROLE_DELETE_5,
