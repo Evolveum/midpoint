@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.*;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -1238,14 +1239,16 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     protected String getWindowIdPageParameter() {
-        org.apache.wicket.request.IRequestParameters parameters = RequestCycle.get().getRequest().getRequestParameters();
-        StringValue paramValue = parameters.getParameterValue(BrowserWindowIdentifierFilter.PARAM_WI);
+        org.apache.wicket.request.IRequestParameters parameters = RequestCycle.get() != null ?
+                RequestCycle.get().getRequest().getRequestParameters() : null;
+        StringValue paramValue = parameters != null ? parameters.getParameterValue(BrowserWindowIdentifierFilter.PARAM_WI) : null;
         String windowId = paramValue != null ? paramValue.toString() : null;
         LOGGER.trace("Page Admin LTE: {}", windowId);
 
         if (windowId == null) {
             //try to get windowId from Referer header
-            String referer = ((ServletWebRequest)RequestCycle.get().getRequest()).getHeader("Referer");
+            String referer = RequestCycle.get() != null ?
+                    ((ServletWebRequest)RequestCycle.get().getRequest()).getHeader("Referer") : null;
             if (referer != null) {
                 windowId = UriComponentsBuilder.fromUriString(referer)
                         .build()

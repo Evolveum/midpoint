@@ -6,10 +6,12 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -19,6 +21,8 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -49,8 +53,9 @@ public abstract class ExportingPanel extends BasePanel<ExportingPanel> implement
 
     private static final Trace LOGGER = TraceManager.getTrace(ExportingPanel.class);
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_MESSAGES = "messages";
     private static final String ID_WARNING_MESSAGE = "warningMessage";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_EXPORT = "export";
@@ -80,12 +85,23 @@ public abstract class ExportingPanel extends BasePanel<ExportingPanel> implement
     }
 
     private void initLayout() {
-        MidpointForm form = new MidpointForm<>(ID_MAIN_FORM, true);
+        MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM, true);
 
-        MessagePanel warningMessage = new MessagePanel(ID_WARNING_MESSAGE, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
-        warningMessage.setOutputMarkupId(true);
-        warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
-        form.add(warningMessage);
+        IModel<List<String>> messagesModel = getWarningMessagesModel();
+        ListView<String> messages = new ListView<>(ID_MESSAGES, messagesModel) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<String> item) {
+                MessagePanel<?> warningMessage = new MessagePanel<>(ID_WARNING_MESSAGE,
+                        MessagePanel.MessagePanelType.WARN, item.getModel());
+                warningMessage.setOutputMarkupId(true);
+                item.add(warningMessage);
+            }
+        };
+        messages.setOutputMarkupId(true);
+        messages.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(messagesModel.getObject())));
+        form.add(messages);
 
         FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
         feedbackList.setOutputMarkupId(true);
@@ -99,7 +115,7 @@ public abstract class ExportingPanel extends BasePanel<ExportingPanel> implement
         form.add(table);
 
         AjaxSubmitButton exportSelected = new AjaxSubmitButton(ID_EXPORT, getPageBase().createStringResource("ExportingPopupPanel.exportSelected")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
@@ -123,7 +139,7 @@ public abstract class ExportingPanel extends BasePanel<ExportingPanel> implement
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL,
                 new StringResourceModel("Button.cancel", this, null)) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -144,14 +160,18 @@ public abstract class ExportingPanel extends BasePanel<ExportingPanel> implement
         });
     }
 
-    private IModel<String> getWarningMessageModel() {
-        if (exportSizeLimit != null) {
-            return getConfirmationMessage(exportSizeLimit);
-        }
-        return null;
+    private IModel<List<String>> getWarningMessagesModel() {
+        return () -> {
+            List<String> messages = new ArrayList<>();
+            if (exportSizeLimit != null) {
+                messages.add(getSizeLimitConfirmationMessage(exportSizeLimit).getObject());
+            }
+            messages.add("After confirming the export, please wait for the download to begin before performing other actions. This ensures the export is processed correctly.");
+            return messages;
+        };
     }
 
-    protected abstract IModel<String> getConfirmationMessage(final Long exportSizeLimit);
+    protected abstract IModel<String> getSizeLimitConfirmationMessage(final Long exportSizeLimit);
 
     public void exportPerformed(AjaxRequestTarget target) {
     }
@@ -172,12 +192,12 @@ public abstract class ExportingPanel extends BasePanel<ExportingPanel> implement
         CheckBoxHeaderColumn<SelectableBean<Integer>> checkboxColumn = new CheckBoxHeaderColumn<>();
         columns.add(checkboxColumn);
         StringResourceModel nameString = getPageBase().createStringResource("ExportingPopupPanel.nameColumn");
-        IColumn<SelectableBean<Integer>, String> nameColumn = new AbstractColumn<SelectableBean<Integer>, String>(nameString) {
+        IColumn<SelectableBean<Integer>, String> nameColumn = new AbstractColumn<>(nameString) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<Integer>>> cellItem, String componentId,
                     IModel<SelectableBean<Integer>> rowModel) {
-                IModel stringModel = ((IExportableColumn) allColumns.get(rowModel.getObject().getValue())).getDisplayModel();
+                IModel<String> stringModel = ((IExportableColumn) allColumns.get(rowModel.getObject().getValue())).getDisplayModel();
                 cellItem.add(new Label(componentId, stringModel));
             }
         };
@@ -198,7 +218,7 @@ public abstract class ExportingPanel extends BasePanel<ExportingPanel> implement
 
         BoxedTablePanel<SelectableBean<Integer>> table = new BoxedTablePanel<>(id, provider, columns) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getAdditionalBoxCssClasses() {
@@ -206,23 +226,8 @@ public abstract class ExportingPanel extends BasePanel<ExportingPanel> implement
             }
 
             @Override
-            protected WebMarkupContainer createButtonToolbar(String id) {
-                return new WebMarkupContainer(id);
-            }
-
-            @Override
             protected boolean hideFooterIfSinglePage() {
                 return true;
-            }
-
-            @Override
-            public int getAutoRefreshInterval() {
-                return 0;
-            }
-
-            @Override
-            public boolean isAutoRefreshEnabled() {
-                return false;
             }
         };
         table.setOutputMarkupId(true);

@@ -602,6 +602,22 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         }
     }
 
+    /**
+     * Returns iteration page size from options, or default from configuration.
+     */
+    private Integer getIterationPageSize(Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options != null) {
+            for (var option : options) {
+                if (option.isRoot() && option.getOptions() != null) {
+                    if (option.getOptions().getIterationPageSize() != null) {
+                        return option.getOptions().getIterationPageSize();
+                    }
+                }
+            }
+        }
+        return repositoryConfiguration().getIterativeSearchByPagingBatchSize();
+    }
+
     /*
     TODO: We should try to unify iterative search for repo and audit.
      There are some obvious differences - like the provider of the page results - the differences need to be
@@ -617,6 +633,13 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             AuditResultHandler handler,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult operationResult) throws SchemaException, RepositoryException {
+
+        // Check if streaming mode is requested via iterationPageSize = -1
+        Integer configuredPageSize = getIterationPageSize(options);
+        if (configuredPageSize != null && configuredPageSize == -1) {
+            // Use JDBC streaming mode with default fetch size of 1000
+            return executeSearchObjectsIterativeStreaming(originalQuery, handler, options, operationResult, 1000);
+        }
 
         try {
             ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
@@ -701,6 +724,36 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             // This just counts the operation and adds zero/minimal time not to confuse user
             // with what could be possibly very long duration.
             registerOperationFinish(registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE));
+        }
+    }
+
+    /**
+     * Streaming version of searchObjectsIterative that uses JDBC cursor-based streaming.
+     * Does not use keyset pagination - fetches all matching rows in a single query with cursor.
+     * This is more efficient for large exports as it avoids multiple SQL round trips.
+     *
+     * @param fetchSize JDBC fetch size for streaming (e.g., 1000)
+     */
+    private SearchResultMetadata executeSearchObjectsIterativeStreaming(
+            ObjectQuery query,
+            AuditResultHandler handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult operationResult,
+            int fetchSize) throws SchemaException, RepositoryException {
+
+        long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE);
+        try {
+            SqaleQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> queryContext =
+                    SqaleQueryContext.from(AuditEventRecordType.class, sqlRepoContext);
+
+            int count = sqlQueryExecutor.listStreaming(
+                    queryContext, query, options,
+                    (object, opResult) -> handler.handle(object, opResult),
+                    operationResult, fetchSize);
+
+            return new SearchResultMetadata().approxNumberOfAllResults(count);
+        } finally {
+            registerOperationFinish(opHandle);
         }
     }
 

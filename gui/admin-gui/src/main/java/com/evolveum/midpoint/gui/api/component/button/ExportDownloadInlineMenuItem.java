@@ -34,6 +34,7 @@ import org.apache.wicket.util.resource.IResourceStream;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.wicket.util.*;
 
 public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
@@ -57,7 +58,7 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
     private void initLayout() {
         name = Model.of("");
         ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public IResourceStream getResourceStream() {
@@ -103,7 +104,7 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
                 exportableColumnsIndex.clear();
                 ExportingPanel exportingPanel = new ExportingPanel(WebComponentUtil.getPageBase(component).getMainPopupBodyId(),
                         getDataTable(), exportableColumnsIndex, useExportSizeLimit, name) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
@@ -111,7 +112,7 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
                     }
 
                     @Override
-                    protected IModel<String> getConfirmationMessage(final Long exportSizeLimit) {
+                    protected IModel<String> getSizeLimitConfirmationMessage(final Long exportSizeLimit) {
                         return ExportDownloadInlineMenuItem.this.getConfirmationMessage(exportSizeLimit);
                     }
                 };

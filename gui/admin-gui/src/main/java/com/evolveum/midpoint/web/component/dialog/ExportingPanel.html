@@ -8,7 +8,9 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <form wicket:id="mainForm">
         <div class="d-flex flex-column gap-2">
-            <div wicket:id="warningMessage"/>
+            <div wicket:id="messages">
+                <div wicket:id="warningMessage"/>
+            </div>
             <div wicket:id="feedback"/>
             <span><wicket:message key="ExportingPanel.nameOfReport"/></span>
             <div wicket:id="name"/>
