@@ -37,7 +37,11 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                 new ConnDevAuthInfoType()
                         .name("API Key Authorization")
                         .type(ConnDevHttpAuthTypeType.API_KEY)
-                        .quirks("Username is `apiKey` and password is API Token.")
+                        .quirks("Username is `apiKey` and password is API Token."),
+                new ConnDevAuthInfoType()
+                        .name("OAuth2 Client Credentials")
+                        .type(ConnDevHttpAuthTypeType.OAUTH2)
+                        .quirks("")
                 );
     }
 
