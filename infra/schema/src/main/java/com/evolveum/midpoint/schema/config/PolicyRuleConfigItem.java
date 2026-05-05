@@ -6,9 +6,9 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 public class PolicyRuleConfigItem extends AbstractPolicyRuleConfigItem<PolicyRuleType> {
 

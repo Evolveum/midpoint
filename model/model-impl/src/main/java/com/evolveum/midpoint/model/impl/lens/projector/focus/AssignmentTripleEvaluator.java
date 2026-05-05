@@ -18,12 +18,6 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityUtil;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.task.api.ExecutionSupport;
-
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -43,6 +37,8 @@ import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.activity.ActivityUtil;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.OriginProvider;
@@ -50,6 +46,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -65,7 +63,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentTripleEvaluator.class);
 
-    private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName()+".evaluateAssignment";
+    private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName() + ".evaluateAssignment";
 
     private final LensContext<AH> context;
     private final LensFocusContext<AH> focusContext;
@@ -173,7 +171,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                         .toList();
         LOGGER.trace("Task assignment: {}", taskAssignments);
 
-        Collection<AssignmentConfigItem> taskActivityAssignments = createTaskActivityAssignments(task);
+        Collection<AssignmentConfigItem> taskActivityAssignments = createActivityAssignments(task);
         LOGGER.trace("Task activity assignments: {}", taskActivityAssignments);
 
         List<AssignmentConfigItem> virtualAssignments = new ArrayList<>(forcedAssignments);
@@ -183,26 +181,19 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         return virtualAssignments;
     }
 
-    private Collection<AssignmentConfigItem> createTaskActivityAssignments(Task fromTask) {
+    /**
+     * Collects all virtual assignments from current activity up to root activity.
+     */
+    private Collection<AssignmentConfigItem> createActivityAssignments(Task fromTask) {
         ExecutionSupport support = fromTask.getExecutionSupport();
-        if (!(support instanceof AbstractActivityRun<?,?,?> run)) {
+        if (!(support instanceof AbstractActivityRun<?, ?, ?> activityRun)) {
             return List.of();
         }
 
-        // todo this should go to parent activities as well...
-        //  It should be probably implemented somewhere in repo-common activity package and return more stuff related to activity like assignment path as well...
-        // todo implement [viliam]
-        AbstractActivityRun<?, ?, ?> activityRun = (AbstractActivityRun<?, ?, ?>) support;
-
         return ActivityUtil.getAllVirtualAssignments(activityRun.getActivity())
                 .stream()
-                .map(p -> createActivityAssignmentItem(p.getLeft(), p.getRight()))
+                .map(p -> AssignmentConfigItem.of(p.getLeft(), OriginProvider.generated(), p.getRight()))
                 .toList();
-    }
-
-    // todo how to pass activity path here to CI? [viliam]
-    private AssignmentConfigItem createActivityAssignmentItem(AssignmentType assignment, ActivityPath path) {
-        return AssignmentConfigItem.of(assignment, OriginProvider.generated());
     }
 
     // [EP:APSO] DONE
@@ -231,7 +222,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         boolean forceRecon;
 
         // Deltas that modify the content of the assignment.
-        Collection<? extends ItemDelta<?,?>> innerAssignmentDeltas;
+        Collection<? extends ItemDelta<?, ?>> innerAssignmentDeltas;
 
         // Human-readable description of the assignment "placement" (not quite concise name).
         String assignmentPlacementDesc;
@@ -536,7 +527,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiAdd(
             SmartAssignmentElement element) throws SchemaException {
         PrismContainerValue<AssignmentType> value = element.getAssignmentCVal();
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta =
                 (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
                         getDeltaItemFragment(value)
@@ -564,7 +555,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiDelete(
             SmartAssignmentElement element) throws SchemaException {
         PrismContainerValue<AssignmentType> value = element.getAssignmentCVal();
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta =
                 (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
                         getDeltaItemFragment(value)
@@ -592,7 +583,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     /** Returns deltas related to given assignment element. */
-    private @NotNull Collection<? extends ItemDelta<?,?>> getInnerAssignmentDeltas(LensFocusContext<AH> focusContext,
+    private @NotNull Collection<? extends ItemDelta<?, ?>> getInnerAssignmentDeltas(LensFocusContext<AH> focusContext,
             SmartAssignmentElement assignmentElement) {
         ObjectDelta<AH> focusDelta = focusContext.getCurrentDelta(); // TODO is this correct?
         if (focusDelta == null) {
@@ -643,7 +634,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
      * Returns null in exceptional situations.
      */
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
             PlusMinusZero primaryAssignmentMode,
             boolean evaluateOld,
             String assignmentPlacementDesc,
@@ -739,7 +730,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             //noinspection unchecked
             return (ContainerDelta<AssignmentType>) PrismContext.get().deltaFor(currentObjectable.getClass())
                     .item(AssignmentHolderType.F_ASSIGNMENT)
-                        .deleteRealValues(cloneCollectionMembers(currentObjectable.getAssignment()))
+                    .deleteRealValues(cloneCollectionMembers(currentObjectable.getAssignment()))
                     .asItemDelta();
         } else {
             return createEmptyAssignmentDelta(focusContext);

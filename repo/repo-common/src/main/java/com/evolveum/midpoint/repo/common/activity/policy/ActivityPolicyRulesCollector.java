@@ -9,9 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
-import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -20,13 +18,10 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.policy.PlainPolicyRuleIdentifier;
 import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
@@ -202,19 +197,8 @@ public class ActivityPolicyRulesCollector {
             PolicyRuleType rule, ActivityPath activityPath, ConfigurationItemOrigin origin,
             PolicyRuleIdentifier customPolicyRuleIdentifier, List<ActivityPolicyRule> rules) {
 
-        var policyCI = ConfigurationItem.configItem(rule, origin, PolicyRuleConfigItem.class);
-
-        rules.add(new ActivityPolicyRule(policyCI, activityPath, customPolicyRuleIdentifier, getDataNeeds(rule)));
-    }
-
-    private static Set<DataNeed> getDataNeeds(PolicyRuleType policyBean) {
-        return ActivityCompositeConstraintEvaluator.get().getDataNeeds(createRootConstraintElement(policyBean));
-    }
-
-    private static JAXBElement<PolicyConstraintsType> createRootConstraintElement(PolicyRuleType policyBean) {
-        return new JAXBElement<>(
-                PolicyConstraintsType.F_AND,
-                PolicyConstraintsType.class,
-                policyBean.getPolicyConstraints());
+        rules.add(new ActivityPolicyRuleBuilder(rule, activityPath, origin)
+                .customPolicyRuleIdentifier(customPolicyRuleIdentifier)
+                .build());
     }
 }

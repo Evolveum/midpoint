@@ -41,6 +41,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
  * in {@link ActivityPolicyRulesContext} throughout an activity run.
  *
  * On the other hand, {@link EvaluatedActivityPolicyRuleImpl} is a lightweight wrapper used only during a single evaluation cycle.
+ *
+ * TODO think of a better name, since this class is responsible for storing activity policy state (counters, data needs, etc.)
  */
 public class ActivityPolicyRule implements DebugDumpable {
 
