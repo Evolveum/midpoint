@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
@@ -141,7 +142,12 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             @Override
             protected void processResult(OperationResult result) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                    wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", result);
+                    ConnectorDevelopmentWizardUtil.collectConnectorResults(result, (connIdResult) -> {
+                        ConnectorDevelopmentWizardUtil.appendLogsAsContext(connIdResult);
+                        wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", connIdResult);
+
+                    });
+
                 }
             }
 
