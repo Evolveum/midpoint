@@ -175,6 +175,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                     suggestionModel.detach(); // force reload for new tab (inbound/outbound)
                     target.add(getButtonsContainer());
                     target.add(aiPanel);
+                    getTable().refreshAndDetach(target); // refresh table to update suggestions
                     aiPanel.restartTimeBehavior(target); // restart if needed
                 });
 
