@@ -191,7 +191,6 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
                     if (isPartInProgress(new SchemaConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new SearchAllConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new SearchByIdConnectorDevPartItem(getHelper()), list, objectClassName)
-                            || isPartInProgress(new SearchFilterConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new CreateConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new UpdateConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new DeleteConnectorDevPartItem(getHelper()), list, objectClassName)) {
