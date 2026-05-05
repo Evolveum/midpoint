@@ -492,16 +492,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="oauth2">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        OAuth2 Client Credentials Authorization
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OAUTH2"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -690,6 +680,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="API_KEY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oauth2">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        OAuth2 Client Credentials Authorization
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OAUTH2"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
