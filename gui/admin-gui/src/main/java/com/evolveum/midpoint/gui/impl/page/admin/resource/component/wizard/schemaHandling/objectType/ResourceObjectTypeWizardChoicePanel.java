@@ -211,6 +211,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         parameters.add(PARAM_PANEL_ID, resolvePanelId(kind));
 
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil.getObjectDetailsPage(ResourceType.class);
+        getPageBase().removeLastBreadcrumb();
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
