@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -102,6 +104,12 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
                 nextButtonVisible = true;
                 target.add(getButtonContainer());
             }
+
+            @Override
+            protected void customizeTask(Task task) {
+                ConnectorDevelopmentWizardUtil.enableConnectorLogCapture(task);
+            }
+
             @Override
             public Component getFeedbackPanel() {
                 return getFeedback();

@@ -75,7 +75,7 @@ public abstract class ConnectorDevelopmentBackend {
         return switch (integrationType) {
             case REST -> new RestBackend(beans, connDev, task, result);
             case SCIM -> new ScimBackend(beans, connDev, task, result);
-            case DUMMY -> new OfflineBackend(beans, connDev, task, result);
+            //case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
 
     }

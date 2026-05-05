@@ -22,7 +22,11 @@ public enum SupportedAuthorization {
             , "TokenName", "TokenValue"),
     HTTP_APIKEY(ConnDevHttpAuthTypeType.API_KEY, new ConnDevAuthInfoType()
             .name("HTTP API Key Authorization")
-            .description("Authorization using preshared API key"), "ApiKey");
+            .description("Authorization using preshared API key"), "ApiKey"),
+    HTTP_OAUTH2(ConnDevHttpAuthTypeType.OAUTH2, new ConnDevAuthInfoType()
+            .name("OAuth2 Client Credentials")
+            .description("Authorization using OAuth2 client credentials flow.")
+            , "OAuth2TokenUrl", "OAuth2ClientId", "OAuth2ClientSecret", "OAuth2PrivateKey", "OAuth2GrantType");
 
     private final List<ItemName.WithoutPrefix> scimProperties;
     private final List<ItemName.WithoutPrefix> restProperties;
@@ -41,6 +45,7 @@ public enum SupportedAuthorization {
             case "basic" -> HTTP_BASIC.crateBasicInformation();
             case "bearer" -> HTTP_BEARER.crateBasicInformation();
             case "apikey" -> HTTP_APIKEY.crateBasicInformation();
+            case "oauth2" -> HTTP_OAUTH2.crateBasicInformation();
             default -> null;
         };
     }
@@ -60,7 +65,7 @@ public enum SupportedAuthorization {
     public List<ItemName> attributesFor(ConnDevIntegrationType integration) {
         return (List) switch (integration) {
             case SCIM -> scimProperties;
-            case DUMMY, REST -> restProperties;
+            case REST -> restProperties;
         };
     }
 
