@@ -112,7 +112,7 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
                     }
 
                     @Override
-                    protected IModel<String> getSizeLimitConfirmationMessage(final Long exportSizeLimit) {
+                    protected IModel<String> getConfirmationMessage(final Long exportSizeLimit) {
                         return ExportDownloadInlineMenuItem.this.getConfirmationMessage(exportSizeLimit);
                     }
                 };
