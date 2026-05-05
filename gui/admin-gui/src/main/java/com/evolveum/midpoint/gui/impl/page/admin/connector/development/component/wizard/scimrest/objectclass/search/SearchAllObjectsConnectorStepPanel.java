@@ -14,9 +14,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -112,6 +115,11 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             @Override
             protected QName getDefaultObjectClass() {
                 return new QName(getValueModel().getObject().getRealValue().getName());
+            }
+
+            @Override
+            protected Behavior getStatisticsButtonVisibleBehaviour() {
+                return VisibleBehaviour.ALWAYS_INVISIBLE;
             }
 
             @Override
