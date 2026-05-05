@@ -552,7 +552,8 @@ export default class MidPointTheme {
 
         if (isFirstLoad) {
            url.searchParams.set('w', windowId);
-           window.location.replace(url);
+           window.history.replaceState({}, '', url);
+           // window.location.replace(url);
            return;
         }
 
