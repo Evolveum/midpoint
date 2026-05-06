@@ -2,67 +2,75 @@
 
 This guide explains how to configure a resource using the CSV connector that consists of two or more CSV files.
 Each file represents a group of objects with a distinct object type.
-The tutorial also shows how to define relationships between these object types so that organization membership can be processed in midPoint.
-For the purpose of this tutorial, the object types are Account and Entitlement, representing users and organizations respectively.
+The tutorial also shows how to define relationships between these object types.
 
 == Prerequisites
 
 Before you begin, make sure the following prerequisites are met.
 
-=== Running midPoint Instance
-
-You need a running midPoint instance with administrative access.
-
 === Input Files
 
-Prepare a folder accessible from midPoint that contains the CSV files used by the resource:
-
-* one file containing user data,
-* one file containing organization data.
+Prepare a folder accessible from midPoint that contains the CSV files used by the resource.
+Each file represents one object type (e.g. one for users, one for organizations).
 
 [NOTE]
 ====
-A multi-file CSV resource must have one primary (main) file.
+A multi-file CSV resource should have one primary (main) file.
 
-This file represents the primary object class (typically accounts/users) and is configured using the `filePath` property in the connector configuration.
+This file represents the primary object class (typically accounts) and is configured using the `filePath` property in the connector configuration.
 
 Additional files defined in the object class definition file are treated as secondary object classes.
 ====
 
-== Create a Properties File
+== Create a Definition File
 
-To configure a CSV resource composed of multiple files, you need to define additional object classes (or multiple classes if you have more than two files).
-This is done using a simple text file with the `.prop` extension.
+To configure a CSV resource composed of multiple files, you need to define additional object class (or multiple classes if you have more than two files).
+This is done using a simple text file (commonly with the `.prop` extension).
+
+[NOTE]
+====
+The primary object class is provided by the CSV connector by default.
+It represents the main CSV file and does not need to be explicitly defined in the additional object class definition file.
+====
+
 The file contains paths to the additional resource files, along with key-value pairs describing each additional CSV's properties and how they should be interpreted.
 
 The definition file should contain a *prefix* identifying the additional object class and the following properties:
 
-[cols="1,2", options="header"]
+[cols="1,1,2", options="header"]
 |===
-|Property Name |Description
+|Property |Type |Description
 
-|`filePath`
-|Path to the additional CSV file
+|filePath
+|string
+|Path to the CSV file
 
-|`fieldDelimiter`
+|fieldDelimiter
+|string
 |Delimiter used in the CSV file
 
-|`uniqueAttribute`
+|uniqueAttribute
+|string
 |Column used as the unique identifier
 
-|`nameAttribute`
+|nameAttribute
+|string
 |Column used as the object name
 
-|`headerExists`
+|headerExists
+|boolean
 |Whether the CSV file contains a header row
 
-|`trim`
+|trim
+|boolean
 |Whether whitespace should be trimmed
 
-|`container`
+|container
+|boolean
 |Whether the object class should be treated as a standalone container object
 
-|`auxiliary`
+|auxiliary
+|boolean
 |Whether the object class should be treated as auxiliary
 |===
 
@@ -80,8 +88,15 @@ For this setup, configure the last two properties as follows:
 
 The file is referenced from the CSV connector configuration using the `objectClassDefinition` property.
 This tells the CSV connector to load an additional object class definition from the specified file.
-The prefix is used as the native object class name.
-In this example, the connector uses it to interpret the organization CSV file as a separate object class.
+
+[NOTE]
+====
+Additional object class names always start with Custom, then include the prefix used in the text file where the object class is defined, and end with ObjectClass.
+
+For example, if your prefix is `Org`, the resulting name will be:
+
+`CustomOrgObjectClass`
+====
 
 == Create the CSV Resource in midPoint
 
@@ -93,15 +108,13 @@ In the connector configuration, set the following property:
 
 [source,xml]
 ----
-<cfg:objectClassDefinition>[/path/to/definition/file.prop]</cfg:objectClassDefinition>
+<cfg:objectClassDefinition>[/path/to/definition/file]</cfg:objectClassDefinition>
 ----
 
 == Refresh and Inspect the Resource Schema
 
 If you are configuring the resource using the GUI, refresh the resource schema at this point.
 
-[NOTE]
-====
 In some cases, midPoint may generate schema constraints that limit the resource to a single object class (typically `AccountObjectClass`).
 
 This can be caused by the following section in the resource definition:
@@ -115,26 +128,23 @@ This can be caused by the following section in the resource definition:
 
 If this section is present, remove it and refresh the schema again.
 After that, the additional object class defined in the properties file should become available.
-====
+
+Or, in the GUI, when examining a resource, go to *Schema* and use the *Select object class* button to view and add available object classes.
+Your custom object class should appear there after the schema is refreshed.
 
 == Configure Object Types
 
 After the resource schema is available, create an object type for each object class represented by the CSV files.
 
 Each object type should correspond to the kind of objects represented by the particular CSV file.
-For example:
-
-* The primary CSV file typically represents accounts and is interpreted as users.
-* An additional CSV file may represent organizations and is interpreted as entitlements.
 
 The object type based on the primary CSV file should be configured as the default one.
 
 Each object type must reference the corresponding resource object class.
-For example, the object type for the primary CSV file should use the object class generated for accounts, while the object type for the additional CSV file should use the object class generated from the definition file.
 
 [NOTE]
 ====
-If you want to continue configuring the association types using the GUI, make sure that the entitlement object type has `intent` set to `default`.
+If you want to continue configuring the association types using the GUI, make sure that the entitlement object type has `intent` set.
 Otherwise, the GUI may not offer it as a selectable option when configuring association types.
 ====
 
@@ -162,6 +172,8 @@ The CSV connector does not support associations (such as group membership) out o
 
 To work with them, you first need to define relationships between objects (e.g. between organizational units and users).
 
+These relationships are defined as *references* in the resource capabilities.
+They are later used in the association type configuration to create and manage relationships between objects in midPoint.
 To configure the relationships you need to:
 
 * Specify the name of the reference — `name`
@@ -173,9 +185,8 @@ A binding attribute links the subject and object by carrying the reference value
 
 === In the GUI
 
-. While editing the resource, expand *Schema handling*.
-. Select *Association types*.
-. Click *Configure*.
+. While editing the resource, expand *Details* menu.
+. Select *References*.
 . Set *Enable references* to `true`.
 . Configure the references according to the relationships in your data.
 
@@ -187,25 +198,25 @@ You can also edit the raw resource configuration directly:
 . Add a `<configured>` block inside it.
 . Define the `references` capability describing the relationship between users and organizations.
 
-The following example defines membership of users in organizations.
+The following example shows a generic configuration of a reference using `subjectToObject` direction.
 [source,xml]
 ----
 <c:configured xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     <references>
         <type>
-            <name>ri:orgMember</name> [1]
+            <name>ri:yourAssociation</name> [1]
             <subject>
                 <delineation>
-                    <objectClass>ri:AccountObjectClass</objectClass> [2]
+                    <objectClass>ri:YourSubjectClass</objectClass> [2]
                 </delineation>
-                <primaryBindingAttributeRef>ri:organization</primaryBindingAttributeRef> [3]
-                <localItemName>orgMember</localItemName> [4]
+                <primaryBindingAttributeRef>ri:yourAttribute</primaryBindingAttributeRef> [3]
+                <localItemName>yourAssociation</localItemName> [4]
             </subject>
             <object>
                 <delineation>
-                    <objectClass>ri:CustomOrgObjectClass</objectClass> [5]
+                    <objectClass>ri:YourObjectClass</objectClass> [5]
                 </delineation>
-                <primaryBindingAttributeRef>ri:name</primaryBindingAttributeRef> [6]
+                <primaryBindingAttributeRef>ri:yourIdentifier</primaryBindingAttributeRef> [6]
             </object>
             <direction>subjectToObject</direction>
         </type>
@@ -215,15 +226,13 @@ The following example defines membership of users in organizations.
 <1> A logical name for this reference type. You can choose any name.
 <2> The object class for your primary (accounts) CSV file.
 For the CSV connector this is typically `ri:AccountObjectClass`.
-<3> The attribute on the account side that carries the reference value —
-the column in your accounts CSV that contains the organization identifier.
-Replace with your actual column name.
+<3> The attribute on the account side that carries the reference value.
 <4> The name midPoint uses internally to refer to this association on the subject side.
 Must match what you use in the association type configuration.
-<5> The object class for your secondary (organizations) CSV file.
-This is derived from the prefix you defined in your `.prop` file.
-<6> The attribute on the organization side used to match the reference value.
-Typically the name or identifier column of your organizations CSV.
+<5> The object class for your secondary CSV file.
+This is derived from the prefix you defined in your definition file.
+<6> The attribute on the object side used to match the reference value.
+
 
 == Configure Association Types
 
@@ -235,14 +244,11 @@ An association type has two aspects:
 . It defines the *structure* of the relationship: its name, the subject side, the object side, and the reference linking it to the capability definition.
 . It defines how the relationship is *processed* and translated into midPoint data.
 
-The processing logic is configured on the side from which the relationship is evaluated.
-If the association direction is `subjectToObject`, the relationship is derived while processing subject objects, and the logic is defined on the subject side.
-If the direction is `objectToSubject`, the processing must be configured on the object side instead.
+The processing logic is evaluated on the subject side of the association.
 
 To ensure that the relationship is correctly established, it must be mapped to the appropriate midPoint object.
+It needs to be projected from the shadow to its owner.
 
-In this scenario, the relationship is read from resource objects (accounts) but should be applied to users.
-Therefore, it needs to be projected from the shadow to its owner.
 This is typically achieved by resolving the shadow owner and using it as the target of the association:
 
 [source,xml]
@@ -263,38 +269,173 @@ This applies not only during import, but also during reconciliation and live syn
 
 Without synchronization rules, the relationship would be detected but not persisted in midPoint.
 
-The following example shows the key elements of an association type configuration:
 
-* the structure of the relationship (subject, object, reference),
-* the mapping used to determine the target midPoint object,
-* and the synchronization rules that ensure the relationship is created and maintained.
+== Import the Objects
 
-In this example, the relationship is read from the account object on the resource.
-The account contains the organization reference value, so the account is the subject and the organization is the object.
-MidPoint evaluates this relationship while processing the account, resolves the owner of the account shadow, and applies the resulting association to that owner.
+After configuring the resource, the last step is to import the objects into midPoint.
+Create a separate import task for accounts and for entitlements.
+
+In the task configuration, specify the object classes, for each CSV select corresponding object class.
+
+Run each task separately.
+
+With the import tasks completed, the CSV resource is fully configured and operational.
+
+== Example of a complete configuration
+This part presents a complete example of configuring a CSV resource composed of multiple files and defining relationships between the data they contain.
+
+In our scenario:
+
+* users are stored in one CSV file,
+* organizations are stored in another CSV file,
+* we need to define membership relationship between users and organizations.
+
+=== Input Files
+
+Our HR database consists of two CSV files:
+
+. `users.csv`
++
+[source, csv]
+----
+userid;name;organization
+001;user1;org1#org2
+002;user2;org1
+003;user3;org2
+004;user4;
+005;user5;org3
+----
++
+* `userid` — user identification number
+* `name` — name of the user
+* `organization` — name of the organization the user belongs to, can have multiple values, because users can be members of multiple organization units.
++
+The values are separated by this delimiter: *#*
+
+. `organizations.csv`
++
+[source,csv]
+----
+orgid;name
+001;org1
+002;org2
+003;org3
+----
++
+* `orgid` — organization ID number
+* `name` — name of the organization
+
+=== Object class definition file
+
+Users are represented by the primary object class provided by the CSV connector.
+This object class is automatically derived from the main CSV file, while additional object classes for other files must be defined explicitly.
+We do this via the following definition file named `source.prop`:
+
+[source,text]
+----
+org.filePath=/opt/midpoint/var/organizations.csv
+org.fieldDelimiter=;
+org.uniqueAttribute=orgid
+org.nameAttribute=name
+org.headerExists=true
+org.container=true
+org.auxiliary=true
+----
+
+=== Connector configuration
+
+The following configuration shows how to set up the CSV connector.
+
+[source, xml]
+----
+<connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+<icfc:configurationProperties
+xmlns:cfg="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+<cfg:multivalueAttributes>organization</cfg:multivalueAttributes> [1]
+<cfg:multivalueDelimiter>#</cfg:multivalueDelimiter> [2]
+<cfg:fieldDelimiter>;</cfg:fieldDelimiter>
+<cfg:headerExists>true</cfg:headerExists>
+<cfg:filePath>/path/to/users.csv</cfg:filePath>
+<cfg:nameAttribute>name</cfg:nameAttribute>
+<cfg:uniqueAttribute>userid</cfg:uniqueAttribute>
+<cfg:objectClassDefinition>/path/to/source.prop</cfg:objectClassDefinition> [3]
+</icfc:configurationProperties>
+</connectorConfiguration>
+----
+
+<1> Declaration the multi-value attribute
+<2> Specification of the multivariate delimiter
+<3> The path to the class definition file
+
+
+=== Capability Configuration
+After defining object types for each object class and configuring basic processing (such as mappings, correlation, and synchronization), you can proceed to configure resource capabilities.
+Object types are configured using standard midPoint mechanisms.
+
+The following configuration defines a reference that links user accounts to organizations
+by matching values between the two CSV files.
+It represents the membership of a user in an organization.
+
+[source,xml]
+----
+<c:configured xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+    <references>
+        <type>
+            <name>ri:orgMember</name> [1]
+            <subject>
+                <delineation>
+                    <objectClass>ri:AccountObjectClass</objectClass> [2]
+                </delineation>
+                <primaryBindingAttributeRef>ri:organization</primaryBindingAttributeRef> [3]
+                <localItemName>orgMember</localItemName> [4]
+            </subject>
+            <object>
+                <delineation>
+                    <objectClass>ri:CustomOrgObjectClass</objectClass> [5]
+                </delineation>
+                <primaryBindingAttributeRef>ri:name</primaryBindingAttributeRef> [6]
+            </object>
+            <direction>subjectToObject</direction> [7]
+        </type>
+    </references>
+</c:configured>
+----
+<1> Logical name of the reference.
+<2> Object class of the primary CSV file (users).
+<3> Attribute in the users CSV that contains the organization reference.
+<4> Local name of the association on the subject side. This name is used later in the association type configuration.
+<5> Object class of the secondary CSV file (organizations).
+<6> Attribute in the organizations CSV used for matching.
+<7> Direction of the reference. In this example, the value is read from the subject side (account) and matched to the object side (organization).
+
+=== Association Type Configuration
+
+After defining the reference in resource capabilities, the next step is to define how this relationship is interpreted and processed in midPoint.
+
+In this example, the association represents membership. It expresses that a user (account) is a member of an organization.
 
 [source,xml]
 ----
 <associationType>
     <name>orgMember</name> [1]
     <displayName>Organization Member</displayName> [2]
-    <subject>
+    <subject> [3]
         <objectType>
-            <kind>account</kind> [3]
+            <kind>account</kind>
             <intent>default</intent>
         </objectType>
-        <association>
-            <ref>ri:orgMember</ref> [4]
+        <association> [4]
+            <ref>ri:orgMember</ref> [5]
             <inbound>
-                <name>Org-Member</name> [5]
+                <name>Org-Member</name>
                 <strength>strong</strength>
                 <expression>
                     <associationSynchronization>
                         <objectRef>
-                            <ref>ri:orgMember</ref> [4]
+                            <ref>ri:orgMember</ref> [5]
                             <correlator/>
-                            <mapping>
-                                <name>OrgMember</name> [5]
+                            <mapping> [6]
+                                <name>OrgMember</name>
                                 <expression>
                                     <shadowOwnerReferenceSearch/>
                                 </expression>
@@ -303,7 +444,7 @@ MidPoint evaluates this relationship while processing the account, resolves the 
                                 </target>
                             </mapping>
                         </objectRef>
-                        <synchronization>
+                        <synchronization> [7]
                             <reaction>
                                 <situation>unmatched</situation>
                                 <actions>
@@ -320,48 +461,41 @@ MidPoint evaluates this relationship while processing the account, resolves the 
                     </associationSynchronization>
                 </expression>
             </inbound>
-            <sourceAttributeRef>ri:orgMember</sourceAttributeRef> [4]
+            <sourceAttributeRef>ri:orgMember</sourceAttributeRef>
         </association>
     </subject>
-    <object>
+    <object> [8]
         <objectType>
-            <kind>entitlement</kind> [6]
+            <kind>entitlement</kind>
             <intent>default</intent>
         </objectType>
     </object>
 </associationType>
 ----
-<1> A logical name for this association type. You can choose any name.
-<2> A human-readable label shown in the GUI.
-<3> The kind of the subject object type — `account` for user accounts,
-which is the typical case when associating users with organizations.
-<4> Must match the `localItemName` value from the capabilities configuration
-(see previous section). All three occurrences must be identical.
-<5> Internal names for the inbound mapping and its nested mapping.
-These are free-form labels used for logging and troubleshooting.
-They do not need to match anything else, but should be descriptive.
-<6> The kind of the object side — `entitlement` for organizations,
-groups, or other objects that accounts are members of.
 
-== Import the Objects
+<1> Name of the association type.
 
-After configuring the resource, the last step is to import the objects into midPoint.
-Create a separate import task for accounts and for entitlements.
+<2> Display name shown in the GUI.
 
-In the task configuration, specify the object classes:
+<3> Subject of the association. In this example, it is the account. All processing logic (association, mappings) is evaluated on the subject side.
 
-* For the accounts CSV, select `AccountObjectClass`.
-* For the organizations CSV, select the object class derived from your `.prop` file prefix.
+<4> Definition of the association. This is where the reference from the resource is interpreted and transformed into a relationship in midPoint.
 
-Run each task separately.
+<5> Reference defined in the capabilities configuration. All occurrences must match the `localItemName` and reference name defined earlier.
+
+<6> Mapping that resolves the target object. It finds the owner of the account shadow (User) and sets the association target (`targetRef`).
+
+<7> Synchronization rules that determine how the association is created or updated in midPoint.
+
+<8> Object side of the association — in this example, organizations represented as entitlements.
 
 == What's Next: Using Organization Membership to Assign Roles
 
 Now that the resource is configured and objects are imported, midPoint is aware of the organizational structure and the membership of users within it.
 This opens up a range of possibilities for automating access management.
 
-One example is using org membership to automatically grant roles.
-By adding an inducement to an organization, any user assigned to that org automatically receives the induced role — no extra rules or triggers are needed.
+One example is using organization membership to automatically grant roles.
+By adding an inducement to an organization, any user assigned to that org automatically receives the induced role. No extra rules or triggers are needed.
 
 Add an inducement to your organization object referencing the role you want to grant:
 
@@ -381,5 +515,6 @@ You can verify this in the user's raw XML — the `roleMembershipRef` for the ro
 
 For a detailed explanation of inducements and role construction, see the
 xref:/midpoint/reference/support-4.10/roles-policies/roles/roles-and-policies-configuration/[Roles Configuration] reference page.
+
 
 
