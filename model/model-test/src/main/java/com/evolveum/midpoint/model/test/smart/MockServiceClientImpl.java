@@ -111,6 +111,8 @@ public class MockServiceClientImpl implements ServiceClient {
 
         if (response instanceof RuntimeException exception) {
             throw exception;
+        } else if (response instanceof AssertionError error) {
+            throw error;
         }
         return (RESP) response;
     }
@@ -218,7 +220,7 @@ public class MockServiceClientImpl implements ServiceClient {
     private static final class IteratorReference<R> {
         private Iterator<R> iterator;
 
-        synchronized Iterator<R> getOrSet(Supplier<Iterator<R>> iteratorSupplier) {
+        Iterator<R> getOrSet(Supplier<Iterator<R>> iteratorSupplier) {
             if (this.iterator != null) {
                 return this.iterator;
             }
