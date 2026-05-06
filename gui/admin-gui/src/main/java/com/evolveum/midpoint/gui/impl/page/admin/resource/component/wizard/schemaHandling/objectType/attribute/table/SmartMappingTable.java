@@ -346,6 +346,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected boolean displayNoValuePanel() {
+        if(searchTextModel.getObject() != null && !searchTextModel.getObject().isEmpty()) {
+            return false;
+        }
         return Boolean.TRUE.equals(noValuePanelModel.getObject());
     }
 
