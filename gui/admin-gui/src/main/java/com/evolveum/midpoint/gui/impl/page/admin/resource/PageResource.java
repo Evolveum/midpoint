@@ -228,18 +228,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         showContainerWizardForObjectType(target, pathToValue, ResourceObjectTypeBasicWizardPanel.class);
     }
 
-    @SuppressWarnings("unchecked")
-    public void showSynchronizationWizard(
-            @NotNull IModel<PrismContainerValueWrapper<SynchronizationReactionsType>> valueModel,
-            @NotNull AjaxRequestTarget target) {
-        SynchronizationWizardPanel<?, ?> synchronizationWizardPanel = showWizard(
-                valueModel,
-                target,
-                SynchronizationWizardPanel.class
-        );
-        addWizardBreadcrumbsForObjectType(synchronizationWizardPanel, 0);
-    }
-
     public void showSynchronizationWizard(AjaxRequestTarget target, @NotNull ItemPath pathToValue) {
         showContainerWizardForObjectType(
                 target,
