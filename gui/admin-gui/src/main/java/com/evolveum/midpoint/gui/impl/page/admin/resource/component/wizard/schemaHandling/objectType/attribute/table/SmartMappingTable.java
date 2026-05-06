@@ -261,7 +261,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     @Override
                     protected void onCreateNewObjectPerform(AjaxRequestTarget target) {
                         createNewValue(null, target);
-                        refreshAndDetach(target);
+                        SmartMappingTable.this.refreshAndDetach(target);
                     }
 
                     @Override
