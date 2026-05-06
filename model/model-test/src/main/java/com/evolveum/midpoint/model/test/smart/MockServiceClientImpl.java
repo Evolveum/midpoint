@@ -101,10 +101,12 @@ public class MockServiceClientImpl implements ServiceClient {
                     .orElseThrow(() -> new AssertionError("No more responses available for in the mock service "
                             + "client"));
         } else {
-            if (!responses.hasNext()) {
-                throw new AssertionError("No more responses available in the mock service client");
+            synchronized (this) {
+                if (!responses.hasNext()) {
+                    throw new AssertionError("No more responses available in the mock service client");
+                }
+                response = responses.next();
             }
-            response = responses.next();
         }
 
         if (response instanceof RuntimeException exception) {
@@ -197,7 +199,7 @@ public class MockServiceClientImpl implements ServiceClient {
             return this.requestMatcher.test(request);
         }
 
-        Optional<R> generate(T request) {
+        synchronized Optional<R> generate(T request) {
             final Iterator<R> responses = this.iteratorReference.getOrSet(
                     () -> this.responseGenerator.apply(request));
             if (responses.hasNext()) {
@@ -207,10 +209,16 @@ public class MockServiceClientImpl implements ServiceClient {
         }
     }
 
+    /**
+     * Please note, that this class on its own is not thread safe.
+     *
+     * It is the responsibility of the caller to make sure there will be no concurrent access to methods of this class.
+     * If this class will ever be extracted as a standalone class, it should be made thread safe explicitly.
+     */
     private static final class IteratorReference<R> {
         private Iterator<R> iterator;
 
-        Iterator<R> getOrSet(Supplier<Iterator<R>> iteratorSupplier) {
+        synchronized Iterator<R> getOrSet(Supplier<Iterator<R>> iteratorSupplier) {
             if (this.iterator != null) {
                 return this.iterator;
             }
