@@ -41,6 +41,7 @@ import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.OperationResultUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -272,7 +273,7 @@ public class TaskQuartzImpl implements Task {
         synchronized (prismAccess) {
             if (taskResult != null) {
                 clearPrismResultIncompleteFlag();
-                taskPrism.asObjectable().setResult(taskResult.createOperationResultType());
+                taskPrism.asObjectable().setResult(createStoredResultBean(taskResult));
                 taskPrism.asObjectable().setResultStatus(taskResult.getStatus().createStatusType());
             } else {
                 taskPrism.asObjectable().setResult(null);
@@ -800,7 +801,7 @@ public class TaskQuartzImpl implements Task {
             if (result != null) {
                 clearPrismResultIncompleteFlag();
             }
-            taskPrism.asObjectable().setResult(result != null ? result.createOperationResultType() : null);
+            taskPrism.asObjectable().setResult(createStoredResultBean(result));
             taskPrism.asObjectable().setResultStatus(result != null ? result.getStatus().createStatusType() : null);
         }
     }
@@ -816,10 +817,14 @@ public class TaskQuartzImpl implements Task {
     private PropertyDelta<?> setResultAndPrepareDelta(OperationResult result) {
         setResultTransient(result);
         if (isPersistent()) {
-            return createPropertyDeltaIfPersistent(TaskType.F_RESULT, result != null ? result.createOperationResultType() : null);
+            return createPropertyDeltaIfPersistent(TaskType.F_RESULT, createStoredResultBean(result));
         } else {
             return null;
         }
+    }
+
+    static OperationResultType createStoredResultBean(OperationResult result) {
+        return result != null ? OperationResultUtil.createStoredResultBean(result) : null;
     }
 
     /*

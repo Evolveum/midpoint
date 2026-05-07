@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -81,5 +82,33 @@ public class OperationResultUtil {
         } else {
             return SUCCESS;
         }
+    }
+
+    /**
+     * Creates a storage-friendly bean representation of the given operation result.
+     *
+     * The returned bean is based on a cloned and summarized copy of the original result. Successful
+     * subresults are marked for summarization recursively, and then {@link OperationResult#summarize(boolean)}
+     * is applied to collapse repeated successful branches. The original result object is left untouched.
+     *
+     * @param result live operation result to serialize for storage
+     * @return summarized bean suitable for task result or trace storage
+     */
+    public static OperationResultType createStoredResultBean(OperationResult result) {
+        OperationResult resultClone = result.clone();
+        setSummarizeSuccessesRecursively(resultClone);
+        resultClone.summarize(true);
+        return resultClone.createOperationResultType();
+    }
+
+    /**
+     * Enables successful-result summarization on the whole result tree.
+     *
+     * {@link OperationResult#summarize(boolean)} respects per-result summarization flags, so all
+     * existing subresults have to be marked before summarization is invoked.
+     */
+    private static void setSummarizeSuccessesRecursively(OperationResult result) {
+        result.setSummarizeSuccesses(true);
+        result.getSubresults().forEach(OperationResultUtil::setSummarizeSuccessesRecursively);
     }
 }

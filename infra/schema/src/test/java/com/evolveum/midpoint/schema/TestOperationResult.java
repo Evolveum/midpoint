@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.schema;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType.MAJOR;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.OperationResultUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultHandlingStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -27,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 public class TestOperationResult extends AbstractSchemaTest {
 
     private static final String LOCAL_1 = "local1";
+
+    private static final int SUCCESSFUL_RESULTS = 1000;
 
     @Test
     public void testCleanup() throws Exception {
@@ -206,6 +211,86 @@ public class TestOperationResult extends AbstractSchemaTest {
         }
 
         checkResultConversion(root, true);
+    }
+
+    @Test
+    public void testCreateStoredResultBeanSummarizesWithoutMutatingSource() throws Exception {
+        given();
+        OperationResult result = createLargeResult();
+        OperationResult firstOriginalSuccess = result.getSubresults().get(0);
+        OperationResultType fullBean = result.createOperationResultType();
+        String fullXml = serializeResult(fullBean);
+
+        when();
+        OperationResultType storedBean = OperationResultUtil.createStoredResultBean(result);
+        String storedXml = serializeResult(storedBean);
+
+        then();
+        assertTrue("Stored result should be much smaller than the original",
+                storedXml.length() < fullXml.length() / 5);
+        assertTrue("Repeated successful results should be summarized",
+                countPartialResults(storedBean) < countPartialResults(fullBean));
+        assertEquals("Root operation must be preserved", "run", storedBean.getOperation());
+        assertEquals("Root status must be preserved", fullBean.getStatus(), storedBean.getStatus());
+        assertTrue("Warning result must be preserved",
+                containsOperation(storedBean, "warning.operation"));
+        assertTrue("Partial error result must be preserved",
+                containsOperation(storedBean, "partial.error.operation"));
+        assertTrue("Fatal error result must be preserved",
+                containsOperation(storedBean, "fatal.error.operation"));
+        assertNotNull("Stored result bean must be convertible back to OperationResult",
+                OperationResult.createOperationResult(storedBean));
+        assertEquals("Live OperationResult must not be mutated",
+                SUCCESSFUL_RESULTS + 3, result.getSubresults().size());
+        assertEquals("First original success result parameter must be preserved",
+                "0", firstOriginalSuccess.getParamSingle("iteration"));
+        assertEquals("First original success result detail must be preserved",
+                "detail-0", firstOriginalSuccess.getDetail().get(0));
+    }
+
+    private OperationResult createLargeResult() {
+        OperationResult result = new OperationResult("run");
+
+        for (int i = 0; i < SUCCESSFUL_RESULTS; i++) {
+            OperationResult subresult = result.createSubresult("repository.modifyObject");
+            subresult.addParam("iteration", i);
+            subresult.appendDetail("detail-" + i);
+            subresult.recordStatus(OperationResultStatus.SUCCESS, "success");
+        }
+
+        result.createSubresult("warning.operation")
+                .recordWarning("warning");
+        result.createSubresult("partial.error.operation")
+                .recordPartialError("partial error");
+        result.createSubresult("fatal.error.operation")
+                .recordFatalError("fatal error");
+
+        result.computeStatus();
+        return result;
+    }
+
+    private int countPartialResults(OperationResultType result) {
+        int count = result.getPartialResults().size();
+        for (OperationResultType partialResult : result.getPartialResults()) {
+            count += countPartialResults(partialResult);
+        }
+        return count;
+    }
+
+    private boolean containsOperation(OperationResultType result, String operation) {
+        if (operation.equals(result.getOperation())) {
+            return true;
+        }
+        for (OperationResultType partialResult : result.getPartialResults()) {
+            if (containsOperation(partialResult, operation)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String serializeResult(OperationResultType bean) throws SchemaException {
+        return getPrismContext().xmlSerializer().serializeAnyData(bean, SchemaConstants.C_RESULT);
     }
 
     private void checkResultConversion(OperationResult result, boolean assertEquals) throws SchemaException {

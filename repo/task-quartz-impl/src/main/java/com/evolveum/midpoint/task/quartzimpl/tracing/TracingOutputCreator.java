@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.OperationResultUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -50,7 +51,7 @@ public class TracingOutputCreator {
 
         result.checkLogRecorderFlushed();
 
-        OperationResultType resultBean = result.createOperationResultType();
+        OperationResultType resultBean = OperationResultUtil.createStoredResultBean(result);
         new LogCompressor().compressResult(resultBean);
 
         List<TraceDictionaryType> embeddedDictionaries = extractDictionaries(result);
