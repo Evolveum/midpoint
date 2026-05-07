@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.schema.traces;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,12 +42,22 @@ public class TraceWriter {
                                 .serializeUnsupportedTypesAsString(true))
                 .serializeRealValue(tracingOutput);
         if (zip) {
-            MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
+            writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
         } else {
             try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
                 pw.write(xml);
             }
         }
         return xml;
+    }
+
+    private static void writeZipFile(File file, String entryName, String content, Charset charset) throws IOException {
+        try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(file))) {
+            ZipEntry zipEntry = new ZipEntry(entryName);
+            zipOut.putNextEntry(zipEntry);
+            try (Writer writer = new OutputStreamWriter(zipOut, charset)) {
+                writer.write(content);
+            }
+        }
     }
 }

@@ -64,6 +64,17 @@ public class SqaleRepoContext extends SqlRepoContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepoContext.class);
 
+    private static final int DEFAULT_MAX_FULL_RESULT_BYTE_SIZE = 50 * 1024 * 1024;
+
+    private static final int UTF8_REPLACEMENT_LENGTH = StandardCharsets.UTF_8.newEncoder().replacement().length;
+
+    private static final String MAX_FULL_RESULT_BYTE_SIZE_PROPERTY =
+            "midpoint.repository.maxFullResultByteSize";
+
+    private static final String FULL_RESULT_TRUNCATED_MARKER =
+            "The serialized OperationResult fullResult was omitted because it exceeded the configured repository "
+                    + "storage limit. Use the functional trace file for details.";
+
     private final String schemaChangeNumberLabel;
 
     private final int schemaChangeNumberValue;
@@ -257,15 +268,79 @@ public class SqaleRepoContext extends SqlRepoContext {
         try {
             // Note that escaping invalid characters and using toString for unsupported types
             // is safe in the context of operation result serialization.
-            return createStringSerializer()
+            String serializedResult = createStringSerializer()
                     .options(SerializationOptions.createEscapeInvalidCharacters()
                             .serializeUnsupportedTypesAsString(true)
                             .skipWhitespaces(true))
-                    .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT)
-                    .getBytes(StandardCharsets.UTF_8);
+                    .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT);
+            return createFullResultBytes(serializedResult, operationResult);
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema exception", e);
         }
+    }
+
+    private byte[] createFullResultBytes(String serializedResult, OperationResultType originalResult) throws SchemaException {
+        long utf8Length = utf8Length(serializedResult);
+        int maxFullResultByteSize = maxFullResultByteSize();
+        if (utf8Length <= maxFullResultByteSize) {
+            return serializedResult.getBytes(StandardCharsets.UTF_8);
+        }
+
+        LOGGER.warn("Serialized OperationResult fullResult has {} UTF-8 bytes, exceeding configured limit of {} bytes; "
+                        + "storing a small marker result instead. Use the functional trace file for details.",
+                utf8Length, maxFullResultByteSize);
+
+        String replacement = createStringSerializer()
+                .options(SerializationOptions.createEscapeInvalidCharacters()
+                        .serializeUnsupportedTypesAsString(true)
+                        .skipWhitespaces(true))
+                .serializeRealValue(
+                        createFullResultReplacement(originalResult, utf8Length, maxFullResultByteSize),
+                        SchemaConstantsGenerated.C_OPERATION_RESULT);
+        return replacement.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static int maxFullResultByteSize() {
+        return Integer.getInteger(
+                MAX_FULL_RESULT_BYTE_SIZE_PROPERTY,
+                DEFAULT_MAX_FULL_RESULT_BYTE_SIZE);
+    }
+
+    private static OperationResultType createFullResultReplacement(
+            OperationResultType originalResult, long originalUtf8Bytes, int maxFullResultByteSize) {
+        OperationResultType replacement = new OperationResultType()
+                .operation(originalResult.getOperation())
+                .status(originalResult.getStatus())
+                .importance(originalResult.getImportance())
+                .message(FULL_RESULT_TRUNCATED_MARKER)
+                .details(FULL_RESULT_TRUNCATED_MARKER
+                        + " Original serialized UTF-8 size: " + originalUtf8Bytes
+                        + " bytes. Configured limit (" + MAX_FULL_RESULT_BYTE_SIZE_PROPERTY + "): "
+                        + maxFullResultByteSize + " bytes.");
+        replacement.getQualifier().addAll(originalResult.getQualifier());
+        return replacement;
+    }
+
+    private static long utf8Length(String string) {
+        long length = 0;
+        for (int i = 0; i < string.length(); i++) {
+            char c = string.charAt(i);
+            if (c <= 0x7f) {
+                length++;
+            } else if (c <= 0x7ff) {
+                length += 2;
+            } else if (Character.isHighSurrogate(c)
+                    && i + 1 < string.length()
+                    && Character.isLowSurrogate(string.charAt(i + 1))) {
+                length += 4;
+                i++;
+            } else if (Character.isSurrogate(c)) {
+                length += UTF8_REPLACEMENT_LENGTH;
+            } else {
+                length += 3;
+            }
+        }
+        return length;
     }
 
     public Collection<ExtensionProcessor.ExtItemInfo> findConflictingExtensionItem(ExtensionProcessor.ExtItemInfo extItemInfo) {
