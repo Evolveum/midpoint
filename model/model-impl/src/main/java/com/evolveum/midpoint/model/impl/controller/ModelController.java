@@ -61,6 +61,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.query.OwnedByFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
@@ -84,6 +85,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.CompileConstraintsOptions;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -1333,7 +1335,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 return SearchResultList.empty();
             }
 
-            query = preProcessReferenceQuerySecurity(query, task, result); // TODO not implemented yet!
+            query = preProcessReferenceQuerySecurity(query, task, result);
 
             if (checkNoneFilterAfterAutz(query, result)) {
                 return SearchResultList.empty();
@@ -1381,7 +1383,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 return 0;
             }
 
-            query = preProcessReferenceQuerySecurity(query, task, result); // TODO not implemented yet!
+            query = preProcessReferenceQuerySecurity(query, task, result);
 
             if (checkNoneFilterAfterAutz(query, result)) {
                 return 0;
@@ -1404,12 +1406,112 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
-    private ObjectQuery preProcessReferenceQuerySecurity(ObjectQuery query, Task task, OperationResult options) {
-        // TODO:
-        // 1. extract owner object type from OWNED-BY query (if it's a container type, follow up to the object type)
-        // 2. use it for securityEnforcer.preProcessObjectFilter()
-        // 3. add filters to the owned-by filter as necessary
-        return query;
+    /**
+     * Applies model-level authorization preprocessing to reference-search queries.
+     *
+     * Reference searches are expected to use an {@link OwnedByFilter}. For object-owned
+     * references, such as {@code UserType/roleMembershipRef} or {@code FocusType/linkRef},
+     * this method applies normal owner-object search authorization and verifies that the
+     * current principal can read the owned reference item path. If the owner search or the
+     * reference item read is denied, the query is converted to {@link NoneFilter}.
+     *
+     * Container-owned reference searches are not handled here yet. They require resolving
+     * the containing object type and translating the container filter into an object-level
+     * filter. For compatibility, unsupported non-object owners keep the previous behavior
+     * and are returned unchanged.
+     */
+    private ObjectQuery preProcessReferenceQuerySecurity(ObjectQuery query, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        ObjectQuery processedQuery = query.clone();
+        ObjectFilter filter = processedQuery.getFilter();
+        if (filter instanceof NoneFilter) {
+            return processedQuery;
+        }
+
+        OwnedByFilter ownedByFilter =
+                ObjectQueryUtil.extractOwnedByFilterForReferenceSearch(filter, SchemaException::new);
+        Class<? extends ObjectType> ownerClass = getObjectOwnerClassOrNull(ownedByFilter);
+        if (ownerClass == null) {
+            // TODO: Support authorization preprocessing for container-owned reference searches.
+            return processedQuery;
+        }
+        ItemPath refPath = getReferencePath(ownedByFilter);
+
+        ObjectFilter securedOwnerFilter = securityEnforcer.preProcessObjectFilter(
+                securityEnforcer.getMidPointPrincipal(),
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH,
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
+                null, ownerClass, ownedByFilter.getFilter(), null, List.of(),
+                SecurityEnforcer.Options.create(), task, result);
+        if (securedOwnerFilter instanceof NoneFilter || !isReferenceItemReadable(ownerClass, refPath, task, result)) {
+            processedQuery.setFilter(prismContext.queryFactory().createNone());
+            return processedQuery;
+        }
+
+        OwnedByFilter securedOwnedByFilter = OwnedByFilterImpl.create(ownedByFilter.getType(), refPath, securedOwnerFilter);
+        processedQuery.setFilter(replaceOwnedByFilter(filter, securedOwnedByFilter));
+        return processedQuery;
+    }
+
+    private Class<? extends ObjectType> getObjectOwnerClassOrNull(OwnedByFilter ownedByFilter) {
+        Class<?> ownerClassRaw = ownedByFilter.getType().getCompileTimeClass();
+        if (ownerClassRaw == null || !ObjectType.class.isAssignableFrom(ownerClassRaw)) {
+            return null;
+        }
+        @SuppressWarnings("unchecked")
+        Class<? extends ObjectType> ownerClass = (Class<? extends ObjectType>) ownerClassRaw;
+        return ownerClass;
+    }
+
+    private ItemPath getReferencePath(OwnedByFilter ownedByFilter) throws SchemaException {
+        ItemPath refPath = ownedByFilter.getPath();
+        if (refPath == null || refPath.isEmpty()) {
+            throw new SchemaException("Reference search OWNED-BY filter must specify owned reference path");
+        }
+        return refPath;
+    }
+
+    private boolean isReferenceItemReadable(
+            Class<? extends ObjectType> ownerClass, ItemPath refPath, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        PrismObject<? extends ObjectType> emptyOwner = prismContext.createObject(ownerClass);
+        var constraints = securityEnforcer.compileOperationConstraints(
+                securityEnforcer.getMidPointPrincipal(),
+                emptyOwner.getValue(),
+                null,
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
+                SecurityEnforcer.Options.create(),
+                CompileConstraintsOptions.skipSubObjectSelectors()
+                        .withFullInformationAvailable(false),
+                task, result);
+
+        AccessDecision rootDecision = constraints.getDecision();
+        AccessDecision itemDecision = constraints.getItemConstraints(refPath.firstToName()).getDecision();
+        return switch (itemDecision) {
+            case DENY -> false;
+            case ALLOW -> true;
+            case DEFAULT -> rootDecision == AccessDecision.ALLOW;
+        };
+    }
+
+    private ObjectFilter replaceOwnedByFilter(ObjectFilter filter, OwnedByFilter securedOwnedByFilter)
+            throws SchemaException {
+        if (filter instanceof OwnedByFilter) {
+            return securedOwnedByFilter;
+        }
+
+        if (filter instanceof AndFilter andFilter) {
+            List<ObjectFilter> conditions = new ArrayList<>(andFilter.getConditions().size());
+            for (ObjectFilter condition : andFilter.getConditions()) {
+                conditions.add(condition instanceof OwnedByFilter ? securedOwnedByFilter : condition);
+            }
+            return prismContext.queryFactory().createAnd(conditions);
+        }
+
+        throw new SchemaException("Invalid filter for reference search: " + filter
+                + "\nReference search filter should be OWNED-BY filter or an AND filter containing it.");
     }
 
     @Override
@@ -1434,7 +1536,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             if (checkNoneFilterBeforeAutz(query)) {
                 return null;
             }
-            ObjectQuery processedQuery = preProcessReferenceQuerySecurity(query, task, result); // TODO not implemented yet!
+            ObjectQuery processedQuery = preProcessReferenceQuerySecurity(query, task, result);
             if (checkNoneFilterAfterAutz(processedQuery, result)) {
                 return null;
             }
