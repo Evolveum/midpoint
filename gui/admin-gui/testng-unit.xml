@@ -12,6 +12,7 @@
             <class name="com.evolveum.midpoint.web.TestUnitObjectWrapperFactory"/>
             <class name="com.evolveum.midpoint.web.TestPageMounter"/>
             <class name="com.evolveum.midpoint.web.TestXmlGregorianCalendarModel"/>
+            <class name="com.evolveum.midpoint.web.LoggingRequestCycleListenerTest"/>
         </classes>
     </test>
 </suite>
