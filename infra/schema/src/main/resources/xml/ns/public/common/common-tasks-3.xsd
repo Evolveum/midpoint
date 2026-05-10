@@ -2034,8 +2034,10 @@
             <xsd:element name="policyRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to a policy type object.
-                        <!-- todo doc [viliam] -->
+                        Reference to AbstractRoleType (or its subtypes) object, preferably PolicyType.
+
+                        Inducements with policies located in referenced object must not contain order, condition.
+                        Otherwise, configuration exception will be thrown.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

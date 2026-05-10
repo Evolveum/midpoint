@@ -6,15 +6,13 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
 
 public class ActivityPoliciesDefinition implements DebugDumpable, Cloneable {
 
