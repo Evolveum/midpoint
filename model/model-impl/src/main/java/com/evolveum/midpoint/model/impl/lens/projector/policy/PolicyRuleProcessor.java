@@ -143,7 +143,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         OperationResult result = parentResult.createMinorSubresult(OP_ENFORCE);
         try {
             new PolicyRuleEnforcer<>(context, task.getExecutionSupport())
-                    .enforce(result);
+                    .enforce(task, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

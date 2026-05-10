@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.PolicyRuleNotificationPublisher;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.api.events.PolicyRuleEvent;
 import com.evolveum.midpoint.notifications.impl.events.BaseEventImpl;
@@ -43,7 +44,7 @@ import jakarta.annotation.PostConstruct;
  * Used to catch user-related events.
  */
 @Component
-public class NotificationHook implements ChangeHook {
+public class NotificationHook implements ChangeHook, PolicyRuleNotificationPublisher {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationHook.class);
 
@@ -98,7 +99,8 @@ public class NotificationHook implements ChangeHook {
         }
     }
 
-    private void emitPolicyRulesEvents(ModelContext<?> context, Task task, OperationResult result) {
+    @Override
+    public void emitPolicyRulesEvents(ModelContext<?> context, Task task, OperationResult result) {
         LensFocusContext<?> focusContext = (LensFocusContext<?>) context.getFocusContext();
         for (DirectlyEvaluatedClockworkPolicyRule rule : focusContext.getObjectPolicyRules()) {
             emitPolicyEventIfPresent(rule, context, task, result);
