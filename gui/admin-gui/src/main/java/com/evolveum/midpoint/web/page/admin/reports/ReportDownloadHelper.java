@@ -30,6 +30,7 @@ public class ReportDownloadHelper implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(ReportDownloadHelper.class);
     private static final String DOT_CLASS = ReportDownloadHelper.class.getName() + ".";
     private static final String OPERATION_DOWNLOAD_REPORT = DOT_CLASS + ".downloadReport";
+    private static final String ZIP_EXTENSION = "zip";
 
     private static final Map<FileFormatTypeType, String> REPORT_EXPORT_TYPE_MAP = new HashMap<>();
     static {
@@ -61,9 +62,24 @@ public class ReportDownloadHelper implements Serializable {
         if (StringUtils.isNotEmpty(name)) {
             // Sanitize to remove any path components for defense in depth
             // (browsers also ignore path components, but better to be safe)
-            return FilenameUtils.getName(name);
+            String sanitizedName = FilenameUtils.getName(name);
+            if (isZipReport(currentReport) && !hasZipExtension(sanitizedName)) {
+                return sanitizedName + "." + ZIP_EXTENSION;
+            }
+            return sanitizedName;
         }
         return "report"; // A fallback - this should not really occur
+    }
+
+    private static boolean isZipReport(ReportDataType report) {
+        // ReportDataType has no ZIP file-format enum value, tracing stores ZIP outputs as files with .zip suffix.
+        return report != null
+                && report.getFilePath() != null
+                && hasZipExtension(report.getFilePath());
+    }
+
+    private static boolean hasZipExtension(String fileName) {
+        return ZIP_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(fileName));
     }
 
     public static InputStream createReport(ReportDataType report,
