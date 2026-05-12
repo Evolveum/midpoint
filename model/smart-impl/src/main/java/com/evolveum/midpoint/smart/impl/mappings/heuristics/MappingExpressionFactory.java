@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
  * of the specific expression creation mechanism.
  */
 @FunctionalInterface
-interface MappingExpressionFactory {
+public interface MappingExpressionFactory {
 
     /**
      * Creates a script expression from the given Groovy code and description.

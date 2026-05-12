@@ -39,18 +39,6 @@ public class HeuristicRuleMatcher {
     }
 
     /**
-     * Static factory method for creating script expressions.
-     * Used as a method reference passed to heuristic rules.
-     */
-    private static ExpressionType createScriptExpression(String groovyCode, String description) {
-        return new ExpressionType()
-                .description(description)
-                .expressionEvaluator(
-                        new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().code(groovyCode)));
-    }
-
-    /**
      * Attempts to find the best heuristic rule.
      * All rules are evaluated, and the one with the highest quality (higher than zero) is returned.
      */
@@ -107,5 +95,17 @@ public class HeuristicRuleMatcher {
             String focusPropertyName = sample.focusPropertyPath().lastName().getLocalPart();
             return rule.outboundExpression(focusPropertyName, HeuristicRuleMatcher::createScriptExpression);
         }
+    }
+
+    /**
+     * Static factory method for creating script expressions.
+     * Used as a method reference passed to heuristic rules.
+     */
+    private static ExpressionType createScriptExpression(String groovyCode, String description) {
+        return new ExpressionType()
+                .description(description)
+                .expressionEvaluator(
+                        new ObjectFactory().createScript(
+                                new ScriptExpressionEvaluatorType().code(groovyCode)));
     }
 }
