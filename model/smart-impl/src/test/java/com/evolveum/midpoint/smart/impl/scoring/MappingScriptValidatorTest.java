@@ -63,7 +63,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
                         (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation(),
                         // Instantiating MidPointFunctionsImpl manually in this test would be a nightmare (if even
                         // possible). We don't even need it for our purposes, so just set it to null. We just need to
-                        // ba careful to not invoke any Midpoint functions library method in tested expressions.
+                        // be careful to not invoke any Midpoint functions library method in tested expressions.
                         null));
     }
 
