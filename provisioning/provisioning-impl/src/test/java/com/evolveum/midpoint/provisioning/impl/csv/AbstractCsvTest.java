@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
@@ -251,6 +253,200 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         assertScriptHost(capScript, ProvisioningScriptHostType.RESOURCE);
 
         dumpResourceCapabilities(resource);
+    }
+
+    /**
+     * Verifies that filter-based connector references work consistently for both the primary connector and
+     * an additional connector, while direct-OID additional connectors continue to work.
+     */
+    @Test
+    public void test007PrimaryAndAdditionalConnectorRefsByFilter() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<ResourceType> sourceResource =
+                repositoryService.getObject(ResourceType.class, getResourceOid(), null, result);
+        String connectorOid = sourceResource.asObjectable().getConnectorRef().getOid();
+        ObjectReferenceType connectorByFilter = createCsvConnectorRefByFilter();
+        String resourceOid = getConnectorRefTestResourceOid("cf0");
+
+        PrismObject<ResourceType> resourceToAdd = cloneResourceForConnectorRefTest(
+                sourceResource,
+                resourceOid,
+                "Test CSV: filtered connectors");
+        ResourceType resourceBean = resourceToAdd.asObjectable();
+        resourceBean.setConnectorRef(connectorByFilter.clone());
+        resourceBean.getAdditionalConnector().clear();
+        resourceBean.getAdditionalConnector().add(
+                new ConnectorInstanceSpecificationType()
+                        .name("csv-additional-filtered")
+                        .connectorRef(connectorByFilter.clone()));
+        resourceBean.getAdditionalConnector().add(
+                new ConnectorInstanceSpecificationType()
+                        .name("csv-additional-direct")
+                        .connectorRef(new ObjectReferenceType()
+                                .oid(connectorOid)
+                                .type(ConnectorType.COMPLEX_TYPE)));
+
+        repositoryService.addObject(resourceToAdd, null, result);
+
+        when("the resource with connector refs by filter is retrieved through provisioning");
+        PrismObject<ResourceType> resourceAfter = provisioningService.getObject(
+                ResourceType.class, resourceOid, null, task, result);
+
+        then("all connector refs are usable");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        ResourceType resourceAfterBean = resourceAfter.asObjectable();
+        assertNull("Primary connector OID resolution should not be visible in the resource object",
+                resourceAfterBean.getConnectorRef().getOid());
+        assertEquals("Wrong filtered additional connector name", "csv-additional-filtered",
+                resourceAfterBean.getAdditionalConnector().get(0).getName());
+        assertNull("Filtered additional connector OID resolution should not be visible in the resource object",
+                resourceAfterBean.getAdditionalConnector().get(0).getConnectorRef().getOid());
+        assertEquals("Wrong direct additional connector name", "csv-additional-direct",
+                resourceAfterBean.getAdditionalConnector().get(1).getName());
+        assertEquals("Wrong direct additional connector OID", connectorOid,
+                resourceAfterBean.getAdditionalConnector().get(1).getConnectorRef().getOid());
+
+        PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, resourceOid, null, result);
+        ResourceType resourceRepoAfterBean = resourceRepoAfter.asObjectable();
+        assertNull("Primary connector OID resolution should not be persisted",
+                resourceRepoAfterBean.getConnectorRef().getOid());
+        assertNull("Additional connector OID resolution should not be persisted",
+                resourceRepoAfterBean.getAdditionalConnector().get(0).getConnectorRef().getOid());
+    }
+
+    /**
+     * Verifies that a filter-based additional connector reference that matches no connector reports a clear
+     * resolution error, instead of falling through to the old "Connector OID missing" failure.
+     */
+    @Test
+    public void test008AdditionalConnectorRefByFilterMatchesNone() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String resourceOid = getConnectorRefTestResourceOid("cf1");
+
+        PrismObject<ResourceType> resourceToAdd = cloneResourceForConnectorRefTest(
+                repositoryService.getObject(ResourceType.class, getResourceOid(), null, result),
+                resourceOid,
+                "Test CSV: no connector match");
+        ResourceType resourceBean = resourceToAdd.asObjectable();
+        resourceBean.getAdditionalConnector().clear();
+        resourceBean.getAdditionalConnector().add(
+                new ConnectorInstanceSpecificationType()
+                        .name("csv-additional")
+                        .connectorRef(createConnectorRefByConnectorType("no.such.Connector")));
+        repositoryService.addObject(resourceToAdd, null, result);
+
+        when("the resource with an unresolvable additional connector filter is retrieved through provisioning");
+        String failureText = getResourceExpectingConnectorResolutionFailure(resourceOid, task, result);
+
+        then("the failure reason is clear");
+        assertTextContains(failureText, "Connector reference in ConnectorSpec.Additional");
+        assertTextContains(failureText, "cannot be resolved: filter matches no object");
+        assertTextDoesNotContain(failureText, "Connector OID missing in ConnectorSpec.Additional");
+    }
+
+    /**
+     * Verifies that an ambiguous filter-based additional connector reference reports a clear resolution
+     * error, instead of falling through to the old "Connector OID missing" failure.
+     */
+    @Test
+    public void test009AdditionalConnectorRefByFilterMatchesMultiple() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String resourceOid = getConnectorRefTestResourceOid("cf2");
+
+        assertAllConnectorsFilterIsAmbiguous(result);
+
+        PrismObject<ResourceType> resourceToAdd = cloneResourceForConnectorRefTest(
+                repositoryService.getObject(ResourceType.class, getResourceOid(), null, result),
+                resourceOid,
+                "Test CSV: multiple connector matches");
+        ResourceType resourceBean = resourceToAdd.asObjectable();
+        resourceBean.getAdditionalConnector().clear();
+        resourceBean.getAdditionalConnector().add(
+                new ConnectorInstanceSpecificationType()
+                        .name("csv-additional")
+                        .connectorRef(createAllConnectorsRef()));
+        repositoryService.addObject(resourceToAdd, null, result);
+
+        when("the resource with an ambiguous additional connector filter is retrieved through provisioning");
+        String failureText = getResourceExpectingConnectorResolutionFailure(resourceOid, task, result);
+
+        then("the failure reason is clear");
+        assertTextContains(failureText, "Connector reference in ConnectorSpec.Additional");
+        assertTextContains(failureText, "cannot be resolved: filter matches");
+        assertTextContains(failureText, "objects");
+        assertTextDoesNotContain(failureText, "Connector OID missing in ConnectorSpec.Additional");
+    }
+
+    private String getConnectorRefTestResourceOid(String suffix) {
+        String resourceOid = getResourceOid();
+        return resourceOid.substring(0, resourceOid.length() - suffix.length()) + suffix;
+    }
+
+    private PrismObject<ResourceType> cloneResourceForConnectorRefTest(
+            PrismObject<ResourceType> sourceResource, String oid, String name) {
+        PrismObject<ResourceType> resourceToAdd = sourceResource.clone();
+        ResourceType resourceBean = resourceToAdd.asObjectable();
+        resourceBean.setOid(oid);
+        resourceBean.setName(createPolyStringType(name));
+        return resourceToAdd;
+    }
+
+    private ObjectReferenceType createCsvConnectorRefByFilter() throws Exception {
+        return createConnectorRefByConnectorType(CSV_CONNECTOR_TYPE);
+    }
+
+    private ObjectReferenceType createConnectorRefByConnectorType(String connectorType) throws Exception {
+        ObjectFilter filter = prismContext.queryFor(ConnectorType.class)
+                .item(ConnectorType.F_CONNECTOR_TYPE)
+                .eq(connectorType)
+                .buildFilter();
+        return new ObjectReferenceType()
+                .type(ConnectorType.COMPLEX_TYPE)
+                .filter(prismContext.getQueryConverter().createSearchFilterType(filter));
+    }
+
+    private ObjectReferenceType createAllConnectorsRef() throws Exception {
+        ObjectFilter filter = prismContext.queryFactory().createAll();
+        return new ObjectReferenceType()
+                .type(ConnectorType.COMPLEX_TYPE)
+                .filter(prismContext.getQueryConverter().createSearchFilterType(filter));
+    }
+
+    private String getResourceExpectingConnectorResolutionFailure(String oid, Task task, OperationResult result)
+            throws Exception {
+        try {
+            provisioningService.getObject(ResourceType.class, oid, null, task, result);
+            result.computeStatus();
+            assertPartialError(result);
+            return result.debugDump();
+        } catch (ConfigurationException e) {
+            return e.getMessage();
+        }
+    }
+
+    private void assertAllConnectorsFilterIsAmbiguous(OperationResult result) throws Exception {
+        int connectorCount = repositoryService
+                .searchObjects(
+                        ConnectorType.class,
+                        prismContext.queryFactory().createQuery(prismContext.queryFactory().createAll()),
+                        null,
+                        result)
+                .size();
+        assertTrue("Expected more than one connector for the ambiguous connectorRef filter, got " + connectorCount,
+                connectorCount > 1);
+    }
+
+    private void assertTextContains(String text, String expectedText) {
+        assertTrue("Text does not contain '" + expectedText + "':\n" + text, text.contains(expectedText));
+    }
+
+    private void assertTextDoesNotContain(String text, String unexpectedText) {
+        assertFalse("Text contains '" + unexpectedText + "':\n" + text, text.contains(unexpectedText));
     }
 
     private void assertScriptHost(ScriptCapabilityType capScript, ProvisioningScriptHostType expectedHostType) {
