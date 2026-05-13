@@ -60,12 +60,12 @@ public abstract class MappingScriptTestBase extends AbstractUnitTest implements 
                 MappingDirection.INBOUND);
     }
 
-    protected static ExpressionType createScriptExpression(String groovyCode, String description) {
+    protected static ExpressionType createScriptExpression(String melCode, String description) {
         return new ExpressionType()
                 .description(description)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().language("mel").code(groovyCode)));
+                                new ScriptExpressionEvaluatorType().language("mel").code(melCode)));
     }
 
     /**
