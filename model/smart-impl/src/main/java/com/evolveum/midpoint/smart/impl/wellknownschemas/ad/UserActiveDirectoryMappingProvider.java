@@ -68,7 +68,7 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "distinguishedName",
                     UserType.F_FULL_NAME,
-                    "basic.composeDnWithSuffix('cn', fullName, '%s')".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', fullName, '%s'])".formatted(ouSuffix),
                     "Compose DN: cn=<fullName>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
             mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME, MappingStrengthType.WEAK));
