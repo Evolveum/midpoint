@@ -5,7 +5,7 @@
  *
  */
 
-package com.evolveum.midpoint.smart.impl.mappings.heuristics;
+package com.evolveum.midpoint.smart.impl.mappings;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,9 +24,6 @@ import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluat
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
-import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
-import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
@@ -39,11 +36,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-abstract class HeuristicsRuleTest extends AbstractUnitTest implements InfraTestMixin {
+public abstract class MappingScriptTestBase extends AbstractUnitTest implements InfraTestMixin {
 
     private final MappingScriptValidator validator;
 
-    HeuristicsRuleTest() throws SchemaException, IOException, SAXException {
+    protected MappingScriptTestBase() throws SchemaException, IOException, SAXException {
         this.validator = validator();
     }
 
@@ -61,6 +58,14 @@ abstract class HeuristicsRuleTest extends AbstractUnitTest implements InfraTestM
         return new ValuesPairSample<>(ItemPath.EMPTY_PATH, ItemPath.EMPTY_PATH,
                 List.of(new ValuesPair<>(List.of(shadowValue), List.of(focusValue))),
                 MappingDirection.INBOUND);
+    }
+
+    protected static ExpressionType createScriptExpression(String groovyCode, String description) {
+        return new ExpressionType()
+                .description(description)
+                .expressionEvaluator(
+                        new ObjectFactory().createScript(
+                                new ScriptExpressionEvaluatorType().language("mel").code(groovyCode)));
     }
 
     /**
@@ -87,13 +92,5 @@ abstract class HeuristicsRuleTest extends AbstractUnitTest implements InfraTestM
                         null));
 
         return new MappingScriptValidator(expressionFactory);
-    }
-
-    protected static ExpressionType createScriptExpression(String groovyCode, String description) {
-        return new ExpressionType()
-                .description(description)
-                .expressionEvaluator(
-                        new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().language("mel").code(groovyCode)));
     }
 }

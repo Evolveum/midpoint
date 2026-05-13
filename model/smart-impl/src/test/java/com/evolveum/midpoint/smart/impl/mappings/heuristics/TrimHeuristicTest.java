@@ -15,6 +15,7 @@ import java.io.IOException;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.smart.impl.mappings.MappingScriptTestBase;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class TrimHeuristicTest extends HeuristicsRuleTest {
+public class TrimHeuristicTest extends MappingScriptTestBase {
 
     public TrimHeuristicTest() throws SchemaException, IOException, SAXException {
     }
@@ -51,7 +52,7 @@ public class TrimHeuristicTest extends HeuristicsRuleTest {
             ConfigurationException, ObjectNotFoundException {
         final TrimHeuristic heuristic = new TrimHeuristic();
 
-        final ExpressionType expression = heuristic.inboundExpression(HeuristicsRuleTest::createScriptExpression);
+        final ExpressionType expression = heuristic.inboundExpression(MappingScriptTestBase::createScriptExpression);
         final String output = this.evaluateExpression(expression, "input", "  hello World!  ");
 
         assertEquals(output, "hello World!");
@@ -64,7 +65,7 @@ public class TrimHeuristicTest extends HeuristicsRuleTest {
         final String focusProperty = "name";
         final TrimHeuristic heuristic = new TrimHeuristic();
 
-        final ExpressionType expression = heuristic.outboundExpression(focusProperty, HeuristicsRuleTest::createScriptExpression);
+        final ExpressionType expression = heuristic.outboundExpression(focusProperty, MappingScriptTestBase::createScriptExpression);
         final String output = this.evaluateExpression(expression, focusProperty, "  hello World!  ");
 
         assertEquals(output, "hello World!");
