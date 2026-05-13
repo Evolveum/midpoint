@@ -8,8 +8,6 @@ package com.evolveum.midpoint.web.component.menu.cog;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-
 import org.apache.wicket.model.IModel;
 
 /**

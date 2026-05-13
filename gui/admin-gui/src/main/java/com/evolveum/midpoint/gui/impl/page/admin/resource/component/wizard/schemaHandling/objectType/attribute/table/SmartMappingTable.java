@@ -671,7 +671,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     protected void buildSimulationResultPanel(
             AjaxRequestTarget target,
-            IModel<com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType> simulationResultTypeModel) {
+            IModel<SimulationResultType> simulationResultTypeModel) {
         // extension hook
     }
 
