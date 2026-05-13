@@ -15,6 +15,7 @@ import java.io.IOException;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.smart.impl.mappings.MappingScriptTestBase;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class LowerCaseAndStripDiacriticsHeuristicTest extends HeuristicsRuleTest {
+public class LowerCaseAndStripDiacriticsHeuristicTest extends MappingScriptTestBase {
 
     LowerCaseAndStripDiacriticsHeuristicTest() throws SchemaException, IOException, SAXException {
     }
@@ -58,7 +59,7 @@ public class LowerCaseAndStripDiacriticsHeuristicTest extends HeuristicsRuleTest
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         final LowerCaseAndStripDiacriticsHeuristic heuristic = new LowerCaseAndStripDiacriticsHeuristic();
-        final ExpressionType expression = heuristic.inboundExpression(HeuristicsRuleTest::createScriptExpression);
+        final ExpressionType expression = heuristic.inboundExpression(MappingScriptTestBase::createScriptExpression);
 
         final String output = this.evaluateExpression(expression, "input", "ABCDÁČĎ!");
         assertEquals(output, "abcdacd!");
@@ -70,7 +71,7 @@ public class LowerCaseAndStripDiacriticsHeuristicTest extends HeuristicsRuleTest
             ConfigurationException, ObjectNotFoundException {
         final String focusProperty = "name";
         final LowerCaseAndStripDiacriticsHeuristic heuristic = new LowerCaseAndStripDiacriticsHeuristic();
-        final ExpressionType expression = heuristic.outboundExpression(focusProperty, HeuristicsRuleTest::createScriptExpression);
+        final ExpressionType expression = heuristic.outboundExpression(focusProperty, MappingScriptTestBase::createScriptExpression);
 
         final String output = this.evaluateExpression(expression, focusProperty, "ABCDÁČĎ!");
         assertEquals(output, "abcdacd!");

@@ -16,6 +16,7 @@ import java.io.IOException;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.smart.impl.mappings.MappingScriptTestBase;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -25,7 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ToLowerCaseHeuristicTest extends HeuristicsRuleTest {
+public class ToLowerCaseHeuristicTest extends MappingScriptTestBase {
 
     public ToLowerCaseHeuristicTest() throws SchemaException, IOException, SAXException {
     }
@@ -53,7 +54,7 @@ public class ToLowerCaseHeuristicTest extends HeuristicsRuleTest {
             ConfigurationException, ObjectNotFoundException {
         final ToLowerCaseHeuristic heuristic = new ToLowerCaseHeuristic();
 
-        final ExpressionType expression = heuristic.inboundExpression(HeuristicsRuleTest::createScriptExpression);
+        final ExpressionType expression = heuristic.inboundExpression(MappingScriptTestBase::createScriptExpression);
         final String output = this.evaluateExpression(expression, "input", "HELLO World!");
 
         assertEquals(output, "hello world!");
@@ -66,7 +67,7 @@ public class ToLowerCaseHeuristicTest extends HeuristicsRuleTest {
         final String focusProperty = "name";
         final ToLowerCaseHeuristic heuristic = new ToLowerCaseHeuristic();
 
-        final ExpressionType expression = heuristic.outboundExpression(focusProperty, HeuristicsRuleTest::createScriptExpression);
+        final ExpressionType expression = heuristic.outboundExpression(focusProperty, MappingScriptTestBase::createScriptExpression);
         final String output = this.evaluateExpression(expression, focusProperty, "HELLO World!");
 
         assertEquals(output, "hello world!");

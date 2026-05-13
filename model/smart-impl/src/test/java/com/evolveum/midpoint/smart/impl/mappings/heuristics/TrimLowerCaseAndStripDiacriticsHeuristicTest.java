@@ -16,6 +16,7 @@ import java.io.IOException;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.smart.impl.mappings.MappingScriptTestBase;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -25,7 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class TrimLowerCaseAndStripDiacriticsHeuristicTest extends HeuristicsRuleTest {
+public class TrimLowerCaseAndStripDiacriticsHeuristicTest extends MappingScriptTestBase {
 
     public TrimLowerCaseAndStripDiacriticsHeuristicTest() throws SchemaException, IOException, SAXException {
     }
@@ -52,7 +53,7 @@ public class TrimLowerCaseAndStripDiacriticsHeuristicTest extends HeuristicsRule
             ConfigurationException, ObjectNotFoundException {
         final TrimLowerCaseAndStripDiacriticsHeuristic heuristic = new TrimLowerCaseAndStripDiacriticsHeuristic();
 
-        final ExpressionType expression = heuristic.inboundExpression(HeuristicsRuleTest::createScriptExpression);
+        final ExpressionType expression = heuristic.inboundExpression(MappingScriptTestBase::createScriptExpression);
         final String output = this.evaluateExpression(expression, "input", "  JOSÉ Müller!  ");
 
         assertEquals(output, "jose muller!");
@@ -65,7 +66,7 @@ public class TrimLowerCaseAndStripDiacriticsHeuristicTest extends HeuristicsRule
         final String focusProperty = "name";
         final TrimLowerCaseAndStripDiacriticsHeuristic heuristic = new TrimLowerCaseAndStripDiacriticsHeuristic();
 
-        final ExpressionType expression = heuristic.outboundExpression(focusProperty, HeuristicsRuleTest::createScriptExpression);
+        final ExpressionType expression = heuristic.outboundExpression(focusProperty, MappingScriptTestBase::createScriptExpression);
         final String output = this.evaluateExpression(expression, focusProperty, "  JOSÉ Müller!  ");
 
         assertEquals(output, "jose muller!");
