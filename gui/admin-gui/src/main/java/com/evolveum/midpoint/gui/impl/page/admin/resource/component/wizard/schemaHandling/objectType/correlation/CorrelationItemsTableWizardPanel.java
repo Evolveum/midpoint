@@ -319,13 +319,6 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             String resourceOid,
             @NotNull IModel<Boolean> switchToggleModel) {
 
-        LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
-            @Override
-            protected @NotNull SmartGeneratingAlertDto load() {
-                return new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase());
-            }
-        };
-
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,

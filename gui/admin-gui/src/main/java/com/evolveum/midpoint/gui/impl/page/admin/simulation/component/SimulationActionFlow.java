@@ -41,11 +41,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -370,11 +370,7 @@ public class SimulationActionFlow<T> implements Serializable {
             AjaxRequestTarget target,
             String taskOid) {
 
-        IModel<String> titleModel = isCorrelationFastSimulation
-                ? pageBase.createStringResource(
-                "SmartTaskProgressPanel.correlation.simulation.title")
-                : pageBase.createStringResource(
-                "SmartTaskProgressPanel.mapping.simulation.title");
+        IModel<String> titleModel = getTitleModel(pageBase);
 
         IModel<String> subTitleModel = isCorrelationFastSimulation
                 ? pageBase.createStringResource(
@@ -397,6 +393,14 @@ public class SimulationActionFlow<T> implements Serializable {
         };
 
         pageBase.replaceMainPopup(panel, target);
+    }
+
+    protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
+        return isCorrelationFastSimulation
+                ? pageBase.createStringResource(
+                "SmartTaskProgressPanel.correlation.simulation.title")
+                : pageBase.createStringResource(
+                "SmartTaskProgressPanel.mapping.simulation.title");
     }
 
     public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {

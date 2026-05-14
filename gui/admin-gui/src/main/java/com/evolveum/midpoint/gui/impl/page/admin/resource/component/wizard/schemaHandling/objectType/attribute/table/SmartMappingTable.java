@@ -261,7 +261,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     @Override
                     protected void onCreateNewObjectPerform(AjaxRequestTarget target) {
                         createNewValue(null, target);
-                        refreshAndDetach(target);
+                        SmartMappingTable.this.refreshAndDetach(target);
                     }
 
                     @Override
@@ -346,6 +346,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected boolean displayNoValuePanel() {
+        if(searchTextModel.getObject() != null && !searchTextModel.getObject().isEmpty()) {
+            return false;
+        }
         return Boolean.TRUE.equals(noValuePanelModel.getObject());
     }
 
@@ -668,7 +671,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     protected void buildSimulationResultPanel(
             AjaxRequestTarget target,
-            IModel<com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType> simulationResultTypeModel) {
+            IModel<SimulationResultType> simulationResultTypeModel) {
         // extension hook
     }
 

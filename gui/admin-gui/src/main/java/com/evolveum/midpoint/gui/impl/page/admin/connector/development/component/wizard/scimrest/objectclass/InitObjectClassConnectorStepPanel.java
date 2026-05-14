@@ -73,11 +73,7 @@ public class InitObjectClassConnectorStepPanel extends AbstractObjectClassConnec
                 new SearchByIdEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingSearchByIdConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new SearchByIdScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchByIdObjectConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchFilterEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingSearchFilterConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchFilterScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchFilterObjectsConnectorStepPanel(getHelper(), getObjectClassModel()));
+                new SearchByIdObjectConnectorStepPanel(getHelper(), getObjectClassModel()));
     }
 
     @Override
