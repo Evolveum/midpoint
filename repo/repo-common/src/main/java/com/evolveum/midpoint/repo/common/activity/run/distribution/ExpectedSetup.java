@@ -136,7 +136,16 @@ class ExpectedSetup {
 
     private Collection<String> getNodeIdentifiers(WorkersPerNodeDefinitionType perNodeDefinition) {
         if (!perNodeDefinition.getNodeIdentifier().isEmpty()) {
-            return perNodeDefinition.getNodeIdentifier();
+            Set<String> nodeIds = new HashSet<>();
+            for (String nodeIdentifier : perNodeDefinition.getNodeIdentifier()) {
+                try {
+                    Predicate<String> pattern = Pattern.compile(nodeIdentifier).asMatchPredicate();
+                    nodeIds.addAll(nodesUp.stream().filter(pattern).toList());
+                } catch (PatternSyntaxException e) {
+                    nodeIds.addAll(nodesUp.stream().filter(nodeIdentifier::equals).toList());
+                }
+            }
+            return nodeIds;
         } else {
             return nodesUp;
         }
