@@ -354,6 +354,7 @@
                     <xsd:documentation>
                         <p>
                             Sets the maximum limit for multipart data inside submitted form (inputs and file uploads are counted).
+                            The primary purpose is to prevent the Tomcat instance memory exhausting with big requests.
                             Default value is 100.
                         </p>
                     </xsd:documentation>

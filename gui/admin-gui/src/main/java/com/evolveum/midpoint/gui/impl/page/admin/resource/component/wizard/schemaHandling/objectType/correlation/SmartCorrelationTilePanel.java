@@ -209,6 +209,11 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
                 return false;
             }
 
+            @Override
+            protected boolean showIcon() {
+                return true;
+            }
+
             @Contract(pure = true)
             @Override
             protected @NotNull String getSpecialButtonClass() {

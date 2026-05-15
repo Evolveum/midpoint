@@ -64,18 +64,24 @@ public class CorrelationSuggestionSchemaMatchingActivityRun extends LocalActivit
         var resourceOid = workDef.getResourceOid();
         var typeIdentification = workDef.getTypeIdentification();
 
+        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
+
         if (!workDef.isForceRecomputeSchemaMatch()) {
-            var foundOid = findLatestSchemaMatchObjectOid(result);
-            if (foundOid != null) {
-                LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
-                setSchemaMatchObjectOidInWorkState(foundOid, result);
-                return ActivityRunResult.success();
+            if (useAi) {
+                var foundOid = findLatestSchemaMatchObjectOid(result);
+                if (foundOid != null) {
+                    LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
+                    setSchemaMatchObjectOidInWorkState(foundOid, result);
+                    return ActivityRunResult.success();
+                }
+            } else {
+                LOGGER.debug("Skipping existing schema match reuse: {} permission not granted",
+                        DataAccessPermissionType.SCHEMA_ACCESS);
             }
         } else {
             LOGGER.debug("Force recompute schema match requested, skipping existing schema match check");
         }
 
-        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
         var match = SmartIntegrationBeans.get().smartIntegrationService
                 .computeSchemaMatch(resourceOid, typeIdentification, useAi, getRunningTask(), result);
         var schemaMatchOid = SmartIntegrationBeans.get().schemaMatchService

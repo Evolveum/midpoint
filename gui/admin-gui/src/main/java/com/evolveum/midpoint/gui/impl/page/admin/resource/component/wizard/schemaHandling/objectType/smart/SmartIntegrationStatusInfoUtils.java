@@ -862,7 +862,7 @@ public class SmartIntegrationStatusInfoUtils {
         if (rejectEmptyProgress && (suggestion == null
                 || suggestion.getProgressInformation() == null)) {
             rows.add(new StatusRowRecord(pageBase.createStringResource(
-                    "SmartGeneratingDto.no.suggestion"),
+                    "SmartGeneratingDto.null"),
                     ActivityProgressInformation.RealizationState.UNKNOWN,
                     suggestion));
             return rows;
