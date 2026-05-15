@@ -13,11 +13,15 @@ import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.test.util.TestUtil;
 
+import org.apache.wicket.model.Model;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -528,6 +532,88 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObjectWrapper<O> objectWrapper = factory.createObjectWrapper(object, status, context);
         return objectWrapper;
 
+    }
+
+    /** Verifies that deprecated synchronization action containers are not offered as new dropdown choices. */
+    @Test
+    public void test155SynchronizationActionDropdownSkipsDeprecatedUnlink() throws Exception {
+        PrismContainerWrapper<SynchronizationActionsType> actionsWrapper =
+                findSynchronizationActionsWrapper(createSynchronizationActionResource(false));
+
+        TestableContainersDropDownPanel panel =
+                new TestableContainersDropDownPanel(Model.of(actionsWrapper));
+        List<ItemName> choices = panel.getChoiceItemNames(actionsWrapper);
+
+        assertTrue("Synchronize action should be selectable", choices.contains(SynchronizationActionsType.F_SYNCHRONIZE));
+        assertTrue("Link action should be selectable", choices.contains(SynchronizationActionsType.F_LINK));
+        assertFalse("Deprecated unlink action should not be selectable", choices.contains(SynchronizationActionsType.F_UNLINK));
+    }
+
+    /**
+     * Verifies wrapper creation behavior for a legacy resource containing an empty deprecated unlink action.
+     * Empty deprecated containers are filtered by the wrapper factory, so the dropdown must not expose unlink as
+     * the current or selectable value, but it still has to render safely and offer supported replacements.
+     */
+    @Test
+    public void test156ExistingDeprecatedSynchronizationUnlinkOpens() throws Exception {
+        PrismContainerWrapper<SynchronizationActionsType> actionsWrapper =
+                findSynchronizationActionsWrapper(createSynchronizationActionResource(true));
+
+        PrismContainerWrapper<Containerable> unlinkWrapper =
+                actionsWrapper.getValue().findContainer(SynchronizationActionsType.F_UNLINK);
+        TestableContainersDropDownPanel panel =
+                new TestableContainersDropDownPanel(Model.of(actionsWrapper));
+        List<ItemName> choices = panel.getChoiceItemNames(actionsWrapper);
+
+        assertNull("Existing empty deprecated unlink action should not be represented as selectable wrapper", unlinkWrapper);
+        assertNull("Existing empty deprecated unlink action should not be current dropdown value", panel.getDropDownModel().getObject());
+        assertFalse("Deprecated unlink action should not be selectable", choices.contains(SynchronizationActionsType.F_UNLINK));
+        assertTrue("Existing deprecated unlink action should be replaceable by synchronize", choices.contains(SynchronizationActionsType.F_SYNCHRONIZE));
+    }
+
+    /** Verifies that a legacy deprecated unlink action can be replaced by the supported synchronize action. */
+    @Test
+    public void test157ExistingDeprecatedSynchronizationUnlinkCanChangeToSynchronize() throws Exception {
+        PrismContainerWrapper<SynchronizationActionsType> actionsWrapper =
+                findSynchronizationActionsWrapper(createSynchronizationActionResource(true));
+        TestableContainersDropDownPanel panel =
+                new TestableContainersDropDownPanel(Model.of(actionsWrapper));
+
+        panel.getDropDownModel().setObject(SynchronizationActionsType.F_SYNCHRONIZE);
+
+        PrismContainerWrapper<Containerable> synchronizeWrapper =
+                actionsWrapper.getValue().findContainer(SynchronizationActionsType.F_SYNCHRONIZE);
+        PrismContainerWrapper<Containerable> unlinkWrapper =
+                actionsWrapper.getValue().findContainer(SynchronizationActionsType.F_UNLINK);
+
+        assertNotNull("Synchronize action wrapper should be created", synchronizeWrapper);
+        assertFalse("Synchronize action wrapper should contain a value", synchronizeWrapper.getValues().isEmpty());
+        assertNull("Deprecated unlink action wrapper should remain absent", unlinkWrapper);
+        assertFalse(
+                "Deprecated unlink action should not be selectable after changing away",
+                panel.getChoiceItemNames(actionsWrapper).contains(SynchronizationActionsType.F_UNLINK));
+    }
+
+    /** Verifies that a skipped wrapper does not leave an empty container behind or crash the dropdown model update. */
+    @Test
+    public void test158SynchronizationActionDropdownNullWrapperDoesNotCrash() throws Exception {
+        PrismContainerWrapper<SynchronizationActionsType> actionsWrapper =
+                findSynchronizationActionsWrapper(createSynchronizationActionResource(false));
+
+        ContainersDropDownPanel<SynchronizationActionsType> panel =
+                new ContainersDropDownPanel<>("actions", Model.of(actionsWrapper)) {
+                    @Override
+                    protected ItemWrapper<?, ?> createNewContainerWrapper(
+                            PrismContainer<Containerable> container, PrismContainerValueWrapper<?> parentValue) {
+                        return null;
+                    }
+                };
+
+        panel.getDropDownModel().setObject(SynchronizationActionsType.F_UNLINK);
+
+        assertNull(
+                "Container created for a skipped wrapper should be removed",
+                actionsWrapper.getValue().getNewValue().findContainer(SynchronizationActionsType.F_UNLINK));
     }
 
     @Test
@@ -1045,5 +1131,87 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
     private String getString(String key) {
         return localizationService.translate(key, null, Locale.US, key);
+    }
+
+    private ResourceType createSynchronizationActionResource(boolean existingUnlink) {
+        ResourceType resource = new ResourceType()
+                .name("REPRO 1057 - synchronization editor only");
+        ResourceObjectTypeDefinitionType objectType = resource.beginSchemaHandling()
+                .beginObjectType()
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("default")
+                .displayName("Default Account")
+                ._default(true);
+        objectType.beginDelineation()
+                .objectClass(new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", "AccountObjectClass"));
+        objectType.beginFocus()
+                .type(UserType.COMPLEX_TYPE);
+        SynchronizationActionsType actions = objectType.beginSynchronization()
+                .beginReaction()
+                .situation(SynchronizationSituationType.UNLINKED)
+                .beginActions();
+        if (existingUnlink) {
+            actions.beginUnlink();
+        } else {
+            actions.beginLink();
+        }
+        return resource;
+    }
+
+    private PrismContainerWrapper<SynchronizationActionsType> findSynchronizationActionsWrapper(ResourceType resource)
+            throws SchemaException {
+        Task task = getTestTask();
+        PrismObjectWrapper<ResourceType> objectWrapper =
+                createObjectWrapper(task, resource.asPrismObject(), ItemStatus.NOT_CHANGED);
+        PrismContainerValueWrapper<ResourceType> resourceValue = objectWrapper.getValue();
+        PrismContainerWrapper<SchemaHandlingType> schemaHandlingWrapper =
+                resourceValue.findContainer(ResourceType.F_SCHEMA_HANDLING);
+        PrismContainerWrapper<ResourceObjectTypeDefinitionType> objectTypeWrapper =
+                firstValue(schemaHandlingWrapper).findContainer(SchemaHandlingType.F_OBJECT_TYPE);
+        PrismContainerWrapper<SynchronizationReactionsType> synchronizationWrapper =
+                firstValue(objectTypeWrapper).findContainer(ResourceObjectTypeDefinitionType.F_SYNCHRONIZATION);
+        PrismContainerWrapper<SynchronizationReactionType> reactionWrapper =
+                firstValue(synchronizationWrapper).findContainer(SynchronizationReactionsType.F_REACTION);
+        return firstValue(reactionWrapper).findContainer(SynchronizationReactionType.F_ACTIONS);
+    }
+
+    private <T extends Containerable> PrismContainerValueWrapper<T> firstValue(PrismContainerWrapper<T> wrapper) {
+        return wrapper.getValues().stream()
+                .filter(value -> value.getStatus() == ValueStatus.NOT_CHANGED)
+                .findFirst()
+                .or(() -> wrapper.getValues().stream()
+                        .filter(value -> value.getStatus() != ValueStatus.DELETED)
+                        .findFirst())
+                .orElseThrow(() -> new AssertionError("No active value in " + wrapper.getItemName()));
+    }
+
+    /**
+     * Test-facing panel that exposes the dropdown choice filtering and creates lightweight wrappers without a
+     * mounted Wicket page. The production null-wrapper path is exercised by overriding
+     * {@link #createNewContainerWrapper(PrismContainer, PrismContainerValueWrapper)} directly in the relevant test.
+     */
+    private static class TestableContainersDropDownPanel extends ContainersDropDownPanel<SynchronizationActionsType> {
+
+        private TestableContainersDropDownPanel(Model<PrismContainerWrapper<SynchronizationActionsType>> model) {
+            super("actions", model);
+        }
+
+        private List<ItemName> getChoiceItemNames(PrismContainerWrapper<SynchronizationActionsType> wrapper) {
+            return wrapper.getDefinitions().stream()
+                    .filter(def -> def instanceof PrismContainerDefinition<?> && isSelectableContainerDefinition(def))
+                    .map(ItemDefinition::getItemName)
+                    .collect(Collectors.toList());
+        }
+
+        @Override
+        protected ItemWrapper<?, ?> createNewContainerWrapper(
+                PrismContainer<Containerable> container, PrismContainerValueWrapper<?> parentValue) {
+            PrismContainerWrapper<Containerable> wrapper =
+                    new PrismContainerWrapperImpl<>(parentValue, container, ItemStatus.ADDED);
+            PrismValueWrapper value =
+                    new PrismContainerValueWrapperImpl<>(wrapper, container.createNewValue(), ValueStatus.ADDED);
+            wrapper.getValues().add((PrismContainerValueWrapper<Containerable>) value);
+            return wrapper;
+        }
     }
 }
