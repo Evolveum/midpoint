@@ -160,5 +160,5 @@ public class ModelBeans {
     @Autowired public ActivityHandlerRegistry activityHandlerRegistry;
     @Autowired public DataAccessProcessor dataAccessProcessor; // temporary
     @Autowired public RoleAnalysisService roleAnalysisService;
-    @Autowired public PolicyRuleNotificationPublisher policyRuleNotificationPublisher;
+    @Autowired(required = false) public PolicyRuleNotificationPublisher policyRuleNotificationPublisher;
 }

@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.notifications.api.PolicyRuleNotificationPublisher;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
@@ -238,7 +240,14 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         }
 
         // such notification would not be emitted via NotificationHook
-        LOGGER.debug("Forcing notifications action for policy rule {} before enforcing " + realAction + " action.", policyRule);
-        context.getModelBeans().policyRuleNotificationPublisher.emitPolicyRulesEvents(context, task, result);
+
+        PolicyRuleNotificationPublisher notificationPublisher = context.getModelBeans().policyRuleNotificationPublisher;
+        if (notificationPublisher != null) {
+            LOGGER.debug("Forcing notifications action for policy rule {} before enforcing {} action.", policyRule, realAction);
+            notificationPublisher.emitPolicyRulesEvents(context, task, result);
+        } else {
+            LOGGER.debug("Cannot force notifications action for policy rule {} before enforcing {} action, "
+                    + "because notification publisher is not available.", policyRule, realAction);
+        }
     }
 }
