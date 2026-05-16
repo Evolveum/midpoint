@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -714,6 +715,33 @@ public class ObjectQueryUtil {
 
     public static boolean hasFilter(ObjectQuery query) {
         return query != null && query.getFilter() != null; // TODO and "filter is not empty"?
+    }
+
+    public static <E extends Exception> OwnedByFilter extractOwnedByFilterForReferenceSearch(
+            ObjectFilter filter, Function<String, E> exceptionFactory)
+            throws E {
+        if (filter instanceof OwnedByFilter ownedByFilter) {
+            return ownedByFilter;
+        } else if (filter instanceof AndFilter andFilter) {
+            OwnedByFilter ownedByFilter = null;
+            for (ObjectFilter condition : andFilter.getConditions()) {
+                if (condition instanceof OwnedByFilter current) {
+                    if (ownedByFilter != null) {
+                        throw exceptionFactory.apply("Exactly one main OWNED-BY filter must be used"
+                                + " for reference search, but multiple found. Filter: " + filter);
+                    }
+                    ownedByFilter = current;
+                }
+            }
+            if (ownedByFilter == null) {
+                throw exceptionFactory.apply("Exactly one main OWNED-BY filter must be used"
+                        + " for reference search, but none found. Filter: " + filter);
+            }
+            return ownedByFilter;
+        } else {
+            throw exceptionFactory.apply("Invalid filter for reference search: " + filter
+                    + "\nReference search filter should be OWNED-BY filter or an AND filter containing it.");
+        }
     }
 
     public static @NotNull ObjectQuery replaceFilter(ObjectQuery original, ObjectFilter newFilter) {
