@@ -237,7 +237,7 @@
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
-        <commons.fileupload2.version>2.0.0-M4</commons.fileupload2.version>
+        <commons.fileupload2.version>2.0.0-M5</commons.fileupload2.version>
 
         <wicket.version>10.9.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
