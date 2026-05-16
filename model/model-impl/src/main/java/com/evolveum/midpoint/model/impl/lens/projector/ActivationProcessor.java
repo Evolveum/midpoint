@@ -732,7 +732,9 @@ public class ActivationProcessor implements ProjectorProcessor {
                     .implicitSourcePath(LEGAL_PROPERTY_NAME)
                     .implicitTargetPath(SHADOW_EXISTS_PROPERTY_NAME);
 
-            builder.defaultSource(new Source<>(getLegalIdi(projCtx), ExpressionConstants.VAR_LEGAL_QNAME));
+            ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> legalIdi = getLegalIdi(projCtx);
+            builder.defaultSource(new Source<>(legalIdi, ExpressionConstants.VAR_LEGAL_QNAME));
+            builder.additionalSource(new Source<>(legalIdi, ExpressionConstants.VAR_INPUT_QNAME));
             builder.additionalSource(new Source<>(getAssignedIdi(projCtx), ExpressionConstants.VAR_ASSIGNED_QNAME));
             builder.additionalSource(new Source<>(getFocusExistsIdi(context.getFocusContext()), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
 
