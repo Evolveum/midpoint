@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
@@ -261,10 +262,11 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     ConfiguredConnectorInstanceEntry getOrCreateConnectorInstanceCacheEntry(ConnectorSpec connectorSpec, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
+        String connectorOid = resolveConnectorOidRequired(connectorSpec, result);
         ConfiguredConnectorInstanceEntry existingCacheEntry = connectorInstanceCache.get(cacheKey);
 
         if (existingCacheEntry != null) {
-            if (existingCacheEntry.matchesConnectorOid(connectorSpec.getConnectorOidRequired())) {
+            if (existingCacheEntry.matchesConnectorOid(connectorOid)) {
                 LOGGER.trace("HIT in connector cache: returning configured connector {} from cache; it may or may not be fresh",
                         connectorSpec);
                 return existingCacheEntry;
@@ -282,7 +284,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         // No usable connector in cache. Let's create it - unconfigured.
         return new ConfiguredConnectorInstanceEntry(
-                connectorSpec.getConnectorOidRequired(),
+                connectorOid,
                 createConnectorInstance(connectorSpec, result));
     }
 
@@ -383,10 +385,49 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         //  Currently, we need to throw a ConfigurationException here for the test to pass.
         //  E.g., IllegalStateException won't work.
         return getConnectorWithSchema(
-                MiscUtil.configNonNull(
-                        connectorSpec.getConnectorOid(),
-                        "Connector OID missing in %s", connectorSpec),
+                resolveConnectorOidRequired(connectorSpec, result),
                 result);
+    }
+
+    /**
+     * Returns the connector OID for the given specification, resolving a filter-based {@code connectorRef} if needed.
+     *
+     * If the reference is resolved from a filter, the resolved OID is stored in the {@link ConnectorSpec}
+     * as transient state. This is intentional internal normalization: later completion/cache code reads
+     * the OID from the same specification, but the resource {@code connectorRef} is not modified and no
+     * repository delta is created for this change.
+     */
+    private @NotNull String resolveConnectorOidRequired(ConnectorSpec connectorSpec, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        String oid = connectorSpec.getConnectorOid();
+        if (oid != null) {
+            return oid;
+        }
+
+        ObjectReferenceType connectorRef = connectorSpec.getConnectorRef();
+        if (connectorRef == null || connectorRef.getFilter() == null) {
+            return MiscUtil.configNonNull(oid, "Connector OID missing in %s", connectorSpec);
+        }
+
+        ObjectFilter filter = prismContext.getQueryConverter().parseFilter(connectorRef.getFilter(), ConnectorType.class);
+        ObjectQuery query = prismContext.queryFactory().createQuery(filter);
+        SearchResultList<PrismObject<ConnectorType>> connectors =
+                repositoryService.searchObjects(ConnectorType.class, query, readOnly(), result);
+
+        if (connectors.isEmpty()) {
+            throw new ConfigurationException(
+                    "Connector reference in " + connectorSpec + " cannot be resolved: filter matches no object");
+        }
+        if (connectors.size() > 1) {
+            throw new ConfigurationException(
+                    "Connector reference in " + connectorSpec + " cannot be resolved: filter matches "
+                            + connectors.size() + " objects");
+        }
+
+        String resolvedOid = connectors.get(0).getOid();
+        connectorSpec.setResolvedConnectorOid(resolvedOid);
+        LOGGER.trace("Resolved connector reference in {} to OID {}", connectorSpec, resolvedOid);
+        return resolvedOid;
     }
 
     private @NotNull ConnectorWithSchema getConnectorWithSchema(String connOid, OperationResult result)
