@@ -102,6 +102,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Delineation suggestions: filter parsing broken after recent GUI change. See bug:MID-11175[]
 * Fixed work item search by name causing repository mapping error. See bug:MID-8834[]
 * Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
+* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
 
 === Releases Of Other Components
 

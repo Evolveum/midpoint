@@ -352,6 +352,18 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
+    public <O extends ObjectType> boolean isDescendantOfAny(
+            PrismObject<O> object, Collection<String> ancestorOrgOids)
+            throws SchemaException {
+        Long startTime = repoOpStart();
+        try {
+            return repositoryService.isDescendantOfAny(object, ancestorOrgOids);
+        } finally {
+            repoOpEnd(startTime);
+        }
+    }
+
+    @Override
     public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String descendantOrgOid)
             throws SchemaException {
         Long startTime = repoOpStart();
