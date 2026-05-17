@@ -385,7 +385,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                     .end()
                 .previewModePolicyRulesCounters()
                     .display()
-                    .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 2)
+                    .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 1)
                     .assertCounterMinMax(suspendPolicyIdentifier, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
                     .assertCounterCount(2)
                     .end()

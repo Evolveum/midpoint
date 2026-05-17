@@ -103,15 +103,10 @@ class PolicyRulesCollector<O extends ObjectType> {
     }
 
     private Collection<ActivityPolicyRule> getEnabledActivityRules() {
-        // todo this instanceof cast doesn't seem right [viliam]
         if (!(task.getExecutionSupport() instanceof AbstractActivityRun<?, ?, ?> activityRun)) {
             return Collections.emptyList();
         }
 
-        // todo filter out policies that have non-focus constraints [viliam]
-        //  check enabled condition, and expression condition ->
-        //  enabled switch is used mainly in GUI to disable activity policies, condition for more granular behavior changes
-        //  fix enabled switch on other places where condition is used
         Collection<ActivityPolicyRule> activityRules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
         return activityRules.stream()
                 .filter(r -> BooleanUtils.isNotFalse(r.getPolicyBean().isEnabled()))
