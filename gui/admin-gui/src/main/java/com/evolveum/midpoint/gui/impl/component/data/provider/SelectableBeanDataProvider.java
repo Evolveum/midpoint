@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -127,7 +129,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
 
         } catch (Exception ex) {
             setupUserFriendlyMessage(result, ex);
-            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
+            result.recordFatalError(createListObjectsErrorMessage(ex), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
             return handleNotSuccessOrHandledErrorInIterator(result);
         } finally {
@@ -177,6 +179,14 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
 
     protected SelectableBean<T> createDataObjectWrapperForError() {
         return new SelectableBeanImpl<>();
+    }
+
+    private String createListObjectsErrorMessage(Exception ex) {
+        String message = getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString();
+        if (StringUtils.isBlank(ex.getMessage())) {
+            return message;
+        }
+        return message + ": " + ex.getMessage();
     }
 
     protected abstract List<T> searchObjects(Class<T> type,
