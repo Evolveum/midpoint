@@ -104,6 +104,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
 * Fix 10k limit in certification queries using iterative search. See bug:MID-11043[]
 * Fixed generic "Fatal error" message in object tables to show available list/search error details. See bug:MID-10911[]
+* Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
 
 === Releases Of Other Components
 
