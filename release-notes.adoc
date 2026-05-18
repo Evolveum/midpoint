@@ -35,6 +35,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 ++++
 
 == Changes With Respect To Version 4.10.4
+* Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
 
 == Changes With Respect To Version 4.10.3
 
