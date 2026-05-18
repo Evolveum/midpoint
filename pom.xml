@@ -224,10 +224,9 @@
 
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
-        <!-- security fixes -->
-        <postgresql.version>42.7.7</postgresql.version>
-
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
+        <netty.version>4.1.133.Final</netty.version>
+        <postgresql.version>42.7.11</postgresql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <!-- END of Spring Boot dependencies overrides -->
