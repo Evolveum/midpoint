@@ -236,10 +236,9 @@
         <h2.version>2.3.232</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
-        <!-- security fixes -->
-        <postgresql.version>42.7.7</postgresql.version>
-
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
+        <netty.version>4.1.133.Final</netty.version>
+        <postgresql.version>42.7.11</postgresql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <!-- END of Spring Boot dependencies overrides -->
@@ -252,7 +251,7 @@
         <wicket.chartjs.version>0.6</wicket.chartjs.version>
         <!-- Groovy 4.0.24 is also default for Spring Boot 3.4.0 -->
         <groovy.version>4.0.24</groovy.version>
-        <xmlsec.version>2.2.4</xmlsec.version>
+        <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.6.0.0</connid.version>
         <derby.version>10.16.1.1</derby.version>
