@@ -6,16 +6,22 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
-import java.io.Serial;
+import java.io.*;
+import java.time.Duration;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcess;
+import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
 import com.evolveum.midpoint.web.security.BrowserWindowIdentifierFilter;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.*;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -34,6 +40,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.resource.FileResourceStream;
+import org.apache.wicket.util.resource.IResourceStream;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -102,6 +110,7 @@ public abstract class PageBase extends PageAdminLTE {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageBase.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
@@ -138,6 +147,13 @@ public abstract class PageBase extends PageAdminLTE {
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
 
     private List<Breadcrumb> breadcrumbs;
+
+    // introduced in order to fire download behavior in case the file for downloading
+    // is too big and requires more time for creation. Timer behavior will let the user
+    // work with the system further in the meanwhile the file for downloading is being prepared
+    private AbstractAjaxTimerBehavior timerBehavior;
+    private AbstractAjaxDownloadBehavior ajaxDownloadBehavior;
+    public static final String EXPORT_PROCESS_ID = "EXPORT-ASYNC-PROCESS-ID";
 
     private boolean initialized = false;
 
@@ -495,6 +511,9 @@ public abstract class PageBase extends PageAdminLTE {
         addAdditionalFooter((MarkupContainer) get(ID_FOOTER_CONTAINER), ID_ADDITIONAL_FOOTER);
 
         add(new RightSidebarHelpPanel(ID_RIGHT_SIDEBAR));
+
+        initTimerBehavior();
+        initDownloadBehavior();
     }
 
     private RightSidebarHelpPanel getRightSidebarPanel() {
@@ -1161,5 +1180,67 @@ public abstract class PageBase extends PageAdminLTE {
 
     public TaskAwareExecutor taskAwareExecutor(@NotNull AjaxRequestTarget target, @NotNull String operationName) {
         return new TaskAwareExecutor(this, target, operationName);
+    }
+
+    private void initTimerBehavior() {
+        timerBehavior = new AbstractAjaxTimerBehavior(Duration.ofMillis(1000)) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onTimer(AjaxRequestTarget target) {
+                if (!exportProcessExists()) {
+                    stop(null);
+                }
+                if (isReadyForDownload()) {
+                    initiateExportFileDownload(target);
+                }
+            }
+        };
+        timerBehavior.stop(null);
+        add(timerBehavior);
+    }
+
+    private void initDownloadBehavior() {
+        ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IResourceStream getResourceStream() {
+                try {
+                    timerBehavior.stop(null);
+                    var exportProcess = getExportProcess();
+                    File exportFile = (File) exportProcess.getFuture().get();
+                    return new FileResourceStream(exportFile);
+                } catch (Exception e) {
+                    LOGGER.error("Failed to load the file.");
+                } finally {
+                    getAsyncWebProcessManager().removeProcess(EXPORT_PROCESS_ID);
+                }
+                return null;
+            }
+        };
+        add(ajaxDownloadBehavior);
+    }
+
+    private boolean isReadyForDownload() {
+        var exportProcess = getExportProcess();
+        return exportProcessExists() && exportProcess.isDone();
+    }
+
+    private boolean exportProcessExists() {
+        var exportProcess = getExportProcess();
+        return exportProcess != null;
+    }
+
+    private AsyncWebProcess<?> getExportProcess() {
+        return getAsyncWebProcessManager().getProcess(EXPORT_PROCESS_ID);
+    }
+
+    private void initiateExportFileDownload(AjaxRequestTarget target) {
+        ajaxDownloadBehavior.initiate(target);
+    }
+
+    public void startDownloadTimerBehavior(AjaxRequestTarget target) {
+        timerBehavior.restart(target);
     }
 }

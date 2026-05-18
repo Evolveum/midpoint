@@ -22,6 +22,7 @@ import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -71,8 +72,11 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
     }
 
     @Override
-    public <T> AsyncWebProcess<T> createProcess(T data) {
-        Key key = createProcessIdentifier(UUID.randomUUID().toString());
+    public <T> AsyncWebProcess<T> createProcess(@Nullable String processId, T data) {
+        if (processId == null) {
+            processId = UUID.randomUUID().toString();
+        }
+        Key key = createProcessIdentifier(processId);
 
         AsyncWebProcess<T> process = new AsyncWebProcess<>(key.processId, application);
         process.setData(data);
