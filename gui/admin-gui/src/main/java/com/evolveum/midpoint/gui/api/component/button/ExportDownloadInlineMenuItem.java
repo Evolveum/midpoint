@@ -6,47 +6,55 @@
 
 package com.evolveum.midpoint.gui.api.component.button;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
+import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.Application;
 import org.apache.wicket.Session;
 import org.apache.wicket.ThreadContext;
-import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.resource.FileResourceStream;
-import org.apache.wicket.util.resource.IResourceStream;
 
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.Serial;
-import java.time.Duration;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.io.File;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
+
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.cycle.RequestCycleContext;
 import org.apache.wicket.util.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -148,32 +156,36 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
                 exportableColumnsIndex.clear();
                 ExportingPanel exportingPanel = new ExportingPanel(WebComponentUtil.getPageBase(component).getMainPopupBodyId(),
                         getDataTable(), exportableColumnsIndex, useExportSizeLimit, name) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
-                        Session session = Session.get();
-                        SecurityContext context = SecurityContextHolder.getContext();
-                        Application application = Application.get();
+//                        String processId = PROCESS_ID_PREFIX + System.currentTimeMillis();
+//                        AsyncWebProcess<?> webProcess = initAsyncWebProcess(processId);
+                        startExportProcess();
+                        component.getPageBase().startDownloadTimerBehavior(target);
+//                        Session session = Session.get();
+//                        SecurityContext context = SecurityContextHolder.getContext();
+//                        Application application = Application.get();
 
-                        component.getPageBase().runPrivileged(() -> {
-                                    future = EXPORT_EXECUTOR.submit(() -> {
-                                        ThreadContext.setApplication(application);
-                                        ThreadContext.setSession(session);
-                                        SecurityContextHolder.setContext(context);
-
-                                        File file = File.createTempFile("export-", ".xlsx");
-
-                                        IDataProvider<?> provider = getDataTable().getDataProvider();
-
-                                        try (OutputStream os = new FileOutputStream(file)) {
-                                            getDataExporter().exportData(provider, getExportableColumns(), os);
-                                        }
-
-                                        return file;
-                                    });
-                                    return null;
-                                });
+//                        component.getPageBase().runPrivileged(() -> {
+//                                    future = EXPORT_EXECUTOR.submit(() -> {
+//                                        ThreadContext.setApplication(application);
+//                                        ThreadContext.setSession(session);
+//                                        SecurityContextHolder.setContext(context);
+//
+//                                        File file = File.createTempFile("export-", ".xlsx");
+//
+//                                        IDataProvider<?> provider = getDataTable().getDataProvider();
+//
+//                                        try (OutputStream os = new FileOutputStream(file)) {
+//                                            getDataExporter().exportData(provider, getExportableColumns(), os);
+//                                        }
+//
+//                                        return file;
+//                                    });
+//                                    return null;
+//                                });
                     }
 
                     @Override
@@ -228,5 +240,43 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
             };
         }
         return model;
+    }
+
+    private void startExportProcess() {
+        var pageBase = component.getPageBase();
+        pageBase.getAsyncWebProcessManager().createProcess(PageBase.EXPORT_PROCESS_ID, null);
+        pageBase.getAsyncWebProcessManager().submit(PageBase.EXPORT_PROCESS_ID, createFileLoader());
+    }
+
+    private Callable<File> createFileLoader() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        final HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
+        MidPointApplication application = MidPointApplication.get();
+        final SecurityContextManager secManager = application.getSecurityContextManager();
+
+        String fileName = getFilename();
+        String fileExtension = getFileExtension();
+
+        IDataProvider<?> provider = getDataTable().getDataProvider();
+
+        return new SecurityContextAwareCallable<>(secManager, auth, connInfo) {
+
+            @Override
+            public File callWithContextPrepared() {
+                try {
+                     ThreadContext.setApplication(application);
+
+                    File file = File.createTempFile(fileName, fileExtension);
+
+                    try (OutputStream os = new FileOutputStream(file)) {
+                        getDataExporter().exportData(provider, getExportableColumns(), os);
+                    }
+                    return file;
+                } catch (IOException e) {
+                    LOGGER.error("Failed to generate the file for export.");
+                }
+                return null;
+            }
+        };
     }
 }
