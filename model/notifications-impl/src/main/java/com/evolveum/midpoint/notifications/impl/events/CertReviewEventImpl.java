@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.notifications.api.events.CertReviewEvent;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -37,10 +38,22 @@ public class CertReviewEventImpl extends AccessCertificationEventImpl implements
      */
     private SimpleObjectRef actualReviewer;
 
+    /**
+     * If true, awaiting response is determined by WorkItem.outcome.
+     * If false, awaiting response is determined by Case.currentStageOutcome.
+     */
+    private final boolean collectDecisionsFromAllReviewers;
+
     public CertReviewEventImpl(LightweightIdentifierGenerator idGenerator, List<AccessCertificationCaseType> cases,
             AccessCertificationCampaignType campaign, EventOperationType opType) {
+        this(idGenerator, cases, campaign, opType, true);
+    }
+
+    public CertReviewEventImpl(LightweightIdentifierGenerator idGenerator, List<AccessCertificationCaseType> cases,
+            AccessCertificationCampaignType campaign, EventOperationType opType, boolean collectDecisionsFromAllReviewers) {
         super(idGenerator, campaign, opType);
         this.cases = cases;
+        this.collectDecisionsFromAllReviewers = collectDecisionsFromAllReviewers;
     }
 
     @Override
@@ -71,6 +84,17 @@ public class CertReviewEventImpl extends AccessCertificationEventImpl implements
     }
 
     private boolean awaitsResponseFrom(AccessCertificationCaseType aCase, String reviewerOid, int currentStageNumber) {
+        if (!collectDecisionsFromAllReviewers) {
+            // Case-based: check if the case itself has no response yet
+            String currentStageOutcome = aCase.getCurrentStageOutcome();
+            if (currentStageOutcome != null
+                    && !OutcomeUtils.toUri(AccessCertificationResponseType.NO_RESPONSE).equals(currentStageOutcome)) {
+                // Case already has a response from another reviewer
+                return false;
+            }
+        }
+
+        // Check if there's an open work item for this reviewer
         for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
             if (workItem.getStageNumber() == currentStageNumber
                     && WorkItemTypeUtil.getOutcome(workItem) == null
