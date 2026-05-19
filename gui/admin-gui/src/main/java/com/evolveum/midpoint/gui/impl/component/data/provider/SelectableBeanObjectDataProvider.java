@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -128,5 +129,51 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     public void setTaskConsumer(Consumer<Task> taskConsumer) {
         this.taskConsumer = taskConsumer;
+    }
+
+    @Override
+    public boolean supportsIterativeExport() {
+        return true;
+    }
+
+    /**
+     * Streaming export using searchObjectsIterative with JDBC streaming.
+     * This method does not load all data into memory - uses true JDBC streaming.
+     * Streaming is enabled by setting iterationPageSize to -1.
+     */
+    @Override
+    public void exportIterative(
+            ObjectHandler<SelectableBean<O>> handler,
+            Task task,
+            OperationResult result) throws CommonException {
+
+        ObjectQuery query = getQuery();
+        if (query == null) {
+            query = getPrismContext().queryFactory().createQuery();
+        }
+        // Set ordering from current sort settings (no offset/limit for full export)
+        query.setPaging(createPaging(0, Integer.MAX_VALUE));
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(), query.debugDump());
+        }
+
+        // Enable JDBC streaming mode by setting iterationPageSize to -1
+        Collection<SelectorOptions<GetOperationOptions>> streamingOptions =
+                SelectorOptions.updateRootOptions(getSearchOptions(),
+                        opt -> opt.setIterationPageSize(-1), GetOperationOptions::new);
+
+        getModelService().searchObjectsIterative(
+                getType(),
+                query,
+                (object, opResult) -> {
+                    O objectable = object.asObjectable();
+                    SelectableBean<O> wrapper = createDataObjectWrapper(objectable);
+                    return handler.handle(wrapper, opResult);
+                },
+                streamingOptions,
+                task,
+                result
+        );
     }
 }

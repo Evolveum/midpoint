@@ -13,12 +13,12 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.StreamingCsvDataExporter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
@@ -64,7 +64,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
     private static final long serialVersionUID = 1L;
 
     private void initLayout() {
-        CSVDataExporter csvDataExporter = new CSVDataExporter() {
+        StreamingCsvDataExporter csvDataExporter = new StreamingCsvDataExporter(getPageBase()) {
             private static final long serialVersionUID = 1L;
 
             @Override
