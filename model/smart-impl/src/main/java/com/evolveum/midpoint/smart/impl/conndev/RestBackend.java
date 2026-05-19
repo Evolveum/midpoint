@@ -51,7 +51,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 }
                 // FIXME for proper detection
                 ret.integrationType(ConnDevIntegrationType.REST);
-                if (jsonInfo.get("baseApiEndpoint") != null) {
+                if (jsonInfo.get("baseApiEndpoint") != null && jsonInfo.get("baseApiEndpoint").get(0) != null) {
                     ret.baseApiEndpoint(jsonInfo.get("baseApiEndpoint").get(0).get("uri").asText());
                 }
                 // FIXME: Add dynamic
