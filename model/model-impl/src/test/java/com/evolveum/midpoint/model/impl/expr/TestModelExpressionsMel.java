@@ -17,6 +17,8 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -95,11 +97,29 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
     }
 
     @Test
+    public void testUtilIsAppropriateGoodPolyString() throws Exception {
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "foo", createPolyStringType("This is a nice little polystring description."), PolyStringType.COMPLEX_TYPE);
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate", true);
+    }
+
+    @Test
     public void testUtilIsAppropriateDescriptionChef() throws Exception {
         PrismObject<UserType> chef = repositoryService.getObject(
                 UserType.class, CHEF_OID, null, getTestOperationResult());
 
         VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate-description", false);
+    }
+
+    @Test
+    public void testUtilIsAppropriateDescriptionChefNull() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+
+        VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, null, chef.getDefinition());
 
         assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate-description", false);
     }
@@ -113,6 +133,16 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
         VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
 
         assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate-description", true);
+    }
+
+    @Test
+    public void testUtilIsAppropriateNameChef() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+
+        VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate-name", true);
     }
 
     @Test
