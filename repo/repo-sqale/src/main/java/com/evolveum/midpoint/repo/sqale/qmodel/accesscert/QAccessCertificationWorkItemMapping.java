@@ -447,18 +447,30 @@ public class QAccessCertificationWorkItemMapping
 
             // SQL expression to filter WorkItems in the JSONB fullObject:
             // 1. Convert fullObject from bytea to text, then to jsonb, and extract the 'case' object
-            // 2. Filter the 'workItem' array to keep only WorkItems with @id in our batch
-            // 3. Reconstruct the JSON with filtered workItem array
+            // 2. Normalize 'workItem' to a JSON array (handles object, array, or null)
+            // 3. Filter the work items to keep only those with @id in our batch
+            // 4. Reconstruct the JSON with filtered workItem array
             // Note: convert_from({0}, 'UTF8') converts bytea to text, then ::jsonb parses as JSON
             // Note: 'case' is a PostgreSQL reserved word, so we use ->'case' with single quotes
             //       which requires careful escaping in stringTemplate
-            String sql = "jsonb_set(" +
-                    "(convert_from({0}, 'UTF8')::jsonb)->'case', " +
-                    "'{workItem}', " +
-                    "(SELECT COALESCE(jsonb_agg(wi), '[]'::jsonb) " +
-                    "FROM jsonb_array_elements((convert_from({0}, 'UTF8')::jsonb)->'case'->'workItem') as wi " +
-                    "WHERE (wi->>'@id')::bigint IN (" + workItemCidsLiteral + "))" +
-                    ")";
+            String sql =
+                    "jsonb_set(" +
+                            "(convert_from({0}, 'UTF8')::jsonb)->'case', " +
+                            "'{workItem}', " +
+                            "(" +
+                            "SELECT COALESCE(jsonb_agg(wi), '[]'::jsonb) " +
+                            "FROM jsonb_array_elements(" +
+                            "CASE jsonb_typeof((convert_from({0}, 'UTF8')::jsonb)->'case'->'workItem') " +
+                            "WHEN 'array' THEN " +
+                            "(convert_from({0}, 'UTF8')::jsonb)->'case'->'workItem' " +
+                            "WHEN 'object' THEN " +
+                            "jsonb_build_array((convert_from({0}, 'UTF8')::jsonb)->'case'->'workItem') " +
+                            "ELSE '[]'::jsonb " +
+                            "END" +
+                            ") as wi " +
+                            "WHERE (wi->>'@id')::bigint IN (" + workItemCidsLiteral + ")" +
+                            ")" +
+                            ")";
             var filteredCaseJson = stringTemplate(sql, qCase.fullObject);
 
             // Build query with precise (ownerOid, cid) filtering
