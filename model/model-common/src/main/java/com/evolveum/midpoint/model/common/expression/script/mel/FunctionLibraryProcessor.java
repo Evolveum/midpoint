@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.MapType;
+import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.runtime.CelFunctionBinding;
@@ -30,6 +31,7 @@ import dev.cel.runtime.CelFunctionOverload;
 import dev.cel.runtime.CelRuntimeBuilder;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +44,6 @@ public class FunctionLibraryProcessor {
 
     public void addCompilerCustomLibraryDeclarations(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context,
             FunctionLibraryBinding funcLibBinding) throws ConfigurationException {
-        LOGGER.info("FFFFF: Adding compiler declarations {}", funcLibBinding);
         for (var function : funcLibBinding.getParsedLibrary().getFunctions()) {
             addCompilerCustomFunctionDeclaration(builder, context, funcLibBinding, function);
         }
@@ -72,7 +73,8 @@ public class FunctionLibraryProcessor {
                             CelOverloadDecl.newGlobalOverload(
                                     getFunctionId(funcLibBinding.getVariableName(), function.getName()) + FUNCTION_ID_SUFFIX_UNARY,
                                     CelTypeMapper.toCelType(function.getReturnTypeName()),
-                                    ImmutableList.of(CelTypeMapper.toCelType(parameterSpec.getType()))
+//                                    ImmutableList.of(NullableType.create(SimpleType.DYN))
+                                    ImmutableList.of(CelTypeMapper.toCelNullableType(parameterSpec.getType()))
                             )
                     )
             );
@@ -94,7 +96,6 @@ public class FunctionLibraryProcessor {
 
     public void addRuntimeCustomLibraryImplementations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context,
             FunctionLibraryBinding funcLibBinding, FunctionLibrary parsedLibrary) throws ConfigurationException {
-        LOGGER.info("FFFFF: Adding runtime implementation {}", funcLibBinding);
         Object implementation = funcLibBinding.getImplementation();
         if (implementation instanceof LibraryFunctionExecutor executor) {
             for (var function : parsedLibrary.getFunctions()) {
@@ -134,7 +135,10 @@ public class FunctionLibraryProcessor {
             builder.addFunctionBindings(
                     CelFunctionBinding.from(
                             getFunctionId(funcLibBinding.getVariableName(), functionName) + FUNCTION_ID_SUFFIX_UNARY,
-                            ImmutableList.of(XsdTypeMapper.toJavaType(parameterSpec.getType())),
+                            // We do NOT want to specify specific Java class here (no XsdTypeMapper.toJavaType(parameterSpec.getType())).
+                            // We need to be able to receive null here, which is NullType in CEL. Hence the Object class.
+                            ImmutableList.of(Object.class),
+//                            ImmutableList.of(XsdTypeMapper.toJavaType(parameterSpec.getType())),
                             implementation)
             );
         }
@@ -163,7 +167,9 @@ public class FunctionLibraryProcessor {
             ExpressionParameterType paramSpec = function.getParameters().iterator().next();
             if (args.length == 1) {
                 if (CelTypeMapper.isCellNull(args[0])) {
-                    return ImmutableMap.of(paramSpec.getName(), null);
+                    Map<String, Object> m = new HashMap<>();
+                    m.put(paramSpec.getName(), null);
+                    return m;
                 }
                 if (args[0] instanceof Map map) {
                     return CelTypeMapper.toJavaValueMap((Map)map);

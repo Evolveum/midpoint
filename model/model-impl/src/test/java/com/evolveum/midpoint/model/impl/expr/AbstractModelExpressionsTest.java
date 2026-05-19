@@ -90,6 +90,8 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(BASE_TEST_DIR, "orgstruct.xml");
     private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY =
             TestObject.file(BASE_TEST_DIR, "function-library.xml", "42c6fef1-370c-466b-a52e-747b52aacf0d");
+    private static final TestObject<FunctionLibraryType> UTIL_LIBRARY =
+            TestObject.file(BASE_TEST_DIR, "util-library.xml", "20afa268-5377-11f1-9f90-9c6b00360713");
 
     protected abstract File getTestDir();
 
@@ -105,6 +107,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         importObjectFromFile(TEST_EXPRESSIONS_OBJECTS_FILE);
         repoAdd(FUNCTION_LIBRARY, initResult);
+        repoAdd(UTIL_LIBRARY, initResult);
     }
 
     @Test
@@ -517,14 +520,16 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
             throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
 
-        List<PrismPropertyValue<String>> scriptOutputs = executeScriptExpressionString(variables, scriptTag, 1);
+        return assertSingle(executeScriptExpressionString(variables, scriptTag, 1));
+    }
 
-        if (scriptOutputs.size() == 0) {
+    private <T> T assertSingle(List<PrismPropertyValue<T>> scriptOutputs) {
+        if (scriptOutputs.isEmpty()) {
             return null;
         }
 
         assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
-        PrismPropertyValue<String> scriptOutput = scriptOutputs.get(0);
+        PrismPropertyValue<T> scriptOutput = scriptOutputs.get(0);
         if (scriptOutput == null) {
             return null;
         }
@@ -540,7 +545,21 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         return scriptOutputs.stream().map(PrismPropertyValue::getValue).toList();
     }
 
+    protected void assertExecuteScriptExpressionBoolean(
+            VariablesMap variables, String scriptTag, Boolean expectedOutput)
+            throws ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
+            IOException, CommunicationException, SchemaException, SecurityViolationException {
+        Boolean output = assertSingle(executeScriptExpression(variables, scriptTag, DOMUtil.XSD_BOOLEAN, 1));
+        assertEquals("Unexpected script output", expectedOutput, output);
+    }
+
     private List<PrismPropertyValue<String>> executeScriptExpressionString(VariablesMap variables, String scriptTag, int maxOccurs)
+            throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
+        return executeScriptExpression(variables, scriptTag, DOMUtil.XSD_STRING, maxOccurs);
+    }
+
+    private <T> List<PrismPropertyValue<T>> executeScriptExpression(VariablesMap variables, String scriptTag, QName type, int maxOccurs)
             throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
@@ -550,7 +569,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + scriptTag + ".xml");
         ItemDefinition<?> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(
-                        PROPERTY_NAME, DOMUtil.XSD_STRING, 0, maxOccurs);
+                        PROPERTY_NAME, type, 0, maxOccurs);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                 scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
                 getTestNameShort(), result);
@@ -560,7 +579,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         // WHEN
         when();
-        List<PrismPropertyValue<String>> scriptOutputs =
+        List<PrismPropertyValue<T>> scriptOutputs =
                 evaluate(scriptExpression, variables, false, getTestNameShort(), task, result);
 
         // THEN

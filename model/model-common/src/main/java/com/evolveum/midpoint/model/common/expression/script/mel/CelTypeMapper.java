@@ -186,6 +186,11 @@ public class CelTypeMapper implements CelTypeProvider  {
         }
     }
 
+    @NotNull
+    public static CelType toCelNullableType(@NotNull QName xsdType) {
+        return NullableType.create(toCelType(xsdType));
+    }
+
     public static CelType toCelType(@NotNull Class<?> javaType) {
         CelType celType = getCelType(javaType);
         if (celType == null) {
