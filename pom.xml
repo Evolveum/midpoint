@@ -230,6 +230,7 @@
         <groovy.version>4.0.24</groovy.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
+        <tomcat.version>10.1.55</tomcat.version>
         <netty.version>4.1.133.Final</netty.version>
         <postgresql.version>42.7.11</postgresql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
