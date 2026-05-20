@@ -12,33 +12,31 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.controller.ModelController;
-import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
-
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
-import com.evolveum.midpoint.util.exception.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -185,18 +183,18 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         return assignmentType;
     }
 
-    List<EvaluatedPolicyRule> assertEvaluatedTargetPolicyRules(LensContext<? extends FocusType> context, int expected) {
+    List<DirectlyEvaluatedClockworkPolicyRule> assertEvaluatedTargetPolicyRules(LensContext<? extends FocusType> context, int expected) {
         display("Asserting target policy rules (expected " + expected + ")");
-        List<EvaluatedPolicyRule> rules = new ArrayList<>();
+        List<DirectlyEvaluatedClockworkPolicyRule> rules = new ArrayList<>();
         forEvaluatedTargetPolicyRule(context, null, rules::add);
         assertEquals("Unexpected number of evaluated target policy rules in the context", expected, rules.size());
         return rules;
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    List<EvaluatedPolicyRule> assertEvaluatedFocusPolicyRules(LensContext<? extends FocusType> context, int expected) {
+    List<DirectlyEvaluatedClockworkPolicyRule> assertEvaluatedFocusPolicyRules(LensContext<? extends FocusType> context, int expected) {
         display("Asserting focus policy rules (expected " + expected + ")");
-        List<EvaluatedPolicyRule> rules = new ArrayList<>();
+        List<DirectlyEvaluatedClockworkPolicyRule> rules = new ArrayList<>();
         forEvaluatedFocusPolicyRule(context, rules::add);
         assertEquals("Unexpected number of evaluated focus policy rules in the context", expected, rules.size());
         return rules;
@@ -286,9 +284,9 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     }
 
     @SuppressWarnings("SameParameterValue")
-    EvaluatedPolicyRule getTriggeredTargetPolicyRule(
+    DirectlyEvaluatedClockworkPolicyRule getTriggeredTargetPolicyRule(
             LensContext<? extends FocusType> context, String targetOid, PolicyConstraintKindType expectedConstraintKind) {
-        List<EvaluatedPolicyRule> rules = new ArrayList<>();
+        List<DirectlyEvaluatedClockworkPolicyRule> rules = new ArrayList<>();
         forEvaluatedTargetPolicyRule(context, targetOid, rule -> {
             if (rule.getTriggers().stream().anyMatch(t -> t.getConstraintKind() == expectedConstraintKind)) {
                 rules.add(rule);
@@ -301,8 +299,8 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     }
 
     @SuppressWarnings("unused")
-    protected EvaluatedPolicyRule getTriggeredFocusPolicyRule(LensContext<? extends FocusType> context, PolicyConstraintKindType expectedConstraintKind) {
-        List<EvaluatedPolicyRule> rules = new ArrayList<>();
+    protected DirectlyEvaluatedClockworkPolicyRule getTriggeredFocusPolicyRule(LensContext<? extends FocusType> context, PolicyConstraintKindType expectedConstraintKind) {
+        List<DirectlyEvaluatedClockworkPolicyRule> rules = new ArrayList<>();
         forEvaluatedFocusPolicyRule(context, rule -> {
             if (rule.getTriggers().stream().anyMatch(t -> t.getConstraintKind() == expectedConstraintKind)) {
                 rules.add(rule);
@@ -335,7 +333,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     }
 
     private void forEvaluatedTargetPolicyRule(
-            LensContext<? extends FocusType> context, String targetOid, Consumer<EvaluatedPolicyRule> handler) {
+            LensContext<? extends FocusType> context, String targetOid, Consumer<DirectlyEvaluatedClockworkPolicyRule> handler) {
         //noinspection unchecked,rawtypes
         DeltaSetTriple<EvaluatedAssignmentImpl<? extends FocusType>> evaluatedAssignmentTriple =
                 (DeltaSetTriple) context.getEvaluatedAssignmentTriple();
@@ -346,7 +344,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         });
     }
 
-    void forEvaluatedFocusPolicyRule(LensContext<? extends FocusType> context, Consumer<EvaluatedPolicyRule> handler) {
+    void forEvaluatedFocusPolicyRule(LensContext<? extends FocusType> context, Consumer<DirectlyEvaluatedClockworkPolicyRule> handler) {
         //noinspection unchecked,rawtypes
         DeltaSetTriple<EvaluatedAssignmentImpl<? extends FocusType>> evaluatedAssignmentTriple =
                 (DeltaSetTriple) context.getEvaluatedAssignmentTriple();
@@ -402,7 +400,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
      */
     <O extends ObjectType> LensContext<O> runClockwork(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
-            throws CommonException{
+            throws CommonException {
         LensContext<O> context = contextFactory.createContext(deltas, options, task, result);
         clockwork.run(context, task, result);
         return context;

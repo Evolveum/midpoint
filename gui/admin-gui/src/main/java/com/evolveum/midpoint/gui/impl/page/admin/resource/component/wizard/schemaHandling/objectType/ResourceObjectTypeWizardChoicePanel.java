@@ -21,6 +21,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -211,6 +212,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         parameters.add(PARAM_PANEL_ID, resolvePanelId(kind));
 
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil.getObjectDetailsPage(ResourceType.class);
+        getPageBase().removeLastBreadcrumb();
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
@@ -247,6 +249,10 @@ public abstract class ResourceObjectTypeWizardChoicePanel
                 buttons.newChildId(),
                 this::getResourceObjectDefinition,
                 () -> getAssignmentHolderDetailsModel().getObjectType()) {
+            @Override
+            protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
+                return pageBase.createStringResource("ResourceObjectTypeWizardChoicePanel.simulation");
+            }
 
             @Override
             protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {

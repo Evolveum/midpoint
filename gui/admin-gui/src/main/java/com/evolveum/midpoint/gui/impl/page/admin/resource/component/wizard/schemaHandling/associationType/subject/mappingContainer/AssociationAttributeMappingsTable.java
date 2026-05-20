@@ -295,11 +295,8 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     }
 
     @Override
-    protected ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> createDataProvider() {
-        return new MultivalueContainerListDataProvider<>(
-                this,
-                Model.of(), //TODO search
-                new PropertyModel<>(getContainerModel(), "values"));
+    protected boolean isAssociationMappingTable() {
+        return true;
     }
 
     protected abstract boolean isInboundRelated();

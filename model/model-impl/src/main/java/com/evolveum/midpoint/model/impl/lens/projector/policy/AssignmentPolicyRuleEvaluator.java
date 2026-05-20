@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -54,14 +54,14 @@ class AssignmentPolicyRuleEvaluator<F extends AssignmentHolderType> extends Poli
             ConfigurationException, SecurityViolationException {
 
         collector.initialize(result);
-        collector.collectGlobalAssignmentRules(evaluatedAssignmentTriple, result);
+        collector.collectAllAssignmentRules(evaluatedAssignmentTriple, result);
 
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
-            Collection<EvaluatedPolicyRuleImpl> policyRules = evaluatedAssignment.getAllTargetsPolicyRules();
+            Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> policyRules = evaluatedAssignment.getAllTargetsPolicyRules();
             collector.resolveConstraintReferences(policyRules);
 
             List<AssignmentPolicyRuleEvaluationContext<F>> contextsToEvaluate = new ArrayList<>();
-            for (EvaluatedPolicyRuleImpl policyRule : policyRules) {
+            for (DirectlyEvaluatedClockworkPolicyRuleImpl policyRule : policyRules) {
                 if (policyRule.isApplicableToAssignment()) {
                     contextsToEvaluate.add(
                             new AssignmentPolicyRuleEvaluationContext<>(

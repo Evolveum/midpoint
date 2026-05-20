@@ -7,24 +7,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search;
 
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingObjectClassScriptConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
 
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
 
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.SchemaScriptConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -55,11 +48,11 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingObjectClassScript
     }
 
     @Override
-    protected String getNewTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateSearchScript(
-                realValue.getName(), realValue.getEndpoint(), task, result);
+                realValue.getName(), realValue.getEndpoint(), regenerate, task, result);
     }
 
     @Override

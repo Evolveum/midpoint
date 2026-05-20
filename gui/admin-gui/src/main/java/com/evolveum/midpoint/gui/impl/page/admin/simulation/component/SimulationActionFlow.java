@@ -45,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -275,6 +276,11 @@ public class SimulationActionFlow<T> implements Serializable {
             ResourceTaskFlavor<T> flavor,
             PredefinedConfigurationType cfg) {
 
+        String displayName = def.getDisplayName();
+        if (displayName == null || displayName.isEmpty()) {
+            displayName = def.getKind() + "/" + def.getIntent();
+        }
+
         try {
             return ResourceTaskCreator.of(flavor, pageBase)
                     .forResource(resource)
@@ -290,7 +296,7 @@ public class SimulationActionFlow<T> implements Serializable {
                     .withSubmissionOptions(ActivitySubmissionOptions.create()
                             .withTaskTemplate(new TaskType()
                                     .name("Preview of " + flavor.flavorName()
-                                            + " on " + resource.getName() + " resource")))
+                                            + ": " + resource.getName() + ": " + displayName)))
                     .withSimulationResultDefinition(
                             new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false))
                     .create(task, result);
@@ -364,11 +370,7 @@ public class SimulationActionFlow<T> implements Serializable {
             AjaxRequestTarget target,
             String taskOid) {
 
-        IModel<String> titleModel = isCorrelationFastSimulation
-                ? pageBase.createStringResource(
-                "SmartTaskProgressPanel.correlation.simulation.title")
-                : pageBase.createStringResource(
-                "SmartTaskProgressPanel.mapping.simulation.title");
+        IModel<String> titleModel = getTitleModel(pageBase);
 
         IModel<String> subTitleModel = isCorrelationFastSimulation
                 ? pageBase.createStringResource(
@@ -391,6 +393,14 @@ public class SimulationActionFlow<T> implements Serializable {
         };
 
         pageBase.replaceMainPopup(panel, target);
+    }
+
+    protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
+        return isCorrelationFastSimulation
+                ? pageBase.createStringResource(
+                "SmartTaskProgressPanel.correlation.simulation.title")
+                : pageBase.createStringResource(
+                "SmartTaskProgressPanel.mapping.simulation.title");
     }
 
     public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {

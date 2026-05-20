@@ -277,6 +277,7 @@
             <xsd:extension base="tns:ConnDevNamedInfoType">
                 <xsd:sequence>
                     <xsd:element name="relevant" type="xsd:boolean"/>
+                    <xsd:element name="relevancy" type="tns:ConnDevRelevancyLevelType" />
                     <xsd:element name="superclass" type="xsd:string"/>
                     <xsd:element name="abstract" type="xsd:boolean"/>
                     <xsd:element name="embedded" type="xsd:boolean"/>
@@ -601,6 +602,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <!-- Dummy integration is hidden, will be replaced by multitable
             <xsd:enumeration value="dummy">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -611,6 +613,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            -->
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -682,6 +685,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="oauth2">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        OAuth2 Client Credentials Authorization
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OAUTH2"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -731,6 +744,37 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DELETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ConnDevRelevancyLevelType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Relevancy / Confidendce Levels
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="low">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="medium">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MEDIUM"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="high">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HIGH"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

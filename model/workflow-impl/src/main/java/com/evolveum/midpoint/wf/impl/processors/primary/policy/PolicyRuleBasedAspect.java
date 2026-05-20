@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.policy.TriggerBeanPresentationUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +24,9 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
-import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -101,7 +101,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         }
     }
 
-    List<AssociatedPolicyRule> selectTriggeredApprovalActionRules(Collection<? extends AssociatedPolicyRule> rules) {
+    List<EvaluatedClockworkPolicyRule> selectTriggeredApprovalActionRules(Collection<? extends EvaluatedClockworkPolicyRule> rules) {
         return rules.stream()
                 .filter(r -> r.isTriggered() && r.containsEnabledAction(ApprovalPolicyActionType.class))
                 .collect(Collectors.toList());
@@ -185,14 +185,15 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         if (ps != null) {
             // TODO take name from process specification itself (if present)
             for (ApprovalActionWithRule actionWithRule : ps.actionsWithRules) {
-                AssociatedPolicyRule rule = actionWithRule.policyRule();
+                EvaluatedClockworkPolicyRule rule = actionWithRule.policyRule();
                 // We can take all (i.e. also irrelevant) triggers here, as the conversion to bean will select the relevant ones.
-                for (EvaluatedPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getAllTriggers()) {
-                    // we don't care about options; these converted triggers will be thrown away - only messages are collected
-                    triggers.add(
-                            trigger.toEvaluatedPolicyRuleTriggerBean(
-                                    new PolicyRuleExternalizationOptions(), rule.getNewOwner()));
-                }
+                rule.getAllTriggers()
+                        .forEach(t -> triggers.add(
+                                t.toEvaluatedPolicyRuleTriggerBean(
+                                        // we don't care about options; these converted triggers will be thrown away;
+                                        // only messages are collected
+                                        PolicyRuleExternalizationOptions.empty()
+                                                .withTriggerFilter(rule.getRelevantTriggersFilter()))));
             }
         } else {
             // For assignments we do not set processSpecification yet.
@@ -203,7 +204,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         }
 
         // now get the first message
-        List<TreeNode<EvaluatedPolicyRuleTriggerType>> trees = EvaluatedPolicyRuleUtil.arrangeForPresentationExt(triggers);
+        List<TreeNode<EvaluatedPolicyRuleTriggerType>> trees = TriggerBeanPresentationUtil.arrangeForPresentationExt(triggers);
         if (!trees.isEmpty() && trees.get(0).getUserObject().getShortMessage() != null) {
             return LocalizationUtil.toLocalizableMessage(trees.get(0).getUserObject().getShortMessage());
         } else {

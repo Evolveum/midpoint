@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,15 +21,20 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
 
+/**
+ * Evaluated numerically-bound constraints like {@link PolicyConstraintKind#EXECUTION_ATTEMPTS}.
+ *
+ * Currently limited to activities!
+ */
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
-        implements ActivityPolicyConstraintEvaluator<C, NumericConstraintTrigger<C>> {
+        implements ActivityPolicyConstraintEvaluator<C, EvaluatedNumericTrigger<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(NumericConstraintEvaluator.class);
 
     private static final String DEFAULT_CONSTRAINT_EVALUATOR_NAME = "Numeric value";
 
     @Override
-    public List<NumericConstraintTrigger<C>> evaluate(
+    public List<EvaluatedNumericTrigger<C>> evaluate(
             JAXBElement<C> element, ActivityPolicyRuleEvaluationContext context, OperationResult result) {
         C constraint = element.getValue();
 
@@ -97,8 +104,10 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
         return false;
     }
 
-    private NumericConstraintTrigger<C> createTrigger(C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
-        return new NumericConstraintTrigger<>(constraint, message, shortMessage);
+    protected abstract PolicyConstraintKind getPolicyConstraintKind();
+
+    private EvaluatedNumericTrigger<C> createTrigger(C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
+        return new EvaluatedNumericTrigger<>(getPolicyConstraintKind(), constraint, message, shortMessage);
     }
 
     public abstract Integer getLocalValue(ActivityPolicyRuleEvaluationContext context);

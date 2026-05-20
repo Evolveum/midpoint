@@ -6,11 +6,14 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRule;
 
+/**
+ * Event that is triggered by the 'notification' policy rule action during activity execution.
+ */
 public interface ActivityPolicyRuleEvent extends ActivityEvent {
 
     String getRuleName();
 
-    EvaluatedActivityPolicyRule getPolicyRule();
+    EvaluatedPolicyRule getPolicyRule();
 }

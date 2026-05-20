@@ -753,7 +753,7 @@ public class SmartIntegrationStatusInfoUtils {
                 return;
             }
 
-            if (si.getResult() == null) {
+            if (si.getResult() == null || si.getStatus() == OperationResultStatusType.IN_PROGRESS) {
                 ObjectTypesSuggestionType tmp = new ObjectTypesSuggestionType();
                 tmp.getObjectType().add(new ResourceObjectTypeDefinitionType());
                 suggestion = tmp;
@@ -805,7 +805,8 @@ public class SmartIntegrationStatusInfoUtils {
                 return;
             }
 
-            if (si.getResult() == null || si.getResult().getAssociation().isEmpty()) {
+            if (si.getResult() == null || si.getResult().getAssociation().isEmpty()
+                    || si.getStatus() == OperationResultStatusType.IN_PROGRESS) {
                 AssociationsSuggestionType tmp = new AssociationsSuggestionType();
                 tmp.getAssociation().add(new AssociationSuggestionType());
                 suggestion = tmp;
@@ -861,7 +862,7 @@ public class SmartIntegrationStatusInfoUtils {
         if (rejectEmptyProgress && (suggestion == null
                 || suggestion.getProgressInformation() == null)) {
             rows.add(new StatusRowRecord(pageBase.createStringResource(
-                    "SmartGeneratingDto.no.suggestion"),
+                    "SmartGeneratingDto.null"),
                     ActivityProgressInformation.RealizationState.UNKNOWN,
                     suggestion));
             return rows;
@@ -913,10 +914,13 @@ public class SmartIntegrationStatusInfoUtils {
                     mappingsSuggestion != null ? mappingsSuggestion.getItemsProgress() : null;
 
             if (itemsProgress != null) {
-                return pageBase.createStringResource(
-                        "Activity.explanation." + operationKey,
-                        itemsProgress.getProgress(),
-                        itemsProgress.getExpectedProgress());
+                int progress = itemsProgress.getProgress();
+                int expected = itemsProgress.getExpectedProgress();
+                String percent = expected == 0
+                        ? "0%"
+                        : String.format("%.0f%%", (progress * 100.0) / expected);
+
+                return pageBase.createStringResource("Activity.explanation." + operationKey, percent);
             }
 
             return pageBase.createStringResource("Activity.explanation.text." + operationKey);

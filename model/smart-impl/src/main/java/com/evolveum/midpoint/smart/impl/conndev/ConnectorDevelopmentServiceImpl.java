@@ -154,18 +154,19 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public String submitGenerateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
-            return submitGenerateArtifact(artifact, noop -> {},task, result);
+        public String submitGenerateArtifact(ConnDevArtifactType artifact, boolean retry, Task task, OperationResult result) {
+            return submitGenerateArtifact(artifact, noop -> {}, retry, task, result);
         }
 
 
         @Override
-        public String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, Task task, OperationResult result) {
+        public String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, boolean retry, Task task, OperationResult result) {
             var definition =  new ConnDevGenerateArtifactDefinitionType()
                     .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    .skipCache(retry)
                     .artifact(artifact.clone());
             customizer.accept(definition);
-            return submitTask("Generating script " + artifact.getFilename(),
+            return submitTask("Generating script " + artifact.getFilename() + " for " + connectorNameForTasks(),
                     new WorkDefinitionsType().generateConnectorArtifact(definition), task, result);
         }
 

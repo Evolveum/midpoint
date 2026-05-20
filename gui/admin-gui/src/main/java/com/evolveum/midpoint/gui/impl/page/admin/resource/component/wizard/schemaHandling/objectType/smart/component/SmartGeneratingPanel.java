@@ -13,6 +13,8 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
@@ -141,15 +143,15 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                         return;
                     }
 
-                    final boolean finished = dto.isFinished();
-                    final boolean failed = dto.isFailed();
-                    final boolean suspended = dto.isSuspended();
-
                     if (dto.getStatusInfo() != null) {
                         dto.getStatusInfo().reset();
                     } else {
                         LOGGER.debug("StatusInfo is null for DTO {}", dto);
                     }
+
+                    final boolean finished = dto.isFinished();
+                    final boolean failed = dto.isFailed();
+                    final boolean suspended = dto.isSuspended();
 
                     if (finished && !failed && !suspended) {
                         try {
@@ -403,7 +405,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         if (target != null) {
             target.add(SmartGeneratingPanel.this);
         }
-        getModel().detach();
+
     }
 
     protected boolean allowRerun() {

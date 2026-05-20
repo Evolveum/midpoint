@@ -304,8 +304,12 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     AssignmentObjectRelation relationSpec,
                     boolean isDuplicate,
                     StatusInfo<?> statusInfo) {
+
                 PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(
                         getPageBase(), value, target);
+                if (newValue == null) {
+                    return;
+                }
                 showTableForItemRefs(target, this::findAssociatedParentContainerWrapper,
                         () -> newValue, (StatusInfo<CorrelationSuggestionsType>) statusInfo);
             }
@@ -318,13 +322,6 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
             String resourceOid,
             @NotNull IModel<Boolean> switchToggleModel) {
-
-        LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
-            @Override
-            protected @NotNull SmartGeneratingAlertDto load() {
-                return new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase());
-            }
-        };
 
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL, suggestionModel) {
             @Override
@@ -460,7 +457,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             PrismContainerValue<ItemsSubCorrelatorType> value,
             AjaxRequestTarget target) {
         return SmartIntegrationWrapperUtils.createNewItemsSubCorrelatorValue(
-                pageBase, getValueModel(), value, target);
+                pageBase, getFeedback(), getValueModel(), value, target);
     }
 
     private @NotNull Boolean isNotShownContainerInfo() {
@@ -625,7 +622,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         return "";
     }
 
-    protected IModel<Boolean> getSwitchToggleModel(){
+    protected IModel<Boolean> getSwitchToggleModel() {
         return switchToggleModel;
     }
 }

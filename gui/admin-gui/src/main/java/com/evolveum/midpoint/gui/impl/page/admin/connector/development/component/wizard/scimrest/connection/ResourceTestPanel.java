@@ -87,6 +87,7 @@ public class ResourceTestPanel extends BasePanel<String> {
                 try {
                     boolean failed;
                     Task task = getPageBase().createSimpleTask("testResource");
+                    customizeTask(task);
                     OperationResult result = task.getResult();
                     try {
                         getPageBase().getModelService().testResource(getModelObject(), task, result);
@@ -121,6 +122,10 @@ public class ResourceTestPanel extends BasePanel<String> {
                 }
             }
         };
+    }
+
+    protected void customizeTask(Task task) {
+        // NOOP: for overriding
     }
 
     private void initCorePart(@NotNull WebMarkupContainer bodyContainer) {

@@ -6,10 +6,10 @@
 
 package com.evolveum.midpoint.model.intest.rbac;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,9 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -36,6 +33,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,6 +41,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -1304,7 +1303,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         UserType user = new UserType()
                 .name("test260")
                 .beginAssignment()
-                    .targetRef(ROLE_CONTROLLING_1_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_CONTROLLING_1_OID, RoleType.COMPLEX_TYPE)
                 .end();
         addObject(user, task, result);
 
@@ -1315,8 +1314,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertUserAfter(user.getOid())
                 .assertAssignments(2)
                 .assignments()
-                    .assertRole(ROLE_CONTROLLING_1_OID)
-                    .assertOrg(ORG_EXECUTIVE_RANDOM.oid);
+                .assertRole(ROLE_CONTROLLING_1_OID)
+                .assertOrg(ORG_EXECUTIVE_RANDOM.oid);
     }
 
     @Test
@@ -1565,10 +1564,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertUserAfter(USER_MARTIN.oid)
                 .assignments()
                 .assertAssignments(2)
-                    .assertRole(ROLE_APPLICATION_2.oid)
-                    .assertRole(ROLE_BUSINESS_2.oid);
+                .assertRole(ROLE_APPLICATION_2.oid)
+                .assertRole(ROLE_BUSINESS_2.oid);
     }
-
 
     /**
      * When previewing assignment addition with pruning action present, the pruning itself should not be executed.
@@ -1741,16 +1739,16 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles = rolesTriple.getZeroSet();
         assertEquals("Wrong number of evaluated role", 1, evaluatedRoles.size());
         assertEvaluatedRole(evaluatedRoles, ROLE_MINISTER_OID);
-        Collection<? extends EvaluatedPolicyRule> allTargetsPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
+        Collection<? extends DirectlyEvaluatedClockworkPolicyRule> allTargetsPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
         display("Evaluated policy rules", allTargetsPolicyRules);
         assertEquals("Wrong number of evaluated policy rules", 2, allTargetsPolicyRules.size());
-        EvaluatedPolicyRule evaluatedSodPolicyRule = getEvaluatedPolicyRule(allTargetsPolicyRules, GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME);
+        DirectlyEvaluatedClockworkPolicyRule evaluatedSodPolicyRule = getEvaluatedPolicyRule(allTargetsPolicyRules, GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME);
         EvaluatedPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
         displayDumpable("Own trigger", sodTrigger);
         assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
         EvaluatedPolicyRuleTrigger<?> situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
         displayDumpable("Situation trigger", situationTrigger);
-        PolicyActionsType sodActions = evaluatedSodPolicyRule.getActions();
+        PolicyActionsType sodActions = evaluatedSodPolicyRule.getRawActions();
         display("Actions", sodActions);
         assertPolicyActionApproval(evaluatedSodPolicyRule);
     }
@@ -1871,18 +1869,18 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
     }
 
-    private void assertPolicyActionApproval(EvaluatedPolicyRule evaluatedPolicyRule) {
-        PolicyActionsType actions = evaluatedPolicyRule.getActions();
+    private void assertPolicyActionApproval(DirectlyEvaluatedClockworkPolicyRule evaluatedPolicyRule) {
+        PolicyActionsType actions = evaluatedPolicyRule.getRawActions();
         assertNotNull("No policy actions in " + evaluatedPolicyRule, actions);
         assertFalse("No approval action in " + evaluatedPolicyRule, actions.getApproval().isEmpty());
     }
 
-    private void assertEvaluatedPolicyRuleTriggers(EvaluatedPolicyRule evaluatedPolicyRule,
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
+    private void assertEvaluatedPolicyRuleTriggers(DirectlyEvaluatedClockworkPolicyRule evaluatedPolicyRule,
+                                                   Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
         assertEquals("Wrong number of triggers in evaluated policy rule " + evaluatedPolicyRule.getName(), expectedNumberOfTriggers, triggers.size());
     }
 
-    private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+    private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(DirectlyEvaluatedClockworkPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         assertEvaluatedPolicyRuleTriggers(evaluatedPolicyRule, triggers, 1);
         return triggers.iterator().next();
     }
@@ -1894,7 +1892,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     }
 
     @SuppressWarnings("SameParameterValue")
-    private EvaluatedPolicyRule getEvaluatedPolicyRule(Collection<? extends EvaluatedPolicyRule> evaluatedPolicyRules, String ruleName) {
+    private DirectlyEvaluatedClockworkPolicyRule getEvaluatedPolicyRule(Collection<? extends DirectlyEvaluatedClockworkPolicyRule> evaluatedPolicyRules, String ruleName) {
         return evaluatedPolicyRules.stream().filter(rule -> ruleName.equals(rule.getName())).findFirst().get();
     }
 

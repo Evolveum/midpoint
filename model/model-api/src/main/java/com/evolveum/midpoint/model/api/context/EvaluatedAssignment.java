@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -73,36 +75,40 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
      * - even those that were not triggered. The policy rules are compiled from all the applicable
      * sources (target, meta-roles, etc.)
      */
-    @NotNull Collection<? extends EvaluatedPolicyRule> getObjectPolicyRules();
+    @NotNull Collection<? extends DirectlyEvaluatedClockworkPolicyRule> getObjectPolicyRules();
 
     /**
      * Returns all policy rules that directly apply to the target object of this assignment
      * (and are derived from this assignment) - even those that were not triggered. The policy rules
      * are compiled from all the applicable sources (target, meta-roles, etc.)
+     *
+     * @see TargetType#DIRECT_ASSIGNMENT_TARGET
      */
-    @NotNull Collection<? extends EvaluatedPolicyRule> getThisTargetPolicyRules();
+    @NotNull Collection<? extends DirectlyEvaluatedClockworkPolicyRule> getThisTargetPolicyRules();
 
     /**
      * Returns all policy rules that apply to some other target object of this assignment
      * (and are derived from this assignment) - even those that were not triggered. The policy rules
      * are compiled from all the applicable sources (target, meta-roles, etc.)
+     *
+     * @see TargetType#INDIRECT_ASSIGNMENT_TARGET
      */
-    @NotNull Collection<? extends EvaluatedPolicyRule> getOtherTargetsPolicyRules();
+    @NotNull Collection<? extends DirectlyEvaluatedClockworkPolicyRule> getOtherTargetsPolicyRules();
 
     /**
      * Returns all policy rules that apply to any of the target objects provided by this assignment
      * (and are derived from this assignment) - even those that were not triggered. The policy rules
      * are compiled from all the applicable sources (target, meta-roles, etc.)
      *
-     * The difference to getThisTargetPolicyRules is that if e.g.
-     * jack is a Pirate, and Pirate induces Sailor, then
+     * The difference to {@link #getThisTargetPolicyRules()} is that if e.g. jack is a Pirate, and Pirate induces Sailor, then
      *
-     * - `getThisTargetPolicyRules` will show rules that are attached to Pirate
-     * - `getAllTargetsPolicyRules` will show rules that are attached to Pirate and Sailor
-     * - `getOtherTargetsPolicyRules` will show rules that are attached to Sailor
+     * - {@link #getThisTargetPolicyRules()} will show rules that are attached to Pirate
+     * - {@link #getAllTargetsPolicyRules()} (this method) will show rules that are attached to Pirate and Sailor
+     * - {@link #getOtherTargetsPolicyRules()} will show rules that are attached to Sailor
      */
+    @SuppressWarnings("JavadocDeclaration")
     @NotNull
-    Collection<? extends EvaluatedPolicyRule> getAllTargetsPolicyRules();
+    Collection<? extends DirectlyEvaluatedClockworkPolicyRule> getAllTargetsPolicyRules();
 
     /**
      * Returns {@link #getAllTargetsPolicyRules()} plus so-called "foreign policy rules". Those are rules that are related
@@ -110,9 +116,9 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
      * This is necessary to implement "declare once, use twice" approach where it should be sufficient to declare an exclusion
      * constraint at one of the targets only. See e.g. MID-8269.
      *
-     * There are important things to be aware of, though. Please see {@link AssociatedPolicyRule} for more information.
+     * There are important things to be aware of, though. See {@link ForeignEvaluatedClockworkPolicyRule} for more information.
      */
-    @NotNull Collection<AssociatedPolicyRule> getAllAssociatedPolicyRules();
+    @NotNull Collection<EvaluatedClockworkPolicyRule> getAllAssociatedPolicyRules();
 
     /**
      * How many target policy rules are there.

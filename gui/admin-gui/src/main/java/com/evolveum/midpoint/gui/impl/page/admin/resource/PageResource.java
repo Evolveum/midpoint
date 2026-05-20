@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;
@@ -226,18 +225,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         showContainerWizardForObjectType(target, pathToValue, ResourceObjectTypeBasicWizardPanel.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void showSynchronizationWizard(
-            @NotNull IModel<PrismContainerValueWrapper<SynchronizationReactionsType>> valueModel,
-            @NotNull AjaxRequestTarget target) {
-        SynchronizationWizardPanel<?, ?> synchronizationWizardPanel = showWizard(
-                valueModel,
-                target,
-                SynchronizationWizardPanel.class
-        );
-        addWizardBreadcrumbsForObjectType(synchronizationWizardPanel, 0);
     }
 
     public void showSynchronizationWizard(AjaxRequestTarget target, @NotNull ItemPath pathToValue) {

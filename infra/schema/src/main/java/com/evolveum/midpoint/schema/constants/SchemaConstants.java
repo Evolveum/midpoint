@@ -362,6 +362,12 @@ public abstract class SchemaConstants {
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState"));
     public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));
+    public static final String MODEL_POLICY_SITUATION_EXECUTION_TIME =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "executionTime"));
+    public static final String MODEL_POLICY_SITUATION_EXECUTION_ATTEMPTS =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "executionAttempts"));
+    public static final String MODEL_POLICY_SITUATION_ITEM_PROCESSING_RESULT =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "itemProcessingResult"));
 
     // TODO decide on the final form of the following (e.g. namespace = model? provisioning? something else?)
     @Experimental public static final String MODEL_POLICY_SITUATION_PROTECTED_SHADOW =

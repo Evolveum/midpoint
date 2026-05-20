@@ -6636,7 +6636,7 @@
                         If set to true the script will be evaluated with null value as argument when the input is
                         changed from or to an empty value. This generally works well for most cases. It may be set to
                         false as an optimization.
-                        Note: default setting (true) for this property may be overridden in specific expression 
+                        Note: default setting (true) for this property may be overridden in specific expression
                         evaluators.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -16599,6 +16599,14 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="order" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="enabled" type="xsd:boolean" default="true" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the policy rule will be evaluated.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
              <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16789,7 +16797,10 @@
     <xsd:simpleType name="PolicyConstraintKindType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Denotes the policy constraint kind (type).
+
+                Corresponds to constraint kinds present as items in PolicyConstraintsType
+                and those defined in PolicyConstraintKind (Java).
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -16821,6 +16832,22 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MAX_ASSIGNEES_VIOLATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="objectMinAssigneesViolation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_MIN_ASSIGNEES_VIOLATION"/>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="objectMaxAssigneesViolation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_MAX_ASSIGNEES_VIOLATION"/>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -16921,6 +16948,30 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="COLLECTION_STATS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executionTime">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTION_TIME"/>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executionAttempts">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTION_ATTEMPTS"/>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="itemProcessingResult">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ITEM_PROCESSING_RESULT"/>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -32,7 +32,7 @@ import com.evolveum.midpoint.notifications.impl.events.*;
 import com.evolveum.midpoint.notifications.impl.util.EventHelper;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
+import com.evolveum.midpoint.schema.config.BaseEventHandlerConfigItem;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -125,12 +125,12 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
                 aCase.getApprovalContext(), aCase);
         initializeWorkflowEvent(event, aCase);
 
-        EventHandlerConfigItem customHandlerCI;
+        BaseEventHandlerConfigItem customHandlerCI;
         ExpressionProfile customHandlerProfile;
         EventHandlerType customHandler = notificationAction.getHandler();
         if (customHandler != null) {
             customHandlerCI =
-                    EventHandlerConfigItem.of(
+                    BaseEventHandlerConfigItem.of(
                             customHandler,
                             ConfigurationItemOrigin.undeterminedSafe());
             try {

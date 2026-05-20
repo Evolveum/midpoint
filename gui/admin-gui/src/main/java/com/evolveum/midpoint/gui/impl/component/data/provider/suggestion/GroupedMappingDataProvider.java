@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,14 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
     protected void applySortToDelegate() {
         if (delegate instanceof StatusAwareDataProvider<MappingType> statusAwareDataProvider) {
             statusAwareDataProvider.setSort(getSort());
+        }
+    }
+
+    @Override
+    public void setSort(SortParam<String> param) {
+        super.setSort(param);
+        if (delegate instanceof BaseSortableDataProvider<?> sortableDataProvider) {
+            sortableDataProvider.setSort(param);
         }
     }
 

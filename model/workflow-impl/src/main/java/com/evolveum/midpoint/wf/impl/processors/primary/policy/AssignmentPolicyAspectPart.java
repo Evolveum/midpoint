@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.*;
 
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 
 import org.apache.commons.lang3.Validate;
@@ -155,7 +156,7 @@ public class AssignmentPolicyAspectPart {
         //
         // Also note that these rules may be empty but we still can want to process the assignment,
         // e.g. if default rules are to be applied.
-        List<AssociatedPolicyRule> triggeredApprovalRules =
+        List<EvaluatedClockworkPolicyRule> triggeredApprovalRules =
                 main.selectTriggeredApprovalActionRules(evaluatedAssignment.getAllAssociatedPolicyRules());
 
         logApprovalActions(evaluatedAssignment, triggeredApprovalRules);
@@ -281,17 +282,17 @@ public class AssignmentPolicyAspectPart {
 
     private void logApprovalActions(
             EvaluatedAssignment assignment,
-            List<AssociatedPolicyRule> triggeredApprovalActionRules) {
+            List<EvaluatedClockworkPolicyRule> triggeredApprovalActionRules) {
         if (LOGGER.isDebugEnabled()
                 && (!triggeredApprovalActionRules.isEmpty())) {
             LOGGER.debug("Assignment to be {}: {}: {} this target policy rules, {} triggered approval action rules:",
                     getAssignmentChangeVerb(assignment), assignment, assignment.getThisTargetPolicyRules().size(),
                     triggeredApprovalActionRules.size());
-            for (AssociatedPolicyRule rule : triggeredApprovalActionRules) {
+            for (EvaluatedClockworkPolicyRule rule : triggeredApprovalActionRules) {
                 LOGGER.debug(" - Rule: {}", rule.toShortString());
                 LOGGER.debug("   - Approval actions: {}", rule.getEnabledActions(ApprovalPolicyActionType.class));
                 // TODO somehow distinguish own/foreign rules
-                for (EvaluatedPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getTriggers()) {
+                for (EvaluatedPolicyRuleTrigger<?> trigger : rule.getTriggers()) {
                     LOGGER.debug("   - Trigger: {}", trigger);
                 }
             }
@@ -309,7 +310,7 @@ public class AssignmentPolicyAspectPart {
     }
 
     private ApprovalSchemaBuilder.Result createSchemaWithRules(
-            @NotNull List<AssociatedPolicyRule> triggeredApprovalRules,
+            @NotNull List<EvaluatedClockworkPolicyRule> triggeredApprovalRules,
             @NotNull EvaluatedAssignment evaluatedAssignment,
             @NotNull ModelInvocationContext<?> ctx,
             @NotNull OperationResult result) throws SchemaException {
@@ -327,7 +328,7 @@ public class AssignmentPolicyAspectPart {
         }
 
         // actions from triggered rules on this assignment
-        for (AssociatedPolicyRule approvalRule : triggeredApprovalRules) {
+        for (EvaluatedClockworkPolicyRule approvalRule : triggeredApprovalRules) {
             for (PolicyActionConfigItem<ApprovalPolicyActionType> approvalAction :
                     approvalRule.getEnabledActions(ApprovalPolicyActionType.class)) {
                 builder.add(

@@ -180,8 +180,8 @@
         JVM args for testing plugins, can be used to add profiling, etc.
         Option add-exports is added because OpenDJ on JDK 17 uses some recently hidden API.
         -->
-        <surefire.args>-Xms1024m -Xmx6144m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
-        <failsafe.args>-Xms1024m -Xmx6144m -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
+        <surefire.args>-Xms1g -Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
+        <failsafe.args>-Xms1g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
         <!-- surefire & failsafe argument line for integration with jacoco code coverage
              by default it is empty (no jacoco) but jacoco-maven-plugin) sets it to actual configuration in build.
              this argLine should be used as @{jacoco.argLine} to not replace it during POM reading for surefire and failsafe
@@ -225,7 +225,6 @@
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- security fixes -->
-        <postgresql.version>42.7.7</postgresql.version>
 
         <!-- Groovy 4.0.x supports Java 25 class files (major version 69). -->
         <groovy.version>4.0.31</groovy.version>
@@ -233,14 +232,17 @@
         <cel.version>0.12.0</cel.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
+        <tomcat.version>10.1.55</tomcat.version>
+        <netty.version>4.1.133.Final</netty.version>
+        <postgresql.version>42.7.11</postgresql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
-        <commons.fileupload2.version>2.0.0-M4</commons.fileupload2.version>
+        <commons.fileupload2.version>2.0.0-M5</commons.fileupload2.version>
 
-        <wicket.version>10.8.0</wicket.version>
+        <wicket.version>10.9.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6</wicket.chartjs.version>
 
@@ -2233,8 +2235,8 @@
             <id>sqale</id>
             <properties>
                 <!-- Switches test config.xml to the one declaring "sqale" repository. -->
-                <surefire.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
-                <failsafe.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
+                <surefire.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
+                <failsafe.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
         </profile>
         <profile>

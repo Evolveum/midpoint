@@ -22,7 +22,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -844,14 +844,14 @@ public class TestPolicyRules2 extends AbstractLensTest {
         then();
         displayDumpable("Output context", context);
 
-        Map<String, EvaluatedPolicyRule> rules = new HashMap<>();
+        Map<String, DirectlyEvaluatedClockworkPolicyRule> rules = new HashMap<>();
         forEvaluatedFocusPolicyRule(context, (r) -> {
             displayDumpable("rule", r);
             rules.put(r.getName(), r);
         });
 
         assertEquals("Wrong # of policy rules", 5, rules.size());
-        EvaluatedPolicyRule rule1 = rules.get("rule1");
+        DirectlyEvaluatedClockworkPolicyRule rule1 = rules.get("rule1");
         assertNotNull("no rule1", rule1);
         PolicyConstraintsType pc1 = rule1.getPolicyConstraints();
         assertEquals(1, pc1.getAnd().size());
@@ -860,7 +860,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertEquals("mod-riskLevel-and-inducement", pc1inner.getAnd().get(0).getName());
         assertEquals(2, pc1inner.getAnd().get(0).getModification().size());
 
-        EvaluatedPolicyRule rule2 = rules.get("rule2");
+        DirectlyEvaluatedClockworkPolicyRule rule2 = rules.get("rule2");
         assertNotNull("no rule2", rule2);
         PolicyConstraintsType pc2 = rule2.getPolicyConstraints();
         assertEquals("mod-description-and-riskLevel-and-inducement", pc2.getName());
@@ -868,14 +868,14 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertEquals(2, pc2.getAnd().get(0).getModification().size());
         assertEquals("Constraints in rule1, rule2 are different", pc1inner, pc2);
 
-        EvaluatedPolicyRule rule3 = rules.get("rule3");
+        DirectlyEvaluatedClockworkPolicyRule rule3 = rules.get("rule3");
         assertNotNull("no rule3", rule3);
         PolicyConstraintsType pc3 = rule3.getPolicyConstraints();
         assertEquals("mod-riskLevel-and-inducement", pc3.getName());
         assertEquals(2, pc3.getModification().size());
         assertEquals("Constraints in rule2 and rule3 are different", pc2.getAnd().get(0), pc3);
 
-        EvaluatedPolicyRule rule4 = rules.get("rule4");
+        DirectlyEvaluatedClockworkPolicyRule rule4 = rules.get("rule4");
         assertNotNull("no rule4", rule4);
         PolicyConstraintsType pc4 = rule4.getPolicyConstraints();
         assertEquals(1, pc4.getModification().size());

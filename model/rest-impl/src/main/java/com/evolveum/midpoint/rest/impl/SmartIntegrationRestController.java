@@ -31,16 +31,15 @@ public class SmartIntegrationRestController extends AbstractRestController {
 
     private static final String CLASS_DOT = SmartIntegrationRestController.class.getName() + ".";
 
-    private static final String OPERATION_SUGGEST_OBJECT_TYPES = CLASS_DOT + "suggestObjectTypes";
-    private static final String OPERATION_SUGGEST_CORRELATIONS = CLASS_DOT + "suggestCorrelations";
-    private static final String OPERATION_SUGGEST_MAPPINGS = CLASS_DOT + "suggestMappings";
-    private static final String OPERATION_SUGGEST_FOCUS_TYPE = CLASS_DOT + "suggestFocusType";
-    private static final String OPERATION_SUGGEST_ASSOCIATION_TYPE = CLASS_DOT + "suggestAssociations";
+    private static final String OPERATION_SUGGEST_OBJECT_TYPES = CLASS_DOT + "SuggestObjectTypes";
+    private static final String OPERATION_SUGGEST_CORRELATIONS = CLASS_DOT + "SuggestCorrelations";
+    private static final String OPERATION_SUGGEST_MAPPINGS = CLASS_DOT + "SuggestMappings";
+    private static final String OPERATION_SUGGEST_FOCUS_TYPE = CLASS_DOT + "SuggestFocusType";
+    private static final String OPERATION_SUGGEST_ASSOCIATION_TYPE = CLASS_DOT + "SuggestAssociations";
 
     private static final int TIMEOUT = 1000;
 
     @Autowired private SmartIntegrationService smartIntegrationService;
-    @Autowired private ModelService modelService;
 
     /**
      * Suggests object types (and their delineations) for the given resource and object class.

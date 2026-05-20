@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
+import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDivider;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -54,7 +55,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -179,12 +179,15 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<C> tileModel) {
         List<InlineMenuItem> allItems = new ArrayList<>();
+        allItems.add(createEditInlineMenu(tileModel));
+        allItems.add(createDuplicateInlineMenu(tileModel));
+        allItems.add(createSectionDivider());
+
         List<InlineMenuItem> menuItems = getDefaultMenuActions(tileModel);
         if (menuItems != null) {
             allItems.addAll(menuItems);
         }
-        allItems.add(createEditInlineMenu(tileModel));
-        allItems.add(createDuplicateInlineMenu(tileModel));
+
         return allItems;
     }
 
@@ -285,6 +288,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
+            public @Nullable CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("text-danger fa-trash");
+            }
+
+            @Override
             public InlineMenuItemAction initAction() {
                 ColumnMenuAction<PrismContainerValueWrapper<C>> deleteColumnAction = createDeleteColumnAction();
                 if (model != null) {
@@ -299,6 +307,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     protected @NotNull InlineMenuItem createDuplicateInlineMenu(PrismContainerValueWrapper<C> tileModel) {
         return new InlineMenuItem(getPageBase().createStringResource("DuplicationProcessHelper.menu.duplicate")) {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public @Nullable CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-copy");
+            }
 
             @Override
             public InlineMenuItemAction initAction() {

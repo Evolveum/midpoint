@@ -9,21 +9,15 @@ package com.evolveum.midpoint.model.api.context;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class EvaluatedCollectionStatsTrigger extends EvaluatedPolicyRuleTrigger<CollectionStatsPolicyConstraintType> {
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.COLLECTION_STATS;
+
+public class EvaluatedCollectionStatsTrigger extends EvaluatedClockworkPolicyRuleTrigger<CollectionStatsPolicyConstraintType> {
 
     public EvaluatedCollectionStatsTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull CollectionStatsPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage) {
-        super(kind, constraint, message, shortMessage, false);
-    }
-
-    @Override
-    public EvaluatedCollectionStatsTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedCollectionStatsTriggerType rv = new EvaluatedCollectionStatsTriggerType();
-        fillCommonContent(rv);
-        return rv;
+            @NotNull CollectionStatsPolicyConstraintType constraint,
+            LocalizableMessage message,
+            LocalizableMessage shortMessage) {
+        super(COLLECTION_STATS, constraint, message, shortMessage, false);
     }
 }

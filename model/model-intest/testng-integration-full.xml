@@ -146,6 +146,9 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsMultiNode"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsSingleTaskMultipleThreads"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsSingleThread"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyInActivity"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyInParentActivity"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestVirtualAssignmentInActivity"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestMiscTasks"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestShadowReclassification"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskActivityPolicies"/>

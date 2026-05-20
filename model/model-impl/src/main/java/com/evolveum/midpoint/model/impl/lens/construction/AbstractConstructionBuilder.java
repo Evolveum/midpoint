@@ -40,7 +40,8 @@ public class AbstractConstructionBuilder
 
     /** [EP:CONSTR] DONE 1/1 */
     public RT constructionBean(@NotNull ACT bean, @NotNull ConfigurationItemOrigin constructionOrigin) {
-        constructionConfigItem = ConfigurationItem.of(bean, constructionOrigin);
+        //noinspection unchecked
+        constructionConfigItem = ConfigurationItem.configItem(bean, constructionOrigin, ConfigurationItem.class);
         return typedThis();
     }
 

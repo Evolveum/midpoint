@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class ConnectorDevelopmentWizardUtil {
 
@@ -533,19 +534,9 @@ public class ConnectorDevelopmentWizardUtil {
 
     private static final String CONNECTOR_FACADE_PREFIX = "org.identityconnectors.framework.api.ConnectorFacade";
 
-    public static Collection<String> getConnectorLogs(OperationResult result) {
+    public static Collection<String> getConnectorLogs(OperationResult parent) {
         List<String> logs = new ArrayList<>();
-        collectConnectorLogs(result, logs);
-        return logs;
-    }
-
-    private static void collectConnectorLogs(OperationResult result, List<String> logs) {
-        if (result == null) {
-            return;
-        }
-
-        String operation = result.getOperation();
-        if (operation != null && operation.startsWith(CONNECTOR_FACADE_PREFIX)) {
+        collectConnectorResults(parent, (result) -> {
             List<LogSegmentType> logSegments = result.getLogSegments();
             if (logSegments != null) {
                 for (LogSegmentType segment : logSegments) {
@@ -554,10 +545,22 @@ public class ConnectorDevelopmentWizardUtil {
                     }
                 }
             }
+        });
+        return logs;
+    }
+
+    public static void collectConnectorResults(OperationResult result, Consumer<OperationResult> collector) {
+        if (result == null) {
+            return;
+        }
+
+        String operation = result.getOperation();
+        if (operation != null && operation.startsWith(CONNECTOR_FACADE_PREFIX)) {
+            collector.accept(result);
         }
 
         for (OperationResult subresult : result.getSubresults()) {
-            collectConnectorLogs(subresult, logs);
+            collectConnectorResults(subresult, collector);
         }
     }
 
@@ -570,5 +573,19 @@ public class ConnectorDevelopmentWizardUtil {
                         .levelOverride(new ClassLoggerLevelOverrideType()
                                 .logger(POLYGON_SCIMREST)
                                 .level(LoggingLevelType.TRACE))));
+    }
+
+    public static void appendLogsAsContext(OperationResult result) {
+        var logs = new StringBuilder();
+        List<LogSegmentType> logSegments = result.getLogSegments();
+        if (logSegments != null) {
+            for (LogSegmentType segment : logSegments) {
+                if (segment.getEntry() != null) {
+                    logs.append(segment.getEntry());
+                    logs.append("\n");
+                }
+            }
+        }
+        result.addContext("logs", logs.toString());
     }
 }

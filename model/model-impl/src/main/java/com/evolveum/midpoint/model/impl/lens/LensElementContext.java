@@ -533,11 +533,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         policyRulesContext.setCounter(policyRuleIdentifier, value);
     }
 
-    public @NotNull Collection<EvaluatedPolicyRuleImpl> getObjectPolicyRules() {
+    public @NotNull Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> getObjectPolicyRules() {
         return policyRulesContext.getObjectPolicyRules();
     }
 
-    public void setObjectPolicyRules(Collection<EvaluatedPolicyRuleImpl> policyRules) {
+    public void setObjectPolicyRules(Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> policyRules) {
         policyRulesContext.clearObjectPolicyRules();
         policyRulesContext.addObjectPolicyRules(policyRules);
     }
