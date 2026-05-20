@@ -61,6 +61,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
     private static final File CERT_DEF_USER_ASSIGNMENT_BASIC_FILE =
             new File(COMMON_DIR, "certification-of-eroot-user-assignments.xml");
+    private static final String LARGE_CAMPAIGN_OID = "00000000-1111-2222-3333-000000010001";
+    private static final int LARGE_CAMPAIGN_CASES = 10_010;
 
     private AccessCertificationDefinitionType certificationDefinition;
     private AccessCertificationDefinitionType roleInducementCertDefinition;
@@ -968,6 +970,63 @@ public class TestCertificationBasic extends AbstractCertificationTest {
                                 .assertValue(C_WI_CLOSED, s -> s.contains(year)));
     }
 
+    /**
+     * Regression test for MID-11043 large-campaign certification container retrieval.
+     *
+     * On native repository, certification case/work-item searches used to be vulnerable to
+     * result truncation when more than 10,000 containers matched. This test verifies that
+     * AccCertQueryHelper returns all cases for a large campaign and that closeCurrentStage()
+     * closes work items for the full campaign, not just the first fetched batch.
+     */
+    @Test
+    public void test890SearchLargeCampaignContainers() throws Exception {
+        skipIfNotNativeRepository();
+        login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+        given();
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+        deleteLargeCampaignIfPresent(result);
+
+        AccessCertificationCampaignType campaign = new AccessCertificationCampaignType()
+                .name("large certification container search regression")
+                .ownerRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
+                .state(AccessCertificationCampaignStateType.IN_REVIEW_STAGE)
+                .stageNumber(1)
+                .iteration(1)
+                .stageDefinition(new AccessCertificationStageDefinitionType()
+                        .number(1)
+                        .outcomeIfNoReviewers(NO_RESPONSE))
+                .stage(new AccessCertificationStageType()
+                        .id(1L)
+                        .number(1)
+                        .iteration(1))
+                .oid(LARGE_CAMPAIGN_OID);
+        for (int i = 1; i <= LARGE_CAMPAIGN_CASES; i++) {
+            campaign.getCase().add(createLargeCampaignCase(i));
+        }
+        repositoryService.addObject(campaign.asPrismObject(), null, result);
+
+        try {
+            when();
+            List<AccessCertificationCaseType> cases = queryHelper.searchCases(LARGE_CAMPAIGN_OID, null, result);
+            List<AccessCertificationCaseType> currentIterationCases =
+                    queryHelper.getAllCurrentIterationCases(LARGE_CAMPAIGN_OID, 1, result);
+            certificationManager.closeCurrentStage(LARGE_CAMPAIGN_OID, task, result);
+            List<AccessCertificationCaseType> closedCases = queryHelper.searchCases(LARGE_CAMPAIGN_OID, null, result);
+
+            then();
+            assertEquals("Wrong # of certification cases", LARGE_CAMPAIGN_CASES, cases.size());
+            assertEquals("Wrong # of current-iteration certification cases",
+                    LARGE_CAMPAIGN_CASES, currentIterationCases.size());
+            assertEquals("Wrong # of closed certification work items",
+                    LARGE_CAMPAIGN_CASES, countClosedWorkItems(closedCases));
+        } finally {
+            deleteLargeCampaignIfPresent(result);
+        }
+    }
+
     @Test
     public void test900CleanupCampaignsDeny() throws Exception {
         login(getUserFromRepo(USER_ELAINE_OID));
@@ -1064,5 +1123,35 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertEquals("Wrong # of remaining campaigns", 1, campaignsAfter.size());
         PrismObject<AccessCertificationCampaignType> remainingCampaign = campaignsAfter.get(0);
         assertEquals("Wrong name of the remaining campaign", "c1", remainingCampaign.getName().getOrig());
+    }
+
+    private AccessCertificationCaseType createLargeCampaignCase(int id) {
+        return new AccessCertificationCaseType()
+                .id((long) id)
+                .stageNumber(1)
+                .iteration(1)
+                .objectRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
+                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .workItem(new AccessCertificationWorkItemType()
+                        .id((long) id)
+                        .stageNumber(1)
+                        .iteration(1)
+                        .assigneeRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
+                        .originalAssigneeRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE));
+    }
+
+    private void deleteLargeCampaignIfPresent(OperationResult result) {
+        try {
+            repositoryService.deleteObject(AccessCertificationCampaignType.class, LARGE_CAMPAIGN_OID, result);
+        } catch (ObjectNotFoundException e) {
+            // ok
+        }
+    }
+
+    private long countClosedWorkItems(List<AccessCertificationCaseType> cases) {
+        return cases.stream()
+                .flatMap(aCase -> aCase.getWorkItem().stream())
+                .filter(workItem -> workItem.getCloseTimestamp() != null)
+                .count();
     }
 }
