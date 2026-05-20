@@ -264,7 +264,7 @@ It will make midPoint slightly slower, but it may resolve the issue.
 [[default-target-reference]]
 ==== Default target reference
 
-In case you work with a filter that may not return any value, you can specify a fallback target reference that would be used in such a case.
+In case you work with a filter that may not return any value, you can specify a fallback target reference that would be returned in such a case.
 
 .Default target reference example usage
 [source,xml]
@@ -482,7 +482,7 @@ Possible values are `inRepository`, `onResource`, and `onResourceIfNeeded`.
 
 [NOTE]
 ====
-You can use both the link:#default-target-reference[default target reference] and link:#include-null-inputs[includeNullInputs] options for association target search the same way as for assignment target search.
+You can use the link:#default-target-reference[default target reference] and link:#include-null-inputs[force null input processing] for association target search the same way as for assignment target search.
 ====
 === Association From Link
 
