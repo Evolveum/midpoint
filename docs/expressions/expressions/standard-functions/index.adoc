@@ -248,18 +248,6 @@ Creates a prepared query for the given query string.
 * throws:
     ** `SchemaException`
 
-=== getOperationOptionsBuilder()
-
-Creates a builder for constructing query options structure.
-See xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[] for examples.
-
-* parameters:
-    ** The function does not accept any parameters.
-* returns:
-    ** `GetOperationOptionsBuilder`
-* throws:
-    ** The function does not throw any exceptions.
-
 === searchObjects()
 
 Searches for objects of the given type using the supplied query.
