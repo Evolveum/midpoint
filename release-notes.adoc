@@ -105,6 +105,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fix 10k limit in certification queries using iterative search. See bug:MID-11043[]
 * Fixed generic "Fatal error" message in object tables to show available list/search error details. See bug:MID-10911[]
 * Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
+* Fixed serialization of focus preview changes page by avoiding retained live model context. See bug:MID-11082[]
 
 === Releases Of Other Components
 
