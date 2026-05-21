@@ -44,6 +44,12 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
  * EXISTS. This optimizer groups compatible subtree org branches by target relation and replaces
  * multi-org groups with one semijoin-style EXISTS using {@code ancestor_oid in (...)}. Branches
  * outside the optimized groups are preserved and processed through the normal sqale path.
+ *
+ * Example: an OR like
+ * {@code isChildOf(orgA) OR id(orgA) OR isChildOf(orgB) OR id(orgB)}
+ * is rewritten to one subtree check using {@code ancestor_oid IN (orgA, orgB)}
+ * plus one object OID check using {@code oid IN (orgA, orgB)}. Non-compatible
+ * branches remain in the OR and are processed normally.
  */
 public class OrgFilterOrOptimizer implements FilterProcessor<OrFilter> {
 
@@ -144,6 +150,15 @@ public class OrgFilterOrOptimizer implements FilterProcessor<OrFilter> {
                 context.uniqueAliasName(QOrgClosure.DEFAULT_ALIAS_NAME));
     }
 
+    /**
+     * Parsed representation of an OR filter split into parts that can be optimized
+     * and parts that must keep the standard processing path.
+     *
+     * Compatible subtree org filters are grouped by target parent-org relation.
+     * Simple object OID filters are split later: OIDs matching optimized org groups
+     * become self branches of those groups, while unrelated OIDs stay as normal
+     * leftover OID predicates.
+     */
     private static class Optimization {
         // null key means ANY target parentOrgRef relation
         private final Map<QName, OrgGroup> orgGroups = new LinkedHashMap<>();
@@ -245,6 +260,15 @@ public class OrgFilterOrOptimizer implements FilterProcessor<OrFilter> {
         }
     }
 
+    /**
+     * Group of subtree org filters that can share one optimized EXISTS predicate.
+     *
+     * All org filters in the group use the same target parent-org relation.
+     * The optimized predicate checks whether one of the object's parent-org refs,
+     * optionally constrained by relation, points to a descendant of any
+     * {@link #orgOids}. Optional {@link #selfOids} represent direct object OID
+     * branches such as those produced by includeReferenceOrg-style filters.
+     */
     private static class OrgGroup {
         private final QName relation;
         private final Set<String> orgOids = new LinkedHashSet<>();
