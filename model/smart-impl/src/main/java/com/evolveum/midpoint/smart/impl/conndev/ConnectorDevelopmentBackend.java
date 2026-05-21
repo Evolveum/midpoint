@@ -542,6 +542,8 @@ public abstract class ConnectorDevelopmentBackend {
         for (var relation : connector.getRelation()) {
             putCodegenArtifact(client, "codegen/{sessionId}/relations/" + relation.getName(), relation.getSchemaScript());
         }
+
+        putCodegenArtifact(client, "codegen/{sessionId}/authorization", connector.getAuthenticationScript());
     }
 
     protected void putCodegenArtifact(ServiceClient.RestorationClient client, String path, ConnDevArtifactType artifact) throws IOException {
