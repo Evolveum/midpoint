@@ -79,13 +79,11 @@ public class ActivityBasedTaskInformation extends TaskInformation {
         if (activityStateOverview != null) {
             ActivityWorkersInformation workers =
                     ActivityWorkersInformation.fromActivityStateOverview(activityStateOverview);
-            ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(rootTask, FULL_STATE_PREFERRED)
-                    .find(activityPath);
             return new ActivityBasedTaskInformation(
                     task,
                     workers,
                     computeStatus(activityStateOverview, task.getResultStatus(), workers),
-                    progress != null ? progress : ActivityProgressInformation.unknown(activityPath),
+                    selectSubtaskProgress(task, rootTask, activityPath, activityStateOverview),
                     getLocalRootActivityState(task));
         } else {
             return new ActivityBasedTaskInformation(
@@ -95,6 +93,90 @@ public class ActivityBasedTaskInformation extends TaskInformation {
                     ActivityProgressInformation.unknown(activityPath),
                     new ActivityStateType());
         }
+    }
+
+    /**
+     * Selects progress information suitable for displaying a subtask row.
+     *
+     * Worker subtasks are special: using the root activity progress would show the
+     * coordinator/aggregate progress for every worker. For workers, use the per-worker
+     * item progress from the activity overview. Non-worker subtasks keep the original
+     * root-task progress lookup.
+     */
+    private static @NotNull ActivityProgressInformation selectSubtaskProgress(
+            @NotNull TaskType task,
+            @NotNull TaskType rootTask,
+            @NotNull ActivityPath activityPath,
+            @NotNull ActivityStateOverviewType activityStateOverview) {
+
+        if (isWorkerTask(task)) {
+            ActivityProgressInformation workerItemsProgress =
+                    createWorkerProgressFromOverview(task, activityPath, activityStateOverview);
+            return workerItemsProgress != null ?
+                    workerItemsProgress : ActivityProgressInformation.unknown(activityPath);
+        }
+
+        ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(rootTask, FULL_STATE_PREFERRED)
+                .find(activityPath);
+        return progress != null ? progress : ActivityProgressInformation.unknown(activityPath);
+    }
+
+    private static boolean isWorkerTask(@NotNull TaskType task) {
+        ActivityBucketingStateType bucketing = getLocalRootActivityState(task).getBucketing();
+        return bucketing != null
+                && bucketing.getBucketsProcessingRole() == BucketsProcessingRoleType.WORKER;
+    }
+
+    /**
+     * Creates progress information for a worker row from the worker entry in the activity overview.
+     *
+     * The overview entry contains worker-local item counters. Converting them to
+     * {@link ActivityProgressInformation} lets the GUI display processed object counts
+     * for the worker instead of the coordinator's aggregate progress.
+     */
+    private static @Nullable ActivityProgressInformation createWorkerProgressFromOverview(
+            @NotNull TaskType task,
+            @NotNull ActivityPath activityPath,
+            @NotNull ActivityStateOverviewType activityStateOverview) {
+        ItemsProgressInformation itemsProgress = findWorkerItemsProgress(task, activityStateOverview);
+        if (itemsProgress == null) {
+            return null;
+        }
+
+        ActivityStateType localState = getLocalRootActivityState(task);
+        return new ActivityProgressInformation(
+                localState.getIdentifier(),
+                activityPath,
+                localState.getDisplayOrder(),
+                ActivityProgressInformation.RealizationState.fromFullState(localState.getRealizationState()),
+                null,
+                itemsProgress,
+                null);
+    }
+
+    /**
+     * Finds item progress for the given worker task in the activity overview.
+     *
+     * The worker entry is matched by task OID. Its progress contains worker-local
+     * item/object counters, such as successfully processed, failed, skipped, and
+     * optionally expected total.
+     *
+     * @return item progress for the worker, or {@code null} if no matching progress is available
+     */
+    private static @Nullable ItemsProgressInformation findWorkerItemsProgress(
+            @NotNull TaskType task, @NotNull ActivityStateOverviewType activityStateOverview) {
+        String oid = task.getOid();
+        if (oid == null) {
+            return null;
+        }
+
+        return activityStateOverview.getTask().stream()
+                .filter(taskOverview -> taskOverview.getTaskRef() != null)
+                .filter(taskOverview -> Objects.equals(taskOverview.getTaskRef().getOid(), oid))
+                .map(ItemsProgressInformation::fromTaskOverview)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -107,6 +189,16 @@ public class ActivityBasedTaskInformation extends TaskInformation {
         if (progressInformation.isComplete()) {
             // MID-10287 standardize the progress to 1.0 when the task is complete (100%).
             return 1.0;
+        }
+
+        // Use direct item progress for leaf activities. If there is no expected total,
+        // return -1 so the GUI shows only the textual progress label.
+        if (progressInformation.getChildren().isEmpty()) {
+            ItemsProgressInformation itemsProgress = progressInformation.getItemsProgress();
+            if (itemsProgress != null) {
+                float percentage = itemsProgress.getPercentage();
+                return Float.isNaN(percentage) ? -1 : percentage;
+            }
         }
 
         // We need to list only leaf activities. Then compare them to the completed ones.
