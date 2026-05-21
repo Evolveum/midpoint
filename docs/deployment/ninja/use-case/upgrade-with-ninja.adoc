@@ -1,19 +1,28 @@
 = Upgrade with ninja
 :page-toc: top
+:page-description: This document describes how to upgrade midPoint installation using a tool called ninja.
+:page-keywords: upgrade, ninja, distribution upgrade, database schema upgrade, initial objects update
 
 == Introduction
 
-This document describe how to upgrade midPoint installation using tool called ninja.
+This document describes how to upgrade midPoint installation using a tool called _ninja_.
 More overall information about ninja can be found xref:./index.adoc[here].
+
 Ninja supports two different upgrade paths:
 
 * *Feature release upgrade* - from previous version to next one (e.g. 4.7 -> 4.8)
 * *LTS upgrade* - from previous LTS to next one (e.g. 4.4 -> 4.8)
 
-Deployment has to be upgraded to latest maintenance release before it can be upgraded to next version using ninja.
-Ninja supports upgrade only midPoint deployments that use native repository.
+Always upgrade to the latest maintenance release in your version branch before upgrading to the next minor version.
+This is done to mitigate potential issues during upgrade.
+For example, if you are on 4.8 and you want to upgrade to 4.9, first upgrade to the latest 4.8.x release, and only then upgrade to 4.9.
+Also, make sure you read the xref:/midpoint/release/[Release Notes] for the version you are upgrading to, and all intermediate versions between your current and the new version, to be aware of all changes that might affect your upgrade procedure.
 
-For concrete examples of upgrade scenarios, please see <<Upgrade procedure examples>>.
+Always use the version of ninja from the version of midPoint that you are upgrading to, not the version of midPoint that you are currently running.
+
+Ninja only supports upgrading deployments that use xref:/midpoint/reference/repository/native-postgresql/[native repository].
+
+For specific examples of upgrade scenarios, see <<Upgrade procedure examples>>.
 
 == Upgrade procedure overview
 
