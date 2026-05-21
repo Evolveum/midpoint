@@ -82,6 +82,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                     if (auth != null) {
                         auth.setName(jsonAuth.get("name").asText());
                         auth.quirks(jsonAuth.get("quirks").asText());
+                        auth.setRecommended(true);
                         ret.add(auth);
                     }
                 }
