@@ -250,16 +250,36 @@ It will look up the objects by `name` property.
 The name of the object should be the same as the value of `organizationalUnit` variable.
 If such an object is found than an appropriate xref:/midpoint/reference/roles-policies/roles/assignment/[assignment] structure is created, the xref:/midpoint/devel/prism/concepts/object-identifier/[OID] of the org object is placed inside it.
 
-[TIP]
-.Search expression evaluators and includeNullInputs
-====
-Search expression evaluators have changed default for `includeNullInputs`. Null inputs are NOT processed by search expression evaluators by default.
-The reason is that null inputs are usually insignificant for search expression and skipping them results in fewer search operations.
-In case that processing of null inputs is needed it has to be explicitly turned on for search expression evaluators.
-This is usually needed in case that the evaluators should provide "default" values in case that some of the source values is not present.
-Simply speaking: if the expression is not producing a value that you would expect to be produced, turning on `includeNullInputs` will make midPoint slightly slower, but it may solve your problem.
+[[include-null-inputs]]
+==== Force null input processing
 
-====
+Search expression evaluators do not process null inputs by default.
+The rationale is that null inputs are typically irrelevant to searching, and skipping them reduces the number of search operations.
+
+If you need null inputs to be processed—for example, when the evaluator should produce a default value even when the input is absent—use `<includeNullInputs>true</includeNullInputs>`.
+
+If the evaluator is not producing a value you expect, enabling `includeNullInputs` is the first thing to check.
+It will make midPoint slightly slower, but it may resolve the issue.
+
+[[default-target-reference]]
+==== Default target reference
+
+In case you work with a filter that may not return any value, you can specify a fallback target reference that would be returned in such a case.
+
+.Default target reference example usage
+[source,xml]
+----
+<assignmentTargetSearch>
+   <c:targetType>RoleType</c:targetType>
+   <filter>
+       <q:text>identifier = $input</q:text>
+   </filter>
+   <defaultTargetRef oid="6def1235-d25b-4068-a436-5e6f3cb78756" type="RoleType"/> <1>
+</assignmentTargetSearch>
+----
+<1> The role object returned by the search in case the filter does not match any object.
+
+Note that if the `$input` is null and the link:#include-null-inputs[`includeNullInputs`] is not used to force processing of null inputs, the whole search is skipped and the default target reference is not used.
 
 ==== Relation parameter
 
@@ -492,6 +512,10 @@ Possible values are `inRepository`, `onResource`, and `onResourceIfNeeded`.
 </role>
 ----
 
+[NOTE]
+====
+You can use the link:#default-target-reference[default target reference] and link:#include-null-inputs[force null input processing] for association target search the same way as for assignment target search.
+====
 === Association From Link
 
 Association from link searches association similarly like Association target search. The difference is the association is defined by a linked object insted of a direct search within existing resource objects.
