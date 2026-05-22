@@ -310,7 +310,6 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
         }, false) {
             @Override
             protected void createButtons(@NotNull RepeatingView buttonsView) {
-                initActionButton(buttonsView);
                 initDiscardButton(buttonsView);
             }
 
