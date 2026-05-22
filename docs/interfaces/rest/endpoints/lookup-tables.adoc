@@ -8,7 +8,7 @@
 
 == Description
 
-This article describes the lookup tables REST API endpoint.
+This article describes the `lookupTables` REST API endpoint.
 The endpoint serves to create, read, update, delete, and list xref:/midpoint/reference/misc/lookup-tables/[lookup tables].
 
 .Endpoint
@@ -54,13 +54,14 @@ curl --user administrator:y0uR_P455woR*d \
 ====
 By default, the API returns the table rows empty with `"@incomplete": true` identifying that the row data have been omitted.
 
-To force the API to return data in the rows, use the `include=row` query string parameter:
-`http://localhost:8080/midpoint/ws/rest/lookupTables/search?include=row`
+To force the API to return data in the rows, use the `include=row` query string parameter: +
+`+++http://localhost:8080/midpoint/ws/rest/lookupTables/search?include=row+++`
 ====
 
 === Search for lookupTable type objects
 
 Search operation usable for fetching the full list of objects or a list based on filter.
+The empty query filter matches all objects.
 
 include::../operations/examples/raw/search-all.adoc[]
 
