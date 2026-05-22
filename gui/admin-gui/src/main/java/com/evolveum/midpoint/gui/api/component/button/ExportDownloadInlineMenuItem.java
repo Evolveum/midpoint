@@ -68,10 +68,15 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
                 if (StringUtils.isEmpty(name.getObject())) {
                     return ExportDownloadInlineMenuItem.this.getFilename();
                 }
-                return name.getObject();
+                return getVerifiedFileNameWithExtension();
             }
         };
         component.add(ajaxDownloadBehavior);
+    }
+
+    private String getVerifiedFileNameWithExtension() {
+        return name.getObject().endsWith(getFileExtension()) ?
+                name.getObject() : name.getObject() + getFileExtension();
     }
 
     @Override
