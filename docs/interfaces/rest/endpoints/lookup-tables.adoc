@@ -1,14 +1,15 @@
-= Lookup Table type REST Endpoint
+= Lookup table type REST endpoint
 :page-nav-title: Lookup Table
 :page-display-order: 2100
 :page-toc: top
-:page-keywords: [ 'rest', 'lookup', 'endpoint' ]
+:page-keywords: rest, lookup, endpoint
+:page-description: This article describes the lookup tables REST API endpoint.
 :page-upkeep-status: green
 
 == Description
 
-Here we are describing the Lookup Table object type in relation to midPoints REST API. The
-Lookup Table objects are a part of the REST API web resources.
+This article describes the lookup tables REST API endpoint.
+The endpoint serves to create, read, update, delete, and list xref:/midpoint/reference/misc/lookup-tables/[lookup tables].
 
 .Endpoint
 [source, http]
@@ -16,22 +17,22 @@ Lookup Table objects are a part of the REST API web resources.
 lookupTables/
 ----
 
-== Operations And Examples
+== Operations and examples
 
-The Lookup Table type endpoint operations and examples.
+The `lookupTables` endpoint operations and examples.
 
 include::../raw/curl-env-note.adoc[]
 
-For some help regarding the REST examples please see this link:
+Refer to the following article for help regarding usage of the REST examples:
 
 xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
 
 
-=== Create Lookup Table type Object
+=== Create lookupTable type object
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
 
-=== Get Lookup Table type Objects
+=== Get lookupTable type objects
 
 Get operation for fetching a single specific object.
 
@@ -57,7 +58,7 @@ To force the API to return data in the rows, use the `include=row` query string 
 `http://localhost:8080/midpoint/ws/rest/lookupTables/search?include=row`
 ====
 
-=== Search for Lookup Table type Objects
+=== Search for lookupTable type objects
 
 Search operation usable for fetching the full list of objects or a list based on filter.
 
@@ -65,15 +66,15 @@ include::../operations/examples/raw/search-all.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
 
-=== Modify Lookup Table type Objects
+=== Modify lookupTable type objects
 
 - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
 
-=== Delete Lookup Table type Objects
+=== Delete lookupTable type objects
 
 - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
 
-=== Generate and Validate Operations for Lookup Table Objects
+=== Generate and Validate Operations for Lookup Table objects
 
 Operations to generate or validate values.
 
