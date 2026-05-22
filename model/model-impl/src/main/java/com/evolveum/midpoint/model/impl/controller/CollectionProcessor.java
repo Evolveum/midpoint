@@ -685,8 +685,11 @@ public class CollectionProcessor {
                 if (newSearchBoxConfig.getSearchItems() == null) {
                     newSearchBoxConfig.setSearchItems(oldSearchBoxConfig.getSearchItems());
                 }
-                if (CollectionUtils.isEmpty(newSearchBoxConfig.getAvailableFilter())) {
-                    newSearchBoxConfig.getAvailableFilter().addAll(oldSearchBoxConfig.getAvailableFilter());
+                // Due to the ticket #11181 it was decided to change merging strategy for the availableFilter
+                // values in order to gather the saved filters from different admin gui configurations
+                if (CollectionUtils.isNotEmpty(oldSearchBoxConfig.getAvailableFilter())) {
+                    oldSearchBoxConfig.getAvailableFilter().forEach(filter ->
+                            newSearchBoxConfig.getAvailableFilter().add(filter.clone()));
                 }
                 if (newSearchBoxConfig.getDefaultMode() == null) {
                     newSearchBoxConfig.setDefaultMode(oldSearchBoxConfig.getDefaultMode());
