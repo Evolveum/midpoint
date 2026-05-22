@@ -134,8 +134,8 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         @Deprecated
         @Override
         public String submitDiscoverObjectClassDetails(String objectClass, Task task, OperationResult result) {
-            submitDiscoverObjectClassAttributes(objectClass, task, result);
-            return submitDiscoverObjectClassEndpoints(objectClass, task, result);
+            submitDiscoverObjectClassEndpoints(objectClass, task, result);
+            return submitDiscoverObjectClassAttributes(objectClass, task, result);
         }
 
         @Override
