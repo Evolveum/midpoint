@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -66,6 +67,7 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
 
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevAuthInfoType>>> valuesModel;
     private IModel<Boolean> showAllModel = Model.of(false);
+    private List<PrismContainerValueWrapper<ConnDevAuthInfoType>> cachedValues;
 
     public SupportedAuthMethodConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -83,6 +85,9 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
         valuesModel = new LoadableModel<>() {
             @Override
             protected List<PrismContainerValueWrapper<ConnDevAuthInfoType>> load() {
+                if (cachedValues != null) {
+                    return cachedValues;
+                }
                 try {
                     PrismContainerWrapper<ConnDevAuthInfoType> container = getDetailsModel().getObjectWrapper().findContainer(
                             ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH));
@@ -110,14 +115,24 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                                     !Boolean.TRUE.equals(v.getRealValue().isRecommended()))
                             .thenComparing(v -> v.getRealValue().getName()));
 
-                    if (values.size() == 1) {
+                    PrismContainerWrapper<ConnDevAuthInfoType> connContainer = getDetailsModel().getObjectWrapper().findContainer(
+                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH));
+                    List<ConnDevHttpAuthTypeType> alreadySelected = connContainer.getValues().stream()
+                            .map(v -> v.getRealValue().getType())
+                            .toList();
+
+                    if (!alreadySelected.isEmpty()) {
+                        values.forEach(v -> v.setSelected(alreadySelected.contains(v.getRealValue().getType())));
+                    } else if (values.size() == 1) {
                         values.get(0).setSelected(true);
                     }
+                    cachedValues = values;
                     return values;
                 } catch (SchemaException e) {
                     throw new RuntimeException(e);
                 }
             }
+
         };
     }
 
@@ -148,6 +163,17 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                 });
 
                 CheckPanel check = new CheckPanel(ID_CHECK, new PropertyModel<>(listItem.getModel(), "selected"));
+                check.add(new AjaxEventBehavior("click") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                    }
+
+                    @Override
+                    protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                        super.updateAjaxAttributes(attributes);
+                        attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
+                    }
+                });
                 check.setOutputMarkupId(true);
                 listItem.add(check);
 
@@ -171,6 +197,8 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showAllModel.setObject(true);
+                cachedValues = null;
+                valuesModel.detach();
                 target.add(SupportedAuthMethodConnectorStepPanel.this);
             }
 
@@ -186,6 +214,8 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showAllModel.setObject(false);
+                cachedValues = null;
+                valuesModel.detach();
                 target.add(SupportedAuthMethodConnectorStepPanel.this);
             }
 
@@ -251,26 +281,39 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                     getDetailsModel().getObjectWrapper().findContainer(
                             ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH));
 
-            List<PrismContainerValueWrapper<ConnDevAuthInfoType>> valuesForAdd = valuesModel.getObject()
-                    .stream().filter(PrismContainerValueWrapper::isSelected)
-                    .map(value -> {
-                        try {
-                            //noinspection unchecked
-                            return (PrismContainerValueWrapper<ConnDevAuthInfoType>) getPageBase().createValueWrapper(
-                                    container, value.getRealValue().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }).toList();
+            List<ConnDevHttpAuthTypeType> selectedTypes = valuesModel.getObject().stream()
+                    .filter(PrismContainerValueWrapper::isSelected)
+                    .map(v -> v.getRealValue().getType())
+                    .collect(Collectors.toCollection(ArrayList::new));
 
-            valuesForAdd.forEach(value -> {
-                try {
-                    container.getItem().add(value.getRealValue().asPrismContainerValue());
-                    container.getValues().add(value);
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e);
+            new ArrayList<>(container.getValues()).forEach(existing -> {
+                if (selectedTypes.remove(existing.getRealValue().getType())) {
+                    if (existing.getStatus() == ValueStatus.DELETED) {
+                        existing.setStatus(ValueStatus.NOT_CHANGED);
+                    }
+                } else {
+                    existing.setStatus(ValueStatus.DELETED);
                 }
             });
+
+            for (ConnDevHttpAuthTypeType type : selectedTypes) {
+                valuesModel.getObject().stream()
+                        .filter(v -> type.equals(v.getRealValue().getType()))
+                        .findFirst()
+                        .ifPresent(value -> {
+                            try {
+                                //noinspection unchecked
+                                PrismContainerValueWrapper<ConnDevAuthInfoType> newVal =
+                                        (PrismContainerValueWrapper<ConnDevAuthInfoType>) getPageBase().createValueWrapper(
+                                                container, value.getRealValue().asPrismContainerValue().clone(),
+                                                ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                                container.getItem().add(newVal.getRealValue().asPrismContainerValue());
+                                container.getValues().add(newVal);
+                            } catch (SchemaException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+            }
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);
