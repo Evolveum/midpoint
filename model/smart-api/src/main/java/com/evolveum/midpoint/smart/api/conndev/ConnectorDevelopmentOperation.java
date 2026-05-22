@@ -29,6 +29,8 @@ public interface ConnectorDevelopmentOperation {
 
     String submitDiscoverBasicInformation(Task task, OperationResult result);
 
+    String submitDiscoverConnectivityEndpoint(Task task, OperationResult result);
+
     // Midpoint local (AI optional in background)
     void basicConnectorInfoUpdated(ConnectorDevelopmentType  updated);
 

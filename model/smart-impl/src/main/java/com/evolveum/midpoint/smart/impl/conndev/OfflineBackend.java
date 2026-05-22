@@ -201,6 +201,20 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
+    public List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache) {
+        return List.of(
+                new ConnDevHttpEndpointType()
+                        .name("Health check")
+                        .operation(ConnDevHttpOperationType.GET)
+                        .uri("/health"),
+                new ConnDevHttpEndpointType()
+                        .name("List users")
+                        .operation(ConnDevHttpOperationType.GET)
+                        .uri("/api/v1/users")
+        );
+    }
+
+    @Override
     public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache) {
         return switch (objectClass) {
             case "User" -> List.of(
