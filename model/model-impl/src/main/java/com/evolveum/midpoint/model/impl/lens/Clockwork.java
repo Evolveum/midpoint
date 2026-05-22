@@ -104,7 +104,7 @@ public class Clockwork {
         try {
             trace = recordTraceAtStart(context, result);
 
-            ClockworkConflictResolver.Context conflictResolutionContext = new ClockworkConflictResolver.Context();
+            var conflictResolutionContext = new ClockworkConflictResolver.Context(ModelImplUtils.getConflictResolution(context));
 
             HookOperationMode mode = runWithConflictDetection(context, conflictResolutionContext, task, result);
 

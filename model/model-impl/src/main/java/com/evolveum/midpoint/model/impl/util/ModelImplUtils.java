@@ -222,6 +222,10 @@ public class ModelImplUtils {
     }
 
     public static <F extends ObjectType> ConflictResolutionType getConflictResolution(LensContext<F> context) {
+        var resolution = ModelExecuteOptions.getFocusConflictResolution(context.getOptions());
+        if (resolution != null) {
+            return resolution;
+        }
         for (ObjectPolicyConfigurationType p : ModelImplUtils.getApplicablePolicies(context)) {
             if (p.getConflictResolution() != null) {
                 return p.getConflictResolution();

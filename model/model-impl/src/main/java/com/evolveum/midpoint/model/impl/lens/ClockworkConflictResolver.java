@@ -53,7 +53,11 @@ public class ClockworkConflictResolver {
     static class Context {
         private boolean focusConflictPresent;
         private boolean conflictExceptionPresent;
-        private ConflictResolutionType resolutionPolicy;
+        private final ConflictResolutionType resolutionPolicy;
+
+        public Context(ConflictResolutionType resolutionPolicy) {
+            this.resolutionPolicy = resolutionPolicy;
+        }
 
         void recordConflictException() {
             focusConflictPresent = true;
@@ -80,7 +84,6 @@ public class ClockworkConflictResolver {
     }
 
     <F extends ObjectType> void detectFocusConflicts(LensContext<F> context, Context resolutionContext, OperationResult result) {
-        resolutionContext.resolutionPolicy = ModelImplUtils.getConflictResolution(context);
         ConflictWatcher watcher = context.getFocusConflictWatcher();
         if (watcher != null
                 && resolutionContext.resolutionPolicy != null
@@ -181,7 +184,7 @@ public class ClockworkConflictResolver {
             LOGGER.debug("CONFLICT: Recomputing {} as reaction to conflict (options={}, attempts={},{}, readVersion={})",
                     context.getFocusContext().getHumanReadableName(), options, attemptNew, preconditionAttempts, contextNew.getFocusContext().getObjectReadVersion());
 
-            ClockworkConflictResolver.Context conflictResolutionContext = new ClockworkConflictResolver.Context();
+            var conflictResolutionContext = new ClockworkConflictResolver.Context(focusConflictResolution);
 
             // this is a recursion; but limited to max attempts which should not be a large number
             HookOperationMode hookOperationMode =

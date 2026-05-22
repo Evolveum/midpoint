@@ -6,10 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.util.DelayingProgressListener;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -24,6 +26,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.ROLE_SUPERUSER;
 
 import static org.testng.AssertJUnit.*;
 
@@ -113,7 +117,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
     private void deleteAssignment(PrismObject<UserType> user, int index, Task task, OperationResult result) {
         try {
-            login(userAdministrator.copy()); // without cloning there are conflicts on login->getPrincipal->recompute
+            login(userAdministrator.clone()); // without cloning there are conflicts on login->getPrincipal->recompute
             @SuppressWarnings({ "raw" })
             ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
                     .item(FocusType.F_ASSIGNMENT).delete(user.asObjectable().getAssignment().get(index).clone())
@@ -131,7 +135,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
      *
      * #10714
      */
-    @Test(enabled = false) // fails now
+    @Test
     public void test120AssignRoleConcurrently() throws Exception {
         skipIfNotNativeRepository();
 
@@ -145,19 +149,34 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         UserType user = new UserType().name(getTestName());
         String oid = addObject(user.asPrismObject(), task, result);
 
+        var options = ModelExecuteOptions.create()
+                        .focusConflictResolution(new ConflictResolutionType()
+                                .action(ConflictResolutionActionType.RESTART));
+
         when("assigning the same role concurrently in different threads");
         ParallelTestThread[] threads = multithread(
                 new AbstractMultithreadCycleRunner(DURATION) {
                     @Override
                     public void init(int threadIndex) throws Exception {
                         super.init(threadIndex);
-                        login(userAdministrator.mutableCopy());
+                        login(userAdministrator.clone());
                     }
 
                     @Override
                     public void run(int threadIndex, int cycleNumber) throws Exception {
                         Task localTask = createTask(getTestNameShort());
-                        assignRole(oid, ROLE_SUPERUSER.oid, localTask, localTask.getResult());
+                        modifyAssignmentHolderAssignment(
+                                UserType.class,
+                                oid,
+                                ROLE_SUPERUSER.value(),
+                                RoleType.COMPLEX_TYPE,
+                                SchemaConstants.ORG_DEFAULT,
+                                localTask,
+                                null,
+                                null,
+                                true,
+                                options,
+                                localTask.getResult());
                     }
                 },
                 THREADS,
