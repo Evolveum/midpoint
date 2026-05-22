@@ -34,8 +34,8 @@ curl \ <1>
 ----
 [source,shell]
 ----
-curl --user ^ <1>
-administrator:y0uR_P455woR*d ^ <2>
+curl ^ <1>
+--user administrator:y0uR_P455woR*d ^ <2>
 -H "Accept: application/json" ^ <3>
 -H "Content-Type: application/json" ^ <4>
 -X POST http://localhost:8080/midpoint/ws/rest/users/search ^ <5>
@@ -44,7 +44,7 @@ administrator:y0uR_P455woR*d ^ <2>
 ----
 <1> Invocation of curl.
 <2> Authentication with username and password <username:password>.
-    This part of the curl command means that we authorize the request as done by the user administrator with the password "y0uR_P455woR*d".
+    This part of the curl command means that the request is executed by the administrator user with the password "y0uR_P455woR*d".
 <3> Reply content type header format.
 <4> Response content type header format.
 <5> Request with the request method and REST endpoint URI.
@@ -53,19 +53,20 @@ administrator:y0uR_P455woR*d ^ <2>
 
 == Authentication
 
-The midPoint API currently uses only basic username and password authentication.
-For more information regarding this, see
+The midPoint API currently supports only the basic username and password authentication.
+Refer to
 xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[]
+for more information.
 
 == Payload data
 
 Some operations are also required to contain a data payload.
 The content differs based on the operation or endpoint of the request.
 
-In our example, we use the *--data-binary* parameter to mark the beginning of the payload data.
+In our example, we use the `--data-binary` parameter to mark the beginning of the payload data.
 We often reference a file on the file system, path of which needs to be prepended with the `@` character.
 
-The *./samples/rest/* directory structure reference is used because we call the sample data from the base directory of the link:https://github.com/Evolveum/midpoint-samples[midPoint samples repository].
+The `./samples/rest/` directory structure reference is used because we call the sample data from the base directory of the link:https://github.com/Evolveum/midpoint-samples[midPoint samples repository].
 
 [source,bash]
 ----
@@ -77,6 +78,7 @@ The *./samples/rest/* directory structure reference is used because we call the 
 In case you use a REST request which contains additional data in its body, you might want to specify the content type which you use.
 
 This can be done by declaring a specific `Content-Type` header.
+
 [source,bash]
 ----
 -H "Content-Type: application/json"
@@ -88,16 +90,15 @@ Refer to the list of the  xref:/midpoint/reference/interfaces/rest/concepts/medi
 
 === Reply content type
 
-The default reply type is `application/xml`. If you want another type returned, you need to use the `Accept` header:
-
-The "Accept" header.
+The default content reply type is `application/xml`.
+If you want another type returned, you need to use the `Accept` header:
 
 [source,bash]
 ----
 -H "Accept: application/json"
 ----
 
-Similar to the request header, the `Accept` header supports the same set of media types as the `Content-Type` header.
+The `Accept` header supports the same set of media types as the request `Content-Type` header.
 
 Refer to the list of the  xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[supported media types].
 
@@ -108,7 +109,7 @@ There are two types of authorizations which you need to have configured and assi
 Firstly, the actual interface *access* authorizations (e.g., to access the search objects operation).
 
 Secondly, the *model* authorization.
-The model authorization permit or deny specific actions executed in the interface.
+The model authorizations permit or deny specific actions executed in the interface.
 
 === Access authorizations
 
@@ -116,7 +117,10 @@ Our examples use the administrator user.
 The administrator user has the *"superuser"* authorization role assigned by default.
 It grants the user a complete access to the interface and model.
 
-Additionally, each xref:/midpoint/reference/interfaces/rest/operations/[operation documentation article] contains a more fine-grained authorization which can be used.
+On a production environment, the user executing API request should _not_ be an almighty administrator.
+In such a case, the user has to have the right set of authorizations for the invoked actions.
+
+Each xref:/midpoint/reference/interfaces/rest/operations/[operation documentation article] contains a more fine-grained authorizations which you can use.
 
 === Model authorizations
 
@@ -129,12 +133,12 @@ It is best to adhere to the link:https://en.wikipedia.org/wiki/Principle_of_leas
 == Troubleshooting
 
 Errors happen;
-here are some frequent issues and also how to debug debug them.
+here are some frequent issues and also how to debug them.
 
 === Client error
 
 When the client sends a request which cannot be processed, midPoint often responds with a structure called *OperationResult*.
-OperationResult contains more information, quite often a large amount of detail on the situation.
+OperationResult contains more information, quite often a large amount of details on the situation.
 
 In the following, example we have an operation result object returned when midPoint was provided a task which should execute some action on a non-existing object.
 
@@ -164,10 +168,10 @@ In the following, example we have an operation result object returned when midPo
 
 === Missing '@' character in data content file path
 
-A request was issued via curl with the `--data-binary` property set to a file path pointing to a file.
+A request was issued via curl with the `--data-binary` property containing a path pointing to a file.
 The issue is that the file path was not prepended with the `@` character.
 
-When `@` is prepended before the string in the "--data-binary" property value, curl knows that it should look for a file rather than use the string as a payload.
+When `@` is prepended before the string in the `--data-binary` property value, curl knows that it should look for a file rather than use the string as a payload.
 [source,bash]
 ----
 --data-binary @./samples/rest/query-all.json
@@ -176,9 +180,9 @@ When `@` is prepended before the string in the "--data-binary" property value, c
 === Troubleshooting tips
 
 * An error reply quite often has data in the body.
-* Check midPoint log for further information.
-* A reply "Unauthorized" points to lacking authorizations of the user invoking the request, these can be
-either model or access authorizations.
+* Check the midPoint log for further information.
+* A reply "Unauthorized" points to lacking authorizations of the user invoking the request;
+    these can be either model or access authorizations.
 
 == See also
 
