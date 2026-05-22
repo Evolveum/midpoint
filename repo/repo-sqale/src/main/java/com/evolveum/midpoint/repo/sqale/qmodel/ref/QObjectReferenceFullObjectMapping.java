@@ -1,5 +1,18 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
+import java.util.Collection;
+import java.util.UUID;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Predicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -12,32 +25,18 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Path;
-import com.querydsl.core.types.Predicate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
-
 public class QObjectReferenceFullObjectMapping<OS extends ObjectType, OQ extends QObject<OR>, OR extends MObject> extends QObjectReferenceMapping<OS, OQ, OR>
-        implements QSeparatelySerializedItem<QObjectReferenceWithMeta<OR>,MReference> {
+        implements QSeparatelySerializedItem<QObjectReferenceWithMeta<OR>, MReference> {
 
-    private Lazy<PrismReferenceDefinition> itemDefinition;
+    private final Lazy<PrismReferenceDefinition> itemDefinition;
     private final ItemPath path;
 
-    public  <TQ extends QObject<TR>, TR extends MObject>  QObjectReferenceFullObjectMapping(
+    public <TQ extends QObject<TR>, TR extends MObject> QObjectReferenceFullObjectMapping(
             Class<? extends ObjectType> baseType,
             ItemPath path,
             String tableName,
@@ -77,7 +76,7 @@ public class QObjectReferenceFullObjectMapping<OS extends ObjectType, OQ extends
     public <C extends Containerable> byte[] createFullObject(ObjectReferenceType ref) throws SchemaException {
         var pref = ref.asReferenceValue();
         ObjectTypeUtil.normalizeRelation(pref, SchemaService.get().relationRegistry());
-        return repositoryContext().createStringSerializer()
+        String str = repositoryContext().createStringSerializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .definition(itemDefinition.get())
                 .options(SerializationOptions
@@ -85,14 +84,14 @@ public class QObjectReferenceFullObjectMapping<OS extends ObjectType, OQ extends
                         .skipIndexOnly(true)
                         .skipTransient(true)
                         .skipWhitespaces(true))
-                .serialize(pref)
-                .getBytes(StandardCharsets.UTF_8);
+                .serialize(pref);
+
+        return MiscUtil.stringToBytes(str);
     }
 
     @Override
     public MReference insert(ObjectReferenceType reference, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
-        var inserted =  super.insert(reference, ownerRow, jdbcSession);
-        return inserted;
+        return super.insert(reference, ownerRow, jdbcSession);
     }
 
     @Override
@@ -107,7 +106,7 @@ public class QObjectReferenceFullObjectMapping<OS extends ObjectType, OQ extends
 
     @Override
     public Path<?>[] fullObjectExpressions(QObjectReferenceWithMeta<OR> base) {
-        return new Path[] {base.ownerOid, base.fullObject};
+        return new Path[] { base.ownerOid, base.fullObject };
     }
 
     @Override
@@ -123,7 +122,7 @@ public class QObjectReferenceFullObjectMapping<OS extends ObjectType, OQ extends
     @Override
     public ObjectReferenceType toSchemaObject(MReference row) throws SchemaException {
         Referencable parsed = parseSchemaObject(((MObjectReferenceWithMeta) row).fullObject,
-            "Reference", ObjectReferenceType.class);
+                "Reference", ObjectReferenceType.class);
         var ort = new ObjectReferenceType();
         ort.setupReferenceValue(parsed.asReferenceValue());
         return ort;
