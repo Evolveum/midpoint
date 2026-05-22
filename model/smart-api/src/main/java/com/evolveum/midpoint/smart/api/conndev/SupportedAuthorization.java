@@ -15,18 +15,110 @@ public enum SupportedAuthorization {
     HTTP_BASIC(ConnDevHttpAuthTypeType.BASIC, new ConnDevAuthInfoType()
             .name("HTTP Basic Authorization")
             .description("Basic authorization using username and password")
-            , "Username", "Password"),
+            , "Username",
+            "Password"),
     HTTP_BEARER(ConnDevHttpAuthTypeType.BEARER, new ConnDevAuthInfoType()
             .name("HTTP Bearer Token Authorization")
             .description("Authorization using Bearer token.")
-            , "TokenName", "TokenValue"),
+            , "TokenValue"),
+    HTTP_JWT_BEARER(ConnDevHttpAuthTypeType.JWT_BEARER, new ConnDevAuthInfoType()
+            .name("HTTP JWT Bearer Token Authorization")
+            .description("Authorization using JWT Bearer token.")
+            , "JwtTokenName",
+            "JwtAlgorithm",
+            "JwtSecret",
+            "JwtSecretBase64Encoded",
+            "JwtPayload",
+            "JwtLocalization"),
     HTTP_APIKEY(ConnDevHttpAuthTypeType.API_KEY, new ConnDevAuthInfoType()
             .name("HTTP API Key Authorization")
-            .description("Authorization using preshared API key"), "ApiKey"),
-    HTTP_OAUTH2(ConnDevHttpAuthTypeType.OAUTH2, new ConnDevAuthInfoType()
+            .description("Authorization using preshared API key"),
+            "ApiKey",
+            "ApiKeyName",
+            "ApiKeyLocation"),
+    OAUTH2_CLIENT_CREDENTIALS(ConnDevHttpAuthTypeType.OAUTH2_CLIENT_CREDENTIALS, new ConnDevAuthInfoType()
             .name("OAuth2 Client Credentials")
             .description("Authorization using OAuth2 client credentials flow.")
-            , "OAuth2TokenUrl", "OAuth2ClientId", "OAuth2ClientSecret", "OAuth2PrivateKey", "OAuth2GrantType");
+            , "OAuth2TokenUrl",
+            "OAuth2ClientId",
+            "OAuth2ClientSecret",
+            "OAuth2Scope",
+            "OAuth2Audience",
+            "OAuth2TokenName",
+            "OAuth2ClientAuthenticationScheme"),
+    OAUTH2_PASSWORD(ConnDevHttpAuthTypeType.OAUTH2_PASSWORD, new ConnDevAuthInfoType()
+            .name("OAuth2 Password Credentials")
+            .description("Authorization using OAuth2 password credentials flow.")
+            , "OAuth2TokenUrl",
+            "OAuth2ClientId",
+            "OAuth2ClientSecret",
+            "OAuth2Username",
+            "OAuth2Password",
+            "OAuth2Scope",
+            "OAuth2Audience",
+            "OAuth2TokenName",
+            "OAuth2ClientAuthenticationScheme"),
+    OAUTH2_JWT(ConnDevHttpAuthTypeType.OAUTH2_JWT, new ConnDevAuthInfoType()
+            .name("OAuth2 JWT Bearer")
+            .description("Authorization using OAuth2 JWT bearer flow.")
+            , "OAuth2TokenUrl",
+            "OAuth2ClientId",
+            "OAuth2PrivateKey",
+            "OAuth2KeyId",
+            "OAuth2Algorithm",
+            "OAuth2Issuer",
+            "OAuth2Subject",
+            "OAuth2Audience",
+            "OAuth2ClientAuthenticationScheme"),
+    OAUTH2_SAML(ConnDevHttpAuthTypeType.OAUTH2_SAML, new ConnDevAuthInfoType()
+            .name("OAuth2 SAML Bearer")
+            .description("Authorization using OAuth2 SAML bearer flow.")
+            , "OAuth2TokenUrl",
+            "OAuth2ClientId",
+            "OAuth2PrivateKey",
+            "OAuth2Issuer",
+            "OAuth2Audience",
+            "OAuth2ClientAuthenticationScheme"),
+    HTTP_DIGEST(ConnDevHttpAuthTypeType.DIGEST, new ConnDevAuthInfoType()
+            .name("HTTP Digest Authorization")
+            .description("Digest authorization using username and password")
+            , "DigestUsername",
+            "DigestPassword",
+            "DigestAutoChallenge",
+            "DigestMaxRetries",
+            "DigestPreemptiveAuth",
+            "DigestAlgorithmPreference",
+            "DigestStateCacheEnabled"),
+    HTTP_HAWK(ConnDevHttpAuthTypeType.HAWK, new ConnDevAuthInfoType()
+            .name("Hawk Authorization")
+            .description("Authorization using Hawk protocol")
+            , "HawkId",
+            "HawkKey",
+            "HawkAlgorithm",
+            "HawkIncludePayloadHash",
+            "HawkOffset",
+            "HawkExt"),
+    AWS_SIGNATURE(ConnDevHttpAuthTypeType.AWS_SIGNATURE, new ConnDevAuthInfoType()
+            .name("AWS Signature")
+            .description("Authorization using AWS Signature v4")
+            , "AwsAccessKey",
+            "AwsSecretKey",
+            "AwsSessionToken",
+            "AwsRegion",
+            "AwsService",
+            "AwsSignatureVersion"),
+    HTTP_NTLM(ConnDevHttpAuthTypeType.NTLM, new ConnDevAuthInfoType()
+            .name("NTLM Authorization")
+            .description("Authorization using NTLM protocol")
+            , "NtlmUsername",
+            "NtlmPassword",
+            "NtlmDomain",
+            "NtlmWorkstation",
+            "NtlmVersion"),
+    OTHER(ConnDevHttpAuthTypeType.OTHER, new ConnDevAuthInfoType()
+            .name("Other")
+            .description("Other or unknown authorization type")
+            , "OtherCredentials");
 
     private final List<ItemName.WithoutPrefix> scimProperties;
     private final List<ItemName.WithoutPrefix> restProperties;
@@ -44,8 +136,17 @@ public enum SupportedAuthorization {
         return switch (type) {
             case "basic" -> HTTP_BASIC.crateBasicInformation();
             case "bearer" -> HTTP_BEARER.crateBasicInformation();
+            case "jwt-bearer" -> HTTP_JWT_BEARER.crateBasicInformation();
             case "apikey" -> HTTP_APIKEY.crateBasicInformation();
-            case "oauth2" -> HTTP_OAUTH2.crateBasicInformation();
+            case "digest" -> HTTP_DIGEST.crateBasicInformation();
+            case "oauth2-client-credentials" -> OAUTH2_CLIENT_CREDENTIALS.crateBasicInformation();
+            case "oauth2-password" -> OAUTH2_PASSWORD.crateBasicInformation();
+            case "oauth2-jwt" -> OAUTH2_JWT.crateBasicInformation();
+            case "oauth2-saml" -> OAUTH2_SAML.crateBasicInformation();
+            case "hawk" -> HTTP_HAWK.crateBasicInformation();
+            case "aws-signature" -> AWS_SIGNATURE.crateBasicInformation();
+            case "ntlm" -> HTTP_NTLM.crateBasicInformation();
+            case "other" -> OTHER.crateBasicInformation();
             default -> null;
         };
     }
