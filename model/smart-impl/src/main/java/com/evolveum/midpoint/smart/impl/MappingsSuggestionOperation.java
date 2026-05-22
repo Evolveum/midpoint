@@ -496,7 +496,7 @@ class MappingsSuggestionOperation {
                 if (attrStats.isPresent()) {
                     int missingCount = attrStats.get().getMissingValueCount();
                     int totalSize = objectTypeStatistics.getSize();
-                    if (totalSize > 0 && missingCount > MISSING_DATA_THRESHOLD * totalSize) {
+                    if (totalSize > 0 && missingCount > (1 - MISSING_DATA_THRESHOLD) * totalSize) {
                         LOGGER.trace("Skipping inbound mapping: attribute {} has low missingCount ({}) relative to total ({}).",
                                 matchPair.getShadowAttributePath(), missingCount, totalSize);
                         throw new MissingSourceDataException(matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
