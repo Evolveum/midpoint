@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.querydsl.core.Tuple;
@@ -527,7 +528,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         ItemDefinition<?> definition = (ItemDefinition<?>) getDefinition();
 
-        return repositoryContext().createStringSerializer()
+        String str = repositoryContext().createStringSerializer()
                 .definition(definition)
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
@@ -535,8 +536,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         .skipIndexOnly(true)
                         .skipTransient(true)
                         .skipWhitespaces(true))
-                .serialize(container.asPrismContainerValue())
-                .getBytes(StandardCharsets.UTF_8);
+                .serialize(container.asPrismContainerValue());
+
+        return MiscUtil.stringToBytes(str);
     }
 
     protected PathSet fullObjectItemsToSkip() {
