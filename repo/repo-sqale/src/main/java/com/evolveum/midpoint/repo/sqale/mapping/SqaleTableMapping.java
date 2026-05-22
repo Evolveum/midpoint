@@ -15,6 +15,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
 import org.jetbrains.annotations.NotNull;
@@ -500,7 +502,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     /** Creates serialized (byte array) form of an object or a container. */
     public <C extends Containerable> byte[] createFullObject(C container) throws SchemaException {
         repositoryContext().normalizeAllRelations(container.asPrismContainerValue());
-        return repositoryContext().createStringSerializer()
+        String str = repositoryContext().createStringSerializer()
                 .definition(container.asPrismContainerValue().getDefinition())
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
@@ -508,8 +510,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         .skipIndexOnly(true)
                         .skipTransient(true)
                         .skipWhitespaces(true))
-                .serialize(container.asPrismContainerValue())
-                .getBytes(StandardCharsets.UTF_8);
+                .serialize(container.asPrismContainerValue());
+
+        return MiscUtil.stringToBytes(str);
     }
 
     protected PathSet fullObjectItemsToSkip() {

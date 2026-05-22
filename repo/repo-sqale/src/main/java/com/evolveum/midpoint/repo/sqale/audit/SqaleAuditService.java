@@ -20,6 +20,8 @@ import java.time.Instant;
 import java.util.*;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
@@ -191,7 +193,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
                 // serializedDelta is transient, needed for changed items later
                 deltaRow.serializedDelta = serializedDelta;
-                deltaRow.delta = serializedDelta.getBytes(StandardCharsets.UTF_8);
+                deltaRow.delta = MiscUtil.stringToBytes(serializedDelta);
 
                 deltaRow.deltaOid = SqaleUtils.oidToUuid(delta.getOid());
 

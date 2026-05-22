@@ -7,14 +7,11 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Array;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
 
 import com.querydsl.sql.types.ArrayType;
 import com.querydsl.sql.types.EnumAsObjectType;
@@ -24,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -46,6 +44,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -53,6 +52,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
@@ -117,7 +117,6 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(ExecutionModeType.class));
         querydslConfig.register(new EnumAsObjectType<>(PredefinedConfigurationType.class));
 
-
         // JSONB type support
         querydslConfig.register(new QuerydslJsonbType());
         querydslConfig.register(new ArrayType<>(
@@ -138,7 +137,7 @@ public class SqaleRepoContext extends SqlRepoContext {
         clearCaches();
     }
 
-    private void checkDBSchemaVersion(){
+    private void checkDBSchemaVersion() {
         LOGGER.debug("Checking DB schema version.");
 
         try (JdbcSession session = this.newJdbcSession().startReadOnlyTransaction()) {
@@ -256,12 +255,13 @@ public class SqaleRepoContext extends SqlRepoContext {
         try {
             // Note that escaping invalid characters and using toString for unsupported types
             // is safe in the context of operation result serialization.
-            return createStringSerializer()
+            String str = createStringSerializer()
                     .options(SerializationOptions.createEscapeInvalidCharacters()
                             .serializeUnsupportedTypesAsString(true)
                             .skipWhitespaces(true))
-                    .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT)
-                    .getBytes(StandardCharsets.UTF_8);
+                    .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT);
+
+            return MiscUtil.stringToBytes(str);
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema exception", e);
         }
