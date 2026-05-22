@@ -37,6 +37,26 @@ Get operation for fetching a single specific object.
 
 - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
 
+.Example: get the languages lookup table
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -X GET \
+    http://localhost:8080/midpoint/ws/rest/lookupTables/00000000-0000-0000-0000-000000000200 <1>
+----
+<1> The OID specifies the table to fetch.
+
+.How to fetch rows with data
+[TIP]
+====
+By default, the API returns the table rows empty with `"@incomplete": true` identifying that the row data have been omitted.
+
+To force the API to return data in the rows, use the `include=row` query string parameter:
+`http://localhost:8080/midpoint/ws/rest/lookupTables/search?include=row`
+====
+
 === Search for Lookup Table type Objects
 
 Search operation usable for fetching the full list of objects or a list based on filter.
@@ -59,12 +79,18 @@ Operations to generate or validate values.
 
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
-== JSON Example
+== Query and response examples
 
-Example output of information regarding a specific Lookup Table object. Metadata is usually a
-part of the output, yet it was removed for the purpose of the example.
+Here are example queries for the lifecycle states lookup table and their outputs.
+Metadata are removed from the outputs here.
 
-.Show JSON Example
+.Get the lifecycle states lookup table without its row data
+[source,http]
+----
+http://localhost:8080/midpoint/ws/rest/lookupTables/00000000-0000-0000-0000-000000000230
+----
+
+.Show JSON reponse
 [%collapsible]
 ====
 [source, json]
@@ -85,6 +111,69 @@ part of the output, yet it was removed for the purpose of the example.
 }
 ----
 ====
+
+To get the lookup table with the row data, you need to use the `include=row` parameter:
+
+.Get the lifecycle states lookup table with its row data
+[source,http]
+----
+http://localhost:8080/midpoint/ws/rest/lookupTables/00000000-0000-0000-0000-000000000230?include=row
+----
+
+.Show JSON reponse
+[%collapsible]
+====
+[source, json]
+----
+{
+  "lookupTable" : {
+    "oid" : "00000000-0000-0000-0000-000000000230",
+    "version" : "0",
+    "name" : "Lifecycle States",
+    "iteration" : 0,
+    "iterationToken" : "",
+    "row" : [ {
+      "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+      "@id" : 1,
+      "key" : "draft",
+      "label" : "Draft"
+    }, {
+      "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+      "@id" : 2,
+      "key" : "proposed",
+      "label" : "Proposed"
+    }, {
+      "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+      "@id" : 3,
+      "key" : "active",
+      "label" : "Active"
+    }, {
+      "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+      "@id" : 4,
+      "key" : "suspended",
+      "label" : "Suspended"
+    }, {
+      "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+      "@id" : 5,
+      "key" : "deprecated",
+      "label" : "Deprecated"
+    }, {
+      "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+      "@id" : 6,
+      "key" : "archived",
+      "label" : "Archived"
+    }, {
+      "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+      "@id" : 7,
+      "key" : "failed",
+      "label" : "Failed"
+    } ]
+  }
+}
+----
+====
+
+
 
 == See Also
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
