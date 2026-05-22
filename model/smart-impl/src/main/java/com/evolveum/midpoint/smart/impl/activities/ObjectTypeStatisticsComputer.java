@@ -170,14 +170,23 @@ public class ObjectTypeStatisticsComputer {
 
     /**
      * Extracts first/last tokens (including their adjacent delimiter) and increments their counts.
-     * Skips values that look like URLs, emails, or phone numbers.
+     * Skips values that look like URLs or phone numbers. For email addresses, splits on "@" and
+     * records the domain suffix (e.g. "@example.com") as a last token.
      * Only "inside" delimiters are considered: any leading or trailing delimiter sequences are
      * stripped before processing, so they do not influence the token boundaries.
      *
      * For example, "-prod-server01-" yields firstToken="-prod-" and lastToken="-server01-"
      */
     private void aggregateTokenPatterns(AttributeAggregation agg, String value) {
-        if (isUrl(value) || isEmail(value) || isPhoneNumber(value)) {
+        if (isUrl(value) || isPhoneNumber(value)) {
+            return;
+        }
+
+        if (isEmail(value)) {
+            int atIndex = value.indexOf('@');
+            if (atIndex >= 0) {
+                agg.lastTokenCounts.merge(value.substring(atIndex), 1, Integer::sum);
+            }
             return;
         }
 
