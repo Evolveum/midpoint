@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.provider;
 
+import com.evolveum.midpoint.gui.api.component.export.ExportContext;
 import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -28,7 +29,7 @@ public interface IterativeExportSupport<T> {
      * @param result Operation result
      * @throws CommonException if an error occurs during the search
      */
-    void exportIterative(ObjectHandler<T> handler, Task task, OperationResult result) throws CommonException;
+    void exportIterative(ObjectHandler<T> handler, ExportContext exportContext, Task task, OperationResult result) throws CommonException;
 
     /**
      * Returns true if this provider actually supports iterative export.

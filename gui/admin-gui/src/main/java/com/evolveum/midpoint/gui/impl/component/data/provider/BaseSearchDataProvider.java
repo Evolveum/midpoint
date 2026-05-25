@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.component.export.ExportContext;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -137,6 +138,7 @@ public abstract class BaseSearchDataProvider<C extends Serializable, T extends S
     @Override
     public void exportIterative(
             ObjectHandler<T> handler,
+            ExportContext exportContext,
             Task task,
             OperationResult result) throws CommonException {
         throw new UnsupportedOperationException("Subclass must override exportIterative");

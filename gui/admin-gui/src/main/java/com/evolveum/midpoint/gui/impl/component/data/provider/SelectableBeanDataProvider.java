@@ -217,7 +217,8 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         }
     }
 
-    protected final Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
+    //todo is it ok
+    public final Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
         if (getCompiledObjectCollectionView() != null && getCompiledObjectCollectionView().getOptions() != null
                 && !getCompiledObjectCollectionView().getOptions().isEmpty()) {
             return getCompiledObjectCollectionView().getOptions();

@@ -4,13 +4,12 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.gui.impl.component.data.provider;
+package com.evolveum.midpoint.gui.api.component.export;
 
 import java.io.*;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.button.XlsxDataExporter;
-
+import com.evolveum.midpoint.gui.impl.component.data.provider.IterativeExportSupport;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -97,6 +96,7 @@ public class StreamingXlsxDataExporter extends XlsxDataExporter {
                     writeRow(dataProvider, columns, item, sheet, rowIndex[0]++);
                     return true;
                 },
+                new ExportContext<>(null, null, null), //todo fix
                 task,
                 result
         );
