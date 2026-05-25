@@ -81,47 +81,6 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
     private void initLayout() {
         name = Model.of("");
-//        ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public IResourceStream getResourceStream() {
-//                if (future == null || !future.isDone()) {
-//                    LOGGER.error("Failed to load the file.");
-//                }
-//                try {
-//                    timer.stop(null);
-//                    return new FileResourceStream(future.get());
-//                } catch (Exception e) {
-//                    LOGGER.error("Failed to load the file.");
-//                }
-//                return null;
-//            }
-//
-//            public String getFileName() {
-//                if (StringUtils.isEmpty(name.getObject())) {
-//                    return ExportDownloadInlineMenuItem.this.getFilename();
-//                }
-//                return name.getObject();
-//            }
-//        };
-//        component.add(ajaxDownloadBehavior);
-
-//        timer = new AbstractAjaxTimerBehavior(Duration.ofMillis(1000)) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onTimer(AjaxRequestTarget target) {
-//                if (future != null && future.isDone()) {
-//                    stop(target); // stop polling
-//
-//                    // trigger download
-//                    ajaxDownloadBehavior.initiate(target);
-//                }
-//            }
-//        };
-//        component.add(timer);
-//        timer.stop(null);
     }
 
     @Override
@@ -157,32 +116,8 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
-//                        String processId = PROCESS_ID_PREFIX + System.currentTimeMillis();
-//                        AsyncWebProcess<?> webProcess = initAsyncWebProcess(processId);
                         startExportProcess();
                         component.getPageBase().startDownloadTimerBehavior(target);
-//                        Session session = Session.get();
-//                        SecurityContext context = SecurityContextHolder.getContext();
-//                        Application application = Application.get();
-
-//                        component.getPageBase().runPrivileged(() -> {
-//                                    future = EXPORT_EXECUTOR.submit(() -> {
-//                                        ThreadContext.setApplication(application);
-//                                        ThreadContext.setSession(session);
-//                                        SecurityContextHolder.setContext(context);
-//
-//                                        File file = File.createTempFile("export-", ".xlsx");
-//
-//                                        IDataProvider<?> provider = getDataTable().getDataProvider();
-//
-//                                        try (OutputStream os = new FileOutputStream(file)) {
-//                                            getDataExporter().exportData(provider, getExportableColumns(), os);
-//                                        }
-//
-//                                        return file;
-//                                    });
-//                                    return null;
-//                                });
                     }
 
                     @Override
@@ -255,13 +190,16 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
         String fileExtension = getFileExtension();
 
         IDataProvider<?> provider = getDataTable().getDataProvider();
+        Session session = Session.get();
 
         return new SecurityContextAwareCallable<>(secManager, auth, connInfo) {
 
             @Override
             public File callWithContextPrepared() {
                 try {
-                     ThreadContext.setApplication(application);
+                    //todo make the application and the session a part of the security context?
+                    ThreadContext.setApplication(application);
+                    ThreadContext.setSession(session);
 
                     File file = File.createTempFile(fileName, fileExtension);
 
