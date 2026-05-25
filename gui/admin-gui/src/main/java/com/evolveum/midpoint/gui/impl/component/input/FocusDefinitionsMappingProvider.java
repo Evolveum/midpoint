@@ -141,7 +141,8 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
         }
 
         for (ItemDefinition<?> def : definitions) {
-            if (StringUtils.isNotBlank(input) && !def.getItemName().getLocalPart().startsWith(input)) {
+            if (StringUtils.isNotBlank(input)
+                    && !def.getItemName().getLocalPart().toLowerCase().contains(input.toLowerCase())) {
                 continue;
             }
 
