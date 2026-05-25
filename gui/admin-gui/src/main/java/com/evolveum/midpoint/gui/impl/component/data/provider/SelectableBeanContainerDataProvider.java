@@ -12,7 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.evolveum.midpoint.gui.api.component.export.ExportContext;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.ObjectHandler;
@@ -88,7 +89,6 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     @Override
     public void exportIterative(
             ObjectHandler<SelectableBean<C>> handler,
-            ExportContext exportContext,
             Task task,
             OperationResult result) throws CommonException {
 

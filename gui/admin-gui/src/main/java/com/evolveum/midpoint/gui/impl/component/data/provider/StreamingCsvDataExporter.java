@@ -1,16 +1,14 @@
 /*
- * Copyright (C) 2026 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.gui.api.component.export;
+package com.evolveum.midpoint.gui.impl.component.data.provider;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.List;
-import com.evolveum.midpoint.gui.impl.component.data.provider.IterativeExportSupport;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 
 import org.apache.wicket.Session;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
@@ -41,15 +39,9 @@ public class StreamingCsvDataExporter extends CSVDataExporter {
     private static final String OPERATION_EXPORT_DATA = DOT_CLASS + "exportData";
 
     private final PageBase pageBase;
-    private ExportContext exportContext;
 
-    public StreamingCsvDataExporter(PageBase pageBase, SelectableBeanDataProvider provider) {
+    public StreamingCsvDataExporter(PageBase pageBase) {
         this.pageBase = pageBase;
-        initExportContext(provider);
-    }
-
-    private void initExportContext(SelectableBeanDataProvider provider) {
-        exportContext = new ExportContext(provider.getQuery(), provider.getType(), provider.getSearchOptions());
     }
 
     @Override
@@ -114,7 +106,6 @@ public class StreamingCsvDataExporter extends CSVDataExporter {
                         return false;
                     }
                 },
-                exportContext,
                 task,
                 result
         );

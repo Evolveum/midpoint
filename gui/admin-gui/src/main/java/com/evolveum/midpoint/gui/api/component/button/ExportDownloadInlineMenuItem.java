@@ -10,12 +10,14 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSearchDataProvider;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,11 +45,17 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.*;
 
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.cycle.RequestCycleContext;
 import org.apache.wicket.util.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
@@ -246,8 +254,8 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
         String fileName = getFilename();
         String fileExtension = getFileExtension();
 
-        BaseSearchDataProvider provider = (BaseSearchDataProvider) getDataTable().getDataProvider();
-        AbstractDataExporter dataExporter = getDataExporter();
+        IDataProvider<?> provider = getDataTable().getDataProvider();
+
         return new SecurityContextAwareCallable<>(secManager, auth, connInfo) {
 
             @Override
@@ -258,7 +266,7 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
                     File file = File.createTempFile(fileName, fileExtension);
 
                     try (OutputStream os = new FileOutputStream(file)) {
-                        dataExporter.exportData(provider, getExportableColumns(), os);
+                        getDataExporter().exportData(provider, getExportableColumns(), os);
                     }
                     return file;
                 } catch (IOException e) {

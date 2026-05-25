@@ -10,9 +10,7 @@ import java.io.OutputStream;
 import java.io.Serial;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.export.StreamingCsvDataExporter;
-
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.StreamingCsvDataExporter;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
@@ -50,8 +48,7 @@ public class CsvDownloadInlineMenuItem extends ExportDownloadInlineMenuItem {
 
     @Override
     protected AbstractDataExporter getDataExporter() {
-        return new StreamingCsvDataExporter(component.getPageBase(),
-                (SelectableBeanDataProvider) component.getDataProvider()) { //todo this just for test
+        return new StreamingCsvDataExporter(component.getPageBase()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override

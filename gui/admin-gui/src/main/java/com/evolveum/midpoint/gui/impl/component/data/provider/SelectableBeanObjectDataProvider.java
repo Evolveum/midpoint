@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.gui.api.component.export.ExportContext;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 
 import org.apache.wicket.Component;
@@ -145,11 +144,10 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     @Override
     public void exportIterative(
             ObjectHandler<SelectableBean<O>> handler,
-            ExportContext exportContext,
             Task task,
             OperationResult result) throws CommonException {
 
-        ObjectQuery query = exportContext.query();
+        ObjectQuery query = getQuery();
         if (query == null) {
             query = getPrismContext().queryFactory().createQuery();
         }
@@ -162,14 +160,14 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
         // Enable JDBC streaming mode by setting iterationPageSize to -1
         Collection<SelectorOptions<GetOperationOptions>> streamingOptions =
-                SelectorOptions.updateRootOptions(exportContext.streamingOptions(),
+                SelectorOptions.updateRootOptions(getSearchOptions(),
                         opt -> opt.setIterationPageSize(-1), GetOperationOptions::new);
 
         getModelService().searchObjectsIterative(
-                exportContext.type(),
+                getType(),
                 query,
                 (object, opResult) -> {
-                    O objectable = (O) object.asObjectable();
+                    O objectable = object.asObjectable();
                     SelectableBean<O> wrapper = createDataObjectWrapper(objectable);
                     return handler.handle(wrapper, opResult);
                 },

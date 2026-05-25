@@ -12,8 +12,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 
-import com.evolveum.midpoint.gui.api.component.export.ExportContext;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
@@ -176,7 +174,6 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
     @Override
     public void exportIterative(
             ObjectHandler<PrismContainerValueWrapper<C>> handler,
-            ExportContext exportContext,
             Task task,
             OperationResult result) throws CommonException {
 

@@ -10,7 +10,7 @@ import java.io.OutputStream;
 import java.io.Serial;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.export.StreamingXlsxDataExporter;
+import com.evolveum.midpoint.gui.impl.component.data.provider.StreamingXlsxDataExporter;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
