@@ -231,17 +231,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
         }
 
         final TestConnectionResultPanel testConnectionPanel =
-                new TestConnectionResultPanel(getPageBase().getMainPopupBodyId(),
-                        dto.getOid(), getPage()) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void okPerformed(AjaxRequestTarget target) {
-                        refreshStatus(target);
-                    }
-
-                };
+                new TestConnectionResultPanel(getPageBase().getMainPopupBodyId(), dto.getOid(), getPage());
         testConnectionPanel.setOutputMarkupId(true);
 
         //TODO fix
