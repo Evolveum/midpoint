@@ -2767,7 +2767,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                     () -> "Couldn't determine old shadow OID, because no object class was specified in 'oldShadow'");
             var resourcePrismObject = getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result);
             var resource = Resource.of(resourcePrismObject);
-            ShadowUtil.applyResourceSchema(oldShadow.asPrismObject(), resource.getCompleteSchemaRequired());
+            provisioning.applyDefinition(oldShadow.asPrismObject(), task, result);
             var attributes = ShadowUtil.getAttributes(oldShadow);
             if (attributes.isEmpty()) {
                 throw new SchemaException("Couldn't determine old shadow OID, because no attributes were present in 'oldShadow'");
