@@ -6,9 +6,22 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.ROLE_SUPERUSER;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.util.DelayingProgressListener;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -19,19 +32,8 @@ import com.evolveum.midpoint.test.util.AbstractMultithreadCycleRunner;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
 
-import java.io.File;
-import java.util.*;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.ROLE_SUPERUSER;
-
-import static org.testng.AssertJUnit.*;
-
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRaceConditions extends AbstractInitializedModelIntegrationTest {
 
@@ -57,7 +59,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        @SuppressWarnings({"raw"})
+        @SuppressWarnings({ "raw" })
         ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(ROLE_PIRATE_OID, ObjectTypes.ROLE),
@@ -122,7 +124,12 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
             ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
                     .item(FocusType.F_ASSIGNMENT).delete(user.asObjectable().getAssignment().get(index).clone())
                     .asObjectDelta(USER_JACK_OID);
-            modelService.executeChanges(Collections.singletonList(objectDelta), null, task,
+
+            var options = ModelExecuteOptions.create()
+                    .focusConflictResolution(new ConflictResolutionType()
+                            .action(ConflictResolutionActionType.RESTART));
+
+            modelService.executeChanges(Collections.singletonList(objectDelta), options, task,
                     Collections.singletonList(new DelayingProgressListener(0, 1000)), result);
         } catch (Throwable t) {
             throw new SystemException(t);
@@ -150,8 +157,8 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         String oid = addObject(user.asPrismObject(), task, result);
 
         var options = ModelExecuteOptions.create()
-                        .focusConflictResolution(new ConflictResolutionType()
-                                .action(ConflictResolutionActionType.RESTART));
+                .focusConflictResolution(new ConflictResolutionType()
+                        .action(ConflictResolutionActionType.RESTART));
 
         when("assigning the same role concurrently in different threads");
         ParallelTestThread[] threads = multithread(

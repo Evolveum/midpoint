@@ -104,7 +104,7 @@ public class Clockwork {
         try {
             trace = recordTraceAtStart(context, result);
 
-            var conflictResolutionContext = new ClockworkConflictResolver.Context(ModelImplUtils.getConflictResolution(context));
+            var conflictResolutionContext = new ClockworkConflictResolver.Context();
 
             HookOperationMode mode = runWithConflictDetection(context, conflictResolutionContext, task, result);
 
@@ -142,6 +142,7 @@ public class Clockwork {
         try {
             context.setStartedIfNotYet();
             context.updateSystemConfiguration(result);
+            conflictResolutionContext.initResolutionPolicy(ModelImplUtils.getConflictResolution(context));
 
             LOGGER.trace("Running clockwork for context {}", context);
             context.checkConsistenceIfNeeded();

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -53,10 +54,23 @@ public class ClockworkConflictResolver {
     static class Context {
         private boolean focusConflictPresent;
         private boolean conflictExceptionPresent;
-        private final ConflictResolutionType resolutionPolicy;
+        private ConflictResolutionType resolutionPolicy;
 
-        public Context(ConflictResolutionType resolutionPolicy) {
+        /**
+         * Used for the top-level context; policy is resolved later, after system config is loaded.
+         */
+        Context() {
+        }
+
+        /**
+         * Used for recompute/restart sub-contexts where the policy is known up front
+         */
+        Context(ConflictResolutionType resolutionPolicy) {
             this.resolutionPolicy = resolutionPolicy;
+        }
+
+        void initResolutionPolicy(ConflictResolutionType policy) {
+            this.resolutionPolicy = policy;
         }
 
         void recordConflictException() {
@@ -124,6 +138,7 @@ public class ClockworkConflictResolver {
             return HookOperationMode.FOREGROUND;
         }
         PrismObject<F> focusObject = context.getFocusContext() != null ? context.getFocusContext().getObjectAny() : null;
+        boolean restart = resolutionPolicy.getAction() == ConflictResolutionActionType.RESTART;
         ModelExecuteOptions options = ModelExecuteOptions.create();
         switch (resolutionPolicy.getAction()) {
             case FAIL:
@@ -132,7 +147,7 @@ public class ClockworkConflictResolver {
                 LOGGER.warn("Conflict detected while updating {}", focusObject);
                 return HookOperationMode.FOREGROUND;
             case ERROR: // TODO what to do with this?
-            case RESTART: // TODO what to do with this?
+            case RESTART:
             case RECOMPUTE:
                 break;
             case RECONCILE:
@@ -144,8 +159,8 @@ public class ClockworkConflictResolver {
                 throw new IllegalStateException("Unsupported conflict resolution action: " + resolutionPolicy.getAction());
         }
 
-        // so, recompute is the action
-        LOGGER.debug("CONFLICT: Conflict detected while updating {}, recomputing (options={})", focusObject, options);
+        LOGGER.debug("CONFLICT: Conflict detected while updating {}, {} (options={})",
+                focusObject, restart ? "restarting" : "recomputing", options);
 
         String nonEligibilityReason = getNonEligibilityReason(context);
         if (nonEligibilityReason != null) {
@@ -158,6 +173,12 @@ public class ClockworkConflictResolver {
         ConflictResolutionType focusConflictResolution = new ConflictResolutionType();
         focusConflictResolution.setAction(ConflictResolutionActionType.ERROR);
         options.focusConflictResolution(focusConflictResolution);
+
+        // For restart: capture the original primary delta and channel before they are gone
+        ObjectDelta<F> originalPrimaryDelta = restart && context.getFocusContext() != null
+                ? context.getFocusContext().getPrimaryDelta()
+                : null;
+        String originalChannel = context.getChannel();
 
         int preconditionAttempts = 0;
         while (true) {
@@ -177,7 +198,14 @@ public class ClockworkConflictResolver {
 
             // Not using read-only here because we are loading the focus (that will be worked with)
             PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
-            LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, options, task, result);
+            LensContext<FocusType> contextNew;
+            if (restart) {
+                //noinspection unchecked
+                contextNew = (LensContext<FocusType>) contextFactory.createRestartContext(
+                        focus, originalPrimaryDelta, originalChannel, options, task);
+            } else {
+                contextNew = contextFactory.createRecomputeContext(focus, options, task, result);
+            }
             contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
             contextNew.setConflictResolutionAttemptNumber(attemptNew);
 
