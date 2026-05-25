@@ -1196,7 +1196,9 @@ public abstract class PageBase extends PageAdminLTE {
                 }
             }
         };
-        timerBehavior.stop(null);
+        if (!exportProcessExists()) {
+            timerBehavior.stop(null);
+        }
         add(timerBehavior);
     }
 
