@@ -249,6 +249,8 @@ public abstract class SchemaConstants {
     public static final String CHANNEL_LIVE_SYNC_URI = qNameToUri(CHANNEL_LIVE_SYNC);
     public static final QName CHANNEL_ASYNC_UPDATE = new QName(NS_CHANNEL, "asyncUpdate");
     public static final String CHANNEL_ASYNC_UPDATE_URI = qNameToUri(CHANNEL_ASYNC_UPDATE);
+    public static final QName CHANNEL_NOTIFY_CHANGE = new QName(NS_CHANNEL, "notifyChange");
+    public static final String CHANNEL_NOTIFY_CHANGE_URI = qNameToUri(CHANNEL_NOTIFY_CHANGE);
     public static final QName CHANNEL_RECON = new QName(NS_CHANNEL, "reconciliation");
     public static final String CHANNEL_RECON_URI = qNameToUri(CHANNEL_RECON);
     public static final QName CHANNEL_RECOMPUTE = new QName(NS_CHANNEL, "recompute");

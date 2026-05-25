@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +30,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.Singl
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -159,11 +160,18 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
         int wave = projectionContext.getLensContext().getProjectionWave();
 
         if (wave == 0) {
+            // This is a hack to make password change notification work.
+            // For traditional inbounds like liveSync, the delta is to be considered ineffective.
+            // But for async updates and notify changes, we should perhaps treat the delta as effective.
+            // Certainly for passwords. Maybe for regular attributes as well - to be researched further.
+            // TODO research and resolve; see #11231
+            boolean isDeltaEffective =
+                    SchemaConstants.CHANNEL_NOTIFY_CHANGE_URI.equals(projectionContext.getLensContext().getChannel());
             return InboundSourceData.forShadow(
                     currentShadow, // Current is OK here, as this is the state "at the beginning".
                     currentShadow, // After we try to derive deltas from the cached shadows, this code will change.
                     projectionContext.getSyncDelta(),
-                    false);
+                    isDeltaEffective);
         } else if (wave == projectionContext.getWave() + 1) {
             // We are in the wave that follows right after this projection context was projected/executed in.
             // So, we would like to use the delta that was executed in that wave.
