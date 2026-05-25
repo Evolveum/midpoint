@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -42,11 +43,10 @@ public class SmartIntegrationWrapperUtils {
 
     public static <C extends Containerable> @NotNull PrismContainerValue<C> processSuggestedContainerValue(
             @NotNull PrismContainerValue<C> container) {
-        PrismContainerValue<C> value = PrismValueCollectionsUtil.cloneCollectionComplex(
+        return PrismValueCollectionsUtil.cloneCollectionComplex(
                         CloneStrategy.REUSE,
                         Collections.singletonList(container))
                 .iterator().next();
-        return value;
     }
 
     /**
@@ -79,9 +79,11 @@ public class SmartIntegrationWrapperUtils {
 
     public static @Nullable PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewItemsSubCorrelatorValue(
             @NotNull PageBase pageBase,
+            @NotNull WebMarkupContainer feedback,
             @NotNull IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model,
             @Nullable PrismContainerValue<ItemsSubCorrelatorType> value,
             @NotNull AjaxRequestTarget target) {
+
         IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createcContainerModel(
                 model,
                 ItemPath.create(
@@ -91,14 +93,13 @@ public class SmartIntegrationWrapperUtils {
         PrismContainerWrapper<ItemsSubCorrelatorType> containerWrapper = containerModel.getObject();
         PrismContainer<ItemsSubCorrelatorType> container = containerWrapper.getItem();
         PrismContainerValue<ItemsSubCorrelatorType> newValue;
-
         if (value == null) {
             newValue = container.createNewValue();
         } else {
             boolean correlationRulePresent = isCorrelationRulePresent(container, value);
             if (correlationRulePresent) {
-                pageBase.warn("Correlation rule already present.");
-                target.add(pageBase.getFeedbackPanel().getParent());
+                pageBase.warn(pageBase.getString("CorrelationDefinitionType.correlationRuleAlreadyPresent"));
+                target.add(feedback);
                 return null;
             }
             try {

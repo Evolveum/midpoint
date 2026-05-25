@@ -19,11 +19,15 @@
             <div class="w-100 d-flex flex-column">
                 <div class="d-lex flex-row">
                     <div class="d-inline" wicket:id="name"/>
-                    <div class="ml-2 badge badge-info" wicket:id="type"/>
+                    <span wicket:id="recommendedBadge" class="ml-2 badge badge-info">Recommended</span>
                 </div>
                 <div class="text-sm text-secondary" wicket:id="description"/>
             </div>
         </div>
+    </div>
+    <div class="col-12 mt-3 text-center">
+        <a wicket:id="showAll" class="btn btn-link">Show all options</a>
+        <a wicket:id="hideAll" class="btn btn-link">Hide not recommended options</a>
     </div>
 </wicket:extend>
 </html>

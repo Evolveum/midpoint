@@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -937,7 +939,9 @@ public class SmartIntegrationStatusInfoUtils {
             CorrelationSuggestionType suggestionValue = parentContainerValue.getRealValue();
 
             Double quality = suggestionValue.getQuality();
-            return (quality != null && quality != -1) ? String.valueOf((suggestionValue.getQuality() * 100)) : "-";
+            return (quality != null && quality != -1)
+                    ? BigDecimal.valueOf(quality).multiply(BigDecimal.valueOf(100)).setScale(1, RoundingMode.FLOOR).toPlainString()
+                    : "-";
         }
         return "-";
     }

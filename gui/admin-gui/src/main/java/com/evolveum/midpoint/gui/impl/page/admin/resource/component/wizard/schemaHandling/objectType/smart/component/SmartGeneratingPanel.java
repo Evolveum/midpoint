@@ -13,8 +13,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
@@ -34,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.StatusRowRecord;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
@@ -352,7 +349,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             initRunInBackgroundButton(buttonsView);
         }
         if (allowActionButton()) {
-            initActionButton(buttonsView);
+            initStopButton(buttonsView);
         }
         if (allowRerun()) {
             initReRunButton(buttonsView);
@@ -366,6 +363,16 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     }
 
     private void initReRunButton(@NotNull RepeatingView buttonsView) {
+        AjaxIconButton reRunButton = buildReRunButton(buttonsView);
+        reRunButton.add(AttributeModifier.append("class", "btn btn-primary"));
+        reRunButton.add(new VisibleBehaviour(() -> {
+            SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
+            return dto != null && (dto.isFailed() || dto.isSuspended());
+        }));
+        buttonsView.add(reRunButton);
+    }
+
+    private @NotNull AjaxIconButton buildReRunButton(@NotNull RepeatingView buttonsView) {
         AjaxIconButton reRunButton = new AjaxIconButton(
                 buttonsView.newChildId(),
                 Model.of("fa fa-refresh"),
@@ -375,21 +382,16 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onReRunPerform(target, getPageBase());
+                onReRunPerform(target);
             }
         };
 
         reRunButton.setOutputMarkupId(true);
         reRunButton.showTitleAsLabel(true);
-        reRunButton.add(AttributeModifier.append("class", "btn btn-primary"));
-        reRunButton.add(new VisibleBehaviour(() -> {
-            SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
-            return dto != null && (dto.isFailed() || dto.isSuspended());
-        }));
-        buttonsView.add(reRunButton);
+        return reRunButton;
     }
 
-    public void onReRunPerform(AjaxRequestTarget target, PageBase pageBase) {
+    public void onReRunPerform(AjaxRequestTarget target) {
         SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
         if (dto == null) {
             return;
@@ -437,21 +439,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     }
 
     public void initDiscardButton(@NotNull RepeatingView buttonsView) {
-        AjaxIconButton discardButton = new AjaxIconButton(
-                buttonsView.newChildId(),
-                Model.of("fa fa-times"),
-                createStringResource("SmartGeneratingPanel.button.discard")) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                discardSuggestion(target);
-                onDiscardPerform(target);
-            }
-        };
-
-        discardButton.setOutputMarkupId(true);
+        AjaxIconButton discardButton = buildDiscardButton(buttonsView);
         discardButton.showTitleAsLabel(true);
         discardButton.add(AttributeModifier.append("class", "btn btn-link text-danger"));
         discardButton.add(new VisibleBehaviour(() -> {
@@ -461,7 +449,26 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         buttonsView.add(discardButton);
     }
 
-    private void discardSuggestion(AjaxRequestTarget target) {
+    private @NotNull AjaxIconButton buildDiscardButton(@NotNull RepeatingView buttonsView) {
+        AjaxIconButton discardButton = new AjaxIconButton(
+                buttonsView.newChildId(),
+                Model.of("fa fa-times"),
+                createStringResource("SmartGeneratingPanel.button.discard")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                discardSuggestion();
+                onDiscardPerform(target);
+            }
+        };
+
+        discardButton.setOutputMarkupId(true);
+        return discardButton;
+    }
+
+    private void discardSuggestion() {
         Task task = getPageBase().createSimpleTask("Discard smart generating task");
         OperationResult result = task.getResult();
         SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
@@ -472,11 +479,11 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         removeWholeTaskObject(getPageBase(), task, result, token);
     }
 
-    public void initActionButton(@NotNull RepeatingView buttonsView) {
+    public void initStopButton(@NotNull RepeatingView buttonsView) {
         AjaxIconButton actionButton = new AjaxIconButton(
                 buttonsView.newChildId(),
-                () -> iconCssFor(stateOf(getModelObject())),
-                () -> labelFor(stateOf(getModelObject()))) {
+                Model.of("fa fa-stop"),
+                createStringResource("SmartGeneratingPanel.button.stop")) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -497,13 +504,9 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                 }
 
                 switch (executionState) {
-                    case RUNNING, RUNNABLE, WAITING ->
-                            TaskOperationUtils.suspendTasks(Collections.singletonList(taskObject), getPageBase());
-                    case SUSPENDED -> {
-                        TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
-                        if (timerBehavior != null) {
-                            timerBehavior.restart(target);
-                        }
+                    case RUNNING, RUNNABLE, WAITING -> {
+                        dto.removeExistingSuggestionTask(getPageBase());
+                        onDiscardPerform(target);
                     }
                     default -> {
                         return;
@@ -517,35 +520,8 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         actionButton.setOutputMarkupId(true);
         actionButton.showTitleAsLabel(true);
         actionButton.add(new VisibleBehaviour(() -> getModelObject() != null && !getModelObject().isFailed()));
-        actionButton.add(AttributeModifier.append("class", "btn btn-link"));
+        actionButton.add(AttributeModifier.append("class", "btn btn-link col-12"));
         buttonsView.add(actionButton);
-    }
-
-    private static TaskExecutionStateType stateOf(SmartGeneratingDto dto) {
-        return dto != null ? dto.getTaskExecutionState() : null;
-    }
-
-    @Contract(pure = true)
-    private @NotNull String iconCssFor(TaskExecutionStateType state) {
-        if (state == null) {
-            return "fa fa-question text-muted";
-        }
-        return switch (state) {
-            case RUNNING, RUNNABLE, WAITING -> "fa fa-pause";
-            case SUSPENDED -> "fa fa-play";
-            case CLOSED -> "fa fa-check";
-        };
-    }
-
-    private String labelFor(TaskExecutionStateType state) {
-        if (state == null) {
-            return createStringResource("SmartGeneratingPanel.button.unknown").getString();
-        }
-        return switch (state) {
-            case RUNNING, RUNNABLE, WAITING -> createStringResource("SmartGeneratingPanel.button.suspend").getString();
-            case SUSPENDED -> createStringResource("SmartGeneratingPanel.button.resume").getString();
-            case CLOSED -> createStringResource("SmartGeneratingPanel.button.closed").getString();
-        };
     }
 
     /**

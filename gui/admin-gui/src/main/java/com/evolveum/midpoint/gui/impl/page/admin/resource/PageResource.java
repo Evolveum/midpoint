@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;

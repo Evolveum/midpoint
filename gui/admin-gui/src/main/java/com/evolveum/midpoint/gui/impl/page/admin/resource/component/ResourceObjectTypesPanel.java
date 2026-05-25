@@ -183,8 +183,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                 valueModel.getObject().getNewValue().clone();
         WebPrismUtil.cleanupEmptyContainerValue(original);
 
-        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestion =
-                processSuggestedContainerValue(original);
+        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestion = processSuggestedContainerValue(original);
 
         onNewValue(suggestion, containerModel, target, false, postSaveHandler);
     }

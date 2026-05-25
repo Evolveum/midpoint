@@ -94,6 +94,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element minOccurs="0" name="apiVersion" type="xsd:string"/>
             <xsd:element minOccurs="0" name="baseApiEndpoint" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -316,6 +317,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevNamedInfoType">
                 <xsd:sequence>
+                    <xsd:element name="displayName" type="xsd:string"/>
                     <xsd:element name="shortDescription" type="xsd:string"/>
                     <xsd:element name="subject" type="xsd:string"/>
                     <xsd:element name="subjectAttribute" type="xsd:string"/>
@@ -363,6 +365,7 @@
             <xsd:element name="type" type="tns:ConnDevHttpAuthTypeType"/>
             <xsd:element name="description" type="xsd:string"/>
             <xsd:element name="quirks" type="xsd:string"/>
+            <xsd:element name="recommended" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="connDevAuthInfo" type="tns:ConnDevAuthInfoType"/>
