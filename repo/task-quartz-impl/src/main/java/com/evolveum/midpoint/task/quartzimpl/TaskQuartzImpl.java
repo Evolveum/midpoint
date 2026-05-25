@@ -1816,6 +1816,12 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public ConflictResolutionType getConflictResolution() {
+        TaskExecutionEnvironmentType executionEnvironment = getExecutionEnvironment();
+        return executionEnvironment != null ? executionEnvironment.getConflictResolution() : null;
+    }
+
+    @Override
     public TaskExecutionEnvironmentType getExecutionEnvironment() {
         return getContainerableOrClone(TaskType.F_EXECUTION_ENVIRONMENT);
     }

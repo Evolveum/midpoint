@@ -633,6 +633,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="conflictResolution" type="tns:ConflictResolutionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Conflict resolution strategy for objects processed by this task.
+                        Overrides the global setting from system configuration.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

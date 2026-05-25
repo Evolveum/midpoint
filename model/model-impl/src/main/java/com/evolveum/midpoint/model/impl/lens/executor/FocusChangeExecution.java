@@ -16,6 +16,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -266,7 +268,7 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
             CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
             ConflictDetectedException {
-        ConflictResolutionType conflictResolution = ModelExecuteOptions.getFocusConflictResolution(context.getOptions());
+        ConflictResolutionType conflictResolution = ModelImplUtils.getConflictResolution(context, task);
         DeltaExecution<O, O> deltaExecution =
                 new DeltaExecution<>(focusContext, focusDelta, conflictResolution, task, changeExecutionResult);
         deltaExecution.execute(result);

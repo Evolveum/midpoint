@@ -221,10 +221,32 @@ public class ModelImplUtils {
         return relevantPolicies;
     }
 
+    /**
+     * @deprecated Please use {@link #getConflictResolution(LensContext, Task)}
+     */
+    @Deprecated
     public static <F extends ObjectType> ConflictResolutionType getConflictResolution(LensContext<F> context) {
+        return getConflictResolution(context, null);
+    }
+
+    /**
+     * Returns the effective conflict resolution policy for the given context, consulting (in priority order):
+     * * {@link ModelExecuteOptions#getFocusConflictResolution} — programmatic / recompute-loop override
+     * * Task execution environment — per-task configuration
+     * * System configuration {@code defaultObjectPolicyConfiguration} — global/type/subtype fallback
+     */
+    public static <F extends ObjectType> ConflictResolutionType getConflictResolution(
+            LensContext<F> context, @Nullable Task task) {
+
         var resolution = ModelExecuteOptions.getFocusConflictResolution(context.getOptions());
         if (resolution != null) {
             return resolution;
+        }
+        if (task != null) {
+            resolution = task.getConflictResolution();
+            if (resolution != null) {
+                return resolution;
+            }
         }
         for (ObjectPolicyConfigurationType p : ModelImplUtils.getApplicablePolicies(context)) {
             if (p.getConflictResolution() != null) {

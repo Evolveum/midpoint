@@ -142,7 +142,7 @@ public class Clockwork {
         try {
             context.setStartedIfNotYet();
             context.updateSystemConfiguration(result);
-            conflictResolutionContext.initResolutionPolicy(ModelImplUtils.getConflictResolution(context));
+            conflictResolutionContext.initResolutionPolicy(ModelImplUtils.getConflictResolution(context, task));
 
             LOGGER.trace("Running clockwork for context {}", context);
             context.checkConsistenceIfNeeded();

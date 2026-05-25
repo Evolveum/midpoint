@@ -951,6 +951,9 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /** Returns an immutable collection of caching profiles. (From execution environment.) */
     @NotNull Collection<String> getCachingProfiles();
 
+    /** Returns conflict resolution configuration from the execution environment, or null if not set. */
+    @Nullable ConflictResolutionType getConflictResolution();
+
     /** Sets the execution environment configuration. */
     void setExecutionEnvironment(TaskExecutionEnvironmentType value);
 

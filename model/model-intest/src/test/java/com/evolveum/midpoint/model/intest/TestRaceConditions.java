@@ -144,6 +144,54 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test120AssignRoleConcurrently() throws Exception {
+        testAssignRoleConcurrently(
+                ConflictResolutionActionType.RECOMPUTE,
+                null,
+                ConflictResolutionActionType.RESTART,
+                "the role is assigned just once"
+        );
+    }
+
+    /**
+     * Task execution environment carries RESTART conflict resolution while system
+     * configuration has none. The task-level policy should take effect, resolving
+     * all concurrent assignment conflicts so that the role ends up assigned exactly once.
+     *
+     * Priority chain: options > task > system config. This test covers the task level.
+     */
+    @Test
+    public void test130ConflictResolutionFromTask() throws Exception {
+        testAssignRoleConcurrently(
+                null,
+                ConflictResolutionActionType.RESTART,
+                null,
+                "the role is assigned exactly once, conflict resolved by task-level policy"
+        );
+    }
+
+    /**
+     * ModelExecuteOptions carry RESTART conflict resolution while the task execution
+     * environment carries NONE (which would suppress retries). Options sit at the top
+     * of the priority chain (options > task > system config), so RESTART wins and all
+     * concurrent assignment conflicts are resolved.
+     *
+     * Priority chain: options > task > system config. This test covers the options level.
+     */
+    @Test
+    public void test131OptionsOverrideTaskConflictResolution() throws Exception {
+        testAssignRoleConcurrently(
+                ConflictResolutionActionType.RECOMPUTE,
+                ConflictResolutionActionType.NONE,
+                ConflictResolutionActionType.RESTART,
+                "the role is assigned exactly once, options RESTART took precedence over task NONE");
+    }
+
+    private void testAssignRoleConcurrently(
+            ConflictResolutionActionType systemResolutionAction,
+            ConflictResolutionActionType taskResolutionAction,
+            ConflictResolutionActionType optionsResolutionAction,
+            String finalThenMessage) throws Exception {
+
         skipIfNotNativeRepository();
 
         var task = getTestTask();
@@ -152,15 +200,20 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         int THREADS = 4;
         long DURATION = 10_000L;
 
+        given("system configuration has " + systemResolutionAction + " as default conflict resolution");
+        assumeConflictResolutionAction(systemResolutionAction);
+
         given("a user without assignments");
         UserType user = new UserType().name(getTestName());
         String oid = addObject(user.asPrismObject(), task, result);
 
-        var options = ModelExecuteOptions.create()
-                .focusConflictResolution(new ConflictResolutionType()
-                        .action(ConflictResolutionActionType.RESTART));
+        var options = optionsResolutionAction != null ?
+                ModelExecuteOptions.create()
+                        .focusConflictResolution(new ConflictResolutionType()
+                                .action(optionsResolutionAction))
+                : null;
 
-        when("assigning the same role concurrently in different threads");
+        when("assigning the same role concurrently");
         ParallelTestThread[] threads = multithread(
                 new AbstractMultithreadCycleRunner(DURATION) {
                     @Override
@@ -172,6 +225,12 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
                     @Override
                     public void run(int threadIndex, int cycleNumber) throws Exception {
                         Task localTask = createTask(getTestNameShort());
+                        if (taskResolutionAction != null) {
+                            localTask.setExecutionEnvironment(new TaskExecutionEnvironmentType()
+                                    .conflictResolution(new ConflictResolutionType()
+                                            .action(taskResolutionAction)));
+                        }
+
                         modifyAssignmentHolderAssignment(
                                 UserType.class,
                                 oid,
@@ -186,12 +245,10 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
                                 localTask.getResult());
                     }
                 },
-                THREADS,
-                null);
+                THREADS, null);
         waitForThreads(threads, DURATION * 10);
 
-        then("the role is assigned just once");
-        assertUserAfter(oid)
-                .assertAssignments(1);
+        then(finalThenMessage);
+        assertUserAfter(oid).assertAssignments(1);
     }
 }

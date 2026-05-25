@@ -937,7 +937,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         final ConflictResolutionActionType actionForTasks = ConflictResolutionActionType.NONE;
         for (ObjectPolicyConfigurationType c : systemConfiguration.getDefaultObjectPolicyConfiguration()) {
             if (c.getType() == null && c.getSubtype() == null && c.getConflictResolution() != null) {
-                current.add(c);
+                current.add(c.clone());
             } else if (QNameUtil.match(c.getType(), TaskType.COMPLEX_TYPE) && c.getSubtype() == null && c.getConflictResolution() != null) {
                 currentForTasks.add(c);
             }
