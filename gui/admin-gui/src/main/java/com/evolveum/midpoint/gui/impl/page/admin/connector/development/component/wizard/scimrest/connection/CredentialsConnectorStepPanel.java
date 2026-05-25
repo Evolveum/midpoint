@@ -12,8 +12,11 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
@@ -68,6 +71,9 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
     private static final String ID_PANEL = "panel";
     private static final String ID_RADIO = "radio";
     private static final String ID_NAME = "name";
+    private static final String ID_CREDENTIALS_SECTION = "credentialsSection";
+    private static final String ID_NO_SELECTION_MESSAGE = "noSelectionMessage";
+    private static final String ID_NO_METHODS_MESSAGE = "noMethodsMessage";
     private static final String ID_FORM = "form";
 
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevAuthInfoType>>> valuesModel;
@@ -120,9 +126,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
                 Optional<PrismContainerValueWrapper<ConnDevAuthInfoType>> selected = valuesModel.getObject().stream()
                         .filter(PrismContainerValueWrapper::isSelected)
                         .findFirst();
-
-                return selected.map(connDevAuthInfoTypePrismContainerValueWrapper -> connDevAuthInfoTypePrismContainerValueWrapper.getRealValue().getName())
-                        .orElse(null);
+                return selected.map(v -> v.getRealValue().getName()).orElse(null);
             }
 
             @Override
@@ -134,65 +138,62 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
                         .ifPresent(value -> value.setSelected(true));
             }
         };
+
+        IModel<ConnDevAuthInfoType> selectedAuthModel = () -> {
+            String name = radioGroupModel.getObject();
+            if (name == null) {
+                return null;
+            }
+            return valuesModel.getObject().stream()
+                    .filter(v -> StringUtils.equals(v.getRealValue().getName(), name))
+                    .map(PrismContainerValueWrapper::getRealValue)
+                    .findFirst().orElse(null);
+        };
+
+        Label noMethodsMessage = new Label(ID_NO_METHODS_MESSAGE, createStringResource("CredentialsConnectorStepPanel.noMethods"));
+        noMethodsMessage.add(new VisibleBehaviour(() -> valuesModel.getObject().isEmpty()));
+        add(noMethodsMessage);
+
         RadioGroup<String> radioGroup = new RadioGroup<>(ID_RADIO_GROUP, radioGroupModel);
         radioGroup.setOutputMarkupId(true);
         add(radioGroup);
 
+        WebMarkupContainer credentialsSection = new WebMarkupContainer(ID_CREDENTIALS_SECTION);
+        credentialsSection.setOutputMarkupId(true);
+        add(credentialsSection);
+
         ListView<PrismContainerValueWrapper<ConnDevAuthInfoType>> panel = new ListView<>(ID_PANEL, valuesModel) {
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<ConnDevAuthInfoType>> listItem) {
-                //if (listItem.getIndex() == valuesModel.getObject().size() - 1) {
-                //    listItem.add(AttributeAppender.append("class", ""));
-                //} else {
-                //    listItem.add(AttributeAppender.append("class", ""));
-                //}
+                listItem.setOutputMarkupId(true);
+                listItem.add(AttributeAppender.append("style", "cursor: pointer;"));
+                listItem.add(new AjaxEventBehavior("click") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                        radioGroupModel.setObject(listItem.getModelObject().getRealValue().getName());
+                        target.add(radioGroup);
+                        target.add(credentialsSection);
+                    }
+                });
 
                 Radio<String> radio = new Radio<>(ID_RADIO, Model.of(listItem.getModelObject().getRealValue().getName()), radioGroup);
                 radio.setOutputMarkupId(true);
+                radio.add(new AjaxEventBehavior("click") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                    }
+
+                    @Override
+                    protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                        super.updateAjaxAttributes(attributes);
+                        attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
+                    }
+                });
                 listItem.add(radio);
 
                 Label name = new Label(ID_NAME, () -> listItem.getModelObject().getRealValue().getName());
                 name.setOutputMarkupId(true);
                 listItem.add(name);
-
-                ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                        .visibilityHandler(getVisibilityHandler(listItem.getModelObject().getRealValue()))
-                        .mandatoryHandler(getMandatoryHandler(listItem.getModelObject().getRealValue()))
-                        .build();
-                VerticalFormPanel formPanel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration(getPanelType())) {
-
-                    @Override
-                    protected void onBeforeRender() {
-                        super.onBeforeRender();
-                        ((VerticalFormPrismContainerPanel) getSingleContainerPanel().getContainer().get("1"))
-                                .getContainer().add(AttributeAppender.remove("class"));
-                    }
-
-                    @Override
-                    protected WrapperContext createWrapperContext() {
-                        return getDetailsModel().createWrapperContext();
-                    }
-
-                    @Override
-                    protected boolean isShowEmptyButtonVisible() {
-                        return false;
-                    }
-
-                    @Override
-                    protected boolean isHeaderVisible(IModel model) {
-                        return false;
-                    }
-
-                    @Override
-                    protected String getCssClassForFormContainerOfValuePanel() {
-                        return "";
-                    }
-                };
-                formPanel.setOutputMarkupId(true);
-                formPanel.add(AttributeAppender.replace("class", "col-12 p-3 border-top bg-white"));
-                formPanel.add(new VisibleBehaviour(() -> listItem.getModelObject().isSelected()));
-                listItem.add(formPanel);
-
             }
         };
         panel.setOutputMarkupId(true);
@@ -201,79 +202,84 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
         radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(get(ID_RADIO_GROUP));
+                target.add(radioGroup);
+                target.add(credentialsSection);
             }
         });
-    }
 
-    private ItemMandatoryHandler getMandatoryHandler(ConnDevAuthInfoType authType) {
-        List<ItemName> visibleItems = new ArrayList<>();
-        try {
-            PrismPropertyWrapper<ConnDevIntegrationType> integration =
-                    getDetailsModel().getObjectWrapper().findProperty(
-                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE));
-            visibleItems.addAll(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
-
-        return wrapper -> visibleItems.stream()
-                .anyMatch(visibleItem -> StringUtils.equals(wrapper.getItemName().getLocalPart(), visibleItem.getLocalPart()));
-    }
-
-    private ItemVisibilityHandler getVisibilityHandler(ConnDevAuthInfoType authType) {
-        List<ItemName> visibleItems = new ArrayList<>();
-        try {
-            PrismPropertyWrapper<ConnDevIntegrationType> integration =
-                    getDetailsModel().getObjectWrapper().findProperty(
-                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE));
-            visibleItems.addAll(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
-
-        return wrapper -> {
-            if (visibleItems.stream().anyMatch(visibleItem -> StringUtils.equals(wrapper.getItemName().getLocalPart(), visibleItem.getLocalPart()))) {
-                return ItemVisibility.AUTO;
+        Label noSelectionMessage = new Label(ID_NO_SELECTION_MESSAGE, () -> {
+            if (valuesModel.getObject().isEmpty()) {
+                return createStringResource("CredentialsConnectorStepPanel.noCredentialsNeeded").getObject();
             }
-            return ItemVisibility.HIDDEN;
+            return createStringResource("CredentialsConnectorStepPanel.selectMethod").getObject();
+        });
+        noSelectionMessage.add(new VisibleBehaviour(() -> selectedAuthModel.getObject() == null));
+        credentialsSection.add(noSelectionMessage);
+
+        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+                .visibilityHandler(wrapper -> {
+                    ConnDevAuthInfoType authType = selectedAuthModel.getObject();
+                    if (authType == null) {
+                        return ItemVisibility.HIDDEN;
+                    }
+                    return getVisibleItemsFor(authType).stream()
+                            .anyMatch(vi -> StringUtils.equals(wrapper.getItemName().getLocalPart(), vi.getLocalPart()))
+                            ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
+                })
+                .mandatoryHandler(wrapper -> {
+                    ConnDevAuthInfoType authType = selectedAuthModel.getObject();
+                    if (authType == null) {
+                        return false;
+                    }
+                    return getVisibleItemsFor(authType).stream()
+                            .anyMatch(vi -> StringUtils.equals(wrapper.getItemName().getLocalPart(), vi.getLocalPart()));
+                })
+                .build();
+
+        VerticalFormPanel formPanel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration(getPanelType())) {
+
+            @Override
+            protected void onBeforeRender() {
+                super.onBeforeRender();
+                ((VerticalFormPrismContainerPanel) getSingleContainerPanel().getContainer().get("1"))
+                        .getContainer().add(AttributeAppender.remove("class"));
+            }
+
+            @Override
+            protected WrapperContext createWrapperContext() {
+                return getDetailsModel().createWrapperContext();
+            }
+
+            @Override
+            protected boolean isShowEmptyButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isHeaderVisible(IModel model) {
+                return false;
+            }
+
+            @Override
+            protected String getCssClassForFormContainerOfValuePanel() {
+                return "";
+            }
         };
+        formPanel.setOutputMarkupId(true);
+        formPanel.add(new VisibleBehaviour(() -> selectedAuthModel.getObject() != null));
+        formPanel.add(AttributeAppender.replace("class", "col-12 gen-list-group"));
+        credentialsSection.add(formPanel);
+    }
 
-//        if (StringUtils.equals("Basic Authorization", authType)) {
-//            return wrapper -> {
-//                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_APPLICATION_NAME)) {
-//                return ItemVisibility.AUTO;
-//            }
-//                return ItemVisibility.HIDDEN;
-//            };
-//        }
-//        if (StringUtils.equals("API Key Authorization", authType)) {
-//            return wrapper -> {
-//                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_DESCRIPTION)) {
-//                    return ItemVisibility.AUTO;
-//                }
-//                return ItemVisibility.HIDDEN;
-//            };
-//        }
-
-//        if (StringUtils.equals("OAuth 2.0 Client Credentials", authType)) {
-//            return wrapper -> {
-//                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_DEPLOYMENT_TYPE)) {
-//                    return ItemVisibility.AUTO;
-//                }
-//                return ItemVisibility.HIDDEN;
-//            };
-//        }
-//
-//        if (StringUtils.equals("API Key in Header or Query", authType)) {
-//            return wrapper -> {
-//                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_INTEGRATION_TYPE)) {
-//                    return ItemVisibility.AUTO;
-//                }
-//                return ItemVisibility.HIDDEN;
-//            };
-//        }
-//        return null;
+    private List<ItemName> getVisibleItemsFor(ConnDevAuthInfoType authType) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integration =
+                    getDetailsModel().getObjectWrapper().findProperty(
+                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE));
+            return new ArrayList<>(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private IModel<? extends PrismContainerWrapper> getContainerFormModel() {
