@@ -102,7 +102,7 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
 
         String channel = SchemaConstants.CHANNEL_USER_URI;
-        String sessionId = request.getRequestedSessionId();
+        String sessionId = SecurityUtil.getOrCreateAuditSessionId(request);
         if (authentication instanceof MidpointAuthentication
                 && ((MidpointAuthentication) authentication).getAuthenticationChannel() != null) {
             channel = ((MidpointAuthentication) authentication).getAuthenticationChannel().getChannelId();
