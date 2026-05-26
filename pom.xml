@@ -229,7 +229,7 @@
         <!-- Groovy 4.0.x supports Java 25 class files (major version 69). -->
         <groovy.version>4.0.31</groovy.version>
 
-        <cel.version>0.12.0</cel.version>
+        <cel.version>0.13.0</cel.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <tomcat.version>10.1.55</tomcat.version>
