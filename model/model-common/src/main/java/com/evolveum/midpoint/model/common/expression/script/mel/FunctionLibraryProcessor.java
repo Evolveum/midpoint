@@ -10,7 +10,6 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBi
 import com.evolveum.midpoint.model.common.expression.functions.LibraryFunctionExecutor;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.PolyStringCelValue;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.config.FunctionConfigItem;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -23,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
-import dev.cel.common.types.MapType;
 import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerBuilder;
@@ -141,7 +139,7 @@ public class FunctionLibraryProcessor {
         if (function.getParameters().size() == 1) {
             ExpressionParameterType paramSpec = function.getParameters().iterator().next();
             if (args.length == 1) {
-                if (CelTypeMapper.isCellNull(args[0])) {
+                if (CelTypeMapper.isCelNull(args[0])) {
                     Map<String, Object> m = new HashMap<>();
                     m.put(paramSpec.getName(), null);
                     return m;

@@ -325,7 +325,7 @@ public class CelTypeMapper implements CelTypeProvider  {
 
     @Nullable
     public static Object toJavaValue(@Nullable Object celValue) {
-        if (isCellNull(celValue)) {
+        if (isCelNull(celValue)) {
             return null;
         }
         while (celValue instanceof Optional<?> optional) {
@@ -351,7 +351,7 @@ public class CelTypeMapper implements CelTypeProvider  {
 
     @Nullable
     public static Object toJavaValue(@Nullable CelValue celValue) {
-        if (isCellNull(celValue)) {
+        if (isCelNull(celValue)) {
             return null;
         }
         if (celValue instanceof MidPointValueProducer<?> mpCelValue) {
@@ -396,10 +396,10 @@ public class CelTypeMapper implements CelTypeProvider  {
         return javaValue;
     }
 
-    public static boolean isCellNull(@Nullable Object object) {
+    public static boolean isCelNull(@Nullable Object object) {
         return object == null || object instanceof NullValue
                 || object instanceof com.google.protobuf.NullValue
-                || (object instanceof Optional<?> opt && opt.isEmpty());
+                || (object instanceof Optional<?> opt && (opt.isEmpty() || isCelNull(opt.get())));
     }
 
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> Object toListMapValue(Item<IV, ID> item) {

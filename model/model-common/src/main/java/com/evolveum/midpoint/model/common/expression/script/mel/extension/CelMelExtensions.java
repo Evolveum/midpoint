@@ -1135,7 +1135,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     private static Object funcDefault(Object val, Object defaultVal) {
-        if (CelTypeMapper.isCellNull(val)) {
+        if (CelTypeMapper.isCelNull(val)) {
             return defaultVal;
         }
         if (val instanceof Optional<?> opt && opt.isEmpty()) {
@@ -1193,7 +1193,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private static Object stringFormat(String format, Object o) {
         Object[] javaArgs;
-        if (CelTypeMapper.isCellNull(o)) {
+        if (CelTypeMapper.isCelNull(o)) {
             javaArgs = new Object[]{ null };
         } else if (o instanceof List<?> l) {
             javaArgs = CelTypeMapper.toJavaValues(l.toArray());
@@ -1208,10 +1208,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     public static boolean isNull(Object o) {
-        if (isCellNull(o)) {
-            return true;
-        }
-        return o instanceof Optional<?> opt && opt.isEmpty();
+        return isCelNull(o);
     }
 
     private QNameCelValue qname(String namespace, String localPart) {
@@ -1262,7 +1259,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     private Object single(Object o) {
-        if (isCellNull(o)) {
+        if (isCelNull(o)) {
             return o;
         }
         if (o instanceof Optional<?> opt) {
@@ -1290,14 +1287,14 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     private static Object string(Object arg) {
-        if (CelTypeMapper.isCellNull(arg)) {
+        if (CelTypeMapper.isCelNull(arg)) {
             return NullValue.NULL_VALUE;
         }
         return ExpressionUtil.stringify(CelTypeMapper.toJavaValue(arg), "");
     }
 
     private String norm(Object o) {
-        if (isCellNull(o)) {
+        if (isCelNull(o)) {
             return "";
         }
         if (o instanceof MidPointValueProducer<?> mpCelVal) {
@@ -1349,10 +1346,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     public static boolean stringEqualsPolyString(String s1, PolyStringCelValue s2) {
-        if (CelTypeMapper.isCellNull(s1) && CelTypeMapper.isCellNull(s2)) {
+        if (CelTypeMapper.isCelNull(s1) && CelTypeMapper.isCelNull(s2)) {
             return true;
         }
-        if (CelTypeMapper.isCellNull(s1) || CelTypeMapper.isCellNull(s2)) {
+        if (CelTypeMapper.isCelNull(s1) || CelTypeMapper.isCelNull(s2)) {
             return false;
         }
         return s1.equals(s2.getOrig());
@@ -1402,14 +1399,14 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     private static boolean polystringIsBlank(PolyStringCelValue celPolystring) {
-        if (isCellNull(celPolystring)) {
+        if (isCelNull(celPolystring)) {
             return true;
         }
         return celPolystring.getOrig().isBlank();
     }
 
     private static boolean polystringIsEmpty(PolyStringCelValue celPolystring) {
-        if (isCellNull(celPolystring)) {
+        if (isCelNull(celPolystring)) {
             return true;
         }
         return celPolystring.getOrig().isEmpty();
@@ -1516,14 +1513,14 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     public static boolean stringIsEmpty(String str) {
-        if (isCellNull(str)) {
+        if (isCelNull(str)) {
             return true;
         }
         return str.isEmpty();
     }
 
     public static boolean isEmpty(Object whatever) {
-        if (isCellNull(whatever)) {
+        if (isCelNull(whatever)) {
             return true;
         }
         if (whatever instanceof Optional<?> opt) {
@@ -1548,7 +1545,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     public static boolean stringIsBlank(String str) {
-        if (isCellNull(str)) {
+        if (isCelNull(str)) {
             return true;
         }
         return str.isBlank();

@@ -2048,6 +2048,14 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testMapDefaultNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-map-default-null.xml",
+                null,
+                "HELLO");
+    }
+
+    @Test
     public void testCaching() throws Exception {
         // We need to start with a clean slate
         initializeScriptEvaluator();
