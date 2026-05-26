@@ -674,6 +674,20 @@ This function works on strings as well as polystrings.
 norm('  Semančík')    // Returns 'semancik'
 ----
 
+=== quote
+
+`string.quote()` -> string
+
+Takes orig part of the given string and makes it safe to print
+(without any formatting due to escape sequences).
+If any invalid UTF-8 characters are encountered, they are replaced with \uFFFD.
+
+.Example
+[source,mel]
+----
+'foo\nbar'.quote()  // Returns '"foo\\nbar"'
+----
+
 === replace
 
 `string.replace(search, replacement)` -> string +
@@ -690,6 +704,18 @@ When the limit is a negative number, the function behaves the same as replace al
 'sailpoint'.replace('sail','mid')  // Returns 'midpoint'
 ----
 
+=== reverse
+
+`string.reverse()` -> string
+
+Returns a new string whose characters are the same as the target string,
+only formatted in reverse order.
+
+.Example
+[source,mel]
+----
+'foobar'.reverse()  // Returns 'raboof'
+----
 
 === single
 

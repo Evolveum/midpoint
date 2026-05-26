@@ -861,6 +861,31 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionStringMix4PolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-mix-4.xml",
+                createVariables(
+                        "foo", createPolyStringType("Foo\n\tBar"), PolyStringType.COMPLEX_TYPE,
+                        "bar", createPolyStringType("FooBar"), PolyStringType.COMPLEX_TYPE
+                ),
+                "\"Foo\\n\\tBar\" raBooF");
+    }
+
+    /**
+     * Control test, making sure stock CEL interprets the expression in the same way using plain strings.
+     */
+    @Test
+    public void testExpressionStringMix4String() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-mix-4.xml",
+                createVariables(
+                        "foo", "Foo\n\tBar", PrimitiveType.STRING,
+                        "bar", "FooBar", PrimitiveType.STRING
+                ),
+                "\"Foo\\n\\tBar\" raBooF");
+    }
+
+    @Test
     public void testExpressionStringContainsPolyString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-contains.xml",
@@ -2077,12 +2102,11 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     @Test
     public void testStrange1Null() throws Exception {
-        evaluateAndAssertStringScalarExpression(
+        evaluateAndAssertStringScalarNullExpression(
                 "expression-strange-1.xml",
                 createVariables(
                         "input", null, PrimitiveType.STRING
-                ),
-                null);
+                ));
     }
 
 

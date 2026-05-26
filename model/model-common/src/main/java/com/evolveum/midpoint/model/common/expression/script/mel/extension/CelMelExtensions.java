@@ -646,7 +646,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             polystring -> Ascii.toLowerCase(polystring.getOrig()))
             ),
 
-
             // polysting.matches(regex)
             // matches(polysting, regex)
             new Function(
@@ -666,7 +665,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "polystring_matches", PolyStringCelValue.class, String.class,
                             (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s, celOptions))
             ),
-
 
             // norm(any)
             new Function(
@@ -707,6 +705,36 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("mel-qname-ns", String.class, String.class,
                             this::qname)
 
+            ),
+
+            // string.quote()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "quote",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel_string_quote",
+                                    "Takes the given polystring and makes it safe to print "
+                                            + "(without any formatting due to escape sequences). "
+                                            + "If any invalid UTF-8 characters are encountered, they are replaced with \\uFFFD.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from("mel_string_quote", String.class,
+                            CelMelExtensions::quote)
+            ),
+
+            // polystring.quote()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "quote",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_quote",
+                                    "Takes orig part of the given string and makes it safe to print "
+                                            + "(without any formatting due to escape sequences). "
+                                            + "If any invalid UTF-8 characters are encountered, they are replaced with \\uFFFD.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("polystring_quote", PolyStringCelValue.class,
+                            CelMelExtensions::quote)
             ),
 
             // string.replace(searchString, replacement [, limit])
@@ -768,6 +796,34 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "polystring_replace_string_string_int",
                             ImmutableList.of(PolyStringCelValue.class, String.class, String.class, Long.class),
                             CelMelExtensions::replacePolystring)),
+
+            // string.reverse()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reverse",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel_string_reverse",
+                                    "Returns a new string whose characters are the same as the target string,"
+                                            + " only formatted in reverse order.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from("mel_string_reverse", String.class,
+                            CelMelExtensions::reverse)
+            ),
+
+            // polystring.reverse()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reverse",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_reverse",
+                                    "Returns a new string whose characters are the same as the orig part of target polystring,"
+                                            + " only formatted in reverse order.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("polystring_reverse", PolyStringCelValue.class,
+                            CelMelExtensions::reverse)
+            ),
 
             // single(any)
             new Function(
@@ -1116,6 +1172,88 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             polystring -> Ascii.toUpperCase(polystring.getOrig())))
 
         );
+    }
+
+    private static String quote(PolyStringCelValue polyStringCelValue) {
+        if (isCelNull(polyStringCelValue)) {
+            return null;
+        }
+        return quote(polyStringCelValue.getOrig());
+    }
+
+    private static String reverse(String s) {
+        if (s == null) {
+            return null;
+        }
+        return new StringBuilder(s).reverse().toString();
+    }
+
+    private static String reverse(PolyStringCelValue polyStringCelValue) {
+        if (isCelNull(polyStringCelValue)) {
+            return null;
+        }
+        return reverse(polyStringCelValue.getOrig());
+    }
+
+    private static String quote(String s) {
+        if (s == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append('"');
+        for (int i = 0; i < s.length(); ) {
+            int codePoint = s.codePointAt(i);
+            if (isMalformedUtf16(s, i)) {
+                sb.append('\uFFFD');
+                i++;
+                continue;
+            }
+            switch (codePoint) {
+                case '\u0007':
+                    sb.append("\\a");
+                    break;
+                case '\b':
+                    sb.append("\\b");
+                    break;
+                case '\f':
+                    sb.append("\\f");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                case '\u000B':
+                    sb.append("\\v");
+                    break;
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case '"':
+                    sb.append("\\\"");
+                    break;
+                default:
+                    sb.appendCodePoint(codePoint);
+                    break;
+            }
+            i += Character.charCount(codePoint);
+        }
+        sb.append('"');
+        return sb.toString();
+    }
+
+    private static boolean isMalformedUtf16(String s, int index) {
+        char currentChar = s.charAt(index);
+        if (Character.isLowSurrogate(currentChar)) {
+            return true;
+        }
+        // Check for unpaired high surrogate
+        return Character.isHighSurrogate(currentChar)
+                && (index + 1 >= s.length() || !Character.isLowSurrogate(s.charAt(index + 1)));
     }
 
     private static String uc(String s) {
