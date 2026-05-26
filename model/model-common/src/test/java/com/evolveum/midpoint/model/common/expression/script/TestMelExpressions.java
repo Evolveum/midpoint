@@ -2056,6 +2056,37 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testStrange1Foobar() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-strange-1.xml",
+                createVariables(
+                        "input", "foobar", PrimitiveType.STRING
+                ),
+                "foobar");
+    }
+
+    @Test
+    public void testStrange1SpaceFoobar() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-strange-1.xml",
+                createVariables(
+                        "input", " foobar", PrimitiveType.STRING
+                ),
+                "foobar");
+    }
+
+    @Test
+    public void testStrange1Null() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-strange-1.xml",
+                createVariables(
+                        "input", null, PrimitiveType.STRING
+                ),
+                null);
+    }
+
+
+    @Test
     public void testCaching() throws Exception {
         // We need to start with a clean slate
         initializeScriptEvaluator();
