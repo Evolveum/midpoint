@@ -28,15 +28,15 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
-== Changes with Respect To Version 4.8.12
-
-* Improved login and self-dashboard performance. See bug:MID-10972[]
-* Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
-* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
-
 == Changes with Respect To Version 4.8.11
 
 * Fixed the usage of the multiple ProtectedStringType fields in the same panel. See bug:MID-11072[]
+* Improved login and self-dashboard performance. See bug:MID-10972[]
+* Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
+* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
+* Fixed Request access relations issue. See bug:MID-10851[]
+* Fixed Campaigns scheduling menu item visibility. See bug:MID-11176[]
+* Fixed axiom query parsing for saved filters. See bug:MID-11183[]
 
 == Changes with Respect To Version 4.8.10
 

@@ -63,11 +63,14 @@ public class ConnectionEnvironment {
         return connectionInformation != null ? connectionInformation.getRemoteHostAddress() : null;
     }
 
+    /**
+     * @return public session identifier
+     */
     public String getSessionId() {
         if (sessionIdOverride != null) {
             return sessionIdOverride;
         } else if (connectionInformation != null) {
-            return connectionInformation.getSessionId();
+            return connectionInformation.getPublicSessionId();
         } else {
             return null;
         }

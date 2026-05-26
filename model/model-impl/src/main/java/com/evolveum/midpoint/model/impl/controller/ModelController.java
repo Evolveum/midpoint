@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
 import static java.util.Collections.emptyList;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
@@ -2637,15 +2639,19 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             throws CommonException {
 
         OperationResult result = parentResult.createSubresult(NOTIFY_CHANGE);
+        var oldChannel = task.getChannel();
         try {
+            task.setChannel(
+                    Objects.requireNonNullElse(
+                            changeDescription.getChannel(), SchemaConstants.CHANNEL_NOTIFY_CHANGE_URI));
+            securityEnforcer.authorize(ModelAuthorizationAction.NOTIFY_CHANGE.getUrl(), task, result);
+
             PrismObject<ShadowType> oldRepoShadow = getOldRepoShadow(changeDescription, task, result);
             PrismObject<ShadowType> resourceObject = getResourceObject(changeDescription);
             ObjectDelta<ShadowType> objectDelta = getObjectDelta(changeDescription, result);
 
-            securityEnforcer.authorize(ModelAuthorizationAction.NOTIFY_CHANGE.getUrl(), task, result);
-
-            ExternalResourceEvent event = new ExternalResourceEvent(objectDelta, resourceObject,
-                    oldRepoShadow, changeDescription.getChannel());
+            ExternalResourceEvent event = new ExternalResourceEvent(
+                    objectDelta, resourceObject, oldRepoShadow, changeDescription.getChannel());
 
             LOGGER.trace("Created event description:\n{}", event.debugDumpLazily());
             dispatcher.notifyEvent(event, task, result);
@@ -2667,6 +2673,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             throw t;
         } finally {
             result.close();
+            task.setChannel(oldChannel);
         }
     }
 
@@ -2717,17 +2724,98 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
-    private PrismObject<ShadowType> getOldRepoShadow(ResourceObjectShadowChangeDescriptionType change, Task task,
-            OperationResult result)
+    private PrismObject<ShadowType> getOldRepoShadow(
+            ResourceObjectShadowChangeDescriptionType change, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        String oid = change.getOldShadowOid();
-        if (oid != null) {
-            return getObject(ShadowType.class, oid, GetOperationOptions.createNoFetchReadOnlyCollection(), task, result);
+        var shadowOrOid = determineShadowOrOid(change, task, result);
+        if (shadowOrOid == null) {
+            return null;
+        } else if (shadowOrOid.shadow != null) {
+            return shadowOrOid.shadow;
+        } else if (shadowOrOid.oid != null) {
+            return getObject(ShadowType.class, shadowOrOid.oid, createNoFetchReadOnlyCollection(), task, result);
         } else {
             return null;
         }
     }
+
+    /** Returns either the complete shadow (must be fresh from the repository) or the shadow OID (or nothing). */
+    private ShadowOrOid determineShadowOrOid(ResourceObjectShadowChangeDescriptionType change, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        LOGGER.trace("Trying to determine shadow OID from {}", change);
+        var explicit = change.getOldShadowOid();
+        if (explicit != null) {
+            LOGGER.trace(" -> using explicitly provided value (oldShadowOid): {}", explicit);
+            return new ShadowOrOid(null, explicit);
+        }
+        var oldShadow = change.getOldShadow();
+        if (oldShadow != null) {
+            String oldShadowOid = oldShadow.getOid();
+            if (oldShadowOid != null) {
+                LOGGER.trace(" -> using explicitly provided value (oldShadow.oid): {}", oldShadowOid);
+                return new ShadowOrOid(null, oldShadowOid);
+            }
+            // Since this point, we treat all missing information as an error, because we assume the client wanted to determin
+            // the shadow OID from the information that he presented to us.
+            var resourceOid = MiscUtil.requireNonNull(
+                    Referencable.getOid(oldShadow.getResourceRef()),
+                    () -> "Couldn't determine old shadow OID, because resource OID was missing in 'oldShadow'");
+            var objectClassName = MiscUtil.requireNonNull(
+                    oldShadow.getObjectClass(),
+                    () -> "Couldn't determine old shadow OID, because no object class was specified in 'oldShadow'");
+            var resourcePrismObject = getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result);
+            var resource = Resource.of(resourcePrismObject);
+            provisioning.applyDefinition(oldShadow.asPrismObject(), task, result);
+            var attributes = ShadowUtil.getAttributes(oldShadow);
+            if (attributes.isEmpty()) {
+                throw new SchemaException("Couldn't determine old shadow OID, because no attributes were present in 'oldShadow'");
+            }
+            var queryBuilder =
+                    resource.queryFor(objectClassName)
+                            .and().not().item(ShadowType.F_DEAD).eq(true);
+            for (ResourceAttribute<?> attribute : attributes) {
+                if (attribute.size() != 1) {
+                    throw new SchemaException(
+                            "Only single-valued attributes can be used in the shadow specification, but %d values were given for '%s'"
+                                    .formatted(attribute.size(), attribute.getElementName()));
+                }
+                queryBuilder = queryBuilder.and()
+                        .item(attribute.getPath())
+                        .eq(attribute.getValue());
+            }
+            var query = queryBuilder.build();
+            var matchingShadows = searchObjects(
+                    ShadowType.class, query,
+                    createNoFetchReadOnlyCollection(),
+                    task, result);
+            if (matchingShadows.isEmpty()) {
+                throw new ObjectNotFoundException("The 'oldShadow' specification matched no shadows", ShadowType.class, null);
+            } else if (matchingShadows.size() > 1) {
+                var maxShadows = 100;
+                LOGGER.error("Multiple shadows ({}) matching the specification.\nSpec:\n{}\nShadows (up to {} shown):\n{}",
+                        matchingShadows.size(),
+                        query.debugDump(1),
+                        maxShadows,
+                        DebugUtil.debugDump(
+                                matchingShadows.subList(0, Math.min(matchingShadows.size(), maxShadows)),
+                                1));
+                throw new SchemaException(
+                        "The 'oldShadow' specification matched %d shadows but exactly one was expected"
+                                .formatted(matchingShadows.size()));
+            } else {
+                var matchingShadow = matchingShadows.get(0);
+                LOGGER.trace(" -> Matching shadow:\n{}", DebugUtil.debugDumpLazily(matchingShadow, 2));
+                return new ShadowOrOid(matchingShadow, matchingShadow.getOid());
+            }
+        }
+        // TODO here we could try to determine OID from the delta and resource object, but we are not going to do this in
+        //  4.8.x, 4.9.x, 4.10.x
+        return null;
+    }
+
+    private record ShadowOrOid(PrismObject<ShadowType> shadow, String oid) {}
 
     private void computePolyStrings(Collection<ObjectDelta<? extends ObjectType>> deltas) {
         for (ObjectDelta<? extends ObjectType> delta : deltas) {

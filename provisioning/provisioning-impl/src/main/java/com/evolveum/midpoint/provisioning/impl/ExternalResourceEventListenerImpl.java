@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
@@ -88,6 +89,7 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
 
             PrismObject<ShadowType> anyShadow = getAnyShadow(event);
             ProvisioningContext ctx = provisioningContextFactory.createForShadow(anyShadow, task, result);
+            ctx.setOperationContext(new ProvisioningOperationContext());
             ctx.assertDefinition();
 
             Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, event);
@@ -160,16 +162,19 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
 
     private void applyDefinitions(ExternalResourceEvent eventDescription,
             Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        if (eventDescription.getResourceObject() != null) {
-            shadowsFacade.applyDefinition(eventDescription.getResourceObject(), task, parentResult);
+        var resourceObject = eventDescription.getResourceObject();
+        if (resourceObject != null) {
+            shadowsFacade.applyDefinition(resourceObject, task, parentResult);
         }
 
-        if (eventDescription.getOldRepoShadow() != null){
-            shadowsFacade.applyDefinition(eventDescription.getOldRepoShadow(), task, parentResult);
+        var oldRepoShadow = eventDescription.getOldRepoShadow();
+        if (oldRepoShadow != null) {
+            shadowsFacade.applyDefinition(oldRepoShadow, task, parentResult);
         }
 
-        if (eventDescription.getObjectDelta() != null) {
-            shadowsFacade.applyDefinition(eventDescription.getObjectDelta(), null, task, parentResult);
+        var objectDelta = eventDescription.getObjectDelta();
+        if (objectDelta != null) {
+            shadowsFacade.applyDefinition(objectDelta, asObjectable(oldRepoShadow), task, parentResult);
         }
     }
 
