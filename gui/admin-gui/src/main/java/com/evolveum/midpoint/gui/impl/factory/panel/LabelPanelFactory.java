@@ -17,6 +17,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -82,7 +83,9 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
             return new Label(panelCtx.getComponentId(), ((SearchFilterType) object).getText());
         }
 
-        return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
+        Label labelPanel = new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
+        labelPanel.add(AttributeModifier.append("style", "white-space: pre-wrap;")); //needed to save the formatting of the multiline text
+        return labelPanel;
     }
 
     private static <T> @NotNull ExpressionPanel createExpressionReadOnlyPanel(@NotNull PrismPropertyPanelContext<T> panelCtx) {
