@@ -290,9 +290,9 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         record.setOutcome(OperationResultStatus.SUCCESS);
 
         record.setChannel(SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI);
-        record.setSessionIdentifier(getSession().getId());
         HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
         if (connInfo != null) {
+            record.setSessionIdentifier(connInfo.getPublicSessionId());
             record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
             record.setHostIdentifier(connInfo.getLocalHostName());
         }
