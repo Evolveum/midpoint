@@ -39,6 +39,13 @@ public class SecurityUtil {
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
     private static final long GET_LOCAL_NAME_THRESHOLD = 2000;
 
+    /**
+     * HTTP session attribute key under which the audit session UUID is stored.
+     * This is intentionally different from the container-assigned JSESSION ID so that
+     * audit logs do not expose the real session token.
+     */
+    public static final String AUDIT_SESSION_ID_ATTR = "MIDPOINT_AUDIT_SESSION_ID";
+
     @NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
 
     public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
@@ -384,6 +391,38 @@ public class SecurityUtil {
     }
 
     /**
+     * Returns a stable audit session ID for the given {@link HttpServletRequest} or null if request is null.
+     * @see #getOrCreateAuditSessionId(HttpSession)
+     */
+    public static String getOrCreateAuditSessionId(@Nullable HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        return getOrCreateAuditSessionId(request.getSession(false));
+    }
+
+    /**
+     * Returns a stable audit session ID for the given HTTP session.
+     * The ID is a random UUID generated on first call and stored as a session attribute
+     * ({@value #AUDIT_SESSION_ID_ATTR}). It intentionally differs from the container-assigned
+     * JSESSION ID so that audit logs do not expose the real session token.
+     *
+     * @return the UUID string, or {@code null} if {@code session} is {@code null}
+     */
+    public static String getOrCreateAuditSessionId(@Nullable HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        String id = (String) session.getAttribute(AUDIT_SESSION_ID_ATTR);
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+            session.setAttribute(AUDIT_SESSION_ID_ATTR, id);
+        }
+        return id;
+    }
+
+    /**
      * Returns current connection information, as derived from HTTP request stored in current thread.
      * May be null if the thread is not associated with any HTTP request (e.g. task threads, operations invoked from GUI but executing in background).
      */
@@ -398,6 +437,7 @@ public class SecurityUtil {
         if (session != null) {
             rv.setSessionId(session.getId());
         }
+        rv.setPublicSessionId(getOrCreateAuditSessionId(request));
         long start = System.currentTimeMillis();
         rv.setLocalHostName(request.getLocalName());
         long delta = System.currentTimeMillis() - start;
