@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.RandomStringUtils;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
@@ -42,6 +42,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
 
@@ -350,8 +353,13 @@ class AuthenticationWrapper {
         mpAuthentication.setSharedObjects(sharedObjects);
         mpAuthentication.setAuthModules(authModules);
         mpAuthentication.setAuthenticationChannel(authenticationChannel);
-        mpAuthentication.setSessionId(httpRequest.getSession(false) != null ?
-                httpRequest.getSession(false).getId() : RandomStringUtils.random(30, true, true).toUpperCase());
+
+        String auditSessionId = SecurityUtil.getOrCreateAuditSessionId(httpRequest);
+        if (auditSessionId == null) {
+            auditSessionId = UUID.randomUUID().toString();
+        }
+        mpAuthentication.setSessionId(auditSessionId);
+
         mpAuthentication.addAuthentication(authModules.get(0).getBaseModuleAuthentication());
         clearAuthentication(httpRequest);
         SecurityContextHolder.getContext().setAuthentication(mpAuthentication);

@@ -136,7 +136,7 @@ public class SequenceAuditFilter extends GenericFilterBean {
     }
 
     private ConnectionEnvironment createConnectionEnvironment(HttpServletRequest request, MidpointAuthentication mpAuthentication) {
-        String sessionId = request != null ? request.getRequestedSessionId() : null;
+        String sessionId = SecurityUtil.getOrCreateAuditSessionId(request);
         if (mpAuthentication.getSessionId() != null) {
             sessionId = mpAuthentication.getSessionId();
         }
