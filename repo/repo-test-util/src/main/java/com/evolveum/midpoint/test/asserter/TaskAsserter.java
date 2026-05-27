@@ -467,6 +467,16 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    public TaskAsserter<RA> assertConflictResolution(ConflictResolutionType resolution) {
+        assertThat(getConflictResolution()).as("conflict resolution").isEqualTo(resolution);
+        return this;
+    }
+
+    private ConflictResolutionType getConflictResolution() {
+        TaskExecutionEnvironmentType env = getObjectable().getExecutionEnvironment();
+        return env != null ? env.getConflictResolution() : null;
+    }
+
     private Collection<String> getCachingProfiles() {
         TaskExecutionEnvironmentType env = getObjectable().getExecutionEnvironment();
         return env != null ? env.getCachingProfile() : List.of();
