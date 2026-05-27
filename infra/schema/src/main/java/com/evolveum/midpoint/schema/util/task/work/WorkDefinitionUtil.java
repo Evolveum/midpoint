@@ -86,6 +86,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getDiscoverObjectClassAttributes());
         addTypedParameters(values, definitions.getDiscoverObjectClassEndpoints());
         addTypedParameters(values, definitions.getGenerateConnectorArtifact());
+        addTypedParameters(values, definitions.getRefreshScimSchema());
 
         addUntypedParameters(values, definitions.getExtension());
         return values;
