@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="56b0caba-9682-409b-815b-878029b42ef0">
+
+    <name>task-live-sync-dummy-conflict</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>runnable</executionState> <!-- running on demand by the test -->
+    <schedule>
+        <recurrence>recurring</recurrence>
+        <interval>1</interval>
+    </schedule>
+
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="f6ff3f3f-290e-475c-b1aa-96bad5058322"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
+    <executionEnvironment>
+        <conflictResolution>
+            <action>fail</action>
+        </conflictResolution>
+    </executionEnvironment>
+</task>

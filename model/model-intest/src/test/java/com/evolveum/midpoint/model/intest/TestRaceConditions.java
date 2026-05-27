@@ -11,14 +11,19 @@ import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.ROLE_SUPERUSER;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
+import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.util.DelayingProgressListener;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -28,6 +33,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.AbstractMultithreadCycleRunner;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -39,10 +46,20 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
     public static final File TEST_DIR = new File("src/test/resources/contract");
 
+    private static final DummyTestResource RESOURCE_DUMMY_CONFLICT = new DummyTestResource(
+            TEST_DIR, "resource-dummy-conflict.xml", "f6ff3f3f-290e-475c-b1aa-96bad5058322", "conflict");
+
+    private static final TestTask TASK_LIVE_SYNC_CONFLICT = TestTask.file(
+            TEST_DIR, "task-live-sync-conflict.xml", "56b0caba-9682-409b-815b-878029b42ef0");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
+
+        initAndTestDummyResource(RESOURCE_DUMMY_CONFLICT, initTask, initResult);
+        RESOURCE_DUMMY_CONFLICT.getDummyResource().setSyncStyle(DummySyncStyle.SMART);
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
     }
 
@@ -250,5 +267,42 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
         then(finalThenMessage);
         assertUserAfter(oid).assertAssignments(1);
+    }
+
+    @Test(enabled = false)
+    public void test140TestLiveSyncConflictResolution() throws Exception {
+
+        List<PrismObject<TaskType>> tasks = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            PrismObject<TaskType> task = TASK_LIVE_SYNC_CONFLICT.getFresh();
+            task.asObjectable()
+                    .oid(UUID.randomUUID().toString())
+                    .name("Livesync conflict " + i);
+
+            tasks.add(task);
+
+            addObject(task, getTestTask(), getTestOperationResult());
+        }
+
+        DummyAccount account = RESOURCE_DUMMY_CONFLICT.controller.addAccount("1", "user1");
+        Thread.sleep(1200L);
+
+        for (int i = 0; i < 10; i++) {
+            account.addAttributeValue(DummyAccount.ATTR_PRIVILEGES_NAME, "role" + i);
+
+            Thread.sleep(1200L); // todo we  should check if all livesync tasks were updated, maybe progress?
+
+            PrismObject<UserType> userObject = findObjectByName(UserType.class, "1");
+            Assertions.assertThat(userObject)
+                    .withFailMessage("User should be created")
+                    .isNotNull();
+            UserType user = userObject.asObjectable();
+            Assertions.assertThat(user.getAssignment())
+                    .withFailMessage(
+                            "User should have exactly %d assignment(s), but has %d",
+                            (i + 1),
+                            user.getAssignment().size())
+                    .hasSize(i + 1);
+        }
     }
 }
