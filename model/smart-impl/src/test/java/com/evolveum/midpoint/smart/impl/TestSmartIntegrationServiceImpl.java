@@ -1054,8 +1054,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 return schemaMatchResponse;
             } else if (request instanceof SiSuggestMappingRequestType mappingRequest) {
                 var appAttr = mappingRequest.getApplicationAttribute();
-                if (!appAttr.isEmpty()) {
-                    String attrName = appAttr.get(0).getName();
+                if (appAttr != null) {
+                    String attrName = appAttr.getName();
                     if (attrName.contains("type")) {
                         throw new RuntimeException("LLM went crazy here");
                     } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
