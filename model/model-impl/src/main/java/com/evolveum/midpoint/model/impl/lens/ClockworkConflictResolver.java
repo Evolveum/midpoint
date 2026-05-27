@@ -101,6 +101,7 @@ public class ClockworkConflictResolver {
         ConflictWatcher watcher = context.getFocusConflictWatcher();
         if (watcher != null
                 && resolutionContext.resolutionPolicy != null
+                && resolutionContext.resolutionPolicy.getAction() != null
                 && resolutionContext.resolutionPolicy.getAction() != ConflictResolutionActionType.NONE
                 && repositoryService.hasConflict(watcher, result)) {
             LOGGER.debug("Found modify-modify conflict on {}", watcher);
@@ -131,7 +132,9 @@ public class ClockworkConflictResolver {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
             CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
         ConflictResolutionType resolutionPolicy = resolutionContext.resolutionPolicy;
-        if (resolutionPolicy == null || resolutionPolicy.getAction() == ConflictResolutionActionType.NONE) {
+        if (resolutionPolicy == null
+                || resolutionPolicy.getAction() == null
+                || resolutionPolicy.getAction() == ConflictResolutionActionType.NONE) {
             if (resolutionContext.conflictExceptionPresent) {
                 throw new SystemException("Conflict exception present but resolution policy is null/NONE");
             }
