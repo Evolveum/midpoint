@@ -639,6 +639,10 @@
                         Conflict resolution strategy for objects processed by this task.
                         Overrides the global setting from system configuration.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8.12</a:since>
+                        <a:container>true</a:container>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

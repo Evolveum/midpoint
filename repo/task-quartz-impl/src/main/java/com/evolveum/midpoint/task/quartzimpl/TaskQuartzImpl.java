@@ -103,6 +103,9 @@ public class TaskQuartzImpl implements Task {
 
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
+    private static final ItemPath CONFLICT_RESOLUTION_PATH =
+            ItemPath.create(TaskType.F_EXECUTION_ENVIRONMENT, TaskExecutionEnvironmentType.F_CONFLICT_RESOLUTION);
+
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
 
     /** Synchronizes Quartz-related operations. */
@@ -1817,8 +1820,7 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public ConflictResolutionType getConflictResolution() {
-        TaskExecutionEnvironmentType executionEnvironment = getExecutionEnvironment();
-        return executionEnvironment != null ? executionEnvironment.getConflictResolution() : null;
+        return getContainerableOrClone(CONFLICT_RESOLUTION_PATH, ConflictResolutionType.class);
     }
 
     @Override

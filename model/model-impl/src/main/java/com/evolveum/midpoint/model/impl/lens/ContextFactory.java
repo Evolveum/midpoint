@@ -195,6 +195,8 @@ public class ContextFactory {
     /**
      * Creates a context for restarting a conflicted operation. Unlike a plain recompute, the original
      * primary delta is replayed against the freshly-loaded focus so that the intended change is not lost.
+     *
+     * todo also save/copy syncDelta
      */
     public <F extends ObjectType> LensContext<F> createRestartContext(
             @NotNull PrismObject<F> freshFocus,
