@@ -36,10 +36,13 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
     }
 
     @Override
-    protected @NotNull ActivityRunResult runLocally(OperationResult result) throws ActivityRunException, CommonException, ActivityInterruptedException {
+    protected @NotNull ActivityRunResult runLocally(OperationResult result)
+            throws ActivityRunException, CommonException, ActivityInterruptedException {
+
         var task = getRunningTask();
         var parentState = Util.getParentState(this, result);
         final MappingsSuggestionWorkDefinition workDefinition = getWorkDefinition();
+
         var resourceOid = workDefinition.getResourceOid();
         var typeDef = workDefinition.getTypeIdentification();
         var targetPathsToIgnore = workDefinition.getTargetPathsToIgnore();
@@ -50,18 +53,34 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
 
         var isInbound = workDefinition.isInbound();
         boolean useAi = workDefinition.getPermissions().contains(DataAccessPermissionType.RAW_DATA_ACCESS);
+
         var statisticsRef = parentState.getWorkStateItemRealValueClone(
                 MappingsSuggestionWorkStateType.F_STATISTICS_REF, ObjectReferenceType.class);
-        var objectTypeStatistics = SmartIntegrationBeans.get().statisticsService.loadObjectTypeStatistics(statisticsRef, result);
+        var objectTypeStatistics = SmartIntegrationBeans.get().statisticsService
+                .loadObjectTypeStatistics(statisticsRef, result);
+
         var schemaMatchRef = parentState.getWorkStateItemRealValueClone(
                 MappingsSuggestionWorkStateType.F_SCHEMA_MATCH_REF, ObjectReferenceType.class);
-        var schemaMatch = SmartIntegrationBeans.get().schemaMatchService.loadSchemaMatch(schemaMatchRef, result);
+        var schemaMatch = SmartIntegrationBeans.get().schemaMatchService
+                .loadSchemaMatch(schemaMatchRef, result);
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, typeDef, schemaMatch, isInbound, useAi, objectTypeStatistics, targetPathsToIgnore, state, task, result);
+                resourceOid,
+                typeDef,
+                schemaMatch,
+                isInbound,
+                useAi,
+                objectTypeStatistics,
+                targetPathsToIgnore,
+                state,
+                task,
+                result);
 
-        parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
+        parentState.setWorkStateItemRealValues(
+                MappingsSuggestionWorkStateType.F_RESULT,
+                suggestedMappings);
         parentState.flushPendingTaskModifications(result);
+
         LOGGER.debug("Suggestions written to the work state:\n{}", suggestedMappings.debugDump(1));
 
         return ActivityRunResult.success();
