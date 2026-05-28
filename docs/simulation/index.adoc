@@ -331,7 +331,6 @@ Hence, the current implementation uses the approach described above, with its in
 
 Other limitations, not principal but practical, are:
 
-. Simulations in multi-node tasks are not supported yet.
 . Handling of objects created on demand is limited slightly more than described above:
 Their creation is reported multiple times, even for a single item being processed.
 The delta visualization is not finished yet: midPoint shows OIDs instead of names.
