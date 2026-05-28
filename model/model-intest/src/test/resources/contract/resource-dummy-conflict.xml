@@ -40,6 +40,9 @@
             <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
+            <focus>
+                <type>UserType</type>
+            </focus>
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
             </delineation>
@@ -47,6 +50,16 @@
                 <ref>icfs:name</ref>
                 <inbound>
                     <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                log.warn("Sleeping thread for 100ms")
+                                Thread.sleep(100)
+
+                                input
+                            </code>
+                        </script>
+                    </expression>
                     <target>
                         <path>name</path>
                     </target>

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,6 +26,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.util.DelayingProgressListener;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -51,6 +53,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
     private static final TestTask TASK_LIVE_SYNC_CONFLICT = TestTask.file(
             TEST_DIR, "task-live-sync-conflict.xml", "56b0caba-9682-409b-815b-878029b42ef0");
+    @Autowired private ModelService modelService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
@@ -271,28 +274,59 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
     @Test(enabled = false)
     public void test140TestLiveSyncConflictResolution() throws Exception {
+        given();
 
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        final String userName = "jdoe";
+        final String roleNamePrefix = "role";
+        final int roleCount = 10;
+        final int liveSyncTaskCount = 10;
+
+        // pre-create roles that will be assigned based on "privileges" account attribute
+        for (int i = 0; i < roleCount; i++) {
+            RoleType role = new RoleType()
+                    .name(roleNamePrefix + i);
+            addObject(role.asPrismObject());
+        }
+
+        // create account on resource before starting live-sync
+        DummyAccount account = RESOURCE_DUMMY_CONFLICT.controller.addAccount(userName, userName);
+        // create user
+        modelService.importFromResource(RESOURCE_DUMMY_CONFLICT.oid, SchemaConstants.RI_ACCOUNT_OBJECT_CLASS, task, result);
+
+        waitForTaskFinish(task, 10000);
+
+        PrismObject<ShadowType> shadow = findShadowByName(
+                ShadowKindType.ACCOUNT, "default", userName, RESOURCE_DUMMY_CONFLICT.get(), result);
+        Assertions.assertThat(shadow)
+                .withFailMessage("Shadow should be created")
+                .isNotNull();
+
+        // setup live-sync
         List<PrismObject<TaskType>> tasks = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            PrismObject<TaskType> task = TASK_LIVE_SYNC_CONFLICT.getFresh();
-            task.asObjectable()
+        for (int i = 0; i < liveSyncTaskCount; i++) {
+            PrismObject<TaskType> lsTask = TASK_LIVE_SYNC_CONFLICT.getFresh();
+            lsTask.asObjectable()
                     .oid(UUID.randomUUID().toString())
                     .name("Livesync conflict " + i);
 
-            tasks.add(task);
+            tasks.add(lsTask);
 
-            addObject(task, getTestTask(), getTestOperationResult());
+            addObject(lsTask, task, result);
         }
 
-        DummyAccount account = RESOURCE_DUMMY_CONFLICT.controller.addAccount("1", "user1");
-        Thread.sleep(1200L);
+        for (int i = 0; i < roleCount; i++) {
+            when();
 
-        for (int i = 0; i < 10; i++) {
-            account.addAttributeValue(DummyAccount.ATTR_PRIVILEGES_NAME, "role" + i);
+            account.addAttributeValue(DummyAccount.ATTR_PRIVILEGES_NAME, roleNamePrefix + i);
 
             Thread.sleep(1200L); // todo we  should check if all livesync tasks were updated, maybe progress?
 
-            PrismObject<UserType> userObject = findObjectByName(UserType.class, "1");
+            then();
+
+            PrismObject<UserType> userObject = findObjectByName(UserType.class, userName);
             Assertions.assertThat(userObject)
                     .withFailMessage("User should be created")
                     .isNotNull();

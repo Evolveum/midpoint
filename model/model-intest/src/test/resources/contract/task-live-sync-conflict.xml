@@ -30,7 +30,7 @@
     </activity>
     <executionEnvironment>
         <conflictResolution>
-            <action>fail</action>
+            <action>restart</action>
         </conflictResolution>
     </executionEnvironment>
 </task>
