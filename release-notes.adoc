@@ -42,6 +42,8 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 * bug:MID-10965[] Fast correlators simulation.
 
+* Multi-tab Browser Support. See bug:MID-11050[].
+
 #TODO#
 
 === Other Improvements
@@ -54,6 +56,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * bug:MID-10918[] Improved audit record for skipped approval stage.
 * bug:MID-9476[] Improved Search Box in Object Collection View.
 * bug:MID-10867[] Added support for java 25.
+* bug:MID-10875[] Added Order constraints tab for Assignments panel.
 
 === Major Bugfixes
 
@@ -88,7 +91,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed certification case stage outcome information. See bug:MID-11026[]
 * Fixed admin gui configuration merging. See bug:MID-11045[]
 * Fixed correlation work item panel. See bug:MID-10993[]
-* Fixed NPE in general notifier. See bug:MID-11038[]
+* Fixed recipient converter while sending notification. See bug:MID-11038[]
 * Fixed page storage for dashboard widget collection. See bug:MID-11055[]
 * Fixed oversized IN queries in fetchChildren causing PostgreSQL parameter limit errors. See bug:MID-11089[]
 
@@ -105,6 +108,16 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fix 10k limit in certification queries using iterative search. See bug:MID-11043[]
 * Fixed generic "Fatal error" message in object tables to show available list/search error details. See bug:MID-10911[]
 * Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
+* Fixed extension schema containers displaying. See bug:MID-10954[]
+* Fixed duplicated "No response" option for campaign. See bug:MID-11166[]
+* Fixed Campaigns scheduling menu item visibility. See bug:MID-11176[]
+* Fixed axiom query parsing for saved filters. See bug:MID-11183[]
+* Updated saved filters merging strategy. See bug:MID-11181[]
+* Improved CSV export to use streaming data loading and export. See bug:MID-10990[]
+* Fixed text formatting in disabled text area. See bug:MID-11216[]
+* Fixed Privileged access initial object. See bug:MID-11004[]
+* Fixed assignment name for policy rule. See bug:MID-11005[]
+* Fixed object list view columns while report creation. See bug:MID-10967[]
 
 === Releases Of Other Components
 
