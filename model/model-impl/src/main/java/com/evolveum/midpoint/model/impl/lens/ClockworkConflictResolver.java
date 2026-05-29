@@ -240,8 +240,8 @@ public class ClockworkConflictResolver {
             if (newConflictContext != null && newConflictContext.wasConflictDetected()) {
                 LOGGER.debug("FOCUS UPDATE CONFLICT: Retry failed (attempt {}), will try again", retryAttempt);
             } else {
-                LOGGER.debug("FOCUS UPDATE CONFLICT: Clean retry of {} achieved (options={}, retry attempt={})",
-                        context.getFocusContext().getHumanReadableName(), options, retryAttempt);
+                LOGGER.debug("FOCUS UPDATE CONFLICT: Clean execution of {} achieved after {} retry/retries (action={})",
+                        context.getFocusContext().getHumanReadableName(), retryAttempt, action);
                 return hookOperationMode;
             }
         }
