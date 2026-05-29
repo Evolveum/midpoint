@@ -694,6 +694,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                         objectClass, deltaForExecution.getOid(), deltaForExecution.getModifications(),
                         precondition, null, result);
             } catch (PreconditionViolationException e) {
+                result.muteErrorsRecursively();
                 throw new ConflictDetectedException(e);
             }
         }

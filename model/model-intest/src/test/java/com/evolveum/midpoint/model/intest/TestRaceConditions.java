@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -276,7 +275,18 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         assertUserAfter(oid).assertAssignments(1);
     }
 
-    @Test(enabled = false) // temporarily disabled
+    /**
+     * An ultimate test for #10714: Creates multiple LiveSync tasks operating on a single user.
+     * Gradually, each of the task is made to create an assignment to a given role. (Using an inbound
+     * with `assignmentTargetSearch` evaluator, driven by an attribute containing role names to assign.)
+     *
+     * Without special conditioning, duplicate assignments are created, because the tasks operate in parallel.
+     * (Moreover, the processing is artificially slowed down, so the conflicts are guaranteed to occur.)
+     *
+     * However, by setting conflict resolution action to `restart`, we make sure that conflicting updates are
+     * detected and treated by restarting the particular change processing.
+     */
+    @Test
     public void test140TestLiveSyncConflictResolution() throws Exception {
         skipIfNotNativeRepository();
 
@@ -289,26 +299,25 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
 
         final String userName = "jdoe";
-        final String roleNamePrefix = "role";
         final int roleCount = 20;
         final int liveSyncTaskCount = 10;
 
-        // pre-create roles that will be assigned based on "privileges" account attribute
-        for (int i = 0; i < roleCount; i++) {
-            RoleType role = new RoleType()
-                    .name(roleNamePrefix + i);
-            addObject(role.asPrismObject());
-        }
+        given("roles that will be assigned based on 'privileges' account attribute");
+        var roles = modelObjectCreatorFor(RoleType.class)
+                .withObjectCount(roleCount)
+                .withNamePattern("role%d")
+                .execute(result);
 
-        // create account on resource before starting live-sync
+        and("account on resource that will be live-synced");
         DummyAccount account = RESOURCE_DUMMY_CONFLICT.controller.addAccount(userName);
 
-        // import shadow to create user
-        Task importTask = createTask("import");
-        modelService.importFromResource(RESOURCE_DUMMY_CONFLICT.oid, SchemaConstants.RI_ACCOUNT_OBJECT_CLASS, importTask, result);
-        waitForTaskFinish(importTask);
+        and("account imported as a midPoint user");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_CONFLICT.oid)
+                .withNameValue(userName)
+                .executeOnForeground(result);
 
-        // setup live-sync
+        and("array of live sync tasks to be run concurrently");
         List<PrismObject<TaskType>> tasks = new ArrayList<>();
         for (int i = 0; i < liveSyncTaskCount; i++) {
             PrismObject<TaskType> lsTask = TASK_LIVE_SYNC_CONFLICT.getFresh();
@@ -331,29 +340,25 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         for (int i = 0; i < roleCount; i++) {
             logger.info("Adding value to privileges attribute, iteration {}", i);
 
-            when();
+            var role = roles.get(i);
+            var roleName = role.getName().getOrig();
 
-            account.addAttributeValue(DummyAccount.ATTR_PRIVILEGES_NAME, roleNamePrefix + i);
+            when("adding the name of role " + roleName + " to privileges attribute");
 
-            int numberOfAssignments = i + 1;
+            account.addAttributeValue(DummyAccount.ATTR_PRIVILEGES_NAME, roleName);
+
+            int expectedAssignments = i + 1;
 
             for (String oid : taskOids) {
-                waitForTaskProgress(oid, numberOfAssignments, 4000, result);
+                // Progress for LS tasks is the number of changes processed. Here we just wait for all tasks to process
+                // (at least) the currently introduced change.
+                waitForTaskProgress(oid, expectedAssignments, 20000, result);
             }
 
-            then();
+            then("user is there, and it has no duplicate assignments (i.e. only " + expectedAssignments + " of them)");
 
-            PrismObject<UserType> userObject = findObjectByName(UserType.class, userName);
-            Assertions.assertThat(userObject)
-                    .withFailMessage("User should be created")
-                    .isNotNull();
-            UserType user = userObject.asObjectable();
-            Assertions.assertThat(user.getAssignment())
-                    .withFailMessage(
-                            "User should have exactly %d assignment(s), but has %d",
-                            numberOfAssignments,
-                            user.getAssignment().size())
-                    .hasSize(numberOfAssignments);
+            assertUserByUsername(userName, "")
+                    .assertAssignments(expectedAssignments);
         }
     }
 }

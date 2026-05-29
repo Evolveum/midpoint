@@ -17,16 +17,7 @@
     </documentation>
     <connectorRef type="ConnectorType">
         <filter>
-            <q:and>
-                <q:equal>
-                    <q:path>connectorType</q:path>
-                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-                </q:equal>
-                <q:equal>
-                    <q:path>connectorVersion</q:path>
-                    <q:value>2.0</q:value>
-                </q:equal>
-            </q:and>
+            <q:text>connectorType = "com.evolveum.icf.dummy.connector.DummyConnector" and connectorVersion = "2.0"</q:text>
         </filter>
     </connectorRef>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
@@ -71,38 +62,14 @@
                         <assignmentTargetSearch>
                             <targetType>RoleType</targetType>
                             <filter>
-                                <q:equal>
-                                    <q:path>name</q:path>
-                                    <expression>
-                                        <script>
-                                            <code>
-                                                input
-                                            </code>
-                                        </script>
-                                    </expression>
-                                </q:equal>
+                                <q:text>name = `input`</q:text>
                             </filter>
-                            <createOnDemand>true</createOnDemand>
-                            <populateObject>
-                                <populateItem>
-                                    <expression>
-                                        <script>
-                                            <code>
-                                                input
-                                            </code>
-                                        </script>
-                                    </expression>
-                                    <target>
-                                        <path>name</path>
-                                    </target>
-                                </populateItem>
-                            </populateObject>
                         </assignmentTargetSearch>
                     </expression>
                     <target>
                         <path>assignment</path>
                         <set>
-                            <predefined>all</predefined>
+                            <predefined>all</predefined> <!-- This is important to demonstrate that no changes are lost (?) -->
                         </set>
                     </target>
                 </inbound>
