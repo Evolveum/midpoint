@@ -1,15 +1,15 @@
 ---
 layout: release
-release-version: '4.9.6'
+release-version: '4.9.7'
 visibility: hidden
 ---
-= MidPoint 4.9 "Verne" - Update 6
-:release-version: 4.9.6
+= MidPoint 4.9 "Verne" - Update 7
+:release-version: 4.9.7
 :page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a seventy-first midPoint release, code-named _Verne_.
+Release {release-version} is a seventy-eighth midPoint release, code-named _Verne_.
 The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
@@ -37,13 +37,14 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9.6
 
-* Fixed reconc task with tailoring GUI error in Subtasks tab. See bug:MID-11107[].
-* Fixed correlation case closing on resolution error. See bug:MID-11094[]
-* Fixed loading and displaying the data on the Errors panel of the Task page. See bug:MID-10682[].
-* Fixed the issue with overriding the metadata while redundant role request. See bug:MID-10979[].
-* Fixed the query for getting the errors on the task details page. See bug:MID-10682[].
-* Upgraded libraries (spring-boot, wicket, tomcat, connector-ldap, webpack and others)
-* Fixed concurrency issue when parsing query. See bug:MID-11058[].
+* Fixed GUI error occurring when opening the Subtasks panel in some reconciliation tasks. See bug:MID-11107[].
+* Fixed misleading correlation case behavior in GUI with cases seemingly closing on a resolution error. See bug:MID-11094[]
+* Fixed missing error details in the Error panel of a task where errors occurred. See bug:MID-10682[].
+* Fixed an issue with redundant role request overriding assignment metadata.
+    Improved GUI feedback to the role requester when the request is redundant because the target role is already assigned.
+    See bug:MID-10979[].
+* Upgraded libraries (Spring Boot, Wicket, Tomcat, LDAP connector, webpack, and others).
+* Fixed concurrency issue in multi-threaded `iterativeScripting` tasks. See bug:MID-11058[].
 * Updated handling of String -> byte[]. See bug:MID-11015[].
 
 == Changes with Respect To Version 4.9.5
