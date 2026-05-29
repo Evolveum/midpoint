@@ -9,8 +9,8 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a seventy-three midPoint release, code-named _Curie_.
-The {release-version} release brings security, stability and miscellaneous bugfixes.
+Release {release-version} is a seventy-seventh midPoint release, code-named _Curie_.
+The {release-version} release brings security, stability, and miscellaneous bug fixes.
 
 ++++
 {% include release-data.html %}
@@ -30,18 +30,19 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 == Changes with Respect To Version 4.8.11
 
-* Fixed the usage of the multiple ProtectedStringType fields in the same panel. See bug:MID-11072[]
-* Improved login and self-dashboard performance. See bug:MID-10972[]
-* Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
-* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
+* Fixed the usage of the multiple `ProtectedStringType` fields in the same GUI panel. See bug:MID-11072[]
+* Improved login and self-service dashboard loading speed. See bug:MID-10972[]
+* Localized archetype label now correctly displays in the assignment picker and summary panel. See bug:MID-11177[]
+* Improved user list load speed when listing users with `orgRelation` authorization for users managing many organizations. See bug:MID-11179[]
 * Fixed Request access relations issue. See bug:MID-10851[]
-* Fixed Campaigns scheduling menu item visibility. See bug:MID-11176[]
-* Fixed axiom query parsing for saved filters. See bug:MID-11183[]
-* Upgraded libraries (spring boot, wicket, tomcat and others).
-* Fixed concurrency issue when parsing query. See bug:MID-11058[]
-* Fixed dashboard widget showing "Unknown" for ShadowType collections. See bug:MID-11102[]
+// TODO : is this 10851 really supposed to be here? It does not have 4.8.X in fix versions…
+* Fixed ability to hide Campaigns scheduling menu item by visibility configuration. See bug:MID-11176[]
+* Fixed axiom query parsing for saved filters to ensure complex filters work as expected after they are saved for later use. See bug:MID-11183[]
+* Upgraded libraries (Spring Boot, Wicket, Tomcat, and others).
+* Fixed concurrency issue in multi-threaded `iterativeScripting` tasks. See bug:MID-11058[]
+* Fixed dashboard widget showing "Unknown" for `ShadowType` collections instead of counting the shadows. See bug:MID-11102[]
 * Updated handling of String -> byte[]. See bug:MID-11015[]
-* Implemented support for notifyChange REST call without shadow OID. See bug:MID-11230[]
+* Implemented support for `notifyChange` REST call without explicitly providing the shadow OID. See bug:MID-11230[]
 
 == Changes with Respect To Version 4.8.10
 
