@@ -136,15 +136,15 @@ public enum SupportedAuthorization {
         return switch (type) {
             case "basic" -> HTTP_BASIC.crateBasicInformation();
             case "bearer" -> HTTP_BEARER.crateBasicInformation();
-            case "jwt-bearer" -> HTTP_JWT_BEARER.crateBasicInformation();
-            case "apikey" -> HTTP_APIKEY.crateBasicInformation();
+            case "jwtBearer" -> HTTP_JWT_BEARER.crateBasicInformation();
+            case "apiKey" -> HTTP_APIKEY.crateBasicInformation();
             case "digest" -> HTTP_DIGEST.crateBasicInformation();
-            case "oauth2-client-credentials" -> OAUTH2_CLIENT_CREDENTIALS.crateBasicInformation();
-            case "oauth2-password" -> OAUTH2_PASSWORD.crateBasicInformation();
-            case "oauth2-jwt" -> OAUTH2_JWT.crateBasicInformation();
-            case "oauth2-saml" -> OAUTH2_SAML.crateBasicInformation();
+            case "oauth2ClientCredentials" -> OAUTH2_CLIENT_CREDENTIALS.crateBasicInformation();
+            case "oauth2Password" -> OAUTH2_PASSWORD.crateBasicInformation();
+            case "oauth2Jwt" -> OAUTH2_JWT.crateBasicInformation();
+            case "oauth2Saml" -> OAUTH2_SAML.crateBasicInformation();
             case "hawk" -> HTTP_HAWK.crateBasicInformation();
-            case "aws-signature" -> AWS_SIGNATURE.crateBasicInformation();
+            case "awsSignature" -> AWS_SIGNATURE.crateBasicInformation();
             case "ntlm" -> HTTP_NTLM.crateBasicInformation();
             case "other" -> OTHER.crateBasicInformation();
             default -> null;
