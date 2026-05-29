@@ -17,11 +17,6 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
-import com.evolveum.midpoint.model.impl.simulation.FullOperationSimulationDataImpl;
-
-import com.evolveum.midpoint.task.api.SimulationTransaction;
-
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -37,6 +32,8 @@ import com.evolveum.midpoint.model.common.expression.evaluator.caching.Associati
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+import com.evolveum.midpoint.model.impl.simulation.FullOperationSimulationDataImpl;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -51,6 +48,7 @@ import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.exception.*;
@@ -104,11 +102,9 @@ public class Clockwork {
         try {
             trace = recordTraceAtStart(context, result);
 
-            var conflictResolutionContext = new ClockworkConflictResolver.Context();
+            HookOperationMode mode = runWithConflictDetection(context, task, result);
 
-            HookOperationMode mode = runWithConflictDetection(context, conflictResolutionContext, task, result);
-
-            return clockworkConflictResolver.resolveFocusConflictIfPresent(context, conflictResolutionContext, mode, task, result);
+            return clockworkConflictResolver.resolveFocusConflictIfPresent(context, mode, task, result);
 
         } catch (ClockworkAbortedException e) {
             // Actually, this is not a problem. We simply record the exception into the operation result and that's all.
@@ -131,10 +127,10 @@ public class Clockwork {
 
     /**
      * Runs the clockwork with the aim of detecting modify-modify conflicts on the focus object.
-     * It reports such states via the conflictResolutionContext parameter.
+     * It reports such states in {@link LensContext#focusConflictResolutionContext} but does not try to resolve them.
      */
-    <F extends ObjectType> HookOperationMode runWithConflictDetection(LensContext<F> context,
-            ClockworkConflictResolver.Context conflictResolutionContext, Task task, OperationResult parentResult)
+    <F extends ObjectType> @NotNull HookOperationMode runWithConflictDetection(
+            LensContext<F> context, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -142,7 +138,7 @@ public class Clockwork {
         try {
             context.setStartedIfNotYet();
             context.updateSystemConfiguration(result);
-            conflictResolutionContext.initResolutionPolicy(ModelImplUtils.getConflictResolution(context, task));
+            context.setupConflictResolutionContext(task);
 
             LOGGER.trace("Running clockwork for context {}", context);
             context.checkConsistenceIfNeeded();
@@ -172,12 +168,12 @@ public class Clockwork {
                 HookOperationMode mode = click(context, task, result);
                 if (mode == HookOperationMode.FOREGROUND) {
                     // We must check inside here - before watchers are unregistered
-                    clockworkConflictResolver.detectFocusConflicts(context, conflictResolutionContext, result);
+                    clockworkConflictResolver.detectFocusConflictsUsingWatcher(context, result);
                 }
                 return mode;
             } catch (ConflictDetectedException e) {
                 LOGGER.debug("Clockwork conflict detected", e);
-                conflictResolutionContext.recordConflictException();
+                context.getFocusConflictResolutionContext().recordConflictException();
                 return HookOperationMode.FOREGROUND;
             }
         } finally {

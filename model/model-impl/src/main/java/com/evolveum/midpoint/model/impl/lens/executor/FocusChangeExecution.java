@@ -16,12 +16,9 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
@@ -268,13 +265,12 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
             CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
             ConflictDetectedException {
-        ConflictResolutionType conflictResolution = ModelImplUtils.getConflictResolution(context, task);
         DeltaExecution<O, O> deltaExecution =
-                new DeltaExecution<>(focusContext, focusDelta, conflictResolution, task, changeExecutionResult);
+                new DeltaExecution<>(focusContext, focusDelta, task, changeExecutionResult);
         deltaExecution.execute(result);
         if (focusDelta.isAdd() && focusDelta.getOid() != null) {
-            b.clockworkConflictResolver.createConflictWatcherAfterFocusAddition(context, focusDelta.getOid(),
-                    focusDelta.getObjectToAdd().getVersion());
+            b.clockworkConflictResolver.createConflictWatcherAfterFocusAddition(
+                    context, focusDelta.getOid(), focusDelta.getObjectToAdd().getVersion());
         }
         if (deltaExecution.isDeleted()) {
             focusContext.setDeleted();

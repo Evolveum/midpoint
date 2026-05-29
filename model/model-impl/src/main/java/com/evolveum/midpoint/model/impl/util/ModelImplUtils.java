@@ -201,8 +201,9 @@ public class ModelImplUtils {
         return rv;
     }
 
+    // FIXME does not take archetypes into account
     @NotNull
-    public static <F extends ObjectType> List<ObjectPolicyConfigurationType> getApplicablePolicies(LensContext<F> context) {
+    private static <F extends ObjectType> List<ObjectPolicyConfigurationType> getApplicablePolicies(LensContext<F> context) {
         PrismObject<SystemConfigurationType> config = context.getSystemConfiguration();
         if (config == null) {
             return Collections.emptyList();
@@ -222,20 +223,16 @@ public class ModelImplUtils {
     }
 
     /**
-     * @deprecated Please use {@link #getConflictResolution(LensContext, Task)}
-     */
-    @Deprecated
-    public static <F extends ObjectType> ConflictResolutionType getConflictResolution(LensContext<F> context) {
-        return getConflictResolution(context, null);
-    }
-
-    /**
      * Returns the effective conflict resolution policy for the given context, consulting (in priority order):
+     *
      * * {@link ModelExecuteOptions#getFocusConflictResolution} — programmatic / recompute-loop override
      * * Task execution environment — per-task configuration
      * * System configuration {@code defaultObjectPolicyConfiguration} — global/type/subtype fallback
+     *
+     * The {@link LensContext} itself is NOT checked, because we expect this method to be invoked when the policy
+     * is being put there.
      */
-    public static <F extends ObjectType> ConflictResolutionType getConflictResolution(
+    public static <F extends ObjectType> ConflictResolutionType determineConflictResolutionPolicy(
             LensContext<F> context, @Nullable Task task) {
 
         var resolution = ModelExecuteOptions.getFocusConflictResolution(context.getOptions());

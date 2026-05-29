@@ -535,4 +535,22 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
         return assignmentIdStore;
     }
+
+    @Override
+    public String getObjectReadVersion() {
+        var conflictContext = lensContext.getFocusConflictResolutionContext();
+        if (conflictContext != null) {
+            // Using conflict watcher is the most precise method for obtaining object version. It is updated automatically
+            // by the repository, provided that all updates take place in the current thread (which should be the case for
+            // standard clockwork operation).
+            var conflictWatcher = conflictContext.getFocusConflictWatcher();
+            if (conflictWatcher != null && conflictWatcher.isInitialized()) {
+                return String.valueOf(conflictWatcher.getExpectedVersion());
+            }
+        }
+        if (getObjectCurrent() != null) {
+            return getObjectCurrent().getVersion();
+        }
+        return null;
+    }
 }

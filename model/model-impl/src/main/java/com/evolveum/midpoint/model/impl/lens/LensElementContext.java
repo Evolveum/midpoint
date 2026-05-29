@@ -279,10 +279,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return delta != null && delta.hasRelatedDelta(path);
     }
 
+    /** Expected version of the object. Used for conflict detection. */
     public String getObjectReadVersion() {
-        if (getObjectCurrent() != null) {
-            return getObjectCurrent().getVersion();
-        }
         return null;
     }
     //endregion

@@ -130,7 +130,7 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
 
             if (!skipDeltaExecution) {
                 DeltaExecution<O, ShadowType> deltaExecution =
-                        new DeltaExecution<>(projCtx, projectionDelta, null, task, changeExecutionResult);
+                        new DeltaExecution<>(projCtx, projectionDelta, task, changeExecutionResult);
                 try {
                     deltaExecution.execute(result);
                 } catch (ConflictDetectedException e) {

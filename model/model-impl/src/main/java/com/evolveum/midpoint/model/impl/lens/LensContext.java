@@ -10,6 +10,9 @@ import static com.evolveum.midpoint.model.impl.lens.LensFocusContext.fromLensFoc
 import static com.evolveum.midpoint.model.impl.lens.LensProjectionContext.fromLensProjectionContextBean;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import static com.google.common.base.Preconditions.checkState;
+
+import java.io.Serial;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
@@ -47,8 +50,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.Channel;
@@ -73,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class LensContext<F extends ObjectType> implements ModelContext<F>, Cloneable {
 
-    private static final long serialVersionUID = -778283437426659540L;
+    @Serial private static final long serialVersionUID = -778283437426659540L;
     private static final String DOT_CLASS = LensContext.class.getName() + ".";
 
     private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
@@ -99,9 +100,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private ModelState state;
 
-    private transient ConflictWatcher focusConflictWatcher;
-
-    private int conflictResolutionAttemptNumber;
+    /**
+     * Supports detecting and resolving focus conflicts. It is {@code null} if conflict detection is turned off.
+     *
+     * @see ClockworkConflictResolver
+     */
+    private FocusConflictResolutionContext focusConflictResolutionContext;
 
     // For use with personas
     private String ownerOid;
@@ -1627,29 +1631,29 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.policyRuleEnforcerPreviewOutput = policyRuleEnforcerPreviewOutput;
     }
 
-    int getConflictResolutionAttemptNumber() {
-        return conflictResolutionAttemptNumber;
+    FocusConflictResolutionContext getFocusConflictResolutionContext() {
+        return focusConflictResolutionContext;
     }
 
-    void setConflictResolutionAttemptNumber(int conflictResolutionAttemptNumber) {
-        this.conflictResolutionAttemptNumber = conflictResolutionAttemptNumber;
-    }
-
-    ConflictWatcher getFocusConflictWatcher() {
-        return focusConflictWatcher;
-    }
-
-    ConflictWatcher createAndRegisterFocusConflictWatcher(@NotNull String oid, RepositoryService repositoryService) {
-        if (focusConflictWatcher != null) {
-            throw new IllegalStateException("Focus conflict watcher defined twice");
-        }
-        return focusConflictWatcher = repositoryService.createAndRegisterConflictWatcher(oid);
-    }
-
-    void unregisterConflictWatcher(RepositoryService repositoryService) {
-        if (focusConflictWatcher != null) {
-            repositoryService.unregisterConflictWatcher(focusConflictWatcher);
-            focusConflictWatcher = null;
+    /**
+     * Determines and sets up the focus conflict resolution context.
+     *
+     * A specific design feature is that the resolution policy is determined once and stored in the lens context.
+     *
+     * This mean that any changes to the focus (like changing subtype, and maybe archetype - we currently don't consider it)
+     * that occur during the clockwork are NOT reflected in the conflict resolution policy.
+     *
+     * This is kind of intentional (although the the original implementation from 2017 determines the the policy on the fly).
+     * The reason for doing it this time is that the policy is guaranteed to be the same during the whole clockwork operation.
+     * If (in the future) we'd like to change that, we must do that in a controlled way: after changing the policy we will have
+     * to create repo conflict watchers, for example.
+     */
+    void setupConflictResolutionContext(Task task) {
+        checkState(focusConflictResolutionContext == null, "Focus conflict resolution context already set");
+        var conflictResolutionPolicy = ModelImplUtils.determineConflictResolutionPolicy(this, task);
+        var action = conflictResolutionPolicy != null ? conflictResolutionPolicy.getAction() : null;
+        if (action != null && action != ConflictResolutionActionType.NONE) {
+            focusConflictResolutionContext = new FocusConflictResolutionContext(conflictResolutionPolicy);
         }
     }
 

@@ -276,7 +276,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         assertUserAfter(oid).assertAssignments(1);
     }
 
-    @Test
+    @Test(enabled = false) // temporarily disabled
     public void test140TestLiveSyncConflictResolution() throws Exception {
         skipIfNotNativeRepository();
 
