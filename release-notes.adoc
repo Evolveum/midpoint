@@ -9,8 +9,8 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a seventy-sixth midPoint release, code-named _Braille_.
-The {release-version} release brings accessibility improvements and miscellaneous bugfixes.
+Release {release-version} is a seventy-ninth midPoint release, code-named _Braille_.
+The {release-version} release brings accessibility improvements and miscellaneous bug fixes.
 
 ++++
 {% include release-data.html %}
@@ -36,22 +36,25 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 == Changes With Respect To Version 4.10.2
 
-* Improved login and self-dashboard performance. See bug:MID-10972[]
-* Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
-* Fix 10k limit in certification queries using iterative search. See bug:MID-11043[]
-* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
+* Improved login and self-service dashboard loading speed. See bug:MID-10972[]
+* Localized archetype label now correctly displays in the assignment picker and summary panel. See bug:MID-11177[]
+* Fix 10k limit in certification queries using iterative search.
+    Campaigns with 10k+ cases now properly transition through their stages.
+    See bug:MID-11043[]
+* Improved user list load speed when listing users with `orgRelation` authorization for users managing many organizations. See bug:MID-11179[]
 * Fixed duplicated "No response" option for campaign. See bug:MID-11166[]
-* Fixed recipient converter while sending notification. See bug:MID-11038[]
-* Improved data export by implementing streaming export. See bug:MID-10990[]
-* Updated saved filters merging strategy. See bug:MID-11181[]
-* Upgraded libraries (spring-boot, wicket, tomcat, ldap connector and others).
+* Fixed recipient converter while sending notification.
+    All users returned by the `recipientExpression` filter now receive the notification.
+    See bug:MID-11038[]
+* Improved large dataset export by implementing streaming export. See bug:MID-10990[]
+* Updated saved filters merging strategy to ensure multiple custom and pre-defined filters display as expected. See bug:MID-11181[]
+* Upgraded libraries (Spring Boot, Wicket, Tomcat, LDAP connector, and others).
 * Added option to relax email address validation on send. See bug:MID-11048[]
-* Added default sort order to AccessCertificationWorkItem list for stable ordering. See bug:MID-11047[]
-* Fixed CSV export filename missing .csv extension. See bug:MID-11046[]
-* Fixed authentication exception handling while user login. See bug:MID-10953[]
-* Fixed duplicated "No response" option for campaign. See bug:MID-11166[]
+* Added default sort order to `AccessCertificationWorkItem` list for stable ordering between page loads. See bug:MID-11047[]
+* Fixed CSV export filename missing the `.csv` extension. See bug:MID-11046[]
+* Fixed authentication exception handling during the user log-in process. See bug:MID-10953[]
 * Updated handling of String -> byte[]. See bug:MID-11015[]
-* Implemented support for notifyChange REST call without shadow OID. See bug:MID-11230[]
+* Implemented support for `notifyChange` REST call without explicitly providing the shadow OID. See bug:MID-11230[]
 
 == Changes With Respect To Version 4.10.1
 
