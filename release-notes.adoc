@@ -44,6 +44,14 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed recipient converter while sending notification. See bug:MID-11038[]
 * Improved data export by implementing streaming export. See bug:MID-10990[]
 * Updated saved filters merging strategy. See bug:MID-11181[]
+* Upgraded libraries (spring-boot, wicket, tomcat, ldap connector and others).
+* Added option to relax email address validation on send. See bug:MID-11048[]
+* Added default sort order to AccessCertificationWorkItem list for stable ordering. See bug:MID-11047[]
+* Fixed CSV export filename missing .csv extension. See bug:MID-11046[]
+* Fixed authentication exception handling while user login. See bug:MID-10953[]
+* Fixed duplicated "No response" option for campaign. See bug:MID-11166[]
+* Updated handling of String -> byte[]. See bug:MID-11015[]
+* Implemented support for notifyChange REST call without shadow OID. See bug:MID-11230[]
 
 == Changes With Respect To Version 4.10.1
 
@@ -327,7 +335,6 @@ Create metadata were added to campaign object while its creation. See bug:MID-10
 * Fixed "all tasks running" message. See bug:MID-10958[].
 * Fixed displaying some approved and executed changes as "Waiting to be applied". See bug:MID-10828[].
 * No longer evaluating timed actions on cancelled cases. See bug:MID-10934[].
-* Fixed authentication exception handling while user login. See bug:MID-10953[]
 
 === Releases Of Other Components
 
