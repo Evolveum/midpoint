@@ -20,16 +20,26 @@
     </executionEnvironment>
     <schedule>
         <recurrence>recurring</recurrence>
-        <interval>1</interval>
+        <!-- every second -->
+        <cronLikePattern>* * * ? * *</cronLikePattern>
     </schedule>
     <activity>
         <work>
             <liveSynchronization>
                 <resourceObjects>
                     <resourceRef oid="f6ff3f3f-290e-475c-b1aa-96bad5058322"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
                     <objectclass>ri:AccountObjectClass</objectclass>
                 </resourceObjects>
             </liveSynchronization>
         </work>
+        <reporting>
+            <tracing>
+                <tracingProfile>
+                    <ref>functional-model-logging</ref>
+                </tracingProfile>
+            </tracing>
+        </reporting>
     </activity>
 </task>

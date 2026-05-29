@@ -54,6 +54,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
     private static final TestTask TASK_LIVE_SYNC_CONFLICT = TestTask.file(
             TEST_DIR, "task-live-sync-conflict.xml", "56b0caba-9682-409b-815b-878029b42ef0");
+
     @Autowired private ModelService modelService;
 
     @Override
@@ -275,16 +276,21 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         assertUserAfter(oid).assertAssignments(1);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test140TestLiveSyncConflictResolution() throws Exception {
+        skipIfNotNativeRepository();
+
         given();
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        assumeConflictResolutionAction(null);
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         final String userName = "jdoe";
         final String roleNamePrefix = "role";
-        final int roleCount = 10;
+        final int roleCount = 20;
         final int liveSyncTaskCount = 10;
 
         // pre-create roles that will be assigned based on "privileges" account attribute
@@ -295,13 +301,11 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         }
 
         // create account on resource before starting live-sync
-        DummyAccount account = RESOURCE_DUMMY_CONFLICT.controller.addAccount(userName, userName);
+        DummyAccount account = RESOURCE_DUMMY_CONFLICT.controller.addAccount(userName);
 
         // import shadow to create user
         Task importTask = createTask("import");
-        importTask.setTracingProfile(new TracingProfileType().name("test-tracing").ref("functional-model-logging"));
         modelService.importFromResource(RESOURCE_DUMMY_CONFLICT.oid, SchemaConstants.RI_ACCOUNT_OBJECT_CLASS, importTask, result);
-
         waitForTaskFinish(importTask);
 
         // setup live-sync
@@ -310,19 +314,32 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
             PrismObject<TaskType> lsTask = TASK_LIVE_SYNC_CONFLICT.getFresh();
             lsTask.asObjectable()
                     .oid(UUID.randomUUID().toString())
-                    .name("Live-sync conflict " + i);
+                    .name("Live-sync task " + i);
 
             tasks.add(lsTask);
 
             addObject(lsTask, task, result);
         }
 
+        // wait until LS tasks get latest token
+        Thread.sleep(3000);
+
+        List<String> taskOids = tasks.stream()
+                .map(t -> t.getOid())
+                .toList();
+
         for (int i = 0; i < roleCount; i++) {
+            logger.info("Adding value to privileges attribute, iteration {}", i);
+
             when();
 
             account.addAttributeValue(DummyAccount.ATTR_PRIVILEGES_NAME, roleNamePrefix + i);
 
-            Thread.sleep(1500L); // todo improve we should check if all livesync tasks were updated, maybe progress?
+            int numberOfAssignments = i + 1;
+
+            for (String oid : taskOids) {
+                waitForTaskProgress(oid, numberOfAssignments, 4000, result);
+            }
 
             then();
 
@@ -334,9 +351,9 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
             Assertions.assertThat(user.getAssignment())
                     .withFailMessage(
                             "User should have exactly %d assignment(s), but has %d",
-                            (i + 1),
+                            numberOfAssignments,
                             user.getAssignment().size())
-                    .hasSize(i + 1);
+                    .hasSize(numberOfAssignments);
         }
     }
 }
