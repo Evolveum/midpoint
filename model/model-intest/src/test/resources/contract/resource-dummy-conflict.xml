@@ -40,14 +40,12 @@
             <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
-            <focus>
-                <type>UserType</type>
-            </focus>
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
             </delineation>
             <attribute>
                 <ref>icfs:name</ref>
+                <correlator/>
                 <inbound>
                     <strength>strong</strength>
                     <expression>
@@ -56,7 +54,7 @@
                                 log.warn("Sleeping thread for 100ms")
                                 Thread.sleep(100)
 
-                                input
+                                return input
                             </code>
                         </script>
                     </expression>
@@ -64,11 +62,7 @@
                         <path>name</path>
                     </target>
                 </inbound>
-                <correlator>
-                    <focusItem>name</focusItem>
-                </correlator>
             </attribute>
-
             <attribute>
                 <ref>ri:privileges</ref>
                 <inbound>

@@ -28,6 +28,7 @@ import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.util.DelayingProgressListener;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -59,6 +60,8 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
+
+        CommonInitialObjects.ARCHETYPE_IMPORT_TASK.init(this, initTask, initResult);
 
         initAndTestDummyResource(RESOURCE_DUMMY_CONFLICT, initTask, initResult);
         RESOURCE_DUMMY_CONFLICT.getDummyResource().setSyncStyle(DummySyncStyle.SMART);
@@ -293,16 +296,13 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
         // create account on resource before starting live-sync
         DummyAccount account = RESOURCE_DUMMY_CONFLICT.controller.addAccount(userName, userName);
-        // create user
-        modelService.importFromResource(RESOURCE_DUMMY_CONFLICT.oid, SchemaConstants.RI_ACCOUNT_OBJECT_CLASS, task, result);
 
-        waitForTaskFinish(task, 10000);
+        // import shadow to create user
+        Task importTask = createTask("import");
+        importTask.setTracingProfile(new TracingProfileType().name("test-tracing").ref("functional-model-logging"));
+        modelService.importFromResource(RESOURCE_DUMMY_CONFLICT.oid, SchemaConstants.RI_ACCOUNT_OBJECT_CLASS, importTask, result);
 
-        PrismObject<ShadowType> shadow = findShadowByName(
-                ShadowKindType.ACCOUNT, "default", userName, RESOURCE_DUMMY_CONFLICT.get(), result);
-        Assertions.assertThat(shadow)
-                .withFailMessage("Shadow should be created")
-                .isNotNull();
+        waitForTaskFinish(importTask);
 
         // setup live-sync
         List<PrismObject<TaskType>> tasks = new ArrayList<>();
@@ -310,7 +310,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
             PrismObject<TaskType> lsTask = TASK_LIVE_SYNC_CONFLICT.getFresh();
             lsTask.asObjectable()
                     .oid(UUID.randomUUID().toString())
-                    .name("Livesync conflict " + i);
+                    .name("Live-sync conflict " + i);
 
             tasks.add(lsTask);
 
@@ -322,7 +322,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
             account.addAttributeValue(DummyAccount.ATTR_PRIVILEGES_NAME, roleNamePrefix + i);
 
-            Thread.sleep(1200L); // todo we  should check if all livesync tasks were updated, maybe progress?
+            Thread.sleep(1500L); // todo improve we should check if all livesync tasks were updated, maybe progress?
 
             then();
 

@@ -12,12 +12,16 @@
     <name>task-live-sync-dummy-conflict</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionState>runnable</executionState> <!-- running on demand by the test -->
+    <executionState>runnable</executionState>
+    <executionEnvironment>
+        <conflictResolution>
+            <action>restart</action>
+        </conflictResolution>
+    </executionEnvironment>
     <schedule>
         <recurrence>recurring</recurrence>
         <interval>1</interval>
     </schedule>
-
     <activity>
         <work>
             <liveSynchronization>
@@ -28,9 +32,4 @@
             </liveSynchronization>
         </work>
     </activity>
-    <executionEnvironment>
-        <conflictResolution>
-            <action>restart</action>
-        </conflictResolution>
-    </executionEnvironment>
 </task>
