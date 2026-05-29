@@ -37,6 +37,14 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * Fixed Request access relations issue. See bug:MID-10851[]
 * Fixed Campaigns scheduling menu item visibility. See bug:MID-11176[]
 * Fixed axiom query parsing for saved filters. See bug:MID-11183[]
+* Updated spring boot to 3.5.14.
+* Updated wicket to 10.9.1.
+* Updated tomcat to 10.1.55.
+* Upgraded webpack, picomatch, plexus, woodstox-core, bouncycastle, nimbus-jose-jwt, fileupload2, netty, xmlsec, postgresql, ldap connector and some other libs.
+* Fixed concurrency issue when parsing query. See bug:MID-11058[]
+* Fixed dashboard widget showing "Unknown" for ShadowType collections. See bug:MID-11102[]
+* Updated handling of String -> byte[]. See bug:MID-11015[]
+* Implemented support for notifyChange REST call without shadow OID. See bug:MID-11230[]
 
 == Changes with Respect To Version 4.8.10
 
