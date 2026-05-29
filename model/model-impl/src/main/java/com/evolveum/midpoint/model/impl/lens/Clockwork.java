@@ -136,9 +136,10 @@ public class Clockwork {
 
         OperationResult result = parentResult.createSubresult(OP_RUN_WITH_CONFLICT_DETECTION);
         try {
-            context.setStartedIfNotYet();
             context.updateSystemConfiguration(result);
-            context.setupConflictResolutionContext(task);
+            context.setupConflictResolutionContext(task); // clones the context in the case of RESTART conflict action
+
+            context.setStartedIfNotYet(); // must come after cloning the context for RESTART action
 
             LOGGER.trace("Running clockwork for context {}", context);
             context.checkConsistenceIfNeeded();

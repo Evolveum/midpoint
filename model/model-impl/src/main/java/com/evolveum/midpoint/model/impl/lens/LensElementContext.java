@@ -714,12 +714,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         state.adopt(prismContext);
     }
 
-    void copyValues(LensElementContext<O> clone) {
-        CloneUtil.cloneMembersToCollection(clone.executedDeltas, executedDeltas);
-        clone.iteration = this.iteration;
-        clone.iterationToken = this.iterationToken;
-        clone.securityPolicy = this.securityPolicy;
-        clone.policyRulesContext.copyFrom(this.policyRulesContext);
+    void copyValues(LensElementContext<O> clone, boolean detailed) {
+        if (detailed) {
+            CloneUtil.cloneMembersToCollection(clone.executedDeltas, executedDeltas);
+            clone.iteration = this.iteration;
+            clone.iterationToken = this.iterationToken;
+            clone.securityPolicy = this.securityPolicy;
+            clone.policyRulesContext.copyFrom(this.policyRulesContext);
+        }
     }
 
     public void checkEncrypted() {

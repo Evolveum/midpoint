@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="f9208c71-6ef6-4cb9-a890-821cd3a06a51"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>resource-dummy-conflict-3</name>
+    <super>
+        <resourceRef oid="1770d7f2-45e7-4e7a-8598-b98e042c95df"/>
+    </super>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>conflict-3</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+</resource>

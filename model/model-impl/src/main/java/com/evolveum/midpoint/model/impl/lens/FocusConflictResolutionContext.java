@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionAc
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -36,8 +37,28 @@ class FocusConflictResolutionContext {
     /** Watches for concurrent focus object modifications. See {@link ClockworkConflictResolver}. */
     private transient ConflictWatcher focusConflictWatcher;
 
-    FocusConflictResolutionContext(@NotNull ConflictResolutionType resolutionPolicy) {
+    /**
+     * A copy of the original {@link LensContext} to support {@link ConflictResolutionActionType#RESTART} action.
+     *
+     * The idea is that we want to repeat the operation. Hence, the easiest way is to use a copy (clone) of the original
+     * {@link LensContext} and related structures ({@link LensFocusContext}, {@link LensProjectionContext}s).
+     *
+     * Notes:
+     *
+     * - It is a "simple copy", excluding structures internal to the clockwork. The problem is that these are extremely
+     * complex structures, and we are not quite certain what is internal to the clockwork and what is not. Maybe we need
+     * something like "Initial lens context" - a well-defined starting point for the clockwork.
+     *
+     * - Obviously, it is present only for {@link ConflictResolutionActionType#RESTART} action. There's no need for it
+     * for other actions.
+     *
+     * @see LensContext#simpleCopy()
+     */
+    private final LensContext<?> contextCopy;
+
+    FocusConflictResolutionContext(@NotNull ConflictResolutionType resolutionPolicy, @Nullable LensContext<?> contextCopy) {
         this.resolutionPolicy = resolutionPolicy;
+        this.contextCopy = contextCopy;
     }
 
     void recordConflictException() {
@@ -72,5 +93,9 @@ class FocusConflictResolutionContext {
 
     boolean wasConflictDetected() {
         return conflictDetectedByWatcher || conflictDetectedByPreconditionException;
+    }
+
+    LensContext<?> getContextCopy() {
+        return contextCopy;
     }
 }

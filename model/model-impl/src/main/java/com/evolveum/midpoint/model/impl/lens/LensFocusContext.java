@@ -310,17 +310,23 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     public LensFocusContext<O> clone(LensContext<O> lensContext) {
+        return copy(lensContext, true);
+    }
+
+    public LensFocusContext<O> copy(LensContext<O> lensContext, boolean detailed) {
         LensFocusContext<O> clone = new LensFocusContext<>(state.clone(), lensContext);
-        copyValues(clone);
+        copyValues(clone, detailed);
         return clone;
     }
 
-    private void copyValues(LensFocusContext<O> clone) {
-        super.copyValues(clone);
-        clone.deleted = deleted;
-        clone.archetypePolicy = archetypePolicy;
-        clone.archetypes = archetypes != null ? new ArrayList<>(archetypes) : null;
-        clone.primaryDeltaExecuted = primaryDeltaExecuted;
+    private void copyValues(LensFocusContext<O> clone, boolean detailed) {
+        super.copyValues(clone, detailed);
+        if (detailed) {
+            clone.deleted = deleted;
+            clone.archetypePolicy = archetypePolicy;
+            clone.archetypes = archetypes != null ? new ArrayList<>(archetypes) : null;
+            clone.primaryDeltaExecuted = primaryDeltaExecuted;
+        }
     }
 
     @Override

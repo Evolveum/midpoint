@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
@@ -203,12 +202,6 @@ public class ClockworkConflictResolver {
             return HookOperationMode.FOREGROUND;
         }
 
-        // For restart: capture the original primary delta and channel before they are gone
-        ObjectDelta<F> originalPrimaryDelta = restart && context.getFocusContext() != null
-                ? context.getFocusContext().getPrimaryDelta()
-                : null;
-        String originalChannel = context.getChannel();
-
         int maxAttempts = requireNonNullElse(resolutionPolicy.getMaxAttempts(), DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS);
         for (int retryAttempt = 1; retryAttempt <= maxAttempts; retryAttempt++) {
 
@@ -216,25 +209,30 @@ public class ClockworkConflictResolver {
 
             Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
             String oid = context.getFocusContext().getOid();
-
             // Not using read-only here because we are loading the focus (that will be worked with)
             PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
+
             LensContext<FocusType> newContext;
             if (restart) {
                 //noinspection unchecked
-                newContext = (LensContext<FocusType>) contextFactory.createRestartContext(
-                        focus, originalPrimaryDelta, originalChannel, options, task);
+                newContext = (LensContext<FocusType>) conflictContext.getContextCopy().simpleCopy();
+                //noinspection unchecked
+                newContext.getFocusContextRequired().setInitialObject((PrismObject<FocusType>) focus);
+                LOGGER.debug("FOCUS UPDATE CONFLICT: Restarting the operation on {} as a reaction to conflict "
+                                + "(retry attempt={}, readVersion={})",
+                        context.getFocusContext().getHumanReadableName(),
+                        retryAttempt,
+                        newContext.getFocusContext().getObjectReadVersion());
             } else {
                 newContext = contextFactory.createRecomputeContext(focus, options, task, result);
+                LOGGER.debug("FOCUS UPDATE CONFLICT: Recomputing {} as a reaction to conflict "
+                                + "(options={}, retry attempt={}, readVersion={})",
+                        context.getFocusContext().getHumanReadableName(),
+                        options,
+                        retryAttempt,
+                        newContext.getFocusContext().getObjectReadVersion());
             }
             newContext.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
-
-            LOGGER.debug("FOCUS UPDATE CONFLICT: Repeating the operation on {} as a reaction to conflict "
-                            + "(options={}, retry attempt={}, readVersion={})",
-                    context.getFocusContext().getHumanReadableName(),
-                    options,
-                    retryAttempt,
-                    newContext.getFocusContext().getObjectReadVersion());
 
             HookOperationMode hookOperationMode = clockwork.runWithConflictDetection(newContext, task, result);
 
@@ -248,8 +246,16 @@ public class ClockworkConflictResolver {
             }
         }
 
-        LOGGER.warn("CONFLICT: Couldn't resolve conflict even after {} resolution attempt(s), giving up.", maxAttempts);
-        return HookOperationMode.FOREGROUND;
+        if (action == ConflictResolutionActionType.RESTART) {
+            // Here we are more strict, because RESTART implies that the operation was not executed.
+            // So we want the user to know about that fact.
+            throw new SystemException("Couldn't resolve conflict ever after " + maxAttempts + " resolution attempts(s)");
+        } else {
+            // For RECOMPUTE/RECONCILE the operation was executed, although with conflicts. So giving up makes sense:
+            // there may be some inconsistencies, but maybe not that serious.
+            LOGGER.warn("FOCUS UPDATE CONFLICT: Couldn't resolve conflict even after {} resolution attempt(s), giving up.", maxAttempts);
+            return HookOperationMode.FOREGROUND;
+        }
     }
 
     // TODO reconsider this method
@@ -270,7 +276,7 @@ public class ClockworkConflictResolver {
         int delayUnit = requireNonNullElse(resolutionPolicy.getDelayUnit(), DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT);
         long delayRange = delayUnit * (1L << attempt);
         long delay = (long) (Math.random() * delayRange);
-        String message = "CONFLICT: Waiting " + delay + " milliseconds before starting conflict resolution (delay exponent: " + attempt + ")";
+        String message = "FOCUS UPDATE CONFLICT: Waiting " + delay + " milliseconds before starting conflict resolution (delay exponent: " + attempt + ")";
         // TODO convey information about waiting time after some GUI mechanism for displaying it is available
         //  (showing text messages is currently really ugly)
         context.reportProgress(new ProgressInformation(WAITING, EXITING));

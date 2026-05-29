@@ -1075,21 +1075,33 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public LensContext<F> clone() {
-        LensContext<F> clone = new LensContext<>(focusClass, taskExecutionMode);
-        copyValues(clone);
-        return clone;
+        return copy(true);
     }
 
-    private void copyValues(LensContext<F> clone) {
+    /**
+     * Copies initial properties of the context. TODO review and improve: what exactly are initial properties?
+     *
+     * @see FocusConflictResolutionContext#contextCopy
+     */
+    LensContext<F> simpleCopy() {
+        return copy(false);
+    }
+
+    public LensContext<F> copy(boolean detailed) {
+        LensContext<F> copy = new LensContext<>(focusClass, taskExecutionMode);
+        copyValues(copy, detailed);
+        return copy;
+    }
+
+    private void copyValues(LensContext<F> clone, boolean detailed) {
         clone.state = this.state;
         clone.channel = this.channel;
         clone.doReconciliationForAllProjections = this.doReconciliationForAllProjections;
         clone.executionPhaseOnly = this.executionPhaseOnly;
         clone.focusClass = this.focusClass;
+        clone.lazyAuditRequest = this.lazyAuditRequest;
         clone.isFresh = this.isFresh;
         clone.authorizationState = this.authorizationState;
-        clone.resourceCache = resourceCache != null ?
-                new HashMap<>(resourceCache) : null;
         clone.explicitFocusTemplateOid = this.explicitFocusTemplateOid;
         clone.projectionWave = this.projectionWave;
         if (options != null) {
@@ -1098,15 +1110,17 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         if (requestMetadata != null) {
             clone.requestMetadata = requestMetadata.clone();
         }
-
         if (this.focusContext != null) {
-            clone.focusContext = this.focusContext.clone(this);
+            clone.focusContext = this.focusContext.copy(clone, detailed);
         }
-
         for (LensProjectionContext thisProjectionContext : this.projectionContexts) {
-            clone.projectionContexts.add(thisProjectionContext.clone(this));
+            clone.projectionContexts.add(thisProjectionContext.copy(clone, detailed));
         }
-        clone.sequences.putAll(this.sequences);
+        if (detailed) {
+            clone.resourceCache = resourceCache != null ?
+                    new HashMap<>(resourceCache) : null;
+            clone.sequences.putAll(this.sequences);
+        }
     }
 
     @Override
@@ -1653,7 +1667,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         var conflictResolutionPolicy = ModelImplUtils.determineConflictResolutionPolicy(this, task);
         var action = conflictResolutionPolicy != null ? conflictResolutionPolicy.getAction() : null;
         if (action != null && action != ConflictResolutionActionType.NONE) {
-            focusConflictResolutionContext = new FocusConflictResolutionContext(conflictResolutionPolicy);
+            var contextCopy = action == ConflictResolutionActionType.RESTART ? this.simpleCopy() : null;
+            focusConflictResolutionContext = new FocusConflictResolutionContext(conflictResolutionPolicy, contextCopy);
         }
     }
 
