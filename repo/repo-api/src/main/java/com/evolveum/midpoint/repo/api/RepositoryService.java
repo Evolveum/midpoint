@@ -8,25 +8,22 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.repo.api.util.AccessCertificationSupportMixin;
-import com.evolveum.midpoint.repo.api.util.CaseSupportMixin;
-import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
-import com.evolveum.midpoint.schema.selector.eval.OrgTreeEvaluator;
-
-import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
-
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
-import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.repo.api.util.AccessCertificationSupportMixin;
+import com.evolveum.midpoint.repo.api.util.CaseSupportMixin;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.schema.selector.eval.OrgTreeEvaluator;
+import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -308,6 +305,9 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
+    /**
+     * Modifies the object, while ensuring that {@link ModificationPrecondition} holds.
+     */
     @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
             @NotNull Class<T> type,
             @NotNull String oid,
@@ -362,7 +362,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
      * Applies systemConfiguration/internals/repository to repository
      * @param repositoryConfig If null, defaults should be applied, otherwise applies specified configuration
      */
-    default void applyRepositoryConfiguration(@Nullable  RepositoryConfigurationType repositoryConfig) {
+    default void applyRepositoryConfiguration(@Nullable RepositoryConfigurationType repositoryConfig) {
         // NOOP
     }
 

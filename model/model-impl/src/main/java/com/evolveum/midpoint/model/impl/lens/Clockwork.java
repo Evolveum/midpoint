@@ -94,11 +94,9 @@ public class Clockwork {
         try {
             trace = recordTraceAtStart(context, result);
 
-            ClockworkConflictResolver.Context conflictResolutionContext = new ClockworkConflictResolver.Context();
+            HookOperationMode mode = runWithConflictDetection(context, task, result);
 
-            HookOperationMode mode = runWithConflictDetection(context, conflictResolutionContext, task, result);
-
-            return clockworkConflictResolver.resolveFocusConflictIfPresent(context, conflictResolutionContext, mode, task, result);
+            return clockworkConflictResolver.resolveFocusConflictIfPresent(context, mode, task, result);
 
         } catch (ClockworkAbortedException e) {
             // Actually, this is not a problem. We simply record the exception into the operation result and that's all.
@@ -121,17 +119,19 @@ public class Clockwork {
 
     /**
      * Runs the clockwork with the aim of detecting modify-modify conflicts on the focus object.
-     * It reports such states via the conflictResolutionContext parameter.
+     * It reports such states in {@link LensContext#focusConflictResolutionContext} but does not try to resolve them.
      */
-    <F extends ObjectType> HookOperationMode runWithConflictDetection(LensContext<F> context,
-            ClockworkConflictResolver.Context conflictResolutionContext, Task task, OperationResult parentResult)
+    <F extends ObjectType> @NotNull HookOperationMode runWithConflictDetection(
+            LensContext<F> context, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.createSubresult(OP_RUN_WITH_CONFLICT_DETECTION);
         try {
-            context.setStartedIfNotYet();
             context.updateSystemConfiguration(result);
+            context.setupConflictResolutionContext(task); // clones the context in the case of RESTART conflict action
+
+            context.setStartedIfNotYet(); // must come after cloning the context for RESTART action
 
             LOGGER.trace("Running clockwork for context {}", context);
             context.checkConsistenceIfNeeded();
@@ -168,13 +168,13 @@ public class Clockwork {
                 HookOperationMode mode = click(context, task, result);
                 if (mode == HookOperationMode.FOREGROUND) {
                     // We must check inside here - before watchers are unregistered
-                    clockworkConflictResolver.detectFocusConflicts(context, conflictResolutionContext, result);
+                    clockworkConflictResolver.detectFocusConflictsUsingWatcher(context, result);
                 }
                 return mode;
 
             } catch (ConflictDetectedException e) {
                 LOGGER.debug("Clockwork conflict detected", e);
-                conflictResolutionContext.recordConflictException();
+                context.getFocusConflictResolutionContext().recordConflictException();
                 return HookOperationMode.FOREGROUND;
             }
         } finally {
