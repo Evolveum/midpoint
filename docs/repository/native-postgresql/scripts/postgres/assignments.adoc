@@ -1,0 +1,257 @@
+= Native PostgreSQL Schema Script: postgres.sql - Assignments
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Assignments
+
+Assignment and inducement containers, assignment metadata, and assignment reference tables.
+
+
+== Tables
+
+[[m_assignment]]
+=== `m_assignment`
+
+Stores assignment and inducement containers for assignment-holding objects.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AssignmentType`
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the assignment or inducement.
+| `cid` | `BIGINT` | primary key, required | Assignment or inducement container identifier unique within the owning object.
+| `containerType` | `ContainerType` | required | Distinguishes assignment and inducement containers.
+| `ownerType` | `ObjectType` | required | Object type of the assignment owner.
+| `lifecycleState` | `TEXT` |  | Assignment lifecycle state.
+| `orderValue` | `INTEGER` |  | Assignment order value.
+| `orgRefTargetOid` | `UUID` |  | OID of the organization reference target.
+| `orgRefTargetType` | `ObjectType` |  | Object type of the organization reference target.
+| `orgRefRelationId` | `INTEGER` |  | Relation URI identifier of the organization reference.
+| `targetRefTargetOid` | `UUID` |  | OID of the assignment target reference target.
+| `targetRefTargetType` | `ObjectType` |  | Object type of the assignment target reference target.
+| `targetRefRelationId` | `INTEGER` |  | Relation URI identifier of the assignment target reference.
+| `tenantRefTargetOid` | `UUID` |  | OID of the tenant reference target.
+| `tenantRefTargetType` | `ObjectType` |  | Object type of the tenant reference target.
+| `tenantRefRelationId` | `INTEGER` |  | Relation URI identifier of the tenant reference.
+| `policySituations` | `INTEGER[]` |  | Policy situation URI identifiers attached to the assignment.
+| `subtypes` | `TEXT[]` |  | Assignment subtype values used for subtype filtering.
+| `ext` | `JSONB` |  | Indexed extension values stored as JSON data.
+| `resourceRefTargetOid` | `UUID` |  | OID of the construction resource reference target.
+| `resourceRefTargetType` | `ObjectType` |  | Object type of the construction resource reference target.
+| `resourceRefRelationId` | `INTEGER` |  | Relation URI identifier of the construction resource reference.
+| `administrativeStatus` | `ActivationStatusType` |  | Administrative activation status of the assignment.
+| `effectiveStatus` | `ActivationStatusType` |  | Effective activation status of the assignment.
+| `enableTimestamp` | `TIMESTAMPTZ` |  | Time when the assignment becomes enabled.
+| `disableTimestamp` | `TIMESTAMPTZ` |  | Time when the assignment becomes disabled.
+| `disableReason` | `TEXT` |  | Reason why the assignment is disabled.
+| `validityStatus` | `TimeIntervalStatusType` |  | Validity interval status of the assignment.
+| `validFrom` | `TIMESTAMPTZ` |  | Start of the assignment validity interval.
+| `validTo` | `TIMESTAMPTZ` |  | End of the assignment validity interval.
+| `validityChangeTimestamp` | `TIMESTAMPTZ` |  | Time when assignment validity state last changed.
+| `archiveTimestamp` | `TIMESTAMPTZ` |  | Time when the assignment was archived.
+| `creatorRefTargetOid` | `UUID` |  | OID of the object that created this assignment.
+| `creatorRefTargetType` | `ObjectType` |  | Object type of the object that created this assignment.
+| `creatorRefRelationId` | `INTEGER` |  | Relation URI identifier for the creator reference.
+| `createChannelId` | `INTEGER` |  | URI identifier of the channel that created the assignment.
+| `createTimestamp` | `TIMESTAMPTZ` |  | Time when the assignment was created.
+| `modifierRefTargetOid` | `UUID` |  | OID of the object that last modified this assignment.
+| `modifierRefTargetType` | `ObjectType` |  | Object type of the object that last modified this assignment.
+| `modifierRefRelationId` | `INTEGER` |  | Relation URI identifier for the modifier reference.
+| `modifyChannelId` | `INTEGER` |  | URI identifier of the channel that last modified the assignment.
+| `modifyTimestamp` | `TIMESTAMPTZ` |  | Time when the assignment was last modified.
+| `fullObject` | `BYTEA` |  | Serialized full assignment value.
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_assignment_metadata_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering assignment metadata by creation time. Used for: assignment metadata creation time filters and ordering
+| `m_assignment_metadata_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering assignment metadata by modification time. Used for: assignment metadata modification time filters and ordering
+| `m_assignment_policySituation_idx` | `USING gin (policysituations)` | Speeds up filtering by policy situation. Used for: policy situation filters
+| `m_assignment_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by assignment subtype. Used for: subtype filters
+| `m_assignment_ext_idx` | `USING gin (ext)` | Speeds up filtering by indexed extension values. Used for: extension item filters
+| `m_assignment_validFrom_idx` | `validFrom` | Speeds up filtering by assignment validity start time. Used for: validity interval filters
+| `m_assignment_validTo_idx` | `validTo` | Speeds up filtering by assignment validity end time. Used for: validity interval filters
+| `m_assignment_targetRefTargetOid_idx` | `targetRefTargetOid` | Speeds up lookup of assignments by target reference target. Used for: assignment target reference searches
+| `m_assignment_tenantRefTargetOid_idx` | `tenantRefTargetOid` | Speeds up lookup of assignments by tenant reference target. Used for: assignment tenant reference searches
+| `m_assignment_orgRefTargetOid_idx` | `orgRefTargetOid` | Speeds up lookup of assignments by organization reference target. Used for: assignment organization reference searches
+| `m_assignment_resourceRefTargetOid_idx` | `resourceRefTargetOid` | Speeds up lookup of assignments by construction resource reference target. Used for: assignment construction resource searches
+| `m_assignment_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+| `m_assignment_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| `orgRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `targetRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `tenantRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `resourceRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `creatorRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `createChannelId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `modifierRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `modifyChannelId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+|===
+
+[[m_assignment_metadata]]
+=== `m_assignment_metadata`
+
+Stores value metadata for assignments and inducements.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValueMetadataType`
+
+Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the assignment metadata.
+| `ownerType` | `ObjectType` |  | Object type of the assignment metadata owner.
+| `assignmentCid` | `INTEGER` | primary key, required | Container ID of the assignment that owns this metadata value.
+| `containerType` | `ContainerType` |  | 
+| `creatorRefTargetOid` | `UUID` |  | OID of the object that created this metadata value.
+| `creatorRefTargetType` | `ObjectType` |  | Object type of the object that created this metadata value.
+| `creatorRefRelationId` | `INTEGER` |  | Relation URI identifier for the creator reference.
+| `createChannelId` | `INTEGER` |  | URI identifier of the channel that created this metadata value.
+| `createTimestamp` | `TIMESTAMPTZ` |  | Time when this metadata value was created.
+| `modifierRefTargetOid` | `UUID` |  | OID of the object that last modified this metadata value.
+| `modifierRefTargetType` | `ObjectType` |  | Object type of the object that last modified this metadata value.
+| `modifierRefRelationId` | `INTEGER` |  | Relation URI identifier for the modifier reference.
+| `modifyChannelId` | `INTEGER` |  | URI identifier of the channel that last modified this metadata value.
+| `modifyTimestamp` | `TIMESTAMPTZ` |  | Time when this metadata value was last modified.
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| `creatorRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `createChannelId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `modifierRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `modifyChannelId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| `owneroid` | xref:#m_assignment[`m_assignment.owneroid`] | ON DELETE CASCADE
+| `assignmentcid` | xref:#m_assignment[`m_assignment.cid`] | ON DELETE CASCADE
+|===
+
+[[m_assignment_ref_create_approver]]
+=== `m_assignment_ref_create_approver`
+
+Stores create-approver references from assignment metadata.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | required | OID of the object that owns the assignment.
+| `assignmentCid` | `INTEGER` | required | Container ID of the assignment that owns the reference.
+| `metadataCid` | `INTEGER` |  | Container ID of the assignment metadata value, when the reference belongs to value metadata.
+| `referenceType` | `ReferenceType` |  | 
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_assignment_ref_create_approver_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of assignment create-approver references by target object and relation. Used for: assignment create-approver reference target searches
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| `ownerOid` | xref:#m_assignment[`m_assignment.ownerOid`] | ON DELETE CASCADE
+| `assignmentCid` | xref:#m_assignment[`m_assignment.cid`] | ON DELETE CASCADE
+|===
+
+[[m_assignment_ref_modify_approver]]
+=== `m_assignment_ref_modify_approver`
+
+Stores modify-approver references from assignment metadata.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | required | OID of the object that owns the assignment.
+| `assignmentCid` | `INTEGER` | required | Container ID of the assignment that owns the reference.
+| `metadataCid` | `INTEGER` |  | Container ID of the assignment metadata value, when the reference belongs to value metadata.
+| `referenceType` | `ReferenceType` |  | 
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_assignment_ref_modify_approver_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of assignment modify-approver references by target object and relation. Used for: assignment modify-approver reference target searches
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| `ownerOid` | xref:#m_assignment[`m_assignment.ownerOid`] | ON DELETE CASCADE
+| `assignmentCid` | xref:#m_assignment[`m_assignment.cid`] | ON DELETE CASCADE
+|===
+
+[[m_ref_assignment_effective_mark]]
+=== `m_ref_assignment_effective_mark`
+
+Stores effective mark references attached to assignments.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the assignment.
+| `assignmentCid` | `INTEGER` | primary key, required | Container ID of the assignment that owns the effective mark reference.
+| `referenceType` | `ReferenceType` |  | 
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_ref_assignment_effective_mark_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of assignment effective mark references by target object and relation. Used for: assignment effective mark reference target searches
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+|===
+

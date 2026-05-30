@@ -1,0 +1,73 @@
+= Native PostgreSQL Schema Script: postgres.sql - Schema objects
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Schema objects
+
+Schema repository objects.
+
+
+== Tables
+
+[[m_schema]]
+=== `m_schema`
+
+Stores schema objects.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#SchemaType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `oid` | `UUID` | primary key, required | Schema object identifier.
+| `objectType` | `ObjectType` |  | 
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column | References
+| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+|===
+
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+[[trigger_m_schema_oid_delete_tr]]
+=== `m_schema_oid_delete_tr`
+
+Removes the object OID registry entry when rows are deleted from `m_schema`.
+
+Table: xref:#m_schema[`m_schema`]
+
+Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_schema_oid_insert_tr]]
+=== `m_schema_oid_insert_tr`
+
+Maintains the object OID registry when rows are inserted into `m_schema`.
+
+Table: xref:#m_schema[`m_schema`]
+
+Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_schema_update_tr]]
+=== `m_schema_update_tr`
+
+Maintains object update metadata before rows are updated in `m_schema`.
+
+Table: xref:#m_schema[`m_schema`]
+
+Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+

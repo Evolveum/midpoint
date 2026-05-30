@@ -34,6 +34,11 @@ $$;
 -- changes for 4.4.1
 
 -- adding trigger to mark org closure for refresh when org is inserted/deleted
+-- @change: Adds triggers that mark organization closure data for refresh after organization insert, delete, or truncate.
+-- @since: 4.4.1
+-- @affects: routine mark_org_closure_for_refresh_org | New function | Marks organization closure data for refresh after organization changes.
+-- @affects: trigger m_org_mark_refresh_tr | New trigger | Marks organization closure data for refresh after organization insert or delete.
+-- @affects: trigger m_org_mark_refresh_trunc_tr | New trigger | Marks organization closure data for refresh after organization table truncate.
 call apply_change(1, $aa$
 -- The trigger that flags the view for refresh after m_org changes.
 CREATE OR REPLACE FUNCTION mark_org_closure_for_refresh_org()
@@ -64,10 +69,24 @@ $aa$);
 
 -- MID-7484
 -- We add the new enum value in separate change, because it must be committed before it is used.
+-- @change: Adds `MESSAGE_TEMPLATE` object type value.
+-- @since: 4.5
+-- @affects: enum ObjectType | Modified enum type | Adds `MESSAGE_TEMPLATE`.
 call apply_change(2, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
 $aa$);
 
+-- @change: Adds `m_message_template` table, triggers, and indexes.
+-- @since: 4.5
+-- @affects: table m_message_template | New table | Stores message template objects.
+-- @affects: trigger m_message_template_oid_insert_tr | New trigger | Reserves OID rows for inserted message templates.
+-- @affects: trigger m_message_template_update_tr | New trigger | Maintains update metadata for message templates.
+-- @affects: trigger m_message_template_oid_delete_tr | New trigger | Releases OID rows for deleted message templates.
+-- @affects: index m_message_template_nameOrig_idx | New index | Supports lookup by original object name.
+-- @affects: index m_message_template_nameNorm_key | New unique index | Enforces unique normalized object names.
+-- @affects: index m_message_template_policySituation_idx | New index | Supports filtering by policy situation.
+-- @affects: index m_message_template_createTimestamp_idx | New index | Supports filtering or ordering by creation time.
+-- @affects: index m_message_template_modifyTimestamp_idx | New index | Supports filtering or ordering by modification time.
 call apply_change(3, $aa$
 CREATE TABLE m_message_template (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -93,10 +112,20 @@ $aa$);
 
 -- MID-7487 Identity matching
 -- We add the new enum value in separate change, because it must be committed before it is used.
+-- @change: Adds `CorrelationSituationType` enum type for identity matching.
+-- @since: 4.5
+-- @affects: enum CorrelationSituationType | New enum type | Adds identity matching correlation situation values.
 call apply_change(4, $aa$
 CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
 $aa$);
 
+-- @change: Adds correlation timestamps and situation columns to shadows, including supporting indexes.
+-- @since: 4.5
+-- @affects: table m_shadow | Modified table | Adds correlation timestamps and correlation situation columns.
+-- @affects: index m_shadow_correlationStartTimestamp_idx | New index | Supports filtering by correlation start time.
+-- @affects: index m_shadow_correlationEndTimestamp_idx | New index | Supports filtering by correlation end time.
+-- @affects: index m_shadow_correlationCaseOpenTimestamp_idx | New index | Supports filtering by correlation case open time.
+-- @affects: index m_shadow_correlationCaseCloseTimestamp_idx | New index | Supports filtering by correlation case close time.
 call apply_change(5, $aa$
 ALTER TABLE m_shadow
 ADD COLUMN correlationStartTimestamp TIMESTAMPTZ,
@@ -117,22 +146,38 @@ $aa$);
 
 -- MID-7746
 -- We add the new enum value in separate change, because it must be committed before it is used.
+-- @change: Adds `AdministrativeAvailabilityStatusType` enum type.
+-- @since: 4.6
+-- @affects: enum AdministrativeAvailabilityStatusType | New enum type | Adds administrative availability values for resources.
 call apply_change(6, $aa$
 CREATE TYPE AdministrativeAvailabilityStatusType AS ENUM ('MAINTENANCE', 'OPERATIONAL');
 $aa$);
 
+-- @change: Adds administrative availability status column to resources.
+-- @since: 4.6
+-- @affects: table m_resource | Modified table | Adds administrative availability status column.
 call apply_change(7, $aa$
 ALTER TABLE m_resource
 ADD COLUMN administrativeOperationalStateAdministrativeAvailabilityStatus AdministrativeAvailabilityStatusType;
 $aa$);
 
 -- smart correlation
+-- @change: Adds fuzzy string matching extension and `FOCUS_IDENTITY` container type value for smart correlation.
+-- @since: 4.6
+-- @affects: extension fuzzystrmatch | New extension | Enables fuzzy string matching used by smart correlation.
+-- @affects: enum ContainerType | Modified enum type | Adds `FOCUS_IDENTITY`.
 call apply_change(8, $aa$
 CREATE EXTENSION IF NOT EXISTS fuzzystrmatch; -- fuzzy string match (levenshtein, etc.)
 
 ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'FOCUS_IDENTITY' AFTER 'CASE_WORK_ITEM';
 $aa$);
 
+-- @change: Adds focus identity container table and normalized focus data indexing.
+-- @since: 4.6
+-- @affects: table m_focus_identity | New table | Stores focus identity containers for correlation.
+-- @affects: index m_focus_identity_sourceResourceRefTargetOid_idx | New index | Supports lookup of focus identities by source resource.
+-- @affects: table m_focus | Modified table | Adds normalized focus data storage.
+-- @affects: index m_focus_normalizedData_idx | New index | Supports filtering by normalized focus data.
 call apply_change(9, $aa$
 CREATE TABLE m_focus_identity (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -152,11 +197,17 @@ CREATE INDEX m_focus_normalizedData_idx ON m_focus USING gin(normalizedData);
 $aa$);
 
 -- resource templates
+-- @change: Adds resource template flag.
+-- @since: 4.6
+-- @affects: table m_resource | Modified table | Adds resource template flag.
 call apply_change(10, $aa$
 ALTER TABLE m_resource ADD template BOOLEAN;
 $aa$);
 
 -- MID-8053: "Active" connectors detection
+-- @change: Adds connector availability flag.
+-- @since: 4.6
+-- @affects: table m_connector | Modified table | Adds connector availability flag.
 call apply_change(11, $aa$
 ALTER TABLE m_connector ADD available BOOLEAN;
 $aa$);
@@ -169,6 +220,11 @@ $aa$);
 -- changes for 4.7
 
 -- Simulations, enum type changes
+-- @change: Adds simulation, mark, and related reference/container enum values.
+-- @since: 4.7
+-- @affects: enum ObjectType | Modified enum type | Adds `MARK` and `SIMULATION_RESULT`.
+-- @affects: enum ReferenceType | Modified enum type | Adds processed-object event mark and object effective mark reference values.
+-- @affects: enum ContainerType | Modified enum type | Adds `SIMULATION_RESULT_PROCESSED_OBJECT`.
 call apply_change(12, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MARK' AFTER 'LOOKUP_TABLE';
 ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'PROCESSED_OBJECT_EVENT_MARK' AFTER 'PERSONA';
@@ -178,6 +234,24 @@ ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OB
 $aa$);
 
 -- Simulations, tables
+-- @change: Adds simulation result, processed object, mark, and effective mark tables, triggers, functions, and indexes.
+-- @since: 4.7
+-- @affects: table m_simulation_result | New table | Stores simulation result objects.
+-- @affects: trigger m_simulation_result_oid_insert_tr | New trigger | Reserves OID rows for inserted simulation results.
+-- @affects: trigger m_simulation_result_update_tr | New trigger | Maintains update metadata for simulation results.
+-- @affects: trigger m_simulation_result_oid_delete_tr | New trigger | Releases OID rows for deleted simulation results.
+-- @affects: enum ObjectProcessingStateType | New enum type | Stores processed object states for simulation results.
+-- @affects: table m_simulation_result_processed_object | New table | Stores processed objects belonging to simulation results.
+-- @affects: table m_simulation_result_processed_object_default | New partition | Default partition for processed simulation objects.
+-- @affects: routine m_simulation_result_create_partition | New function | Creates processed-object partitions for partitioned simulation results.
+-- @affects: trigger m_simulation_result_create_partition | New trigger | Creates processed-object partition when a partitioned simulation result is inserted.
+-- @affects: routine m_simulation_result_delete_partition | New function | Drops processed-object partitions when a simulation result is deleted.
+-- @affects: trigger m_simulation_result_delete_partition | New trigger | Deletes processed-object partition before deleting a simulation result.
+-- @affects: table m_processed_object_event_mark | New table | Stores event mark references for processed simulation objects.
+-- @affects: table m_processed_object_event_mark_default | New partition | Default partition for processed-object event mark references.
+-- @affects: table m_mark | New table | Stores mark objects.
+-- @affects: table m_ref_object_effective_mark | New table | Stores effective mark references for objects.
+-- @affects: index m_ref_object_effective_mark_targetOidRelationId_idx | New index | Supports reverse lookup of effective mark references.
 call apply_change(13, $aa$
 CREATE TABLE m_simulation_result (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -310,6 +384,10 @@ CREATE INDEX m_ref_object_effective_mark_targetOidRelationId_idx
 $aa$);
 
 -- Minor index name fixes
+-- @change: Renames approval reference indexes to use consistent naming.
+-- @since: 4.7
+-- @affects: index m_ref_object_create_approverTargetOidRelationId_idx | Renamed index | Renames create-approver reference index to consistent naming.
+-- @affects: index m_ref_object_modify_approverTargetOidRelationId_idx | Renamed index | Renames modify-approver reference index to consistent naming.
 call apply_change(14, $aa$
 ALTER INDEX m_ref_object_create_approverTargetOidRelationId_idx
     RENAME TO m_ref_object_create_approver_targetOidRelationId_idx;
@@ -318,21 +396,33 @@ ALTER INDEX m_ref_object_modify_approverTargetOidRelationId_idx
 $aa$);
 
 -- Making resource.abstract queryable
+-- @change: Adds queryable `abstract` flag to resources.
+-- @since: 4.7
+-- @affects: table m_resource | Modified table | Adds queryable `abstract` flag.
 call apply_change(15, $aa$
 ALTER TABLE m_resource ADD abstract BOOLEAN;
 $aa$);
 
 -- Task Affected Indexing (Changes to types)
+-- @change: Adds `AFFECTED_OBJECTS` container type value for task affected object indexing.
+-- @since: 4.8
+-- @affects: enum ContainerType | Modified enum type | Adds `AFFECTED_OBJECTS`.
 call apply_change(16, $aa$
 ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'AFFECTED_OBJECTS' AFTER 'ACCESS_CERTIFICATION_WORK_ITEM';
 $aa$);
 
 -- Task Affected Indexing (tables), empty now, replaced with change 19
 
+-- @change: Keeps change number reserved for replaced task affected object indexing change.
+-- @since: 4.8
+-- @affects: schema change number | Reserved change | Keeps this change number reserved because the original table change was replaced by a later change.
 call apply_change(17, $$ SELECT 1 $$, true);
 
 
 -- Resource/super/resourceRef Indexing (tables)
+-- @change: Adds resource super-reference columns.
+-- @since: 4.8
+-- @affects: table m_resource | Modified table | Adds resource super-reference columns.
 call apply_change(18, $aa$
 ALTER TABLE m_resource
 ADD COLUMN superRefTargetOid UUID,
@@ -342,6 +432,10 @@ $aa$);
 
 -- Fixed upgrade for task indexing
 -- Drop tables should only affect development machines
+-- @change: Recreates task affected object indexing table.
+-- @since: 4.8
+-- @affects: table m_task_affected_resource_objects | Removed table | Drops obsolete development-time table if present.
+-- @affects: table m_task_affected_objects | Recreated table | Stores affected object data for tasks.
 call apply_change(19, $aa$
 DROP TABLE IF EXISTS m_task_affected_resource_objects;
 DROP TABLE IF EXISTS m_task_affected_objects;
@@ -366,6 +460,11 @@ CREATE TABLE m_task_affected_objects (
 
 $aa$);
 
+-- @change: Adds execution mode and predefined configuration enum types and task affected object columns.
+-- @since: 4.8
+-- @affects: enum ExecutionModeType | New enum type | Adds task execution mode values.
+-- @affects: enum PredefinedConfigurationType | New enum type | Adds predefined configuration values.
+-- @affects: table m_task_affected_objects | Modified table | Adds execution mode and predefined configuration columns.
 call apply_change(20, $aa$
 CREATE TYPE ExecutionModeType AS ENUM ('FULL', 'PREVIEW', 'SHADOW_MANAGEMENT_PREVIEW', 'DRY_RUN', 'NONE', 'BUCKET_ANALYSIS');
 CREATE TYPE PredefinedConfigurationType AS ENUM ( 'PRODUCTION', 'DEVELOPMENT' );
@@ -375,6 +474,9 @@ ALTER TABLE m_task_affected_objects
   ADD COLUMN predefinedConfigurationToUse PredefinedConfigurationType;
 $aa$);
 
+-- @change: Adds personal number column to users.
+-- @since: 4.8
+-- @affects: table m_user | Modified table | Adds personal number column.
 call apply_change(21, $aa$
 ALTER TABLE m_user
   ADD COLUMN personalNumber TEXT;
@@ -383,11 +485,27 @@ $aa$);
 
 -- Role Mining --
 
+-- @change: Adds `ROLE_ANALYSIS_CLUSTER` and `ROLE_ANALYSIS_SESSION` object type values.
+-- @since: 4.8
+-- @affects: enum ObjectType | Modified enum type | Adds `ROLE_ANALYSIS_CLUSTER` and `ROLE_ANALYSIS_SESSION`.
 call apply_change(22, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_CLUSTER' AFTER 'ROLE';
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_SESSION' AFTER 'ROLE_ANALYSIS_CLUSTER';
 $aa$);
 
+-- @change: Adds role analysis cluster and role analysis session tables, triggers, and indexes.
+-- @since: 4.8
+-- @affects: table m_role_analysis_cluster | New table | Stores role analysis cluster objects.
+-- @affects: trigger m_role_analysis_cluster_oid_insert_tr | New trigger | Reserves OID rows for inserted role analysis clusters.
+-- @affects: trigger m_role_analysis_cluster_update_tr | New trigger | Maintains update metadata for role analysis clusters.
+-- @affects: trigger m_role_analysis_cluster_oid_delete_tr | New trigger | Releases OID rows for deleted role analysis clusters.
+-- @affects: index m_role_analysis_cluster_parentRefTargetOid_idx | New index | Supports lookup by parent reference target OID.
+-- @affects: index m_role_analysis_cluster_parentRefTargetType_idx | New index | Supports lookup by parent reference target type.
+-- @affects: index m_role_analysis_cluster_parentRefRelationId_idx | New index | Supports lookup by parent reference relation.
+-- @affects: table m_role_analysis_session | New table | Stores role analysis session objects.
+-- @affects: trigger m_role_analysis_session_oid_insert_tr | New trigger | Reserves OID rows for inserted role analysis sessions.
+-- @affects: trigger m_role_analysis_session_update_tr | New trigger | Maintains update metadata for role analysis sessions.
+-- @affects: trigger m_role_analysis_session_oid_delete_tr | New trigger | Releases OID rows for deleted role analysis sessions.
 call apply_change(23, $aa$
 CREATE TABLE m_role_analysis_cluster (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -428,11 +546,17 @@ $aa$);
 
 -- Display Name for Connector Type
 
+-- @change: Adds connector display name columns.
+-- @since: 4.8
+-- @affects: table m_connector | Modified table | Adds original and normalized display name columns.
 call apply_change(24, $aa$
     ALTER TABLE m_connector ADD  displayNameOrig TEXT;
     ALTER TABLE m_connector ADD displayNameNorm TEXT;
 $aa$);
 
+-- @change: Updates organization closure refresh procedure to use advisory locking.
+-- @since: 4.8
+-- @affects: routine m_refresh_org_closure | Modified procedure | Uses advisory locking while refreshing organization closure data.
 call apply_change(25, $aa$
 CREATE OR REPLACE PROCEDURE m_refresh_org_closure(force boolean = false)
     LANGUAGE plpgsql
@@ -461,6 +585,12 @@ $$;
 $aa$);
 
 -- Assignments have separate full object
+-- @change: Adds separate full object storage to assignments, operation executions, and selected reference tables.
+-- @since: 4.9
+-- @affects: table m_assignment | Modified table | Adds separate full object storage.
+-- @affects: table m_operation_execution | Modified table | Adds separate full object storage.
+-- @affects: table m_ref_projection | Modified table | Adds separate full object storage.
+-- @affects: table m_ref_role_membership | Modified table | Adds separate full object storage.
 call apply_change(26, $aa$
     ALTER TABLE m_assignment ADD COLUMN fullObject BYTEA;
     ALTER TABLE m_operation_execution ADD COLUMN fullObject BYTEA;
@@ -470,9 +600,28 @@ $aa$);
 
 --- Policy Type
 
+-- @change: Adds `POLICY` object type value.
+-- @since: 4.9
+-- @affects: enum ObjectType | Modified enum type | Adds `POLICY`.
 call apply_change(27, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
 $aa$);
+
+-- @change: Adds policy object table, triggers, and indexes.
+-- @since: 4.9
+-- @affects: table m_policy | New table | Stores policy objects.
+-- @affects: trigger m_policy_oid_insert_tr | New trigger | Reserves OID rows for inserted policy objects.
+-- @affects: trigger m_policy_update_tr | New trigger | Maintains update metadata for policy objects.
+-- @affects: trigger m_policy_oid_delete_tr | New trigger | Releases OID rows for deleted policy objects.
+-- @affects: index m_policy_nameOrig_idx | New index | Supports lookup by original object name.
+-- @affects: index m_policy_nameNorm_key | New unique index | Enforces unique normalized object names.
+-- @affects: index m_policy_subtypes_idx | New index | Supports filtering by subtype.
+-- @affects: index m_policy_identifier_idx | New index | Supports lookup by identifier.
+-- @affects: index m_policy_validFrom_idx | New index | Supports filtering by validity start.
+-- @affects: index m_policy_validTo_idx | New index | Supports filtering by validity end.
+-- @affects: index m_policy_fullTextInfo_idx | New index | Supports full-text-like searches.
+-- @affects: index m_policy_createTimestamp_idx | New index | Supports filtering or ordering by creation time.
+-- @affects: index m_policy_modifyTimestamp_idx | New index | Supports filtering or ordering by modification time.
 call apply_change(28, $aa$
     CREATE TABLE m_policy (
         oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -501,10 +650,19 @@ $aa$);
 
 --- Schema Type
 
+-- @change: Adds `SCHEMA` object type value.
+-- @since: 4.9
+-- @affects: enum ObjectType | Modified enum type | Adds `SCHEMA`.
 call apply_change(29, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_SESSION';
 $aa$);
 
+-- @change: Adds schema object table and triggers.
+-- @since: 4.9
+-- @affects: table m_schema | New table | Stores schema objects.
+-- @affects: trigger m_schema_oid_insert_tr | New trigger | Reserves OID rows for inserted schema objects.
+-- @affects: trigger m_schema_update_tr | New trigger | Maintains update metadata for schema objects.
+-- @affects: trigger m_schema_oid_delete_tr | New trigger | Releases OID rows for deleted schema objects.
 call apply_change(30, $aa$
 CREATE TABLE m_schema (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -523,16 +681,29 @@ CREATE TRIGGER m_schema_oid_delete_tr AFTER DELETE ON m_schema
 $aa$);
 
 -- associations (maybe temporary)
+-- @change: Adds `ASSOCIATED` shadow kind value.
+-- @since: 4.9
+-- @affects: enum ShadowKindType | Modified enum type | Adds temporary `ASSOCIATED` shadow kind value.
 call apply_change(31, $aa$
 ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'ASSOCIATED' AFTER 'GENERIC';
 $aa$);
 
 
 -- value metatada for assignments and inducements
+-- @change: Adds `ASSIGNMENT_METADATA` container type value.
+-- @since: 4.9
+-- @affects: enum ContainerType | Modified enum type | Adds `ASSIGNMENT_METADATA`.
 call apply_change(32, $aa$
 ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'ASSIGNMENT_METADATA' AFTER 'ASSIGNMENT';
 $aa$);
 
+-- @change: Adds assignment metadata table and updates assignment approval reference keys.
+-- @since: 4.9
+-- @affects: table m_assignment_metadata | New table | Stores value metadata for assignments and inducements.
+-- @affects: index m_assignment_metadata_createTimestamp_idx | New index | Supports filtering or ordering assignment metadata by creation time.
+-- @affects: index m_assignment_metadata_modifyTimestamp_idx | New index | Supports filtering or ordering assignment metadata by modification time.
+-- @affects: table m_assignment_ref_create_approver | Modified table | Adds metadata container ID and updates uniqueness key.
+-- @affects: table m_assignment_ref_modify_approver | Modified table | Adds metadata container ID and updates uniqueness key.
 call apply_change(33, $aa$
 CREATE TABLE m_assignment_metadata (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -577,6 +748,10 @@ ALTER TABLE "m_assignment_ref_modify_approver" ADD CONSTRAINT "m_assignment_ref_
   UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
 
 $aa$);
+
+-- @change: Updates assignment metadata primary key and adds foreign key to assignments.
+-- @since: 4.9
+-- @affects: table m_assignment_metadata | Modified table | Replaces primary key and adds foreign key to assignments.
 call apply_change(34, $aa$
 ALTER TABLE "m_assignment_metadata"
 ADD CONSTRAINT "m_assignment_metadata_owneroid_assignmentcid_cid" PRIMARY KEY ("owneroid", "assignmentcid", "cid"),
@@ -587,10 +762,19 @@ ADD FOREIGN KEY ("owneroid", "assignmentcid") REFERENCES "m_assignment" ("ownero
 
 $aa$);
 
+-- @change: Adds `ROLE_ANALYSIS_OUTLIER` object type value.
+-- @since: 4.9
+-- @affects: enum ObjectType | Modified enum type | Adds `ROLE_ANALYSIS_OUTLIER`.
 call apply_change(35, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_OUTLIER' AFTER 'ROLE_ANALYSIS_SESSION';
 $aa$);
 
+-- @change: Adds role analysis outlier table and triggers.
+-- @since: 4.9
+-- @affects: table m_role_analysis_outlier | New table | Stores role analysis outlier objects.
+-- @affects: trigger m_role_analysis_outlier_oid_insert_tr | New trigger | Reserves OID rows for inserted role analysis outliers.
+-- @affects: trigger m_role_analysis_outlier_update_tr | New trigger | Maintains update metadata for role analysis outliers.
+-- @affects: trigger m_role_analysis_outlier_oid_delete_tr | New trigger | Releases OID rows for deleted role analysis outliers.
 call apply_change(36, $aa$
 CREATE TABLE m_role_analysis_outlier (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -607,6 +791,10 @@ CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_anal
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 $aa$);
 
+-- @change: Adds shadow reference attribute table and owner OID index.
+-- @since: 4.9
+-- @affects: table m_shadow_ref_attribute | New table | Stores shadow reference attribute values.
+-- @affects: index m_shadow_ref_attribute_ownerOid_idx | New index | Supports lookup of shadow reference attributes by owner OID.
 call apply_change(37, $aa$
     CREATE TABLE m_shadow_ref_attribute (
         ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -623,10 +811,18 @@ call apply_change(37, $aa$
     CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_shadow_ref_attribute (ownerOid);
 $aa$);
 
+-- @change: Adds `TASK_AFFECTED_OBJECT` reference type value.
+-- @since: 4.9
+-- @affects: enum ReferenceType | Modified enum type | Adds `TASK_AFFECTED_OBJECT`.
 call apply_change(38, $aa$
 ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'TASK_AFFECTED_OBJECT' AFTER 'ROLE_MEMBERSHIP';
 $aa$);
 
+-- @change: Adds task affected object reference table, foreign key, and target lookup index.
+-- @since: 4.9
+-- @affects: table m_ref_task_affected_object | New table | Stores affected-object references for tasks.
+-- @affects: constraint m_ref_task_affected_object_id_fk | New foreign key | Links affected-object references to task affected object rows.
+-- @affects: index m_ref_task_affected_object_targetOidRelationId_idx | New index | Supports reverse lookup by target object and relation.
 call apply_change(39, $aa$
 CREATE TABLE m_ref_task_affected_object (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -646,10 +842,18 @@ $aa$);
 
 
 
-call apply_change(40, $aa$
+-- @change: Adds `ASSIGNMENT_EFFECTIVE_MARK` reference type value.
+-- @since: 4.9
+-- @affects: enum ReferenceType | Modified enum type | Adds `ASSIGNMENT_EFFECTIVE_MARK`.
+call apply_change(40,$aa$
 
     ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'ASSIGNMENT_EFFECTIVE_MARK' AFTER 'ASSIGNMENT_MODIFY_APPROVER';
 $aa$);
+
+-- @change: Adds assignment effective mark reference table and target lookup index.
+-- @since: 4.9
+-- @affects: table m_ref_assignment_effective_mark | New table | Stores effective mark references for assignments.
+-- @affects: index m_ref_assignment_effective_mark_targetOidRelationId_idx | New index | Supports reverse lookup of assignment effective mark references.
 call apply_change(41, $aa$
     CREATE TABLE m_ref_assignment_effective_mark (
         ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -664,6 +868,14 @@ call apply_change(41, $aa$
         ON m_ref_assignment_effective_mark (targetOid, relationId);
 $aa$);
 
+-- @change: Converts shadow storage to resource-partitioned shadow tables and recreates object view.
+-- @since: 4.9
+-- @affects: table m_shadow | Recreated table | Converts shadow storage to resource-partitioned table.
+-- @affects: table m_shadow_default | Modified table | Becomes default partition of the new shadow table.
+-- @affects: view m_object_view | Recreated view | Combines object and shadow rows for object-wide queries.
+-- @affects: trigger m_shadow_oid_insert_tr | Recreated trigger | Reserves OID rows for inserted shadows.
+-- @affects: trigger m_shadow_update_tr | Recreated trigger | Maintains update metadata for shadows.
+-- @affects: trigger m_shadow_oid_delete_tr | Recreated trigger | Releases OID rows for deleted shadows.
 call apply_change(42,$aa$
     ALTER TABLE m_shadow NO INHERIT m_object;
     ALTER TABLE m_shadow RENAME TO m_shadow_default;
@@ -806,6 +1018,15 @@ $aa$);
 
 
 
+-- @change: Adds shadow partition management functions, partition definition table, and triggers.
+-- @since: 4.9
+-- @affects: routine m_shadow_create_partition | New function | Creates shadow partitions and moves existing shadow data.
+-- @affects: routine m_shadow_delete_partition | New function | Drops shadow partitions when partition definitions are removed.
+-- @affects: routine m_shadow_update_partition | New function | Attaches shadow partitions when partition definitions change.
+-- @affects: table m_shadow_partition_def | New table | Stores shadow partition definitions.
+-- @affects: trigger m_shadow_partition_def_bi | New trigger | Creates shadow partitions from inserted partition definitions.
+-- @affects: trigger m_shadow_partition_def_bu | New trigger | Updates shadow partition attachment state.
+-- @affects: trigger m_shadow_partition_def_bd | New trigger | Drops shadow partitions when definitions are deleted.
 call apply_change(43,$aa$
     CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
         DECLARE
@@ -933,10 +1154,16 @@ call apply_change(43,$aa$
     CREATE TRIGGER "m_shadow_partition_def_bd" BEFORE DELETE ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_delete_partition();
 $aa$);
 
+-- @change: Renames shadow kind value from `ASSOCIATED` to `ASSOCIATION`.
+-- @since: 4.9
+-- @affects: enum ShadowKindType | Modified enum type | Renames `ASSOCIATED` to `ASSOCIATION`.
 call apply_change(44, $aa$
 ALTER TYPE ShadowKindType RENAME VALUE 'ASSOCIATED' TO 'ASSOCIATION';
 $aa$);
 
+-- @change: Adds shadow enable/disable timestamp and disable reason columns.
+-- @since: 4.9
+-- @affects: table m_shadow | Modified table | Adds disable reason, enable timestamp, and disable timestamp columns.
 call apply_change(45, $aa$
     ALTER TABLE m_shadow
        ADD COLUMN disableReasonId INTEGER REFERENCES m_uri(id),
@@ -944,6 +1171,12 @@ call apply_change(45, $aa$
        ADD COLUMN   disableTimestamp TIMESTAMPTZ;
 $aa$);
 
+-- @change: Adds target object reference columns and indexes to role analysis outliers.
+-- @since: 4.9
+-- @affects: table m_role_analysis_outlier | Modified table | Adds target object reference columns.
+-- @affects: index m_role_analysis_outlier_targetObjectRefTargetOid_idx | New index | Supports lookup by target object OID.
+-- @affects: index m_role_analysis_outlier_targetObjectRefTargetType_idx | New index | Supports lookup by target object type.
+-- @affects: index m_role_analysis_outlier_targetObjectRefRelationId_idx | New index | Supports lookup by target object relation.
 call apply_change(46, $aa$
     ALTER TABLE m_role_analysis_outlier
        ADD COLUMN targetObjectRefTargetOid UUID,
@@ -960,6 +1193,10 @@ call apply_change(46, $aa$
                ON m_role_analysis_outlier (targetObjectRefRelationId);
 $aa$);
 
+-- @change: Adds last login timestamp column and index to shadows.
+-- @since: 4.9
+-- @affects: table m_shadow | Modified table | Adds last login timestamp column.
+-- @affects: index m_shadow_default_lastLoginTimestamp_idx | New index | Supports filtering by last login timestamp.
 call apply_change(47, $aa$
     ALTER TABLE m_shadow
        ADD COLUMN lastLoginTimestamp TIMESTAMPTZ;
@@ -969,11 +1206,22 @@ call apply_change(47, $aa$
 $aa$);
 
 
+-- @change: Adds role analysis cluster detected pattern and outlier partition container type values.
+-- @since: 4.9
+-- @affects: enum ContainerType | Modified enum type | Adds `CLUSTER_DETECTED_PATTERN` and `OUTLIER_PARTITION`.
 call apply_change(48, $aa$
     ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'CLUSTER_DETECTED_PATTERN' AFTER 'CASE_WORK_ITEM';
     ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'OUTLIER_PARTITION' AFTER 'OPERATION_EXECUTION';
 $aa$);
 
+-- @change: Adds role analysis detected pattern and outlier partition tables, columns, and indexes.
+-- @since: 4.9
+-- @affects: table m_role_analysis_cluster_detected_pattern | New table | Stores detected patterns for role analysis clusters.
+-- @affects: index m_role_analysis_cluster_detected_pattern_reductionCount_idx | New index | Supports filtering by reduction count.
+-- @affects: table m_role_analysis_outlier_partition | New table | Stores role analysis outlier partitions.
+-- @affects: index m_role_analysis_outlier_partition_clusterRefOid_idx | New index | Supports lookup by cluster reference OID.
+-- @affects: table m_role_analysis_outlier | Modified table | Adds overall confidence column.
+-- @affects: index m_role_analysis_outlier_overallConfidence_idx | New index | Supports filtering by overall confidence.
 call apply_change(49, $aa$
     CREATE TABLE m_role_analysis_cluster_detected_pattern (
         ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -1006,6 +1254,10 @@ call apply_change(49, $aa$
     CREATE INDEX m_role_analysis_outlier_overallConfidence_idx ON m_role_analysis_outlier (overallConfidence);
 $aa$);
 
+-- @change: Adds overall confidence column and index to role analysis outlier partitions.
+-- @since: 4.9
+-- @affects: table m_role_analysis_outlier_partition | Modified table | Adds overall confidence column.
+-- @affects: index m_role_analysis_outlier_partition_overallConfidence_idx | New index | Supports filtering by overall confidence.
 call apply_change(50, $aa$
     ALTER TABLE m_role_analysis_outlier_partition
        ADD COLUMN overallConfidence double precision;
@@ -1015,6 +1267,9 @@ call apply_change(50, $aa$
 
 $aa$);
 
+-- @change: Updates shadow partition creation function to disable and re-enable only user triggers.
+-- @since: 4.10
+-- @affects: routine m_shadow_create_partition | Modified function | Disables and re-enables only user triggers while moving shadow data.
 call apply_change(51, $aa$
     CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
     DECLARE
@@ -1104,10 +1359,28 @@ $aa$);
 
 --- Schema Type
 
+-- @change: Adds `APPLICATION` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `APPLICATION`.
 call apply_change(52, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'APPLICATION' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
 $aa$);
 
+-- @change: Adds application object table, triggers, and indexes.
+-- @since: 4.11
+-- @affects: table m_application | New table | Stores application objects.
+-- @affects: trigger m_application_oid_insert_tr | New trigger | Reserves OID rows for inserted applications.
+-- @affects: trigger m_application_update_tr | New trigger | Maintains update metadata for applications.
+-- @affects: trigger m_application_oid_delete_tr | New trigger | Releases OID rows for deleted applications.
+-- @affects: index m_application_nameOrig_idx | New index | Supports lookup by original object name.
+-- @affects: index m_application_nameNorm_key | New unique index | Enforces unique normalized object names.
+-- @affects: index m_application_subtypes_idx | New index | Supports filtering by subtype.
+-- @affects: index m_application_identifier_idx | New index | Supports lookup by identifier.
+-- @affects: index m_application_validFrom_idx | New index | Supports filtering by validity start.
+-- @affects: index m_application_validTo_idx | New index | Supports filtering by validity end.
+-- @affects: index m_application_fullTextInfo_idx | New index | Supports full-text-like searches.
+-- @affects: index m_application_createTimestamp_idx | New index | Supports filtering or ordering by creation time.
+-- @affects: index m_application_modifyTimestamp_idx | New index | Supports filtering or ordering by modification time.
 call apply_change(53, $aa$
 CREATE TABLE m_application (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -1135,10 +1408,19 @@ CREATE INDEX m_application_modifyTimestamp_idx ON m_application (modifyTimestamp
 
 $aa$);
 
+-- @change: Adds `CONNECTOR_DEVELOPMENT` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `CONNECTOR_DEVELOPMENT`.
 call apply_change(54, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
 $aa$);
 
+-- @change: Adds connector development object table and triggers.
+-- @since: 4.11
+-- @affects: table m_connector_development | New table | Stores connector development objects.
+-- @affects: trigger m_connector_development_oid_insert_tr | New trigger | Reserves OID rows for inserted connector development objects.
+-- @affects: trigger m_connector_development_update_tr | New trigger | Maintains update metadata for connector development objects.
+-- @affects: trigger m_connector_development_oid_delete_tr | New trigger | Releases OID rows for deleted connector development objects.
 call apply_change(55, $aa$
 CREATE TABLE m_connector_development (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -1155,10 +1437,19 @@ CREATE TRIGGER m_connector_development_oid_delete_tr AFTER DELETE ON m_connector
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 $aa$);
 
+-- @change: Drops old connector type/version uniqueness indexes before recreating them.
+-- @since: 4.11
+-- @affects: index m_connector_typeVersion_key | Removed index | Drops old connector type/version uniqueness index.
+-- @affects: index m_connector_typeversionhost_key | Removed index | Drops old connector type/version/host uniqueness index.
 call apply_change(56, $aa$
     DROP INDEX IF EXISTS m_connector_typeVersion_key;
     DROP INDEX IF EXISTS m_connector_typeversionhost_key;
 $aa$);
+
+-- @change: Recreates connector type/version uniqueness indexes with connector-host specific predicates.
+-- @since: 4.11
+-- @affects: index m_connector_typeVersion_key | New index | Enforces connector type/version uniqueness when connector host is not set.
+-- @affects: index m_connector_typeVersionHost_key | New index | Enforces connector type/version/host uniqueness when connector host is set.
 call apply_change(57, $aa$
 CREATE INDEX m_connector_typeVersion_key
     ON m_connector (connectorType, connectorVersion)

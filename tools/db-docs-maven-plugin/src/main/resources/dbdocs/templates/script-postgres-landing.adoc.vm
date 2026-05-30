@@ -1,0 +1,66 @@
+= Native PostgreSQL Schema Script: postgres.sql
+
+xref:../schema.adoc[Back to native PostgreSQL schema overview]
+
+This page documents schema objects parsed from `$r.displayPath($sourceFile.path())`.
+The detailed documentation is split into logical region pages because this schema script is large.
+
+== Region documentation
+
+#foreach ($region in $view.postgresRegions())
+* $r.pageXref($view.postgresRegionPagePath($region), $region.title(), $view) - $region.description()
+#end
+
+== Overview
+
+=== Tables
+
+[cols="1,2,3", options="header"]
+|===
+| Table | Region | Description
+#foreach ($table in $view.tablesFor($sourceFile))
+| $r.tableXref($table, $view) | $r.pageXref($view.pageFor($table), $view.regionFor($table).title(), $view) | $r.metadataValue($table.metadata().description())
+#end
+|===
+
+#if (!$view.viewsFor($sourceFile).isEmpty())
+=== Views
+
+[cols="1,2,3,1", options="header"]
+|===
+| View | Region | Description | Type
+#foreach ($viewObject in $view.viewsFor($sourceFile))
+| $r.objectXref("view", $viewObject, $view) | $r.pageXref($view.pageFor($viewObject), $view.regionFor($viewObject).title(), $view) | $r.metadataValue($viewObject.metadata().description()) | $r.viewType($viewObject)
+#end
+|===
+#end
+
+#if (!$view.enumTypesFor($sourceFile).isEmpty() || !$view.routinesFor($sourceFile).isEmpty() || !$view.triggersFor($sourceFile).isEmpty() || !$view.proceduralBlocksFor($sourceFile).isEmpty() || !$view.documentedAltersFor($sourceFile).isEmpty() || !$view.infrastructureObjectsFor($sourceFile).isEmpty())
+=== Other schema objects
+
+[cols="1,2,3,1", options="header"]
+|===
+| Object | Region | Description | Type
+#foreach ($enumType in $view.enumTypesFor($sourceFile))
+| $r.objectXref("enum", $enumType, $view) | $r.pageXref($view.pageFor($enumType), $view.regionFor($enumType).title(), $view) | $r.metadataValue($enumType.metadata().description()) | enum type
+#end
+#foreach ($routine in $view.routinesFor($sourceFile))
+| $r.objectXref("routine", $routine, $view) | $r.pageXref($view.pageFor($routine), $view.regionFor($routine).title(), $view) | $r.metadataValue($routine.metadata().description()) | $r.objectType($routine)
+#end
+#foreach ($trigger in $view.triggersFor($sourceFile))
+| $r.objectXref("trigger", $trigger, $view) | $r.pageXref($view.pageFor($trigger), $view.regionFor($trigger).title(), $view) | $r.metadataValue($trigger.metadata().description()) | trigger
+#end
+#foreach ($block in $view.proceduralBlocksFor($sourceFile))
+| $r.objectXref("do-block", $block, $view) | $r.pageXref($view.pageFor($block), $view.regionFor($block).title(), $view) | $r.metadataValue($block.metadata().description()) | DO block
+#end
+#foreach ($alter in $view.documentedAltersFor($sourceFile))
+| $r.objectXref("alter-table", $alter, $view) | $r.pageXref($view.pageFor($alter), $view.regionFor($alter).title(), $view) | $r.metadataValue($alter.metadata().description()) | ALTER TABLE
+#end
+#foreach ($extension in $view.extensions())
+| $r.objectXref("extension", $extension, $view) | $r.pageXref($view.pageFor($extension), $view.regionFor($extension).title(), $view) | $r.metadataValue($extension.metadata().description()) | extension
+#end
+#foreach ($schemaObject in $view.schemas())
+| $r.objectXref("schema", $schemaObject, $view) | $r.pageXref($view.pageFor($schemaObject), $view.regionFor($schemaObject).title(), $view) | $r.metadataValue($schemaObject.metadata().description()) | schema
+#end
+|===
+#end

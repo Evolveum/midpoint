@@ -1,0 +1,245 @@
+= $pageTitle
+
+xref:${backToOverviewPath}[Back to native PostgreSQL schema overview]
+
+#if ($scriptLandingPath)
+xref:${scriptLandingPath}[Back to $r.fileName($sourceFile.path()) documentation]
+
+#end
+
+This page documents schema objects parsed from `$r.displayPath($sourceFile.path())`.
+
+#if ($region)
+Region: $region.title()
+
+$region.description()
+
+#end
+
+#if (!$schema.tables().isEmpty())
+== Tables
+
+#foreach ($table in $view.tablesFor($sourceFile))
+[[$table.name()]]
+=== `$table.name()`
+
+$r.description($table.metadata().description())
+
+#if ($table.metadata().type())
+Schema type: `$table.metadata().type()`
+
+#end
+#if ($table.metadata().since())
+Since: $table.metadata().since()
+
+#end
+#if ($table.inheritsFrom())
+Inherits from: $r.tableReference($table.inheritsFrom(), $view)
+
+#end
+#if ($table.partitionOf())
+This table is a partition of $r.tableReference($table.partitionOf(), $view). Columns are inherited from the partitioned table.
+
+#elseif ($table.parseNote())
+$table.parseNote()
+
+#end
+#if (!$table.columns().isEmpty())
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+#foreach ($column in $table.columns())
+| `$column.name()` | `$column.type()` | $r.constraints($column) | $r.metadataValue($column.metadata().description())
+#end
+|===
+
+#end
+#if (!$table.indexes().isEmpty())
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+#foreach ($index in $table.indexes())
+| `$index.name()` | `$r.indexColumns($index)` | $r.indexNotes($index)
+#end
+|===
+
+#end
+#if (!$table.foreignKeys().isEmpty())
+==== Foreign keys
+
+#set ($hasForeignKeyNotes = $r.hasForeignKeyNotes($table))
+#if ($hasForeignKeyNotes)
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+#foreach ($foreignKey in $table.foreignKeys())
+| `$foreignKey.localColumn()` | $r.foreignKeyReference($foreignKey, $view) | $r.foreignKeyNotes($foreignKey)
+#end
+|===
+#else
+[cols="1,2", options="header"]
+|===
+| Column | References
+#foreach ($foreignKey in $table.foreignKeys())
+| `$foreignKey.localColumn()` | $r.foreignKeyReference($foreignKey, $view)
+#end
+|===
+#end
+
+#end
+#end
+#end
+#if (!$view.views().isEmpty())
+== Views
+
+Views present derived or queryable data from repository tables.
+
+#foreach ($viewObject in $view.views())
+[[$r.anchor("view", $viewObject.name())]]
+=== `$viewObject.name()`
+
+$r.description($viewObject.metadata().description())
+
+Kind: $r.viewType($viewObject)
+
+#if ($viewObject.metadata().since())
+Since: $viewObject.metadata().since()
+
+#end
+#end
+#end
+#if (!$view.enumTypes().isEmpty())
+== Enum types
+
+Enum types define allowed database values for selected columns.
+
+#foreach ($enumType in $view.enumTypes())
+[[$r.anchor("enum", $enumType.name())]]
+=== `$enumType.name()`
+
+$r.description($enumType.metadata().description())
+
+#if ($enumType.metadata().since())
+Since: $enumType.metadata().since()
+
+#end
+#if (!$enumType.values().isEmpty())
+==== Values
+
+#foreach ($value in $enumType.values())
+* `$value`
+#end
+
+#end
+#end
+#end
+#if (!$view.routines().isEmpty())
+== Functions and procedures
+
+Functions and procedures implement repository-side database behavior.
+
+#foreach ($routine in $view.routines())
+[[$r.anchor("routine", $routine.name())]]
+=== `$routine.name()`
+
+$r.description($routine.metadata().description())
+
+Kind: $r.objectType($routine)
+
+#if ($routine.metadata().since())
+Since: $routine.metadata().since()
+
+#end
+#end
+#end
+#if (!$view.triggers().isEmpty())
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+#foreach ($trigger in $view.triggers())
+[[$r.anchor("trigger", $trigger.name())]]
+=== `$trigger.name()`
+
+$r.description($trigger.metadata().description())
+
+#if ($trigger.detail("table"))
+Table: $r.tableReference($trigger.detail("table"), $view)
+
+#end
+#if ($trigger.detail("executes"))
+Executes: $r.routineReference($trigger.detail("executes"), $view)
+
+#end
+#end
+#end
+#if (!$view.proceduralBlocks().isEmpty())
+== Procedural blocks
+
+Procedural blocks run repository-side setup logic that is documented as a whole.
+
+#foreach ($block in $view.proceduralBlocks())
+[[$r.anchor("do-block", $block.name())]]
+=== `$block.name()`
+
+$r.description($block.metadata().description())
+
+Statement type: $r.objectType($block)
+
+#if ($block.metadata().since())
+Since: $block.metadata().since()
+
+#end
+#if ($block.metadata().usedFor())
+Used for: $block.metadata().usedFor()
+
+#end
+#end
+#end
+#if (!$view.documentedAlters().isEmpty())
+== Documented ALTER TABLE statements
+
+These ALTER TABLE statements are documented separately because they are not one of the supported forms merged into table columns or foreign keys.
+
+#foreach ($alter in $view.documentedAlters())
+[[$r.anchor("alter-table", $alter.name())]]
+=== `$alter.name()`
+
+$r.description($alter.metadata().description())
+
+Statement type: $r.objectType($alter)
+
+#if ($alter.metadata().since())
+Since: $alter.metadata().since()
+
+#end
+#if ($alter.metadata().usedFor())
+Used for: $alter.metadata().usedFor()
+
+#end
+#end
+#end
+#if (!$view.extensions().isEmpty() || !$view.schemas().isEmpty())
+== Extensions and schemas
+
+Extensions and schemas are database infrastructure objects required by the repository schema.
+
+#foreach ($extension in $view.extensions())
+[[$r.anchor("extension", $extension.name())]]
+=== Extension `$extension.name()`
+
+$r.description($extension.metadata().description())
+
+#end
+#foreach ($schemaObject in $view.schemas())
+[[$r.anchor("schema", $schemaObject.name())]]
+=== Schema `$schemaObject.name()`
+
+$r.description($schemaObject.metadata().description())
+
+#end
+#end

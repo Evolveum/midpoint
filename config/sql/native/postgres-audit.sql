@@ -28,11 +28,14 @@
 
 -- just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
 -- drop schema current_user cascade;
+-- @description: Creates the current user's schema used by the native audit repository.
 CREATE SCHEMA IF NOT EXISTS AUTHORIZATION CURRENT_USER;
 
 -- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
 
 -- region custom enum types
+-- @description: Creates shared audit enum types when they are not already present.
+-- @usedFor: audit schema initialization
 DO $$ BEGIN
     -- NOTE: Types in this block must be updated when changed in postgres-new.sql!
     CREATE TYPE ObjectType AS ENUM (
@@ -82,21 +85,25 @@ DO $$ BEGIN
         'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
 EXCEPTION WHEN duplicate_object THEN raise notice 'Main repo custom types already exist, OK...'; END $$;
 
+-- @description: Describes the type of operation recorded in an audit event.
 CREATE TYPE AuditEventTypeType AS ENUM ('GET_OBJECT', 'ADD_OBJECT', 'MODIFY_OBJECT',
     'DELETE_OBJECT', 'EXECUTE_CHANGES_RAW', 'SYNCHRONIZATION', 'CREATE_SESSION',
     'TERMINATE_SESSION', 'WORK_ITEM', 'WORKFLOW_PROCESS_INSTANCE', 'RECONCILIATION',
     'SUSPEND_TASK', 'RESUME_TASK', 'RUN_TASK_IMMEDIATELY', 'DISCOVER_OBJECT', 'INFORMATION_DISCLOSURE');
 
+-- @description: Describes whether an audit event records the request, execution, or resource stage.
 CREATE TYPE AuditEventStageType AS ENUM ('REQUEST', 'EXECUTION', 'RESOURCE');
 
+-- @description: Describes how effective privileges changed during an audited operation.
 CREATE TYPE EffectivePrivilegesModificationType AS ENUM ('ELEVATION', 'FULL_ELEVATION', 'REDUCTION', 'OTHER');
 
+-- @description: Describes the type of object change stored in audit delta records.
 CREATE TYPE ChangeType AS ENUM ('ADD', 'MODIFY', 'DELETE');
 
-
-
-   -- We try to create ShadowKindType (necessary if audit is in separate database, if it is in same
-   -- database as repository, type already exists.
+-- We try to create ShadowKindType (necessary if audit is in separate database, if it is in same
+-- database as repository, type already exists.
+-- @description: Creates the shadow kind enum type for standalone audit databases when it is not already present.
+-- @usedFor: audit schema initialization
 DO $$ BEGIN
        CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOWN');
    EXCEPTION
@@ -106,84 +113,163 @@ END $$;
 
 -- region management tables
 -- Key -> value config table for internal use.
+-- @description: Stores internal audit schema metadata, including audit schema change tracking.
 CREATE TABLE IF NOT EXISTS m_global_metadata (
+    -- @description: Metadata entry name.
     name TEXT PRIMARY KEY,
+    -- @description: Metadata entry value.
     value TEXT
 );
 -- endregion
 
 -- region AUDIT
+-- @description: Stores top-level audit event records, such as object changes, task actions, sessions, and other audited operations.
+-- @type: http://midpoint.evolveum.com/xml/ns/public/common/audit-3#AuditEventRecordType
 CREATE TABLE ma_audit_event (
     -- ID is generated as unique, but if provided, it is checked for uniqueness
     -- only in combination with timestamp because of partitioning.
+    -- @description: Numeric identifier of the audit event. Together with timestamp it forms the primary key.
     id BIGSERIAL NOT NULL,
+    -- @description: Time when the audited event happened. This is also the partitioning key.
     timestamp TIMESTAMPTZ NOT NULL,
+    -- @description: External or logical identifier of the audit event.
     eventIdentifier TEXT,
+    -- @description: Type of audited operation, for example object add, modify, delete, or session creation.
     eventType AuditEventTypeType,
+    -- @description: Stage of the audited operation, such as request, execution, or resource.
     eventStage AuditEventStageType,
+    -- @description: Session identifier associated with the audited operation.
     sessionIdentifier TEXT,
+    -- @description: Request identifier associated with the audited operation.
     requestIdentifier TEXT,
+    -- @description: Task identifier associated with the audited operation.
     taskIdentifier TEXT,
+    -- @description: OID of the task associated with the audited operation.
     taskOid UUID,
+    -- @description: Host identifier where the audited operation was processed.
     hostIdentifier TEXT,
+    -- @description: Cluster node identifier where the audited operation was processed.
     nodeIdentifier TEXT,
+    -- @description: Remote host address from which the operation originated, if known.
     remoteHostAddress TEXT,
+    -- @description: OID of the principal that initiated the audited operation.
     initiatorOid UUID,
+    -- @description: Object type of the initiator.
     initiatorType ObjectType,
+    -- @description: Human-readable name of the initiator.
     initiatorName TEXT,
+    -- @description: OID of the attorney when the operation was executed under delegation or attorney context.
     attorneyOid UUID,
+    -- @description: Human-readable name of the attorney.
     attorneyName TEXT,
+    -- @description: OID of the effective principal used to evaluate permissions.
     effectivePrincipalOid UUID,
+    -- @description: Object type of the effective principal.
     effectivePrincipalType ObjectType,
+    -- @description: Human-readable name of the effective principal.
     effectivePrincipalName TEXT,
+    -- @description: Describes whether effective privileges were elevated, reduced, or otherwise changed.
     effectivePrivilegesModification EffectivePrivilegesModificationType,
+    -- @description: OID of the primary target object of the audited operation.
     targetOid UUID,
+    -- @description: Object type of the primary target.
     targetType ObjectType,
+    -- @description: Human-readable name of the primary target.
     targetName TEXT,
+    -- @description: OID of the owner of the primary target, if applicable.
     targetOwnerOid UUID,
+    -- @description: Object type of the target owner, if applicable.
     targetOwnerType ObjectType,
+    -- @description: Human-readable name of the target owner, if applicable.
     targetOwnerName TEXT,
+    -- @description: Full channel URI describing where or how the operation was initiated.
     channel TEXT, -- full URI, we do not want m_uri ID anymore
+    -- @description: Result status of the audited operation.
     outcome OperationResultStatusType,
+    -- @description: Operation parameter summary stored with the audit event.
     parameter TEXT,
+    -- @description: Operation result summary stored with the audit event.
     result TEXT,
+    -- @description: User-friendly audit event message.
     message TEXT,
+    -- @description: Paths of changed items affected by the audited operation.
     changedItemPaths TEXT[],
+    -- @description: OIDs of resources affected by the audited operation.
     resourceOids TEXT[],
+    -- @description: Additional audit event properties stored as structured JSON.
     properties JSONB,
     -- ext JSONB, -- TODO extension container later
 
     PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
 
+-- @description: Speeds up searching and ordering audit events by timestamp.
+-- @usedFor: audit searches filtered or ordered by event time
 CREATE INDEX ma_audit_event_timestamp_idx ON ma_audit_event (timestamp);
+
+-- @description: Speeds up lookup of audit events by event identifier.
+-- @usedFor: audit searches using eventIdentifier
 CREATE INDEX ma_audit_event_eventIdentifier_idx ON ma_audit_event (eventIdentifier);
+
+-- @description: Speeds up lookup of audit events by session identifier.
+-- @usedFor: audit searches grouped or filtered by user session
 CREATE INDEX ma_audit_event_sessionIdentifier_idx ON ma_audit_event (sessionIdentifier);
+
+-- @description: Speeds up lookup of audit events by request identifier.
+-- @usedFor: audit searches following one logical request
 CREATE INDEX ma_audit_event_requestIdentifier_idx ON ma_audit_event (requestIdentifier);
+
 -- This was originally eventStage + targetOid, but low variability eventStage can do more harm.
+-- @description: Speeds up lookup of audit events by target object OID.
+-- @usedFor: audit searches for events related to a specific object
 CREATE INDEX ma_audit_event_targetOid_idx ON ma_audit_event (targetOid);
 -- TODO do we want to index every single column or leave the rest to full/partial scans?
 -- Original repo/audit didn't have any more indexes either...
+
+-- @description: Speeds up searches by changed item paths.
+-- @usedFor: audit searches filtering by changed item
 CREATE INDEX ma_audit_event_changedItemPaths_idx ON ma_audit_event USING gin(changeditempaths);
+
+-- @description: Speeds up searches by affected resource OIDs.
+-- @usedFor: audit searches filtering by resource
 CREATE INDEX ma_audit_event_resourceOids_idx ON ma_audit_event USING gin(resourceOids);
+
+-- @description: Speeds up searches by structured audit event properties.
+-- @usedFor: audit searches filtering by JSON properties
 CREATE INDEX ma_audit_event_properties_idx ON ma_audit_event USING gin(properties);
 -- TODO trigram indexes for LIKE support? What columns? message, ...
 
+-- @description: Stores serialized object deltas and related object information for audit events.
 CREATE TABLE ma_audit_delta (
+    -- @description: Identifier of the audit event this delta belongs to.
     recordId BIGINT NOT NULL, -- references ma_audit_event.id
+    -- @description: Timestamp of the audit event this delta belongs to. Also used as partitioning key.
     timestamp TIMESTAMPTZ NOT NULL, -- references ma_audit_event.timestamp
+    -- @description: Checksum identifying this delta within the audit event.
     checksum TEXT NOT NULL,
+    -- @description: Serialized delta data.
     delta BYTEA,
+    -- @description: OID of the object affected by this delta.
     deltaOid UUID,
+    -- @description: Type of change represented by this delta.
     deltaType ChangeType,
+    -- @description: Serialized full operation result related to this delta.
     fullResult BYTEA,
+    -- @description: Normalized name of the affected object.
     objectNameNorm TEXT,
+    -- @description: Original name of the affected object.
     objectNameOrig TEXT,
+    -- @description: OID of the affected resource, if the delta is resource-related.
     resourceOid UUID,
+    -- @description: Normalized name of the affected resource.
     resourceNameNorm TEXT,
+    -- @description: Original name of the affected resource.
     resourceNameOrig TEXT,
+    -- @description: Kind of shadow affected by the delta, if applicable.
     shadowKind ShadowKindType,
+    -- @description: Shadow intent affected by the delta, if applicable.
     shadowIntent TEXT,
+    -- @description: Result status related to this delta.
     status OperationResultStatusType,
 
     PRIMARY KEY (recordId, timestamp, checksum)
@@ -199,14 +285,23 @@ ALTER TABLE ma_audit_delta ADD CONSTRAINT ma_audit_delta_fk
 */
 
 -- TODO: any unique combination within single recordId? name+oid+type perhaps?
+-- @description: Stores references related to audit events.
 CREATE TABLE ma_audit_ref (
+    -- @description: Technical identifier of this audit reference row.
     id BIGSERIAL NOT NULL, -- unique technical PK
+    -- @description: Identifier of the audit event this reference belongs to.
     recordId BIGINT NOT NULL, -- references ma_audit_event.id
+    -- @description: Timestamp of the audit event this reference belongs to. Also used as partitioning key.
     timestamp TIMESTAMPTZ NOT NULL, -- references ma_audit_event.timestamp
+    -- @description: Reference name. Multiple references in one audit event can have the same name.
     name TEXT, -- multiple refs can have the same name, conceptually it's a Map(name -> refs[])
+    -- @description: OID of the referenced target object.
     targetOid UUID,
+    -- @description: Type of the referenced target object.
     targetType ObjectType,
+    -- @description: Original name of the referenced target object.
     targetNameOrig TEXT,
+    -- @description: Normalized name of the referenced target object.
     targetNameNorm TEXT,
 
     PRIMARY KEY (id, timestamp) -- real PK must contain partition key (timestamp)
@@ -219,11 +314,18 @@ ALTER TABLE ma_audit_ref ADD CONSTRAINT ma_audit_ref_fk
 */
 -- Index for FK mentioned above.
 -- Index can be declared for partitioned table and will be partitioned automatically.
+-- @description: Speeds up lookup of audit references by owning audit event.
+-- @usedFor: joining audit references to audit events
 CREATE INDEX ma_audit_ref_recordId_timestamp_idx ON ma_audit_ref (recordId, timestamp);
 
 -- Default tables used when no timestamp range partitions are created:
+-- @description: Default partition for audit events that do not match a monthly audit event partition.
 CREATE TABLE ma_audit_event_default PARTITION OF ma_audit_event DEFAULT;
+
+-- @description: Default partition for audit deltas that do not match a monthly audit delta partition.
 CREATE TABLE ma_audit_delta_default PARTITION OF ma_audit_delta DEFAULT;
+
+-- @description: Default partition for audit references that do not match a monthly audit reference partition.
 CREATE TABLE ma_audit_ref_default PARTITION OF ma_audit_ref DEFAULT;
 
 /*
@@ -256,6 +358,7 @@ CALL apply_audit_change(2, $$ alter table x add column b text; insert into x val
 -- not a good idea in general, but "true" forces the execution; it never updates change # to lower
 CALL apply_audit_change(1, $$ insert into x values (3, 'three'); $$, true);
 */
+-- @description: Applies an audit schema or data change only once by tracking the latest executed audit change number.
 CREATE OR REPLACE PROCEDURE apply_audit_change(changeNumber int, change TEXT, force boolean = false)
     LANGUAGE plpgsql
 AS $$
@@ -290,6 +393,7 @@ END; $$;
 -- region partition creation procedures
 -- Use negative futureCount for creating partitions for the past months if needed.
 -- See also the comment below the procedure for more details.
+-- @description: Creates monthly audit table partitions for audit events, deltas, and references.
 CREATE OR REPLACE PROCEDURE audit_create_monthly_partitions(futureCount int)
     LANGUAGE plpgsql
 AS $$

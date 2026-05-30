@@ -1,0 +1,210 @@
+= Native PostgreSQL Schema Script: postgres.sql - Simulations
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Simulations
+
+Simulation result objects, processed simulation objects, and simulation event mark references.
+
+
+== Tables
+
+[[m_processed_object_event_mark]]
+=== `m_processed_object_event_mark`
+
+Stores event mark references for processed simulation objects.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | required | OID of the simulation result that owns the processed object.
+| `ownerType` | `ObjectType` |  | Object type of the owner.
+| `processedObjectCid` | `INTEGER` | required | Container ID of the processed object.
+| `referenceType` | `ReferenceType` |  | 
+| `targetOid` | `UUID` | required | OID of the referenced event mark object.
+| `targetType` | `ObjectType` | required | Object type of the referenced event mark object.
+| `relationId` | `INTEGER` | required | Relation URI identifier of the event mark reference.
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| `relationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+|===
+
+[[m_processed_object_event_mark_default]]
+=== `m_processed_object_event_mark_default`
+
+Default partition for processed object event mark references.
+
+This table is a partition of xref:#m_processed_object_event_mark[`m_processed_object_event_mark`]. Columns are inherited from the partitioned table.
+
+[[m_simulation_result]]
+=== `m_simulation_result`
+
+Stores simulation result objects.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#SimulationResultType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `oid` | `UUID` | primary key, required | Simulation result object identifier.
+| `objectType` | `ObjectType` |  | 
+| `partitioned` | `boolean` |  | Marks whether processed object data is stored in a dedicated partition.
+| `rootTaskRefTargetOid` | `UUID` |  | OID of the root task reference target.
+| `rootTaskRefTargetType` | `ObjectType` |  | Object type of the root task reference target.
+| `rootTaskRefRelationId` | `INTEGER` |  | Relation URI identifier of the root task reference.
+| `startTimestamp` | `TIMESTAMPTZ` |  | Time when the simulation started.
+| `endTimestamp` | `TIMESTAMPTZ` |  | Time when the simulation ended.
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column | References
+| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| `rootTaskRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+|===
+
+[[m_simulation_result_processed_object]]
+=== `m_simulation_result_processed_object`
+
+Stores objects processed by simulations and their before/after state.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ProcessedObjectType`
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | primary key, required | OID of the simulation result that owns the processed object.
+| `cid` | `BIGINT` | primary key, required | Processed object container identifier unique within the simulation result.
+| `containerType` | `ContainerType` |  | 
+| `oid` | `UUID` |  | OID of the processed object.
+| `objectType` | `ObjectType` |  | Object type of the processed object.
+| `nameOrig` | `TEXT` |  | Processed object name in original form.
+| `nameNorm` | `TEXT` |  | Processed object name in normalized form.
+| `state` | `ObjectProcessingStateType` |  | Processing state of the object in the simulation.
+| `metricIdentifiers` | `TEXT[]` |  | Metric identifiers associated with the processed object.
+| `fullObject` | `BYTEA` |  | Serialized full processed object value.
+| `objectBefore` | `BYTEA` |  | Serialized object state before simulation processing.
+| `objectAfter` | `BYTEA` |  | Serialized object state after simulation processing.
+| `transactionId` | `TEXT` |  | Transaction identifier associated with the processed object.
+| `focusRecordId` | `BIGINT` |  | Identifier linking focus-related processed object records.
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+|===
+
+[[m_simulation_result_processed_object_default]]
+=== `m_simulation_result_processed_object_default`
+
+Default partition for simulation processed objects.
+
+This table is a partition of xref:#m_simulation_result_processed_object[`m_simulation_result_processed_object`]. Columns are inherited from the partitioned table.
+
+== Enum types
+
+Enum types define allowed database values for selected columns.
+
+[[enum_ObjectProcessingStateType]]
+=== `ObjectProcessingStateType`
+
+Stores processing state values for simulation processed objects.
+
+==== Values
+
+* `UNMODIFIED`
+* `ADDED`
+* `MODIFIED`
+* `DELETED`
+
+== Functions and procedures
+
+Functions and procedures implement repository-side database behavior.
+
+[[routine_m_simulation_result_create_partition]]
+=== `m_simulation_result_create_partition`
+
+Creates a processed-object partition for a simulation result when partitioning is enabled.
+
+Kind: function
+
+[[routine_m_simulation_result_delete_partition]]
+=== `m_simulation_result_delete_partition`
+
+Drops the processed-object partition when a partitioned simulation result is deleted.
+
+Kind: function
+
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+[[trigger_m_simulation_result_create_partition]]
+=== `m_simulation_result_create_partition`
+
+Creates a processed-object partition after inserting a partitioned simulation result.
+
+Table: xref:#m_simulation_result[`m_simulation_result`]
+
+Executes: xref:#routine_m_simulation_result_create_partition[`m_simulation_result_create_partition`]
+
+[[trigger_m_simulation_result_delete_partition]]
+=== `m_simulation_result_delete_partition`
+
+Drops a processed-object partition before deleting a partitioned simulation result.
+
+Table: xref:#m_simulation_result[`m_simulation_result`]
+
+Executes: xref:#routine_m_simulation_result_delete_partition[`m_simulation_result_delete_partition`]
+
+[[trigger_m_simulation_result_oid_delete_tr]]
+=== `m_simulation_result_oid_delete_tr`
+
+Removes the object OID registry entry when rows are deleted from `m_simulation_result`.
+
+Table: xref:#m_simulation_result[`m_simulation_result`]
+
+Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_simulation_result_oid_insert_tr]]
+=== `m_simulation_result_oid_insert_tr`
+
+Maintains the object OID registry when rows are inserted into `m_simulation_result`.
+
+Table: xref:#m_simulation_result[`m_simulation_result`]
+
+Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_simulation_result_update_tr]]
+=== `m_simulation_result_update_tr`
+
+Maintains object update metadata before rows are updated in `m_simulation_result`.
+
+Table: xref:#m_simulation_result[`m_simulation_result`]
+
+Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+

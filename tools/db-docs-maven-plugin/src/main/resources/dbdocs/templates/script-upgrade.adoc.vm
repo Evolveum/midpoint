@@ -1,0 +1,28 @@
+= Native PostgreSQL Upgrade Script: $r.fileName($sourceFile.path())
+
+xref:../schema.adoc[Back to native PostgreSQL schema overview]
+
+This page documents schema changes applied to existing databases by `$r.displayPath($sourceFile.path())`.
+
+== Changes
+
+    #foreach ($change in $schema.upgradeChanges())
+[[$r.upgradeChangeAnchor($change)]]
+=== $r.upgradeChangeLabel($change)
+
+Since version: $r.metadataValue($change.metadata().since())
+
+        $r.changeText($change)
+
+        #if (!$change.affectedObjects().isEmpty())
+[cols="1,1,3", options="header"]
+|===
+| Object | Change type | Description
+    #foreach ($affectedObject in $change.affectedObjects())
+| `$affectedObject.objectName()` | $affectedObject.changeType() | $affectedObject.description()
+    #end
+|===
+
+
+    #end
+#end

@@ -1,0 +1,432 @@
+== SQL Documentation Annotations
+
+Database schema documentation is generated from SQL scripts. The generator reads selected SQL comments and uses them to produce user-facing AsciiDoc documentation.
+
+Only comments with supported annotation keys are included in the generated documentation. Normal SQL comments stay in the SQL file for developers and are not rendered in user documentation.
+
+'''
+
+=== Developer-only comments
+
+Normal SQL comments are useful in SQL scripts, but they are not rendered in generated documentation.
+
+[source,sql]
+----
+-- This is an internal note for developers.
+-- It is not rendered in generated documentation.
+----
+
+=== Documentation comments
+
+Documentation comments use supported annotation keys.
+
+[source,sql]
+----
+-- @description: Stores user objects in the native repository.
+CREATE TABLE m_user (
+    ...
+);
+----
+
+'''
+
+=== Annotation overview
+
+[cols="1,3", options="header"]
+|===
+| Annotation | Purpose
+
+| `@description`
+| Provides a user-facing description of a SQL object or column. Use it for tables, columns, indexes, routines, triggers, schemas, extensions, and similar SQL objects.
+
+| `@type`
+| Links a SQL object to the related midPoint schema type, usually an XSD type URI. Use it only when there is a clear related midPoint type.
+
+| `@since`
+| Defines the midPoint version where the object or upgrade change was introduced.
+
+| `@usedFor`
+| Adds an additional purpose note, mainly for indexes. It should explain what kind of lookup, filter, or search the index supports.
+
+| `@region`
+| Defines a stable documentation region identifier. It is used to split large SQL script documentation into smaller region pages.
+
+| `@regionTitle`
+| Defines a human-readable title for the documentation region.
+
+| `@regionDescription`
+| Defines a short explanation of what the region contains.
+
+| `@change`
+| Describes one upgrade script change in user-facing language.
+
+| `@affects`
+| Describes one schema object affected by an upgrade change. This annotation can be repeated for one change.
+|===
+
+'''
+
+=== Table annotations
+
+Table annotations should be placed directly before the `CREATE TABLE` statement.
+
+[source,sql]
+----
+-- @description: Stores user objects in the native repository.
+-- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType
+-- @since: 4.0
+CREATE TABLE m_user (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('USER') STORED
+        CHECK (objectType = 'USER')
+)
+    INHERITS (m_focus);
+----
+
+Generated documentation can then show:
+
+* table name,
+* description,
+* related schema type,
+* version where the table was introduced,
+* columns,
+* indexes,
+* foreign keys,
+* inheritance or partition information.
+
+Use `@type` only when the table clearly represents a midPoint schema type. For technical helper tables, omit it.
+
+Example without `@type`:
+
+[source,sql]
+----
+-- @description: Stores URI values used by repository enum-like references.
+-- @since: 4.0
+CREATE TABLE m_uri (
+    id SERIAL PRIMARY KEY,
+    uri TEXT NOT NULL
+);
+----
+
+'''
+
+=== Column annotations
+
+Column annotations should be placed directly before the column they describe.
+
+[source,sql]
+----
+CREATE TABLE m_user (
+    -- @description: User's employee number or another organization-specific personal identifier.
+    personalNumber TEXT,
+
+    -- @description: Normalized additional name used for searching.
+    additionalNameNorm TEXT
+);
+----
+
+Column descriptions should be short and understandable for readers who do not know the SQL schema well.
+
+'''
+
+=== Index annotations
+
+Index annotations should be placed directly before the `CREATE INDEX` or `CREATE UNIQUE INDEX` statement.
+
+[source,sql]
+----
+-- @description: Speeds up lookup by original object name.
+-- @usedFor: original name searches
+CREATE INDEX m_user_nameOrig_idx ON m_user (nameOrig);
+
+-- @description: Enforces unique normalized object names and speeds up exact name lookup.
+-- @usedFor: normalized name lookup and uniqueness checks
+CREATE UNIQUE INDEX m_user_nameNorm_key ON m_user (nameNorm);
+----
+
+Use `@description` to explain what the index does. Use `@usedFor` to explain when it is used.
+
+Common examples:
+
+[source,sql]
+----
+-- @description: Speeds up filtering by object subtype.
+-- @usedFor: subtype filters
+CREATE INDEX m_role_subtypes_idx ON m_role USING gin(subtypes);
+
+-- @description: Speeds up filtering by policy situation.
+-- @usedFor: policy situation filters
+CREATE INDEX m_role_policySituation_idx ON m_role USING gin(policysituations gin__int_ops);
+
+-- @description: Speeds up filtering or ordering by creation time.
+-- @usedFor: creation time filters and ordering
+CREATE INDEX m_user_createTimestamp_idx ON m_user (createTimestamp);
+----
+
+'''
+
+=== Region annotations
+
+Region annotations are used for large SQL scripts, mainly `postgres.sql`, where one generated documentation page would be too long.
+
+A region annotation applies to all following SQL objects until the next region annotation.
+
+[source,sql]
+----
+-- @region: resources-and-shadows
+-- @regionTitle: Resources and shadows
+-- @regionDescription: Resources, shadows, shadow partitions, connectors, and resource object reference data.
+----
+
+After this block, following tables, indexes and other SQL objects belong to the `resources-and-shadows` documentation region until another `@region` block appears.
+
+Example:
+
+[source,sql]
+----
+-- @region: roles-and-services
+-- @regionTitle: Roles and services
+-- @regionDescription: Abstract roles, roles, services, archetypes, policies, applications, and related object tables.
+
+-- @description: Stores role objects.
+-- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleType
+-- @since: 4.0
+CREATE TABLE m_role (
+    ...
+);
+
+-- @description: Stores service objects.
+-- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ServiceType
+-- @since: 4.0
+CREATE TABLE m_service (
+    ...
+);
+----
+
+The region identifier should be stable because it is used for generated file names.
+
+'''
+
+=== Upgrade change annotations
+
+Upgrade scripts use annotations before `apply_change(...)` or `apply_audit_change(...)` calls.
+
+Use `@change` for the main change summary and `@since` for the midPoint version.
+
+[source,sql]
+----
+-- @change: Adds personal number column to users.
+-- @since: 4.7
+call apply_change(21, $aa$
+ALTER TABLE m_user
+    ADD COLUMN personalNumber TEXT;
+$aa$);
+----
+
+Generated documentation can use the change number from `apply_change(21, ...)`, the version from `@since`, and the text from `@change`.
+
+'''
+
+=== Affected object annotations
+
+Use `@affects` to describe what schema objects are changed by an upgrade change.
+
+Format:
+
+[source]
+----
+-- @affects: object-kind object-name | change type | description
+----
+
+Example:
+
+[source,sql]
+----
+-- @change: Adds personal number column to users.
+-- @since: 4.7
+-- @affects: table m_user | Modified table | Adds personal number column.
+call apply_change(21, $aa$
+ALTER TABLE m_user
+    ADD COLUMN personalNumber TEXT;
+$aa$);
+----
+
+For one upgrade change, `@affects` can be repeated:
+
+[source,sql]
+----
+-- @change: Adds shadow kind and intent audit delta columns.
+-- @since: 4.8
+-- @affects: enum ShadowKindType | New enum type | Adds shadow kind values when audit is installed separately.
+-- @affects: table ma_audit_delta | Modified table | Adds shadow kind and shadow intent columns.
+call apply_audit_change(6, $aa$
+    ...
+$aa$);
+----
+
+Another example:
+
+[source,sql]
+----
+-- @change: Adds application object table, triggers, and indexes.
+-- @since: 4.8
+-- @affects: table m_application | New table | Stores application objects.
+-- @affects: trigger m_application_oid_insert_tr | New trigger | Reserves OID rows for inserted applications.
+-- @affects: trigger m_application_update_tr | New trigger | Maintains update metadata for applications.
+-- @affects: trigger m_application_oid_delete_tr | New trigger | Releases OID rows for deleted applications.
+-- @affects: index m_application_nameNorm_key | New unique index | Enforces unique normalized object names.
+call apply_change(53, $aa$
+    ...
+$aa$);
+----
+
+The affected object kind can be for example:
+
+[source]
+----
+table
+index
+enum
+routine
+trigger
+view
+constraint
+extension
+schema
+----
+
+Use the most useful user-facing category. It does not have to match the exact SQL parser class name.
+
+'''
+
+=== Release notes schema changes
+
+Upgrade change annotations are also used to update the native PostgreSQL schema changes section in release notes.
+
+The release notes page must contain a bounded generated block where the generator is allowed to replace content.
+
+.Required block in release notes
+[source,adoc]
+----
+// DB-DOCS-SCHEMA-CHANGES-START
+=== Native PostgreSQL Schema Changes
+// DB-DOCS-SCHEMA-CHANGES-END
+----
+
+The generator replaces only the content between these markers. It does not insert the section automatically, so release notes authors keep control over the section placement.
+
+The generator reads the release version from the release notes page, for example:
+
+[source,adoc]
+----
+:release-version: 4.11
+----
+
+Then it includes upgrade changes whose `@since` value matches that release version.
+
+.Example upgrade change
+[source,sql]
+----
+-- @change: Adds personal number column to users.
+-- @since: 4.11
+-- @affects: table m_user | Modified table | Adds personal number column.
+call apply_change(58, $aa$
+ALTER TABLE m_user
+    ADD COLUMN personalNumber TEXT;
+$aa$);
+----
+
+For release notes with `:release-version: 4.11`, this change is included in the generated native PostgreSQL schema changes section.
+
+If no upgrade changes match the release version, the generated release notes section states that there are no native PostgreSQL schema changes introduced in this release.
+
+'''
+
+=== Placement rules
+
+Object annotations should be placed directly before the SQL object they describe.
+
+Good:
+
+[source,sql]
+----
+-- @description: Stores lookup table objects.
+-- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableType
+-- @since: 4.0
+CREATE TABLE m_lookup_table (
+    ...
+);
+----
+
+Avoid placing normal comments between an annotation block and the SQL object:
+
+[source,sql]
+----
+-- @description: Stores lookup table objects.
+-- This normal comment can break annotation attachment.
+CREATE TABLE m_lookup_table (
+    ...
+);
+----
+
+For region annotations, normal comments after the region block are allowed because regions are section-level directives.
+
+[source,sql]
+----
+-- @region: organization
+-- @regionTitle: Organization
+-- @regionDescription: Organization objects, parent organization references, and organization hierarchy closure support.
+
+-- Developer-only note about organization hierarchy.
+-- This does not appear in generated documentation.
+
+CREATE TABLE m_org (
+    ...
+);
+----
+'''
+=== ALTER TABLE statements
+
+In initial schema scripts, supported `ALTER TABLE` statements are parsed and merged into the related table documentation.
+
+For example, `ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY` is shown in the table's foreign-key section. It usually does not need a separate annotation.
+
+Use annotations on `ALTER TABLE` only when the statement cannot be merged into table documentation or needs an additional user-facing explanation.
+
+In upgrade scripts, document the change using `@change`, `@since`, and `@affects` before the `apply_change(...)` or `apply_audit_change(...)` call.
+
+'''
+
+=== DO blocks
+
+Annotated `DO $$ ... $$` blocks are documented as procedural blocks.
+
+The generator does not try to parse the PL/pgSQL body in detail. The whole block is described using annotations placed before the `DO` statement.
+
+[source,sql]
+----
+-- @description: Ensures UUID generation support by enabling pgcrypto when gen_random_uuid() is not already available.
+-- @since: 4.0
+-- @usedFor: OID generation support
+DO $$
+BEGIN
+    PERFORM pg_get_functiondef('gen_random_uuid()'::regprocedure);
+    RAISE NOTICE 'gen_random_uuid already exists, skipping create EXTENSION pgcrypto';
+EXCEPTION WHEN undefined_function THEN
+    CREATE EXTENSION pgcrypto;
+END
+$$;
+----
+
+Use `DO` block annotations for procedural setup logic that affects the schema but cannot be represented as a normal table, index, function, or extension declaration.
+
+Good examples:
+
+* PostgreSQL-version-specific schema setup,
+* conditional extension setup,
+* conditional enum/type creation,
+* one-time procedural initialization.
+
+Do not use `DO` block annotations for every internal procedural detail. Document only blocks that are useful for understanding the generated schema.
+
+'''

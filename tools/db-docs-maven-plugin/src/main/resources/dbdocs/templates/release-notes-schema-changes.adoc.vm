@@ -1,0 +1,21 @@
+// DB-DOCS-SCHEMA-CHANGES-START
+=== Native PostgreSQL Schema Changes
+
+#if ($changes.isEmpty())
+There are no native PostgreSQL schema changes introduced in this release.
+#else
+The following native PostgreSQL schema changes are introduced in this release.
+
+[cols="1,1,4", options="header"]
+|===
+| Change number | Script | Change
+
+    #foreach ($change in $changes)
+| $r.upgradeChangeNumber($change)
+| `$r.upgradeChangeScript($change)`
+| $r.changeText($change)
+
+    #end
+|===
+#end
+// DB-DOCS-SCHEMA-CHANGES-END

@@ -1,0 +1,385 @@
+= Native PostgreSQL Schema Script: postgres.sql - Resources and shadows
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Resources and shadows
+
+Resources, shadows, shadow partitions, connectors, and resource object reference data.
+
+
+== Tables
+
+[[m_ref_resource_business_configuration_approver]]
+=== `m_ref_resource_business_configuration_approver`
+
+Stores approver references for resource business configuration.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | primary key, required | OID of the resource that owns the business configuration approver reference.
+| `referenceType` | `ReferenceType` |  | 
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_ref_resource_biz_config_approver_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of resource business configuration approver references by target object and relation. Used for: resource business approver reference target searches
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+|===
+
+[[m_resource]]
+=== `m_resource`
+
+Stores resource definitions and resource-specific searchable state.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `oid` | `UUID` | primary key, required | Resource object identifier.
+| `objectType` | `ObjectType` |  | 
+| `businessAdministrativeState` | `ResourceAdministrativeStateType` |  | Business administrative state of the resource.
+| `administrativeOperationalStateAdministrativeAvailabilityStatus` | `AdministrativeAvailabilityStatusType` |  | Administrative availability status from the resource operational state.
+| `operationalStateLastAvailabilityStatus` | `AvailabilityStatusType` |  | Last known resource availability status.
+| `connectorRefTargetOid` | `UUID` |  | OID of the connector referenced by the resource.
+| `connectorRefTargetType` | `ObjectType` |  | Object type of the connector referenced by the resource.
+| `connectorRefRelationId` | `INTEGER` |  | Relation URI identifier of the connector reference.
+| `template` | `BOOLEAN` |  | Marks whether the resource is a resource template.
+| `abstract` | `BOOLEAN` |  | Marks whether the resource is abstract.
+| `superRefTargetOid` | `UUID` |  | OID of the resource super-reference target.
+| `superRefTargetType` | `ObjectType` |  | Object type of the resource super-reference target.
+| `superRefRelationId` | `INTEGER` |  | Relation URI identifier of the resource super-reference.
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_resource_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
+| `m_resource_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+| `m_resource_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
+| `m_resource_fullTextInfo_idx` | `USING gin (fullTextInfo)` | Speeds up full-text-like object searches. Used for: full-text-like object searches
+| `m_resource_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+| `m_resource_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column | References
+| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| `connectorRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| `superRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+|===
+
+[[m_shadow]]
+=== `m_shadow`
+
+Stores resource object shadows and their searchable synchronization state.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType`
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `oid` | `UUID` | required | Shadow object identifier.
+| `objectType` | `ObjectType` |  | 
+| `nameOrig` | `TEXT` | required | Original shadow name.
+| `nameNorm` | `TEXT` | required | Normalized shadow name used for exact lookup.
+| `fullObject` | `BYTEA` |  | Serialized full shadow object.
+| `tenantRefTargetOid` | `UUID` |  | OID of the tenant reference target object.
+| `tenantRefTargetType` | `ObjectType` |  | Object type of the tenant reference target.
+| `tenantRefRelationId` | `INTEGER` |  | Relation URI identifier of the tenant reference.
+| `lifecycleState` | `TEXT` |  | 
+| `cidSeq` | `BIGINT` | required, default `1` | Next container identifier value allocated within this shadow.
+| `version` | `INTEGER` | required, default `1` | Shadow version used for optimistic locking.
+| `policySituations` | `INTEGER[]` |  | Policy situation URI identifiers attached to the shadow.
+| `subtypes` | `TEXT[]` |  | Shadow subtype values used for subtype filtering.
+| `fullTextInfo` | `TEXT` |  | Text search helper content derived from selected shadow data.
+| `ext` | `JSONB` |  | Indexed extension values stored as JSON data.
+| `creatorRefTargetOid` | `UUID` |  | OID of the object that created this shadow.
+| `creatorRefTargetType` | `ObjectType` |  | Object type of the object that created this shadow.
+| `creatorRefRelationId` | `INTEGER` |  | Relation URI identifier for the creator reference.
+| `createChannelId` | `INTEGER` |  | URI identifier of the channel that created the shadow.
+| `createTimestamp` | `TIMESTAMPTZ` |  | Time when the shadow was created.
+| `modifierRefTargetOid` | `UUID` |  | OID of the object that last modified this shadow.
+| `modifierRefTargetType` | `ObjectType` |  | Object type of the object that last modified this shadow.
+| `modifierRefRelationId` | `INTEGER` |  | Relation URI identifier for the modifier reference.
+| `modifyChannelId` | `INTEGER` |  | URI identifier of the channel that last modified the shadow.
+| `modifyTimestamp` | `TIMESTAMPTZ` |  | Time when the shadow was last modified.
+| `db_created` | `TIMESTAMPTZ` | required, default `current_timestamp` | Database timestamp when this row was created.
+| `db_modified` | `TIMESTAMPTZ` | required, default `current_timestamp` | Database timestamp when this row was last modified.
+| `objectClassId` | `INTEGER` |  | URI identifier of the shadow object class.
+| `resourceRefTargetOid` | `UUID` |  | OID of the resource that owns the shadow.
+| `resourceRefTargetType` | `ObjectType` |  | Object type of the resource that owns the shadow.
+| `resourceRefRelationId` | `INTEGER` |  | Relation URI identifier of the resource reference.
+| `intent` | `TEXT` |  | Shadow intent value.
+| `tag` | `TEXT` |  | Shadow tag value.
+| `kind` | `ShadowKindType` |  | Shadow kind classification.
+| `dead` | `BOOLEAN` |  | Marks whether the resource object is considered dead.
+| `exist` | `BOOLEAN` |  | Marks whether the resource object currently exists.
+| `fullSynchronizationTimestamp` | `TIMESTAMPTZ` |  | Time of the last full synchronization for this shadow.
+| `pendingOperationCount` | `INTEGER` | required | Number of pending operations recorded for this shadow.
+| `primaryIdentifierValue` | `TEXT` |  | Primary identifier value of the resource object.
+| `synchronizationSituation` | `SynchronizationSituationType` |  | Synchronization situation of the shadow.
+| `synchronizationTimestamp` | `TIMESTAMPTZ` |  | Time of the last synchronization situation update.
+| `attributes` | `JSONB` |  | Indexed shadow attributes stored as JSON data.
+| `correlationStartTimestamp` | `TIMESTAMPTZ` |  | Time when correlation processing started.
+| `correlationEndTimestamp` | `TIMESTAMPTZ` |  | Time when correlation processing ended.
+| `correlationCaseOpenTimestamp` | `TIMESTAMPTZ` |  | Time when a correlation case was opened.
+| `correlationCaseCloseTimestamp` | `TIMESTAMPTZ` |  | Time when a correlation case was closed.
+| `correlationSituation` | `CorrelationSituationType` |  | Correlation situation of the shadow.
+| `disableReasonId` | `INTEGER` |  | URI identifier of the disable reason.
+| `enableTimestamp` | `TIMESTAMPTZ` |  | Time when the shadow becomes enabled.
+| `disableTimestamp` | `TIMESTAMPTZ` |  | Time when the shadow becomes disabled.
+| `lastLoginTimestamp` | `TIMESTAMPTZ` |  | Last login timestamp observed for this shadow.
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column | References
+| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| `tenantRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| `creatorRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| `createChannelId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| `modifierRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| `modifyChannelId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| `objectClassId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| `resourceRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| `disableReasonId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+|===
+
+[[m_shadow_default]]
+=== `m_shadow_default`
+
+Default shadow partition used before resource-specific shadow partitions are created.
+
+This table is a partition of xref:#m_shadow[`m_shadow`]. Columns are inherited from the partitioned table.
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_shadow_default_nameOrig_idx` | `nameOrig` | Speeds up lookup by original shadow name. Used for: original shadow name searches
+| `m_shadow_default_nameNorm_idx` | `nameNorm` | Speeds up lookup by normalized shadow name. Used for: normalized shadow name searches
+| `m_shadow_default_primIdVal_objCls_resRefOid_key` | `primaryIdentifierValue, objectClassId, resourceRefTargetOid` | Enforces uniqueness of primary identifier value within object class and resource. Used for: shadow primary identifier lookup and uniqueness checks. unique
+| `m_shadow_default_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by shadow subtype. Used for: subtype filters
+| `m_shadow_default_policySituation_idx` | `USING gin (policysituations)` | Speeds up filtering by policy situation. Used for: policy situation filters
+| `m_shadow_default_ext_idx` | `USING gin (ext)` | Speeds up filtering by indexed extension values. Used for: extension item filters
+| `m_shadow_default_attributes_idx` | `USING gin (attributes)` | Speeds up filtering by indexed shadow attributes. Used for: shadow attribute filters
+| `m_shadow_default_fullTextInfo_idx` | `USING gin (fullTextInfo)` | Speeds up full-text-like shadow searches. Used for: full-text-like shadow searches
+| `m_shadow_default_resourceRefTargetOid_idx` | `resourceRefTargetOid` | Speeds up filtering shadows by resource OID. Used for: resource shadow searches
+| `m_shadow_default_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+| `m_shadow_default_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+| `m_shadow_default_correlationStartTimestamp_idx` | `correlationStartTimestamp` | Speeds up filtering by correlation start time. Used for: correlation time filters
+| `m_shadow_default_correlationEndTimestamp_idx` | `correlationEndTimestamp` | Speeds up filtering by correlation end time. Used for: correlation time filters
+| `m_shadow_default_correlationCaseOpenTimestamp_idx` | `correlationCaseOpenTimestamp` | Speeds up filtering by correlation case open time. Used for: correlation case time filters
+| `m_shadow_default_correlationCaseCloseTimestamp_idx` | `correlationCaseCloseTimestamp` | Speeds up filtering by correlation case close time. Used for: correlation case time filters
+|===
+
+[[m_shadow_partition_def]]
+=== `m_shadow_partition_def`
+
+Stores definitions of shadow partition tables managed by repository-side partition triggers.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `resourceOid` | `uuid` |  | Resource OID represented by the shadow partition.
+| `objectClassId` | `integer` |  | Object class identifier represented by the shadow partition, when partitioned by object class.
+| `table` | `text` | required | Physical table name for the shadow partition.
+| `partition` | `boolean` | required | Whether this definition represents a real data partition.
+| `attached` | `boolean` | required | Whether this partition is attached to the parent partitioned table.
+|===
+
+[[m_shadow_ref_attribute]]
+=== `m_shadow_ref_attribute`
+
+Stores reference-valued shadow attributes for searching and reverse lookup.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | required | OID of the shadow that owns the reference attribute value.
+| `ownerType` | `ObjectType` | required | Object type of the reference attribute owner.
+| `pathId` | `INTEGER` | required | URI identifier of the reference attribute path.
+| `resourceOid` | `UUID` |  | OID of the resource containing the shadow.
+| `ownerObjectClassId` | `INTEGER` |  | URI identifier of the owner shadow object class.
+| `targetOid` | `UUID` | required | OID of the referenced target object.
+| `targetType` | `ObjectType` | required | Object type of the referenced target object.
+| `relationId` | `INTEGER` | required | Relation URI identifier of the reference attribute value.
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_shadow_ref_attribute_ownerOid_idx` | `ownerOid` | Speeds up lookup of reference attributes by owning shadow. Used for: shadow reference attribute owner searches
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| `relationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+|===
+
+== Views
+
+Views present derived or queryable data from repository tables.
+
+[[view_m_object_view]]
+=== `m_object_view`
+
+Presents regular objects and shadows through a common object-shaped query surface.
+
+Kind: view
+
+== Functions and procedures
+
+Functions and procedures implement repository-side database behavior.
+
+[[routine_m_shadow_create_partition]]
+=== `m_shadow_create_partition`
+
+Creates or attaches resource-specific shadow partitions when partition definitions are inserted.
+
+Kind: function
+
+[[routine_m_shadow_delete_partition]]
+=== `m_shadow_delete_partition`
+
+Drops a shadow partition table when its partition definition is deleted.
+
+Kind: function
+
+[[routine_m_shadow_update_partition]]
+=== `m_shadow_update_partition`
+
+Attaches shadow partition tables when their partition definition is updated.
+
+Kind: function
+
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+[[trigger_m_resource_oid_delete_tr]]
+=== `m_resource_oid_delete_tr`
+
+Removes the object OID registry entry when rows are deleted from `m_resource`.
+
+Table: xref:#m_resource[`m_resource`]
+
+Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_resource_oid_insert_tr]]
+=== `m_resource_oid_insert_tr`
+
+Maintains the object OID registry when rows are inserted into `m_resource`.
+
+Table: xref:#m_resource[`m_resource`]
+
+Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_resource_update_tr]]
+=== `m_resource_update_tr`
+
+Maintains object update metadata before rows are updated in `m_resource`.
+
+Table: xref:#m_resource[`m_resource`]
+
+Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_shadow_oid_delete_tr]]
+=== `m_shadow_oid_delete_tr`
+
+Removes the object OID registry entry when rows are deleted from `m_shadow`.
+
+Table: xref:#m_shadow[`m_shadow`]
+
+Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_shadow_oid_insert_tr]]
+=== `m_shadow_oid_insert_tr`
+
+Maintains the object OID registry when rows are inserted into `m_shadow`.
+
+Table: xref:#m_shadow[`m_shadow`]
+
+Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_shadow_partition_def_bd]]
+=== `m_shadow_partition_def_bd`
+
+Drops shadow partition tables when partition definitions are deleted.
+
+Table: xref:#m_shadow_partition_def[`m_shadow_partition_def`]
+
+Executes: xref:#routine_m_shadow_delete_partition[`m_shadow_delete_partition`]
+
+[[trigger_m_shadow_partition_def_bi]]
+=== `m_shadow_partition_def_bi`
+
+Creates shadow partition tables from inserted partition definitions.
+
+Table: xref:#m_shadow_partition_def[`m_shadow_partition_def`]
+
+Executes: xref:#routine_m_shadow_create_partition[`m_shadow_create_partition`]
+
+[[trigger_m_shadow_partition_def_bu]]
+=== `m_shadow_partition_def_bu`
+
+Updates shadow partition attachment state from partition definition changes.
+
+Table: xref:#m_shadow_partition_def[`m_shadow_partition_def`]
+
+Executes: xref:#routine_m_shadow_update_partition[`m_shadow_update_partition`]
+
+[[trigger_m_shadow_update_tr]]
+=== `m_shadow_update_tr`
+
+Maintains object update metadata before rows are updated in `m_shadow`.
+
+Table: xref:#m_shadow[`m_shadow`]
+
+Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+

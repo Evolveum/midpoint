@@ -1,0 +1,325 @@
+= Native PostgreSQL Schema Script: postgres.sql - Lookup tables
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Lookup tables
+
+Lookup table objects and their key-value row data.
+
+
+== Tables
+
+[[m_connector]]
+=== `m_connector`
+
+Stores connector definitions discovered or configured in midPoint.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `oid` | `UUID` | primary key, required | Connector object identifier.
+| `objectType` | `ObjectType` |  | 
+| `connectorBundle` | `TEXT` |  | Connector bundle name, typically a package name.
+| `connectorType` | `TEXT` | required | Connector type, typically a connector class name.
+| `connectorVersion` | `TEXT` | required | Connector version.
+| `frameworkId` | `INTEGER` |  | URI identifier of the connector framework.
+| `connectorHostRefTargetOid` | `UUID` |  | OID of the connector host reference target.
+| `connectorHostRefTargetType` | `ObjectType` |  | Object type of the connector host reference target.
+| `connectorHostRefRelationId` | `INTEGER` |  | Relation URI identifier of the connector host reference.
+| `displayNameOrig` | `TEXT` |  | Connector display name in original form.
+| `displayNameNorm` | `TEXT` |  | Connector display name in normalized form.
+| `targetSystemTypes` | `INTEGER[]` |  | URI identifiers of target system types supported by the connector.
+| `available` | `BOOLEAN` |  | Marks whether the connector is available.
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_connector_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
+| `m_connector_nameNorm_idx` | `nameNorm` | Speeds up lookup by normalized object name. Used for: normalized name lookup
+| `m_connector_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
+| `m_connector_policySituation_idx` | `USING gin (policysituations)` | Speeds up filtering by policy situation. Used for: policy situation filters
+| `m_connector_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+| `m_connector_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column | References
+| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| `frameworkId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| `connectorHostRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+|===
+
+[[m_connector_development]]
+=== `m_connector_development`
+
+Stores connector development objects.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorDevelopmentType`
+
+Inherits from: xref:infrastructure.adoc#m_object[`m_object`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `oid` | `UUID` | primary key, required | Connector development object identifier.
+| `objectType` | `ObjectType` |  | 
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column | References
+| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+|===
+
+[[m_connector_host]]
+=== `m_connector_host`
+
+Stores remote connector host definitions.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorHostType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `oid` | `UUID` | primary key, required | Connector host object identifier.
+| `objectType` | `ObjectType` |  | 
+| `hostname` | `TEXT` |  | Connector host hostname.
+| `port` | `TEXT` |  | Connector host port.
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_connector_host_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
+| `m_connector_host_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+| `m_connector_host_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
+| `m_connector_host_policySituation_idx` | `USING gin (policysituations)` | Speeds up filtering by policy situation. Used for: policy situation filters
+| `m_connector_host_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+| `m_connector_host_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column | References
+| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+|===
+
+[[m_lookup_table]]
+=== `m_lookup_table`
+
+Stores lookup table objects used for reusable key-value mappings.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `oid` | `UUID` | primary key, required | Lookup table object identifier.
+| `objectType` | `ObjectType` |  | 
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_lookup_table_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
+| `m_lookup_table_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+| `m_lookup_table_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
+| `m_lookup_table_policySituation_idx` | `USING gin (policysituations)` | Speeds up filtering by policy situation. Used for: policy situation filters
+| `m_lookup_table_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+| `m_lookup_table_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column | References
+| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+|===
+
+[[m_lookup_table_row]]
+=== `m_lookup_table_row`
+
+Stores rows of lookup table key-value data.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableRowType`
+
+Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column | Type | Required / constraints | Description
+| `ownerOid` | `UUID` | primary key, required | OID of the lookup table that owns this row.
+| `containerType` | `ContainerType` |  | 
+| `key` | `TEXT` |  | Lookup table row key.
+| `value` | `TEXT` |  | Lookup table row value.
+| `labelOrig` | `TEXT` |  | Lookup table row label in original form.
+| `labelNorm` | `TEXT` |  | Lookup table row label in normalized form.
+| `lastChangeTimestamp` | `TIMESTAMPTZ` |  | Time when this lookup table row last changed.
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name | Columns | Purpose / notes
+| `m_lookup_table_row_ownerOid_key_key` | `ownerOid, key` | Enforces unique lookup table row keys within one lookup table. Used for: lookup table row key lookup and uniqueness checks. unique
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column | References | Notes
+| `ownerOid` | xref:#m_lookup_table[`m_lookup_table.oid`] | ON DELETE CASCADE
+|===
+
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+[[trigger_m_connector_development_oid_delete_tr]]
+=== `m_connector_development_oid_delete_tr`
+
+Removes the object OID registry entry when rows are deleted from `m_connector_development`.
+
+Table: xref:#m_connector_development[`m_connector_development`]
+
+Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_connector_development_oid_insert_tr]]
+=== `m_connector_development_oid_insert_tr`
+
+Maintains the object OID registry when rows are inserted into `m_connector_development`.
+
+Table: xref:#m_connector_development[`m_connector_development`]
+
+Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_connector_development_update_tr]]
+=== `m_connector_development_update_tr`
+
+Maintains object update metadata before rows are updated in `m_connector_development`.
+
+Table: xref:#m_connector_development[`m_connector_development`]
+
+Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_connector_host_oid_delete_tr]]
+=== `m_connector_host_oid_delete_tr`
+
+Removes the object OID registry entry when rows are deleted from `m_connector_host`.
+
+Table: xref:#m_connector_host[`m_connector_host`]
+
+Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_connector_host_oid_insert_tr]]
+=== `m_connector_host_oid_insert_tr`
+
+Maintains the object OID registry when rows are inserted into `m_connector_host`.
+
+Table: xref:#m_connector_host[`m_connector_host`]
+
+Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_connector_host_update_tr]]
+=== `m_connector_host_update_tr`
+
+Maintains object update metadata before rows are updated in `m_connector_host`.
+
+Table: xref:#m_connector_host[`m_connector_host`]
+
+Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_connector_oid_delete_tr]]
+=== `m_connector_oid_delete_tr`
+
+Removes the object OID registry entry when rows are deleted from `m_connector`.
+
+Table: xref:#m_connector[`m_connector`]
+
+Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_connector_oid_insert_tr]]
+=== `m_connector_oid_insert_tr`
+
+Maintains the object OID registry when rows are inserted into `m_connector`.
+
+Table: xref:#m_connector[`m_connector`]
+
+Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_connector_update_tr]]
+=== `m_connector_update_tr`
+
+Maintains object update metadata before rows are updated in `m_connector`.
+
+Table: xref:#m_connector[`m_connector`]
+
+Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_lookup_table_oid_delete_tr]]
+=== `m_lookup_table_oid_delete_tr`
+
+Removes the object OID registry entry when rows are deleted from `m_lookup_table`.
+
+Table: xref:#m_lookup_table[`m_lookup_table`]
+
+Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_lookup_table_oid_insert_tr]]
+=== `m_lookup_table_oid_insert_tr`
+
+Maintains the object OID registry when rows are inserted into `m_lookup_table`.
+
+Table: xref:#m_lookup_table[`m_lookup_table`]
+
+Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_lookup_table_update_tr]]
+=== `m_lookup_table_update_tr`
+
+Maintains object update metadata before rows are updated in `m_lookup_table`.
+
+Table: xref:#m_lookup_table[`m_lookup_table`]
+
+Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+

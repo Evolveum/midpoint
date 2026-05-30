@@ -39,4 +39,28 @@
         <module>security-enforcer-api</module>
         <module>security-enforcer-impl</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>db-docs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.evolveum.midpoint.tools</groupId>
+                        <artifactId>db-docs-maven-plugin</artifactId>
+                        <version>${project.version}</version>
+                        <executions>
+                            <execution>
+                                <id>native-postgresql-schema-docs</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>generate-db-docs</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
