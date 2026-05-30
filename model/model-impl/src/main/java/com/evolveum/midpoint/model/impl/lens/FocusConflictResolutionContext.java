@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionTy
  *
  * See {@link ClockworkConflictResolver} for details.
  */
-class FocusConflictResolutionContext {
+class FocusConflictResolutionContext {//implements Serializable {
 
     /** Actual resolution policy. The action is never {@code null} or {@link ConflictResolutionActionType#NONE}. */
     @NotNull final ConflictResolutionType resolutionPolicy;

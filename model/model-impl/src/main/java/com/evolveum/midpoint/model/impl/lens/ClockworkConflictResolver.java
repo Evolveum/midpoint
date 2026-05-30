@@ -11,7 +11,6 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WAITING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
-import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.util.ArrayList;
@@ -43,8 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  * For the feature description, see https://docs.evolveum.com/midpoint/reference/concepts/clockwork/conflict-resolution-howto/.
  *
- * It is an optimistic locking strategy. The conflict detection is based on comparing object versions. There are two mechanisms
- * employed:
+ * MidPoint uses an optimistic locking strategy when dealing with concurrent focus updates at the clockwork level.
+ * This class is responsible for the implementation. The conflict detection is based on comparing object versions.
+ * There are two mechanisms employed:
  *
  * - precondition-based detection using {@link VersionPrecondition} objects
  * - watching for conflicts using {@link ConflictWatcher} objects
@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * The latter is used to detect that a conflict happened so we can later act upon it.
  *
  * For some retry actions (namely: recompute, reconcile) we use only the watching approach.
+ * See {@link #shouldCreatePrecondition(LensContext)}.
  *
  * See also the docs in the related configuration element ({@link ConflictResolutionType}).
  */
@@ -95,6 +96,9 @@ public class ClockworkConflictResolver {
         return true;
     }
 
+    <F extends ObjectType> void recordConflictException(LensContext<F> context) {
+        context.getFocusConflictResolutionContext().recordConflictException();
+    }
     //endregion
 
     //region Watcher-based approach
@@ -212,7 +216,8 @@ public class ClockworkConflictResolver {
             Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
             String oid = context.getFocusContext().getOid();
 
-            PrismObject<F> focus = repositoryService.getObject(focusClass, oid, readOnly(), result);
+            // Not using read-only here because we are loading the focus (that will be worked with)
+            PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
 
             LensContext<FocusType> newContext;
             if (restart) {

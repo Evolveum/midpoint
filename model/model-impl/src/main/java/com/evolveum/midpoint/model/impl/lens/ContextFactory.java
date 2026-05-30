@@ -193,31 +193,6 @@ public class ContextFactory {
         return lensContext;
     }
 
-    /**
-     * Creates a context for restarting a conflicted operation. Unlike a plain recompute, the original
-     * primary delta is replayed against the freshly-loaded focus so that the intended change is not lost.
-     *
-     * todo also save/copy syncDelta
-     */
-    public <F extends ObjectType> LensContext<F> createRestartContext(
-            @NotNull PrismObject<F> freshFocus,
-            @Nullable ObjectDelta<F> originalPrimaryDelta,
-            @NotNull String originalChannel,
-            @NotNull ModelExecuteOptions options,
-            @NotNull Task task) {
-        LensContext<F> lensContext = new LensContext<>(freshFocus.getCompileTimeClass(), task.getExecutionMode());
-        LensFocusContext<F> focusContext = lensContext.createFocusContext();
-        focusContext.setInitialObject(freshFocus);
-        focusContext.setOid(freshFocus.getOid());
-        if (originalPrimaryDelta != null) {
-            focusContext.setPrimaryDelta(originalPrimaryDelta.clone());
-        }
-        lensContext.setChannel(originalChannel);
-        lensContext.setOptions(options);
-        lensContext.setLazyAuditRequest(true);
-        return lensContext;
-    }
-
     private <F extends ObjectType> LensContext<F> createRecomputeProjectionContext(
             @NotNull ShadowType shadow, ModelExecuteOptions options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,

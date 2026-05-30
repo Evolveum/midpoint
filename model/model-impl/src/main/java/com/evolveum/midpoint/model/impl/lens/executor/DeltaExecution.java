@@ -1106,9 +1106,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     public boolean isDeleted() {
         return deleted;
     }
-    //endregion
 
     private boolean isFocus() {
         return elementContext instanceof LensFocusContext;
     }
+    //endregion
 }
