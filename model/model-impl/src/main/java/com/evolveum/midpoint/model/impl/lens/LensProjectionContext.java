@@ -1330,30 +1330,38 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public LensProjectionContext clone(LensContext<? extends ObjectType> lensContext) {
-        LensProjectionContext clone = new LensProjectionContext(lensContext, key, state);
-        copyValues(clone);
-        return clone;
+        return copy(lensContext, true);
     }
 
-    private void copyValues(LensProjectionContext clone) {
-        super.copyValues(clone);
+    public LensProjectionContext copy(LensContext<? extends ObjectType> lensContext, boolean detailed) {
+        LensProjectionContext copy = new LensProjectionContext(lensContext, key, state);
+        copyValues(copy, detailed);
+        return copy;
+    }
+
+    private void copyValues(LensProjectionContext clone, boolean detailed) {
+        super.copyValues(clone, detailed);
         // do NOT clone transient values such as accountConstructionDeltaSetTriple
         // these are not meant to be cloned and they are also not directly cloneable
-        clone.dependencies = this.dependencies;
         clone.doReconciliation = this.doReconciliation;
         clone.fullShadow = this.fullShadow;
-        clone.assigned = this.assigned;
-        clone.assignedOld = this.assignedOld;
-        clone.evaluatedPlainConstruction = this.evaluatedPlainConstruction;
-        clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
-        clone.resource = this.resource;
         clone.key = this.key;
-        clone.squeezedAttributes = cloneSqueezedAttributes();
+        clone.exists = this.exists;
+        clone.syncAbsoluteTrigger = this.syncAbsoluteTrigger;
         if (this.syncDelta != null) {
             clone.syncDelta = this.syncDelta.clone();
         }
-        clone.wave = this.wave;
         clone.synchronizationSource = this.synchronizationSource;
+        if (detailed) {
+            clone.dependencies = this.dependencies;
+            clone.assigned = this.assigned;
+            clone.assignedOld = this.assignedOld;
+            clone.evaluatedPlainConstruction = this.evaluatedPlainConstruction;
+            clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
+            clone.resource = this.resource;
+            clone.squeezedAttributes = cloneSqueezedAttributes();
+            clone.wave = this.wave;
+        }
     }
 
     private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> cloneSqueezedAttributes() {

@@ -301,6 +301,9 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
+    /**
+     * Modifies the object, while ensuring that {@link ModificationPrecondition} holds.
+     */
     @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
             @NotNull Class<T> type,
             @NotNull String oid,

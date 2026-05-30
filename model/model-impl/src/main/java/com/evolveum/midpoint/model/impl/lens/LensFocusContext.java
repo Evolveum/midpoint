@@ -310,17 +310,23 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     public LensFocusContext<O> clone(LensContext<O> lensContext) {
+        return copy(lensContext, true);
+    }
+
+    public LensFocusContext<O> copy(LensContext<O> lensContext, boolean detailed) {
         LensFocusContext<O> clone = new LensFocusContext<>(state.clone(), lensContext);
-        copyValues(clone);
+        copyValues(clone, detailed);
         return clone;
     }
 
-    private void copyValues(LensFocusContext<O> clone) {
-        super.copyValues(clone);
-        clone.deleted = deleted;
-        clone.archetypePolicy = archetypePolicy;
-        clone.archetypes = archetypes != null ? new ArrayList<>(archetypes) : null;
-        clone.primaryDeltaExecuted = primaryDeltaExecuted;
+    private void copyValues(LensFocusContext<O> clone, boolean detailed) {
+        super.copyValues(clone, detailed);
+        if (detailed) {
+            clone.deleted = deleted;
+            clone.archetypePolicy = archetypePolicy;
+            clone.archetypes = archetypes != null ? new ArrayList<>(archetypes) : null;
+            clone.primaryDeltaExecuted = primaryDeltaExecuted;
+        }
     }
 
     @Override
@@ -534,5 +540,23 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             assignmentIdStore = new AssignmentIdStore();
         }
         return assignmentIdStore;
+    }
+
+    @Override
+    public String getObjectReadVersion() {
+        var conflictContext = lensContext.getFocusConflictResolutionContext();
+        if (conflictContext != null) {
+            // Using conflict watcher is the most precise method for obtaining object version. It is updated automatically
+            // by the repository, provided that all updates take place in the current thread (which should be the case for
+            // standard clockwork operation).
+            var conflictWatcher = conflictContext.getFocusConflictWatcher();
+            if (conflictWatcher != null && conflictWatcher.isInitialized()) {
+                return String.valueOf(conflictWatcher.getExpectedVersion());
+            }
+        }
+        if (getObjectCurrent() != null) {
+            return getObjectCurrent().getVersion();
+        }
+        return null;
     }
 }

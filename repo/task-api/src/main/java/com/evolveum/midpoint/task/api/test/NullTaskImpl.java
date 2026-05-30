@@ -684,6 +684,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public ConflictResolutionType getConflictResolution() {
+        return null;
+    }
+
+    @Override
     public void setExecutionConstraints(TaskExecutionConstraintsType value) {
     }
 

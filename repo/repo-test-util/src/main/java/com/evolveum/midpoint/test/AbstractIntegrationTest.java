@@ -48,6 +48,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import com.evolveum.midpoint.schema.statistics.ComponentsPerformanceInformationUtil;
@@ -937,25 +938,25 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         final ConflictResolutionActionType actionForTasks = ConflictResolutionActionType.NONE;
         for (ObjectPolicyConfigurationType c : systemConfiguration.getDefaultObjectPolicyConfiguration()) {
             if (c.getType() == null && c.getSubtype() == null && c.getConflictResolution() != null) {
-                current.add(c);
+                current.add(c.clone());
             } else if (QNameUtil.match(c.getType(), TaskType.COMPLEX_TYPE) && c.getSubtype() == null && c.getConflictResolution() != null) {
                 currentForTasks.add(c);
             }
         }
         List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
         if (current.size() != 1 || current.get(0).getConflictResolution().getAction() != action) {
-            ObjectPolicyConfigurationType newPolicy = new ObjectPolicyConfigurationType(prismContext)
+            ObjectPolicyConfigurationType newPolicy = new ObjectPolicyConfigurationType()
                     .beginConflictResolution()
                     .action(action)
                     .end();
             itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
                     .item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
-                    .deleteRealValues(current)
+                    .deleteRealValues(CloneUtil.cloneCollectionMembers(current))
                     .add(newPolicy)
                     .asItemDelta());
         }
         if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != actionForTasks) {
-            ObjectPolicyConfigurationType newPolicyForTasks = new ObjectPolicyConfigurationType(prismContext)
+            ObjectPolicyConfigurationType newPolicyForTasks = new ObjectPolicyConfigurationType()
                     .type(TaskType.COMPLEX_TYPE)
                     .beginConflictResolution()
                     .action(actionForTasks)

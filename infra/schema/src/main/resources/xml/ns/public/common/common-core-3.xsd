@@ -6262,7 +6262,7 @@
                         If set to true the script will be evaluated with null value as argument when the input is
                         changed from or to an empty value. This generally works well for most cases. It may be set to
                         false as an optimization.
-                        Note: default setting (true) for this property may be overridden in specific expression 
+                        Note: default setting (true) for this property may be overridden in specific expression
                         evaluators.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -14205,7 +14205,8 @@
                     <xsd:documentation>
                         Operation should be end with an error.
                         This is a recoverable error (precondition failed).
-                        TODO: align with "fail"
+
+                        (Currently, this option is not implemented.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ERROR"/>
@@ -14215,7 +14216,7 @@
             <xsd:enumeration value="restart">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Operation should be restarted.
+                        Concurrent execution is prevented. After the failure, the operation is restarted.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RESTART"/>
@@ -14225,7 +14226,8 @@
             <xsd:enumeration value="recompute">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The focus object should be recomputed.
+                        Concurrent execution is not prevented: the original operation is executed in full.
+                        However, if there was a conflict present, the focus object is recomputed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RECOMPUTE"/>
@@ -14235,7 +14237,9 @@
             <xsd:enumeration value="reconcile">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The focus object should be recomputed and all projections reconciled.
+                        Concurrent execution is not prevented: the original operation is executed in full.
+                        However, if there was a conflict present, the focus object is recomputed, with all projections
+                        reconciled.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RECONCILE"/>
@@ -14248,7 +14252,6 @@
                         The whole operation should fail. This is to be used mainly for testing purposes,
                         to check if conflict detection algorithm does not yield false positive results.
                         This fails with a system error. This is a definitive, non-recoverable failure.
-                        TODO: align with "error"
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FAIL"/>

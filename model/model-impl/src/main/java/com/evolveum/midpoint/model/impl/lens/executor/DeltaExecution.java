@@ -104,9 +104,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
      */
     private ObjectDelta<E> deltaForExecution;
 
-    /** How should we resolve conflicts? */
-    private final ConflictResolutionType conflictResolution;
-
     /** Resource related to element context, if any. */
     private final ResourceType resource;
 
@@ -140,7 +137,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     DeltaExecution(
             @NotNull LensElementContext<E> elementContext,
             ObjectDelta<E> delta,
-            ConflictResolutionType conflictResolution,
             @NotNull Task task,
             @NotNull ChangeExecutionResult<E> changeExecutionResult) {
 
@@ -148,7 +144,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         this.context = (LensContext<O>) elementContext.getLensContext();
         this.elementContext = elementContext;
         this.delta = java.util.Objects.requireNonNull(delta, "null delta");
-        this.conflictResolution = conflictResolution;
         this.resource = elementContext instanceof LensProjectionContext ?
                 ((LensProjectionContext) elementContext).getResource() : null;
         this.task = task;
@@ -699,6 +694,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                         objectClass, deltaForExecution.getOid(), deltaForExecution.getModifications(),
                         precondition, null, result);
             } catch (PreconditionViolationException e) {
+                result.muteErrorsRecursively();
                 throw new ConflictDetectedException(e);
             }
         }
@@ -772,7 +768,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     @Nullable
     private ModificationPrecondition<E> createRepoModificationPrecondition() {
-        if (!b.clockworkConflictResolver.shouldCreatePrecondition(context, conflictResolution)) {
+        if (!isFocus() || !b.clockworkConflictResolver.shouldCreatePrecondition(context)) {
             return null;
         }
         String readVersion = elementContext.getObjectReadVersion();
@@ -1094,4 +1090,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         return deleted;
     }
     //endregion
+
+    private boolean isFocus() {
+        return elementContext instanceof LensFocusContext;
+    }
 }
