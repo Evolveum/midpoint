@@ -6,6 +6,20 @@
 
 package com.evolveum.midpoint.model.impl.lens.executor;
 
+import static com.evolveum.midpoint.model.impl.lens.ChangeExecutor.OPERATION_EXECUTE_DELTA;
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+import static com.evolveum.midpoint.prism.PrismObject.cast;
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
@@ -16,7 +30,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChe
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -27,7 +44,9 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -49,22 +68,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
-import static com.evolveum.midpoint.model.impl.lens.ChangeExecutor.OPERATION_EXECUTE_DELTA;
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-import static com.evolveum.midpoint.prism.PrismObject.cast;
-import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
-import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * Executes specified delta. Chooses appropriate component (repo, provisioning, task manager, and so on).
@@ -100,9 +104,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
      */
     private ObjectDelta<E> deltaForExecution;
 
-    /** How should we resolve conflicts? */
-    private final ConflictResolutionType conflictResolution;
-
     /** Resource related to element context, if any. */
     private final ResourceType resource;
 
@@ -136,7 +137,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     DeltaExecution(
             @NotNull LensElementContext<E> elementContext,
             ObjectDelta<E> delta,
-            ConflictResolutionType conflictResolution,
             @NotNull Task task,
             @NotNull ChangeExecutionResult<E> changeExecutionResult) {
 
@@ -144,7 +144,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         this.context = (LensContext<O>) elementContext.getLensContext();
         this.elementContext = elementContext;
         this.delta = java.util.Objects.requireNonNull(delta, "null delta");
-        this.conflictResolution = conflictResolution;
         this.resource = elementContext instanceof LensProjectionContext ?
                 ((LensProjectionContext) elementContext).getResource() : null;
         this.task = task;
@@ -711,6 +710,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                         objectClass, deltaForExecution.getOid(), deltaForExecution.getModifications(),
                         precondition, null, result);
             } catch (PreconditionViolationException e) {
+                result.muteErrorsRecursively();
                 throw new ConflictDetectedException(e);
             }
         }
@@ -784,7 +784,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     @Nullable
     private ModificationPrecondition<E> createRepoModificationPrecondition() {
-        if (!b.clockworkConflictResolver.shouldCreatePrecondition(context, conflictResolution)) {
+        if (!isFocus() || !b.clockworkConflictResolver.shouldCreatePrecondition(context)) {
             return null;
         }
         String readVersion = elementContext.getObjectReadVersion();
@@ -1016,6 +1016,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //endregion
 
     //region Provisioning scripts
+
     /**
      * TODO clarify the role of `object` parameter and why it is used only as a second choice (after ctx.objectAny).
      */
@@ -1104,6 +1105,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    private boolean isFocus() {
+        return elementContext instanceof LensFocusContext;
     }
     //endregion
 }
