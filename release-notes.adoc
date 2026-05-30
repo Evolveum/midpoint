@@ -42,6 +42,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Fixed dashboard widget showing "Unknown" for `ShadowType` collections instead of counting the shadows. See bug:MID-11102[]
 * Updated handling of String -> byte[]. See bug:MID-11015[]
 * Implemented support for `notifyChange` REST call without explicitly providing the shadow OID. See bug:MID-11230[]
+* Improved handling of clockwork colisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
 
 == Changes with Respect To Version 4.8.10
 
