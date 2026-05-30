@@ -211,8 +211,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getNewObject();
     }
 
-    @NotNull
-    public PrismObject<O> getObjectNewRequired() {
+    public @NotNull PrismObject<O> getObjectNewRequired() {
         return Objects.requireNonNull(
                 getObjectNew(),
                 () -> String.format("Expected 'new' object is null: %s", this));

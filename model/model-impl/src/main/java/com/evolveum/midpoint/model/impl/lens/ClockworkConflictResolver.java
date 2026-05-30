@@ -41,8 +41,9 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
  *
  * For the feature description, see https://docs.evolveum.com/midpoint/reference/concepts/clockwork/conflict-resolution-howto/.
  *
- * It is an optimistic locking strategy. The conflict detection is based on comparing object versions. There are two mechanisms
- * employed:
+ * MidPoint uses an optimistic locking strategy when dealing with concurrent focus updates at the clockwork level.
+ * This class is responsible for the implementation. The conflict detection is based on comparing object versions.
+ * There are two mechanisms employed:
  *
  * - precondition-based detection using {@link VersionPrecondition} objects
  * - watching for conflicts using {@link ConflictWatcher} objects
@@ -53,6 +54,7 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
  * The latter is used to detect that a conflict happened so we can later act upon it.
  *
  * For some retry actions (namely: recompute, reconcile) we use only the watching approach.
+ * See {@link #shouldCreatePrecondition(LensContext)}.
  *
  * See also the docs in the related configuration element ({@link ConflictResolutionType}).
  */
@@ -93,6 +95,9 @@ public class ClockworkConflictResolver {
         return true;
     }
 
+    <F extends ObjectType> void recordConflictException(LensContext<F> context) {
+        context.getFocusConflictResolutionContext().recordConflictException();
+    }
     //endregion
 
     //region Watcher-based approach
