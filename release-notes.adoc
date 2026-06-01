@@ -34,7 +34,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Improved login and self-service dashboard loading speed. See bug:MID-10972[]
 * Localized archetype label now correctly displays in the assignment picker and summary panel. See bug:MID-11177[]
 * Improved user list load speed when listing users with `orgRelation` authorization for users managing many organizations. See bug:MID-11179[]
-* Fixed Request access relations issue. See bug:MID-10851[], bug:MID-10557[].
+* Fixed the relation dependent behavior and an item selection GUI issue while adding an item into shopping cart. See bug:MID-10851[], bug:MID-10557[].
 * Fixed ability to hide Campaigns scheduling menu item by visibility configuration. See bug:MID-11176[]
 * Fixed axiom query parsing for saved filters to ensure complex filters work as expected after they are saved for later use. See bug:MID-11183[]
 * Upgraded libraries (Spring Boot, Wicket, Tomcat, and others).
