@@ -181,11 +181,6 @@
             <skipWhenSuccess>true</skipWhenSuccess>
         </operationExecutionRecording>
     </internals>
-    <smartIntegration>
-        <statisticsTtl>P1D</statisticsTtl>
-        <schemaMatchTtl>P1D</schemaMatchTtl>
-        <mappingSuggestionRetryCount>0</mappingSuggestionRetryCount>
-    </smartIntegration>
     <adminGuiConfiguration>
         <homePage id="21">
             <type>UserType</type>
