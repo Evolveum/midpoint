@@ -1,9 +1,11 @@
 ---
 layout: release
-release-version: '4.10.3'
+release-version: '4.10.4'
+visibility: hidden
 ---
-= MidPoint 4.10 "Braille" - Update 3
-:release-version: 4.10.3
+= MidPoint 4.10 "Braille" - Update 4
+:release-version: 4.10.4
+:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
@@ -31,6 +33,10 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
 ++++
+
+== Changes With Respect To Version 4.10.3
+
+// TODO
 
 == Changes With Respect To Version 4.10.2
 
