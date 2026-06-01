@@ -1,11 +1,9 @@
 ---
 layout: release
 release-version: '4.9.7'
-visibility: hidden
 ---
 = MidPoint 4.9 "Verne" - Update 7
 :release-version: 4.9.7
-:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
@@ -46,6 +44,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Upgraded libraries (Spring Boot, Wicket, Tomcat, LDAP connector, webpack, and others).
 * Fixed concurrency issue in multi-threaded `iterativeScripting` tasks. See bug:MID-11058[].
 * Updated handling of String -> byte[]. See bug:MID-11015[].
+* Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
 
 == Changes with Respect To Version 4.9.5
 
