@@ -8,7 +8,7 @@ release-version: '4.10.3'
 :page-toc: top
 
 Release {release-version} is a seventy-ninth midPoint release, code-named _Braille_.
-The {release-version} release brings accessibility improvements and miscellaneous bug fixes.
+The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
 {% include release-data.html %}
