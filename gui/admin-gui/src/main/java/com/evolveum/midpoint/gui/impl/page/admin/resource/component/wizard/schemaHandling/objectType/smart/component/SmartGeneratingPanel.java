@@ -428,6 +428,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                timerBehavior.stop(target);
                 onRunInBackgroundPerform(target);
             }
         };

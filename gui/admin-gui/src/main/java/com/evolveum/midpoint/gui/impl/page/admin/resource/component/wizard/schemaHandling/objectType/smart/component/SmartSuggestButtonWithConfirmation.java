@@ -25,9 +25,9 @@ import com.evolveum.midpoint.web.component.util.Describable;
 /**
  * A styled variant of {@link ButtonWithConfirmationOptionsDialog} pre-configured with the Smart Suggest confirmation
  * dialog content.
- *
+ * <p>
  * Use {@link #create} for the default asynchronous path, or {@link #forBlockingActionWithIndication} when the
- * confirm action is synchronous and an activity indication (spinner) should be shown while it runs.
+ * confirmation action is synchronous and an activity indication (spinner) should be shown while it runs.
  */
 public class SmartSuggestButtonWithConfirmation<T extends Describable>
         extends ButtonWithConfirmationOptionsDialog<T> {

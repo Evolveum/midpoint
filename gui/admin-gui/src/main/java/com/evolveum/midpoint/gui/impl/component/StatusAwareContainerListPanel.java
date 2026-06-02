@@ -1,15 +1,17 @@
-package com.evolveum.midpoint.gui.impl.component;/*
- * Copyright (c) 2025 Evolveum and contributors
+/*
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
+package com.evolveum.midpoint.gui.impl.component;
 
 import java.io.Serial;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -34,7 +36,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -59,6 +61,7 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestionValue;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createSuggestionReviewInlineMenu;
+import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDividerNoHeader;
 
 /**
  * An extension of {@link MultivalueContainerListPanel} that is aware of
@@ -217,6 +220,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
     public @NotNull List<InlineMenuItem> getInlineMenuItems() {
         List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
         customizeInlineMenuItems(inlineMenuItems);
+        inlineMenuItems.add(createSectionDividerNoHeader());
         inlineMenuItems.add(createDeleteInlineMenu());
         return inlineMenuItems;
     }
@@ -244,7 +248,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
             });
         }
 
-        inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshTable));
+        inlineMenuItems.add(createSuggestionStopGeneratingInlineMenu(getPageBase(), this::getStatusInfo, this::refreshTable));
         inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
         inlineMenuItems.add(createSuggestionReviewInlineMenu(getPageBase(), this::getStatusInfo, this::performOnReview));
     }
@@ -263,17 +267,21 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
     }
 
     private @NotNull InlineMenuItem createShowLifecycleStatesInlineMenu() {
-        return new InlineMenuItem(createStringResource("SchemaHandlingObjectsPanel.button.showLifecycleStates")) {
-            @Serial private static final long serialVersionUID = 1L;
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("SchemaHandlingObjectsPanel.button.showLifecycleStates"))
+                .icon(GuiStyleConstants.CLASS_LIFECYCLE_ICON)
+                .headerMenuItem(false)
+                .action(new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
 
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        var popupPanel = new OnePanelPopupPanel(getPageBase().getMainPopupBodyId(), 1100, 600,
+
+                        var popupPanel = new OnePanelPopupPanel(
+                                getPageBase().getMainPopupBodyId(),
+                                1100,
+                                600,
                                 createStringResource("ContainerWithLifecyclePanel.popup.title")) {
 
                             @Override
@@ -284,20 +292,17 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
                             @Override
                             protected void processHide(AjaxRequestTarget target) {
                                 super.processHide(target);
-                                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, getRowModel().getObject());
+
+                                WebComponentUtil.showToastForRecordedButUnsavedChanges(
+                                        target,
+                                        getRowModel().getObject());
                             }
                         };
 
                         getPageBase().showMainPopup(popupPanel, target);
                     }
-                };
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-        };
+                })
+                .buildInlineMenu();
     }
 
     @Override

@@ -377,7 +377,7 @@ public abstract class SmartCorrelationTable
     public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
         List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems(tileModel);
         inlineMenuItems.add(createViewRuleInlineMenu(tileModel));
-        inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
+        inlineMenuItems.add(createSuggestionStopGeneratingInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
         inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
         return inlineMenuItems;
     }
