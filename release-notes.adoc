@@ -43,7 +43,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
     See bug:MID-10979[].
 * Upgraded libraries (Spring Boot, Wicket, Tomcat, LDAP connector, webpack, and others).
 * Fixed concurrency issue in multi-threaded `iterativeScripting` tasks. See bug:MID-11058[].
-* Updated handling of String -> byte[]. See bug:MID-11015[].
+* Very large traces containing certain UTF-8 strings no longer cause memory overflow on export and are streamed directly to trace files without going through the default Java string to byte array processing. See bug:MID-11015[]
 * Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
 
 == Changes with Respect To Version 4.9.5
