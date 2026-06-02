@@ -38,7 +38,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Upgraded libraries (Spring Boot, Wicket, Tomcat, and others).
 * Fixed concurrency issue in multi-threaded `iterativeScripting` tasks. See bug:MID-11058[]
 * Fixed dashboard widget showing "Unknown" for `ShadowType` collections instead of counting the shadows. See bug:MID-11102[]
-* Updated handling of String -> byte[]. See bug:MID-11015[]
+* Very large traces containing certain UTF-8 strings no longer cause memory overflow on export and are streamed directly to trace files without going through the default Java string to byte array processing. See bug:MID-11015[]
 * Implemented support for `notifyChange` REST call without explicitly providing the shadow OID. See bug:MID-11230[]
 * Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
 * Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
