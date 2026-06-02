@@ -47,6 +47,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -79,6 +80,10 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
 
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final String ID_STATUS_HEADER = "statusHeader";
+    private static final String ID_SHOW_SUGGESTIONS = "showSuggestions";
+    private static final String ID_CREATE_NEW = "createNew";
+
     private static final String OP_DETERMINE_STATUSES =
             ResourceObjectTypesPanel.class.getName() + ".determineStatuses";
 
@@ -101,6 +106,67 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
     @Override
     protected IColumn<PrismContainerValueWrapper<C>, String> createCheckboxColumn() {
         return isCheckboxColumn() ? new CheckBoxHeaderColumn<>() : super.createCheckboxColumn();
+    }
+
+    @Override
+    protected Component createHeader(String headerId) {
+        Fragment header = new Fragment(headerId, ID_STATUS_HEADER, this);
+        header.setOutputMarkupId(true);
+
+        ToggleCheckBoxPanel toggle = createToggleSuggestionVisibilityButton(
+                getPageBase(),
+                ID_SHOW_SUGGESTIONS,
+                getSwitchSuggestion(),
+                this::refreshTable,
+                StatusAwareContainerListPanel.this.getParent());
+
+        toggle.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
+        header.add(toggle);
+
+        AjaxIconButton createNew = new AjaxIconButton(
+                ID_CREATE_NEW,
+                Model.of(getIconForNewObjectButton()),
+                createStringResource(getKeyOfTitleForNewObjectButton())) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                newItemPerformed(target, null);
+            }
+        };
+
+        createNew.showTitleAsLabel(true);
+        createNew.add(AttributeAppender.replace("class", "btn btn-outline-primary"));
+        createNew.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
+        header.add(createNew);
+
+        return header;
+    }
+
+    @Override
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        List<Component> bar = new ArrayList<>();
+        createNewObjectPerformButton(idButton, bar);
+        return bar;
+    }
+
+    private void createNewObjectPerformButton(String idButton, @NotNull List<Component> bar) {
+        AjaxIconButton newObjectButton = new AjaxIconButton(idButton,
+                new Model<>(getIconForNewObjectButton()),
+                createStringResource(getKeyOfTitleForNewObjectButton())) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                newItemPerformed(target, null);
+            }
+        };
+        newObjectButton.showTitleAsLabel(true);
+        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm mr-2"));
+        newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible() && displayNoValuePanel()));
+        bar.add(newObjectButton);
     }
 
     @Override
@@ -305,35 +371,6 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
                 .buildInlineMenu();
     }
 
-    @Override
-    protected List<Component> createToolbarButtonsList(String idButton) {
-        List<Component> bar = new ArrayList<>();
-        createNewObjectPerformButton(idButton, bar);
-        ToggleCheckBoxPanel togglePanel = createToggleSuggestionVisibilityButton(getPageBase(), idButton, getSwitchSuggestion(),
-                this::refreshTable, StatusAwareContainerListPanel.this.getParent());
-        togglePanel.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
-        bar.add(togglePanel);
-        return bar;
-    }
-
-    private void createNewObjectPerformButton(String idButton, @NotNull List<Component> bar) {
-        AjaxIconButton newObjectButton = new AjaxIconButton(idButton,
-                new Model<>(getIconForNewObjectButton()),
-                createStringResource(getKeyOfTitleForNewObjectButton())) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                newItemPerformed(target, null);
-            }
-        };
-        newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm mr-2"));
-        newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
-        bar.add(newObjectButton);
-    }
-
     public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
         if (toDelete == null || toDelete.isEmpty()) {
             warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
@@ -377,11 +414,6 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
     @Override
     protected String getAdditionalFooterCssClasses() {
         return "bg-white border-top";
-    }
-
-    @Override
-    protected boolean isHeaderVisible() {
-        return false;
     }
 
     @Override
