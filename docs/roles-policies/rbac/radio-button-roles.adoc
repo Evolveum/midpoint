@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-date: 2019-10-10T11:23:19.896+02:00
 :page-upkeep-status: yellow
 :page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/roles/rbac/radio-button-roles/
 
 _Radio button_ roles is a set of roles where only one role can be assigned to a user at any specific time.
 When a role from the set is assigned to a user then any other role that was assigned before is automatically unassigned.

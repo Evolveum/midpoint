@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-04-19T12:03:10.715+02:00
 :page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/escalation/
 
 After xref:/midpoint/reference/cases/escalation/[the escalation feature has been introduced for approvals], it is now available also for certification campaigns.
 The configuration is very similar: _timed actions_ are used.

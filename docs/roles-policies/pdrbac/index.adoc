@@ -10,6 +10,7 @@ compliance:
 :page-nav-title: Policy-Driven RBAC
 :page-toc: top
 :page-upkeep-status: green
+:page-moved-from: /midpoint/reference/roles-policies/roles/pdrbac/
 
 == Introduction
 

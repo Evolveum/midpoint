@@ -8,6 +8,7 @@
 :page-wiki-metadata-modify-date: 2016-02-01T19:27:02.512+01:00
 :page-upkeep-status: orange
 :page-alias: { "parent" : "/midpoint/reference/security/authorization/", "slug" : "certification",  "title" : "Access Certification" }
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/authorization/
 
 == Model level
 

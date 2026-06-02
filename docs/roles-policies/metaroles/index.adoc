@@ -12,6 +12,7 @@ doc-type: intro
 :page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
 :page-upkeep-status: yellow
 :page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/policies/metaroles/
 
 MidPoint xref:/midpoint/reference/roles-policies/rbac/[roles] are usually applied to users.
 But midPoint roles are universal.

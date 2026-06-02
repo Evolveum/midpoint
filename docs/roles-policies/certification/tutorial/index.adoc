@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-date: 2020-01-07T14:22:32.194+01:00
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/tutorial/
 
 You should see the Certification menu item in the main menu:
 

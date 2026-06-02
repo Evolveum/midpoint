@@ -8,6 +8,7 @@
 :page-upkeep-status: yellow
 :page-liquid:
 :page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/policies/metaroles/gensync/
 
 == Introduction
 

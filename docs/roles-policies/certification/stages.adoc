@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2016-04-23T01:35:31.626+02:00
 :page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/stages/
 
 Campaign consists of one or more review stages.
 For each stage, the following properties are configured:

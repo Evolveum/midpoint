@@ -8,6 +8,7 @@
 :page-wiki-metadata-modify-date: 2020-02-21T14:24:26.071+01:00
 :page-upkeep-status: yellow
 :page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/policies/applicable-policies/configuration/
 
 MidPoint is very flexible system, especially when it comes to xref:/midpoint/reference/cases/approval/[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
 Policy definition can be quite complex.

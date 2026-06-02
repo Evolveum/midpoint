@@ -10,6 +10,7 @@ doc-type: intro
 :page-wiki-metadata-modify-user: vskocenova
 :page-wiki-metadata-modify-date: 2019-07-10T13:25:40.634+02:00
 :page-upkeep-note: Probably just minor updates needed.
+:page-moved-from: /midpoint/reference/roles-policies/roles/assignment/
 
 Assignment is a generic concept of associating user with the things that he should have or belong to.
 Assignment may associate user with an account, role, organizational unit or similar objects.

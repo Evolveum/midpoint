@@ -5,6 +5,7 @@
 :page-wiki-metadata-create-date: 2017-03-21T18:33:15.789+01:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-05-23T09:39:02.330+02:00
+:page-moved-from: /midpoint/reference/roles-policies/roles/assignment/assignment-path-variables-example/
 
 To better illustrate meaning of various xref:/midpoint/reference/roles-policies/assignment/configuration/#construction-variables[assignment-related variables] let us present an example.
 

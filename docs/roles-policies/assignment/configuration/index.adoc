@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-date: 2019-04-03T09:22:26.276+02:00
 :page-upkeep-status: yellow
 :page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/roles/assignment/configuration/
 
 == Introduction
 

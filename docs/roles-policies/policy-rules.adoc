@@ -12,6 +12,7 @@ doc-type: intro
 :page-toc: top
 :page-upkeep-status: orange
 :page-upkeep-note: Lot's of TODOs here
+:page-moved-from: /midpoint/reference/roles-policies/policies/policy-rules/
 
 
 == Introduction
