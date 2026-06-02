@@ -51,7 +51,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Added default sort order to `AccessCertificationWorkItem` list for stable ordering between page loads. See bug:MID-11047[]
 * Fixed CSV export filename missing the `.csv` extension. See bug:MID-11046[]
 * Fixed authentication exception handling during the user log-in process. See bug:MID-10953[]
-* Updated handling of String -> byte[]. See bug:MID-11015[]
+* Very large traces containing certain UTF-8 strings no longer cause memory overflow on export and are streamed directly to trace files without going through the default Java string to byte array processing. See bug:MID-11015[]
 * Implemented support for `notifyChange` REST call without explicitly providing the shadow OID. See bug:MID-11230[]
 * Fixed GUI issue when requesting access to a role which the user already has assigned under a different relation. See bug:MID-10557[]
 * Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
