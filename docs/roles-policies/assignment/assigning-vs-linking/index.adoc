@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2014-01-09T17:03:05.257+01:00
 :page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/
 
 There are two ways how to associate user and account: *assign* account to the user and *link* account to the user.
 There is a fundamental difference between the two.

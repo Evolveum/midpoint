@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2016-09-23T12:00:45.076+02:00
 :page-upkeep-status: orange
+:page-moved-from: /midpoint/reference/roles-policies/roles/assignment/parentorgref-and-assignments/
 
 The correct way to create organizational structure is by using assignments.
 The sub-org should have assignment for super-org.

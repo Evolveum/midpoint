@@ -10,6 +10,7 @@ doc-type: [ 'config' ]
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-06-16T12:23:59.558+02:00
 :page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/ad-hoc-certification/
 
 Sometimes it is necessary to implement something like this: "When a user appears in an organization, the new manager should certify all his assignments." Since midPoint 3.6 this kind of requirements can be met.
 

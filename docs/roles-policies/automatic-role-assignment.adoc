@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-05-25T12:42:55.877+02:00
 :page-upkeep-status: orange
+:page-moved-from: /midpoint/reference/roles-policies/roles/automatic-role-assignment/
 
 Assignment of orgs and roles is one the fundamental midPoint functionalities.
 Common requirement is automatic assignment of some roles based on expressions and conditions.

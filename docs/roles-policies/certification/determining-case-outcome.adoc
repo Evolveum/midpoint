@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2016-04-21T16:57:58.966+02:00
 :page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/determining-case-outcome/
 
 Each case is reviewed in one or more stages, by zero, one, or more reviewers.
 An interesting question is: how should be the overall outcome determined, based on responses from individual reviewers? Moreover, there are borderline situations, like when no reviewers are assigned (e.g. if reviewer is defined as the target role owner, but a particular role has no owner), or when reviewer(s) fail to provide any answer during a given stage.

@@ -2,6 +2,7 @@
 :page-toc: top
 :page-nav-title: Anonymous Data Export
 :page-upkeep-status: green
+:page-moved-from: /midpoint/reference/roles-policies/roles/mining/anonymous-data-export/
 
 Role mining data export is an anonymized export of relationships between roles, users, and
 organizations.

@@ -12,6 +12,7 @@ doc-type: intro
 :page-toc: top
 :page-alias: [ { "parent" : "/midpoint/reference/admin-gui/" } ]
 :page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/policies/applicable-policies/
 
 == Introduction
 

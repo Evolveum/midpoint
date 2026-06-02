@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2014-01-10T13:00:16.639+01:00
 :page-upkeep-status: orange
+:page-moved-from: /midpoint/reference/roles-policies/roles/rbac/best-practice/
 
 Do not create role that correspond to a single resource, such as "AD" or "Oracle".
 This is usually pointless.

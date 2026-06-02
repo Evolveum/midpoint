@@ -26,6 +26,7 @@ compliance:
 :page-since: "4.8"
 :page-experimental: true
 :page-upkeep-status: green
+:page-moved-from: /midpoint/reference/roles-policies/policies/classification/
 
 NOTE: For midPoint 4.8, information classification is considered an experimental functionality.
 The mechanism works in midPoint 4.8 as described here, and they are based on stable functionality.
