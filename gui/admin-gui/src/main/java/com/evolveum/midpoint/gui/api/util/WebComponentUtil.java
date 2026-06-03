@@ -4112,7 +4112,7 @@ public final class WebComponentUtil {
     }
 
     private static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta> deltas) {
-        if (!deltas.isEmpty()) {
+        if (deltas != null && !deltas.isEmpty()) {
             new Toast()
                     .warning()
                     .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
