@@ -834,7 +834,7 @@ This mapping strength is used to set initial (default) values for attributes and
 
 If not specified, the default strength of a mapping is `normal`.
 
-Mappings created in the xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[midPoint GUI resource/role wizard] are `strong` by default.
+Mappings created in the midPoint GUI resource/role wizard are `strong` by default.
 
 [TIP]
 .Mappings and reconciliation
