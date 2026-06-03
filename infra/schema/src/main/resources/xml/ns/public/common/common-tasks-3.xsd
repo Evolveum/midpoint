@@ -2570,6 +2570,14 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="discoverConnectivityEndpoint" type="tns:ConnDevDiscoverConnectivityEndpointWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="generateConnectorArtifact" type="tns:ConnDevGenerateArtifactDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -11377,6 +11385,30 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover Connectivity Endpoint -->
+
+    <xsd:complexType name="ConnDevDiscoverConnectivityEndpointWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverConnectivityEndpointWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverConnectivityEndpointResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverConnectivityEndpointResultType">
+        <xsd:sequence/>
     </xsd:complexType>
 
     <!-- Generate Global Artifact -->

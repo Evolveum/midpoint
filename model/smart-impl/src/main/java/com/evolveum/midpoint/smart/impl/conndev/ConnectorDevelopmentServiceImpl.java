@@ -88,6 +88,13 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     ), task, result);
         }
 
+        public String submitDiscoverConnectivityEndpoint(Task task, OperationResult result) {
+            return submitTask("Discover Connectivity Endpoint for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().discoverConnectivityEndpoint(new ConnDevDiscoverConnectivityEndpointWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
         public String submitDiscoverDocumentation(Task task, OperationResult result) {
             return submitTask("Discovering documentation for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverDocumentation(new ConnDevDiscoverDocumentationWorkDefinitionType()
@@ -379,6 +386,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token, result),
                 ConnDevRefreshScimSchemaWorkStateType.F_RESULT,
                 ConnDevRefreshScimSchemaResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevDiscoverConnectivityEndpointResultType> getDiscoverConnectivityEndpointStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token, result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevDiscoverConnectivityEndpointResultType.class
         );
     }
 }

@@ -138,7 +138,12 @@ public class OtpAuthenticationEvaluator
     }
 
     @Override
-    protected String createModuleAuthenticationFailureMessage(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+    protected String createInvalidCredentialsMessage(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
         return "Incorrect OTP code";
+    }
+
+    @Override
+    protected String createInvalidCredentialsKey(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+        return "web.security.provider.otp.invalid.credentials";
     }
 }
