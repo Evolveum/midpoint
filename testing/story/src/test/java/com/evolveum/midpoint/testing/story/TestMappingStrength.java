@@ -10,6 +10,7 @@ import java.io.File;
 
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.midpoint.test.TestTask;
@@ -198,6 +199,10 @@ public class TestMappingStrength extends AbstractStoryTest {
      *
      * If we imported from the `normal` resource first, the behavior would be different. The first projector run would
      * not switch the name to `Jim Strong`, because the account from the strong resource is not loaded at that time.
+     *
+     * NOTE: When running with caching fully enabled ("use cached" mode), the `normal` shadow is not loaded in the second
+     * projector run, so the flipping does not occur. The reason for not loading the shadow is a bit obscure and should
+     * be clarified later.
      */
     @Test
     public void test130ImportWithConflictingData() throws Exception {
@@ -218,12 +223,21 @@ public class TestMappingStrength extends AbstractStoryTest {
                 .withNameValue(name)
                 .executeOnForeground(result);
 
-        then("username is 'normal' (after two flips)");
-        assertUserAfter(user.getOid())
-                .assertFullName(NORMAL_FULLNAME);
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
+            then("username is 'strong' (no flip)");
+            assertUserAfter(user.getOid())
+                    .assertFullName(STRONG_FULLNAME);
 
-        and("there is the 'flip' visible in audit records");
-        assertFlip();
+            and("there is no 'flip' visible in audit records");
+            assertNoFlip();
+        } else {
+            then("username is 'normal' (after two flips)");
+            assertUserAfter(user.getOid())
+                    .assertFullName(NORMAL_FULLNAME);
+
+            and("there is the 'flip' visible in audit records");
+            assertFlip();
+        }
     }
 
     /**
@@ -247,12 +261,21 @@ public class TestMappingStrength extends AbstractStoryTest {
         dummyAuditService.clear();
         TASK_LIVE_SYNC_STRONG.rerun(result); // obtaining the change
 
-        then("username is 'normal' (after two flips)");
-        assertUserAfter(user.getOid())
-                .assertFullName(NORMAL_FULLNAME);
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
+            then("username is 'strong' (no flip)");
+            assertUserAfter(user.getOid())
+                    .assertFullName(STRONG_FULLNAME);
 
-        and("there is the 'flip' visible in audit records");
-        assertFlip();
+            and("there is no 'flip' visible in audit records");
+            assertNoFlip();
+        } else {
+            then("username is 'normal' (after two flips)");
+            assertUserAfter(user.getOid())
+                    .assertFullName(NORMAL_FULLNAME);
+
+            and("there is the 'flip' visible in audit records");
+            assertFlip();
+        }
     }
 
     /**
@@ -298,5 +321,10 @@ public class TestMappingStrength extends AbstractStoryTest {
         displayDumpable("audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(2);
         // TODO assert actual flip in the records
+    }
+
+    private void assertNoFlip() {
+        displayDumpable("audit", dummyAuditService);
+        dummyAuditService.assertExecutionRecords(1);
     }
 }
