@@ -1,10 +1,16 @@
 = Verify
 
-Verification is a process that reads objects from midPoint repository and checks whether they are compatible with new version of midPoint.
+Verification is a process that reads objects from midPoint repository and checks whether they are compatible with the new version of midPoint.
 Verification checks for deprecated, removed elements or other issues that can cause problems during or after upgrade.
 
 Different categories for verification can be set turned on via switch `--verification-category`.
-Allowed values are  `DEPRECATED`, `REMOVED`, `PLANNED_REMOVAL`, `INCORRECT_OIDS`, `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
+Allowed values are:
+
+* `DEPRECATED`
+* `REMOVED`
+* `PLANNED_REMOVAL`
+* `INCORRECT_OIDS`
+* `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
 By default, all categories are checked.
 
 By default, ninja displays warnings about objects to `SYSOUT`.
@@ -17,7 +23,7 @@ Verification can run while midPoint is running.
 The whole verification can be split into multiple parts, each part verifying a subset of similar objects using `-f, --filter` and `-t, --type` options.
 This way verification reports can be simpler to read and easier to understand, since they should contain smaller set of issues.
 
-Verification results can be reported in two styles plain and CSV.
+Verification results can be reported in two styles; plain and CSV.
 The switch for report style is `--report-style [plain|csv]`.
 Plain style is set as default option, while CSV is better for further processing and review.
 CSV report style creates two files - CSV and XML.

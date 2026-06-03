@@ -1,17 +1,32 @@
 = Run SQL
 
-`run-sql` command can be used to execute SQL scripts on database.
+`run-sql` command executes SQL scripts on database.
 
-Database schema changes are implemented in SQL scripts that are bundled with distribution in folder `doc/config/sql/native/*.sql`.
-User can use `--mode [repository|audit]` switch together with `--upgrade` to run proper scripts automatically or use `--scripts` option to specify custom set of scripts.
+Database schema changes are implemented in SQL scripts that are bundled with the distribution in a folder `doc/config/sql/native/*.sql`.
+User selects the scripts to run using following switches.
 
-Run-sql command can be used also to create database schema from scratch using switch `--create`.
+* `--create` executes scripts that create the database schema from scratch.
+* `--upgrade` upgrades an existing database schema.
+It can be combined with the `--mode` switch using either `REPOSITORY` or `AUDIT` to upgrade repository or audit schema.
+
+The `run-sql` command can be also used to execute custom scripts via the switch `--scripts`.
+The `--scripts` option accepts a path to a SQL script file.
+
+[NOTE]
+====
+The specified script does not need to be located in doc/config/sql/native/*.sql.
+Any SQL script accessible from the midPoint deployment can be executed.
+====
+
+The `--result` option prints the results of executed SQL statements (including query output) to the standard output (SYSOUT).
+This option is particularly useful when executing custom SQL scripts using the `--scripts` option, as it allows users to inspect query results directly from the command line.
 
 Ninja by default uses repository/audit configuration from _midpoint-home/config.xml_ to connect to database.
 This behaviour can be changed via `--jdbc-url`, `--jdbc-username` and `--jdbc-password` options.
 With these options, ninja will switch to _raw_ mode, create custom JDBC connection and execute scripts on it.
 
-If `--result` switch is used, ninja will print results for each query in script to SYSOUT, otherwise results are ignored.
+If you do not want to provide the password directly on the command line, use the `--jdbc-ask-password option`.
+Ninja will prompt you to enter the password interactively, preventing it from being displayed in the command history or process list.
 
 .Example runs custom-upgrade-database.sql script on JDBC connection specified by url/username/password
 [source,bash]
@@ -31,7 +46,7 @@ If `--result` switch is used, ninja will print results for each query in script 
   --upgrade
 ----
 
-.Following example runs upgrade scripts for repository on database defined in midpoint-home/config.xml
+.Following example runs upgrade scripts for audit on database defined in midpoint-home/config.xml
 [source,bash]
 ----
 ./bin/ninja.sh run-sql \
@@ -39,7 +54,7 @@ If `--result` switch is used, ninja will print results for each query in script 
   --upgrade
 ----
 
-.This example runs custom defined scripts for audit on database defined in midpoint-home/config.xml
+.This example runs custom defined scripts for repository on database defined in midpoint-home/config.xml
 [source,bash]
 ----
 ./bin/ninja.sh run-sql \
