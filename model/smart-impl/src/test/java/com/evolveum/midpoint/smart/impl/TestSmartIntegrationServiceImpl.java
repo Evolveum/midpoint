@@ -1059,7 +1059,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                     if (attrName.contains("type")) {
                         throw new RuntimeException("LLM went crazy here");
                     } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
-                        return new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')");
+                        return new SiSuggestMappingResponseType().transformationScript("input.replace('-', '')");
                     }
                 }
             }
