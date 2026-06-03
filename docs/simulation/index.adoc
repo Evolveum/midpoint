@@ -349,3 +349,11 @@ It has the following limitations:
 . In this mode, higher-level processing (synchronization) is always skipped.
 . Errors are not reported in this mode in the simulation result.
 They can be seen only in the respective task, just like they are visible in normal processing.
+
+=== Correlation simulation
+
+This is a special kind of simulation, which can help to simulate how the correlation rule behaves.
+
+==== Limitations
+
+* Does not work with object type definition (kind/intent) in deprecated `objectSynchronization` configuration element (in Resource).
