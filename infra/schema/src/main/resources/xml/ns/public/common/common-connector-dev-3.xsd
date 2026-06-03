@@ -113,6 +113,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="suggestedEndpoint" type="c:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -678,7 +679,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="jwt-bearer">
+            <xsd:enumeration value="jwtBearer">
                 <xsd:annotation>
                     <xsd:documentation>
                         JWT Bearer Token Authorization
@@ -698,7 +699,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="oauth2-client-credentials">
+            <xsd:enumeration value="oauth2ClientCredentials">
                 <xsd:annotation>
                     <xsd:documentation>
                         OAuth2 Client Credentials Authorization
@@ -715,21 +716,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="oauth2-password">
+            <xsd:enumeration value="oauth2Password">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OAUTH2_PASSWORD"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="oauth2-jwt">
+            <xsd:enumeration value="oauth2Jwt">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OAUTH2_JWT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="oauth2-saml">
+            <xsd:enumeration value="oauth2Saml">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OAUTH2_SAML"/>
@@ -743,7 +744,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="aws-signature">
+            <xsd:enumeration value="awsSignature">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="AWS_SIGNATURE"/>
