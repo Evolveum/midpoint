@@ -139,6 +139,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
                 }
                 throw new AuthenticationServiceException("Couldn't find authentication module for sequence " + authWrapper.getSequenceIdentifier());
             }
+            resetRetryableModuleIfNeeded(mpAuthentication);
             resolveErrorWithMoreModules(mpAuthentication, httpRequest);
 
             if (!response.isCommitted()) {
@@ -381,6 +382,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private void createMpAuthentication(HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {
         authWrapper.buildMidPointAuthentication(httpRequest);
+    }
+
+    private void resetRetryableModuleIfNeeded(MidpointAuthentication mpAuthentication) {
+        if (mpAuthentication != null) {
+            mpAuthentication.resetLastFailedModuleForRetry();
+        }
     }
 
     //todo decide if we still need it
