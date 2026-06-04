@@ -277,19 +277,19 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.48
+| 10.1.55
 | Web container
 
 | ConnId
-| 1.6.0.0
+| 1.7.0.0-SNAPSHOT #TODO#
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.9.2
+| 3.10-SNAPSHOT  #TODO#
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 2.9
+| 2.10-SNAPSHOT #TODO#
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
@@ -321,17 +321,19 @@ Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
-=== Upgrade From MidPoint 4.9
+=== Upgrade From MidPoint 4.10
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
-Be sure to be on the latest maintenance version for 4.9, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
+Be sure to be on the latest maintenance version for 4.10, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
- * There are database schema changes (see xrefv:/midpoint/reference/support-4.9/upgrade/database-schema-upgrade/[Database schema upgrade]).
+* There are database schema changes (see xrefv:/midpoint/reference/support-4.10/upgrade/database-schema-upgrade/[Database schema upgrade]).
+** New tables for `ApplicationType`, `ConnectorDevelopmentType` were added.
+** Few other smaller changes.
 
  * Version numbers of some bundled connectors have changed.
  Connector references from the resource definitions that are using the bundled connectors need to be updated.
@@ -340,8 +342,8 @@ Note that:
 
 === Upgrade From Other MidPoint Versions
 
-Upgrade from midPoint versions other than 4.9.x to midPoint {release-version} is not supported directly.
-Please upgrade to 4.9.5 first.
+Upgrade from midPoint versions other than 4.10.x to midPoint {release-version} is not supported directly.
+Please upgrade to 4.10.3 first.
 
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.10
 
@@ -374,6 +376,44 @@ _Actions required:_ Please review the changes and apply them appropriately to yo
 For more information see xrefv:/midpoint/reference/support-4.10/deployment/ninja/use-case/upgrade-with-ninja/#_initial_objects[here].
 
 //TODO
+New initial objects:
+
+* 064-archetype-governance-policy.xml
+* 739-mark-shadow-correlation-owner-found.xml
+* 740-mark-shadow-correlation-owner-not-found.xml
+* 741-mark-shadow-correlation-owner-not-certain.xml
+* 742-mark-item-value-added.xml
+* 743-mark-item-value-removed.xml
+* 744-mark-item-value-modified.xml
+* 745-mark-item-value-not-changed.xml
+* 746-mark-item-value-change-not-applied.xml
+* 602-origin-artificial-intelligence.xml
+* 603-origin-system-intelligence.xml
+
+Modified:
+
+* 029-archetype-application.xml - Poly-string translation keys added.
+* 501-archetype-task-reconciliation.xml - Poly-string translation keys added.
+* 502-archetype-task-recomputation.xml - Poly-string translation keys added.
+* 503-archetype-task-import.xml - Poly-string translation keys added.
+* 504-archetype-task-live-sync.xml - Poly-string translation keys added.
+* 505-archetype-task-async-update.xml - Poly-string translation keys added.
+* 506-archetype-task-cleanup.xml - Poly-string translation keys added.
+* 507-archetype-task-report.xml - Poly-string translation keys added.
+* 508-archetype-task-single-bulk-action.xml - Poly-string translation keys added.
+* 509-archetype-task-iterative-bulk-action.xml - Poly-string translation keys added.
+* 536-archetype-task-certification-start-campaign.xml - Poly-string translation keys added.
+* 537-archetype-task-certification-close-current-stage.xml - Poly-string translation keys added.
+* 538-archetype-task-certification-reiterate-campaign.xml - Poly-string translation keys added.
+* 702-archetype-person.xml - Poly-string translation keys added.
+* 705-archetype-shadow-policy-mark.xml - Poly-string translation keys added.
+* 200-lookup-languages.xml - Added Slovenian (sl) and Latvian (lv) languages.
+* 210-lookup-locales.xml - Added Slovenian (sl) and Latvian (lv) locales.
+* 250-mark-privileged-access.xml - Added archetype.
+* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction.
+* 300-policy-require-classification.xml - Added archetype.
+* 300-policy-require-owner.xml - Added archetype.
+* 000-system-configuration.xml -  Poly-string translation keys added.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
@@ -385,6 +425,8 @@ On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{rele
 NOTE: This section is relevant to the majority of midPoint deployments.
 It describes what data items were marked as deprecated, or removed altogether from the schema.
 You should at least scan through it - or use the `ninja` tool to check the deprecations for you.
+
+// todo
 
 .Items being deprecated
 [%autowidth]
@@ -429,29 +471,7 @@ You can use `ninja` tool for this.
 [#_behavior_changes_since_4_10]
 === Behavior Changes Since 4.10
 
-* The contract for `ModificationsSupplier` in dynamic object modifications (repo API) was changed.
-+
-The original approach was that the caller, i.e., repository, cloned the existing object before handling it to the callback (modifications supplier).
-Now, the implementor of the callback is responsible for not modifying the provided object in any way.
-
-* Projections with denied access no longer cause "preview changes" operation to fail.
-+
-If a user has no authorization to see particular projection (shadow), the "preview changes" operation used to finish with "Access denied" fatal error even if there were parts of the result visible to the user.
-This is now changed (fixed): only the relevant projections are hidden now.
-All the remaining data are displayed to the user.
-See also bug:MID-10397[].
-
-* Expression profile changes:
-
-** Script expression evaluator was removed from `safe` expression profile, as it is not considered to be safe.
-
-** Two new expression profiles were added: `permissive` (allowing all expressions) and `prohibitive` (allowing no expressions).
-
-** Permission profile `script-safe` was renamed to `script-limited`, as the existing mechanism for script permission checks is not considered to provide complete safety and security.
-This profile is not considered to provide strict security, therefore the name was changed to avoid mis-interpretation.
-Corresponding description was added to the profile.
-
-** See xref:/midpoint/reference/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
+// TODO
 
 ++++
 {% include release-issues.html %}
