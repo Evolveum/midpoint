@@ -1220,6 +1220,14 @@ public abstract class PageBase extends PageAdminLTE {
                 }
                 return null;
             }
+
+            public String getFileName() {
+                var exportProcess = getExportProcess();
+                if (exportProcess.getData() != null) {
+                    return exportProcess.getData().toString();
+                }
+                return super.getFileName();
+            }
         };
         add(ajaxDownloadBehavior);
     }

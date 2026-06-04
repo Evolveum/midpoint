@@ -11,14 +11,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
@@ -28,11 +24,9 @@ import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 
-import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.wicket.Application;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ThreadContext;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,16 +40,11 @@ import org.apache.wicket.model.Model;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.cycle.RequestCycleContext;
 import org.apache.wicket.util.*;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
@@ -85,8 +74,8 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
     }
 
     private String getVerifiedFileNameWithExtension() {
-        return name.getObject().endsWith(getFileExtension()) ?
-                name.getObject() : name.getObject() + getFileExtension();
+        String fileName = getFilename();
+        return fileName.toLowerCase().endsWith(getFileExtension()) ? fileName : fileName + getFileExtension();
     }
 
     @Override
@@ -149,13 +138,17 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
         return component.getTable().getDataTable();
     }
 
-    protected String getFilename() {
-        return fileNamePrefix +
-                "_" +
-                ColumnUtils
-                        .createStringResource("MainObjectListPanel.exportFileName")
-                        .getString() +
-                getFileExtension();
+    private String getFilename() {
+        if (StringUtils.isNotEmpty(name.getObject())) {
+            return name.getObject();
+        } else {
+            return getDefaultFilename();
+        }
+    }
+
+    private String getDefaultFilename() {
+        return fileNamePrefix + "_" +
+                ColumnUtils.createStringResource("MainObjectListPanel.exportFileName").getString();
     }
 
     protected abstract String getFileExtension();
@@ -182,7 +175,7 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
     private void startExportProcess() {
         var pageBase = component.getPageBase();
-        pageBase.getAsyncWebProcessManager().createProcess(PageBase.EXPORT_PROCESS_ID, null);
+        pageBase.getAsyncWebProcessManager().createProcess(PageBase.EXPORT_PROCESS_ID, getVerifiedFileNameWithExtension());
         pageBase.getAsyncWebProcessManager().submit(PageBase.EXPORT_PROCESS_ID, createFileLoader());
     }
 
@@ -192,7 +185,7 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
         MidPointApplication application = MidPointApplication.get();
         final SecurityContextManager secManager = application.getSecurityContextManager();
 
-        String fileName = getFilename();
+        String fileName = getDefaultFilename();
         String fileExtension = getFileExtension();
 
         IDataProvider<?> provider = getDataTable().getDataProvider();
@@ -203,7 +196,6 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
             @Override
             public File callWithContextPrepared() {
                 try {
-                    //todo make the application and the session a part of the security context?
                     ThreadContext.setApplication(application);
                     ThreadContext.setSession(session);
 
