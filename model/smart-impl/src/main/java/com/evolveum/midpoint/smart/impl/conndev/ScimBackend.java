@@ -33,19 +33,7 @@ public class ScimBackend extends RestBackend {
         super(beans, connDev, task, result);
     }
 
-    @Override
-    public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) {
-        return super.discoverDocumentation(skipCache);
-    }
-
-    @Override
-    public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
-        super.ensureDocumentationIsProcessed();
-
-        refreshScimDocumentation();
-    }
-
-    private void refreshScimDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void refreshScimDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         var testingResourceOid = getTestingResourceOid();
 
         if (!isScimDiscoveryConfigured(testingResourceOid)) {

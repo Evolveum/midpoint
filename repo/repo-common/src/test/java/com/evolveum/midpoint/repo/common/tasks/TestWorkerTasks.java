@@ -12,16 +12,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import jakarta.annotation.PostConstruct;
-
-import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
-import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
-import com.evolveum.midpoint.test.asserter.TaskAsserter;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -29,6 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -152,12 +151,14 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
                     .assertItems(4, null) // null because of workers
                 .end()
                 .assertCachingProfiles("profile1")
+                .assertConflictResolution(new ConflictResolutionType().action(ConflictResolutionActionType.NONE).maxAttempts(1))
                 .assertSubtasks(1)
                 .subtask("Worker DefaultNode:1 for root activity in task-100")
                     .display()
                     .assertClosed()
                     .assertSuccess()
                     .assertCachingProfiles("profile1")
+                    .assertConflictResolution(new ConflictResolutionType().action(ConflictResolutionActionType.NONE).maxAttempts(1))
                     .rootItemProcessingInformation()
                         .display()
                         .assertTotalCounts(4, 0, 0)
@@ -436,7 +437,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
             then("change workers explicitly");
             assertFourWorkers(root, "after changing workers", w1correct, w2broken, w3broken, w4correct,
-                    true, false, true, true,  DN, DN, DN, DN, 4, result);
+                    true, false, true, true, DN, DN, DN, DN, 4, result);
 
             // ---------------------------------------------------------------------------------------- reconcile workers
             when("reconcile workers");
@@ -445,7 +446,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
             then("reconcile workers");
             assertFourWorkers(root, "after reconciliation", w1correct, w2correct, w3correct, w4correct,
-                    true, false, false, false,  DN, DN, DN, DN, 4, result);
+                    true, false, false, false, DN, DN, DN, DN, 4, result);
             assertReconResult("after reconciliation", resultMap,
                     1, 1, 2, 0, 0, 0);
 
@@ -505,7 +506,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
             waitForChildrenBeRunning(root, 4, result);
             then("children are running");
-            var asserter= assertFourWorkers(root, "after reconciliation",
+            var asserter = assertFourWorkers(root, "after reconciliation",
                     w1correct, w2correct, w3nodeB, w4nodeB,
                     true, false, true, false,
                     DN, DN, NB, NB, 6, result);

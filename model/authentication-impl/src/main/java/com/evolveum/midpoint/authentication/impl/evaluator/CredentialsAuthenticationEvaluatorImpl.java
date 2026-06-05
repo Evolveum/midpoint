@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.evaluator;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -91,9 +91,14 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
                 throw new DisabledException("web.security.flexAuth.invalid.required.assignment");
             }
         } else {
-            String reason = createModuleAuthenticationFailureMessage(principal, connEnv);
+            String reason = createInvalidCredentialsMessage(principal, connEnv);
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, reason);
-            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
+
+            String key = createInvalidCredentialsKey(principal, connEnv);
+            if (StringUtils.isEmpty(key)) {
+                key = AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication());
+            }
+            throw new BadCredentialsException(key);
         }
 
         checkAuthorizations(principal, connEnv, authnCtx);
@@ -111,8 +116,12 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         }
     }
 
-    protected String createModuleAuthenticationFailureMessage(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+    protected String createInvalidCredentialsMessage(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
         return "password mismatch";
+    }
+
+    protected String createInvalidCredentialsKey(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+        return null;
     }
 
     private boolean checkCredentials(MidPointPrincipal principal, T authnCtx, ConnectionEnvironment connEnv) {

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<resource oid="1770d7f2-45e7-4e7a-8598-b98e042c95df"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+    <name>resource-dummy-conflict-abstract</name>
+    <documentation>
+        Abstract resource for checking conflict between LiveSync tasks. Used to derive equivalent specific resources.
+    </documentation>
+    <abstract>true</abstract>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:text>connectorType = "com.evolveum.icf.dummy.connector.DummyConnector" and connectorVersion = "2.0"</q:text>
+        </filter>
+    </connectorRef>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <correlator/>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                Thread.sleep(100)
+                                input
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:privileges</ref>
+                <description>Value format is: role-name#tag (the tag is used just to check that all shadows were taken into account)</description>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <assignmentTargetSearch>
+                            <targetType>RoleType</targetType>
+                            <filter>
+                                <q:text>name = ```
+                                    import org.apache.commons.lang3.StringUtils
+                                    StringUtils.substringBefore(input, "#")
+                                    ```</q:text>
+                            </filter>
+                        </assignmentTargetSearch>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                        <set>
+                            <predefined>all</predefined>
+                        </set>
+                    </target>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>organization</path>
+                        <set>
+                            <predefined>none</predefined>
+                        </set>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+</resource>

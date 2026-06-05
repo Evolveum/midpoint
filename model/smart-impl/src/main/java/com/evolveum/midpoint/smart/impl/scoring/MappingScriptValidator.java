@@ -51,6 +51,8 @@ public class MappingScriptValidator {
 
     private static final String GROOVY_LANGUAGE =
             "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
+    private static final String MIDPOINT_EXPRESSION_LANGUAGE =
+            "http://midpoint.evolveum.com/xml/ns/public/expression/language#mel";
     private static final String ID_TEST_MAPPING_SCRIPT = "testMappingScript";
 
     private final ExpressionFactory expressionFactory;
@@ -119,8 +121,8 @@ public class MappingScriptValidator {
 
     private static ExpressionProfile restrictedProfile() {
         // TODO is this safe enough?
-        final ExpressionPermissionProfile permissionsProfile = ExpressionPermissionProfile.closed(
-                "LLM scripts profile", AccessDecision.ALLOW, Collections.emptyList(),
+        final ExpressionPermissionProfile groovyPermissionsProfile = ExpressionPermissionProfile.closed(
+                "LLM Groovy scripts permission profile", AccessDecision.ALLOW, Collections.emptyList(),
                 List.of(new ExpressionPermissionClassProfileType()
                         .decision(AuthorizationDecisionType.ALLOW)
                         .name("java.lang.String")
@@ -129,8 +131,11 @@ public class MappingScriptValidator {
                                 .decision(AuthorizationDecisionType.DENY))));
         final ExpressionEvaluatorProfile evaluatorProfile = new ExpressionEvaluatorProfile(
                 SchemaConstantsGenerated.C_SCRIPT, AccessDecision.DENY,
-                List.of(new ScriptLanguageExpressionProfile(
-                        GROOVY_LANGUAGE, AccessDecision.ALLOW, true, permissionsProfile)));
+                List.of(
+                        new ScriptLanguageExpressionProfile(
+                                GROOVY_LANGUAGE, AccessDecision.ALLOW, true, groovyPermissionsProfile),
+                        new ScriptLanguageExpressionProfile(
+                                MIDPOINT_EXPRESSION_LANGUAGE, AccessDecision.ALLOW, true, null)));
         return new ExpressionProfile("LLM scripts profile",
                 new ExpressionEvaluatorsProfile(AccessDecision.DENY, List.of(evaluatorProfile)),
                 BulkActionsProfile.none(),

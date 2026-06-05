@@ -455,7 +455,9 @@ class MappingsSuggestionOperation {
                 .description(scriptDescription)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().code(script)));
+                                new ScriptExpressionEvaluatorType()
+                                        .language("mel")
+                                        .code(script)));
     }
 
     private SiSuggestMappingResponseType askMicroserviceAsync(

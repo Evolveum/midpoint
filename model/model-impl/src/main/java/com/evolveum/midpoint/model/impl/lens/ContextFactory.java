@@ -6,23 +6,12 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import com.evolveum.midpoint.model.api.context.ProjectionContextKeyFactory;
-import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -32,23 +21,32 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKeyFactory;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -173,11 +171,11 @@ public class ContextFactory {
         LensContext<F> context;
         if (AssignmentHolderType.class.isAssignableFrom(typeClass)) {
             //noinspection unchecked
-            context = createRecomputeFocusContext((Class<F>)typeClass, (PrismObject<F>) object, options, task);
+            context = createRecomputeFocusContext((Class<F>) typeClass, (PrismObject<F>) object, options, task);
         } else if (ShadowType.class.isAssignableFrom(typeClass)) {
             context = createRecomputeProjectionContext((ShadowType) object.asObjectable(), options, task, result);
         } else {
-            throw new IllegalArgumentException("Cannot create recompute context for "+object);
+            throw new IllegalArgumentException("Cannot create recompute context for " + object);
         }
         context.setOptions(options);
         context.setLazyAuditRequest(true);
@@ -211,7 +209,7 @@ public class ContextFactory {
         return lensContext;
     }
 
-     /**
+    /**
      * Creates empty lens context for synchronization purposes, filling in only the very basic metadata (such as channel).
      */
     public <F extends ObjectType> LensContext<F> createSyncContext(
@@ -243,7 +241,7 @@ public class ContextFactory {
          * Sorts the deltas provided by client into categories; checking also object type compatibility.
          */
         CategorizedDeltas(Collection<ObjectDelta<? extends ObjectType>> deltas) {
-            for (ObjectDelta<? extends ObjectType> delta: deltas) {
+            for (ObjectDelta<? extends ObjectType> delta : deltas) {
                 Class<? extends ObjectType> typeClass = delta.getObjectTypeClass();
                 Validate.notNull(typeClass, "Object type class is null in " + delta);
                 if (FocusType.class.isAssignableFrom(typeClass)) {

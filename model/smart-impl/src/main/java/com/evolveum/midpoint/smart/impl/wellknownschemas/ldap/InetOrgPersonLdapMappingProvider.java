@@ -88,7 +88,7 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
 
     private SystemMappingSuggestion createDnScriptSuggestion(
             String rdnAttr, String sourceVar, ItemPath sourcePath, String ouSuffix) {
-        String script = "basic.composeDnWithSuffix('%s', %s, '%s')".formatted(rdnAttr, sourceVar, ouSuffix);
+        String script = "ldap.composeDnWithSuffix(['%s', %s, '%s'])".formatted(rdnAttr, sourceVar, ouSuffix);
         String description = "Compose DN: %s=<%s>,%s".formatted(rdnAttr, sourceVar, ouSuffix);
         return SystemMappingSuggestion.createScriptSuggestion("dn", sourcePath, script, description,
                 MappingStrengthType.STRONG);
