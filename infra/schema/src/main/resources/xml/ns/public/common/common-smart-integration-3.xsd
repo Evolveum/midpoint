@@ -1492,17 +1492,19 @@
         <xsd:complexContent>
             <xsd:extension base="tns:SiRequestType">
                 <xsd:sequence>
-                    <xsd:element name="applicationAttribute" type="tns:SiAttributeDefinitionType">
+                    <xsd:element name="applicationAttribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Definition of the attribute at the application side.
+                                Definition of the attribute(s) at the application side.
+                                There must be exactly one for outbound mappings.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="midPointAttribute" type="tns:SiAttributeDefinitionType">
+                    <xsd:element name="midPointAttribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Definition of the attribute at the midPoint side.
+                                Definition of the attribute(s) at the midPoint side.
+                                There must be exactly one for inbound mappings.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

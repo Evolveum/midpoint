@@ -1663,25 +1663,28 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     private void handleObjectListViewColumns(ObjectCollectionReportEngineConfigurationType objectCollection) {
-        // we need to handle default view columns (previously it was managed by ReportServiceImpl.createCompiledView)
-        // in order to gather all columns together (default + custom/configured)
+        // we need to handle view columns here (previously it was managed by ReportServiceImpl.createCompiledView)
+        // in order to set to the report view all those columns which are present in the current gui view
         // Relates to #10967
         if (objectCollection.getView().getColumn() == null) {
             objectCollection.getView().createColumnList();
         }
-        List<GuiObjectColumnType> viewColumnsNew = objectCollection.getView().getColumn().stream()
-                        .map(column -> (GuiObjectColumnType) column.cloneWithoutId())
-                        .collect(Collectors.toList());
-        int index = 0;
-        for (GuiObjectColumnType column : getDefaultView().getColumn()) {
-            if (isColumnAlreadyInList(viewColumnsNew, column)) {
-                continue;
+        if (isCustomColumnsListConfigured() && shouldIncludeDefaultColumns()) {
+            List<GuiObjectColumnType> viewColumnsNew = objectCollection.getView().getColumn().stream()
+                    .map(column -> (GuiObjectColumnType) column.cloneWithoutId())
+                    .collect(Collectors.toList());
+            int index = 0;
+            for (GuiObjectColumnType column : getDefaultView().getColumn()) {
+                if (isColumnAlreadyInList(viewColumnsNew, column)) {
+                    continue;
+                }
+                viewColumnsNew.add(index, column.cloneWithoutId());
+                index++;
             }
-            viewColumnsNew.add(index, column.cloneWithoutId());
-            index++;
+            objectCollection.getView().getColumn().clear();
+            viewColumnsNew
+                    .forEach(c -> objectCollection.getView().getColumn().add(c.cloneWithoutId()));
         }
-        viewColumnsNew
-                .forEach(c -> objectCollection.getView().getColumn().add(c.cloneWithoutId()));
     }
 
     protected GuiObjectListViewType getDefaultView() {

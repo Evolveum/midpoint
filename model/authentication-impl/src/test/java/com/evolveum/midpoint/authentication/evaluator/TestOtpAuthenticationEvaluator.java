@@ -51,6 +51,11 @@ public class TestOtpAuthenticationEvaluator extends TestAbstractAuthenticationEv
     }
 
     @Override
+    protected String getBadPasswordKey() {
+        return OtpAuthenticationEvaluator.INVALID_CREDENTIALS_KEY;
+    }
+
+    @Override
     public OtpAuthenticationEvaluator getAuthenticationEvaluator() {
         return authenticationEvaluator;
     }

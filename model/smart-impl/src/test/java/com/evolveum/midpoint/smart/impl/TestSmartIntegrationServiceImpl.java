@@ -10,6 +10,7 @@ package com.evolveum.midpoint.smart.impl;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
@@ -72,8 +73,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     private static final File TEST_100_STATISTICS = new File(TEST_DIR, "test-100-statistics.xml");
     private static final File TEST_1XX_STATISTICS = new File(TEST_DIR, "test-1xx-statistics.xml");
-    private static final File TEST_110_EXPECTED_OBJECT_TYPES = new File(TEST_DIR, "test-110-expected-object-types.xml");
-    private static final File TEST_140_EXPECTED_OBJECT_TYPES = new File(TEST_DIR, "test-140-expected-object-types.xml");
     private static final File TEST_110_EXPECTED_REQUEST = new File(TEST_DIR, "test-110-expected-request.json");
 
     private static final TestObject<UserType> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
@@ -617,7 +616,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** All features: both filters and base context, plus multiple object types. */
-    @Test(enabled = false) // MID-10872
+    @Test
     public void test110SuggestObjectTypesWithFiltersAndBaseContext() throws CommonException, IOException {
         skipIfRealService();
 
@@ -646,9 +645,33 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         then("there is at least one suggested object type");
         assertSuccess(result);
-        assertThat(objectTypes)
-                .as("suggested object types")
-                .isEqualTo(parseObjectTypesSuggestion(TEST_110_EXPECTED_OBJECT_TYPES));
+        assertThat(objectTypes).isNotNull();
+        assertThat(objectTypes.getObjectType()).as("suggested object types").hasSize(2);
+
+        var employeeType = objectTypes.getObjectType().get(0);
+        assertThat(employeeType.getKind()).isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(employeeType.getIntent()).isEqualTo("employee");
+        var employeeDelineation = employeeType.getDelineation();
+        assertThat(employeeDelineation).isNotNull();
+        assertThat(employeeDelineation.getObjectClass()).isEqualTo(new QName(NS_RI, "account"));
+        assertThat(employeeDelineation.getFilter()).hasSize(1);
+        assertThat(employeeDelineation.getFilter().get(0).getText()).isEqualTo("attributes/type = 'employee'");
+        assertThat(employeeDelineation.getBaseContext()).isNotNull();
+        assertThat(employeeDelineation.getBaseContext().getObjectClass())
+                .isEqualTo(new QName(NS_RI, "organizationalUnit"));
+        assertThat(employeeDelineation.getBaseContext().getFilter()).isNotNull();
+        assertThat(employeeDelineation.getBaseContext().getFilter().getText())
+                .isEqualTo("attributes/cn = 'evolveum'");
+
+        var otherType = objectTypes.getObjectType().get(1);
+        assertThat(otherType.getKind()).isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(otherType.getIntent()).isEqualTo("other");
+        var otherDelineation = otherType.getDelineation();
+        assertThat(otherDelineation).isNotNull();
+        assertThat(otherDelineation.getObjectClass()).isEqualTo(new QName(NS_RI, "account"));
+        assertThat(otherDelineation.getFilter()).hasSize(1);
+        assertThat(otherDelineation.getFilter().get(0).getText()).isEqualTo("attributes/type != 'employee'");
+        assertThat(otherDelineation.getBaseContext()).isNull();
 
         var realRequest = normalizeSiSuggestObjectTypesRequest(mockClient.getLastRequest());
         var expectedRequest = normalizeSiSuggestObjectTypesRequest(
@@ -773,7 +796,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** All features: both filters and base context, plus multiple object types. */
-    @Test(enabled = false) // MID-10872
+    @Test
     public void test140ConflictingObjectTypes() throws CommonException, IOException {
         skipIfRealService();
 
@@ -809,10 +832,22 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         then("suggested types are correct");
         assertSuccess(result);
         displayValueAsXml("suggested object types", objectTypes);
-        assertThat(objectTypes.getObjectType())
-                .as("suggested object types")
-                .containsExactlyInAnyOrderElementsOf(
-                        parseObjectTypesSuggestion(TEST_140_EXPECTED_OBJECT_TYPES).getObjectType());
+        assertThat(objectTypes.getObjectType()).as("suggested object types").hasSize(1);
+
+        var employeeType = objectTypes.getObjectType().get(0);
+        assertThat(employeeType.getKind()).isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(employeeType.getIntent()).isEqualTo("employee");
+        var delineation = employeeType.getDelineation();
+        assertThat(delineation).isNotNull();
+        assertThat(delineation.getObjectClass()).isEqualTo(new QName(NS_RI, "account"));
+        assertThat(delineation.getFilter()).hasSize(1);
+        assertThat(delineation.getFilter().get(0).getText()).isEqualTo("attributes/type = 'employee1'");
+        assertThat(delineation.getBaseContext()).isNotNull();
+        assertThat(delineation.getBaseContext().getObjectClass())
+                .isEqualTo(new QName(NS_RI, "organizationalUnit"));
+        assertThat(delineation.getBaseContext().getFilter()).isNotNull();
+        assertThat(delineation.getBaseContext().getFilter().getText())
+                .isEqualTo("attributes/cn = 'evolveum'");
     }
 
     /** Tests the accounts statistics computer. */
@@ -999,10 +1034,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         return parseFile(file, ShadowObjectClassStatisticsType.class);
     }
 
-    private static ObjectTypesSuggestionType parseObjectTypesSuggestion(File file) throws IOException, SchemaException {
-        return parseFile(file, ObjectTypesSuggestionType.class);
-    }
-
     private static <T> T parseFile(File file, Class<T> clazz) throws IOException, SchemaException {
         return PrismContext.get().parserFor(file).parseRealValue(clazz);
     }
@@ -1054,12 +1085,12 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 return schemaMatchResponse;
             } else if (request instanceof SiSuggestMappingRequestType mappingRequest) {
                 var appAttr = mappingRequest.getApplicationAttribute();
-                if (appAttr != null) {
-                    String attrName = appAttr.getName();
+                if (!appAttr.isEmpty()) {
+                    String attrName = appAttr.get(0).getName();
                     if (attrName.contains("type")) {
                         throw new RuntimeException("LLM went crazy here");
                     } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
-                        return new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')");
+                        return new SiSuggestMappingResponseType().transformationScript("input.replace('-', '')");
                     }
                 }
             }

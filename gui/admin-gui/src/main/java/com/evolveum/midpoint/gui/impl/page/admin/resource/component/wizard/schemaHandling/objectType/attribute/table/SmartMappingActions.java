@@ -936,7 +936,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
     }
 
     @NotNull InlineMenuItem createSuggestionOperationInlineMenu() {
-        return StatusInfoTableUtil.createSuggestionOperationInlineMenu(
+        return StatusInfoTableUtil.createSuggestionStopGeneratingInlineMenu(
                 table.getPageBase(),
                 table::getStatusInfo,
                 table::refreshAndDetach);

@@ -67,7 +67,7 @@ public class GroupActiveDirectoryMappingProvider implements WellKnownSchemaProvi
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "distinguishedName",
                     AbstractRoleType.F_IDENTIFIER,
-                    "basic.composeDnWithSuffix('cn', identifier, '%s')".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', identifier, '%s'])".formatted(ouSuffix),
                     "Compose DN: cn=<identifier>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
         }
