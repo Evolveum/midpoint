@@ -123,6 +123,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed role analysis attribute queries for enum-based attributes such as effective status. See bug:MID-10504[]
 * Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
 * Fixed loss of unsaved resource detail changes after running Test connection. See bug:MID-10966[]
+* Fixed dashboard widget collections with inline filters by allowing explicit object type specification. See bug:MID-9879[]
 
 === Releases Of Other Components
 
