@@ -121,6 +121,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed assignment name for policy rule. See bug:MID-11005[]
 * Fixed object list view columns while report creation. See bug:MID-10967[]
 * Fixed role analysis attribute queries for enum-based attributes such as effective status. See bug:MID-10504[]
+* Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
 
 === Releases Of Other Components
 
