@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.smart.impl.scoring;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -62,19 +63,20 @@ public class MappingsQualityAssessor {
                 continue;
             }
 
-            final String rawShadow = shadowValues.iterator().next().toString();
-            final String rawFocus = focusValues.iterator().next().toString();
+            final Object rawShadow = shadowValues.iterator().next();
+            final Object rawFocus = focusValues.iterator().next();
 
-            final String sourceValue = inboundMapping ? rawShadow : rawFocus;
-            final String target = inboundMapping ? rawFocus : rawShadow;
+            final Object sourceValue = inboundMapping ? rawShadow : rawFocus;
+            final Object target = inboundMapping ? rawFocus : rawShadow;
             final String variableName = inboundMapping
                     ? ExpressionConstants.VAR_INPUT
                     : testingSample.focusPropertyPath().lastName().getLocalPart();
 
+            final String targetAsString = target == null ? null : target.toString();
             final String transformedSource = suggestedExpression == null
-                    ? sourceValue
+                    ? (sourceValue == null ? null : sourceValue.toString())
                     : applyExpression(suggestedExpression, sourceValue, variableName, task, parentResult);
-            if (target.equals(transformedSource)) {
+            if (Objects.equals(targetAsString, transformedSource)) {
                 matchedSamples++;
             }
 
@@ -89,12 +91,13 @@ public class MappingsQualityAssessor {
     }
 
     @Nullable
-    private String applyExpression(ExpressionType expressionType, @Nullable String input, String variableName,
+    private String applyExpression(ExpressionType expressionType, @Nullable Object input, String variableName,
             Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, SecurityViolationException {
         try {
+            final Class<?> inputClass = input == null ? String.class : input.getClass();
             final Collection<String> transformedInput = scriptValidator.evaluateExpression(
-                    expressionType, variableName, input, task, parentResult);
+                    expressionType, variableName, input, inputClass, task, parentResult);
 
             if (transformedInput == null || transformedInput.isEmpty()) {
                 return null;

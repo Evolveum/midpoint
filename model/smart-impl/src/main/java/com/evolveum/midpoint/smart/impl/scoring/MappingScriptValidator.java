@@ -63,12 +63,13 @@ public class MappingScriptValidator {
 
     /**
      * Tests whether the suggested mapping script can be executed successfully.
-     * Executes the script with a sample test value and catches any exceptions.
+     * Executes the script with a sample test value (preserving its declared type) and catches any exceptions.
      */
     public void testCategoricalMappingScript(
             ExpressionType expression,
             String variableName,
-            String testValue,
+            @Nullable Object testValue,
+            Class<?> testValueClass,
             Task task,
             OperationResult parentResult) throws ScriptValidationException {
 
@@ -81,7 +82,7 @@ public class MappingScriptValidator {
                 .build();
 
         try {
-            evaluateExpression(expression, variableName, testValue, task, result);
+            evaluateExpression(expression, variableName, testValue, testValueClass, task, result);
             LOGGER.debug("Mapping script validation successful");
         } catch (Exception e) {
             LOGGER.debug("Mapping script validation failed: {}", e.getMessage());
@@ -92,13 +93,16 @@ public class MappingScriptValidator {
     }
 
     /**
-     * Evaluates a mapping expression with the provided variable and value.
-     * Returns the collection of string results from the expression evaluation.
+     * Evaluates a mapping expression with the provided variable, value and its declared type.
+     *
+     * Preserving the original type of the variable is important when the expression invokes
+     * methods specific to that type.
      */
     public Collection<String> evaluateExpression(
             ExpressionType expressionType,
             String variableName,
-            @Nullable String value,
+            @Nullable Object value,
+            Class<?> valueClass,
             Task task,
             OperationResult parentResult)
             throws ExpressionEvaluationException, SecurityViolationException, SchemaException,
@@ -106,7 +110,7 @@ public class MappingScriptValidator {
 
         final String description = "Mapping expression evaluation";
         final VariablesMap variables = new VariablesMap();
-        variables.put(variableName, value, String.class);
+        variables.put(variableName, value, valueClass);
         final ExpressionProfile profile = restrictedProfile();
 
         return ExpressionUtil.evaluateStringExpression(

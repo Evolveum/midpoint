@@ -12,6 +12,8 @@ import static org.testng.Assert.assertEquals;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBi
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluator;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
@@ -74,7 +77,8 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
         final ExpressionType expression = createExpression(GROOVY, "input.replaceAll('-', '')");
 
         final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
-                .evaluateExpression(expression, "input", "1-2-3", new NullTaskImpl(), createOperationResult());
+                .evaluateExpression(expression, "input", "1-2-3", String.class,
+                        new NullTaskImpl(), createOperationResult());
 
         assertEquals(result.size(), 1);
         assertEquals(result.iterator().next(), "123");
@@ -86,7 +90,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
 
         final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
         Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
-                expression, "input", "1-2-3", new NullTaskImpl(), createOperationResult()));
+                expression, "input", "1-2-3", String.class, new NullTaskImpl(), createOperationResult()));
     }
 
     @Test
@@ -96,7 +100,8 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
         final ExpressionType expression = createExpression(MEL, "input.replace('-', '')");
 
         final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
-                .evaluateExpression(expression, "input", "1-2-3", new NullTaskImpl(), createOperationResult());
+                .evaluateExpression(expression, "input", "1-2-3", String.class,
+                        new NullTaskImpl(), createOperationResult());
 
         assertEquals(result.size(), 1);
         assertEquals(result.iterator().next(), "123");
@@ -108,7 +113,41 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
 
         final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
         Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
-                expression, "input", "1-2-3", new NullTaskImpl(), createOperationResult()));
+                expression, "input", "1-2-3", String.class, new NullTaskImpl(), createOperationResult()));
+    }
+
+    /**
+     * Demonstrates that the validator passes the variable to the expression in its original type
+     * so that the expression can call methods specific to that type.
+     */
+    @Test
+    void melExpressionUsesXmlGregorianCalendarMethod_validateScript_expressionPassValidation()
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        final ExpressionType expression = createExpression(MEL, "input.formatDateTime('yyyy')");
+        final XMLGregorianCalendar dateTime =
+                XmlTypeConverter.createXMLGregorianCalendar(2024, 5, 17, 10, 30, 0);
+
+        final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
+                .evaluateExpression(expression, "input", dateTime, XMLGregorianCalendar.class,
+                        new NullTaskImpl(), createOperationResult());
+
+        assertEquals(result.size(), 1);
+        assertEquals(result.iterator().next(), "2024");
+    }
+
+    /**
+     * When the same MEL expression is evaluated with
+     * the variable wrongly typed as String, validation must fail.
+     */
+    @Test
+    void melExpressionUsesXmlGregorianCalendarMethod_variablePassedAsString_expressionValidationFails() {
+        final ExpressionType expression = createExpression(MEL, "input.formatDateTime('yyyy')");
+
+        final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
+        Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
+                expression, "input", "2024-05-17T10:30:00", String.class,
+                new NullTaskImpl(), createOperationResult()));
     }
 
     private static ExpressionType createExpression(String lang, String code) {
