@@ -18,12 +18,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -186,7 +184,8 @@ public class TestTask extends TestObject<TaskType> {
     }
 
     public String buildPolicyIdentifier(ActivityPath path, String policyIdentifier, boolean exact)
-            throws CommonException {
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
 
         TaskType task = test.getTask(oid).asObjectable();
 
@@ -200,7 +199,7 @@ public class TestTask extends TestObject<TaskType> {
             throw new IllegalStateException("No activity policies for path " + path + " in task " + oid);
         }
 
-        ActivityPolicyType policy = policies.getPolicy().stream()
+        PolicyRuleType policy = policies.getPolicy().stream()
                 .filter(p -> exact ?
                         Objects.equals(policyIdentifier, p.getName())
                         : p.getName() != null && p.getName().contains(policyIdentifier))
@@ -210,8 +209,6 @@ public class TestTask extends TestObject<TaskType> {
             throw new IllegalStateException("No activity policy matching '" + policyIdentifier + "' for path " + path + " in task " + oid);
         }
 
-        String identifier = def.getIdentifier() != null ? def.getIdentifier() : "";
-
-        return identifier + ":" + policy.getId();
+        return path + ":" + policy.getId();
     }
 }

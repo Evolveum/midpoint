@@ -23,7 +23,7 @@ import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
@@ -359,7 +359,7 @@ public class DashboardServiceImpl implements DashboardService {
             Integer domainValue = collStats.getDomainCount();
             IntegerStatType statType = generateIntegerStat(value, domainValue);
 
-            Collection<EvaluatedPolicyRule> evalPolicyRules = new ArrayList<>();
+            Collection<DirectlyEvaluatedClockworkPolicyRule> evalPolicyRules = new ArrayList<>();
             if (collectionSpec.getCollectionRef() != null
                     && QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionSpec.getCollectionRef().getType())) {
                 // [EP:APSO] DONE, collection is fetched from the repository
@@ -368,7 +368,7 @@ public class DashboardServiceImpl implements DashboardService {
                         valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());
             }
             Collection<String> policySituations = new ArrayList<>();
-            for (EvaluatedPolicyRule evalPolicyRule : evalPolicyRules) {
+            for (DirectlyEvaluatedClockworkPolicyRule evalPolicyRule : evalPolicyRules) {
                 if (!evalPolicyRule.getAllTriggers().isEmpty()) {
                     policySituations.add(evalPolicyRule.getPolicySituation());
                 }
@@ -411,7 +411,7 @@ public class DashboardServiceImpl implements DashboardService {
                 variablesMap.registerAlias(VAR_PROPORTIONAL, ExpressionConstants.VAR_INPUT);
             }
             if (policySituations != null) {
-                variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, EvaluatedPolicyRule.class);
+                variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, String.class);
             }
             variables.addVariableDefinitions(variablesMap);
         }

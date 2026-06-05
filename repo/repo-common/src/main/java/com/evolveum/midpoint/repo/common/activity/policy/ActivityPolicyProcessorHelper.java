@@ -17,6 +17,9 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Helper class for activity policy processing that can be used in non-iterative activities.
  */
@@ -33,7 +36,7 @@ public class ActivityPolicyProcessorHelper {
         ACTIVITY_RUN_THREAD_LOCAL.remove();
     }
 
-    private static AbstractActivityRun<?, ?, ?> getCurrentActivityRun() {
+    public static AbstractActivityRun<?, ?, ?> getCurrentActivityRun() {
         return ACTIVITY_RUN_THREAD_LOCAL.get();
     }
 
@@ -50,5 +53,15 @@ public class ActivityPolicyProcessorHelper {
 
         new ActivityPolicyRulesProcessor(getCurrentActivityRunRequired())
                 .evaluateAndExecuteRules(processingResult, result);
+    }
+
+    public static Collection<ActivityPolicyRule> getActivityPolicyRules() {
+        AbstractActivityRun<?, ?, ?> activityRun = getCurrentActivityRun();
+        if (activityRun == null) {
+            return List.of();
+        }
+
+        ActivityPolicyRulesContext context = activityRun.getActivityPolicyRulesContext();
+        return context.getPolicyRules();
     }
 }

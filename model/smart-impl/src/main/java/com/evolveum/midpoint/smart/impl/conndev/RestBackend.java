@@ -49,9 +49,12 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 if (jsonInfo.get("applicationVersion") != null) {
                     ret.version(jsonInfo.get("applicationVersion").asText());
                 }
+                if (jsonInfo.get("apiVersion") != null) {
+                    ret.apiVersion(jsonInfo.get("apiVersion").asText());
+                }
                 // FIXME for proper detection
                 ret.integrationType(ConnDevIntegrationType.REST);
-                if (jsonInfo.get("baseApiEndpoint") != null) {
+                if (jsonInfo.get("baseApiEndpoint") != null && jsonInfo.get("baseApiEndpoint").get(0) != null) {
                     ret.baseApiEndpoint(jsonInfo.get("baseApiEndpoint").get(0).get("uri").asText());
                 }
                 // FIXME: Add dynamic
@@ -82,6 +85,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                     if (auth != null) {
                         auth.setName(jsonAuth.get("name").asText());
                         auth.quirks(jsonAuth.get("quirks").asText());
+                        auth.setRecommended(true);
                         ret.add(auth);
                     }
                 }
@@ -140,7 +144,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
         return switch (classification) {
-            case AUTHENTICATION_CUSTOMIZATION -> generateAuthorizationScript(input, classification);
+            case AUTHENTICATION_CUSTOMIZATION -> generateAuthorizationScript(input, classification, skipCache);
             case TEST_CONNECTION_DEFINITION -> ret.content("""
                         test {
                             // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
@@ -153,22 +157,40 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         };
     }
 
-    private ConnDevArtifactType generateAuthorizationScript(ConnDevGenerateArtifactDefinitionType input, ConnectorDevelopmentArtifacts.KnownArtifactType classification) {
-        if (hasAuthenticationQuirks()) {
-            // FIXME: Here should be LLM call
-            return classification.create().content("""
-                    authentication {
-                        // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
-                        // how to write authentication part of the script.
-                    }
-                    """);
+    private ConnDevArtifactType generateAuthorizationScript(ConnDevGenerateArtifactDefinitionType input, ConnectorDevelopmentArtifacts.KnownArtifactType classification, boolean skipCache) {
+        var auths = developmentObject().getConnector().getAuth();
+        if (auths.isEmpty()) {
+            return null;
         }
-        return null;
-    }
 
-    private boolean hasAuthenticationQuirks() {
-        return developmentObject().getConnector().getAuth().stream()
-                .anyMatch(auth -> auth.getQuirks() != null && !auth.getQuirks().isBlank());
+        var body = JSON_FACTORY.objectNode();
+
+        var artifact = input.getArtifact();
+        body.set("currentScript", JSON_FACTORY.textNode(
+                artifact != null && artifact.getContent() != null ? artifact.getContent() : ""));
+
+        body.set("midpointErrors", JSON_FACTORY.arrayNode());
+
+        var authArray = JSON_FACTORY.arrayNode();
+        for (var auth : auths) {
+            if (auth.getType() == null) continue;
+            var authNode = JSON_FACTORY.objectNode();
+            authNode.set("name", JSON_FACTORY.textNode(auth.getName() != null ? auth.getName() : ""));
+            authNode.set("type", JSON_FACTORY.textNode(auth.getType().value()));
+            authNode.set("quirks", JSON_FACTORY.textNode(auth.getQuirks() != null ? auth.getQuirks() : ""));
+            authArray.add(authNode);
+        }
+        body.set("preferredAuthorizations", authArray);
+
+        try (var job = client().postJob("codegen/{sessionId}/authorization", body, skipCache)) {
+            String content = job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
+            if (content == null || content.isBlank()) {
+                return null;
+            }
+            return classification.create().content(content);
+        } catch (Exception e) {
+            throw new SystemException("Couldn't generate authorization script", e);
+        }
     }
 
     @Override
@@ -226,6 +248,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     protected void restoreSession(ServiceClient.RestorationClient client) throws IOException {
+        restoreMetadata(client);
         ensureDocumentationIsUploaded(client);
         restoreObjectClasses(client);
         restoreRelations(client);
@@ -253,6 +276,28 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                     var objClass = ConnDevJsonMapper.mapObjectClassFromJson(jsonClass);
                     if (objClass.isRelevant() || includeUnrelated) {
                         ret.add(objClass);
+                    }
+                }
+                return ret;
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache) {
+        try (var job = client().postJob("digester/{sessionId}/connectivity-endpoint", skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
+                var ret = new ArrayList<ConnDevHttpEndpointType>();
+                var jsonEndpoints = o.get("endpoints");
+                for (var jsonEndpoint : jsonEndpoints) {
+                    ret.add(ConnDevJsonMapper.mapEndpointFromJson(jsonEndpoint));
+                }
+                if (ret.isEmpty()) {
+                    var jsonErrors = o.get("errors");
+                    if (jsonErrors != null && !jsonErrors.isEmpty()) {
+                        throw new RuntimeException("Connectivity endpoint discovery failed with errors: " + jsonErrors);
                     }
                 }
                 return ret;

@@ -17,7 +17,7 @@ import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -116,7 +116,7 @@ class ConstraintReferenceMatcher<O extends ObjectType> {
             filter = PrismContext.get().getQueryConverter().parseFilter(filterBean, objectDefLookingFor);
 
             VariablesMap variables = new VariablesMap();
-            variables.put(ExpressionConstants.VAR_POLICY_RULE, evalContext.policyRule, EvaluatedPolicyRule.class);
+            variables.put(ExpressionConstants.VAR_POLICY_RULE, evalContext.policyRule, DirectlyEvaluatedClockworkPolicyRule.class);
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                     new ModelExpressionEnvironment<>(evalContext.lensContext, null, evalContext.task, operationResult));
             try {

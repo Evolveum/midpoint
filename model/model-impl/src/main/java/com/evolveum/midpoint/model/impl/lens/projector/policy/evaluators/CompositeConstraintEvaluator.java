@@ -6,32 +6,32 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.*;
+
+import java.util.Collection;
+import java.util.List;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.xml.bind.JAXBElement;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.*;
-
+/** TODO deduplicate with {@link ActivityCompositeConstraintEvaluator} */
 @Component
 public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<PolicyConstraintsType, EvaluatedCompositeTrigger> {
 
@@ -55,7 +55,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
     public @NotNull <O extends ObjectType> Collection<EvaluatedCompositeTrigger> evaluate(
             @NotNull JAXBElement<PolicyConstraintsType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
@@ -97,36 +97,39 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 
     @NotNull
     private EvaluatedCompositeTrigger createTrigger(
-            PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
+            PolicyConstraintKind kind,
+            JAXBElement<PolicyConstraintsType> constraintElement,
             List<EvaluatedPolicyRuleTrigger<?>> triggers,
-            PolicyRuleEvaluationContext<?> rctx, OperationResult result)
+            PolicyRuleEvaluationContext<?> rctx,
+            OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return new EvaluatedCompositeTrigger(
-                kind, constraintElement.getValue(),
+                kind,
+                constraintElement.getValue(),
                 createMessage(kind, constraintElement, rctx, result),
                 createShortMessage(kind, constraintElement, rctx, result),
                 triggers);
     }
 
     private LocalizableMessage createMessage(
-            PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
+            PolicyConstraintKind kind, JAXBElement<PolicyConstraintsType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.value())
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.getSerializableVersion().value())
                 .build();
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
     private LocalizableMessage createShortMessage(
-            PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
+            PolicyConstraintKind kind, JAXBElement<PolicyConstraintsType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.value())
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.getSerializableVersion().value())
                 .build();
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }

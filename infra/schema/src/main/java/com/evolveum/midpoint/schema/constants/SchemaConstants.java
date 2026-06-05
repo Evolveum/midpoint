@@ -253,6 +253,8 @@ public abstract class SchemaConstants {
     public static final String CHANNEL_LIVE_SYNC_URI = qNameToUri(CHANNEL_LIVE_SYNC);
     public static final QName CHANNEL_ASYNC_UPDATE = new QName(NS_CHANNEL, "asyncUpdate");
     public static final String CHANNEL_ASYNC_UPDATE_URI = qNameToUri(CHANNEL_ASYNC_UPDATE);
+    public static final QName CHANNEL_NOTIFY_CHANGE = new QName(NS_CHANNEL, "notifyChange");
+    public static final String CHANNEL_NOTIFY_CHANGE_URI = qNameToUri(CHANNEL_NOTIFY_CHANGE);
     public static final QName CHANNEL_RECON = new QName(NS_CHANNEL, "reconciliation");
     public static final String CHANNEL_RECON_URI = qNameToUri(CHANNEL_RECON);
     public static final QName CHANNEL_RECOMPUTE = new QName(NS_CHANNEL, "recompute");
@@ -362,6 +364,12 @@ public abstract class SchemaConstants {
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState"));
     public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));
+    public static final String MODEL_POLICY_SITUATION_EXECUTION_TIME =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "executionTime"));
+    public static final String MODEL_POLICY_SITUATION_EXECUTION_ATTEMPTS =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "executionAttempts"));
+    public static final String MODEL_POLICY_SITUATION_ITEM_PROCESSING_RESULT =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "itemProcessingResult"));
 
     // TODO decide on the final form of the following (e.g. namespace = model? provisioning? something else?)
     @Experimental public static final String MODEL_POLICY_SITUATION_PROTECTED_SHADOW =

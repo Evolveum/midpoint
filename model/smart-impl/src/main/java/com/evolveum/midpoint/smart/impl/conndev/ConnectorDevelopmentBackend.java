@@ -328,6 +328,16 @@ public abstract class ConnectorDevelopmentBackend {
     public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache);
     public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache);
     public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache);
+    public abstract List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache);
+
+    public void populateConnectivityEndpoints(List<ConnDevHttpEndpointType> endpoints) throws CommonException {
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_SUGGESTED_ENDPOINT)
+                .replaceRealValues(endpoints)
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+    }
 
     public ConnDevArtifactType getArtifactContent(ConnDevArtifactType type) throws IOException {
         var ret = type.clone();
@@ -466,6 +476,46 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
+    protected void restoreMetadata(ServiceClient.RestorationClient client) throws IOException {
+        var app = developmentObject().getApplication();
+        if (app == null) return;
+
+        var infoMetadata = JSON_FACTORY.objectNode();
+
+        if (app.getApplicationName() != null) {
+            infoMetadata.set("name", JSON_FACTORY.textNode(app.getApplicationName().getOrig()));
+        }
+        if (app.getVersion() != null) {
+            infoMetadata.set("applicationVersion", JSON_FACTORY.textNode(app.getVersion()));
+        }
+        if (app.getApiVersion() != null) {
+            infoMetadata.set("apiVersion", JSON_FACTORY.textNode(app.getApiVersion()));
+        }
+        if (app.getIntegrationType() != null) {
+            var apiTypeArray = JSON_FACTORY.arrayNode();
+            apiTypeArray.add(app.getIntegrationType().value());
+            infoMetadata.set("apiType", apiTypeArray);
+        }
+        if (app.getBaseApiEndpoint() != null) {
+            var endpointEntry = JSON_FACTORY.objectNode();
+            endpointEntry.set("uri", JSON_FACTORY.textNode(app.getBaseApiEndpoint()));
+            endpointEntry.set("type", JSON_FACTORY.textNode("constant"));
+            var endpointsArray = JSON_FACTORY.arrayNode();
+            endpointsArray.add(endpointEntry);
+            infoMetadata.set("baseApiEndpoint", endpointsArray);
+        }
+
+        var body = JSON_FACTORY.objectNode();
+        body.set("infoMetadata", infoMetadata);
+        var bodyText = body.toPrettyString();
+
+        client.put("digester/{sessionId}/metadata", () ->
+                EntityBuilder.create()
+                        .setContentType(ContentType.APPLICATION_JSON)
+                        .setText(bodyText)
+                        .build());
+    }
+
     protected void restoreRelations(ServiceClient.RestorationClient client) throws IOException {
         var app = developmentObject().getApplication();
         if (app == null) return;
@@ -502,6 +552,8 @@ public abstract class ConnectorDevelopmentBackend {
         for (var relation : connector.getRelation()) {
             putCodegenArtifact(client, "codegen/{sessionId}/relations/" + relation.getName(), relation.getSchemaScript());
         }
+
+        putCodegenArtifact(client, "codegen/{sessionId}/authorization", connector.getAuthenticationScript());
     }
 
     protected void putCodegenArtifact(ServiceClient.RestorationClient client, String path, ConnDevArtifactType artifact) throws IOException {

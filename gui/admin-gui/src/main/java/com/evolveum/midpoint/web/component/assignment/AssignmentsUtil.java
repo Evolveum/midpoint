@@ -6,9 +6,8 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -249,33 +248,7 @@ public class AssignmentsUtil {
         }
 
         if (assignment.getPolicyRule() != null) {
-            StringBuilder sbName = new StringBuilder();
-            String policyRuleName = assignment.getPolicyRule().getName();
-
-            if (StringUtils.isNotEmpty(policyRuleName)) {
-                sbName.append(policyRuleName).append("\n");
-            }
-
-            if (StringUtils.isNotEmpty(sbName.toString())) {
-                return sbName.toString();
-            } else {
-                PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
-                StringBuilder sb = new StringBuilder();
-                PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
-                if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0) {
-                    if (pageBase == null) {
-                        sb.append(PageBase.createStringResourceStatic("PolicyConstraintsType.exclusion").getString()).append(": ");
-                    } else {
-                        sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString()).append(": ");
-                    }
-                    constraints.getExclusion().forEach(exclusion -> {
-                        sb.append(WebComponentUtil.getName(exclusion.getTargetRef(), true));
-                        sb.append("; ");
-                    });
-                }
-                return sb.toString();
-            }
-
+            return getNameFromPolicyRule(assignment, pageBase);
         }
 
         ConstructionType construction = assignment.getConstruction();
@@ -361,6 +334,83 @@ public class AssignmentsUtil {
                 }
 
             }
+        }
+        return sb.toString();
+    }
+
+    private static String getNameFromPolicyRule(AssignmentType assignment, PageBase pageBase) {
+        StringBuilder sbName = new StringBuilder();
+        String policyRuleName = assignment.getPolicyRule().getName();
+
+        if (StringUtils.isNotEmpty(policyRuleName)) {
+            sbName.append(policyRuleName).append("\n");
+        }
+
+        if (StringUtils.isNotEmpty(sbName.toString())) {
+            return sbName.toString();
+        }
+
+        PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
+        StringBuilder sb = new StringBuilder();
+        PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
+        if (constraints != null && constraints.getExclusion() != null && !constraints.getExclusion().isEmpty()) {
+            if (pageBase == null) {
+                sb.append(PageBase.createStringResourceStatic("PolicyConstraintsType.exclusion").getString()).append(": ");
+            } else {
+                sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString()).append(": ");
+            }
+            constraints.getExclusion().forEach(exclusion -> {
+                sb.append(WebComponentUtil.getName(exclusion.getTargetRef(), true));
+                sb.append("; ");
+            });
+            return sb.toString();
+        }
+        PolicyActionsType actions = policyRuleContainer.getPolicyActions();
+        List<String> notNullActionList = new ArrayList<>();
+        if (actions != null) {
+            for (Method method : PolicyActionsType.class.getMethods()) {
+                // only getters
+                if (!method.getName().startsWith("get")) {
+                    continue;
+                }
+                // skip Object methods
+                if (method.getDeclaringClass() == Object.class) {
+                    continue;
+                }
+                // skip getClass()
+                if (method.getName().equals("getClass")) {
+                    continue;
+                }
+                // getters should have no params
+                if (method.getParameterCount() != 0) {
+                    continue;
+                }
+                Object value = null;
+                try {
+                    value = method.invoke(actions);
+                } catch (Exception ex) {
+                    //nothing to do
+                }
+
+                if (value == null) {
+                    continue;
+                }
+
+                if (value instanceof Collection<?> collection && collection.isEmpty()) {
+                    continue;
+                }
+
+                notNullActionList.add(
+                        StringUtils.uncapitalize(method.getName().substring(3)));
+            }
+            notNullActionList.forEach(actionName -> {
+                if (!sb.isEmpty()) {
+                    sb.append(", ");
+                }
+                sb.append(
+                        pageBase.createStringResource(
+                                PolicyActionsType.class.getSimpleName() + "." + actionName).getString());
+            });
         }
         return sb.toString();
     }

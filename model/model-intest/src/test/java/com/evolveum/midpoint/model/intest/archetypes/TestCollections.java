@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -213,7 +213,7 @@ public class TestCollections extends AbstractArchetypesTest {
 
         // WHEN
         when();
-        Collection<EvaluatedPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
+        Collection<DirectlyEvaluatedClockworkPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
 
         // THEN
         then();
@@ -256,7 +256,7 @@ public class TestCollections extends AbstractArchetypesTest {
 
         // WHEN
         when();
-        Collection<EvaluatedPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
+        Collection<DirectlyEvaluatedClockworkPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
 
         // THEN
         then();

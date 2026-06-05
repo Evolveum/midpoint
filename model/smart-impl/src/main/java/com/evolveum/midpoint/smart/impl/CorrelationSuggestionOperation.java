@@ -139,7 +139,7 @@ class CorrelationSuggestionOperation {
                         var resourceAttrName = shadowItemPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
                         var inbound = new InboundMappingType()
                                 .name(shadowItemPath.lastName().getLocalPart()
-                                        + "-to-" + focusItemPath) //TODO TBD
+                                        + "-into-" + focusItemPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusItemPath.toBean()))
                                 .use(InboundMappingUseType.CORRELATION)

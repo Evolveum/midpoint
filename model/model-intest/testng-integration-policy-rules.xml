@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="integration" parallel="none">
+    <listeners>
+        <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
+    </listeners>
+    <test name="Model Integration" preserve-order="true" parallel="none" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
+            <class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
+            <class name="com.evolveum.midpoint.model.intest.TestObjectMarks"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStruct"/>
+            <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
+            <class name="com.evolveum.midpoint.model.intest.associations.TestAssociations"/>
+            <class name="com.evolveum.midpoint.model.intest.gensync.TestRoleEntitlement"/>
+            <class name="com.evolveum.midpoint.model.intest.TestAssignmentsProcessing"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestPolicyRules"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestMetaMeta"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestAutoassign"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestGlobalPolicyActivation"/>
+            <class name="com.evolveum.midpoint.model.intest.TestNotifications"/>
+            <class name="com.evolveum.midpoint.model.intest.TestLifecycleBasic"/>
+            <class name="com.evolveum.midpoint.model.intest.TestLifecycle"/>
+            <class name="com.evolveum.midpoint.model.intest.TestLinkedObjects"/>
+            <class name="com.evolveum.midpoint.model.intest.TestMemberRecompute"/>
+        </classes>
+    </test>
+    <test name="Tasks" preserve-order="true" parallel="none" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsMultiNode"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsSingleTaskMultipleThreads"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsSingleThread"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyInActivity"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyInParentActivity"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestVirtualAssignmentInActivity"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestTasks"/>
+        </classes>
+    </test>
+    <!--
+        Some tests moved to the end of suite, because they change logging configuration.
+        TODO: Logging configuration should be refreshed from file during spring context reloading.
+    -->
+    <test name="Model Integration 2" preserve-order="true" parallel="none" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
+        </classes>
+    </test>
+</suite>

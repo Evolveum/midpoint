@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStateFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyHeaderPanel;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ChangeLifecycleSelectedMappingsPopup extends SimplePopupable {
@@ -105,22 +108,36 @@ public class ChangeLifecycleSelectedMappingsPopup extends SimplePopupable {
             getPageBase().hideMainPopup(target);
             return;
         }
+
         try {
             String selectedValue = firstWrapper.getObject().getValue().getRealValue();
+            Collection<ItemDelta<?,?>> deltas = new ArrayList<>();
 
-            selected.getObject().forEach(containerValue -> {
+            for (PrismContainerValueWrapper<?> containerValue : selected.getObject()) {
                 try {
-                    PrismPropertyWrapper<Object> property = containerValue.findProperty(MappingType.F_LIFECYCLE_STATE);
+                    PrismPropertyWrapper<Object> property =
+                            containerValue.findProperty(MappingType.F_LIFECYCLE_STATE);
+
                     property.getValue().setRealValue(selectedValue);
-                    WebComponentUtil.showToastForRecordedButUnsavedChanges(target, property);
+
+                    Collection<ItemDelta<?,?>> propertyDeltas = property.getDelta();
+                    if (propertyDeltas != null && !propertyDeltas.isEmpty()) {
+                        deltas.addAll(propertyDeltas);
+                    }
+
                 } catch (SchemaException e) {
-                    LOGGER.error("Couldn't find lifecycle state property in " + containerValue);
+                    LOGGER.error("Couldn't find lifecycle state property in {}", containerValue, e);
                 }
-            });
+            }
+
+            if (!deltas.isEmpty()) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, deltas);
+            }
 
             getPageBase().hideMainPopup(target);
+
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't get single value from " + firstWrapper.getObject());
+            LOGGER.error("Couldn't get single value from {}", firstWrapper.getObject(), e);
         }
     }
 

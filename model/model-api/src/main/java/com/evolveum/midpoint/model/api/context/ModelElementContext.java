@@ -104,7 +104,7 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
      * Returns all policy rules that apply to this object - even those that were not triggered.
      * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
      */
-    @NotNull Collection<? extends EvaluatedPolicyRule> getObjectPolicyRules();
+    @NotNull Collection<? extends DirectlyEvaluatedClockworkPolicyRule> getObjectPolicyRules();
 
     /**
      * Returns true if the object (focus or projection) is to be added.

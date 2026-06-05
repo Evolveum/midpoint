@@ -6,8 +6,9 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
-import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.AugmentedTrigger;
+import com.evolveum.midpoint.repo.common.policy.TriggerBeanPresentationUtil.AdditionalData;
+import com.evolveum.midpoint.repo.common.policy.TriggerBeanPresentationUtil.TriggerWithDataPredicate;
+import com.evolveum.midpoint.repo.common.policy.TriggerBeanPresentationUtil.TriggerWithData;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
@@ -19,11 +20,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.arrangeForPresentationExt;
+import static com.evolveum.midpoint.repo.common.policy.TriggerBeanPresentationUtil.arrangeForPresentationExt;
 import static java.util.Collections.singleton;
 
+/**
+ * A list of triggers that should be displayed as a group (e.g. because they are children of a parent trigger).
+ *
+ * @see EvaluatedTriggerDto
+ */
 public class EvaluatedTriggerGroupDto implements Serializable {
 
+    /** TODO consider removing, as this seems to be always null */
     public final LocalizableMessage title;
 
     public static final String F_TITLE = "title";
@@ -31,10 +38,11 @@ public class EvaluatedTriggerGroupDto implements Serializable {
 
     @NotNull private final List<EvaluatedTriggerDto> triggers = new ArrayList<>();
 
-    EvaluatedTriggerGroupDto(LocalizableMessage title,
-            List<TreeNode<AugmentedTrigger<HighlightingInformation>>> processedTriggers) {
+    EvaluatedTriggerGroupDto(
+            LocalizableMessage title,
+            List<TreeNode<TriggerWithData<HighlightingInformation>>> processedTriggers) {
         this.title = title;
-        for (TreeNode<AugmentedTrigger<HighlightingInformation>> processedTrigger : processedTriggers) {
+        for (TreeNode<TriggerWithData<HighlightingInformation>> processedTrigger : processedTriggers) {
             this.triggers.add(new EvaluatedTriggerDto(processedTrigger));
         }
     }
@@ -48,56 +56,53 @@ public class EvaluatedTriggerGroupDto implements Serializable {
         return triggers;
     }
 
-    public static EvaluatedTriggerGroupDto initializeFromRules(List<EvaluatedPolicyRuleType> rules, boolean highlighted,
-            UniquenessFilter uniquenessFilter) {
-        List<AugmentedTrigger<HighlightingInformation>> augmentedTriggers = new ArrayList<>();
+    public static EvaluatedTriggerGroupDto initializeFromRules(
+            List<EvaluatedPolicyRuleType> rules, boolean highlighted, UniquenessFilter uniquenessFilter) {
+        List<TriggerWithData<HighlightingInformation>> triggerWithData = new ArrayList<>();
         for (EvaluatedPolicyRuleType rule : rules) {
             for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
-                augmentedTriggers.add(new AugmentedTrigger<>(trigger, new HighlightingInformation(highlighted)));
+                triggerWithData.add(new TriggerWithData<>(trigger, new HighlightingInformation(highlighted)));
             }
         }
-        List<TreeNode<AugmentedTrigger<HighlightingInformation>>> triggerTrees = arrangeForPresentationExt(augmentedTriggers, uniquenessFilter);
+        List<TreeNode<TriggerWithData<HighlightingInformation>>> triggerTrees =
+                arrangeForPresentationExt(triggerWithData, uniquenessFilter);
         return new EvaluatedTriggerGroupDto(null, triggerTrees);
     }
 
-    public static class UniquenessFilter implements EvaluatedPolicyRuleUtil.AdditionalFilter<HighlightingInformation> {
+    /** Stateful filter that passes only unique triggers - to avoid displaying the same information twice. */
+    public static class UniquenessFilter implements TriggerWithDataPredicate<HighlightingInformation> {
 
-        private static class AlreadyShownTriggerRecord<AD extends EvaluatedPolicyRuleUtil.AdditionalData> {
-            final AugmentedTrigger<AD> augmentedTrigger;
-            final EvaluatedPolicyRuleTriggerType anonymizedTrigger;
-
-            AlreadyShownTriggerRecord(AugmentedTrigger<AD> augmentedTrigger,
-                    EvaluatedPolicyRuleTriggerType anonymizedTrigger) {
-                this.augmentedTrigger = augmentedTrigger;
-                this.anonymizedTrigger = anonymizedTrigger;
-            }
+        private record AlreadyShownTriggerRecord<AD extends AdditionalData>(
+                TriggerWithData<AD> triggerWithData,
+                EvaluatedPolicyRuleTriggerType anonymizedTrigger) {
         }
 
         List<AlreadyShownTriggerRecord<HighlightingInformation>> triggersAlreadyShown = new ArrayList<>();
 
-        @Override
-        public boolean accepts(AugmentedTrigger<HighlightingInformation> newAugmentedTrigger) {
-            EvaluatedPolicyRuleTriggerType anonymizedTrigger = newAugmentedTrigger.trigger.clone().ruleName(null);
-            for (AlreadyShownTriggerRecord<HighlightingInformation> alreadyShown : triggersAlreadyShown) {
-                if (alreadyShown.anonymizedTrigger.equals(anonymizedTrigger)) {
-                    alreadyShown.augmentedTrigger.additionalData.merge(newAugmentedTrigger.additionalData);
+        public boolean test(TriggerWithData<HighlightingInformation> newTriggerWithData) {
+            EvaluatedPolicyRuleTriggerType anonymizedTrigger = newTriggerWithData.trigger().clone().ruleName(null);
+            for (AlreadyShownTriggerRecord<HighlightingInformation> triggerAlreadyShown : triggersAlreadyShown) {
+                if (triggerAlreadyShown.anonymizedTrigger.equals(anonymizedTrigger)) {
+                    triggerAlreadyShown.triggerWithData.additionalData().merge(newTriggerWithData.additionalData());
                     return false;
                 }
             }
-            triggersAlreadyShown.add(new AlreadyShownTriggerRecord<>(newAugmentedTrigger, anonymizedTrigger));
+            triggersAlreadyShown.add(new AlreadyShownTriggerRecord<>(newTriggerWithData, anonymizedTrigger));
             return true;
         }
     }
 
-    public static class HighlightingInformation implements EvaluatedPolicyRuleUtil.AdditionalData {
+    public static class HighlightingInformation implements AdditionalData {
+
+        /** Whether the trigger should be highlighted. */
         boolean value;
 
         HighlightingInformation(boolean value) {
             this.value = value;
         }
 
-        public void merge(EvaluatedPolicyRuleUtil.AdditionalData other) {
-            value = value | ((HighlightingInformation) other).value;
+        public void merge(AdditionalData other) {
+            value = value || ((HighlightingInformation) other).value;
         }
     }
 

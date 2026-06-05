@@ -400,13 +400,6 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             @NotNull String id,
             @NotNull IModel<Boolean> switchToggleModel) {
 
-        LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
-            @Override
-            protected SmartGeneratingAlertDto load() {
-                return new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), switchToggleModel, getPageBase());
-            }
-        };
-
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(id, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,

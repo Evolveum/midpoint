@@ -754,6 +754,39 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     /**
+     * When the last module in the sequence failed but all prior modules succeeded (user is
+     * already identified but the final credential step failed, e.g. wrong TOTP code), reset
+     * the failed module back to LOGIN_PROCESSING so the user can retry that step without
+     * restarting the whole authentication sequence.
+     *
+     * Also resets alreadyAudited so that subsequent success or definitive failure is audited.
+     *
+     * Does nothing and returns false when over lockout max attempts or when the conditions
+     * for a safe in-place retry are not met.
+     */
+    public boolean resetLastFailedModuleForRetry() {
+        if (overLockoutMaxAttempts) {
+            return false;
+        }
+        List<ModuleAuthentication> auths = getAuthentications();
+        if (auths.isEmpty() || auths.size() != getAuthModules().size()) {
+            return false;
+        }
+        ModuleAuthentication last = auths.get(auths.size() - 1);
+        if (AuthenticationModuleState.FAILURE != last.getState()) {
+            return false;
+        }
+        for (int i = 0; i < auths.size() - 1; i++) {
+            if (AuthenticationModuleState.SUCCESSFULLY != auths.get(i).getState()) {
+                return false;
+            }
+        }
+        last.setState(AuthenticationModuleState.LOGIN_PROCESSING);
+        alreadyAudited = false;
+        return true;
+    }
+
+    /**
      * Restart this authentication, so next request start from one module in authentication sequence.
      */
     public void restart() {

@@ -250,7 +250,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public <IV extends PrismValue,ID extends ItemDefinition<?>> Item<IV,ID> getExtensionItemOrClone(ItemName propertyName) {
+    public <IV extends PrismValue, ID extends ItemDefinition<?>> Item<IV, ID> getExtensionItemOrClone(ItemName propertyName) {
         throw new UnsupportedOperationException();
     }
 
@@ -695,6 +695,11 @@ public class NullTaskImpl implements Task {
     @Override
     public Collection<String> getCachingProfiles() {
         return emptySet();
+    }
+
+    @Override
+    public ConflictResolutionType getConflictResolution() {
+        return null;
     }
 
     @Override

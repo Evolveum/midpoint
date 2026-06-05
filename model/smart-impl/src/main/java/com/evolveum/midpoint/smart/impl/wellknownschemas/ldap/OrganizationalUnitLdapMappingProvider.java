@@ -56,7 +56,7 @@ public class OrganizationalUnitLdapMappingProvider implements WellKnownSchemaPro
         String suffix = extractSuffixFromSamples(sampleShadows);
 
         if (suffix != null) {
-            String script = "basic.composeDnWithSuffix('ou', name, '%s')".formatted(suffix);
+            String script = "ldap.composeDnWithSuffix(['ou', name, '%s'])".formatted(suffix);
             String description = "Compose DN: ou=<name>,%s".formatted(suffix);
             mappings.add(SystemMappingSuggestion.createScriptSuggestion("dn", OrgType.F_NAME, script, description, MappingStrengthType.STRONG));
             mappings.add(SystemMappingSuggestion.createAsIsSuggestion("ou", OrgType.F_NAME, MappingStrengthType.WEAK));
