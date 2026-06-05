@@ -36,6 +36,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class OtpAuthenticationEvaluator
         extends CredentialsAuthenticationEvaluatorImpl<OtpCredentialsType, OtpAuthenticationContext> {
 
+    public static final String INVALID_CREDENTIALS_KEY = "web.security.provider.otp.invalid.credentials";
+
+    public static final String INVALID_CREDENTIALS_MESSAGE = "Incorrect OTP code";
+
     private static final Trace LOGGER = TraceManager.getTrace(OtpAuthenticationEvaluator.class);
 
     @Autowired private Protector protector;
@@ -139,11 +143,11 @@ public class OtpAuthenticationEvaluator
 
     @Override
     protected String createInvalidCredentialsMessage(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
-        return "Incorrect OTP code";
+        return INVALID_CREDENTIALS_MESSAGE;
     }
 
     @Override
     protected String createInvalidCredentialsKey(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
-        return "web.security.provider.otp.invalid.credentials";
+        return INVALID_CREDENTIALS_KEY;
     }
 }
