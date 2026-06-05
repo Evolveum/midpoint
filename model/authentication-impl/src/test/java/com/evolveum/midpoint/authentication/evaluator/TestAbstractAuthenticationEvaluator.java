@@ -41,6 +41,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAut
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
@@ -108,6 +109,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
     @Autowired private Clock clock;
     @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
+
+    @Autowired private LocalizationService localizationService;
 
     private MessageSourceAccessor messages;
 
@@ -1135,8 +1138,12 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertEquals("authentication: principal mismatch", expectedUsername, ((MidPointPrincipal) authentication.getPrincipal()).getUsername());
     }
 
+    protected String getBadPasswordKey() {
+        return "web.security.provider.invalid.credentials";
+    }
+
     private void assertBadPasswordException(BadCredentialsException e) {
-        assertEquals("Wrong exception message (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
+        assertEquals("Wrong exception message (key)", messages.getMessage(getBadPasswordKey()), getTranslatedMessage(e));
     }
 
     private void assertEmptyPasswordException(BadCredentialsException e) {
