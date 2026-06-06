@@ -19,24 +19,24 @@
                     <input wicket:id="radio" type="radio" onclick="event.stopPropagation()"/>
                 </div>
                 <div class="w-100 d-flex flex-row align-items-center">
-                    <div class="d-inline me-2" wicket:id="name"/>
-                    <span wicket:id="connectedBadge" class="badge bg-success">
+                    <div class="d-inline" wicket:id="name"/>
+                    <span wicket:id="connectedBadge" class="ml-2 badge bg-success">
                         <wicket:message key="EndpointConnectorStepPanel.connected"/>
                     </span>
                 </div>
             </div>
         </div>
-        <div class="d-flex flex-column gen-list-item" wicket:id="manualItem">
+        <div class="d-flex flex-column gen-list-item mt-2" wicket:id="manualItem">
             <div class="d-flex flex-row w-100 p-3">
                 <div class="h-100 m-auto pr-3">
                     <input wicket:id="manualRadio" type="radio" onclick="event.stopPropagation()"/>
                 </div>
                 <div class="w-100 d-flex flex-column">
                     <div class="d-flex flex-row align-items-center">
-                        <div class="d-inline me-2">
+                        <div class="d-inline">
                             <wicket:message key="EndpointConnectorStepPanel.manual"/>
                         </div>
-                        <span wicket:id="manualBadge" class="badge bg-success">
+                        <span wicket:id="manualBadge" class="ml-2 badge bg-success">
                             <wicket:message key="EndpointConnectorStepPanel.connected"/>
                         </span>
                     </div>
