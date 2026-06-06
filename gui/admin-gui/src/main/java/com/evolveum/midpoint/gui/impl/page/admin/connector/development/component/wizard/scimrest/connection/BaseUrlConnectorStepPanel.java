@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         containerPath = "empty")
 public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
-    private static final String PANEL_TYPE = "cdw-base-url";
+    public static final String PANEL_TYPE = "cdw-base-url";
     public static final ItemName BASE_ADDRESS_ITEM_NAME = ItemName.from("", "baseAddress");
     public static final ItemName SCIM_BASE_URL_ITEM_NAME = ItemName.from("", "scimBaseUrl");
 
