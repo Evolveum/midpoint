@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.authentication.impl.MidpointAutowiredBeanFactoryObjectPostProcessor;
@@ -159,8 +158,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
             return;
         }
 
-        if (!mpAuthentication.getAuthModules().stream()
-                .anyMatch(module ->
+        if (mpAuthentication.getAuthModules().stream()
+                .noneMatch(module ->
                         AuthenticationModuleState.FAILURE_CONFIGURATION == module.getBaseModuleAuthentication().getState())) {
             return;
         }
@@ -217,7 +216,70 @@ public class MidpointAuthFilter extends GenericFilterBean {
         resolveErrorWithWrongConfigurationOfModules(mpAuthentication, originalIndexOfProcessingModule, httpRequest, response);
 
         setAuthenticationChanel(mpAuthentication, authWrapper);
+
+        if (skipNonApplicableModule(mpAuthentication, indexOfProcessingModule, httpRequest, (HttpServletResponse) response)) {
+            return;
+        }
+
         runFilters(authWrapper, indexOfProcessingModule, chain, httpRequest, response);
+    }
+
+    /**
+     * Pre-flight applicability check.
+     *
+     * When a module reports that it is not applicable for the current user
+     * (e.g. a TOTP module with {@code acceptEmpty=true} when the user has no
+     * TOTP credentials registered), we skip the module's filter chain entirely:
+     * the module is marked as {@link AuthenticationModuleState#CALLED_OFF}, the
+     * security context is persisted and, if the overall authentication sequence
+     * is now complete, the user is redirected straight to the success URL.
+     *
+     * Without this check the request would fall through the module's filter chain
+     * without any authentication happening and without any redirect, causing the
+     * browser to land on the raw sequence URL which has no Wicket page mapped to
+     * it (resulting in a 404).
+     *
+     * @return {@code true} when the module was called off and a redirect was
+     *         issued (caller must not call {@link #runFilters} afterwards),
+     *         {@code false} otherwise.
+     */
+    private boolean skipNonApplicableModule(
+            MidpointAuthentication mpAuthentication,
+            int moduleIndex,
+            HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+
+        if (mpAuthentication == null || moduleIndex < 0) {
+            return false;
+        }
+        List<ModuleAuthentication> authentications = mpAuthentication.getAuthentications();
+        if (moduleIndex >= authentications.size()) {
+            return false;
+        }
+        ModuleAuthentication module = authentications.get(moduleIndex);
+        if (module.applicable()) {
+            return false;
+        }
+
+        LOGGER.debug("Module '{}' is not applicable for the current user – marking as CALLED_OFF.",
+                module.getModuleIdentifier());
+
+        module.setState(AuthenticationModuleState.CALLED_OFF);
+
+        if (!AuthSequenceUtil.isRecordSessionLessAccessChannel(request)) {
+            saveAuthenticationContext(request, response);
+        }
+
+        if (mpAuthentication.isAuthenticated()) {
+            String redirectUrl = mpAuthentication.getAuthenticationChannel()
+                    .getPathAfterSuccessfulAuthentication();
+            LOGGER.debug("Authentication sequence complete after calling off module '{}' – redirecting to '{}'.",
+                    module.getModuleIdentifier(), redirectUrl);
+            new DefaultRedirectStrategy().sendRedirect(request, response, redirectUrl);
+            return true;
+        }
+
+        return false;
     }
 
     private void validateAuthenticationCanContinue(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
@@ -292,7 +354,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private boolean wasNotFoundAuthModule(AuthenticationWrapper authWrapper) {
-        return authWrapper.getAuthModules() == null || authWrapper.getAuthModules().size() == 0;
+        return authWrapper.getAuthModules() == null || authWrapper.getAuthModules().isEmpty();
     }
 
     private boolean isRequestAuthenticated(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper) {
