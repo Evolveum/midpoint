@@ -258,13 +258,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     }
 
     private boolean isScim() {
-        try {
-            PrismPropertyWrapper<ConnDevIntegrationType> integrationType = getDetailsModel().getObjectWrapper().findProperty(
-                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
-            return ConnDevIntegrationType.SCIM.equals(integrationType.getValue().getRealValue());
-        } catch (SchemaException e) {
-            return false;
-        }
+        return ConnectorDevelopmentWizardUtil.isScim(getDetailsModel());
     }
 
     @Override
