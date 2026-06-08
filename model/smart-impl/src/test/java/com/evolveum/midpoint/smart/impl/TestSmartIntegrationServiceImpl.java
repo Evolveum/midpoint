@@ -1084,14 +1084,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             if (request instanceof SiMatchSchemaRequestType) {
                 return schemaMatchResponse;
             } else if (request instanceof SiSuggestMappingRequestType mappingRequest) {
-                var appAttr = mappingRequest.getApplicationAttribute();
-                if (!appAttr.isEmpty()) {
-                    String attrName = appAttr.get(0).getName();
-                    if (attrName.contains("type")) {
-                        throw new RuntimeException("LLM went crazy here");
-                    } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
-                        return new SiSuggestMappingResponseType().transformationScript("input.replace('-', '')");
-                    }
+                String attrName = mappingRequest.getApplicationAttribute().getName();
+                if (attrName.contains("type")) {
+                    throw new RuntimeException("LLM went crazy here");
+                } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
+                    return new SiSuggestMappingResponseType().transformationScript("input.replace('-', '')");
                 }
             }
             return null;
