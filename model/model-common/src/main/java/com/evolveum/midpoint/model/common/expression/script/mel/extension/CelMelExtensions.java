@@ -679,6 +679,18 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             this::norm)
             ),
 
+            // null()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "nil",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-null",
+                                    "Returns null.",
+                                    NullableType.create(SimpleType.DYN))),
+                    CelFunctionBinding.from("mel-null", ImmutableList.of(),
+                            this::nullProducer)
+            ),
+
             // qname(local)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -1172,6 +1184,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             polystring -> Ascii.toUpperCase(polystring.getOrig())))
 
         );
+    }
+
+    private Object nullProducer(Object[] objects) {
+        return NullValue.NULL_VALUE;
     }
 
     private static String quote(PolyStringCelValue polyStringCelValue) {

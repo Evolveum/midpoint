@@ -2109,6 +2109,36 @@ public class TestMelExpressions extends AbstractScriptTest {
                 ));
     }
 
+    @Test
+    public void testConditionalNullStringFoobar() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-conditional-null-string.xml",
+                createVariables(
+                        "input", "foobar", PrimitiveType.STRING
+                ),
+                "We have foobar");
+    }
+
+    @Test
+    public void testConditionalNullStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-conditional-null-string.xml",
+                createVariables(
+                        "input", null, PrimitiveType.STRING
+                ),
+                null);
+    }
+
+
+    @Test
+    public void testConditionalStringNullFoobar() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-conditional-string-null.xml",
+                createVariables(
+                        "input", "foobar", PrimitiveType.STRING
+                ),
+                "We have foobar");
+    }
 
     @Test
     public void testCaching() throws Exception {
