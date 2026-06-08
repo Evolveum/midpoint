@@ -154,6 +154,18 @@ In case of top-level translation the behavior is different: if the key cannot be
 . The `orig` value of the polystring is used as default value.
 It will be used in case that there is no suitable `lang` for a particular language, there is no `translation` or that the translation does not provide meaningful result (e.g. the translation key cannot be found).
 
+[NOTE]
+====
+In some situations, the `orig` value of a polystring can be interpreted as a translation key.
+For example, when a polystring is defined within a `DisplayType` object as a label for an object collection view. +
+In such cases, if no explicit translation key is provided, midPoint attempts to translate the `orig` value.
+
+This functionality is deprecated. +
+Starting with version 4.11, the `orig` value will never be translated.
+Ensure that all `PolyStringType` values in your environment are defined correctly.
+If localization is required, define translation keys or language-specific values explicitly within the polystring.
+====
+
 == Future
 
 See xref:/midpoint/features/planned/polystring/[PolyString Improvements] page to learn about planned improvements to polystrings.
