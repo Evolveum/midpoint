@@ -286,6 +286,28 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
+    public List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache) {
+        try (var job = client().postJob("digester/{sessionId}/connectivity-endpoint", skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
+                var ret = new ArrayList<ConnDevHttpEndpointType>();
+                var jsonEndpoints = o.get("endpoints");
+                for (var jsonEndpoint : jsonEndpoints) {
+                    ret.add(ConnDevJsonMapper.mapEndpointFromJson(jsonEndpoint));
+                }
+                if (ret.isEmpty()) {
+                    var jsonErrors = o.get("errors");
+                    if (jsonErrors != null && !jsonErrors.isEmpty()) {
+                        throw new RuntimeException("Connectivity endpoint discovery failed with errors: " + jsonErrors);
+                    }
+                }
+                return ret;
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache) {
         try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/endpoints", skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {

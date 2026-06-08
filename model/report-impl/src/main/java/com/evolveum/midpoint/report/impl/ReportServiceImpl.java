@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.google.common.base.Preconditions;
 import jakarta.xml.bind.JAXBElement;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -296,6 +297,15 @@ public class ReportServiceImpl implements ReportService {
                 compiledCollectionRefSpec.getColumns().clear();
             }
             getModelInteractionService().applyView(compiledCollectionRefSpec, compiledCollection.toGuiObjectListViewType());
+            // In case we want to apply the configuration (columns) from the view, we need to re-set the columns
+            // in order to save the order of the columns in the view (the columns possibly were reordered within applyView call)
+            // Relates to #10967
+            if (Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())
+                    && reportView != null && CollectionUtils.isNotEmpty(reportView.getColumn())) {
+                compiledCollectionRefSpec.getColumns().clear();
+                reportView.getColumn().forEach(
+                        column -> compiledCollectionRefSpec.getColumns().add(column.cloneWithoutId()));
+            }
             compiledCollection = compiledCollectionRefSpec;
         }
 

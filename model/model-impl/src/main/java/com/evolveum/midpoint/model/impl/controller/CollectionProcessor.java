@@ -298,21 +298,63 @@ public class CollectionProcessor {
         } else if (collectionSpec.getFilter() != null) {
 
             SearchFilterType filter = collectionSpec.getFilter();
+            Class<?> effectiveTargetTypeClass = determineTargetTypeClass(collectionSpec, targetTypeClass);
 
             CollectionRefSpecificationType baseCollectionSpec = collectionSpec.getBaseCollectionRef();
             if (baseCollectionSpec == null) {
-                if (targetTypeClass == null) {
+                if (effectiveTargetTypeClass == null) {
                     throw new IllegalArgumentException("UndefinedTypeForCollection type: " + collectionSpec);
                 }
-                ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
+                ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, effectiveTargetTypeClass);
                 existingView.setFilter(objectFilter);
+                setContainerTypeIfNeeded(existingView, collectionSpec.getType());
             } else {
-                compileBaseCollectionSpec(filter, existingView, baseCollectionSpec, targetTypeClass, task, result);
+                compileBaseCollectionSpec(filter, existingView, baseCollectionSpec, effectiveTargetTypeClass, task, result);
+                setContainerTypeIfNeeded(existingView, collectionSpec.getType());
             }
         } else {
             // E.g. the case of empty domain specification. Nothing to do. Just return what we have.
             //noinspection UnnecessaryReturnStatement
             return;
+        }
+    }
+
+    /**
+     * Determines the type to be used for parsing an inline collection filter.
+     *
+     * The type can come either from the surrounding configuration, e.g. object
+     * list view or base collection, or from the collection specification itself.
+     * The explicit collection type is mainly needed for standalone inline filters,
+     * where there is no referenced object collection that would provide the type.
+     *
+     * If both types are present, the explicit collection type may only keep or
+     * narrow the surrounding type. It must not broaden it or point to an unrelated
+     * type, because the filter is evaluated in the context of the effective type.
+     */
+    private Class<?> determineTargetTypeClass(
+            CollectionRefSpecificationType collectionSpec,
+            Class<?> targetTypeClass) throws ConfigurationException {
+
+        QName explicitType = collectionSpec.getType();
+        if (explicitType == null) {
+            return targetTypeClass;
+        }
+
+        Class<?> explicitTargetTypeClass =
+                prismContext.getSchemaRegistry().determineClassForType(explicitType);
+
+        if (targetTypeClass != null && !targetTypeClass.isAssignableFrom(explicitTargetTypeClass)) {
+            throw new ConfigurationException(
+                    "Conflicting collection types: " + targetTypeClass.getSimpleName()
+                            + " and " + explicitType);
+        }
+
+        return explicitTargetTypeClass;
+    }
+
+    private void setContainerTypeIfNeeded(CompiledObjectCollectionView existingView, QName collectionType) {
+        if (existingView.getContainerType() == null && collectionType != null) {
+            existingView.setContainerType(collectionType);
         }
     }
 

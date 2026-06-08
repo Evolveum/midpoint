@@ -469,9 +469,14 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                 } else if (request instanceof SiSuggestCategoricalMappingRequestType) {
                     return new SiSuggestMappingResponseType()
                             .transformationScript(
-                                    "// Map status to lockoutStatus\n"
-                                            + "input == null ? null"
-                                            + " : input.equalsIgnoreCase(\"inactive\") ? \"locked\" : \"normal\"");
+                                    """
+                                        // Map status to lockoutStatus
+                                        isNull(input)
+                                            ? 'normal'
+                                            : input.lc() == 'inactive'
+                                                ? 'locked'
+                                                : 'normal'
+                                    """);
                 }
                 return null;
             });

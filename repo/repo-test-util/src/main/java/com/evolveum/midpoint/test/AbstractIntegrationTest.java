@@ -6,13 +6,6 @@
 
 package com.evolveum.midpoint.test;
 
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.serializeFilter;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedProvenanceProvided;
-import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
-
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -20,18 +13,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatStream;
 import static org.testng.Assert.*;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.PrismObject.cast;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.serializeFilter;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.ProvenanceKind;
+import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedProvenanceProvided;
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
 import static com.evolveum.midpoint.task.api.TaskDebugUtil.getDebugInfo;
 import static com.evolveum.midpoint.task.api.TaskDebugUtil.suspendedWithErrorCollector;
+import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
 import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE;
-import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.ProvenanceKind;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,22 +48,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.prism.normalization.Normalizer;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
-import com.evolveum.midpoint.schema.statistics.ComponentsPerformanceInformationUtil;
-import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
-
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-
-import jakarta.xml.bind.JAXBElement;
-
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -73,6 +58,9 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Contract;
@@ -104,6 +92,7 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.normalization.Normalizer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -112,6 +101,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -120,6 +110,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -128,11 +119,12 @@ import com.evolveum.midpoint.schema.internals.CachingStatistics;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.ComponentsPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
@@ -151,6 +143,7 @@ import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
@@ -950,25 +943,25 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         final ConflictResolutionActionType actionForTasks = ConflictResolutionActionType.NONE;
         for (ObjectPolicyConfigurationType c : systemConfiguration.getDefaultObjectPolicyConfiguration()) {
             if (c.getType() == null && c.getSubtype() == null && c.getConflictResolution() != null) {
-                current.add(c);
+                current.add(c.clone());
             } else if (QNameUtil.match(c.getType(), TaskType.COMPLEX_TYPE) && c.getSubtype() == null && c.getConflictResolution() != null) {
                 currentForTasks.add(c);
             }
         }
         List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
         if (current.size() != 1 || current.get(0).getConflictResolution().getAction() != action) {
-            ObjectPolicyConfigurationType newPolicy = new ObjectPolicyConfigurationType(prismContext)
+            ObjectPolicyConfigurationType newPolicy = new ObjectPolicyConfigurationType()
                     .beginConflictResolution()
                     .action(action)
                     .end();
             itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
                     .item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
-                    .deleteRealValues(current)
+                    .deleteRealValues(CloneUtil.cloneCollectionMembers(current))
                     .add(newPolicy)
                     .asItemDelta());
         }
         if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != actionForTasks) {
-            ObjectPolicyConfigurationType newPolicyForTasks = new ObjectPolicyConfigurationType(prismContext)
+            ObjectPolicyConfigurationType newPolicyForTasks = new ObjectPolicyConfigurationType()
                     .type(TaskType.COMPLEX_TYPE)
                     .beginConflictResolution()
                     .action(actionForTasks)

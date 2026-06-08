@@ -455,7 +455,9 @@ class MappingsSuggestionOperation {
                 .description(scriptDescription)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().code(script)));
+                                new ScriptExpressionEvaluatorType()
+                                        .language("mel")
+                                        .code(script)));
     }
 
     private SiSuggestMappingResponseType askMicroserviceAsync(
@@ -596,7 +598,9 @@ class MappingsSuggestionOperation {
                 var result = new OperationResult("validateCategoricalMappingScript");
                 String variableName = isInbound ? ExpressionConstants.VAR_INPUT : matchPair.getFocusProperty().getName();
                 String testValue = attrStats.get().getValueCount().get(0).getValue();
-                scriptValidator.testCategoricalMappingScript(expression, variableName, testValue, ctx.task, result);
+                Class<?> testValueClass = testValue != null ? testValue.getClass() : String.class;
+                scriptValidator.testCategoricalMappingScript(
+                        expression, variableName, testValue, testValueClass, ctx.task, result);
             } catch (ScriptValidationException e) {
                 LOGGER.warn("Categorical mapping script validation failed for {}: {}",
                         matchPair.getShadowAttributePath(), e.getMessage());

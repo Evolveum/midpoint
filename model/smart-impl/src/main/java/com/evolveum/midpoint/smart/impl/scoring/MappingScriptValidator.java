@@ -51,6 +51,8 @@ public class MappingScriptValidator {
 
     private static final String GROOVY_LANGUAGE =
             "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
+    private static final String MIDPOINT_EXPRESSION_LANGUAGE =
+            "http://midpoint.evolveum.com/xml/ns/public/expression/language#mel";
     private static final String ID_TEST_MAPPING_SCRIPT = "testMappingScript";
 
     private final ExpressionFactory expressionFactory;
@@ -61,12 +63,13 @@ public class MappingScriptValidator {
 
     /**
      * Tests whether the suggested mapping script can be executed successfully.
-     * Executes the script with a sample test value and catches any exceptions.
+     * Executes the script with a sample test value (preserving its declared type) and catches any exceptions.
      */
     public void testCategoricalMappingScript(
             ExpressionType expression,
             String variableName,
-            String testValue,
+            @Nullable Object testValue,
+            Class<?> testValueClass,
             Task task,
             OperationResult parentResult) throws ScriptValidationException {
 
@@ -79,7 +82,7 @@ public class MappingScriptValidator {
                 .build();
 
         try {
-            evaluateExpression(expression, variableName, testValue, task, result);
+            evaluateExpression(expression, variableName, testValue, testValueClass, task, result);
             LOGGER.debug("Mapping script validation successful");
         } catch (Exception e) {
             LOGGER.debug("Mapping script validation failed: {}", e.getMessage());
@@ -90,13 +93,16 @@ public class MappingScriptValidator {
     }
 
     /**
-     * Evaluates a mapping expression with the provided variable and value.
-     * Returns the collection of string results from the expression evaluation.
+     * Evaluates a mapping expression with the provided variable, value and its declared type.
+     *
+     * Preserving the original type of the variable is important when the expression invokes
+     * methods specific to that type.
      */
     public Collection<String> evaluateExpression(
             ExpressionType expressionType,
             String variableName,
-            @Nullable String value,
+            @Nullable Object value,
+            Class<?> valueClass,
             Task task,
             OperationResult parentResult)
             throws ExpressionEvaluationException, SecurityViolationException, SchemaException,
@@ -104,7 +110,7 @@ public class MappingScriptValidator {
 
         final String description = "Mapping expression evaluation";
         final VariablesMap variables = new VariablesMap();
-        variables.put(variableName, value, String.class);
+        variables.put(variableName, value, valueClass);
         final ExpressionProfile profile = restrictedProfile();
 
         return ExpressionUtil.evaluateStringExpression(
@@ -119,8 +125,8 @@ public class MappingScriptValidator {
 
     private static ExpressionProfile restrictedProfile() {
         // TODO is this safe enough?
-        final ExpressionPermissionProfile permissionsProfile = ExpressionPermissionProfile.closed(
-                "LLM scripts profile", AccessDecision.ALLOW, Collections.emptyList(),
+        final ExpressionPermissionProfile groovyPermissionsProfile = ExpressionPermissionProfile.closed(
+                "LLM Groovy scripts permission profile", AccessDecision.ALLOW, Collections.emptyList(),
                 List.of(new ExpressionPermissionClassProfileType()
                         .decision(AuthorizationDecisionType.ALLOW)
                         .name("java.lang.String")
@@ -129,8 +135,11 @@ public class MappingScriptValidator {
                                 .decision(AuthorizationDecisionType.DENY))));
         final ExpressionEvaluatorProfile evaluatorProfile = new ExpressionEvaluatorProfile(
                 SchemaConstantsGenerated.C_SCRIPT, AccessDecision.DENY,
-                List.of(new ScriptLanguageExpressionProfile(
-                        GROOVY_LANGUAGE, AccessDecision.ALLOW, true, permissionsProfile)));
+                List.of(
+                        new ScriptLanguageExpressionProfile(
+                                GROOVY_LANGUAGE, AccessDecision.ALLOW, true, groovyPermissionsProfile),
+                        new ScriptLanguageExpressionProfile(
+                                MIDPOINT_EXPRESSION_LANGUAGE, AccessDecision.ALLOW, true, null)));
         return new ExpressionProfile("LLM scripts profile",
                 new ExpressionEvaluatorsProfile(AccessDecision.DENY, List.of(evaluatorProfile)),
                 BulkActionsProfile.none(),

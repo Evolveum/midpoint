@@ -243,7 +243,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
             return true;
         }
 
-        return dto.isFinished() || dto.isFailed() || dto.isSuspended();
+        return dto.getStatusInfo() == null || dto.isFinished() || dto.isFailed() || dto.isSuspended();
     }
 
     private void generatePerformed(AjaxRequestTarget target,

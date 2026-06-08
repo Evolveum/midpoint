@@ -4088,7 +4088,7 @@ public final class WebComponentUtil {
             //couldn't get deltas of items
         }
 
-        if (!deltas.isEmpty()) {
+        if (deltas != null && !deltas.isEmpty()) {
             new Toast()
                     .warning()
                     .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
@@ -4101,7 +4101,7 @@ public final class WebComponentUtil {
     }
 
     public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, PrismPropertyWrapper property) {
-        Collection<ItemDelta> deltas = List.of();
+        Collection<ItemDelta<?,?>> deltas = List.of();
         try {
             deltas = property.getDelta();
         } catch (SchemaException e) {
@@ -4111,8 +4111,8 @@ public final class WebComponentUtil {
         showToastForRecordedButUnsavedChanges(target, deltas);
     }
 
-    private static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta> deltas) {
-        if (!deltas.isEmpty()) {
+    public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta<?,?>> deltas) {
+        if (deltas != null && !deltas.isEmpty()) {
             new Toast()
                     .warning()
                     .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())

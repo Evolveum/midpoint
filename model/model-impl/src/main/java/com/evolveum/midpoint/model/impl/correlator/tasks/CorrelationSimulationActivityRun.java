@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.tasks;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -14,10 +15,12 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.CorrelationSimulationData;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -31,13 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.SimulationTransaction;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class CorrelationSimulationActivityRun
@@ -45,6 +42,7 @@ public class CorrelationSimulationActivityRun
 
     private final CorrelationService correlationService;
     private final ProvisioningService provisioningService;
+    private final RepositoryService repositoryService;
     private final PrismContext prismContext;
     private CorrelationDefinitionType correlationDefinition;
     private List<AdditionalCorrelationItemMappingType> additionalMappings;
@@ -53,10 +51,12 @@ public class CorrelationSimulationActivityRun
 
     public CorrelationSimulationActivityRun(
             ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> ctx,
-            CorrelationService correlationService, ProvisioningService provisioningService, PrismContext prismContext) {
+            CorrelationService correlationService, ProvisioningService provisioningService,
+            RepositoryService repositoryService, PrismContext prismContext) {
         super(ctx, "Correlation");
         this.correlationService = correlationService;
         this.provisioningService = provisioningService;
+        this.repositoryService = repositoryService;
         this.prismContext = prismContext;
         setInstanceReady();
     }
@@ -108,9 +108,19 @@ public class CorrelationSimulationActivityRun
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(shadow,
                 this.resource, this.objectTypeDefinition, this.correlationDefinition, task, result);
 
+        final Collection<ItemDelta<?, ?>> correlationItemDeltas = correlationResult.toDeltaItems(this.prismContext,
+                shadow);
+
+        try {
+            this.repositoryService.modifyObject(ShadowType.class, shadow.getOid(), correlationItemDeltas, result);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new SystemException("Unexpected exception while persisting correlation state to shadow " + shadow
+                    + ": " + e.getMessage(), e);
+        }
+
         final SimulationTransaction simulationTransaction = getSimulationTransaction();
         if (simulationTransaction != null) {
-            final ObjectDelta<ShadowType> correlationDelta = createDelta(correlationResult, shadow);
+            final ObjectDelta<ShadowType> correlationDelta = createDelta(correlationItemDeltas, shadow);
             simulationTransaction.writeSimulationData(new CorrelationSimulationData(shadow, correlationDelta), task,
                     result);
         }
@@ -118,10 +128,9 @@ public class CorrelationSimulationActivityRun
         return true;
     }
 
-    private ObjectDelta<ShadowType> createDelta(CompleteCorrelationResult correlationResult, ShadowType shadow)
-            throws SchemaException {
+    private ObjectDelta<ShadowType> createDelta(Collection<ItemDelta<?, ?>> itemDeltas, ShadowType shadow) {
         return this.prismContext.deltaFactory().object().createModifyDelta(shadow.getOid(),
-                correlationResult.toDeltaItems(this.prismContext, shadow),
+                itemDeltas,
                 ShadowType.class);
     }
 

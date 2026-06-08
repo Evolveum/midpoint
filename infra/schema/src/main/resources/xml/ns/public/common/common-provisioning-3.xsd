@@ -4728,8 +4728,19 @@
                     <xsd:documentation>
                         Identifier of the old shadow. According to this identifier, the shadow will be
                         fetched from the repo (resource). It may be null in the case when the notification
-                        describes the ADD object situation.
+                        describes the ADD object situation or when the shadow is specified by attributes
+                        using "oldShadow".
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="oldShadow" type="tns:ShadowType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An alternative to "oldShadowOid" when the shadow is specified by its attributes, not by its OID.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="currentShadow" type="tns:ShadowType" minOccurs="0">

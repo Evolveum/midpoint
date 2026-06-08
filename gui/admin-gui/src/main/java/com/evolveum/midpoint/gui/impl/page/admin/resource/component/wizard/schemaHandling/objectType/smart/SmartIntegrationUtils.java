@@ -652,7 +652,7 @@ public class SmartIntegrationUtils {
      */
     //TODO look at getCorrelationStrategyLabel
     public static @NotNull String computeCorrelationStrategyMethod(@NotNull CorrelationItemType correlationItemType) {
-        String strategy = "(Exact)";
+        String strategy = "EXACT";
 
         ItemSearchDefinitionType search = correlationItemType.getSearch();
         if (search != null) {
@@ -662,9 +662,9 @@ public class SmartIntegrationUtils {
                 TrigramSimilaritySearchDefinitionType sim = fuzzy.getSimilarity();
 
                 if (lev != null && lev.getThreshold() != null) {
-                    strategy = "(Levenshtein)";
+                    strategy = "LEVENSHTEIN";
                 } else if (sim != null && sim.getThreshold() != null) {
-                    strategy = "(Trigram)";
+                    strategy = "TRIGRAM";
                 }
             }
         }
