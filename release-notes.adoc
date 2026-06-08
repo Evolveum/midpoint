@@ -40,7 +40,19 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 * xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language]: secure expression language for use in mappings and customization.
 
-* bug:MID-10965[] Fast correlators simulation.
+* New Smart Integration features:
+** Suggestions of object types (delineation).
+** Suggestions of focus type.
+** Suggestions of correlators.
+** Suggestions of mappings.
+** Suggestions of simple associations.
+** Object Type / Object Class statistics.
+** Correlators simulation.
+** Inbound mappings simulation.
+* UI/UX improvements:
+** Improved Object Type wizard.
+** Improved Mappings page.
+** Improved Correlation page.
 
 * Multi-tab Browser Support. See bug:MID-11050[].
 
@@ -187,6 +199,9 @@ Generally speaking, those non-bundled items are supported only for platform subs
 This part of midPoint user interface is not finished.
 The only supported parts of this user interface are those that are used to process requests, approvals, and manual correlation.
 Other parts of case management user interface are considered to be experimental, especially the parts dealing with manual provisioning cases.
+
+* Smart Integration features which leverages LLMs, requires an external "Smart Integration" microservice to work properly (publicly available at our https://github.com/Evolveum/midpilot-smart-integration/tree/main[GitHub]).
+For all such features there is also the requirement of either hosting your own LLM inference service, or use some third party LLM inference provider.
 
 This list is just an overview, it may not be complete.
 Please see the documentation regarding detailed limitations of individual features.
