@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.testng.annotations.Test;
 
@@ -76,6 +77,18 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
     private static final DummyTestResource RESOURCE_EXPLICIT_TYPE_INHERITANCE = new DummyTestResource(
             TEST_DIR, "resource-explicit-type-inheritance.xml", "eb2f35d9-8147-413c-bfe0-f0890c14e702",
             "explicit-type-inheritance", DummyResourceContoller::extendSchemaPirate);
+
+    private static final File CSV_TEST_DIR = new File("src/test/resources/merge/csv");
+    private static final TestObject<ResourceType> RESOURCE_CSV_TEMP = TestObject.file(
+            CSV_TEST_DIR, "resource-csv-temp.xml", "ab76a143-f425-4d9d-bb3b-6076fe8e4452");
+    private static final TestObject<ResourceType> RESOURCE_CSV = TestObject.file(
+            CSV_TEST_DIR, "resource-csv.xml", "f8ca4f55-2361-42b6-8f39-23a1e37af336");
+    private static final File CSV_USERS_SOURCE_FILE = new File(CSV_TEST_DIR, "resource-csv-users.csv");
+    private static final File CSV_GROUPS_SOURCE_FILE = new File(CSV_TEST_DIR, "resource-csv-groups.csv");
+    private static final File CSV_PROPERTIES_SOURCE_FILE = new File(CSV_TEST_DIR, "resource-csv-properties.prop");
+    private static final File CSV_USERS_TARGET_FILE = new File("target/csv-users.csv");
+    private static final File CSV_GROUPS_TARGET_FILE = new File("target/csv-groups.csv");
+    private static final File CSV_PROPERTIES_TARGET_FILE = new File("target/csv-properties.prop");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -698,6 +711,36 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         List<? extends ResourceObjectTypeDefinition> accountDefs = schema.getObjectTypeDefinitions(ShadowKindType.ACCOUNT);
         assertThat(accountDefs).as("account definitions").hasSize(2);
+    }
+
+    /**
+     * Tests merging of the multivalue container (SimulatedReferenceTypeDefinitionType)
+     * in case when container's id is not defined.
+     * Covers #11218
+     * @throws Exception
+     */
+    @Test
+    public void test300ReimportTemplateAndTestConnection() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("template and resource are imported");
+        FileUtils.copyFile(CSV_USERS_SOURCE_FILE, CSV_USERS_TARGET_FILE);
+        FileUtils.copyFile(CSV_GROUPS_SOURCE_FILE, CSV_GROUPS_TARGET_FILE);
+        FileUtils.copyFile(CSV_PROPERTIES_SOURCE_FILE, CSV_PROPERTIES_TARGET_FILE);
+
+        addResourceObject(RESOURCE_CSV_TEMP, List.of(CSV_CONNECTOR_TYPE), result);
+        addResourceObject(RESOURCE_CSV, List.of(CSV_CONNECTOR_TYPE), result);
+
+        when("resource is tested for the first time");
+        testResourceAssertSuccess(RESOURCE_CSV.oid, task, result);
+
+        when("template is re-imported");
+        addResource(RESOURCE_CSV_TEMP, CSV_CONNECTOR_TYPE, true, result);
+        RESOURCE_CSV.reload(result);
+
+        and("resource is tested again");
+        testResourceAssertSuccess(RESOURCE_CSV.oid, task, result);
     }
 
     /** Hacked: gets the value of (assuming) single property value filter in the pattern. */

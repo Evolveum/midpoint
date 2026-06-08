@@ -331,7 +331,6 @@ Hence, the current implementation uses the approach described above, with its in
 
 Other limitations, not principal but practical, are:
 
-. Simulations in multi-node tasks are not supported yet.
 . Handling of objects created on demand is limited slightly more than described above:
 Their creation is reported multiple times, even for a single item being processed.
 The delta visualization is not finished yet: midPoint shows OIDs instead of names.
@@ -350,3 +349,11 @@ It has the following limitations:
 . In this mode, higher-level processing (synchronization) is always skipped.
 . Errors are not reported in this mode in the simulation result.
 They can be seen only in the respective task, just like they are visible in normal processing.
+
+=== Correlation simulation
+
+This is a special kind of simulation, which can help to simulate how the correlation rule behaves.
+
+==== Limitations
+
+* Does not work with object type definition (kind/intent) in deprecated `objectSynchronization` configuration element (in Resource).

@@ -2135,7 +2135,7 @@ Therefore, the only practical option in this case is to explicitly check for `nu
 .Correct expression
 [source,mel]
 ----
-isPresent(foo) ? foo.contains('#') : null
+isPresent(foo) ? foo.contains('#') : false
 ----
 
 When working with strings, `stringify()` function can be very handy.

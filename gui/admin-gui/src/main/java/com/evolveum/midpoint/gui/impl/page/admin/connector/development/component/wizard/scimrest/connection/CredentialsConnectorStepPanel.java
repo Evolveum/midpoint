@@ -226,14 +226,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
                             .anyMatch(vi -> StringUtils.equals(wrapper.getItemName().getLocalPart(), vi.getLocalPart()))
                             ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
                 })
-                .mandatoryHandler(wrapper -> {
-                    ConnDevAuthInfoType authType = selectedAuthModel.getObject();
-                    if (authType == null) {
-                        return false;
-                    }
-                    return getVisibleItemsFor(authType).stream()
-                            .anyMatch(vi -> StringUtils.equals(wrapper.getItemName().getLocalPart(), vi.getLocalPart()));
-                })
+                .mandatoryHandler(wrapper -> false)
                 .build();
 
         VerticalFormPanel formPanel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration(getPanelType())) {
@@ -275,7 +268,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
         try {
             PrismPropertyWrapper<ConnDevIntegrationType> integration =
                     getDetailsModel().getObjectWrapper().findProperty(
-                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE));
+                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
             return new ArrayList<>(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
         } catch (SchemaException e) {
             throw new RuntimeException(e);
@@ -356,7 +349,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
             try {
                 PrismPropertyWrapper<ConnDevIntegrationType> integration =
                         getDetailsModel().getObjectWrapper().findProperty(
-                                ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE));
+                                ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
                 visibleItems.addAll(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
 
                 if (visibleItems.stream().allMatch(

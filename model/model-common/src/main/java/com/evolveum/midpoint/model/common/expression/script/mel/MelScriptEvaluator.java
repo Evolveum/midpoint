@@ -58,7 +58,6 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     public static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
     private final BasicExpressionFunctions basicExpressionFunctions;
-    private final MidpointFunctions midpointExpressionFunctions;
     private final CelOptions celOptions = CelOptions.current()
             .enableRegexPartialMatch(true)
             .enableOptionalSyntax(true)
@@ -78,7 +77,6 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
             MidpointFunctions midpointExpressionFunctions) {
         super(prismContext, protector, localizationService);
         this.basicExpressionFunctions = basicExpressionFunctions;
-        this.midpointExpressionFunctions = midpointExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(protector,
                 basicExpressionFunctions, midpointExpressionFunctions, celOptions);
         functionLibraryProcessor = new FunctionLibraryProcessor();

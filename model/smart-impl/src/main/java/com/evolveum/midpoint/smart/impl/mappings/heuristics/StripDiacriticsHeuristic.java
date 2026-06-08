@@ -59,14 +59,14 @@ public class StripDiacriticsHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(input)",
+                "ascii(input)",
                 "Strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.toAscii(" + focusPropertyName + ")",
+                "ascii(" + focusPropertyName + ")",
                 "Strip diacritical marks");
     }
 }

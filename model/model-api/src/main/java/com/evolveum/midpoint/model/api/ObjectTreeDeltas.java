@@ -243,9 +243,9 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 
     private <T1 extends ObjectType> ObjectDelta<T1> mergeInCorrectOrder(ObjectDelta<T1> first, ObjectDelta<T1> second) throws SchemaException {
         ObjectDelta<T1> rv;
-        if (first == null) {
+        if (ObjectDelta.isEmpty(first)) {
             rv = second;
-        } else if (second == null) {
+        } else if (ObjectDelta.isEmpty(second)) {
             rv = first;
         } else if (second.isAdd() || first.isDelete()) {
             rv = second.clone();
