@@ -18,6 +18,16 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -603,12 +613,21 @@ public class RequestAccess implements Serializable {
                     continue;
                 }
 
+                if (containsOnlyPruneAction(policyRule)) {
+                    continue;
+                }
+
                 // everything other than 'enforce' is a warning
                 boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
 
                 createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
             }
         }
+    }
+
+   private boolean containsOnlyPruneAction(DirectlyEvaluatedClockworkPolicyRule policyRule) {
+        int pruneActionCount = policyRule.getEnabledActions(PrunePolicyActionType.class).size();
+        return policyRule.getEnabledActions().size() == pruneActionCount;
     }
 
     private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,
