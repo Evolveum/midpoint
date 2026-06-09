@@ -193,7 +193,9 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
                     C realValue = wrapper.getRealValue();
 
                     IModel<String> displayNameModel = () -> getDisplayNameFor(realValue, status);
-                    LabelWithBadgePanel label = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel, status);
+                    LabelWithBadgePanel label = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel,
+                            createStringResource("SmartIntegration.suggestion.text"),
+                            status);
                     cellItem.add(label);
                     return;
                 }

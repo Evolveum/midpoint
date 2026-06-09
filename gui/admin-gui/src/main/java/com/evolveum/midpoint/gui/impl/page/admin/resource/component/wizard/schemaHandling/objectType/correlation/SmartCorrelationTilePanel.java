@@ -260,7 +260,8 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
     }
 
     private void initBadgePanel(@NotNull Fragment fragment) {
-        BadgePanel badge = new BadgePanel(ID_BADGE_PANEL, getAiCustomTextBadgeModel("Suggestion"));
+        BadgePanel badge = new BadgePanel(ID_BADGE_PANEL,
+                getAiCustomTextBadgeModel(createStringResource("SmartIntegration.suggestion.text").getObject()));
         badge.setOutputMarkupId(true);
         badge.add(new VisibleBehaviour(() -> statusModel.getObject() != null));
         fragment.add(badge);

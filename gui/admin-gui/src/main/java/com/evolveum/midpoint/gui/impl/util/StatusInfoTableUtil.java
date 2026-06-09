@@ -7,8 +7,7 @@
 package com.evolveum.midpoint.gui.impl.util;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.showSuggestionInfoPanelPopup;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiBadgeModel;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -358,9 +357,10 @@ public class StatusInfoTableUtil {
             @NotNull String componentId,
             @NotNull StatusInfo<?> suggestionTypeStatusInfo,
             @NotNull IModel<String> displayNameModel,
+            @NotNull IModel<String> suggestionBadgeModel,
             @NotNull OperationResultStatusType status) {
         LabelWithBadgePanel labelWithBadgePanel = new LabelWithBadgePanel(
-                componentId, getAiBadgeModel(), displayNameModel) {
+                componentId, getAiCustomTextBadgeModel(suggestionBadgeModel.getObject()), displayNameModel) {
             @Override
             protected boolean isIconVisible() {
                 return suggestionTypeStatusInfo.isExecuting();

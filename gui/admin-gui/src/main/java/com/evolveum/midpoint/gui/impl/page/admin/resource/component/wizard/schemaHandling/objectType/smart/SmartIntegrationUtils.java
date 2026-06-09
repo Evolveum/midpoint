@@ -46,7 +46,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
 
@@ -223,10 +223,6 @@ public class SmartIntegrationUtils {
                     });
         }
 
-    }
-
-    public static @NotNull IModel<Badge> getAiBadgeModel() {
-        return getAiCustomTextBadgeModel("AI");
     }
 
     public static @NotNull IModel<Badge> getAiCustomTextBadgeModel(String text) {
