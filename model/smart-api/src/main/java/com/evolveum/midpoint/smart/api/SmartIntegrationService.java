@@ -152,7 +152,10 @@ public interface SmartIntegrationService {
      * They are sorted by finished time, then by started time.
      */
     List<StatusInfo<ObjectTypesSuggestionType>> listSuggestObjectTypesOperationStatuses(
-            String resourceOid, Task task, OperationResult result)
+            String resourceOid,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
+            @Nullable QName objectClass,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Checks the status of the "suggest object types" request. */
@@ -244,7 +247,9 @@ public interface SmartIntegrationService {
      * They are sorted by finished time, then by started time.
      */
     List<StatusInfo<CorrelationSuggestionsType>> listSuggestCorrelationOperationStatuses(
-            String resourceOid, Task task, OperationResult result)
+            String resourceOid,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Checks the status of the "suggest correlation" request. */
@@ -396,9 +401,9 @@ public interface SmartIntegrationService {
      * Returns suggestion tasks related to the given resource object type, filtered by activity types.
      */
     @NotNull SearchResultList<PrismObject<TaskType>> listObjectTypeRelatedSuggestionTasks(
-            @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             @NotNull String resourceOid,
+            @Nullable QName objectClass,
             @NotNull List<ItemName> activityTypes,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws CommonException;
+            @NotNull OperationResult result) throws SchemaException;
 }

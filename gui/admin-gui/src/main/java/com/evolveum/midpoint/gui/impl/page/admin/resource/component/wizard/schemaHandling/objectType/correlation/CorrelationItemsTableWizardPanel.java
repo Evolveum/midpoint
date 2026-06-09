@@ -159,7 +159,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 if (resourceObjectTypeIdentification == null) {
                     return null;
                 }
-                return loadCorrelationTypeSuggestion(getPageBase(), resourceOid, resourceObjectTypeIdentification, task, result);
+                return loadLastCorrelationTypeSuggestion(getPageBase(), resourceOid, resourceObjectTypeIdentification, task, result);
             }
         };
     }
