@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
 import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -623,12 +624,21 @@ public class RequestAccess implements Serializable, DebugDumpable {
                     continue;
                 }
 
+                if (containsOnlyPruneAction(policyRule)) {
+                    continue;
+                }
+
                 // everything other than 'enforce' is a warning
                 boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
 
                 createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
             }
         }
+    }
+
+   private boolean containsOnlyPruneAction(DirectlyEvaluatedClockworkPolicyRule policyRule) {
+        int pruneActionCount = policyRule.getEnabledActions(PrunePolicyActionType.class).size();
+        return policyRule.getEnabledActions().size() == pruneActionCount;
     }
 
     private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,
