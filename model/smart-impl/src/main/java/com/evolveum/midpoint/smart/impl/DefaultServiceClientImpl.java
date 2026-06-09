@@ -33,9 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SiRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationModelOptionsType;
 
 /**
  * A client for the remote Smart integration service (the real one, accessible via HTTP).
@@ -55,10 +53,6 @@ public class DefaultServiceClientImpl implements ServiceClient {
     /** The client used to access the remote service. */
     private final WebClient webClient;
 
-    /** Optional LLM model options injected into every request. */
-    @Nullable
-    private final SmartIntegrationModelOptionsType modelOptions;
-
     /** Thread pool for async invocations. */
     private final ExecutorService executorService;
 
@@ -72,7 +66,6 @@ public class DefaultServiceClientImpl implements ServiceClient {
         // FIXME temporary hack to force CXF to use HTTP/1.1 (remove it eventually, because it influences all HTTP communication).
         System.setProperty("org.apache.cxf.transport.http.forceVersion", "1.1");
         webClient = WebClient.create(getServiceUrl(configurationBean), true);
-        modelOptions = configurationBean != null ? configurationBean.getModelOptions() : null;
 
         var conduit = WebClient.getConfig(webClient).getHttpConduit();
         var policy = new HTTPClientPolicy();
@@ -116,9 +109,6 @@ public class DefaultServiceClientImpl implements ServiceClient {
             throws SchemaException {
         // FIXME this is a temporary hack to work around limitations of our JSON serializer/deserializer.
         //  So we serialize/deserialize the data ourselves.
-        if (modelOptions != null && request instanceof SiRequestType siRequest) {
-            siRequest.setModelOptions(modelOptions);
-        }
         var requestText = PrismContext.get().jsonSerializer().serializeRealValueContent(request);
         LOGGER.trace("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
         webClient.reset();

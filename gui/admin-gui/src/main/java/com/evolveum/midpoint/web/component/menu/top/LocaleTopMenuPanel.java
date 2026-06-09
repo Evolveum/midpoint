@@ -38,14 +38,10 @@ public class LocaleTopMenuPanel extends LocalePanel {
         link.setOutputMarkupId(true);
         link.add(AttributeAppender.append(
                 "title",
-                createStringResource(
-                        "LocaleTopMenuPanel.changingOfLanguage",
-                        getSelectedLocaleDescriptor() == null ? "" : getSelectedLocaleDescriptor().getName())));
+                createStringResource("LocaleTopMenuPanel.changingOfLanguage", getSelectedLocaleName())));
         link.add(AttributeAppender.append(
                 "aria-label",
-                createStringResource(
-                        "LocaleTopMenuPanel.changingOfLanguage",
-                        getSelectedLocaleDescriptor() == null ? "" : getSelectedLocaleDescriptor().getName())));
+                createStringResource("LocaleTopMenuPanel.changingOfLanguage", getSelectedLocaleName())));
         add(link);
 
         Label image = new Label(ID_ICON);

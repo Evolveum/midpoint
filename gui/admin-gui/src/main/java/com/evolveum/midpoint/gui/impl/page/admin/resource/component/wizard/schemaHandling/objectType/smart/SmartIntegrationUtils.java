@@ -258,9 +258,9 @@ public class SmartIntegrationUtils {
                 "SuggestionUiStyle.inProgress"),
         NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
-        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-purple",
+        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-ai left-border-2px",
                 "SuggestionUiStyle.default"),
-        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system",
+        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system left-border-2px",
                 "SuggestionUiStyle.default");
 
         public final String tileClass;
@@ -652,7 +652,7 @@ public class SmartIntegrationUtils {
      */
     //TODO look at getCorrelationStrategyLabel
     public static @NotNull String computeCorrelationStrategyMethod(@NotNull CorrelationItemType correlationItemType) {
-        String strategy = "(Exact)";
+        String strategy = "EXACT";
 
         ItemSearchDefinitionType search = correlationItemType.getSearch();
         if (search != null) {
@@ -662,9 +662,9 @@ public class SmartIntegrationUtils {
                 TrigramSimilaritySearchDefinitionType sim = fuzzy.getSimilarity();
 
                 if (lev != null && lev.getThreshold() != null) {
-                    strategy = "(Levenshtein)";
+                    strategy = "LEVENSHTEIN";
                 } else if (sim != null && sim.getThreshold() != null) {
-                    strategy = "(Trigram)";
+                    strategy = "TRIGRAM";
                 }
             }
         }

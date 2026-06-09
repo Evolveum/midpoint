@@ -40,7 +40,21 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 * xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language]: secure expression language for use in mappings and customization.
 
-* bug:MID-10965[] Fast correlators simulation.
+* New Smart Integration features:
+** Suggestions of object types (delineation).
+** Suggestions of focus type.
+** Suggestions of correlators.
+** Suggestions of mappings.
+** Suggestions of simple associations.
+** Object Type / Object Class statistics.
+** Correlators simulation.
+** Inbound mappings simulation.
+* UI/UX improvements:
+** Improved Object Type wizard.
+** Improved Mappings page.
+** Improved Correlation page.
+
+* Multi-tab Browser Support. See bug:MID-11050[].
 
 #TODO#
 
@@ -53,6 +67,10 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * bug:MID-11036[] Implemented export to XLSX.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
 * bug:MID-9476[] Improved Search Box in Object Collection View.
+* bug:MID-10867[] Added support for java 25.
+* bug:MID-10875[] Added Order constraints tab for Assignments panel.
+* Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
+* Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
 
 === Major Bugfixes
 
@@ -87,7 +105,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed certification case stage outcome information. See bug:MID-11026[]
 * Fixed admin gui configuration merging. See bug:MID-11045[]
 * Fixed correlation work item panel. See bug:MID-10993[]
-* Fixed NPE in general notifier. See bug:MID-11038[]
+* Fixed recipient converter while sending notification. See bug:MID-11038[]
 * Fixed page storage for dashboard widget collection. See bug:MID-11055[]
 * Fixed oversized IN queries in fetchChildren causing PostgreSQL parameter limit errors. See bug:MID-11089[]
 
@@ -99,7 +117,25 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Improved login and self-dashboard performance. See bug:MID-10972[]
 * Fixed hide export button in the popup. See bug:MID-11160[]
 * Delineation suggestions: filter parsing broken after recent GUI change. See bug:MID-11175[]
-
+* Fixed work item search by name causing repository mapping error. See bug:MID-8834[]
+* Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
+* Fix 10k limit in certification queries using iterative search. See bug:MID-11043[]
+* Fixed generic "Fatal error" message in object tables to show available list/search error details. See bug:MID-10911[]
+* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
+* Fixed extension schema containers displaying. See bug:MID-10954[]
+* Fixed duplicated "No response" option for campaign. See bug:MID-11166[]
+* Fixed Campaigns scheduling menu item visibility. See bug:MID-11176[]
+* Fixed axiom query parsing for saved filters. See bug:MID-11183[]
+* Updated saved filters merging strategy. See bug:MID-11181[]
+* Improved CSV export to use streaming data loading and export. See bug:MID-10990[]
+* Fixed text formatting in disabled text area. See bug:MID-11216[]
+* Fixed Privileged access initial object. See bug:MID-11004[]
+* Fixed assignment name for policy rule. See bug:MID-11005[]
+* Fixed object list view columns while report creation. See bug:MID-10967[]
+* Fixed role analysis attribute queries for enum-based attributes such as effective status. See bug:MID-10504[]
+* Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
+* Fixed loss of unsaved resource detail changes after running Test connection. See bug:MID-10966[]
+* Fixed dashboard widget collections with inline filters by allowing explicit object type specification. See bug:MID-9879[]
 
 === Releases Of Other Components
 
@@ -164,6 +200,9 @@ This part of midPoint user interface is not finished.
 The only supported parts of this user interface are those that are used to process requests, approvals, and manual correlation.
 Other parts of case management user interface are considered to be experimental, especially the parts dealing with manual provisioning cases.
 
+* Smart Integration features which leverages LLMs, requires an external "Smart Integration" microservice to work properly (publicly available at our https://github.com/Evolveum/midpilot-smart-integration/tree/main[GitHub]).
+For all such features there is also the requirement of either hosting your own LLM inference service, or use some third party LLM inference provider.
+
 This list is just an overview, it may not be complete.
 Please see the documentation regarding detailed limitations of individual features.
 
@@ -195,6 +234,8 @@ Note that production deployments in Windows environments are supported only for 
 === Java
 
 Following Java platform versions are supported:
+
+* Java 25.
 
 * Java 21.
 This is a *recommended* platform.
@@ -254,19 +295,19 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.48
+| 10.1.55
 | Web container
 
 | ConnId
-| 1.6.0.0
+| 1.7.0.0-SNAPSHOT #TODO#
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.9.2
+| 3.10-SNAPSHOT  #TODO#
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 2.9
+| 2.10-SNAPSHOT #TODO#
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
@@ -298,17 +339,19 @@ Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
-=== Upgrade From MidPoint 4.9
+=== Upgrade From MidPoint 4.10
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
-Be sure to be on the latest maintenance version for 4.9, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
+Be sure to be on the latest maintenance version for 4.10, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
- * There are database schema changes (see xrefv:/midpoint/reference/support-4.9/upgrade/database-schema-upgrade/[Database schema upgrade]).
+* There are database schema changes (see xrefv:/midpoint/reference/support-4.10/upgrade/database-schema-upgrade/[Database schema upgrade]).
+** New tables for `ApplicationType`, `ConnectorDevelopmentType` were added.
+** Few other smaller changes.
 
  * Version numbers of some bundled connectors have changed.
  Connector references from the resource definitions that are using the bundled connectors need to be updated.
@@ -317,8 +360,8 @@ Note that:
 
 === Upgrade From Other MidPoint Versions
 
-Upgrade from midPoint versions other than 4.9.x to midPoint {release-version} is not supported directly.
-Please upgrade to 4.9.5 first.
+Upgrade from midPoint versions other than 4.10.x to midPoint {release-version} is not supported directly.
+Please upgrade to 4.10.3 first.
 
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.10
 
@@ -351,6 +394,44 @@ _Actions required:_ Please review the changes and apply them appropriately to yo
 For more information see xrefv:/midpoint/reference/support-4.10/deployment/ninja/use-case/upgrade-with-ninja/#_initial_objects[here].
 
 //TODO
+New initial objects:
+
+* 064-archetype-governance-policy.xml
+* 739-mark-shadow-correlation-owner-found.xml
+* 740-mark-shadow-correlation-owner-not-found.xml
+* 741-mark-shadow-correlation-owner-not-certain.xml
+* 742-mark-item-value-added.xml
+* 743-mark-item-value-removed.xml
+* 744-mark-item-value-modified.xml
+* 745-mark-item-value-not-changed.xml
+* 746-mark-item-value-change-not-applied.xml
+* 602-origin-artificial-intelligence.xml
+* 603-origin-system-intelligence.xml
+
+Modified:
+
+* 029-archetype-application.xml - Poly-string translation keys added.
+* 501-archetype-task-reconciliation.xml - Poly-string translation keys added.
+* 502-archetype-task-recomputation.xml - Poly-string translation keys added.
+* 503-archetype-task-import.xml - Poly-string translation keys added.
+* 504-archetype-task-live-sync.xml - Poly-string translation keys added.
+* 505-archetype-task-async-update.xml - Poly-string translation keys added.
+* 506-archetype-task-cleanup.xml - Poly-string translation keys added.
+* 507-archetype-task-report.xml - Poly-string translation keys added.
+* 508-archetype-task-single-bulk-action.xml - Poly-string translation keys added.
+* 509-archetype-task-iterative-bulk-action.xml - Poly-string translation keys added.
+* 536-archetype-task-certification-start-campaign.xml - Poly-string translation keys added.
+* 537-archetype-task-certification-close-current-stage.xml - Poly-string translation keys added.
+* 538-archetype-task-certification-reiterate-campaign.xml - Poly-string translation keys added.
+* 702-archetype-person.xml - Poly-string translation keys added.
+* 705-archetype-shadow-policy-mark.xml - Poly-string translation keys added.
+* 200-lookup-languages.xml - Added Slovenian (sl) and Latvian (lv) languages.
+* 210-lookup-locales.xml - Added Slovenian (sl) and Latvian (lv) locales.
+* 250-mark-privileged-access.xml - Added archetype.
+* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction.
+* 300-policy-require-classification.xml - Added archetype.
+* 300-policy-require-owner.xml - Added archetype.
+* 000-system-configuration.xml -  Poly-string translation keys added.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
@@ -363,72 +444,12 @@ NOTE: This section is relevant to the majority of midPoint deployments.
 It describes what data items were marked as deprecated, or removed altogether from the schema.
 You should at least scan through it - or use the `ninja` tool to check the deprecations for you.
 
-.Items being deprecated
-[%autowidth]
-|===
-| Type | Item or value | Note
-| `AccessCertificationConfigurationType`
-| `availableResponse`
-| Configure actions in the cert. items collection view instead.
-
-| `ItemRefinedDefinitionType`
-| `emphasized`
-| Use `displayHint` instead.
-
-| `ResourceObjectTypeDefinitionType`
-| `association`
-| Use association types (in schemaHandling) instead.
-
-| `ResourceObjectTypeDefinitionType`
-| `protected`
-| Use "marking" instead.
-
-| `ShadowType`
-| `association`
-| Legacy associations of this shadow. Not used anymore.
-
-| `SynchronizationActionsType`
-| `unlink`
-| Use `<synchronize/>` action instead.
-|===
-
-The `synchronize/membership` container was added to the object operation policy object, present in xrefv:/midpoint/reference/support-4.9/concepts/mark/[object marks] (like the `Protected` one).
-It controls the handling of the membership of entitlements possessing given object mark.
-
-_Actions required:_
-
-* Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
-Make sure you don't use any removed items.
-You can use `ninja` tool for this.
-
-* Be sure to apply the changes to initial objects 800-804 (object marks), as well as to your custom object marks to handle the membership in the expected way.
+// TODO
 
 [#_behavior_changes_since_4_10]
 === Behavior Changes Since 4.10
 
-* The contract for `ModificationsSupplier` in dynamic object modifications (repo API) was changed.
-+
-The original approach was that the caller, i.e., repository, cloned the existing object before handling it to the callback (modifications supplier).
-Now, the implementor of the callback is responsible for not modifying the provided object in any way.
-
-* Projections with denied access no longer cause "preview changes" operation to fail.
-+
-If a user has no authorization to see particular projection (shadow), the "preview changes" operation used to finish with "Access denied" fatal error even if there were parts of the result visible to the user.
-This is now changed (fixed): only the relevant projections are hidden now.
-All the remaining data are displayed to the user.
-See also bug:MID-10397[].
-
-* Expression profile changes:
-
-** Script expression evaluator was removed from `safe` expression profile, as it is not considered to be safe.
-
-** Two new expression profiles were added: `permissive` (allowing all expressions) and `prohibitive` (allowing no expressions).
-
-** Permission profile `script-safe` was renamed to `script-limited`, as the existing mechanism for script permission checks is not considered to provide complete safety and security.
-This profile is not considered to provide strict security, therefore the name was changed to avoid mis-interpretation.
-Corresponding description was added to the profile.
-
-** See xref:/midpoint/reference/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
+// TODO
 
 ++++
 {% include release-issues.html %}

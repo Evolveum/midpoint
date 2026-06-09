@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -29,13 +31,14 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
 
     private static final String ID_TEMPLATE_CHOICE_PANEL = "templateChoicePanel";
     private static final String ID_SIMULATE = "simulate";
+    private static final String ID_BUTTON_RUN_NEW_TASK = "runNewTask";
     private static final String ID_BUTTON_CREATE_NEW_TASK = "createNewTask";
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_CLOSE = "close";
 
     private IModel<ResourceTaskFlavor<?>> flavorModel = Model.of();
 
-    private Fragment footer;
+    protected Fragment footer;
 
     public TaskCreationPopup(String id) {
         super(id);
@@ -71,6 +74,24 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
 
     private void initFooter() {
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
+        footer.setOutputMarkupId(true);
+
+        AjaxIconButton runNewTask = new AjaxIconButton(ID_BUTTON_RUN_NEW_TASK,
+                () -> "fa-solid fa-play",
+                createStringResource("TaskCreationPopup.runNewTask")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onRunTask(target);
+                getPageBase().hideMainPopup(target);
+                target.add(getFeedbackPanel());
+            }
+        };
+
+        runNewTask.showTitleAsLabel(true);
+        runNewTask.setOutputMarkupId(true);
+        runNewTask.add(new EnableBehaviour(() -> flavorModel.getObject() != null));
+        footer.add(runNewTask);
 
         AjaxIconButton createNewTask = new AjaxIconButton(ID_BUTTON_CREATE_NEW_TASK,
                 () -> "fa-solid fa-circle-plus",
@@ -81,7 +102,10 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
                 onCreateTask(target);
             }
         };
+
         createNewTask.showTitleAsLabel(true);
+        createNewTask.setOutputMarkupId(true);
+        createNewTask.add(new EnableBehaviour(() -> flavorModel.getObject() != null));
         footer.add(createNewTask);
 
         footer.add(new AjaxLink<>(ID_CLOSE) {
@@ -96,10 +120,16 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
 
     private void onCreateTask(AjaxRequestTarget target) {
         ToggleCheckBoxPanel toggleCheckBoxPanel = (ToggleCheckBoxPanel) get(ID_SIMULATE);
-        createNewTaskPerformed(flavorModel.getObject(), toggleCheckBoxPanel.getValue(), target);
+        createNewTaskPerformed(flavorModel.getObject(), toggleCheckBoxPanel.getValue(), target, true);
     }
 
-    protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate, AjaxRequestTarget target) {
+    private void onRunTask(AjaxRequestTarget target) {
+        ToggleCheckBoxPanel toggleCheckBoxPanel = (ToggleCheckBoxPanel) get(ID_SIMULATE);
+        createNewTaskPerformed(flavorModel.getObject(), toggleCheckBoxPanel.getValue(), target, false);
+    }
+
+    protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate,
+            AjaxRequestTarget target, boolean showConfigurationWizard) {
 
     }
 
@@ -151,5 +181,9 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
             case ARCHETYPE_SHADOW_RECLASSIFICATION_TASK -> ResourceTaskFlavors.SHADOW_RECLASSIFICATION;
             default -> null;
         };
+    }
+
+    public Fragment getFooterFragment() {
+        return footer;
     }
 }

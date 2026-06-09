@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
-import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
+import com.evolveum.midpoint.schema.config.BaseEventHandlerConfigItem;
 
 import com.evolveum.midpoint.schema.config.OriginProvider;
 
@@ -52,7 +52,7 @@ public class NotificationManagerImpl implements NotificationManager {
     @Override
     public void processEvent(
             @NotNull Event event,
-            @Nullable EventHandlerConfigItem customHandler,
+            @Nullable BaseEventHandlerConfigItem customHandler,
             @Nullable ExpressionProfile customHandlerExpressionProfile,
             @NotNull Task task,
             @NotNull OperationResult parentResult) {
@@ -82,7 +82,7 @@ public class NotificationManagerImpl implements NotificationManager {
                     ExpressionProfile profile = ExpressionProfile.full();
                     var ctx = new EventProcessingContext<>(event, profile, task);
                     processEvent(
-                            EventHandlerConfigItem.of(
+                            BaseEventHandlerConfigItem.of(
                                     eventHandlerBean,
                                     OriginProvider.embedded()),
                             ctx, result);
@@ -104,7 +104,7 @@ public class NotificationManagerImpl implements NotificationManager {
     }
 
     private void processEvent(
-            @NotNull EventHandlerConfigItem eventHandlerConfig,
+            @NotNull BaseEventHandlerConfigItem eventHandlerConfig,
             @NotNull EventProcessingContext<?> ctx,
             @NotNull OperationResult result) {
         try {

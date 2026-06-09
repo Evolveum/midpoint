@@ -394,7 +394,9 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
         final WebMarkupContainer detailsContainer = new WebMarkupContainer(ID_DETAILS_CONTAINER, getModel());
         detailsContainer.setOutputMarkupId(true);
-        detailsContainer.add(new VisibleBehaviour(() -> isDisplayOnlyTopLevel() && getModelObject().isShowMore() && !subresultsModel.getObject().isEmpty()));
+        detailsContainer.add(new VisibleBehaviour(() -> isDisplayOnlyTopLevel() && getModelObject().isShowMore()
+                && (!subresultsModel.getObject().isEmpty() || !getModel().getObject().getContexts().isEmpty())
+        ));
         box.add(detailsContainer);
 
         final WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
@@ -430,6 +432,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         countContainer.add(count);
 
         initError(details);
+
 
         ListView<OpResult> subresults = new ListView<>("subresults", subresultsModel) {
             private static final long serialVersionUID = 1L;

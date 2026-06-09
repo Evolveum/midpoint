@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.config;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /** Exception from naming convention (because of assignment vs inducement dichotomy). */
@@ -37,5 +38,16 @@ public class AbstractAssignmentConfigItem extends ConfigurationItem<AssignmentTy
         return as(
                 child(value().getPolicyRule(), AssignmentType.F_POLICY_RULE),
                 PolicyRuleConfigItem.class);
+    }
+
+    /**
+     * Activity path for this configuration item.
+     * Necessary for correct evaluation of virtual assignments that are coming from activity policies
+     * (mainly to correctly handle activity tree hierarchy and updating state and policy counters).
+     *
+     * Should be abstract.
+     */
+    public ActivityPath getActivityPath() {
+        return null;
     }
 }

@@ -97,7 +97,8 @@ public class DiscoverObjectClassAttributesActivityHandler
                 backend.ensureDocumentationIsProcessed();
                 backend.ensureObjectClass(objectClass);
 
-                var attributes = backend.discoverObjectClassAttributes(objectClass);
+                var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
+                var attributes = backend.discoverObjectClassAttributes(objectClass, skipCache);
                 backend.updateConnectorObjectClassAttributes(objectClass, attributes);
             } catch (CommonException | RuntimeException e) {
                 getActivityHandler().suspendSiblings(connectorDevelopmentOid, this, result);

@@ -189,9 +189,13 @@ class MappingsSuggestionOperation {
                         String matchPairDescription = shadowAttrPath + " <-> " + focusPropPath;
                         var op = mappingsSuggestionState.recordProcessingStart(matchPairDescription);
 
+                        operationReference.set(op);
+                        OperationResult mappingResult = result.createSubresult(
+                                "Mapping suggestion for the %s pair".formatted(matchPairDescription));
+                        mappingResultReference.set(mappingResult);
+
                         if (shouldSkipReadOnlyAttribute(shadowAttrPath)) {
                             LOGGER.debug("Skipping read-only attribute for {} mapping: {}", direction, shadowAttrPath);
-                            mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
                             return null;
                         }
 
@@ -201,10 +205,6 @@ class MappingsSuggestionOperation {
                                 .from(shadowsForValidation);
 
                         mappingsSuggestionState.flush(result);
-                        operationReference.set(op);
-                        OperationResult mappingResult = result.createSubresult(
-                                "Mapping suggestion for the %s pair".formatted(matchPairDescription));
-                        mappingResultReference.set(mappingResult);
                         return suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, mappingResult);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -362,20 +362,6 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private CompletableFuture<AttributeMappingsSuggestionType> suggestMappingAsync(
-            SchemaMatchOneResultType matchPair,
-            ValuesPairSample<?, ?> valuePairsForLLM,
-            ValuesPairSample<?, ?> valuePairsForValidation,
-            OperationResult parentResult) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, parentResult);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
     private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuePairsForLLM,
@@ -469,7 +455,9 @@ class MappingsSuggestionOperation {
                 .description(scriptDescription)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().code(script)));
+                                new ScriptExpressionEvaluatorType()
+                                        .language("mel")
+                                        .code(script)));
     }
 
     private SiSuggestMappingResponseType askMicroserviceAsync(
@@ -510,7 +498,7 @@ class MappingsSuggestionOperation {
                 if (attrStats.isPresent()) {
                     int missingCount = attrStats.get().getMissingValueCount();
                     int totalSize = objectTypeStatistics.getSize();
-                    if (totalSize > 0 && missingCount > MISSING_DATA_THRESHOLD * totalSize) {
+                    if (totalSize > 0 && missingCount > (1 - MISSING_DATA_THRESHOLD) * totalSize) {
                         LOGGER.trace("Skipping inbound mapping: attribute {} has low missingCount ({}) relative to total ({}).",
                                 matchPair.getShadowAttributePath(), missingCount, totalSize);
                         throw new MissingSourceDataException(matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
@@ -610,7 +598,9 @@ class MappingsSuggestionOperation {
                 var result = new OperationResult("validateCategoricalMappingScript");
                 String variableName = isInbound ? ExpressionConstants.VAR_INPUT : matchPair.getFocusProperty().getName();
                 String testValue = attrStats.get().getValueCount().get(0).getValue();
-                scriptValidator.testCategoricalMappingScript(expression, variableName, testValue, ctx.task, result);
+                Class<?> testValueClass = testValue != null ? testValue.getClass() : String.class;
+                scriptValidator.testCategoricalMappingScript(
+                        expression, variableName, testValue, testValueClass, ctx.task, result);
             } catch (ScriptValidationException e) {
                 LOGGER.warn("Categorical mapping script validation failed for {}: {}",
                         matchPair.getShadowAttributePath(), e.getMessage());
@@ -677,6 +667,7 @@ class MappingsSuggestionOperation {
         return MappingEvaluationResult.of(bestExpression, bestExpectedQuality, isSystemProvided);
     }
 
+    @Nullable
     private ExpressionType evaluateAiMappingWithRetry(
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuePairsForLLM,
@@ -697,7 +688,6 @@ class MappingsSuggestionOperation {
                 if (aiAssessment != null && aiAssessment.status() == MappingsQualityAssessor.AssessmentStatus.OK) {
                     return aiExpression;
                 }
-                break;
             } catch (ExpressionEvaluationException | SecurityViolationException e) {
                 if (attempt < retryCount) {
                     errorLog = e.getMessage();

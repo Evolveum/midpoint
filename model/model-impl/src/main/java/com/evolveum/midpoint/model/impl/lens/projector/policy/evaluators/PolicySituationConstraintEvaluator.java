@@ -9,17 +9,17 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import jakarta.xml.bind.JAXBElement;
 
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedSituationTrigger;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedSituationTrigger;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
 
+/** TODO consider moving to repo-common */
 @Component
 public class PolicySituationConstraintEvaluator
         implements PolicyConstraintEvaluator<PolicySituationPolicyConstraintType, EvaluatedSituationTrigger> {
@@ -42,7 +43,8 @@ public class PolicySituationConstraintEvaluator
     @Override
     public @NotNull <O extends ObjectType> Collection<EvaluatedSituationTrigger> evaluate(
             @NotNull JAXBElement<PolicySituationPolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<O> rctx, OperationResult parentResult)
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
@@ -60,7 +62,8 @@ public class PolicySituationConstraintEvaluator
 
             // Single pass only (for the time being)
             PolicySituationPolicyConstraintType situationConstraint = constraint.getValue();
-            Collection<EvaluatedPolicyRule> sourceRules = selectTriggeredRules(rctx, situationConstraint.getSituation());
+            Collection<DirectlyEvaluatedClockworkPolicyRule> sourceRules =
+                    selectTriggeredRules(rctx, situationConstraint.getSituation());
             if (sourceRules.isEmpty()) {
                 return List.of();
             }
@@ -79,7 +82,7 @@ public class PolicySituationConstraintEvaluator
     }
 
     private LocalizableMessage createMessage(
-            Collection<EvaluatedPolicyRule> sourceRules,
+            Collection<DirectlyEvaluatedClockworkPolicyRule> sourceRules,
             JAXBElement<PolicySituationPolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
@@ -88,7 +91,7 @@ public class PolicySituationConstraintEvaluator
         // determine if there's a single message that could be retrieved
         List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
                 .flatMap(r -> r.extractMessages().stream())
-                .collect(Collectors.toList());
+                .toList();
         LocalizableMessage builtInMessage;
         if (messageTrees.size() == 1) {
             builtInMessage = messageTrees.get(0).getUserObject();
@@ -101,7 +104,7 @@ public class PolicySituationConstraintEvaluator
     }
 
     private LocalizableMessage createShortMessage(
-            Collection<EvaluatedPolicyRule> sourceRules,
+            Collection<DirectlyEvaluatedClockworkPolicyRule> sourceRules,
             JAXBElement<PolicySituationPolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
@@ -110,7 +113,7 @@ public class PolicySituationConstraintEvaluator
         // determine if there's a single message that could be retrieved
         List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
                 .flatMap(r -> r.extractShortMessages().stream())
-                .collect(Collectors.toList());
+                .toList();
         LocalizableMessage builtInMessage;
         if (messageTrees.size() == 1) {
             builtInMessage = messageTrees.get(0).getUserObject();
@@ -122,9 +125,8 @@ public class PolicySituationConstraintEvaluator
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-
-    private Collection<EvaluatedPolicyRule> selectTriggeredRules(PolicyRuleEvaluationContext<?> rctx, List<String> situations) {
-        Collection<? extends EvaluatedPolicyRule> rules;
+    private Collection<DirectlyEvaluatedClockworkPolicyRule> selectTriggeredRules(PolicyRuleEvaluationContext<?> rctx, List<String> situations) {
+        Collection<? extends DirectlyEvaluatedClockworkPolicyRule> rules;
         if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
             EvaluatedAssignmentImpl<?> evaluatedAssignment = ((AssignmentPolicyRuleEvaluationContext<?>) rctx).evaluatedAssignment;
             // We consider all rules here, i.e. also those that are triggered on targets induced by this one.

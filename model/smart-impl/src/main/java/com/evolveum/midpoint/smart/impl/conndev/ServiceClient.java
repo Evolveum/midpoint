@@ -54,15 +54,15 @@ public class ServiceClient {
         this.sessionEndpoint = appendSession(this.apiBase + RELATIVE_SESSION_ENDPOINT);
     }
 
-    public Job postJob(String endpoint) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postJob(String endpoint, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         job.startJob(request);
         return job;
     }
 
-    public Job postJob(String endpoint, ObjectNode body) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postJob(String endpoint, ObjectNode body, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         request.setEntity(new StringEntity(body.toPrettyString(), ContentType.APPLICATION_JSON));
         job.startJob(request);
@@ -73,40 +73,40 @@ public class ServiceClient {
         return base.replace(SESSION_PATTERN, sessionId);
     }
 
-    public Job postDocumentationJob(String endpoint, InputStream documentation, ObjectNode body) throws IOException {
+    public Job postDocumentationJob(String endpoint, InputStream documentation, ObjectNode body, boolean skipCache) throws IOException {
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.EXTENDED);
         builder.addBinaryBody("documentation", documentation, ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
 
-        var job = new Job(apiBase+endpoint);
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         request.setEntity(builder.build());
         job.startJob(request);
         return job;
     }
 
-    public Job postDocumentationObjectClassJob(String endpoint, String objectClass, InputStream documentation, ObjectNode body) throws IOException {
+    public Job postDocumentationObjectClassJob(String endpoint, String objectClass, InputStream documentation, ObjectNode body, boolean skipCache) throws IOException {
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.EXTENDED);
         builder.addBinaryBody("documentation", documentation, ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
 
-        var job = new Job(apiBase+endpoint);
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint + "?objectClass=" + objectClass);
         request.setEntity(builder.build());
         job.startJob(request);
         return job;
     }
 
-    public Job postEntityJob(String endpoint, HttpEntity entity) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postEntityJob(String endpoint, HttpEntity entity, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint);
         request.setEntity(entity);
         job.startJob(request);
         return job;
     }
 
-    public Job postEntityJob(String endpoint, String objectClass, HttpEntity entity) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postEntityJob(String endpoint, String objectClass, HttpEntity entity, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint + "?objectClass=" + objectClass);
         request.setEntity(entity);
         job.startJob(request);
@@ -128,13 +128,22 @@ public class ServiceClient {
     public class Job implements AutoCloseable {
 
         private final String uri;
+        private final boolean skipCache;
         private String jobId = null;
 
         private JobStatus status = JobStatus.NEW;
         private ObjectNode latestResult;
 
-        public Job(String uri) {
+        public Job(String uri, boolean skipCache) {
             this.uri = appendSession(uri);
+            this.skipCache =skipCache;
+        }
+
+        private String appendSkipCache(String uri) {
+            if (!skipCache) {
+                return uri;
+            }
+            return uri + ( !uri.contains("?") ? "?" : "&" ) + "skipCache=true";
         }
 
         @Override
@@ -143,7 +152,7 @@ public class ServiceClient {
         }
 
         public HttpPost postBuilder() {
-            return new HttpPost(uri);
+            return new HttpPost(appendSkipCache(uri));
         }
 
         public void startJob(HttpPost request) throws IOException {

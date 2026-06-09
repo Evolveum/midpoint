@@ -180,8 +180,8 @@
         JVM args for testing plugins, can be used to add profiling, etc.
         Option add-exports is added because OpenDJ on JDK 17 uses some recently hidden API.
         -->
-        <surefire.args>-Xms1024m -Xmx6144m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
-        <failsafe.args>-Xms1024m -Xmx6144m -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
+        <surefire.args>-Xms1g -Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
+        <failsafe.args>-Xms1g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
         <!-- surefire & failsafe argument line for integration with jacoco code coverage
              by default it is empty (no jacoco) but jacoco-maven-plugin) sets it to actual configuration in build.
              this argLine should be used as @{jacoco.argLine} to not replace it during POM reading for surefire and failsafe
@@ -225,22 +225,24 @@
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- security fixes -->
-        <postgresql.version>42.7.7</postgresql.version>
 
-        <!-- Groovy 4.0.24 is also default for Spring Boot 3.4.0 -->
-        <groovy.version>4.0.24</groovy.version>
+        <!-- Groovy 4.0.x supports Java 25 class files (major version 69). -->
+        <groovy.version>4.0.31</groovy.version>
 
         <cel.version>0.12.0</cel.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
+        <tomcat.version>10.1.55</tomcat.version>
+        <netty.version>4.1.133.Final</netty.version>
+        <postgresql.version>42.7.11</postgresql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
-        <commons.fileupload2.version>2.0.0-M4</commons.fileupload2.version>
+        <commons.fileupload2.version>2.0.0-M5</commons.fileupload2.version>
 
-        <wicket.version>10.8.0</wicket.version>
+        <wicket.version>10.9.1</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6</wicket.chartjs.version>
 
@@ -253,12 +255,9 @@
         <classgraph.version>4.8.162</classgraph.version>
         <guava.version>32.1.2-jre</guava.version>
         <jcommander.version>1.82</jcommander.version>
-        <qpid-broker.version>8.0.4</qpid-broker.version>
-        <!--
-        name matches property from Boot parent
-        <artemis.version>2.33.0</artemis.version>
-        -->
-        <asm.version>9.5</asm.version>
+        <!-- name matches property from Boot parent -->
+        <artemis.version>2.52.0</artemis.version>
+        <asm.version>9.8</asm.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <checkstyle.version>3.1.2</checkstyle.version>
         <xerces.version>2.12.2</xerces.version>
@@ -280,6 +279,7 @@
         <owasp-java-html-sanitizer.version>20260102.1</owasp-java-html-sanitizer.version>
         <qrcodegen.version>1.8.0</qrcodegen.version>
         <java-otp.version>1.7.1</java-otp.version>
+        <byte-buddy.version>1.17.8</byte-buddy.version>
     </properties>
 
     <dependencyManagement>
@@ -675,7 +675,7 @@
             <dependency>
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations</artifactId>
-                <version>21.0.1</version>
+                <version>26.0.2</version>
             </dependency>
             <dependency>
                 <groupId>javax.annotation</groupId>
@@ -1491,22 +1491,7 @@
                 <version>${jetty.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.qpid</groupId>
-                <artifactId>qpid-broker-core</artifactId>
-                <version>${qpid-broker.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.qpid</groupId>
-                <artifactId>qpid-broker-plugins-amqp-0-8-protocol</artifactId>
-                <version>${qpid-broker.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.qpid</groupId>
-                <artifactId>qpid-broker-plugins-memory-store</artifactId>
-                <version>${qpid-broker.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-server</artifactId>
                 <version>${artemis.version}</version>
                 <exclusions>
@@ -1517,17 +1502,17 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-jms-client</artifactId>
                 <version>${artemis.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-core-client</artifactId>
                 <version>${artemis.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-commons</artifactId>
                 <version>${artemis.version}</version>
             </dependency>
@@ -1586,9 +1571,14 @@
             </dependency>
 
             <dependency>
-               <groupId>net.bytebuddy</groupId>
-               <artifactId>byte-buddy</artifactId>
-               <version>1.14.9</version>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${byte-buddy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy-agent</artifactId>
+                <version>${byte-buddy.version}</version>
             </dependency>
             <dependency>
                 <groupId>jakarta.xml.ws</groupId>
@@ -1897,6 +1887,7 @@
                                 <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                             <ignoredNonTestScopedDependencies>
+                                <ignoredNonTestScopedDependency>com.evolveum.axiom:axiom</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>com.evolveum.midpoint.*:*</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>org.slf4j:slf4j-api</ignoredNonTestScopedDependency>
                                 <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/compile
@@ -1968,10 +1959,9 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
+                    <version>3.14.1</version>
                     <configuration>
-                        <source>${project.source.version}</source>
-                        <target>${project.source.version}</target>
+                        <release>${project.source.version}</release>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -2245,8 +2235,8 @@
             <id>sqale</id>
             <properties>
                 <!-- Switches test config.xml to the one declaring "sqale" repository. -->
-                <surefire.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
-                <failsafe.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
+                <surefire.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
+                <failsafe.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
         </profile>
         <profile>

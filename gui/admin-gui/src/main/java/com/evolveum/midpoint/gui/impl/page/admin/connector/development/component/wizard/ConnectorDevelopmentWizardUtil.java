@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
@@ -38,11 +39,18 @@ import org.apache.commons.lang3.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LogSegmentType;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class ConnectorDevelopmentWizardUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorDevelopmentWizardUtil.class);
+    private static final String POLYGON_SCIMREST = "com.evolveum.polygon.scimrest";
 
     public static PrismObject<TaskType> getTask(
             ItemName activityType,
@@ -512,5 +520,72 @@ public class ConnectorDevelopmentWizardUtil {
                 detailsModel.getPageAssignmentHolder())
                 || existScript(detailsModel, classification, objectClassName);
 
+    }
+
+    public static boolean isOperationCompleted(
+            ConnectorDevelopmentDetailsModel detailsModel,
+            ConnectorDevelopmentArtifacts.KnownArtifactType classification,
+            String objectClassName) {
+
+        return existScript(detailsModel, classification, objectClassName)
+                && isScriptConfirmed(detailsModel, classification, objectClassName);
+
+    }
+
+    private static final String CONNECTOR_FACADE_PREFIX = "org.identityconnectors.framework.api.ConnectorFacade";
+
+    public static Collection<String> getConnectorLogs(OperationResult parent) {
+        List<String> logs = new ArrayList<>();
+        collectConnectorResults(parent, (result) -> {
+            List<LogSegmentType> logSegments = result.getLogSegments();
+            if (logSegments != null) {
+                for (LogSegmentType segment : logSegments) {
+                    if (segment.getEntry() != null) {
+                        logs.addAll(segment.getEntry());
+                    }
+                }
+            }
+        });
+        return logs;
+    }
+
+    public static void collectConnectorResults(OperationResult result, Consumer<OperationResult> collector) {
+        if (result == null) {
+            return;
+        }
+
+        String operation = result.getOperation();
+        if (operation != null && operation.startsWith(CONNECTOR_FACADE_PREFIX)) {
+            collector.accept(result);
+        }
+
+        for (OperationResult subresult : result.getSubresults()) {
+            collectConnectorResults(subresult, collector);
+        }
+    }
+
+    public static void enableConnectorLogCapture(Task task) {
+        task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
+        task.addTracingRequest(TracingRootType.CONNECTOR_OPERATION);
+        task.setTracingProfile(new TracingProfileType()
+                .collectLogEntries(true)
+                .loggingOverride(new LoggingOverrideType()
+                        .levelOverride(new ClassLoggerLevelOverrideType()
+                                .logger(POLYGON_SCIMREST)
+                                .level(LoggingLevelType.TRACE))));
+    }
+
+    public static void appendLogsAsContext(OperationResult result) {
+        var logs = new StringBuilder();
+        List<LogSegmentType> logSegments = result.getLogSegments();
+        if (logSegments != null) {
+            for (LogSegmentType segment : logSegments) {
+                if (segment.getEntry() != null) {
+                    logs.append(segment.getEntry());
+                    logs.append("\n");
+                }
+            }
+        }
+        result.addContext("logs", logs.toString());
     }
 }

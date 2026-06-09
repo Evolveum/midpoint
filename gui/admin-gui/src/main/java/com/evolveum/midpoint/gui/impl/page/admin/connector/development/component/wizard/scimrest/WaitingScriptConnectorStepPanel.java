@@ -27,6 +27,7 @@ public abstract class WaitingScriptConnectorStepPanel extends WaitingConnectorSt
     }
 
     public void resetScript(PageBase pageBase) {
+        resetToken();
         if (getStatusModel() != null){
             getStatusModel().detach();
         }

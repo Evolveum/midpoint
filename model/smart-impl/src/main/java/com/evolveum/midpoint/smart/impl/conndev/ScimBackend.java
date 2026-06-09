@@ -21,9 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 public class ScimBackend extends RestBackend {
 
@@ -35,19 +33,7 @@ public class ScimBackend extends RestBackend {
         super(beans, connDev, task, result);
     }
 
-    @Override
-    public List<ConnDevDocumentationSourceType> discoverDocumentation() {
-        return super.discoverDocumentation();
-    }
-
-    @Override
-    public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
-        super.ensureDocumentationIsProcessed();
-
-        refreshScimDocumentation();
-    }
-
-    private void refreshScimDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void refreshScimDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         var testingResourceOid = getTestingResourceOid();
 
         if (!isScimDiscoveryConfigured(testingResourceOid)) {

@@ -354,6 +354,7 @@
                     <xsd:documentation>
                         <p>
                             Sets the maximum limit for multipart data inside submitted form (inputs and file uploads are counted).
+                            The primary purpose is to prevent the Tomcat instance memory exhausting with big requests.
                             Default value is 100.
                         </p>
                     </xsd:documentation>
@@ -4098,6 +4099,20 @@
         <xsd:complexContent>
             <xsd:extension base="tns:CollectionSpecificationType">
                 <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of objects that belong to this collection. This is used when the collection
+                                is specified by an inline filter and the type cannot be derived from a referenced
+                                collection or from the containing configuration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                                <a:displayName>CollectionSpecificationType.type</a:displayName>
+                                <a:displayOrder>5</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:choice>
                         <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0">
                             <xsd:annotation>

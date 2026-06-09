@@ -14,14 +14,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -37,12 +41,8 @@ import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingPro
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.preview.PreviewMappingPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -123,27 +123,14 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
 
             @Override
             protected Component createHeader(String componentId, IModel mainModel) {
-                ItemName itemName = ResourceAttributeDefinitionType.F_REF;
-                return new PrismPropertyHeaderPanel<ItemPathType>(
-                        componentId,
-                        new PrismPropertyWrapperHeaderModel<>(mainModel, itemName, table.getPageBase())) {
+                return createPropertyHeader(componentId, itemName,
+                        table.getMappingDirectionType().name() + "." + ResourceAttributeDefinitionType.F_REF,
+                        mainModel);
+            }
 
-                    @Override
-                    protected boolean isAddButtonVisible() {
-                        return false;
-                    }
-
-                    @Override
-                    protected boolean isButtonEnabled() {
-                        return false;
-                    }
-
-                    @Override
-                    protected Component createTitle(IModel<String> label) {
-                        return super.createTitle(table.getPageBase().createStringResource(
-                                table.getMappingDirectionType().name() + "." + ResourceAttributeDefinitionType.F_REF));
-                    }
-                };
+            @Override
+            public Object getSortProperty() {
+                return ResourceAttributeDefinitionType.F_REF.getLocalPart();
             }
 
             @Override
@@ -153,7 +140,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
         };
     }
 
-    private IColumn<PrismContainerValueWrapper<MappingType>, String> createExpressionColumn() {
+    private @NotNull IColumn<PrismContainerValueWrapper<MappingType>, String> createExpressionColumn() {
         return new PrismPropertyWrapperColumn<>(
                 table.getMappingTypeDefinition(),
                 MappingType.F_EXPRESSION,
@@ -171,37 +158,54 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
                     String componentId,
                     IModel<IW> rowModel) {
 
-                Component panel = super.createColumnPanel(componentId, rowModel);
-                panel.setOutputMarkupId(true);
-
-                if (rowModel != null
-                        && rowModel.getObject() != null
-                        && rowModel.getObject().getParent() != null
-                        && rowModel.getObject().getParent().getRealValue() instanceof MappingType) {
-
+                if (isMappingTypeRealValue(rowModel)) {
                     //noinspection unchecked
                     PrismContainerValueWrapper<MappingType> mappingWrapper =
                             (PrismContainerValueWrapper<MappingType>) rowModel.getObject().getParent();
-
                     if (table.getStatusInfo(mappingWrapper) != null) {
-                        panel.add(AttributeModifier.append("class", "btn-link cursor-pointer"));
-                        panel.add(new AjaxEventBehavior("click") {
-                            @Override
-                            protected void onEvent(AjaxRequestTarget target) {
-                                PreviewMappingPanel preview =
-                                        table.getActions().buildPreviewMappingPanelPopup(() -> mappingWrapper);
-                                table.getPageBase().showMainPopup(preview, target);
-                            }
-                        });
+                        return buildSuggestionExpressionPanel(componentId, mappingWrapper);
                     }
                 }
+
+                return super.createColumnPanel(componentId, rowModel);
+            }
+
+            private @NotNull ExpressionPanel buildSuggestionExpressionPanel(
+                    String componentId,
+                    @NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {
+                ExpressionType expression = mappingWrapper.getRealValue().getExpression();
+                ExpressionPanel panel = new ExpressionPanel(componentId, () -> expression != null ? expression : new ExpressionType()) {
+                    @Override
+                    protected boolean isReadOnly() {
+                        return true;
+                    }
+                };
+                panel.setOutputMarkupId(true);
+                panel.setDisplayHelp(false);
+
+                panel.add(AttributeModifier.append("class", "btn-link cursor-pointer"));
+                panel.add(new AjaxEventBehavior("click") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                        PreviewMappingPanel preview =
+                                SmartMappingColumns.this.table.getActions().buildPreviewMappingPanelPopup(() -> mappingWrapper);
+                        SmartMappingColumns.this.table.getPageBase().replaceMainPopup(preview, target);
+                    }
+                });
 
                 return panel;
             }
         };
     }
 
-    private IColumn<PrismContainerValueWrapper<MappingType>, String> createSourceColumn() {
+    private static <IW extends ItemWrapper<?, ?>> boolean isMappingTypeRealValue(IModel<IW> rowModel) {
+        return rowModel != null
+                && rowModel.getObject() != null
+                && rowModel.getObject().getParent() != null
+                && rowModel.getObject().getParent().getRealValue() instanceof MappingType;
+    }
+
+    private @NotNull IColumn<PrismContainerValueWrapper<MappingType>, String> createSourceColumn() {
         return new PrismPropertyWrapperColumn<MappingType, String>(
                 table.getMappingTypeDefinition(),
                 MappingType.F_SOURCE,
@@ -228,18 +232,9 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
             }
 
             @Override
-            public String getCssClass() {
-                return "col-2 header-border-right";
+            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+                return createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
             }
-        };
-    }
-
-    private IColumn<PrismContainerValueWrapper<MappingType>, String> createTargetColumn() {
-        return new PrismPropertyWrapperColumn<MappingType, String>(
-                table.getMappingTypeDefinition(),
-                MappingType.F_TARGET,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                table.getPageBase()) {
 
             @Override
             public String getCssClass() {
@@ -248,8 +243,78 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
         };
     }
 
-    private IColumn<PrismContainerValueWrapper<MappingType>, String> createLifecycleColumn() {
+    private @NotNull IColumn<PrismContainerValueWrapper<MappingType>, String> createTargetColumn() {
+        return new PrismPropertyWrapperColumn<MappingType, String>(
+                table.getMappingTypeDefinition(),
+                MappingType.F_TARGET,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                table.getPageBase()) {
+            @Override
+            public String getSortProperty() {
+                return MappingType.F_TARGET.getLocalPart();
+            }
+
+            @Override
+            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+                return createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "col-2 header-border-right";
+            }
+        };
+    }
+
+    private @NotNull PrismPropertyHeaderPanel<ItemPathType> createPropertyHeader(
+            String componentId,
+            ItemPath itemName,
+            String headerLabelKey,
+            IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+        return new PrismPropertyHeaderPanel<>(
+                componentId,
+                new PrismPropertyWrapperHeaderModel<>(mainModel, itemName, table.getPageBase())) {
+
+            @Override
+            protected boolean isAddButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isButtonEnabled() {
+                return false;
+            }
+
+            @Override
+            protected Component createTitle(IModel<String> label) {
+                return super.createTitle(table.getPageBase()
+                        .createStringResource(headerLabelKey));
+            }
+        };
+    }
+
+    private @NotNull IColumn<PrismContainerValueWrapper<MappingType>, String> createLifecycleColumn() {
+        //noinspection rawtypes
         return new LifecycleStateColumn<>(table.getMappingTypeDefinition(), table.getPageBase()) {
+            @Override
+            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                if (isMappingTypeRealValue(rowModel)) {
+                    //noinspection unchecked
+                    PrismContainerValueWrapper<MappingType> mappingWrapper =
+                            (PrismContainerValueWrapper<MappingType>) rowModel.getObject().getParent();
+
+                    if (table.getStatusInfo(mappingWrapper) != null) {
+                        return new EmptyPanel(componentId);
+                    }
+                }
+                return super.createColumnPanel(componentId, rowModel);
+            }
+
+            @Override
+            public String getSortProperty() {
+                return MappingType.F_LIFECYCLE_STATE.getLocalPart();
+            }
+
             @Override
             public String getCssClass() {
                 return "col-auto";

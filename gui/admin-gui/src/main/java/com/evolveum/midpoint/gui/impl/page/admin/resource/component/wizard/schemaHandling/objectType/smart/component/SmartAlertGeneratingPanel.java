@@ -157,12 +157,23 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
 
     /** Restarts the polling timer if it exists. */
     public void restartTimeBehavior(AjaxRequestTarget target) {
+        SmartGeneratingAlertDto dto = getModelObject();
+        if (shouldNotStartPolling(dto)) {
+            return;
+        }
+
         if (timerBehavior != null) {
             try {
                 timerBehavior.restart(target);
             } catch (Exception e) {
                 LOGGER.debug("Unable to restart timer for {}: {}", getId(), e.getMessage());
             }
+        }
+    }
+
+    public void stopTimeBehavior(AjaxRequestTarget target) {
+        if (timerBehavior != null) {
+            timerBehavior.stop(target);
         }
     }
 
@@ -192,15 +203,15 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                         return;
                     }
 
-                    boolean finished = dto.isFinished();
-                    boolean failed = dto.isFailed();
-                    boolean suspended = dto.isSuspended();
-
                     if (dto.getStatusInfo() != null) {
                         dto.getStatusInfo().reset();
                     } else {
                         LOGGER.debug("StatusInfo is null for DTO {}", dto);
                     }
+
+                    boolean finished = dto.isFinished();
+                    boolean failed = dto.isFailed();
+                    boolean suspended = dto.isSuspended();
 
                     if (finished && !failed && !suspended) {
                         try {
@@ -220,35 +231,37 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         };
 
         SmartGeneratingAlertDto dto = getModelObject();
-        if (!shouldStartPolling(dto)) {
+        if (shouldNotStartPolling(dto)) {
             abstractAjaxTimerBehavior.stop(null);
         }
         return abstractAjaxTimerBehavior;
     }
 
     //TODO check it
-    private boolean shouldStartPolling(@Nullable SmartGeneratingAlertDto dto) {
+    private boolean shouldNotStartPolling(@Nullable SmartGeneratingAlertDto dto) {
         if (dto == null) {
-            return false;
+            return true;
         }
 
-        return !dto.isFinished() && !dto.isFailed() && !dto.isSuspended();
+        return dto.getStatusInfo() == null || dto.isFinished() || dto.isFailed() || dto.isSuspended();
     }
 
     private void generatePerformed(AjaxRequestTarget target,
             IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
         performSuggestOperation(target, confirmedOptions);
+        refresh(target);
+    }
+
+    private void refresh(@NotNull AjaxRequestTarget target) {
         target.add(this);
         onRefresh(target);
-        restartTimeBehavior(target);
+        timerBehavior.restart(target);
     }
 
     private void regeneratePerformed(AjaxRequestTarget target,
             IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
         performRegenerateOperation(target, confirmedOptions);
-        target.add(SmartAlertGeneratingPanel.this);
-        onRefresh(target);
-        restartTimeBehavior(target);
+        refresh(target);
     }
 
     protected AjaxIconButton createGenerateButton(String buttonId) {

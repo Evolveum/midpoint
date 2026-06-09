@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -14,27 +16,32 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ASSIGNMENT_MODIFICATION;
+
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.OBJECT_MODIFICATION;
+
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 public class EvaluatedModificationTrigger<C extends ModificationPolicyConstraintType>
-        extends EvaluatedPolicyRuleTrigger<C> {
+        extends EvaluatedClockworkPolicyRuleTrigger<C> {
 
     @NotNull private final Collection<PrismObject<?>> matchingTargets;
 
     EvaluatedModificationTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull C constraint,
-            @Nullable PrismObject<?> targetObject, LocalizableMessage message, LocalizableMessage shortMessage) {
+            @NotNull PolicyConstraintKind kind,
+            @NotNull C constraint,
+            @Nullable PrismObject<?> targetObject,
+            LocalizableMessage message,
+            LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
         matchingTargets = targetObject != null ? singleton(targetObject) : emptySet();
     }
 
     @Override
     public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedModificationTriggerType rv = new EvaluatedModificationTriggerType();
-        fillCommonContent(rv);
-        return rv;
+            @NotNull PolicyRuleExternalizationOptions options) {
+        return toEvaluatedPolicyRuleTriggerBean(options, EvaluatedModificationTriggerType::new);
     }
 
     @Override
@@ -45,12 +52,11 @@ public class EvaluatedModificationTrigger<C extends ModificationPolicyConstraint
     public static class EvaluatedAssignmentModificationTrigger
             extends EvaluatedModificationTrigger<AssignmentModificationPolicyConstraintType> {
         public EvaluatedAssignmentModificationTrigger(
-                @NotNull PolicyConstraintKindType kind,
                 @NotNull AssignmentModificationPolicyConstraintType constraint,
                 @Nullable PrismObject<?> targetObject,
                 LocalizableMessage message,
                 LocalizableMessage shortMessage) {
-            super(kind, constraint, targetObject, message, shortMessage);
+            super(ASSIGNMENT_MODIFICATION, constraint, targetObject, message, shortMessage);
         }
     }
 
@@ -62,7 +68,7 @@ public class EvaluatedModificationTrigger<C extends ModificationPolicyConstraint
                 @Nullable PrismObject<?> targetObject,
                 LocalizableMessage message,
                 LocalizableMessage shortMessage) {
-            super(kind, constraint, targetObject, message, shortMessage);
+            super(OBJECT_MODIFICATION, constraint, targetObject, message, shortMessage);
         }
     }
 }

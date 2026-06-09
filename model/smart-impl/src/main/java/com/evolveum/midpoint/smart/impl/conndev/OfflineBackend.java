@@ -17,18 +17,18 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
 
 
     @Override
-    public ConnDevApplicationInfoType discoverBasicInformation() {
+    public ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache) {
         // FIXME: Other backends will have HTTP calls here
         return new ConnDevApplicationInfoType()
                 .applicationName("Dummy Connector")
                 .description("Dummy Backend Application")
                 .version("2.0")
-                .integrationType(ConnDevIntegrationType.DUMMY);
+                .integrationType(ConnDevIntegrationType.REST);
 
     }
 
     @Override
-    public List<ConnDevAuthInfoType> discoverAuthorizationInformation() {
+    public List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache) {
         return List.of(
                 new ConnDevAuthInfoType()
                         .name("Basic Authorization")
@@ -37,12 +37,16 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                 new ConnDevAuthInfoType()
                         .name("API Key Authorization")
                         .type(ConnDevHttpAuthTypeType.API_KEY)
-                        .quirks("Username is `apiKey` and password is API Token.")
+                        .quirks("Username is `apiKey` and password is API Token."),
+                new ConnDevAuthInfoType()
+                        .name("OAuth2 Client Credentials")
+                        .type(ConnDevHttpAuthTypeType.OAUTH2_CLIENT_CREDENTIALS)
+                        .quirks("")
                 );
     }
 
     @Override
-    public List<ConnDevDocumentationSourceType> discoverDocumentation() {
+    public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) {
         return List.of(
                 new  ConnDevDocumentationSourceType()
                         .name("Dummy Project - OpenAPI specification")
@@ -58,11 +62,11 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType input) {
+    public ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType input, boolean skipCache) {
         var artifactSpec = input.getArtifact();
         var ret = artifactSpec.clone();
         if (artifactSpec.getObjectClass() != null) {
-            return generateObjectClassArtifact(input);
+            return generateObjectClassArtifact(input, skipCache);
         }
 
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
@@ -86,7 +90,7 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType input) {
+    public ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType input, boolean skipCache) {
         var artifactSpec = input.getArtifact();
         var objectClass = artifactSpec.getObjectClass();
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
@@ -183,7 +187,7 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated) {
+    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
         return List.of(
                 new ConnDevBasicObjectClassInfoType()
                         .name("User")
@@ -197,7 +201,21 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass) {
+    public List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache) {
+        return List.of(
+                new ConnDevHttpEndpointType()
+                        .name("Health check")
+                        .operation(ConnDevHttpOperationType.GET)
+                        .uri("/health"),
+                new ConnDevHttpEndpointType()
+                        .name("List users")
+                        .operation(ConnDevHttpOperationType.GET)
+                        .uri("/api/v1/users")
+        );
+    }
+
+    @Override
+    public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache) {
         return switch (objectClass) {
             case "User" -> List.of(
                     new ConnDevHttpEndpointType().name("Get User")
@@ -229,7 +247,7 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass) {
+    public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache) {
         return switch (objectClass) {
             case "User" -> List.of(
                     new ConnDevAttributeInfoType().name("id")
@@ -277,7 +295,7 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public void processDocumentation() {
+    public void processDocumentation(boolean skipCache) {
         // NOOP
     }
 
@@ -287,7 +305,7 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) {
+    public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered, boolean skipCache) {
         return List.of(new ConnDevRelationInfoType()
                     .name("UserGroupMembership")
                     .shortDescription("User's group membership")

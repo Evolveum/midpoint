@@ -18,7 +18,6 @@ import java.util.Map;
 
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.ObjectHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.util.AccessCertificationCaseId;
 
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
@@ -33,6 +32,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -63,27 +63,27 @@ public class AccCertQueryHelper {
                 prismContext.queryFor(AccessCertificationCaseType.class)
                         .ownerId(campaignOid)
                         .buildFilter());
-        return repositoryService.searchContainers(AccessCertificationCaseType.class, queryWithOwnerIdFilter, null,
-                result);
+        return searchContainersAsList(AccessCertificationCaseType.class, queryWithOwnerIdFilter, result);
     }
 
     public List<AccessCertificationCaseType> getAllCurrentIterationCases(
             String campaignOid, int iteration, OperationResult result) throws SchemaException {
-        return repositoryService.searchContainers(
-                AccessCertificationCaseType.class,
+        List<AccessCertificationCaseType> cases = new ArrayList<>();
+        iterateAllCampaignCases(
+                campaignOid,
                 prismContext.queryFor(AccessCertificationCaseType.class)
-                        .ownerId(campaignOid)
-                        .and().item(AccessCertificationCaseType.F_ITERATION).eq(iteration)
-                        .build(),
-                null,
+                        .item(AccessCertificationCaseType.F_ITERATION).eq(iteration)
+                        .buildFilter(),
+                (aCase, parentResult) -> {
+                    cases.add(aCase);
+                    return true;
+                },
                 result);
+        return cases;
     }
 
     /**
      * Search all campaign cases iteratively.
-     *
-     * **Note:** In some cases (when backend does not support it), the search may be done non iteratively, using just
-     * one select query with limit of 10 000 records.
      *
      * @param campaignOid oid of campaign in to which cases belongs
      * @param filter additional filter with more filtering criteria
@@ -98,23 +98,37 @@ public class AccCertQueryHelper {
                 .ownerId(campaignOid)
                 .and().filter(filter)
                 .build();
-        if (this.repositoryService.isNative()) {
-            this.repositoryService.searchContainersIterative(AccessCertificationCaseType.class, query, certCaseHandler,
-                    Collections.emptyList(), result);
-        } else {
-            final SearchResultList<AccessCertificationCaseType> certCases = this.repositoryService.searchContainers(
-                    AccessCertificationCaseType.class, query, Collections.emptyList(), result);
-            certCases.forEach(aCase -> certCaseHandler.handle(aCase, result));
-        }
+        searchContainers(AccessCertificationCaseType.class, query, certCaseHandler, result);
     }
 
     List<AccessCertificationWorkItemType> searchOpenWorkItems(
             ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, OperationResult result)
             throws SchemaException {
-        return repositoryService.searchContainers(
-                AccessCertificationWorkItemType.class,
-                QueryUtils.createQueryForOpenWorkItems(baseWorkItemsQuery, null, notDecidedOnly),
-                null,
+        ObjectQuery query = QueryUtils.createQueryForOpenWorkItems(baseWorkItemsQuery, null, notDecidedOnly);
+        return searchContainersAsList(AccessCertificationWorkItemType.class, query, result);
+    }
+
+    private <T extends Containerable> List<T> searchContainersAsList(
+            Class<T> type, ObjectQuery query, OperationResult result) throws SchemaException {
+        List<T> containers = new ArrayList<>();
+        searchContainers(
+                type,
+                query,
+                (container, parentResult) -> {
+                    containers.add(container);
+                    return true;
+                },
+                result);
+        return containers;
+    }
+
+    private <T extends Containerable> void searchContainers(
+            Class<T> type, ObjectQuery query, ObjectHandler<T> handler, OperationResult result) throws SchemaException {
+        repositoryService.searchContainersIterative(
+                type,
+                query,
+                handler,
+                Collections.emptyList(),
                 result);
     }
 

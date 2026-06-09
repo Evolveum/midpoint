@@ -53,7 +53,7 @@ public class WaitingObjectClassDetailsConnectorStepPanel extends WaitingConnecto
     }
 
     @Override
-    protected String getNewTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitDiscoverObjectClassDetails(
                 valueModel.getObject().getRealValue().getName(), task, result);
     }

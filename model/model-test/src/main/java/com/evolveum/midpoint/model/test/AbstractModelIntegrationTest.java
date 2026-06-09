@@ -50,8 +50,6 @@ import com.evolveum.midpoint.security.api.*;
 
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
 
-import com.evolveum.midpoint.smart.api.SmartIntegrationService;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +91,7 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
@@ -5475,7 +5473,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
-    protected EvaluatedPolicyRulesAsserter<Void> assertEvaluatedPolicyRules(Collection<EvaluatedPolicyRule> evaluatedPolicyRules, PrismObject<?> sourceObject) {
+    protected EvaluatedPolicyRulesAsserter<Void> assertEvaluatedPolicyRules(
+            Collection<DirectlyEvaluatedClockworkPolicyRule> evaluatedPolicyRules, PrismObject<?> sourceObject) {
         EvaluatedPolicyRulesAsserter<Void> asserter = new EvaluatedPolicyRulesAsserter<>(evaluatedPolicyRules, null, sourceObject.toString());
         initializeAsserter(asserter);
         return asserter;

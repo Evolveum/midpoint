@@ -53,7 +53,7 @@ class AttributeMappingCandidateSet {
      * When duplicates exist, the better quality candidate is kept.
      * System-provided mappings are preferred over AI when quality is equal.
      */
-    void propose(AttributeMappingsSuggestionType suggestion) {
+    synchronized void propose(AttributeMappingsSuggestionType suggestion) {
         var mappingContext = MappingContext.extract(suggestion);
 
         // Deduplicate against existing mappings by target path only
@@ -90,9 +90,22 @@ class AttributeMappingCandidateSet {
         candidates.add(new Candidate(mappingContext, suggestion));
     }
 
-    // FIXME: Gartner hack to suggest uid-into-name mapping, even though data doesn't match
-    void proposeSystemMapping(AttributeMappingsSuggestionType suggestion) {
+    /**
+     * Propose a "system" mapping.
+     *
+     * System mappings should be curated domain knowledge, not AI guesses, so they should always be suggested when
+     * schema is detected. For this reason, they are not filtered on the quality based on the resource/midpoint data.
+     *
+     * @param suggestion The suggestion provided by the "system" (us).
+     */
+    synchronized void proposeSystemMapping(AttributeMappingsSuggestionType suggestion) {
         var mappingContext = MappingContext.extract(suggestion);
+
+        // Deduplicate against existing mappings by target path only
+        if (excludedTargetPaths.contains(mappingContext.targetPath())) {
+            return;
+        }
+
         candidates.add(new Candidate(mappingContext, suggestion));
     }
 
@@ -102,7 +115,7 @@ class AttributeMappingCandidateSet {
      * Results are grouped by target path, then sorted by quality (descending) within each group,
      * with system-provided preferred over AI when quality is equal.
      */
-    List<AttributeMappingsSuggestionType> best() {
+    synchronized List<AttributeMappingsSuggestionType> best() {
         return candidates.stream()
                 .sorted(this::compareByTargetThenQuality)
                 .map(Candidate::suggestion)

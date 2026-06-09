@@ -19,8 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,12 +39,12 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
     @NotNull private final LensElementContext<O> elementContext;
 
     /** Selects focus vs. projection rules. */
-    @NotNull private final Predicate<EvaluatedPolicyRule> ruleSelector;
+    @NotNull private final Predicate<DirectlyEvaluatedClockworkPolicyRule> ruleSelector;
 
     ObjectPolicyRulesEvaluator(
             @NotNull LensElementContext<O> elementContext,
             @NotNull Task task,
-            @NotNull Predicate<EvaluatedPolicyRule> ruleSelector) {
+            @NotNull Predicate<DirectlyEvaluatedClockworkPolicyRule> ruleSelector) {
         super(elementContext.getLensContext(), task);
         this.elementContext = elementContext;
         this.ruleSelector = ruleSelector;
@@ -55,16 +55,17 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
             ConfigurationException, CommunicationException {
 
         collector.initialize(result);
-        List<EvaluatedPolicyRuleImpl> rules = collector.collectObjectRules(result);
+        List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules = collector.collectObjectRules(result);
 
         LOGGER.trace("Selecting rules from {} object-attached policy rules", rules.size());
-        List<EvaluatedPolicyRuleImpl> applicableRules = selectAndSetApplicableRules(rules);
+        List<DirectlyEvaluatedClockworkPolicyRuleImpl> applicableRules = selectAndSetApplicableRules(rules);
         evaluateCollectedRules(applicableRules, result);
     }
 
-    private @NotNull List<EvaluatedPolicyRuleImpl> selectAndSetApplicableRules(List<EvaluatedPolicyRuleImpl> rules) {
-        List<EvaluatedPolicyRuleImpl> applicableRules = new ArrayList<>();
-        for (EvaluatedPolicyRuleImpl rule : rules) {
+    private @NotNull List<DirectlyEvaluatedClockworkPolicyRuleImpl> selectAndSetApplicableRules(
+            List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules) {
+        List<DirectlyEvaluatedClockworkPolicyRuleImpl> applicableRules = new ArrayList<>();
+        for (DirectlyEvaluatedClockworkPolicyRuleImpl rule : rules) {
             if (ruleSelector.test(rule)) {
                 applicableRules.add(rule);
             } else {
@@ -77,7 +78,7 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
     }
 
     private void evaluateCollectedRules(
-            List<EvaluatedPolicyRuleImpl> applicableRules, OperationResult result)
+            List<DirectlyEvaluatedClockworkPolicyRuleImpl> applicableRules, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         LOGGER.trace("Evaluating {} applicable rules", applicableRules.size());
@@ -100,7 +101,7 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
         FocusPolicyRulesEvaluator(@NotNull LensFocusContext<F> focusContext, @NotNull Task task) {
             super(focusContext, task, new Predicate<>() {
                 @Override
-                public boolean test(EvaluatedPolicyRule rule) {
+                public boolean test(DirectlyEvaluatedClockworkPolicyRule rule) {
                     return rule.isApplicableToFocusObject();
                 }
 
@@ -117,7 +118,7 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
         ProjectionPolicyRulesEvaluator(@NotNull LensProjectionContext projectionContext, @NotNull Task task) {
             super(projectionContext, task, new Predicate<>() {
                 @Override
-                public boolean test(EvaluatedPolicyRule rule) {
+                public boolean test(DirectlyEvaluatedClockworkPolicyRule rule) {
                     return rule.isApplicableToProjection();
                 }
 

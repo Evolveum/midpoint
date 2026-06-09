@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface PolicyRuleEvent extends Event {
 
-    @NotNull EvaluatedPolicyRule getPolicyRule();
+    @NotNull DirectlyEvaluatedClockworkPolicyRule getPolicyRule();
 
     String getRuleName();
 }

@@ -97,7 +97,8 @@ public class DiscoverObjectClassEndpointsActivityHandler
                 backend.ensureDocumentationIsProcessed();
                 backend.ensureObjectClass(objectClass);
 
-                var endpoints = backend.discoverObjectClassEndpoints(objectClass);
+                var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
+                var endpoints = backend.discoverObjectClassEndpoints(objectClass, skipCache);
                 backend.updateApplicationObjectClassEndpoints(objectClass, endpoints);
             } catch (CommonException | RuntimeException e) {
                 getActivityHandler().suspendSiblings(connectorDevelopmentOid, this, result);

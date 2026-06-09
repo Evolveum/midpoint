@@ -55,11 +55,6 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
             }
 
             @Override
-            protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
-                CorrelationWizardPanel.this.navigateToSynchronizationPanel(target);
-            }
-
-            @Override
             protected void postProcessAddSuggestion(AjaxRequestTarget target) {
                 showUnsavedChangesToast(target);
                 showChoiceFragment(target, createTablePanel());
@@ -156,6 +151,4 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
         return false;
     }
 
-    protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
-    }
 }

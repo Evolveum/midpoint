@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import static com.evolveum.midpoint.model.impl.lens.LensFocusContext.fromLensFocusContextBean;
 import static com.evolveum.midpoint.model.impl.lens.LensProjectionContext.fromLensProjectionContextBean;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -52,8 +54,8 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.Channel;
@@ -105,9 +107,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private ModelState state;
 
-    private transient ConflictWatcher focusConflictWatcher;
-
-    private int conflictResolutionAttemptNumber;
+    /**
+     * Supports detecting and resolving focus conflicts. It is {@code null} if conflict detection is turned off.
+     *
+     * @see ClockworkConflictResolver
+     */
+    private FocusConflictResolutionContext focusConflictResolutionContext;
 
     // For use with personas
     private String ownerOid;
@@ -279,15 +284,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      *
      * Key for this map is policy rule identifier.
      * Value is a list different triggered policy instances with the same identifier.
-     * Equality is determined via {@link EvaluatedPolicyRuleImpl#isTheSameAs(EvaluatedPolicyRuleImpl)}.
+     * Equality is determined via {@link DirectlyEvaluatedClockworkPolicyRuleImpl#isTheSameAs(DirectlyEvaluatedClockworkPolicyRuleImpl)}.
      *
-     * TODO: Later on this field should be moved to {@Link com.evolveum.midpoint.model.impl.lens.PolicyRulesContext}
+     * TODO: Later on this field should be moved to {@link PolicyRulesContext}
      *  after {@link LensContext#historicResourceObjects} are made to contain full {@link LensProjectionContext}s
      *  not just their keys.
      *
      * TODO think about making this non-transient, it's not serializable now (MagicAssignment/Holder classes, etc.)
      */
-    @NotNull private transient final Map<String, List<EvaluatedPolicyRuleImpl>> triggeredObjectPolicyRules = new HashMap<>();
+    @NotNull private transient final Map<String, List<DirectlyEvaluatedClockworkPolicyRuleImpl>> triggeredObjectPolicyRules = new HashMap<>();
 
     public LensContext(@NotNull TaskExecutionMode taskExecutionMode) {
         this(null, taskExecutionMode);
@@ -1088,21 +1093,33 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public LensContext<F> clone() {
-        LensContext<F> clone = new LensContext<>(focusClass, taskExecutionMode);
-        copyValues(clone);
-        return clone;
+        return copy(true);
     }
 
-    private void copyValues(LensContext<F> clone) {
+    /**
+     * Copies initial properties of the context. TODO review and improve: what exactly are initial properties?
+     *
+     * @see FocusConflictResolutionContext#contextCopy
+     */
+    LensContext<F> simpleCopy() {
+        return copy(false);
+    }
+
+    public LensContext<F> copy(boolean detailed) {
+        LensContext<F> copy = new LensContext<>(focusClass, taskExecutionMode);
+        copyValues(copy, detailed);
+        return copy;
+    }
+
+    private void copyValues(LensContext<F> clone, boolean detailed) {
         clone.state = this.state;
         clone.channel = this.channel;
         clone.doReconciliationForAllProjections = this.doReconciliationForAllProjections;
         clone.executionPhaseOnly = this.executionPhaseOnly;
         clone.focusClass = this.focusClass;
+        clone.lazyAuditRequest = this.lazyAuditRequest;
         clone.isFresh = this.isFresh;
         clone.authorizationState = this.authorizationState;
-        clone.resourceCache = resourceCache != null ?
-                new HashMap<>(resourceCache) : null;
         clone.explicitFocusTemplateOid = this.explicitFocusTemplateOid;
         clone.projectionWave = this.projectionWave;
         if (options != null) {
@@ -1111,15 +1128,17 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         if (requestMetadata != null) {
             clone.requestMetadata = requestMetadata.clone();
         }
-
         if (this.focusContext != null) {
-            clone.focusContext = this.focusContext.clone(this);
+            clone.focusContext = this.focusContext.copy(clone, detailed);
         }
-
         for (LensProjectionContext thisProjectionContext : this.projectionContexts) {
-            clone.projectionContexts.add(thisProjectionContext.clone(this));
+            clone.projectionContexts.add(thisProjectionContext.copy(clone, detailed));
         }
-        clone.sequences.putAll(this.sequences);
+        if (detailed) {
+            clone.resourceCache = resourceCache != null ?
+                    new HashMap<>(resourceCache) : null;
+            clone.sequences.putAll(this.sequences);
+        }
     }
 
     @Override
@@ -1251,36 +1270,36 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     private void dumpPolicyRulesCollection(
-            String label, int indent, StringBuilder sb, Collection<? extends AssociatedPolicyRule> rules, boolean alsoMessages) {
+            String label, int indent, StringBuilder sb, Collection<? extends EvaluatedClockworkPolicyRule> rules, boolean alsoMessages) {
         sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(label).append(" (").append(rules.size()).append("):");
-        for (AssociatedPolicyRule rule : rules) {
+        for (EvaluatedClockworkPolicyRule rule : rules) {
             sb.append("\n");
             dumpPolicyRule(indent, sb, rule, alsoMessages);
         }
     }
 
     private void dumpPolicyRule(
-            int indent, StringBuilder sb, AssociatedPolicyRule rule, boolean alsoMessages) {
+            int indent, StringBuilder sb, EvaluatedClockworkPolicyRule rule, boolean alsoMessages) {
         if (alsoMessages) {
             sb.append("=============================================== RULE ===============================================\n");
         }
         DebugUtil.indentDebugDump(sb, indent + 1);
-        if (rule.getNewOwner() != null) {
-            sb.append(rule.getNewOwnerShortString()).append(" ");
+        String assignmentOverrideString = rule.getAssignmentOverrideShortDump();
+        if (assignmentOverrideString != null) {
+            sb.append(assignmentOverrideString).append(" ");
         }
-        EvaluatedPolicyRule evaluatedRule = rule.getEvaluatedPolicyRule();
-        if (evaluatedRule.isGlobal()) {
+        if (rule.isGlobal()) {
             sb.append("global ");
         }
-        sb.append("rule: ").append(evaluatedRule.toShortString());
-        dumpTriggersCollection(indent + 2, sb, evaluatedRule.getTriggers());
+        sb.append("rule: ").append(rule.toShortString());
+        dumpTriggersCollection(indent + 2, sb, rule.getTriggers());
         if (alsoMessages) {
-            if (evaluatedRule.isTriggered()) {
+            if (rule.isTriggered()) {
                 sb.append("\n\n");
                 sb.append("--------------------------------------------- MESSAGES ---------------------------------------------");
-                List<TreeNode<LocalizableMessage>> messageTrees = evaluatedRule.extractMessages();
+                List<TreeNode<LocalizableMessage>> messageTrees = rule.extractMessages();
                 for (TreeNode<LocalizableMessage> messageTree : messageTrees) {
                     sb.append("\n");
                     sb.append(messageTree.debugDump(indent));
@@ -1303,10 +1322,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                         ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment()
                                 .toHumanReadableString());
             }
-            if (trigger instanceof EvaluatedCompositeTrigger) {
-                dumpTriggersCollection(indent + 1, sb, ((EvaluatedCompositeTrigger) trigger).getInnerTriggers());
-            } else if (trigger instanceof EvaluatedTransitionTrigger) {
-                dumpTriggersCollection(indent + 1, sb, ((EvaluatedTransitionTrigger) trigger).getInnerTriggers());
+            if (trigger instanceof EvaluatedCompositeTrigger compositeTrigger) {
+                dumpTriggersCollection(indent + 1, sb, compositeTrigger.getInnerTriggers());
+            } else if (trigger instanceof EvaluatedTransitionTrigger transitionTrigger) {
+                dumpTriggersCollection(indent + 1, sb, transitionTrigger.getInnerTriggers());
             }
         }
     }
@@ -1327,19 +1346,19 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     private static void dumpRulesIfNotEmpty(
-            StringBuilder sb, String label, int indent, Collection<? extends AssociatedPolicyRule> policyRules) {
+            StringBuilder sb, String label, int indent, Collection<? extends EvaluatedClockworkPolicyRule> policyRules) {
         if (!policyRules.isEmpty()) {
             dumpRules(sb, label, indent, policyRules);
         }
     }
 
-    static void dumpRules(StringBuilder sb, String label, int indent, Collection<? extends AssociatedPolicyRule> policyRules) {
+    static void dumpRules(StringBuilder sb, String label, int indent, Collection<? extends EvaluatedClockworkPolicyRule> policyRules) {
         sb.append("\n");
-        int triggered = AssociatedPolicyRule.getTriggeredRulesCount(policyRules);
+        int triggered = EvaluatedClockworkPolicyRule.getTriggeredRulesCount(policyRules);
         DebugUtil.debugDumpLabel(sb, label + " (total " + policyRules.size() + ", triggered " + triggered + ")", indent);
         // not triggered rules are dumped in one line
         boolean first = true;
-        for (AssociatedPolicyRule rule : policyRules) {
+        for (EvaluatedClockworkPolicyRule rule : policyRules) {
             if (rule.isTriggered()) {
                 continue;
             }
@@ -1352,7 +1371,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             sb.append(rule.toShortString());
         }
         // now triggered rules, each on separate line
-        for (AssociatedPolicyRule rule : policyRules) {
+        for (EvaluatedClockworkPolicyRule rule : policyRules) {
             if (rule.isTriggered()) {
                 sb.append("\n");
                 DebugUtil.indentDebugDump(sb, indent + 1);
@@ -1647,29 +1666,30 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.policyRuleEnforcerPreviewOutput = policyRuleEnforcerPreviewOutput;
     }
 
-    int getConflictResolutionAttemptNumber() {
-        return conflictResolutionAttemptNumber;
+    FocusConflictResolutionContext getFocusConflictResolutionContext() {
+        return focusConflictResolutionContext;
     }
 
-    void setConflictResolutionAttemptNumber(int conflictResolutionAttemptNumber) {
-        this.conflictResolutionAttemptNumber = conflictResolutionAttemptNumber;
-    }
-
-    ConflictWatcher getFocusConflictWatcher() {
-        return focusConflictWatcher;
-    }
-
-    ConflictWatcher createAndRegisterFocusConflictWatcher(@NotNull String oid, RepositoryService repositoryService) {
-        if (focusConflictWatcher != null) {
-            throw new IllegalStateException("Focus conflict watcher defined twice");
-        }
-        return focusConflictWatcher = repositoryService.createAndRegisterConflictWatcher(oid);
-    }
-
-    void unregisterConflictWatcher(RepositoryService repositoryService) {
-        if (focusConflictWatcher != null) {
-            repositoryService.unregisterConflictWatcher(focusConflictWatcher);
-            focusConflictWatcher = null;
+    /**
+     * Determines and sets up the focus conflict resolution context.
+     *
+     * A specific design feature is that the resolution policy is determined once and stored in the lens context.
+     *
+     * This mean that any changes to the focus (like changing subtype, and maybe archetype - we currently don't consider it)
+     * that occur during the clockwork are NOT reflected in the conflict resolution policy.
+     *
+     * This is kind of intentional (although the the original implementation from 2017 determines the the policy on the fly).
+     * The reason for doing it this time is that the policy is guaranteed to be the same during the whole clockwork operation.
+     * If (in the future) we'd like to change that, we must do that in a controlled way: after changing the policy we will have
+     * to create repo conflict watchers, for example.
+     */
+    void setupConflictResolutionContext(Task task) {
+        checkState(focusConflictResolutionContext == null, "Focus conflict resolution context already set");
+        var conflictResolutionPolicy = ModelImplUtils.determineConflictResolutionPolicy(this, task);
+        var action = conflictResolutionPolicy != null ? conflictResolutionPolicy.getAction() : null;
+        if (action != null && action != ConflictResolutionActionType.NONE) {
+            var contextCopy = action == ConflictResolutionActionType.RESTART ? this.simpleCopy() : null;
+            focusConflictResolutionContext = new FocusConflictResolutionContext(conflictResolutionPolicy, contextCopy);
         }
     }
 
@@ -2060,7 +2080,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return SystemConfigurationTypeUtil.isAccessesMetadataEnabled(getSystemConfigurationBean());
     }
 
-    public Collection<EvaluatedPolicyRuleImpl> getTriggeredObjectPolicyRules() {
+    public Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> getTriggeredObjectPolicyRules() {
         return triggeredObjectPolicyRules.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
     }
 
@@ -2068,11 +2088,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return !triggeredObjectPolicyRules.getOrDefault(identifier, List.of()).isEmpty();
     }
 
-    public void addTriggeredObjectPolicyRule(EvaluatedPolicyRuleImpl triggeredPolicyRule) {
-        List<EvaluatedPolicyRuleImpl> rules =
-                triggeredObjectPolicyRules.computeIfAbsent(triggeredPolicyRule.getPolicyRuleIdentifier(), id -> new ArrayList<>());
+    public void addTriggeredObjectPolicyRule(DirectlyEvaluatedClockworkPolicyRuleImpl triggeredPolicyRule) {
+        List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules =
+                triggeredObjectPolicyRules.computeIfAbsent(
+                        triggeredPolicyRule.getRuleIdentifier().asString(),
+                        id -> new ArrayList<>());
 
-        EvaluatedPolicyRuleImpl existing = findEquivalentPolicyRule(rules, triggeredPolicyRule);
+        DirectlyEvaluatedClockworkPolicyRuleImpl existing = findEquivalentPolicyRule(rules, triggeredPolicyRule);
         if (existing != null) {
             rules.remove(existing);
         }
@@ -2080,8 +2102,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         rules.add(triggeredPolicyRule);
     }
 
-    private EvaluatedPolicyRuleImpl findEquivalentPolicyRule(List<EvaluatedPolicyRuleImpl> rules, EvaluatedPolicyRuleImpl rule) {
-        for (EvaluatedPolicyRuleImpl r : rules) {
+    private DirectlyEvaluatedClockworkPolicyRuleImpl findEquivalentPolicyRule(
+            List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules, DirectlyEvaluatedClockworkPolicyRuleImpl rule) {
+        for (DirectlyEvaluatedClockworkPolicyRuleImpl r : rules) {
             if (rule.isTheSameAs(r)) {
                 return r;
             }

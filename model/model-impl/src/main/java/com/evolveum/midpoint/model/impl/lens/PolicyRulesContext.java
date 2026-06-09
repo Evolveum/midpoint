@@ -37,7 +37,7 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
      *
      * Life cycle: Cleared at the beginning of each policy rules evaluation.
      */
-    @NotNull private final Collection<EvaluatedPolicyRuleImpl> objectPolicyRules = new ArrayList<>();
+    @NotNull private final Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> objectPolicyRules = new ArrayList<>();
 
     /**
      * Policy state modifications that should be applied.
@@ -74,15 +74,15 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
      */
     @NotNull private final Map<String, Integer> counterMap = new HashMap<>();
 
-    @NotNull Collection<EvaluatedPolicyRuleImpl> getObjectPolicyRules() {
+    @NotNull Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> getObjectPolicyRules() {
         return objectPolicyRules;
     }
 
-    void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
+    void addObjectPolicyRule(DirectlyEvaluatedClockworkPolicyRuleImpl policyRule) {
         this.objectPolicyRules.add(policyRule);
     }
 
-    void addObjectPolicyRules(Collection<EvaluatedPolicyRuleImpl> policyRules) {
+    void addObjectPolicyRules(Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> policyRules) {
         this.objectPolicyRules.addAll(policyRules);
     }
 

@@ -165,6 +165,10 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
                 getPageBase(), resourceOid, objectClassName, task, result);
 
+        if (suggestions != null && suggestions.isSuspended()) {
+            showChoiceFragment(target, buildGeneratingWizardPanel(getIdOfChoicePanel(), objectClassName));
+        }
+
         boolean hasValidSuggestions = isSuccessfulSuggestion(suggestions);
 
         List<ResourceObjectTypeDefinitionType> previousObjectTypes = List.of();

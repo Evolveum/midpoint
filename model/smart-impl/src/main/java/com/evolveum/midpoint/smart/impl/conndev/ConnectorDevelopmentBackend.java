@@ -75,7 +75,7 @@ public abstract class ConnectorDevelopmentBackend {
         return switch (integrationType) {
             case REST -> new RestBackend(beans, connDev, task, result);
             case SCIM -> new ScimBackend(beans, connDev, task, result);
-            case DUMMY -> new OfflineBackend(beans, connDev, task, result);
+            //case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
 
     }
@@ -98,8 +98,15 @@ public abstract class ConnectorDevelopmentBackend {
             return;
         }
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
-            .item(ConnectorDevelopmentType.F_APPLICATION).replace(type.clone())
-            .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_APPLICATION_NAME)
+                .replace(type.getApplicationName() != null ? type.getApplicationName().toPolyString() : null)
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_VERSION)
+                .replace(type.getVersion())
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE)
+                .replace(type.getIntegrationType())
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_BASE_API_ENDPOINT)
+                .replace(type.getBaseApiEndpoint())
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
     }
@@ -249,7 +256,8 @@ public abstract class ConnectorDevelopmentBackend {
                     .embedded(v.getEmbedded())
                     ._abstract(v.isAbstract())
                     .superclass(v.getSuperclass())
-                    .relevant(v.getRelevant());
+                    .relevant(v.getRelevant())
+                    .relevancy(v.getRelevancy());
             v.getRelevantDocumentations().forEach(chunk ->
                     oc.relevantDocumentations(new ConnDevRelevantDocumentationsType().docId(chunk.getDocId()).chunkId(chunk.getChunkId())));
             return oc;
@@ -312,14 +320,24 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
-    public abstract ConnDevApplicationInfoType discoverBasicInformation();
-    public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation();
-    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation();
-    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
-    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
-    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated);
-    public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass);
-    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass);
+    public abstract ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache);
+    public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache);
+    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache);
+    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
+    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
+    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache);
+    public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache);
+    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache);
+    public abstract List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache);
+
+    public void populateConnectivityEndpoints(List<ConnDevHttpEndpointType> endpoints) throws CommonException {
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_SUGGESTED_ENDPOINT)
+                .replaceRealValues(endpoints)
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+    }
 
     public ConnDevArtifactType getArtifactContent(ConnDevArtifactType type) throws IOException {
         var ret = type.clone();
@@ -366,11 +384,11 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
-    public abstract void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+    public abstract void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
 
     public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         if (development.getProcessedDocumentation().isEmpty()) {
-            processDocumentation();
+            processDocumentation(false);
             reload();
         }
     }
@@ -388,7 +406,7 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
 
-    public abstract List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered);
+    public abstract List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered, boolean skipCache);
 
     public void updateRelations(List<ConnDevRelationInfoType> relations) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
@@ -458,6 +476,46 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
+    protected void restoreMetadata(ServiceClient.RestorationClient client) throws IOException {
+        var app = developmentObject().getApplication();
+        if (app == null) return;
+
+        var infoMetadata = JSON_FACTORY.objectNode();
+
+        if (app.getApplicationName() != null) {
+            infoMetadata.set("name", JSON_FACTORY.textNode(app.getApplicationName().getOrig()));
+        }
+        if (app.getVersion() != null) {
+            infoMetadata.set("applicationVersion", JSON_FACTORY.textNode(app.getVersion()));
+        }
+        if (app.getApiVersion() != null) {
+            infoMetadata.set("apiVersion", JSON_FACTORY.textNode(app.getApiVersion()));
+        }
+        if (app.getIntegrationType() != null) {
+            var apiTypeArray = JSON_FACTORY.arrayNode();
+            apiTypeArray.add(app.getIntegrationType().value());
+            infoMetadata.set("apiType", apiTypeArray);
+        }
+        if (app.getBaseApiEndpoint() != null) {
+            var endpointEntry = JSON_FACTORY.objectNode();
+            endpointEntry.set("uri", JSON_FACTORY.textNode(app.getBaseApiEndpoint()));
+            endpointEntry.set("type", JSON_FACTORY.textNode("constant"));
+            var endpointsArray = JSON_FACTORY.arrayNode();
+            endpointsArray.add(endpointEntry);
+            infoMetadata.set("baseApiEndpoint", endpointsArray);
+        }
+
+        var body = JSON_FACTORY.objectNode();
+        body.set("infoMetadata", infoMetadata);
+        var bodyText = body.toPrettyString();
+
+        client.put("digester/{sessionId}/metadata", () ->
+                EntityBuilder.create()
+                        .setContentType(ContentType.APPLICATION_JSON)
+                        .setText(bodyText)
+                        .build());
+    }
+
     protected void restoreRelations(ServiceClient.RestorationClient client) throws IOException {
         var app = developmentObject().getApplication();
         if (app == null) return;
@@ -494,6 +552,8 @@ public abstract class ConnectorDevelopmentBackend {
         for (var relation : connector.getRelation()) {
             putCodegenArtifact(client, "codegen/{sessionId}/relations/" + relation.getName(), relation.getSchemaScript());
         }
+
+        putCodegenArtifact(client, "codegen/{sessionId}/authorization", connector.getAuthenticationScript());
     }
 
     protected void putCodegenArtifact(ServiceClient.RestorationClient client, String path, ConnDevArtifactType artifact) throws IOException {

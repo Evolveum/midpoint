@@ -59,7 +59,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -305,8 +304,12 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     AssignmentObjectRelation relationSpec,
                     boolean isDuplicate,
                     StatusInfo<?> statusInfo) {
+
                 PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(
                         getPageBase(), value, target);
+                if (newValue == null) {
+                    return;
+                }
                 showTableForItemRefs(target, this::findAssociatedParentContainerWrapper,
                         () -> newValue, (StatusInfo<CorrelationSuggestionsType>) statusInfo);
             }
@@ -319,13 +322,6 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
             String resourceOid,
             @NotNull IModel<Boolean> switchToggleModel) {
-
-        LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
-            @Override
-            protected @NotNull SmartGeneratingAlertDto load() {
-                return new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase());
-            }
-        };
 
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL, suggestionModel) {
             @Override
@@ -461,7 +457,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             PrismContainerValue<ItemsSubCorrelatorType> value,
             AjaxRequestTarget target) {
         return SmartIntegrationWrapperUtils.createNewItemsSubCorrelatorValue(
-                pageBase, getValueModel(), value, target);
+                pageBase, getFeedback(), getValueModel(), value, target);
     }
 
     private @NotNull Boolean isNotShownContainerInfo() {
@@ -510,34 +506,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        PageBase pageBase = getPageBase();
         super.onSubmitPerformed(target);
-        displaySynchronizationDialog(pageBase, target);
-    }
-
-    protected void displaySynchronizationDialog(@NotNull PageBase pageBase, AjaxRequestTarget target) {
-        ResourceObjectTypeDefinitionType resourceObjectDefinition = getResourceObjectDefinition();
-        if (resourceObjectDefinition == null) {
-            return;
-        }
-        SynchronizationReactionsType synchronization = getResourceObjectDefinition().getSynchronization();
-        if (synchronization == null
-                || synchronization.getReaction() == null
-                || synchronization.getReaction().isEmpty()) {
-
-            ConfirmationPanel confirmPanel = new ConfirmationPanel(
-                    pageBase.getMainPopupBodyId(),
-                    pageBase.createStringResource("CorrelationWizardPanelWizardPanel.noSynchronization.info")) {
-                @Override
-                public void yesPerformed(AjaxRequestTarget target) {
-                    navigateToSynchronizationPanel(target);
-                }
-            };
-            pageBase.showMainPopup(confirmPanel, target);
-        }
-    }
-
-    protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
     }
 
     @Override
@@ -653,7 +622,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         return "";
     }
 
-    protected IModel<Boolean> getSwitchToggleModel(){
+    protected IModel<Boolean> getSwitchToggleModel() {
         return switchToggleModel;
     }
 }

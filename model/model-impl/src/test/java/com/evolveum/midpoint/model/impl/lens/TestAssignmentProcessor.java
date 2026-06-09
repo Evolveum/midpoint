@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -649,7 +649,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         EvaluatedAssignmentImpl<?> evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
         assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getObjectPolicyRules().size());
-        Collection<? extends EvaluatedPolicyRule> targetPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
+        Collection<? extends DirectlyEvaluatedClockworkPolicyRule> targetPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
         assertEquals("Wrong # of target policy rules", 2, targetPolicyRules.size());
 
         assertSerializable(context);
@@ -705,7 +705,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         EvaluatedAssignmentImpl<?> evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
         assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getObjectPolicyRules().size());
         assertEquals("Wrong # of this target policy rules", 2, evaluatedAssignment.getThisTargetPolicyRules().size());
-        Collection<? extends EvaluatedPolicyRule> policyRules = evaluatedAssignment.getAllTargetsPolicyRules();
+        Collection<? extends DirectlyEvaluatedClockworkPolicyRule> policyRules = evaluatedAssignment.getAllTargetsPolicyRules();
         assertEquals("Wrong # of target policy rules", 5, policyRules.size());
 
         assertSerializable(context);

@@ -6,16 +6,28 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
+import static com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
+import static com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET;
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
 import com.evolveum.midpoint.model.common.GlobalRuleWithId;
 import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -25,11 +37,16 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
+import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.policy.PolicyRuleApplicabilityUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,24 +55,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
-import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET;
-import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
 /**
- * Collects relevant rules (for assignments, focus, or projection) from all relevant sources.
+ * Collects relevant rules (for assignments, focus, projection, or activity) from all relevant sources.
  *
  * @see #collectObjectRules(OperationResult)
- * @see #collectGlobalAssignmentRules(DeltaSetTriple, OperationResult)
+ * @see #collectAllAssignmentRules(DeltaSetTriple, OperationResult)
  */
 class PolicyRulesCollector<O extends ObjectType> {
 
@@ -81,17 +85,52 @@ class PolicyRulesCollector<O extends ObjectType> {
     }
 
     /** Collects "object rules" (i.e. for focus and assignments) from all sources: assignments and global config, incl. marks. */
-    @NotNull List<EvaluatedPolicyRuleImpl> collectObjectRules(OperationResult result)
+    @NotNull List<DirectlyEvaluatedClockworkPolicyRuleImpl> collectObjectRules(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
+        List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules = new ArrayList<>();
+        collectActivityRules(rules);
         collectObjectRulesFromAssignments(rules);
         collectGlobalObjectRules(rules, result);
         resolveConstraintReferences(rules);
+
+        rules.sort(
+                Comparator.comparing(
+                        DirectlyEvaluatedClockworkPolicyRuleImpl::getOrder,
+                        Comparator.nullsLast(Comparator.naturalOrder())));
+
         return rules;
     }
 
-    private void collectObjectRulesFromAssignments(List<EvaluatedPolicyRuleImpl> rules) {
+    private Collection<ActivityPolicyRule> getEnabledActivityRules() {
+        if (!(task.getExecutionSupport() instanceof AbstractActivityRun<?, ?, ?> activityRun)) {
+            return Collections.emptyList();
+        }
+
+        Collection<ActivityPolicyRule> activityRules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
+        return activityRules.stream()
+                .filter(r -> BooleanUtils.isNotFalse(r.getPolicyBean().isEnabled()))
+                .toList();
+    }
+
+    private void collectActivityRules(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules) {
+        for (ActivityPolicyRule rule : getEnabledActivityRules()) {
+            if (PolicyRuleApplicabilityUtil.isApplicableToActivity(rule.getPolicyBean())) {
+                continue; // activity rules are mutually exclusive with "normal" (object, projection, assignment) ones
+            }
+
+            String ruleId = rule.getRuleIdentifier().toString();
+            PolicyRuleConfigItem ruleCI =
+                    ConfigurationItem.configItem(rule.getPolicyBean(), rule.getOrigin(), PolicyRuleConfigItem.class);
+
+            LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
+            rules.add(new DirectlyEvaluatedClockworkPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT, rule));
+        }
+
+        LOGGER.trace("Collected activity policy rules {} for further evaluation", rules);
+    }
+
+    private void collectObjectRulesFromAssignments(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules) {
         // We intentionally evaluate rules also from negative (deleted) assignments.
         for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getAllEvaluatedAssignments()) {
             rules.addAll(evaluatedAssignment.getObjectPolicyRules());
@@ -99,7 +138,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     }
 
     /** [EP:M:PRC] DONE rules are from {@link #rulesWithIds} only */
-    private void collectGlobalObjectRules(List<EvaluatedPolicyRuleImpl> rules, OperationResult result)
+    private void collectGlobalObjectRules(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         PrismObject<O> focus = getFocusForSelection();
@@ -110,7 +149,7 @@ class PolicyRulesCollector<O extends ObjectType> {
             if (isRuleConditionTrue(ruleWithId, focus, null, result)) { // [EP:M:PRC] DONE^
                 LOGGER.trace("Collecting global policy rule '{}' ({})", ruleCI.getName(), ruleWithId.ruleId());
                 rules.add(
-                        new EvaluatedPolicyRuleImpl(
+                        new DirectlyEvaluatedClockworkPolicyRuleImpl(
                                 ruleCI.clone(), ruleWithId.ruleId(), null, TargetType.OBJECT));
                 globalRulesFound++;
             } else {
@@ -121,8 +160,17 @@ class PolicyRulesCollector<O extends ObjectType> {
         LOGGER.trace("Selected {} global policy rules for further evaluation", globalRulesFound);
     }
 
+    void collectAllAssignmentRules(
+            DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+
+        collectGlobalAssignmentRules(evaluatedAssignmentTriple, result);
+        collectActivityAssignmentRules(evaluatedAssignmentTriple);
+    }
+
     /** [EP:M:PRC] DONE rules are from {@link #rulesWithIds} only */
-    void collectGlobalAssignmentRules(
+    private void collectGlobalAssignmentRules(
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
@@ -144,15 +192,7 @@ class PolicyRulesCollector<O extends ObjectType> {
                             .withLogging(LOGGER, "Global policy rule " + ruleName + " target selector: ");
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
                 for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) { // MID-6403
-                    boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
-                    if (!appliesDirectlyToTarget && !target.getAssignmentPath().last().isMatchingOrder()) {
-                        // This is to be thought out well. It is of no use to include global policy rules
-                        // attached to meta-roles assigned to the role being assigned to the focus.
-                        //
-                        // But we certainly need to include rules
-                        //
-                        // 1. attached to a directly assigned role (because they might be considered for assignment)
-                        // 2. attached to an indirectly assigned role but of the matching order (because of exclusion violation).
+                    if (!isAssignmentTargetApplicable(target)) {
                         continue;
                     }
                     if (!selectorMatcher.matches(target.getTarget())) {
@@ -165,10 +205,12 @@ class PolicyRulesCollector<O extends ObjectType> {
                                 ruleName, ruleWithId);
                         continue;
                     }
+
+                    boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
                     LOGGER.trace("Collecting global policy rule '{}' in {}, considering target {} (applies directly: {})",
                             ruleCI.getName(), evaluatedAssignment, target, appliesDirectlyToTarget);
                     evaluatedAssignment.addTargetPolicyRule(
-                            new EvaluatedPolicyRuleImpl(
+                            new DirectlyEvaluatedClockworkPolicyRuleImpl(
                                     ruleCI.clone(),
                                     ruleWithId.ruleId(),
                                     target.getAssignmentPath().clone(),
@@ -179,6 +221,57 @@ class PolicyRulesCollector<O extends ObjectType> {
             }
         }
         LOGGER.trace("Global policy rules instantiated {} times for further evaluation", globalRulesInstantiated);
+
+    }
+
+    private boolean isAssignmentTargetApplicable(EvaluatedAssignmentTargetImpl target) {
+        boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
+
+        // This is to be thought out well. It is of no use to include global policy rules
+        // attached to meta-roles assigned to the role being assigned to the focus.
+        //
+        // But we certainly need to include rules
+        //
+        // 1. attached to a directly assigned role (because they might be considered for assignment)
+        // 2. attached to an indirectly assigned role but of the matching order (because of exclusion violation).
+        return appliesDirectlyToTarget || target.getAssignmentPath().last().isMatchingOrder();
+    }
+
+    private void collectActivityAssignmentRules(DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple) {
+        int activityRulesInstantiated = 0;
+
+        Collection<ActivityPolicyRule> activityRules = getEnabledActivityRules().stream()
+                .filter(r -> PolicyRuleApplicabilityUtil.isApplicableToAssignment(r.getPolicyBean()))
+                .toList();
+
+        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
+            for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) { // MID-6403
+                if (!isAssignmentTargetApplicable(target)) {
+                    continue;
+                }
+
+                boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
+
+                for (ActivityPolicyRule rule : activityRules) {
+                    String ruleId = rule.getRuleIdentifier().toString();
+                    PolicyRuleConfigItem ci =
+                            ConfigurationItem.configItem(rule.getPolicyBean(), rule.getOrigin(), PolicyRuleConfigItem.class);
+
+                    LOGGER.trace("Collecting activity policy rule for assignment '{}' ({})", ci.getName(), ruleId);
+                    evaluatedAssignment.addTargetPolicyRule(
+                            new DirectlyEvaluatedClockworkPolicyRuleImpl(
+                                    ci,
+                                    ruleId,
+                                    target.getAssignmentPath().clone(),
+                                    evaluatedAssignment,
+                                    appliesDirectlyToTarget ? DIRECT_ASSIGNMENT_TARGET : INDIRECT_ASSIGNMENT_TARGET,
+                                    rule));
+                    activityRulesInstantiated++;
+                }
+            }
+        }
+
+        LOGGER.trace("Activity policy rules instantiated {} times for further evaluation", activityRulesInstantiated);
     }
 
     /**
@@ -192,7 +285,7 @@ class PolicyRulesCollector<O extends ObjectType> {
         checkInitialized();
         List<GlobalRuleWithId> matching = new ArrayList<>();
         LOGGER.trace("Checking {} global policy rules for use with the object or assignments", rulesWithIds.size());
-        for (GlobalRuleWithId ruleWithId: rulesWithIds) {
+        for (GlobalRuleWithId ruleWithId : rulesWithIds) {
             GlobalPolicyRuleConfigItem ruleCI = ruleWithId.ruleCI();
             ObjectSelectorType focusSelector = ruleCI.value().getFocusSelector();
             if (focusSelector == null ||
@@ -249,9 +342,9 @@ class PolicyRulesCollector<O extends ObjectType> {
     }
 
     void resolveConstraintReferences(
-            Collection<? extends EvaluatedPolicyRule> evaluatedRules) {
+            Collection<? extends DirectlyEvaluatedClockworkPolicyRule> evaluatedRules) {
         List<PolicyRuleType> rules = evaluatedRules.stream()
-                .map(EvaluatedPolicyRule::getPolicyRule)
+                .map(DirectlyEvaluatedClockworkPolicyRule::getPolicyRuleBean)
                 .collect(Collectors.toList());
         checkInitialized();
         Collection<GlobalPolicyRuleType> allGlobalRules = rulesWithIds.stream()

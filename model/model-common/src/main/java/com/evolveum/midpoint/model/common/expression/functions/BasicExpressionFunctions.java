@@ -668,7 +668,7 @@ public class BasicExpressionFunctions {
             return null;
         }
         if (realValues.size() > 1) {
-            throw new SchemaException("More than one secondary idenfier value in " + shadow);
+            throw new SchemaException("More than one secondary identifier value in " + shadow);
         }
         return realValues.iterator().next();
     }

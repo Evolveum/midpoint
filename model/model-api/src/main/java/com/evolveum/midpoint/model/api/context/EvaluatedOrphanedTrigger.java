@@ -6,18 +6,17 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrphanedPolicyConstraintType;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ORPHANED;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrphanedPolicyConstraintType;
 
-public class EvaluatedOrphanedTrigger extends EvaluatedPolicyRuleTrigger<OrphanedPolicyConstraintType> {
+public class EvaluatedOrphanedTrigger extends EvaluatedClockworkPolicyRuleTrigger<OrphanedPolicyConstraintType> {
 
     public EvaluatedOrphanedTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull OrphanedPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage) {
-        super(kind, constraint, message, shortMessage, false);
+            @NotNull OrphanedPolicyConstraintType constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
+        super(ORPHANED, constraint, message, shortMessage, false);
     }
 }

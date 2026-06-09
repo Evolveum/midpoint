@@ -208,6 +208,11 @@ public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> 
 //    }
 
     @Override
+    protected String getTableContainerAdditionalCssClasses() {
+        return super.getTableContainerAdditionalCssClasses() + " table-td-middle";
+    }
+
+    @Override
     protected UserProfileStorage.TableId getTableId() {
         return null;
     }

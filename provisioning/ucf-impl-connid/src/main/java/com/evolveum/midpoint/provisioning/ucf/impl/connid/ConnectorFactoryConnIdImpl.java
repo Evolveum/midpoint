@@ -31,6 +31,8 @@ import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 
+import com.evolveum.midpoint.task.api.Tracer;
+
 import jakarta.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
@@ -158,6 +160,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     @Autowired private PrismContext prismContext;
     @Autowired private LocalizationService localizationService;
     private CopyOnWriteArrayList<ConnectorDiscoveryListener> listeners = new CopyOnWriteArrayList<>();
+    @Autowired private Optional<Tracer> tracer;
 
     public ConnectorFactoryConnIdImpl() {
     }
@@ -242,7 +245,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
 
         return new ConnectorInstanceConnIdImpl(
-                cinfo, connectorBean, connectorSchema, instanceName, instanceDescription);
+                cinfo, connectorBean, connectorSchema, instanceName, instanceDescription, tracer.orElse(null));
     }
 
     /**

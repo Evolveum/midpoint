@@ -22,7 +22,6 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusA
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -104,9 +103,9 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         if (columnValue instanceof PrismContainerValueWrapper<?> pcvw) {
             switch (pcvw.getStatus()) {
                 case DELETED -> tile.add(AttributeModifier.append(
-                        "class", "border border-danger border-large-left" + applyIfSelectedCssClass(item.getValue())));
+                        "class", "border border-danger" + applyIfSelectedCssClass(item.getValue())));
                 case ADDED -> tile.add(AttributeModifier.append(
-                        "class", "border border-success border-large-left" + applyIfSelectedCssClass(item.getValue())));
+                        "class", "border border-success" + applyIfSelectedCssClass(item.getValue())));
                 default -> applyDefaultRowCss(
                         tile,
                         item.getValue(),
@@ -157,23 +156,6 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
         selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
         selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
         return selectCheckbox;
-    }
-
-    private void updateTileCheckboxes(@NotNull AjaxRequestTarget target) {
-        PageableListView<?, ?> tiles = getTiles();
-
-        tiles.visitChildren(Component.class, (component, visit) -> {
-            if (isRefreshableTileComponent(component)) {
-                target.add(component);
-            }
-        });
-
-    }
-
-    private boolean isRefreshableTileComponent(@NotNull Component component) {
-        return component.getOutputMarkupId()
-                && (component instanceof ColumnTilePanel<?, ?, ?>
-                || component instanceof MappingSuggestionGroupColumnTilePanel<?, ?, ?>);
     }
 
     private @NotNull IModel<Boolean> buildHeaderCheckboxModel(@NotNull IModel<List<O>> currentPageModel) {
@@ -305,7 +287,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
 
     @Override
     protected String getTileCssClasses() {
-        return "col-12 h-100 justify-content-center mb-2 p-0 bg-white";
+        return "col-12 h-100 justify-content-center mb-2 p-0 bg-white rounded";
     }
 
     protected String getTileContainerCssClass() {
@@ -629,7 +611,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
             if (statusInfo != null && statusInfo.getStatus() != null) {
                 SmartIntegrationUtils.SuggestionUiStyle uiStyle =
                         SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, wrapper);
-                tile.add(AttributeModifier.append("class", baseCss + " border-large-left " + uiStyle.tileClass));
+                tile.add(AttributeModifier.append("class", baseCss + " " + uiStyle.tileClass));
             }
         }
     }

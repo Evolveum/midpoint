@@ -9,10 +9,16 @@
 <wicket:panel>
 
     <div class="d-flex gap-2 d-flex gap-2 flex-wrap">
-        <div wicket:id="correlationItemsPanel" class="border rounded d-flex align-items-center gap-1 px-2 py-1">
-            <i wicket:id="icon"></i>
-            <div class="fw-normal" wicket:id="correlationItemsPanelValue"></div>
-            <div class="fw-normal text-muted " wicket:id="correlationItemsPanelLabel"></div>
+
+        <div wicket:id="correlationItemsPanel"
+                class="d-inline-flex align-items-center border border-2 rounded overflow-hidden">
+
+            <div class="px-3 py-1"
+                    wicket:id="correlationItemsPanelValue"></div>
+
+            <div class="border-left px-3 py-1 fw-bold  text-secondary bg-light"
+                    wicket:id="correlationItemsPanelLabel"></div>
+
         </div>
     </div>
 
