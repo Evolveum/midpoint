@@ -18,17 +18,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-
-import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
-import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -625,7 +616,7 @@ public class RequestAccess implements Serializable {
         }
     }
 
-   private boolean containsOnlyPruneAction(DirectlyEvaluatedClockworkPolicyRule policyRule) {
+   private boolean containsOnlyPruneAction(EvaluatedPolicyRule policyRule) {
         int pruneActionCount = policyRule.getEnabledActions(PrunePolicyActionType.class).size();
         return policyRule.getEnabledActions().size() == pruneActionCount;
     }
