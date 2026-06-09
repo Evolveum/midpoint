@@ -87,8 +87,8 @@ public abstract class AbstractMidPointCelExtensions
         return CelTypeMapper.toJavaValue(o);
     }
 
-    protected static boolean isCellNull(@Nullable Object object) {
-        return CelTypeMapper.isCellNull(object);
+    protected static boolean isCelNull(@Nullable Object object) {
+        return CelTypeMapper.isCelNull(object);
     }
 
     @NotNull
