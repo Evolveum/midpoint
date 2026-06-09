@@ -8,14 +8,19 @@ package com.evolveum.midpoint.web.component.input;
 
 import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
 import static com.evolveum.midpoint.common.MimeTypeUtil.getExtension;
-import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MAGIC_NUMBERS_TO_FILE_EXTENSIONS;
+import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MIME_TO_MAGIC_NUMBER_BYTE;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.imageio.ImageIO;
+
+import com.evolveum.midpoint.common.MimeTypeUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
 
@@ -40,21 +45,29 @@ public final class ImageSanitizationUtil {
     /**
      * Determines file extension by comparing first bytes of file byte array with known magic numbers.
      *
-     * @param fileBites file byte array to determine file extension
+     * @param fileBytes file byte array to determine file extension
      * @return file extension or null if file extension was not possible to determine
      */
-    public static String getFileExtensionFromFileMagicNumber(byte[] fileBites) {
+    public static String getFileExtensionFromFileMagicNumber(byte[] fileBytes) {
+        if (fileBytes == null) {
+            return null;
+        }
+
         magicNumbersFor:
-        for (final byte[] magicNumber : MAGIC_NUMBERS_TO_FILE_EXTENSIONS.keySet()) {
-            if (fileBites == null || fileBites.length < magicNumber.length) {
-                return null;
+        for (Map.Entry<String, byte[]> entry : MIME_TO_MAGIC_NUMBER_BYTE.entrySet()) {
+
+            byte[] magicNumber = entry.getValue();
+
+            if (fileBytes.length < magicNumber.length) {
+                continue;
             }
             for (int i = 0; i < magicNumber.length; i++) {
-                if (magicNumber[i] != fileBites[i]) {
+                if (magicNumber[i] != fileBytes[i]) {
                     continue magicNumbersFor;
                 }
             }
-            return MAGIC_NUMBERS_TO_FILE_EXTENSIONS.get(magicNumber);
+            String mime = entry.getKey();
+            return MimeTypeUtil.getExtension(mime);
         }
         return null;
     }
@@ -138,22 +151,33 @@ public final class ImageSanitizationUtil {
     private static byte[] writeImage(BufferedImage image, String outputImageFormatName)
             throws ImageSanitizationException {
         try {
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-            if (ImageIO.write(image, outputImageFormatName, byteArrayOutputStream)) {
-                return byteArrayOutputStream.toByteArray();
+            byte[] bytes = imageToBytes(() -> image, outputImageFormatName);
+            if (bytes != null) {
+                return bytes;
             }
 
-            // try to handle PNG to JPG conversion
-            if (getExtension(MIME_IMAGE_JPEG).equals(outputImageFormatName)
-                    && ImageIO.write(handleTransparency(image), outputImageFormatName, byteArrayOutputStream)) {
-                return byteArrayOutputStream.toByteArray();
+            // try to handle PNG to JPG conversion (transparency must be removed first)
+            if (getExtension(MIME_IMAGE_JPEG).equals(outputImageFormatName)) {
+                bytes = imageToBytes(() -> handleTransparency(image), outputImageFormatName);
+                if (bytes != null) {
+                    return bytes;
+                }
             }
 
             throw new ImageSanitizationException("No " + outputImageFormatName + " writer available.");
         } catch (IOException e) {
             throw new ImageSanitizationException("Failed to write " + outputImageFormatName + " image for sanitization.", e);
         }
+    }
+
+    private static byte[] imageToBytes(Supplier<BufferedImage> imageSupplier, String outputImageFormatName) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            if (ImageIO.write(imageSupplier.get(), outputImageFormatName, bos)) {
+                return bos.toByteArray();
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -173,7 +197,12 @@ public final class ImageSanitizationUtil {
 
         // Draw the original image onto the new RGB canvas
         // Use Color.WHITE as a background to fill any transparent parts
-        outputImage.createGraphics().drawImage(inputImage, 0, 0, BACKGROUND_COLOR, null);
+        Graphics g = outputImage.createGraphics();
+        try {
+            g.drawImage(inputImage, 0, 0, BACKGROUND_COLOR, null);
+        } finally {
+            g.dispose();
+        }
 
         return outputImage;
     }

@@ -27,15 +27,17 @@ public final class FileMagicNumberConstants {
     public static final byte[] MAGIC_NUMBER_BYTE_JPEG = HexFormat.of().parseHex(MAGIC_NUMBER_JPEG);
     public static final byte[] MAGIC_NUMBER_BYTE_PNG = HexFormat.of().parseHex(MAGIC_NUMBER_PNG);
 
-    public static final List<String> ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES = Arrays.asList(MIME_IMAGE_JPEG, MIME_IMAGE_PNG);
+    public static final List<String> ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES = Arrays.asList(
+            MIME_IMAGE_JPEG,
+            MIME_IMAGE_PNG);
 
     public static final Map<String, String> CONTENT_TYPES_TO_MAGIC_NUMBERS = Map.of(
             MIME_IMAGE_JPEG, MAGIC_NUMBER_JPEG,
             MIME_IMAGE_PNG, MAGIC_NUMBER_PNG
     );
 
-    public static final Map<byte[], String> MAGIC_NUMBERS_TO_FILE_EXTENSIONS = Map.of(
-            MAGIC_NUMBER_BYTE_JPEG, getExtension(MIME_IMAGE_JPEG),
-            MAGIC_NUMBER_BYTE_PNG, getExtension(MIME_IMAGE_PNG)
+    public static final Map<String, byte[]> MIME_TO_MAGIC_NUMBER_BYTE = Map.of(
+            MIME_IMAGE_JPEG, MAGIC_NUMBER_BYTE_JPEG,
+            MIME_IMAGE_PNG, MAGIC_NUMBER_BYTE_PNG
     );
 }

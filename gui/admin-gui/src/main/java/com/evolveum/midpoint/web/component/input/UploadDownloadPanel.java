@@ -230,12 +230,10 @@ public class UploadDownloadPanel extends InputPanel {
             LOGGER.trace("Sanitization of upload file error.", e);
             final String errorMessage = getString("UploadPanel.message.sanitizationUploadError") + " " + e.getMessage();
             input.error(errorMessage);
-            input.getParent().getFeedbackMessages().add(new FeedbackMessage(input, errorMessage, FeedbackMessage.WARNING));
         } catch (Exception e) {
             LOGGER.trace("Upload file error.", e);
             final String errorMessage = getString("UploadPanel.message.uploadError") + " " + e.getMessage();
             input.error(errorMessage);
-            input.getParent().getFeedbackMessages().add(new FeedbackMessage(input, errorMessage, FeedbackMessage.WARNING));
         }
     }
 
