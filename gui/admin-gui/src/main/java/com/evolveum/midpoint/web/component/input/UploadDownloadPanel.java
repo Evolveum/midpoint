@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -30,9 +31,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
 
 /**
  * @author shood
@@ -132,7 +135,7 @@ public class UploadDownloadPanel extends InputPanel {
                         continue;
                     }
 
-                    if (!FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {
+                    if (isMagicNumberValidationEnabled() && !FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {
                         String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType);
                         validatable.error(new ValidationError(msg));
                     }
@@ -199,16 +202,38 @@ public class UploadDownloadPanel extends InputPanel {
         return file.getFileUpload();
     }
 
+    /**
+     * Checks if ImageUploadProcessing is set to fixedFormat.
+     * In case of fixedFormat the magic number check is performed in ImageSanitization.
+     * Moreover, potential change of image format performed in ImageSanitization incorrectly trigger FileValidatorUtil.isValidMagicNumber
+     *
+     * @return if ImageUploadProcessing is set to fixedFormat
+     */
+    private boolean isMagicNumberValidationEnabled() {
+        final ImageUploadProcessingType config = getPageBase().getCompiledGuiProfile().getImageUploadProcessing();
+        return config == null || !ImageProcessingType.FIXED.equals(config.getProcessing());
+    }
+
     public void uploadFilePerformed(AjaxRequestTarget target) {
         Component input = getInputFile();
         try {
             FileUpload uploadedFile = getFileUpload();
-            updateValue(uploadedFile.getBytes());
+            updateValue(
+                    ImageSanitizationUtil.sanitizeImage(
+                            uploadedFile.getBytes(),
+                            getPageBase().getCompiledGuiProfile().getImageUploadProcessing()
+                    )
+            );
             LOGGER.trace("Upload file success.");
             input.success(getString("UploadPanel.message.uploadSuccess"));
+        } catch (ImageSanitizationException e) {
+            LOGGER.trace("Sanitization of upload file error.", e);
+            final String errorMessage = getString("UploadPanel.message.sanitizationUploadError") + " " + e.getMessage();
+            input.error(errorMessage);
         } catch (Exception e) {
             LOGGER.trace("Upload file error.", e);
-            input.error(getString("UploadPanel.message.uploadError") + " " + e.getMessage());
+            final String errorMessage = getString("UploadPanel.message.uploadError") + " " + e.getMessage();
+            input.error(errorMessage);
         }
     }
 

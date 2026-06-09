@@ -12,10 +12,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.security.api.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,17 +31,20 @@ import com.evolveum.midpoint.model.impl.lens.LoginAssignmentCollector;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -241,7 +240,6 @@ public class GuiProfileCompiler {
                     adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
                 }
             }
-
 
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // TODO see MID-6403
                 if (target.isValid() && target.getAssignmentPath().containsDelegation()) {
@@ -498,6 +496,10 @@ public class GuiProfileCompiler {
             mergeAccessRequestConfiguration(composite, adminGuiConfiguration.getAccessRequest());
         }
 
+        if (adminGuiConfiguration.getImageUploadProcessing() != null) {
+            mergeImageUploadProcessingConfiguration(composite, adminGuiConfiguration.getImageUploadProcessing());
+        }
+
         if (adminGuiConfiguration.getHomePage() != null) {
             QName principalType = null;
             if (principal != null) {
@@ -639,6 +641,25 @@ public class GuiProfileCompiler {
 
         if (accessRequest.getCheckout() != null) {
             ar.setCheckout(accessRequest.getCheckout().cloneWithoutId());
+        }
+    }
+
+    private void mergeImageUploadProcessingConfiguration(CompiledGuiProfile composite, ImageUploadProcessingType imageUploadProcessing) {
+        if (composite.getImageUploadProcessing() == null) {
+            composite.setImageUploadProcessing(imageUploadProcessing.cloneWithoutId());
+        }
+
+        ImageUploadProcessingType iup = composite.getImageUploadProcessing();
+        if (imageUploadProcessing.getProcessing() != null) {
+            iup.setProcessing(imageUploadProcessing.getProcessing());
+        }
+
+        if (imageUploadProcessing.getFormat() != null) {
+            iup.setFormat(imageUploadProcessing.getFormat());
+        }
+
+        if (imageUploadProcessing.getStripExifData() != null) {
+            iup.setStripExifData(imageUploadProcessing.getStripExifData());
         }
     }
 
