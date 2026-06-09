@@ -212,7 +212,8 @@
 
         <commons.io.version>2.18.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
-        <cxf.version>4.0.7</cxf.version>
+        <commons.configuration.version>2.15.1</commons.configuration.version>
+        <cxf.version>4.0.11</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
@@ -242,6 +243,7 @@
         <postgresql.version>42.7.11</postgresql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+        <log4j2.version>2.26.0</log4j2.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
@@ -603,7 +605,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
-                <version>2.10.1</version>
+                <version>${commons.configuration.version}</version>
                 <exclusions>
                     <!-- replaced by org.slf4j:jcl-over-slf4j -->
                     <exclusion>
