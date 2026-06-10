@@ -27,8 +27,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
@@ -280,7 +282,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
             LOGGER.debug("*** Attempt to DECIDE {} (expected allow)", path);
 
             midPointGuiAuthorizationEvaluator.decide(
-                    authentication, createFilterInvocation(path), createAuthConfigAttributes());
+                    authentication, createFilterInvocation(path), createConfigAttributes("fullyAuthenticated"));
 
             display("DECIDE OK allowed access to " + path);
         } catch (AccessDeniedException e) {
@@ -294,7 +296,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
             LOGGER.debug("*** Attempt to DECIDE {} (expected deny)", path);
 
             midPointGuiAuthorizationEvaluator.decide(
-                    authentication, createFilterInvocation(path), createAuthConfigAttributes());
+                    authentication, createFilterInvocation(path), createConfigAttributes("fullyAuthenticated"));
 
             display("DECIDE WRONG failed to deny access to " + path);
             fail("Expected that access to " + path + " is denied, but it was allowed");
@@ -313,11 +315,9 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     }
 
     private FilterInvocation createFilterInvocation(String requestPath) {
-        return new FilterInvocation(requestPath, "http");
-    }
-
-    private Collection<ConfigAttribute> createAuthConfigAttributes() {
-        return createConfigAttributes("fullyAuthenticated");
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", requestPath);
+        request.setServletPath(requestPath);
+        return new FilterInvocation(request, new MockHttpServletResponse(), new MockFilterChain());
     }
 
     private void cleanupAutzTest()

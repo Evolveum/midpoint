@@ -31,13 +31,13 @@ import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 
 /**
@@ -95,9 +95,7 @@ public abstract class AbstractModuleFactory<
         HttpSecurity http =  moduleConfigurer.getNewHttpSecurity(sharedObjects);
         http.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
 
-
-
-        http.addFilterBefore(getObjectObjectPostProcessor().postProcess(new FinishAuthenticationFilter()), FilterSecurityInterceptor.class);
+        http.addFilterBefore(getObjectObjectPostProcessor().postProcess(new FinishAuthenticationFilter()), AuthorizationFilter.class);
 
         SecurityFilterChain filter = http.build();
         postProcessFilter(filter, moduleConfigurer);
