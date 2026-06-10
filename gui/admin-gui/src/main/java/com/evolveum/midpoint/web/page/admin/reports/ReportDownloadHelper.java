@@ -59,16 +59,17 @@ public class ReportDownloadHelper implements Serializable {
 
     public static String getReportFileName(ReportDataType currentReport) {
         String name = WebComponentUtil.getName(currentReport);
-        if (StringUtils.isNotEmpty(name)) {
-            // Sanitize to remove any path components for defense in depth
-            // (browsers also ignore path components, but better to be safe)
-            String sanitizedName = FilenameUtils.getName(name);
-            if (isZipReport(currentReport) && !hasZipExtension(sanitizedName)) {
-                return sanitizedName + "." + ZIP_EXTENSION;
-            }
-            return sanitizedName;
+        if (StringUtils.isEmpty(name)) {
+            name = "report"; // A fallback - this should not really occur
         }
-        return "report"; // A fallback - this should not really occur
+
+        // Sanitize to remove any path components for defense in depth
+        // (browsers also ignore path components, but better to be safe)
+        String sanitizedName = FilenameUtils.getName(name);
+        if (isZipReport(currentReport) && !hasZipExtension(sanitizedName)) {
+            return sanitizedName + "." + ZIP_EXTENSION;
+        }
+        return sanitizedName;
     }
 
     private static boolean isZipReport(ReportDataType report) {

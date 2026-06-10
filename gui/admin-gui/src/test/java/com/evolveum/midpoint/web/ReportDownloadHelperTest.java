@@ -20,6 +20,13 @@ import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * Tests download filename handling for report outputs.
+ *
+ * In particular, verifies that ZIP-backed tracing report files are downloaded
+ * with the {@code .zip} suffix while preserving existing names and filename
+ * sanitization behavior.
+ */
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -58,6 +65,13 @@ public class ReportDownloadHelperTest extends AbstractGuiIntegrationTest {
         ReportDataType report = report("trace-2026", null);
 
         assertEquals(ReportDownloadHelper.getReportFileName(report), "trace-2026");
+    }
+
+    @Test
+    public void emptyZipReportFileNameUsesFallbackWithZipExtension() {
+        ReportDataType report = report(null, "C:\\midpoint\\trace\\trace-2026.zip");
+
+        assertEquals(ReportDownloadHelper.getReportFileName(report), "report.zip");
     }
 
     private static ReportDataType report(String name, String filePath) {
