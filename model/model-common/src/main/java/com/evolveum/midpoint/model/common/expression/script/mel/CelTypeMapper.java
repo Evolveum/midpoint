@@ -45,6 +45,7 @@ import java.util.*;
 public class CelTypeMapper implements CelTypeProvider  {
 
     public static final CelType PROTECTED_STRING_CEL_TYPE = OpaqueType.create(ProtectedStringType.class.getName());
+    public static final CelType NIL_TYPE = NullableType.create(SimpleType.DYN);
 
     private static final Map<CelType, QName> CEL_TO_XSD_TYPE_MAP = new HashMap<>();
     private static final Map<QName, CelType> XSD_TO_CEL_TYPE_MAP = new HashMap<>();

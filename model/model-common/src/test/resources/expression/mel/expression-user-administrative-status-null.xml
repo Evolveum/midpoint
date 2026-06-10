@@ -8,7 +8,7 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
-        isNull(focus.?activation.?administrativeStatus)
+        isNil(focus.?activation.?administrativeStatus)
         //!has(focus.?activation.?administrativeStatus)
         //focus.?activation.?administrativeStatus == null
         //!focus.?activation.?administrativeStatus.hasValue()
