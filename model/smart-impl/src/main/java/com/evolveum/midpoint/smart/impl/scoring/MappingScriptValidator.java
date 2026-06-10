@@ -69,7 +69,6 @@ public class MappingScriptValidator {
             ExpressionType expression,
             String variableName,
             @Nullable Object testValue,
-            Class<?> testValueClass,
             Task task,
             OperationResult parentResult) throws ScriptValidationException {
 
@@ -82,7 +81,7 @@ public class MappingScriptValidator {
                 .build();
 
         try {
-            evaluateExpression(expression, variableName, testValue, testValueClass, task, result);
+            evaluateExpression(expression, variableName, testValue, task, result);
             LOGGER.debug("Mapping script validation successful");
         } catch (Exception e) {
             LOGGER.debug("Mapping script validation failed: {}", e.getMessage());
@@ -93,16 +92,15 @@ public class MappingScriptValidator {
     }
 
     /**
-     * Evaluates a mapping expression with the provided variable, value and its declared type.
+     * Evaluates a mapping expression with the provided variable and value.
      *
      * Preserving the original type of the variable is important when the expression invokes
      * methods specific to that type.
      */
-    public Collection<String> evaluateExpression(
+    public <T> Collection<String> evaluateExpression(
             ExpressionType expressionType,
             String variableName,
-            @Nullable Object value,
-            Class<?> valueClass,
+            @Nullable T value,
             Task task,
             OperationResult parentResult)
             throws ExpressionEvaluationException, SecurityViolationException, SchemaException,
@@ -110,9 +108,11 @@ public class MappingScriptValidator {
 
         final String description = "Mapping expression evaluation";
         final VariablesMap variables = new VariablesMap();
+        final Class<?> valueClass = value != null ? value.getClass() : Object.class;
         variables.put(variableName, value, valueClass);
         final ExpressionProfile profile = restrictedProfile();
 
+        // TODO: The result type should not be limited to String; change once non-String outputs are needed.
         return ExpressionUtil.evaluateStringExpression(
                 variables,
                 expressionType,

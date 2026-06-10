@@ -77,7 +77,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
         final ExpressionType expression = createExpression(GROOVY, "input.replaceAll('-', '')");
 
         final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
-                .evaluateExpression(expression, "input", "1-2-3", String.class,
+                .evaluateExpression(expression, "input", "1-2-3",
                         new NullTaskImpl(), createOperationResult());
 
         assertEquals(result.size(), 1);
@@ -90,7 +90,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
 
         final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
         Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
-                expression, "input", "1-2-3", String.class, new NullTaskImpl(), createOperationResult()));
+                expression, "input", "1-2-3", new NullTaskImpl(), createOperationResult()));
     }
 
     @Test
@@ -100,7 +100,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
         final ExpressionType expression = createExpression(MEL, "input.replace('-', '')");
 
         final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
-                .evaluateExpression(expression, "input", "1-2-3", String.class,
+                .evaluateExpression(expression, "input", "1-2-3",
                         new NullTaskImpl(), createOperationResult());
 
         assertEquals(result.size(), 1);
@@ -113,7 +113,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
 
         final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
         Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
-                expression, "input", "1-2-3", String.class, new NullTaskImpl(), createOperationResult()));
+                expression, "input", "1-2-3", new NullTaskImpl(), createOperationResult()));
     }
 
     /**
@@ -129,7 +129,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
                 XmlTypeConverter.createXMLGregorianCalendar(2024, 5, 17, 10, 30, 0);
 
         final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
-                .evaluateExpression(expression, "input", dateTime, XMLGregorianCalendar.class,
+                .evaluateExpression(expression, "input", dateTime,
                         new NullTaskImpl(), createOperationResult());
 
         assertEquals(result.size(), 1);
@@ -146,7 +146,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
 
         final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
         Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
-                expression, "input", "2024-05-17T10:30:00", String.class,
+                expression, "input", "2024-05-17T10:30:00",
                 new NullTaskImpl(), createOperationResult()));
     }
 

@@ -598,9 +598,8 @@ class MappingsSuggestionOperation {
                 var result = new OperationResult("validateCategoricalMappingScript");
                 String variableName = isInbound ? ExpressionConstants.VAR_INPUT : matchPair.getFocusProperty().getName();
                 String testValue = attrStats.get().getValueCount().get(0).getValue();
-                Class<?> testValueClass = testValue != null ? testValue.getClass() : String.class;
                 scriptValidator.testCategoricalMappingScript(
-                        expression, variableName, testValue, testValueClass, ctx.task, result);
+                        expression, variableName, testValue, ctx.task, result);
             } catch (ScriptValidationException e) {
                 LOGGER.warn("Categorical mapping script validation failed for {}: {}",
                         matchPair.getShadowAttributePath(), e.getMessage());

@@ -39,8 +39,8 @@ public class MappingsQualityAssessor {
     /**
      * Assesses mapping quality by comparing the source side to the target side.
      * Direction semantics:
-     * - Inbound (inboundMapping = true): source = shadow, target = focus (shadow -> focus)
-     * - Outbound (inboundMapping = false): source = focus, target = shadow (focus -> shadow)
+     * - Inbound: source = shadow, target = focus (shadow -> focus)
+     * - Outbound: source = focus, target = shadow (focus -> shadow)
      * The quality is computed as the fraction of sampled single-valued pairs where the (optionally transformed)
      * source equals the target. Multi-valued pairs are skipped.
      */
@@ -51,32 +51,27 @@ public class MappingsQualityAssessor {
             OperationResult parentResult) throws ExpressionEvaluationException, SecurityViolationException {
         int totalSamples = 0;
         int matchedSamples = 0;
-        boolean inboundMapping = testingSample.direction() == MappingDirection.INBOUND;
+        final MappingDirection direction = testingSample.direction();
 
         for (final ValuesPair<?, ?> valuePair : testingSample.pairs()) {
-            final Collection<?> shadowValues = valuePair.shadowValues();
-            final Collection<?> focusValues = valuePair.focusValues();
+            final Collection<?> sourceValues = valuePair.getSourceValues(direction);
+            final Collection<?> targetValues = valuePair.getTargetValues(direction);
 
-            // Skip if shadow or focus is multivalued
-            if (shadowValues == null || focusValues == null ||
-                    shadowValues.size() != 1 || focusValues.size() != 1) {
+            // Skip if source or target is not single-valued
+            if (sourceValues.size() != 1 || targetValues.size() != 1) {
                 continue;
             }
 
-            final Object rawShadow = shadowValues.iterator().next();
-            final Object rawFocus = focusValues.iterator().next();
-
-            final Object sourceValue = inboundMapping ? rawShadow : rawFocus;
-            final Object target = inboundMapping ? rawFocus : rawShadow;
-            final String variableName = inboundMapping
+            final Object sourceValue = sourceValues.iterator().next();
+            final Object target = targetValues.iterator().next();
+            final String variableName = direction == MappingDirection.INBOUND
                     ? ExpressionConstants.VAR_INPUT
                     : testingSample.focusPropertyPath().lastName().getLocalPart();
 
-            final String targetAsString = target == null ? null : target.toString();
-            final String transformedSource = suggestedExpression == null
-                    ? (sourceValue == null ? null : sourceValue.toString())
+            final Object transformedSource = suggestedExpression == null
+                    ? sourceValue
                     : applyExpression(suggestedExpression, sourceValue, variableName, task, parentResult);
-            if (Objects.equals(targetAsString, transformedSource)) {
+            if (Objects.equals(target, transformedSource)) {
                 matchedSamples++;
             }
 
@@ -91,13 +86,12 @@ public class MappingsQualityAssessor {
     }
 
     @Nullable
-    private String applyExpression(ExpressionType expressionType, @Nullable Object input, String variableName,
+    private <T> Object applyExpression(ExpressionType expressionType, @Nullable T input, String variableName,
             Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, SecurityViolationException {
         try {
-            final Class<?> inputClass = input == null ? String.class : input.getClass();
             final Collection<String> transformedInput = scriptValidator.evaluateExpression(
-                    expressionType, variableName, input, inputClass, task, parentResult);
+                    expressionType, variableName, input, task, parentResult);
 
             if (transformedInput == null || transformedInput.isEmpty()) {
                 return null;

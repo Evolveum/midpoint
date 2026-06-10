@@ -47,8 +47,7 @@ public abstract class MappingScriptTestBase extends AbstractUnitTest implements 
     protected String evaluateExpression(ExpressionType expression, String inputName, Object inputValue)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        final Class<?> inputClass = inputValue != null ? inputValue.getClass() : String.class;
-        return this.validator.evaluateExpression(expression, inputName, inputValue, inputClass,
+        return this.validator.evaluateExpression(expression, inputName, inputValue,
                 new NullTaskImpl(), createOperationResult()).iterator().next();
     }
 
