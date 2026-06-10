@@ -118,6 +118,11 @@ public abstract class SimulationResultObjectsPanel extends BasePanel<SimulationR
 
                 return oid;
             }
+
+            @Override
+            protected boolean isFilteredByErrors() {
+                return SimulationResultObjectsPanel.this.isFilteredByErrors();
+            }
         };
         form.add(table);
     }
@@ -167,6 +172,10 @@ public abstract class SimulationResultObjectsPanel extends BasePanel<SimulationR
         PageParameters pageParameters = getPageBase().getPageParameters();
         StringValue parameterMarkOid = pageParameters.get(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID);
         return parameterMarkOid != null && !parameterMarkOid.isEmpty() ? parameterMarkOid.toString() : null;
+    }
+
+    protected boolean isFilteredByErrors() {
+        return false;
     }
 
     protected abstract ObjectProcessingStateType getStateQueryParameter();

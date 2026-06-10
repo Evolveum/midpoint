@@ -397,7 +397,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForMapping(@NotNull Class<T> objectClass,
-            @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction)
+            @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction,
+            boolean failed)
             throws SchemaException {
         final T objectAfter = (T) objectBefore.clone();
 
@@ -410,6 +411,11 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             processingState = ObjectProcessingStateType.UNMODIFIED;
         }
 
+        String matchingMark = failed
+                ? SystemObjectsType.MARK_ITEM_VALUE_FAILED.value()
+                : determineItemValueChangesEventMarks(
+                        (PrismObject<T>) objectBefore.asPrismObject(), prismObjectAfter);
+
         var processedObject = new ProcessedObjectImpl<>(
                 simulationTransaction.getTransactionId(),
                 objectBefore.getOid(),
@@ -419,13 +425,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 objectAfter.getName(),
                 processingState,
                 ParsedMetricValues.fromEventMarks(
-                        List.of(determineItemValueChangesEventMarks(
-                                (PrismObject<T>) objectBefore.asPrismObject(),
-                                prismObjectAfter)),
+                        List.of(matchingMark),
                         List.of(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value(),
-                                SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value())),
+                                SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value(),
+                                SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())),
                 objectClass.isAssignableFrom(FocusType.class),
                 null,
                 objectBefore,
@@ -674,6 +679,9 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         assert result == null || result.isClosed();
         this.result = result;
         this.resultStatus = result != null ? result.getStatus() : null;
+        if (resultStatus != null && resultStatus.isError()) {
+            parsedMetricValues.addMatchingEventMark(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value());
+        }
         invalidateCachedBean();
     }
 
@@ -1295,6 +1303,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                         SimulationMetricReference.forExplicit(valueBean.getIdentifier()),
                         new MetricValue(valueBean.getValue(), BooleanUtils.toBooleanDefaultIfNull(valueBean.isSelected(), false)));
             }
+        }
+
+        void addMatchingEventMark(String oid) {
+            valueMap.put(
+                    SimulationMetricReference.forMark(oid),
+                    new MetricValue(BigDecimal.ONE, true));
         }
 
         @NotNull Collection<String> getMatchingEventMarks() {

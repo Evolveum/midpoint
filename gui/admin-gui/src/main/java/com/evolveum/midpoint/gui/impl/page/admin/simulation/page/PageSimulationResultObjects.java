@@ -57,6 +57,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     @Serial private static final long serialVersionUID = 1L;
 
     public static final String PAGE_QUERY_PARAMETER = "state";
+    public static final String PAGE_QUERY_PARAMETER_ERRORS_ONLY = "errorsOnly";
 
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_PANEL = "panel";
@@ -102,9 +103,18 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             protected ObjectProcessingStateType getStateQueryParameter() {
                 return PageSimulationResultObjects.this.getStateQueryParameter();
             }
+
+            @Override
+            protected boolean isFilteredByErrors() {
+                return PageSimulationResultObjects.this.isErrorsFilterActive();
+            }
         };
         panel.setOutputMarkupId(true);
         add(panel);
+    }
+
+    private boolean isErrorsFilterActive() {
+        return getPageParameters().get(PAGE_QUERY_PARAMETER_ERRORS_ONLY).toBoolean(false);
     }
 
     private @Nullable ObjectProcessingStateType getStateQueryParameter() {

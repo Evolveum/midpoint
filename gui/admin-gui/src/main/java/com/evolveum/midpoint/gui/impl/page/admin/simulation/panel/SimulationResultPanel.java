@@ -370,6 +370,14 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
             return;
         }
 
+        if (identifier == BuiltInSimulationMetricType.ERRORS) {
+            PageParameters params = new PageParameters();
+            params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, resultOid);
+            params.set(PageSimulationResultObjects.PAGE_QUERY_PARAMETER_ERRORS_ONLY, true);
+            getPageBase().navigateToNext(PageSimulationResultObjects.class, params);
+            return;
+        }
+
         ObjectProcessingStateType state = SimulationsGuiUtil.builtInMetricToProcessingState(identifier);
         redirectToProcessedObjects(resultOid, state, target);
     }

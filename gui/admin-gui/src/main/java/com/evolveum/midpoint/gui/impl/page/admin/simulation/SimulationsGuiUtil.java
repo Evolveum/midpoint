@@ -43,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -99,6 +100,37 @@ public class SimulationsGuiUtil {
         }));
 
         return label;
+    }
+
+    public static List<Badge> createEventMarkBadges(
+            @NotNull List<ObjectReferenceType> eventMarkRefs, @NotNull PageBase page) {
+        return eventMarkRefs.stream()
+                .map(ref -> createEventMarkBadge(ref, page))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private static @Nullable Badge createEventMarkBadge(
+            @NotNull ObjectReferenceType ref, @NotNull PageBase page) {
+        String oid = ref.getOid();
+        if (oid == null) {
+            return null;
+        }
+        if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())) {
+            return new Badge(MappingUtil.MappingStatus.FAILED.cssClass(), page.getString(MappingUtil.MappingStatus.FAILED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value())) {
+            return new Badge(MappingUtil.MappingStatus.ADDED.cssClass(), page.getString(MappingUtil.MappingStatus.ADDED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value())) {
+            return new Badge(MappingUtil.MappingStatus.REMOVED.cssClass(), page.getString(MappingUtil.MappingStatus.REMOVED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value())) {
+            return new Badge(MappingUtil.MappingStatus.MODIFIED.cssClass(), page.getString(MappingUtil.MappingStatus.MODIFIED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value())) {
+            return new Badge(MappingUtil.MappingStatus.NOT_CHANGED.cssClass(), page.getString(MappingUtil.MappingStatus.NOT_CHANGED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value())) {
+            return new Badge(MappingUtil.MappingStatus.CHANGE_NOT_APPLIED.cssClass(), page.getString(MappingUtil.MappingStatus.CHANGE_NOT_APPLIED.translationKey()));
+        }
+        String name = WebModelServiceUtils.resolveReferenceName(ref, page);
+        return new Badge(Badge.State.SECONDARY.getCss(), name);
     }
 
     public static String getObjectProcessingStateBadgeCss(ObjectProcessingStateType state) {

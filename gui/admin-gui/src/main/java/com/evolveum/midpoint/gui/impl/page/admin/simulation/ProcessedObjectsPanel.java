@@ -43,6 +43,7 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.ChoicesSearchItem
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
@@ -219,7 +220,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                     @Override
                     protected IModel<String> createIconCssModel() {
                         return () -> {
-                            OperationResultStatus status = model.getObject().getResultStatus();
+                            ProcessedObject<?> obj = model.getObject();
+                            if (obj == null) {
+                                return null;
+                            }
+                            OperationResultStatus status = obj.getResultStatus();
                             if (status == null) {
                                 return null;
                             }
@@ -231,7 +236,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                     @Override
                     protected IModel<String> createIconTitleModel() {
                         return () -> {
-                            OperationResultStatus status = model.getObject().getResultStatus();
+                            ProcessedObject<?> obj = model.getObject();
+                            if (obj == null) {
+                                return null;
+                            }
+                            OperationResultStatus status = obj.getResultStatus();
                             if (status == null) {
                                 return null;
                             }
@@ -252,7 +261,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
     private void showOperationResult(AjaxRequestTarget target, IModel<ProcessedObject<?>> model) {
         PageBase page = getPageBase();
 
-        IModel<OperationResult> result = () -> model.getObject().getResult();
+        IModel<OperationResult> result = () -> model.getObject() != null ? model.getObject().getResult() : null;
 
         page.showMainPopup(new OperationResultPopupPanel(page.getMainPopupBodyId(), result), target);
     }
@@ -408,6 +417,10 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         getPageBase().navigateToNext(PageSimulationResultObject.class, params);
     }
 
+    protected boolean isFilteredByErrors() {
+        return false;
+    }
+
     @Override
     protected ISelectableDataProvider<SelectableBean<SimulationResultProcessedObjectType>> createProvider() {
         return new ProcessedObjectsProvider(this, getSearchModel()) {
@@ -415,6 +428,23 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             @Override
             protected @NotNull String getSimulationResultOid() {
                 return ProcessedObjectsPanel.this.getSimulationResultOid();
+            }
+
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                String resultOid = getSimulationResultOid();
+                if (!isFilteredByErrors()) {
+                    return getPrismContext().queryFor(SimulationResultProcessedObjectType.class)
+                            .ownedBy(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT)
+                            .id(resultOid).build();
+                }
+                return getPrismContext().queryFor(SimulationResultProcessedObjectType.class)
+                        .ownedBy(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT)
+                        .id(resultOid)
+                        .and()
+                        .item(SimulationResultProcessedObjectType.F_EVENT_MARK_REF)
+                        .ref(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())
+                        .build();
             }
         };
     }

@@ -433,6 +433,12 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         PageParameters params = new PageParameters();
         params.add(SimulationPage.PAGE_PARAMETER_RESULT_OID, ref.getOid());
 
+        if (metricRef.getBuiltIn() == BuiltInSimulationMetricType.ERRORS) {
+            params.set(PageSimulationResultObjects.PAGE_QUERY_PARAMETER_ERRORS_ONLY, true);
+            getPageBase().navigateToNext(PageSimulationResultObjects.class, params);
+            return;
+        }
+
         ObjectProcessingStateType state = SimulationsGuiUtil.builtInMetricToProcessingState(metricRef.getBuiltIn());
         if (state != null) {
             params.set(PageSimulationResultObjects.PAGE_QUERY_PARAMETER, state.value());
