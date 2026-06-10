@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.component.button;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -112,7 +113,7 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
-                        startExportProcess();
+                        startExportProcess(target);
                         component.getPageBase().startDownloadTimerBehavior(target);
                     }
 
@@ -174,13 +175,18 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
         return model;
     }
 
-    private void startExportProcess() {
+    private void startExportProcess(AjaxRequestTarget target) {
         var pageBase = component.getPageBase();
         AsyncWebProcess<String> exportProcess = pageBase.getAsyncWebProcessManager()
                 .createProcess(getVerifiedFileNameWithExtension());
         var processId = exportProcess.getId();
         pageBase.getSessionStorage().addExportProcessId(processId);
         pageBase.getAsyncWebProcessManager().submit(processId, createFileLoader());
+        new Toast()
+                .info()
+                .title(pageBase.createStringResource("ExportDownloadInlineMenuItem.export.title").getString())
+                .body(pageBase.createStringResource("ExportDownloadInlineMenuItem.export.message").getString())
+                .show(target);
     }
 
     private Callable<File> createFileLoader() {
