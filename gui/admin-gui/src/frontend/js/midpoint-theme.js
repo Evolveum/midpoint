@@ -364,13 +364,21 @@ export default class MidPointTheme {
                     const tooltipId = 'tooltip-' + Math.random().toString(16).substr(2, 6);
                     $el.attr('data-tooltip-id', tooltipId);
 
-                    $el.tooltip({
+                    const tooltipOptions = {
                         html: true,
                         title: $el.attr('data-tooltip-content') || '',
                         whiteList: wl,
                         container: container,
                         trigger: 'manual'
-                    });
+                    };
+
+                    if ($el.closest('.search-popover').length !== 0) {
+                        tooltipOptions.placement = 'left';
+                        tooltipOptions.boundary = 'window';
+                        tooltipOptions.offset = '0, 2';
+                    }
+
+                    $el.tooltip(tooltipOptions);
 
                     // "tooltipShowDelayTimer" is used to prevent tooltip from showing when user quickly moves mouse
                     // over multiple icons with tooltips or quickly tabs through them. Tooltip will be shown only for
