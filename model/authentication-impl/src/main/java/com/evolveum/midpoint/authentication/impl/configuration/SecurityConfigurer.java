@@ -25,7 +25,7 @@ import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -56,7 +56,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
 
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 
@@ -69,7 +69,7 @@ import java.util.Map;
  *
  * @author skublik
  */
-@Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
+@Order(SecurityFilterProperties.BASIC_AUTH_ORDER - 1)
 @Configuration
 @EnableWebSecurity
 @DependsOn("initialSecurityConfiguration")
@@ -150,23 +150,23 @@ public class SecurityConfigurer {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> {
             // Web (SOAP) services
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/model/**"));
+            web.ignoring().requestMatchers(pathMatcher("/model/**"));
 
             // Special intra-cluster service to download and delete report outputs
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/report"));
+            web.ignoring().requestMatchers(pathMatcher("/report"));
 
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/js/**"));
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/css/**"));
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/img/**"));
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/fonts/**"));
+            web.ignoring().requestMatchers(pathMatcher("/js/**"));
+            web.ignoring().requestMatchers(pathMatcher("/css/**"));
+            web.ignoring().requestMatchers(pathMatcher("/img/**"));
+            web.ignoring().requestMatchers(pathMatcher("/fonts/**"));
 
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/static/**"));
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/static-web/**"));
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/less/**"));
+            web.ignoring().requestMatchers(pathMatcher("/static/**"));
+            web.ignoring().requestMatchers(pathMatcher("/static-web/**"));
+            web.ignoring().requestMatchers(pathMatcher("/less/**"));
 
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/wicket/resource/**"));
+            web.ignoring().requestMatchers(pathMatcher("/wicket/resource/**"));
 
-            web.ignoring().requestMatchers(new AntPathRequestMatcher("/favicon.ico"));
+            web.ignoring().requestMatchers(pathMatcher("/favicon.ico"));
         };
     }
 

@@ -20,7 +20,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -262,7 +263,7 @@ public class AuthSequenceUtil {
 
     public static boolean isPermitAll(HttpServletRequest request) {
         for (String url : DescriptorLoaderImpl.getPermitAllUrls()) {
-            AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
+            RequestMatcher matcher = pathMatcher(url);
             if (matcher.matches(request)) {
                 return true;
             }
@@ -274,7 +275,7 @@ public class AuthSequenceUtil {
 
     public static boolean isLoginPage(HttpServletRequest request) {
         for (String url : DescriptorLoaderImpl.getLoginPages()) {
-            AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
+            RequestMatcher matcher = pathMatcher(url);
             if (matcher.matches(request)) {
                 return true;
             }

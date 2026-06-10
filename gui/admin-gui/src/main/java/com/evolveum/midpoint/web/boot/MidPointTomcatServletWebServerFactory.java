@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2018-2022 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.web.boot;
 
 import java.io.File;
@@ -22,8 +22,8 @@ import org.apache.catalina.webresources.ExtractingRoot;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.coyote.ajp.AbstractAjpProtocol;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
+import org.springframework.boot.tomcat.TomcatWebServer;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 
@@ -108,13 +108,13 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
         tomcat.setBaseDir(baseDir.getAbsolutePath());
         Connector connector = new Connector(this.protocol) {
             @Override
-            public Response createResponse() {
+            public Response createResponse(org.apache.coyote.Response coyoteResponse) {
                 if (protocolHandler instanceof AbstractAjpProtocol<?>) {
                     int packetSize = ((AbstractAjpProtocol<?>) protocolHandler).getPacketSize();
-                    return new MidpointResponse(packetSize - org.apache.coyote.ajp.Constants.SEND_HEAD_LEN,
+                    return new MidpointResponse(coyoteResponse, packetSize - org.apache.coyote.ajp.Constants.SEND_HEAD_LEN,
                             contextPath, systemObjectCache);
                 } else {
-                    return new MidpointResponse(contextPath, systemObjectCache);
+                    return new MidpointResponse(coyoteResponse, contextPath, systemObjectCache);
                 }
             }
         };
@@ -135,7 +135,7 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
             engine.setJvmRoute(jvmRoute);
         }
         configureEngine(engine);
-        for (Connector additionalConnector : getAdditionalTomcatConnectors()) {
+        for (Connector additionalConnector : getAdditionalConnectors()) {
             tomcat.getService().addConnector(additionalConnector);
         }
         prepareContext(tomcat.getHost(), initializers);

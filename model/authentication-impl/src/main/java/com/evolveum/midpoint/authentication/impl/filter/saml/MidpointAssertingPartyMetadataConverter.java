@@ -65,13 +65,13 @@ public class MidpointAssertingPartyMetadataConverter {
                     "Metadata response is missing verification certificates, necessary for verifying SAML assertions");
         }
         RelyingPartyRegistration.Builder builder = RelyingPartyRegistration.withRegistrationId(descriptor.getEntityID())
-                .assertingPartyDetails((party) -> party.entityId(descriptor.getEntityID())
+                .assertingPartyMetadata((party) -> party.entityId(descriptor.getEntityID())
                         .wantAuthnRequestsSigned(Boolean.TRUE.equals(idpssoDescriptor.getWantAuthnRequestsSigned()))
                         .verificationX509Credentials((c) -> c.addAll(verification))
                         .encryptionX509Credentials((c) -> c.addAll(encryption)));
         List<SigningMethod> signingMethods = signingMethods(idpssoDescriptor);
         for (SigningMethod method : signingMethods) {
-            builder.assertingPartyDetails(
+            builder.assertingPartyMetadata(
                     (party) -> party.signingAlgorithms((algorithms) -> algorithms.add(method.getAlgorithm())));
         }
 
@@ -92,7 +92,7 @@ public class MidpointAssertingPartyMetadataConverter {
                 continue;
             }
             Saml2MessageBinding finalAuthBinding = authBinding;
-            builder.assertingPartyDetails(
+            builder.assertingPartyMetadata(
                     (party) -> party.singleLogoutServiceLocation(singleLogoutService.getLocation())
                             .singleLogoutServiceBinding(finalAuthBinding));
             break;
@@ -122,7 +122,7 @@ public class MidpointAssertingPartyMetadataConverter {
                 continue;
             }
             Saml2MessageBinding finalAuthBinding = authBinding;
-            builder.assertingPartyDetails(
+            builder.assertingPartyMetadata(
                     (party) -> party.singleSignOnServiceLocation(singleSignOnService.getLocation())
                             .singleSignOnServiceBinding(finalAuthBinding));
             break;

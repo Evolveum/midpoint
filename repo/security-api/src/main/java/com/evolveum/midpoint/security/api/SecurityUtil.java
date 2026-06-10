@@ -15,7 +15,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
@@ -47,14 +46,6 @@ public class SecurityUtil {
     public static final String PUBLIC_SESSION_ID_ATTR = "PUBLIC_SESSION_ID";
 
     @NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
-
-    public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
-        Collection<String> actions = new ArrayList<>(configAttributes.size());
-        for (ConfigAttribute attr : configAttributes) {
-            actions.add(attr.getAttribute());
-        }
-        return actions;
-    }
 
     public static void logSecurityDeny(Object object, String message) {
         if (LOGGER.isDebugEnabled()) {

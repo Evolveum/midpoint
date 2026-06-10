@@ -22,15 +22,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.embedded.TomcatWebServerFactoryCustomizer;
-import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryCustomizer;
+import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
-import org.springframework.boot.web.server.ErrorPage;
+import org.springframework.boot.tomcat.autoconfigure.TomcatServerProperties;
+import org.springframework.boot.tomcat.autoconfigure.TomcatWebServerFactoryCustomizer;
+import org.springframework.boot.web.error.ErrorPage;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.boot.web.servlet.server.Session;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.servlet.ServletWebServerFactoryCustomizer;
+import org.springframework.boot.web.server.servlet.Session;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -205,7 +207,7 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
     }
 
     @Component
-    @EnableConfigurationProperties(ServerProperties.class)
+    @EnableConfigurationProperties({ ServerProperties.class, TomcatServerProperties.class, WebProperties.class })
     public class ServerCustomization implements WebServerFactoryCustomizer<MidPointTomcatServletWebServerFactory> {
 
         @Value("${server.servlet.session.timeout}")
@@ -219,6 +221,12 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
         private ServerProperties serverProperties;
 
         @Autowired
+        private TomcatServerProperties tomcatServerProperties;
+
+        @Autowired
+        private WebProperties webProperties;
+
+        @Autowired
         private TaskManager taskManager;
 
         @Autowired
@@ -228,7 +236,8 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
         public void customize(MidPointTomcatServletWebServerFactory serverFactory) {
             ServletWebServerFactoryCustomizer webServletWebServerFactoryCustomizer = new ServletWebServerFactoryCustomizer(serverProperties);
             webServletWebServerFactoryCustomizer.customize(serverFactory);
-            TomcatWebServerFactoryCustomizer tomcatWebServerFactoryCustomizer = new TomcatWebServerFactoryCustomizer(env, serverProperties);
+            TomcatWebServerFactoryCustomizer tomcatWebServerFactoryCustomizer =
+                    new TomcatWebServerFactoryCustomizer(env, serverProperties, tomcatServerProperties, webProperties);
             tomcatWebServerFactoryCustomizer.customize(serverFactory);
 
             serverFactory.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED, "/error/401"));
@@ -239,11 +248,11 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
             // We should create new session object, but rather use existing (merged configuration
             // Session session = new Session();
-            Session session = serverFactory.getSession();
+            Session session = serverFactory.getSettings().getSession();
             session.setTimeout(sessionTimeout);
             serverFactory.setSession(session);
 
-            serverFactory.setTomcatContextCustomizers(
+            serverFactory.setContextCustomizers(
                     Collections.singleton(MidPointSpringApplication.this::setTomcatContext));
 
             // Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
