@@ -17,20 +17,19 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.security.api.*;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.aopalliance.intercept.MethodInvocation;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -52,7 +51,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
 
-public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager, AccessDecisionManager {
+public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointGuiAuthorizationEvaluator.class);
 
@@ -158,47 +157,37 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public boolean supports(ConfigAttribute attribute) {
-        return attribute instanceof SecurityConfig
-                // class name equals, because WebExpressionConfigAttribute is non public class
-                || "org.springframework.security.web.access.expression.WebExpressionConfigAttribute".equals(attribute.getClass().getName());
-    }
-
-    @Override
-    public boolean supports(Class<?> clazz) {
-        if (MethodInvocation.class.isAssignableFrom(clazz)) {
-            return true;
-        } else {
-            return FilterInvocation.class.isAssignableFrom(clazz);
-        }
-    }
-
-    @Override
     public @Nullable MidPointPrincipal getMidPointPrincipal() {
         return securityEnforcer.getMidPointPrincipal();
     }
 
-    // Spring security invokes this method
-    @Override
-    public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes)
+    public void decide(Authentication authentication, Object object, Collection<?> configAttributes)
             throws AccessDeniedException, InsufficientAuthenticationException {
 
         // Too lound, just for testing
 //        LOGGER.trace("decide input: authentication={}, object={}, configAttributes={}",
 //                authentication, object, configAttributes);
 
-        if (!(object instanceof FilterInvocation filterInvocation)) {
-            LOGGER.trace("DECIDE: PASS because object is not FilterInvocation, it is {}", object);
+        HttpServletRequest request;
+        HttpServletResponse response;
+        if (object instanceof FilterInvocation filterInvocation) {
+            request = filterInvocation.getRequest();
+            response = filterInvocation.getResponse();
+        } else if (object instanceof RequestAuthorizationContext context) {
+            request = context.getRequest();
+            response = null;
+        } else {
+            LOGGER.trace("DECIDE: PASS because object is not FilterInvocation or RequestAuthorizationContext, it is {}", object);
             return;
         }
 
-        if (isPermitAll(filterInvocation)) {
+        if (isPermitAll(request, response)) {
             LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW ALL (permitAll)",
                     authentication, object);
             return;
         }
 
-        String servletPath = filterInvocation.getRequest().getServletPath();
+        String servletPath = request.getServletPath();
         if ("".equals(servletPath) || "/".equals(servletPath)) {
             // Special case, this is in fact "magic" redirect to home page or login page. It handles autz in its own way.
             LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW ALL (/)",
@@ -209,21 +198,21 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         Set<String> requiredActions = new HashSet<>();
 
         for (EndPointsUrlMapping urlMapping : EndPointsUrlMapping.values()) {
-            addSecurityConfig(filterInvocation, requiredActions, urlMapping.getUrl(), urlMapping.getAction());
+            addSecurityConfig(request, requiredActions, urlMapping.getUrl(), urlMapping.getAction());
         }
 
         Map<String, AuthorizationActionValue[]> actions = DescriptorLoaderImpl.getActions();
         for (Map.Entry<String, AuthorizationActionValue[]> entry : actions.entrySet()) {
-            addSecurityConfig(filterInvocation, requiredActions, entry.getKey(), entry.getValue());
+            addSecurityConfig(request, requiredActions, entry.getKey(), entry.getValue());
         }
 
-        HandlerMethod restHandlerMethod = getRestHandlerMethod(filterInvocation.getRequest());
+        HandlerMethod restHandlerMethod = getRestHandlerMethod(request);
         if (restHandlerMethod != null) {
             addSecurityConfig(requiredActions, restHandlerMethod);
         }
 
         if (requiredActions.isEmpty()) {
-            LOGGER.trace("DECIDE: DENY because determined empty required actions from {}", filterInvocation);
+            LOGGER.trace("DECIDE: DENY because determined empty required actions from {}", object);
             SecurityUtil.logSecurityDeny(object, ": Not authorized (page without authorizations)", null, requiredActions);
             // Sparse exception method by purpose. We do not want to expose details to attacker.
             // Better message is logged.
@@ -303,14 +292,14 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         }
     }
 
-    private boolean isPermitAll(FilterInvocation filterInvocation) {
-        if (filterInvocation.getResponse() != null && filterInvocation.getResponse().isCommitted()
-                && new AntPathRequestMatcher(AUTH_URL).matches(filterInvocation.getRequest())) {
+    private boolean isPermitAll(HttpServletRequest request, HttpServletResponse response) {
+        if (response != null && response.isCommitted()
+                && pathMatcher(AUTH_URL).matches(request)) {
             return true;
         }
         for (String url : DescriptorLoaderImpl.getLoginPages()) {
-            AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
-            if (matcher.matches(filterInvocation.getRequest())) {
+            RequestMatcher matcher = pathMatcher(url);
+            if (matcher.matches(request)) {
                 if (AuthSequenceUtil.existLoginPageForActualAuthModule()) {
                     return AuthSequenceUtil.isLoginPageForActualAuthModule(url);
                 }
@@ -318,8 +307,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         }
 
         for (String url : DescriptorLoaderImpl.getPermitAllUrls()) {
-            AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
-            if (matcher.matches(filterInvocation.getRequest())) {
+            RequestMatcher matcher = pathMatcher(url);
+            if (matcher.matches(request)) {
                 return true;
             }
         }
@@ -327,10 +316,10 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     private void addSecurityConfig(
-            FilterInvocation filterInvocation, Set<String> requiredActions, String url, DisplayableValue<String>[] actions) {
+            HttpServletRequest request, Set<String> requiredActions, String url, DisplayableValue<String>[] actions) {
 
-        AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
-        if (!matcher.matches(filterInvocation.getRequest()) || actions == null) {
+        RequestMatcher matcher = pathMatcher(url);
+        if (!matcher.matches(request) || actions == null) {
             return;
         }
 

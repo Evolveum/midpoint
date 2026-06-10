@@ -32,7 +32,7 @@ public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         AbstractHttpConfigurer<SecurityContextConfigurer<H>, H> {
 
     @Override
-    public void configure(H http) throws Exception {
+    public void configure(H http) {
 
         Map<Class<?>, Object> sharedObjects = new HashMap<>();
 

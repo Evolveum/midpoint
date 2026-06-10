@@ -26,7 +26,7 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
@@ -64,7 +64,7 @@ public class HttpHeaderModuleWebSecurityConfigurer extends LoginFormModuleWebSec
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/error/401"));
 
         http.addFilterBefore(requestHeaderAuthenticationFilter(), LogoutFilter.class);
-        http.logout().logoutSuccessHandler(createLogoutHandler(getConfiguration().getDefaultSuccessLogoutURL()));
+        http.logout(configurer -> configurer.logoutSuccessHandler(createLogoutHandler(getConfiguration().getDefaultSuccessLogoutURL())));
     }
 
 

@@ -39,7 +39,7 @@ public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
     }
 
     @Override
-    public void init(B http) throws Exception {
+    public void init(B http) {
         OidcLoginAuthenticationFilter authenticationFilter = new OidcLoginAuthenticationFilter(
                 clientRegistrations, getRemoteModuleLoginProcessingUrl(), getAuditProvider());
         this.setAuthenticationFilter(authenticationFilter);
@@ -50,7 +50,7 @@ public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
     }
 
     @Override
-    public void configure(B http) throws Exception {
+    public void configure(B http) {
         OidcAuthorizationRequestRedirectFilter authorizationRequestFilter = new OidcAuthorizationRequestRedirectFilter(
                 clientRegistrations,
                 getAuthorizationRequestBaseUri(),

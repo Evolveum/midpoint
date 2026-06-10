@@ -50,8 +50,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -5405,10 +5403,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return new FilterInvocation("/midpoint", "whateverServlet", "doSomething");
     }
 
-    protected Collection<ConfigAttribute> createConfigAttributes(String action) {
-        Collection<ConfigAttribute> attrs = new ArrayList<>();
-        attrs.add(new SecurityConfig(action));
-        return attrs;
+    protected Collection<?> createConfigAttributes(String action) {
+        return singleton(action);
     }
 
     protected <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {

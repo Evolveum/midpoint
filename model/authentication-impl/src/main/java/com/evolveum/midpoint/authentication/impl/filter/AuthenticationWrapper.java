@@ -36,7 +36,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 import java.util.HashMap;
 import java.util.List;
@@ -185,7 +186,7 @@ class AuthenticationWrapper {
         }
         List<String> ignoredPaths = authenticationsPolicy.getIgnoredLocalPath();
         for (String ignoredPath : ignoredPaths) {
-            AntPathRequestMatcher matcher = new AntPathRequestMatcher(ignoredPath);
+            RequestMatcher matcher = pathMatcher(ignoredPath);
             if (matcher.matches(httpRequest)) {
                 return true;
             }
