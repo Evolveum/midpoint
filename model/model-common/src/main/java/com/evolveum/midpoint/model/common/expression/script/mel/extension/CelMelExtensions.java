@@ -491,6 +491,19 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             FUNC_IS_EMPTY_NAME+"_string", Object.class,
                             CelMelExtensions::isEmpty)),
 
+            // isNil(any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "isNil",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "isNil_any",
+                                    "Returns true if argument is null/nil (includes processing of optionals).",
+                                    SimpleType.BOOL,
+                                    SimpleType.ANY)),
+                    CelFunctionBinding.from(
+                            "isNil_any", Object.class,
+                            CelMelExtensions::isNull)),
+
             // isNull(any)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -504,7 +517,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "isNull_any", Object.class,
                             CelMelExtensions::isNull)),
 
-            // isPresent(any)
+                // isPresent(any)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "isPresent",
@@ -679,16 +692,16 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             this::norm)
             ),
 
-            // null()
+            // nil()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "nil",
                             CelOverloadDecl.newGlobalOverload(
-                                    "mel-null",
-                                    "Returns null.",
-                                    NullableType.create(SimpleType.DYN))),
-                    CelFunctionBinding.from("mel-null", ImmutableList.of(),
-                            this::nullProducer)
+                                    "mel-nil",
+                                    "Returns nil.",
+                                    CelTypeMapper.NIL_TYPE)),
+                    CelFunctionBinding.from("mel-nil", ImmutableList.of(),
+                            this::nilProducer)
             ),
 
             // qname(local)
@@ -1186,7 +1199,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         );
     }
 
-    private Object nullProducer(Object[] objects) {
+    private Object nilProducer(Object[] objects) {
         return NullValue.NULL_VALUE;
     }
 

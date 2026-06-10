@@ -2112,7 +2112,7 @@ public class TestMelExpressions extends AbstractScriptTest {
     @Test
     public void testConditionalNullStringFoobar() throws Exception {
         evaluateAndAssertStringScalarExpression(
-                "expression-conditional-null-string.xml",
+                "expression-conditional-nil-string.xml",
                 createVariables(
                         "input", "foobar", PrimitiveType.STRING
                 ),
@@ -2122,7 +2122,7 @@ public class TestMelExpressions extends AbstractScriptTest {
     @Test
     public void testConditionalNullStringNull() throws Exception {
         evaluateAndAssertStringScalarExpression(
-                "expression-conditional-null-string.xml",
+                "expression-conditional-nil-string.xml",
                 createVariables(
                         "input", null, PrimitiveType.STRING
                 ),
@@ -2133,7 +2133,7 @@ public class TestMelExpressions extends AbstractScriptTest {
     @Test
     public void testConditionalStringNullFoobar() throws Exception {
         evaluateAndAssertStringScalarExpression(
-                "expression-conditional-string-null.xml",
+                "expression-conditional-string-nil.xml",
                 createVariables(
                         "input", "foobar", PrimitiveType.STRING
                 ),

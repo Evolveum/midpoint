@@ -67,6 +67,11 @@ E.g. in RELATIVE mode, a resource object may be legal even if it is not assigned
 See xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment]
 
 
+| `legal`
+| boolean
+| Same as `input`: set to `true` if the object is legal, based on assignment evaluation and enforcement mode.
+This variable is kept for compatibility with existing mappings.
+
 | `assigned`
 | boolean
 | True if there is a valid assignment for this object.
