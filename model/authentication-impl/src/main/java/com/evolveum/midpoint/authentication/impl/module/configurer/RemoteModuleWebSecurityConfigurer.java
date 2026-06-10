@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -41,7 +41,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
@@ -83,7 +83,8 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
         super.configure(http);
 
         http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        http.csrf().requireCsrfProtectionMatcher(new UseCsrfFilterOnlyForAuthenticatedRequest());
+        http.csrf(configurer ->
+                configurer.requireCsrfProtectionMatcher(new UseCsrfFilterOnlyForAuthenticatedRequest()));
 
         MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
             @Override
@@ -99,11 +100,11 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
         getOrApply(http, exceptionConfigurer)
                 .authenticationEntryPoint(new RemoteAuthenticationEntryPoint(getAuthEntryPointUrl()));
 
-        http.logout().clearAuthentication(true)
-                .logoutRequestMatcher(new AntPathRequestMatcher(getPrefix() + "/logout"))
+        http.logout(configurer -> configurer.clearAuthentication(true)
+                .logoutRequestMatcher(pathMatcher(getPrefix() + "/logout"))
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(getLogoutRequestSuccessHandler());
+                .logoutSuccessHandler(getLogoutRequestSuccessHandler()));
     }
 
     protected abstract String getAuthEntryPointUrl();

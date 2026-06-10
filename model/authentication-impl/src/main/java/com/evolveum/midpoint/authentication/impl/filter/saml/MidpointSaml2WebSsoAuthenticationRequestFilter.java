@@ -19,28 +19,28 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest;
 import org.springframework.security.saml2.provider.service.web.Saml2WebSsoAuthenticationRequestFilter;
-import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml4AuthenticationRequestResolver;
+import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml5AuthenticationRequestResolver;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.io.IOException;
 
 public class MidpointSaml2WebSsoAuthenticationRequestFilter extends Saml2WebSsoAuthenticationRequestFilter {
 
-    private final OpenSaml4AuthenticationRequestResolver authenticationRequestResolver;
+    private final OpenSaml5AuthenticationRequestResolver authenticationRequestResolver;
 
     private final SecurityContextRepository securityContextRepository;
 
     public MidpointSaml2WebSsoAuthenticationRequestFilter(
-            OpenSaml4AuthenticationRequestResolver authenticationRequestContextResolver,
+            OpenSaml5AuthenticationRequestResolver authenticationRequestContextResolver,
             SecurityContextRepository securityContextRepository) {
         super(authenticationRequestContextResolver);
         this.authenticationRequestResolver = authenticationRequestContextResolver;
         this.securityContextRepository = securityContextRepository;
     }
 
-    public OpenSaml4AuthenticationRequestResolver getAuthenticationRequestResolver() {
+    public OpenSaml5AuthenticationRequestResolver getAuthenticationRequestResolver() {
         return authenticationRequestResolver;
     }
 

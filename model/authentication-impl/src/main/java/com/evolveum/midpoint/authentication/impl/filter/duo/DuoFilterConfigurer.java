@@ -20,7 +20,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 
@@ -38,7 +38,7 @@ public final class DuoFilterConfigurer<B extends HttpSecurityBuilder<B>>
     }
 
     @Override
-    public void init(B http) throws Exception {
+    public void init(B http) {
         DuoAuthenticationFilter authenticationFilter = new DuoAuthenticationFilter(getRemoteModuleLoginProcessingUrl(), getAuditProvider());
         this.setAuthenticationFilter(authenticationFilter);
 
@@ -48,7 +48,7 @@ public final class DuoFilterConfigurer<B extends HttpSecurityBuilder<B>>
     }
 
     @Override
-    public void configure(B http) throws Exception {
+    public void configure(B http) {
 
         DuoAuthorizationRequestRedirectFilter authorizationRequestFilter = new DuoAuthorizationRequestRedirectFilter(
                 this.duoClient,

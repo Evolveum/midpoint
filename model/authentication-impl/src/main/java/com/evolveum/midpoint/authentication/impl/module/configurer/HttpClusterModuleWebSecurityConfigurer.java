@@ -21,7 +21,7 @@ import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -69,11 +69,12 @@ public class HttpClusterModuleWebSecurityConfigurer extends ModuleWebSecurityCon
         if (rememberMeServices != null) {
             filter.setRememberMeServices(rememberMeServices);
         }
-        http.authorizeRequests().accessDecisionManager(new MidpointAllowAllAuthorizationEvaluator(
-                securityEnforcer, securityContextManager, taskManager, applicationContext));
+        http.authorizeHttpRequests(registry -> registry.anyRequest().access(authorizationManager(
+                new MidpointAllowAllAuthorizationEvaluator(
+                        securityEnforcer, securityContextManager, taskManager, applicationContext))));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
-        http.formLogin().disable()
-                .csrf().disable();
+        http.formLogin(configurer -> configurer.disable())
+                .csrf(configurer -> configurer.disable());
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());

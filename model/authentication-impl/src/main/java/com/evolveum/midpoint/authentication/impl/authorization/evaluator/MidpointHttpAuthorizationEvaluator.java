@@ -19,7 +19,6 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 
@@ -63,7 +62,8 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
     }
 
     @Override
-    public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
+    public void decide(Authentication authentication, Object object, Collection<?> configAttributes)
+            throws AccessDeniedException, InsufficientAuthenticationException {
         try {
             super.decide(authentication, object, configAttributes);
         } catch (AccessDeniedException | InsufficientAuthenticationException e) {
