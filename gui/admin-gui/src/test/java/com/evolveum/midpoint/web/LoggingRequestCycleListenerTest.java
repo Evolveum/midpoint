@@ -17,8 +17,16 @@ import org.apache.wicket.util.tester.WicketTester;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+/**
+ * Tests exception handling behavior in {@link LoggingRequestCycleListener}.
+ */
 public class LoggingRequestCycleListenerTest {
 
+    /**
+     * MID-9998: Verifies that Wicket stale page recovery, e.g. after browser
+     * view-source, is handled by re-rendering the stale page instead of being
+     * converted to the error page / HTTP 500.
+     */
     @Test
     public void testStalePageExceptionIsRecoveredInsteadOfConvertedToPageError() {
         WicketTester tester = new WicketTester();
