@@ -136,7 +136,11 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
         // Lockout
-        if (isLockedOut(getAuthenticationData(principal, connEnv), credentialsPolicy)) {
+        AuthenticationAttemptDataType authData = getAuthenticationData(principal, connEnv);
+        boolean lockedOut = isLockedOut(authData, credentialsPolicy);
+        LOGGER.debug("Lockout check for user '{}': lockedOut={}, failedAttempts={}",
+                principal.getUsername(), lockedOut, authData != null ? authData.getFailedAttempts() :  null);
+        if (lockedOut) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth instanceof MidpointAuthentication) {
                 ((MidpointAuthentication) auth).setOverLockoutMaxAttempts(true);

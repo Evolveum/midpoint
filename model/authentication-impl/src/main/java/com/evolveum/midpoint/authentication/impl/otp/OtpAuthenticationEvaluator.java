@@ -113,6 +113,7 @@ public class OtpAuthenticationEvaluator
                 }
 
                 if (service.verifyCode(clearValue, code)) {
+                    LOGGER.debug("OTP code verified successfully for user '{}'", principal.getUsername());
                     return true;
                 }
             } catch (EncryptionException | SchemaException ex) {
@@ -122,6 +123,7 @@ public class OtpAuthenticationEvaluator
             }
         }
 
+        LOGGER.debug("OTP code verification failed for user '{}'", principal.getUsername());
         return false;
     }
 
