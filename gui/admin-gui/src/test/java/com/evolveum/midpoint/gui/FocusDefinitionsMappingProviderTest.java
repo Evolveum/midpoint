@@ -12,11 +12,13 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.web.AbstractGuiUnitTest;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -29,12 +31,12 @@ public class FocusDefinitionsMappingProviderTest extends AbstractGuiUnitTest {
      */
     @Test
     public void testCollectAvailableDefinitionsMatchesSubstringIgnoreCase() {
-        FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(null);
+        FocusDefinitionsMappingProvider provider = new TestFocusDefinitionsMappingProvider();
 
-        List<String> lowerCaseMatches = provider.collectAvailableDefinitions("name", getUserObjectDefinition());
+        List<String> lowerCaseMatches = provider.collectAvailableDefinitions("name", getResourceObjectType());
         assertNameMatches(lowerCaseMatches);
 
-        List<String> mixedCaseMatches = provider.collectAvailableDefinitions("Name", getUserObjectDefinition());
+        List<String> mixedCaseMatches = provider.collectAvailableDefinitions("Name", getResourceObjectType());
         assertNameMatches(mixedCaseMatches);
     }
 
@@ -43,9 +45,9 @@ public class FocusDefinitionsMappingProviderTest extends AbstractGuiUnitTest {
      */
     @Test
     public void testCollectAvailableDefinitionsDoesNotReturnNameFieldsForUnrelatedInput() {
-        FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(null);
+        FocusDefinitionsMappingProvider provider = new TestFocusDefinitionsMappingProvider();
 
-        List<String> matches = provider.collectAvailableDefinitions("unrelatedInput", getUserObjectDefinition());
+        List<String> matches = provider.collectAvailableDefinitions("unrelatedInput", getResourceObjectType());
 
         assertFalse(matches.contains(UserType.F_NAME.getLocalPart()));
         assertFalse(matches.contains(UserType.F_FAMILY_NAME.getLocalPart()));
@@ -58,10 +60,26 @@ public class FocusDefinitionsMappingProviderTest extends AbstractGuiUnitTest {
         assertTrue(matches.contains(UserType.F_GIVEN_NAME.getLocalPart()));
     }
 
+    private ResourceObjectTypeDefinitionType getResourceObjectType() {
+        return new ResourceObjectTypeDefinitionType();
+    }
+
     private PrismContainerDefinition<UserType> getUserObjectDefinition() {
         return getPrismContext()
                 .getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(UserType.class);
     }
 
+    private class TestFocusDefinitionsMappingProvider extends FocusDefinitionsMappingProvider {
+
+        private TestFocusDefinitionsMappingProvider() {
+            super(null);
+        }
+
+        @Override
+        protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(
+                ResourceObjectTypeDefinitionType resourceObjectType) {
+            return getUserObjectDefinition();
+        }
+    }
 }

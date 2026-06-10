@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.model.IModel;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
@@ -142,7 +143,7 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
 
         for (ItemDefinition<?> def : definitions) {
             if (StringUtils.isNotBlank(input)
-                    && !def.getItemName().getLocalPart().toLowerCase().contains(input.toLowerCase())) {
+                    && !Strings.CI.contains(def.getItemName().getLocalPart(), input)) {
                 continue;
             }
 
