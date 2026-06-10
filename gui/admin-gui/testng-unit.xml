@@ -13,6 +13,7 @@
             <class name="com.evolveum.midpoint.web.TestPageMounter"/>
             <class name="com.evolveum.midpoint.web.TestXmlGregorianCalendarModel"/>
             <class name="com.evolveum.midpoint.gui.SelectableBeanDataProviderCountCacheTest"/>
+            <class name="com.evolveum.midpoint.gui.FocusDefinitionsMappingProviderTest"/>
         </classes>
     </test>
 </suite>
