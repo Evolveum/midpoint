@@ -137,17 +137,23 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
 
         final OperationResult evaluationResult = result.createSubresult("Evaluation of inbound mappings on shadow "
                 + shadow);
-        final ObjectDelta<FocusType> objectDelta;
+        ObjectDelta<FocusType> objectDelta = null;
         try {
-            final Collection<ItemDelta<?, ?>> deltas = evaluateMappings(shadow, targetFocus, evaluationResult, task);
-            if (!deltas.isEmpty()) {
-                objectDelta = (ObjectDelta<FocusType>) targetFocus.asPrismObject().createModifyDelta();
-                objectDelta.addModifications(deltas);
-            } else {
-                objectDelta = null;
+            try {
+                final Collection<ItemDelta<?, ?>> deltas = evaluateMappings(shadow, targetFocus, evaluationResult, task);
+                if (!deltas.isEmpty()) {
+                    objectDelta = (ObjectDelta<FocusType>) targetFocus.asPrismObject().createModifyDelta();
+                    objectDelta.addModifications(deltas);
+                }
+            } finally {
+                evaluationResult.close();
             }
-        } finally {
-            evaluationResult.close();
+        } catch (CommonException e) {
+            final SimulationTransaction failSimulationTransaction = Objects.requireNonNull(getSimulationTransaction(),
+                    "Required simulation transaction does not exist.");
+            failSimulationTransaction.writeSimulationData(
+                    new MappingSimulationData(targetFocus, null, evaluationResult), task, result);
+            throw e;
         }
 
         final SimulationTransaction simulationTransaction = Objects.requireNonNull(getSimulationTransaction(),

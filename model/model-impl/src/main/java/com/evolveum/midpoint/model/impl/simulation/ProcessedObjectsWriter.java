@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.CorrelationSimulationData;
 import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.SimulationData;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.CheckedProducer;
@@ -188,9 +189,10 @@ class ProcessedObjectsWriter {
         try {
             LOGGER.trace("Storing data in {} into {}", mappingData, simulationTransaction);
 
+            boolean failed = isMappingFailed(mappingData.getMappingEvaluationResult());
             final ProcessedObjectImpl<FocusType> processedFocus =
                     ProcessedObjectImpl.createForMapping(FocusType.class, mappingData.getFocusBefore(),
-                            mappingData.getSimulationDelta().orElse(null), simulationTransaction);
+                            mappingData.getSimulationDelta().orElse(null), simulationTransaction, failed);
 
             processedFocus.setResultAndStatus(mappingData.getMappingEvaluationResult());
             processedFocus.setProjectionRecords(1);
@@ -199,6 +201,14 @@ class ProcessedObjectsWriter {
             // TODO which exception to treat?
             throw SystemException.unexpected(e, "when storing processed object information");
         }
+    }
+
+    private static boolean isMappingFailed(@Nullable OperationResult mappingResult) {
+        if (mappingResult == null) {
+            return false;
+        }
+        OperationResultStatus status = mappingResult.getStatus();
+        return status == OperationResultStatus.FATAL_ERROR || status == OperationResultStatus.PARTIAL_ERROR;
     }
 
     private void storeProcessedObjects(

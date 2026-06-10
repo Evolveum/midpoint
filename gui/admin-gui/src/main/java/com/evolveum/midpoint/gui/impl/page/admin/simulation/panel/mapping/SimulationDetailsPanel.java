@@ -106,27 +106,26 @@ public class SimulationDetailsPanel extends BasePanel<OperationResult> {
         return "fa fa-exclamation-triangle text-danger";
     }
 
+    private static final int MAX_INLINE_MESSAGE_LENGTH = 120;
+
     private String resolveMessage(@NotNull OperationResult result) {
+        String message = null;
+
         if (result.getUserFriendlyMessage() != null) {
-            LocalizableMessage userFriendlyMessage = result.getUserFriendlyMessage();
-            return LocalizationUtil.translateMessage(userFriendlyMessage);
+            message = LocalizationUtil.translateMessage(result.getUserFriendlyMessage());
+        } else if (result.getMessage() != null) {
+            message = result.getMessage();
+        } else if (result.getStatus() == OperationResultStatus.NOT_APPLICABLE) {
+            return createStringResource("SimulationDetailsPanel.message.notApplicable").getString();
+        } else if (result.getStatus() == OperationResultStatus.WARNING) {
+            return createStringResource("SimulationDetailsPanel.message.warning").getString();
+        } else {
+            return createStringResource("SimulationDetailsPanel.message.error").getString();
         }
 
-        if (result.getMessage() != null) {
-            return result.getMessage();
+        if (message != null && message.length() > MAX_INLINE_MESSAGE_LENGTH) {
+            message = message.substring(0, MAX_INLINE_MESSAGE_LENGTH) + "…";
         }
-
-        if (result.getStatus() == OperationResultStatus.NOT_APPLICABLE) {
-            return createStringResource(
-                    "SimulationDetailsPanel.message.notApplicable").getString();
-        }
-
-        if (result.getStatus() == OperationResultStatus.WARNING) {
-            return createStringResource(
-                    "SimulationDetailsPanel.message.warning").getString();
-        }
-
-        return createStringResource(
-                "SimulationDetailsPanel.message.error").getString();
+        return message;
     }
 }

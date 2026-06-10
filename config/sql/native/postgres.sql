@@ -2517,6 +2517,7 @@ CREATE TABLE m_simulation_result_processed_object (
     objectAfter BYTEA,
     transactionId TEXT,
     focusRecordId BIGINT,
+    resultStatus OperationResultStatusType,
 
    PRIMARY KEY (ownerOid, cid)
 ) PARTITION BY LIST(ownerOid);

@@ -11,6 +11,7 @@ import java.util.UUID;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 public class MProcessedObject extends MContainer {
 
@@ -20,6 +21,7 @@ public class MProcessedObject extends MContainer {
     public String nameNorm;
 
     public ObjectProcessingStateType state;
+    public OperationResultStatusType resultStatus;
     public String[] metricIdentifiers;
 
     public byte[] fullObject;

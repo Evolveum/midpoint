@@ -224,6 +224,7 @@ CREATE TABLE m_simulation_result_processed_object (
     objectAfter BYTEA,
     transactionId TEXT,
     focusRecordId BIGINT,
+    resultStatus OperationResultStatusType,
 
     PRIMARY KEY (ownerOid, cid)
 ) PARTITION BY LIST(ownerOid);
@@ -1166,6 +1167,10 @@ CREATE INDEX m_connector_typeVersion_key
 CREATE INDEX m_connector_typeVersionHost_key
     ON m_connector (connectorType, connectorVersion, connectorHostRefTargetOid)
     WHERE connectorHostRefTargetOid IS NOT NULL;
+$aa$);
+
+call apply_change(58, $aa$
+ALTER TABLE m_simulation_result_processed_object ADD COLUMN IF NOT EXISTS resultStatus OperationResultStatusType;
 $aa$);
 
 ---

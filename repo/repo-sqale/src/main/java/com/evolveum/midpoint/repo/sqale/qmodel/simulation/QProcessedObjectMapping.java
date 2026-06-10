@@ -77,6 +77,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         addItemMapping(F_STATE, enumMapper(q -> q.state));
         addRefMapping(F_EVENT_MARK_REF, QProcessedObjectEventMarkReferenceMapping.init(repositoryContext));
         addItemMapping(F_FOCUS_RECORD_ID, longMapper(q -> q.focusRecordId));
+        addItemMapping(F_RESULT_STATUS, enumMapper(q -> q.resultStatus));
     }
 
     /*
@@ -134,6 +135,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         row.fullObject = createFullObject(object);
         row.transactionId = object.getTransactionId();
         row.focusRecordId = object.getFocusRecordId();
+        row.resultStatus = object.getResultStatus();
         // Before / After not serialized
         insert(row, jdbcSession);
         // We store event marks

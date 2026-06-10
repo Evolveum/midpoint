@@ -51,6 +51,9 @@ public class QProcessedObject extends QContainer<MProcessedObject, MSimulationRe
     public static final ColumnMetadata TRANSACTION_ID =
             ColumnMetadata.named("transactionId").ofType(Types.VARCHAR);
 
+    public static final ColumnMetadata RESULT_STATUS =
+            ColumnMetadata.named("resultStatus").ofType(Types.OTHER);
+
     public final UuidPath oid = createUuid("oid", OID);
     public final EnumPath<MObjectType> objectType = createEnum("objectType", MObjectType.class, OBJECT_TYPE);
     public final StringPath nameOrig = createString("nameOrig", NAME_ORIG);
@@ -68,6 +71,9 @@ public class QProcessedObject extends QContainer<MProcessedObject, MSimulationRe
 
 
     public final StringPath transactionId = createString("transactionId", TRANSACTION_ID);
+
+    public final EnumPath<OperationResultStatusType> resultStatus =
+            createEnum("resultStatus", OperationResultStatusType.class, RESULT_STATUS);
 
     public QProcessedObject(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
