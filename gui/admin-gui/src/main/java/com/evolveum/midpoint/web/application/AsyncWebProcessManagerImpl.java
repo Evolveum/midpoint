@@ -72,11 +72,8 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
     }
 
     @Override
-    public <T> AsyncWebProcess<T> createProcess(@Nullable String processId, T data) {
-        if (processId == null) {
-            processId = UUID.randomUUID().toString();
-        }
-        Key key = createProcessIdentifier(processId);
+    public <T> AsyncWebProcess<T> createProcess(T data) {
+        Key key = createProcessIdentifier(UUID.randomUUID().toString());
 
         AsyncWebProcess<T> process = new AsyncWebProcess<>(key.processId, application);
         process.setData(data);

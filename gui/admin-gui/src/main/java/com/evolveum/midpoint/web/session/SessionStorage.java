@@ -72,6 +72,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private final Map<String, BrowserTabSessionStorage> storageByWindowId = new HashMap<>();
     private SuggestionsStorage suggestions;
     private ResourceWizardStorage resourceWizardStorage;
+    private Set<String> exportProcessIdSet = new HashSet<>();
 
     public enum Mode {
 
@@ -128,6 +129,18 @@ public class SessionStorage implements Serializable, DebugDumpable {
             resourceWizardStorage = new ResourceWizardStorage();
         }
         return resourceWizardStorage;
+    }
+
+    public Set<String> getExportProcessIdSet() {
+        return exportProcessIdSet;
+    }
+
+    public void addExportProcessId(String processId) {
+        exportProcessIdSet.add(processId);
+    }
+
+    public void removeExportProcessId(String id) {
+        exportProcessIdSet.remove(id);
     }
 
     @Override

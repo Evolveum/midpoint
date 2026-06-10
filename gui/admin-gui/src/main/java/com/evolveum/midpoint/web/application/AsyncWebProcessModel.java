@@ -56,7 +56,7 @@ public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
 
     private AsyncWebProcess<T> createProcess(T data) {
         AsyncWebProcessManager manager = MidPointApplication.get().getAsyncWebProcessManager();
-        return manager.createProcess(null, data);
+        return manager.createProcess(data);
     }
 
     private AsyncWebProcess<T> loadProcess() {
