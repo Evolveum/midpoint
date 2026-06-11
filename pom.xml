@@ -101,7 +101,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.14</version>
+        <version>3.5.15</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
         -->
@@ -210,7 +210,7 @@
         -->
         <oracle-database.version>21.9.0.0</oracle-database.version>
 
-        <commons.io.version>2.18.0</commons.io.version>
+        <commons.io.version>2.22.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
         <commons.configuration.version>2.15.1</commons.configuration.version>
         <cxf.version>4.0.11</cxf.version>
@@ -238,9 +238,6 @@
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
-        <tomcat.version>10.1.55</tomcat.version>
-        <netty.version>4.1.133.Final</netty.version>
-        <postgresql.version>42.7.11</postgresql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.0</log4j2.version>
