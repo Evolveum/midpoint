@@ -18,7 +18,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoicePopup;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoiceWithThreadSelectionPopup;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
@@ -81,16 +81,12 @@ public class SimulationActionFlow<T> implements Serializable {
     }
 
     /**
-     * Entry point: show popup (or run directly if config disabled).
+     * Entry point: show popup or run directly for proposed configuration.
      */
     public void start(AjaxRequestTarget target) {
-        ResourceObjectTypeDefinitionType def = context.definition();
         PredefinedConfigurationType defaultCfg = PredefinedConfigurationType.DEVELOPMENT;
 
-        String lifecycleState = def.getLifecycleState();
-        boolean isProposed = ShadowLifecycleStateType.PROPOSED.value().equals(lifecycleState);
-
-        if (isProposed) {
+        if (isProposed()) {
             if (isSamplingEnabled) {
                 runSamplingSimulation(context.pageBase(), target, defaultCfg);
             } else {
@@ -100,6 +96,51 @@ public class SimulationActionFlow<T> implements Serializable {
         }
 
         showPredefinedConfigPopup(target, defaultCfg);
+    }
+
+    private boolean isProposed() {
+        ResourceDetailsModel resourceModel = getResourceDetailsModel(context.pageBase());
+        ResourceObjectTypeDefinitionType objectType = context.definition();
+
+        if (isProposed(objectType.getLifecycleState())) {
+            return true;
+        }
+
+        if (isProposed(resourceModel.getObjectType() != null
+                ? resourceModel.getObjectType().getLifecycleState()
+                : null)) {
+            return true;
+        }
+
+        T config = context.workDefinitionConfiguration();
+        if (config instanceof InlineMappingDefinitionType mappingDefinition) {
+            return hasProposedMapping(mappingDefinition);
+        }
+
+        return false;
+    }
+
+    private boolean hasProposedMapping(@NotNull InlineMappingDefinitionType mappingDefinition) {
+        List<InboundMappingType> inbound =
+                mappingDefinition.getInbound() != null
+                        ? mappingDefinition.getInbound()
+                        : Collections.emptyList();
+
+        List<OutboundMappingType> outbound =
+                mappingDefinition.getOutbound() != null
+                        ? mappingDefinition.getOutbound()
+                        : Collections.emptyList();
+
+        return inbound.stream().anyMatch(this::isProposed)
+                || outbound.stream().anyMatch(this::isProposed);
+    }
+
+    private boolean isProposed(MappingType mapping) {
+        return mapping != null && isProposed(mapping.getLifecycleState());
+    }
+
+    private boolean isProposed(String lifecycleState) {
+        return ShadowLifecycleStateType.PROPOSED.value().equals(lifecycleState);
     }
 
     private void showPredefinedConfigPopup(
