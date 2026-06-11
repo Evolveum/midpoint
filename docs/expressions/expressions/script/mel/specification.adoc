@@ -261,6 +261,7 @@ ascii('Čórtův hrád, tam Strašá!')
 `string.capitalize()` -> string
 
 Converts first character of a string to upper case.
+Works on strings as well as polystrings.
 
 .Example
 [source,mel]
@@ -299,7 +300,8 @@ focus.fullName.contains('Mr.')
 
 === containsIgnoreCase
 
-`string.containsIgnoreCase(substring)` -> bool
+`string.containsIgnoreCase(substring)` -> bool +
+`containsIgnoreCase(string, substring)` -> bool
 
 Function that tests whether the string contains the substring without regard to character case.
 Works on strings as well as polystrings.
@@ -307,8 +309,8 @@ Works on strings as well as polystrings.
 .Example
 [source,mel]
 ----
-// Checks whether the full name contains substring 'Mr.'
-focus.fullName.contains('Mr.')
+// Checks whether the full name contains substring 'phd.' in any combination of cases
+focus.fullName.containsIgnoreCase('phd.')
 ----
 
 === debugDump
@@ -358,6 +360,20 @@ Works on strings as well as polystrings.
 ----
 // Checks whether the full name ends with 'PhD.' suffix
 focus.fullName.endsWith('PhD.')
+----
+
+=== equalsIgnoreCase
+
+`string.equalsIgnoreCase(string)` -> bool +
+`equalsIgnoreCase(string, string)` -> bool
+
+Function that tests whether strings equally match without regard to character case.
+Works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+'FooBar'.equalsIgnoreCase('foobar')  // Returns true
 ----
 
 === exists

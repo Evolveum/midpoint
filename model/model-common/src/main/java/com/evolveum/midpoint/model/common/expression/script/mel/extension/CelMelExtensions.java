@@ -38,6 +38,7 @@ import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeHelpers;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -272,7 +273,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING, SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "string_"+FUNC_CONTAINS_IGNORE_CASE_NAME, String.class, String.class,
-                            basicExpressionFunctions::containsIgnoreCase)),
+                            CelMelExtensions::containsIgnoreCase)),
 
             // polystring.containsIgnoreCase(substring)
             new Function(
@@ -285,8 +286,21 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "polystring_"+CelMelExtensions.FUNC_CONTAINS_IGNORE_CASE_NAME, PolyStringCelValue.class, String.class,
-                            (polystring, s) ->basicExpressionFunctions.containsIgnoreCase(polystring.getOrig(), s))
+                            (polystring, s) -> containsIgnoreCase(polystring.getOrig(), s))
             ),
+
+            // containsIgnoreCase(any, any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_CONTAINS_IGNORE_CASE_NAME,
+                            CelOverloadDecl.newGlobalOverload(
+                                    "any_"+FUNC_CONTAINS_IGNORE_CASE_NAME,
+                                    "Returns true if string contains other string without regard to case.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.ANY), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "any_"+FUNC_CONTAINS_IGNORE_CASE_NAME, Object.class, Object.class,
+                            CelMelExtensions::containsIgnoreCase)),
 
             // default(x, defaultVal)
             new Function(
@@ -354,6 +368,46 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "polystring_endswith", PolyStringCelValue.class, String.class,
                             (polystring, s) -> polystring.getOrig().endsWith(s))),
 
+
+            // string.equalsIgnoreCase(string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_EQUALS_IGNORE_CASE_NAME,
+                            CelOverloadDecl.newMemberOverload(
+                                    "string_"+FUNC_EQUALS_IGNORE_CASE_NAME,
+                                    "Returns true if the strings match without regard to case.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from(
+                            "string_"+FUNC_EQUALS_IGNORE_CASE_NAME, String.class, String.class,
+                            CelMelExtensions::equalsIgnoreCase)),
+
+            // polystring.equalsIgnoreCase(string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_EQUALS_IGNORE_CASE_NAME,
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_"+CelMelExtensions.FUNC_EQUALS_IGNORE_CASE_NAME,
+                                    "Returns true if the strings match without regard to case.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from(
+                            "polystring_"+CelMelExtensions.FUNC_EQUALS_IGNORE_CASE_NAME, PolyStringCelValue.class, String.class,
+                            (polystring, s) -> equalsIgnoreCase(polystring.getOrig(), s))
+            ),
+
+            // equalsIgnoreCase(any, any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_EQUALS_IGNORE_CASE_NAME,
+                            CelOverloadDecl.newGlobalOverload(
+                                    "any_"+FUNC_EQUALS_IGNORE_CASE_NAME,
+                                    "Returns true if the strings match without regard to case.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.ANY), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "any_"+FUNC_EQUALS_IGNORE_CASE_NAME, Object.class, Object.class,
+                            CelMelExtensions::equalsIgnoreCase)),
 
             // str.format([args])
             new Function(
@@ -1227,6 +1281,28 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private Object nilProducer(Object[] objects) {
         return NullValue.NULL_VALUE;
+    }
+
+    private static boolean containsIgnoreCase(@Nullable Object object, @Nullable Object search) {
+        String objectStr = stringify(object, "");
+        if (StringUtils.isEmpty(objectStr)) {
+            return false;
+        }
+        String searchStr = stringify(search, "");
+        if (StringUtils.isEmpty(searchStr)) {
+            return false;
+        }
+        return Strings.CI.contains(objectStr, searchStr);
+    }
+
+    private static boolean equalsIgnoreCase(@Nullable Object o1, @Nullable Object o2) {
+        if (CelTypeMapper.isCelNull(o1)) {
+            return CelTypeMapper.isCelNull(o2);
+        }
+        if (CelTypeMapper.isCelNull(o2)) {
+            return false;
+        }
+        return Strings.CI.equals(stringify(o1, ""), stringify(o2, ""));
     }
 
     private static String quote(PolyStringCelValue polyStringCelValue) {

@@ -536,6 +536,51 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionEqualsIgnoreCaseGlobalStringTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-equalsignorecase-global.xml",
+                createVariables(
+                        "foo", "foobar", PrimitiveType.STRING,
+                        "bar", "FooBar", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionEqualsIgnoreCaseGlobalStringFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-equalsignorecase-global.xml",
+                createVariables(
+                        "foo", "foobar", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionEqualsIgnoreCaseGlobalPolyStringTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-equalsignorecase-global.xml",
+                createVariables(
+                        "foo", createPolyStringType("foobar"), PolyStringType.COMPLEX_TYPE,
+                        "bar", createPolyStringType("FooBar"), PolyStringType.COMPLEX_TYPE
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionEqualsIgnoreCaseGlobalPolyStringFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-equalsignorecase-global.xml",
+                createVariables(
+                        "foo", createPolyStringType("foobar"), PolyStringType.COMPLEX_TYPE,
+                        "bar", createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
+                ),
+                Boolean.FALSE);
+    }
+
+
+    @Test
     public void testExpressionStringPlusString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-foo-plus-bar.xml",
