@@ -402,10 +402,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         String relation = relationQName.getLocalPart();
         RelationDefinitionType relationDef = RelationUtil.getRelationDefinition(relationQName);
         if (relationDef != null) {
-            PolyStringType label = GuiDisplayTypeUtil.getLabel(relationDef.getDisplay());
-            if (PolyStringUtils.isNotEmpty(label)) {
-                relation = WebComponentUtil.getTranslatedPolyString(label);
-            }
+            relation = GuiDisplayTypeUtil.getTranslatedLabel(relationDef.getDisplay());
         }
         return relation;
     }

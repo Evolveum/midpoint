@@ -99,7 +99,7 @@ public class ButtonBar<C extends Containerable, PO extends SelectableRow> extend
             if (label == null) {
                 return "N/A";
             }
-            return WebComponentUtil.getTranslatedPolyString(label);
+            return GuiDisplayTypeUtil.getTranslatedLabel(displayType);
         };
     }
 

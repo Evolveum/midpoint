@@ -665,8 +665,8 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
             return null;
         }
         return availableFilterTypes.stream().sorted((filter1, filter2) -> {
-            String label1 = LocalizationUtil.translatePolyString(GuiDisplayTypeUtil.getLabel(filter1.getDisplay()));
-            String label2 = LocalizationUtil.translatePolyString(GuiDisplayTypeUtil.getLabel(filter2.getDisplay()));
+            String label1 = GuiDisplayTypeUtil.getTranslatedLabel(filter1.getDisplay());
+            String label2 = GuiDisplayTypeUtil.getTranslatedLabel(filter2.getDisplay());
             return String.CASE_INSENSITIVE_ORDER.compare(label1, label2);
 
         }).collect(Collectors.toList());

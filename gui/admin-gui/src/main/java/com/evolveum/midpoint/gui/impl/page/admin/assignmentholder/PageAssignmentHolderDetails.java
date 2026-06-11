@@ -277,8 +277,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             return null;
         }
 
-        String archetypeLocalizedName = getLocalizationService()
-                .translate(displayType.getLabel().toPolyString(), WebComponentUtil.getCurrentLocale(), true);
+        String archetypeLocalizedName = GuiDisplayTypeUtil.getTranslatedLabel(displayType);
         if (StringUtils.isNotEmpty(archetypeLocalizedName)) {
             return archetypeLocalizedName;
         }

@@ -68,7 +68,7 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
                 return title.getObject();
             }
 
-            return isNotEmptyModel() ? GuiDisplayTypeUtil.getDisplayTypeTitle(buttonModel.getObject().getAdditionalButtonDisplayType()) : "";
+            return isNotEmptyModel() ? GuiDisplayTypeUtil.getTooltip(buttonModel.getObject().getAdditionalButtonDisplayType()) : "";
         }));
     }
 

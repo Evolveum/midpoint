@@ -205,7 +205,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             plusIcon.setColor("green");
             builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_MAX_ICON_STYLE);
         }
-        String iconTitle = GuiDisplayTypeUtil.getDisplayTypeTitle(newObjectButtonDisplayType);
+        String iconTitle = GuiDisplayTypeUtil.getTooltip(newObjectButtonDisplayType);
         AjaxCompositedIconButton createNewObjectButton = new AjaxCompositedIconButton(buttonId, builder.build(),
                 createStringResource(StringUtils.isEmpty(iconTitle) ? "MainObjectListPanel.newObject" : iconTitle)) {
 

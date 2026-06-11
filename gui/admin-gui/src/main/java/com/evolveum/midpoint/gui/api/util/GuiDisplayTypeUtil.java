@@ -198,9 +198,12 @@ public class GuiDisplayTypeUtil {
         }
 
         if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())) {
+            String translatedLabel = getTranslatedLabel(displayType);
+            String newObjectLabel = translatedLabel.equals(displayType.getLabel().getOrig()) ?
+                    displayType.getLabel().getOrig().toLowerCase() : translatedLabel;
             String sb = pageBase.createStringResource("MainObjectListPanel.newObject").getString()
                     + " "
-                    + displayType.getLabel().getOrig().toLowerCase();
+                    + newObjectLabel;
             displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb));
         }
         return view != null ? view.getDisplay() : null;
@@ -248,10 +251,10 @@ public class GuiDisplayTypeUtil {
     /**
      * Sometimes labels from DisplayType contain translation key in the orig value.
      * They should be treated as a key and should be translated.
-     * See #7576
+     * See #7576, #10996
      * @return
      */
-    private static String translateAndTreatOrigAsKey(PolyStringType valueToTranslate) {
+    public static String translateAndTreatOrigAsKey(PolyStringType valueToTranslate) {
         if (valueToTranslate == null) {
             return null;
         }
@@ -283,6 +286,12 @@ public class GuiDisplayTypeUtil {
         return translateAndTreatOrigAsKey(displayType.getTooltip());
     }
 
+    /**
+     * @deprecated Use {@link #getTooltip(DisplayType)} instead.
+     * @param displayType
+     * @return the orig value of the tooltip if exists
+     */
+    @Deprecated
     public static String getDisplayTypeTitle(DisplayType displayType) {
         if (displayType == null || displayType.getTooltip() == null) {
             return "";

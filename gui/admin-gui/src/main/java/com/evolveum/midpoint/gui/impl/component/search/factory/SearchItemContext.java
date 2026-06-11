@@ -184,7 +184,7 @@ public class SearchItemContext implements Serializable {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
-                String name = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(item.getDisplay()));
+                String name = GuiDisplayTypeUtil.getTranslatedLabel(item.getDisplay());
                 if (StringUtils.isNotEmpty(name)) {
                     return name;
                 }

@@ -66,8 +66,7 @@ public abstract class TemplateChoicePanel extends WizardChoicePanel<CompiledObje
                 compiledObjectCollectionViews.forEach(collection -> {
                     Tile tile = new Tile(
                             null,
-                            WebComponentUtil.getTranslatedPolyString(
-                                    GuiDisplayTypeUtil.getLabel(collection.getDisplay())));
+                            GuiDisplayTypeUtil.getTranslatedLabel(collection.getDisplay()));
                     tile.setDescription(GuiDisplayTypeUtil.getHelp(collection.getDisplay()));
                     tile.setValue(collection);
                     tiles.add(tile);

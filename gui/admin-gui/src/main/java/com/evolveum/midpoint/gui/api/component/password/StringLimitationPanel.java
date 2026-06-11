@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.api.component.password;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -58,10 +58,11 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
         icon.setOutputMarkupId(true);
         add(icon);
 
-        LabelWithHelpPanel label = new LabelWithHelpPanel(ID_NAME, Model.of(WebComponentUtil.getTranslatedPolyString(getModelObject().getName()))){
+        LabelWithHelpPanel label = new LabelWithHelpPanel(ID_NAME,
+                Model.of(GuiDisplayTypeUtil.translateAndTreatOrigAsKey(getModelObject().getName()))){
             @Override
             protected IModel<String> getHelpModel() {
-                return Model.of(WebComponentUtil.getTranslatedPolyString(StringLimitationPanel.this.getModelObject().getHelp()));
+                return Model.of(GuiDisplayTypeUtil.translateAndTreatOrigAsKey(StringLimitationPanel.this.getModelObject().getHelp()));
             }
         };
         label.setOutputMarkupId(true);
