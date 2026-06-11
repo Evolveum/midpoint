@@ -325,6 +325,18 @@ public class BasicExpressionFunctions {
     }
 
     /**
+     * Capitalizes a String changing the first character to title case as per Character.toTitleCase(int).
+     * No other characters are changed.
+     */
+    public String capitalize(Object input) {
+        if (input == null) {
+            return null;
+        }
+        String inputString = stringify(input);
+        return StringUtils.capitalize(inputString);
+    }
+
+    /**
      * Converts whatever it gets to a string. But it does it in a sensitive way.
      * E.g. it tries to detect collections and returns the first element (if there is only one).
      * Never returns null. Returns empty string instead.

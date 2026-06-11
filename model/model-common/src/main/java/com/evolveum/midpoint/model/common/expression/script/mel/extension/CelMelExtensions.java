@@ -190,6 +190,32 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             ),
 
+            // str.capitalize()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "capitalize",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel-capitalize",
+                                    "Converts first character of a string to upper case.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from("mel-capitalize", String.class,
+                            CelMelExtensions::capitalize)
+            ),
+
+            // polystring.capitalize()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "capitalize",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring-capitalize",
+                                    "Converts first character of orig part of polystring to upper case.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("polystring-capitalize", PolyStringCelValue.class,
+                            CelMelExtensions::capitalize)
+            ),
+
             // string.charAt()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -1357,6 +1383,24 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     private String ascii(Object o) {
         return basicExpressionFunctions.ascii(toJava(o));
     }
+
+    @Nullable
+    private static String capitalize(@Nullable String s) {
+        if (s == null) {
+            return null;
+        }
+        return StringUtils.capitalize(s);
+    }
+
+    @Nullable
+    private static String capitalize(@Nullable PolyStringCelValue ps) {
+        if (ps == null) {
+            return null;
+        }
+        return StringUtils.capitalize(ps.getOrig());
+    }
+
+
 
     private static Object stringFormat(String format, Object o) {
         Object[] javaArgs;

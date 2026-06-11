@@ -866,9 +866,9 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "expression-string-mix-4.xml",
                 createVariables(
                         "foo", createPolyStringType("Foo\n\tBar"), PolyStringType.COMPLEX_TYPE,
-                        "bar", createPolyStringType("FooBar"), PolyStringType.COMPLEX_TYPE
+                        "bar", createPolyStringType("fooBar"), PolyStringType.COMPLEX_TYPE
                 ),
-                "\"Foo\\n\\tBar\" raBooF");
+                "\"Foo\\n\\tBar\" raBoof FooBar");
     }
 
     /**
@@ -880,9 +880,9 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "expression-string-mix-4.xml",
                 createVariables(
                         "foo", "Foo\n\tBar", PrimitiveType.STRING,
-                        "bar", "FooBar", PrimitiveType.STRING
+                        "bar", "fooBar", PrimitiveType.STRING
                 ),
-                "\"Foo\\n\\tBar\" raBooF");
+                "\"Foo\\n\\tBar\" raBoof FooBar");
     }
 
     @Test

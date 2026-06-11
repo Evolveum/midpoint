@@ -256,6 +256,18 @@ ASCII characters with diacritical marks are converted to their basic variants (r
 ascii('Čórtův hrád, tam Strašá!')
 ----
 
+=== capitalize
+
+`string.capitalize()` -> string
+
+Converts first character of a string to upper case.
+
+.Example
+[source,mel]
+----
+'midPoint'.capitalize()   // Returns 'MidPoint'
+----
+
 
 === charAt
 
