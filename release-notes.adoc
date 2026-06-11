@@ -30,7 +30,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 
 == Changes with Respect To Version 4.8.12
 
-// TODO
+* Hided conflict warning on Shopping cart panel of the Request Access wizard in case of prune action. See bug:MID-11250[] and xref:#_behavior_changes_since_4_8_12[behavior changes since 4.8.12].
 
 == Changes with Respect To Version 4.8.11
 
@@ -1098,6 +1098,15 @@ _Actions required:_
 * Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
 Make sure you don't use any removed items.
 You can use `ninja` tool for this.
+
+[#_behavior_changes_since_4_8_12]
+=== Behavior Changes Since 4.8.12
+
+* Request access wizard behaves differently in case when conflicting situation occurs and prune action will be used for resolving the conflict.
+
+Previously, the wizard showed warning on the Shopping cart panel about conflicting roles or other shopping cart items even in case when prune action resolves the situation automatically.
+In order to correspond to the definition of the prune action, which says that "The removal of the conflicting assignments is automatic and silent", it was decided to hide the warning from Shopping cart panel.
+See also bug:MID-11250[].
 
 [#_behavior_changes_since_4_8_4]
 === Behavior Changes Since 4.8.4
