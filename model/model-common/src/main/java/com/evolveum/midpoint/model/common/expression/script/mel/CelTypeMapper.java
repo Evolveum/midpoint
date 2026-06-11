@@ -45,6 +45,7 @@ import java.util.*;
 public class CelTypeMapper implements CelTypeProvider  {
 
     public static final CelType PROTECTED_STRING_CEL_TYPE = OpaqueType.create(ProtectedStringType.class.getName());
+    public static final CelType NIL_TYPE = NullableType.create(SimpleType.DYN);
 
     private static final Map<CelType, QName> CEL_TO_XSD_TYPE_MAP = new HashMap<>();
     private static final Map<QName, CelType> XSD_TO_CEL_TYPE_MAP = new HashMap<>();
@@ -186,6 +187,11 @@ public class CelTypeMapper implements CelTypeProvider  {
         }
     }
 
+    @NotNull
+    public static CelType toCelNullableType(@NotNull QName xsdType) {
+        return NullableType.create(toCelType(xsdType));
+    }
+
     public static CelType toCelType(@NotNull Class<?> javaType) {
         CelType celType = getCelType(javaType);
         if (celType == null) {
@@ -320,7 +326,7 @@ public class CelTypeMapper implements CelTypeProvider  {
 
     @Nullable
     public static Object toJavaValue(@Nullable Object celValue) {
-        if (isCellNull(celValue)) {
+        if (isCelNull(celValue)) {
             return null;
         }
         while (celValue instanceof Optional<?> optional) {
@@ -346,7 +352,7 @@ public class CelTypeMapper implements CelTypeProvider  {
 
     @Nullable
     public static Object toJavaValue(@Nullable CelValue celValue) {
-        if (isCellNull(celValue)) {
+        if (isCelNull(celValue)) {
             return null;
         }
         if (celValue instanceof MidPointValueProducer<?> mpCelValue) {
@@ -391,10 +397,10 @@ public class CelTypeMapper implements CelTypeProvider  {
         return javaValue;
     }
 
-    public static boolean isCellNull(@Nullable Object object) {
+    public static boolean isCelNull(@Nullable Object object) {
         return object == null || object instanceof NullValue
                 || object instanceof com.google.protobuf.NullValue
-                || (object instanceof Optional<?> opt && opt.isEmpty());
+                || (object instanceof Optional<?> opt && (opt.isEmpty() || isCelNull(opt.get())));
     }
 
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> Object toListMapValue(Item<IV, ID> item) {

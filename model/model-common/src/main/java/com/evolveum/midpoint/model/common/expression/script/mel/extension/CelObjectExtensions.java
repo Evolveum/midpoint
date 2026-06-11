@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.AbstractContainerValueCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
@@ -38,7 +37,6 @@ import dev.cel.runtime.CelFunctionBinding;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -138,7 +136,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
     }
 
     private static boolean isEffectivelyEnabled(ObjectCelValue<?> objectCelValue) {
-        if (CelTypeMapper.isCellNull(objectCelValue)) {
+        if (CelTypeMapper.isCelNull(objectCelValue)) {
             return false;
         } else {
             PrismObject<?> object = objectCelValue.getObject();
@@ -156,7 +154,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
     }
 
     private static Object prismIndexMap(AbstractContainerValueCelValue<?> celValue, QNameCelValue celQName) {
-        if (CelTypeMapper.isCellNull(celValue) || CelTypeMapper.isCellNull(celQName)) {
+        if (CelTypeMapper.isCelNull(celValue) || CelTypeMapper.isCelNull(celQName)) {
             return NullValue.NULL_VALUE;
         }
         return CelTypeMapper.toCelValue(celValue.getContainerValue().find(ItemName.fromQName(celQName.getQName())));
@@ -164,10 +162,10 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
     @NotNull
     private List<?> connectorConfiguration(@Nullable Object o, @Nullable Object propertyName) {
-        if (CelTypeMapper.isCellNull(o)) {
+        if (CelTypeMapper.isCelNull(o)) {
             return ImmutableList.of();
         }
-        if (CelTypeMapper.isCellNull(propertyName)) {
+        if (CelTypeMapper.isCelNull(propertyName)) {
             return ImmutableList.of();
         }
         if (o instanceof ObjectCelValue<?> mpCelObject) {
@@ -203,7 +201,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
     @NotNull
     private List<?> primaryIdentifiers(@Nullable Object o) {
-        if (CelTypeMapper.isCellNull(o)) {
+        if (CelTypeMapper.isCelNull(o)) {
             return ImmutableList.of();
         }
         if (o instanceof ObjectCelValue<?> mpCelObject) {
@@ -219,7 +217,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
     @NotNull
     private List<?> secondaryIdentifiers(@Nullable Object o) {
-        if (CelTypeMapper.isCellNull(o)) {
+        if (CelTypeMapper.isCelNull(o)) {
             return ImmutableList.of();
         }
         if (o instanceof ObjectCelValue<?> mpCelObject) {

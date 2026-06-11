@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeObjectTypeSuggestionNew;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.runSuggestionAction;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 import java.util.List;
-import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -145,7 +144,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
 
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 getPageBase(), resourceOid, objectClassName, task, result);
 
         return isSuccessfulSuggestion(suggestions);
@@ -162,7 +161,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
 
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 getPageBase(), resourceOid, objectClassName, task, result);
 
         if (suggestions != null && suggestions.isSuspended()) {

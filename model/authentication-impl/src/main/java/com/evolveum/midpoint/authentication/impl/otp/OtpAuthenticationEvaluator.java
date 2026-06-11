@@ -68,7 +68,7 @@ public class OtpAuthenticationEvaluator
     protected void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, OtpCredentialsType credentials) {
         List<OtpCredentialType> otps = credentials.getTotp();
 
-        if (otps == null || otps.isEmpty()) {
+        if (otps == null || otps.stream().noneMatch(otp -> BooleanUtils.isTrue(otp.isVerified()))) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no otp stored for user");
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.otp.bad");
         }
@@ -113,6 +113,7 @@ public class OtpAuthenticationEvaluator
                 }
 
                 if (service.verifyCode(clearValue, code)) {
+                    LOGGER.debug("OTP code verified successfully for user '{}'", principal.getUsername());
                     return true;
                 }
             } catch (EncryptionException | SchemaException ex) {
@@ -122,6 +123,7 @@ public class OtpAuthenticationEvaluator
             }
         }
 
+        LOGGER.debug("OTP code verification failed for user '{}'", principal.getUsername());
         return false;
     }
 

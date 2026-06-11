@@ -439,25 +439,35 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public List<StatusInfo<ObjectTypesSuggestionType>> listSuggestObjectTypesOperationStatuses(
-            String resourceOid, Task task, OperationResult parentResult)
+            String resourceOid,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
+            @Nullable QName objectClass,
+            Task task, OperationResult parentResult)
             throws SchemaException {
+
         var result = parentResult.subresult(OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
+                .addParam("objectClass", objectClass)
+                .addParam("kind", objectTypeIdentification != null ? objectTypeIdentification.getKind().value() : null)
+                .addParam("intent", objectTypeIdentification != null ? objectTypeIdentification.getIntent() : null)
                 .build();
+
         try {
-            var tasks = taskManager.searchObjects(
-                    TaskType.class,
-                    queryForActivityType(resourceOid, SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION),
-                    taskRetrievalOptions(),
+            var tasks = listObjectTypeRelatedSuggestionTasks(
+                    objectTypeIdentification,
+                    resourceOid,
+                    objectClass,
+                    List.of(SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION),
                     result);
+
             var resultingList = new ArrayList<StatusInfo<ObjectTypesSuggestionType>>();
             for (PrismObject<TaskType> t : tasks) {
-                resultingList.add(
-                        new StatusInfoImpl<>(
-                                t.asObjectable(),
-                                ObjectTypesSuggestionWorkStateType.F_RESULT,
-                                ObjectTypesSuggestionType.class));
+                resultingList.add(new StatusInfoImpl<>(
+                        t.asObjectable(),
+                        ObjectTypesSuggestionWorkStateType.F_RESULT,
+                        ObjectTypesSuggestionType.class));
             }
+
             sortByFinishAndStartTime(resultingList);
             return resultingList;
         } catch (Throwable t) {
@@ -725,7 +735,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             int retryCount = getConfiguredRetryCount(result);
             var mappings = this.mappingSuggestionOperationFactory.create(serviceClient, resourceOid,
-                    typeIdentification, activityState, isInbound, useAiService, objectTypeStatistics, retryCount, task, result)
+                            typeIdentification, activityState, isInbound, useAiService, objectTypeStatistics, retryCount, task, result)
                     .suggestMappings(result, schemaMatch, targetPathsToIgnore);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;
@@ -796,25 +806,36 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public List<StatusInfo<CorrelationSuggestionsType>> listSuggestCorrelationOperationStatuses(
-            String resourceOid, Task task, OperationResult parentResult)
+            String resourceOid,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
+            Task task,
+            OperationResult parentResult)
             throws SchemaException {
+
         var result = parentResult.subresult(OP_LIST_SUGGEST_CORRELATION_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
+                .addParam("kind", objectTypeIdentification != null
+                        ? objectTypeIdentification.getKind().value()
+                        : null)
+                .addParam("intent", objectTypeIdentification != null ? objectTypeIdentification.getIntent() : null)
                 .build();
+
         try {
-            var tasks = taskManager.searchObjects(
-                    TaskType.class,
-                    queryForActivityType(resourceOid, SchemaConstantsGenerated.C_CORRELATION_SUGGESTION),
-                    taskRetrievalOptions(),
+            var tasks = listObjectTypeRelatedSuggestionTasks(
+                    objectTypeIdentification,
+                    resourceOid,
+                    null,
+                    List.of(SchemaConstantsGenerated.C_CORRELATION_SUGGESTION),
                     result);
+
             var resultingList = new ArrayList<StatusInfo<CorrelationSuggestionsType>>();
             for (PrismObject<TaskType> t : tasks) {
-                resultingList.add(
-                        new StatusInfoImpl<>(
-                                t.asObjectable(),
-                                CorrelationSuggestionWorkStateType.F_RESULT,
-                                CorrelationSuggestionsType.class));
+                resultingList.add(new StatusInfoImpl<>(
+                        t.asObjectable(),
+                        CorrelationSuggestionWorkStateType.F_RESULT,
+                        CorrelationSuggestionsType.class));
             }
+
             sortByFinishAndStartTime(resultingList);
             return resultingList;
         } catch (Throwable t) {
@@ -897,38 +918,53 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid,
             ResourceObjectTypeIdentification objectTypeIdentification,
             Boolean isInbound,
-            Task task, OperationResult parentResult)
+            Task task,
+            OperationResult parentResult)
             throws SchemaException {
+
         var result = parentResult.subresult(OP_LIST_SUGGEST_MAPPINGS_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
+                .addParam("kind", objectTypeIdentification != null
+                        ? objectTypeIdentification.getKind().value()
+                        : null)
+                .addParam("intent", objectTypeIdentification != null ? objectTypeIdentification.getIntent() : null)
+                .addParam("isInbound", isInbound)
                 .build();
+
         try {
-            var tasks = taskManager.searchObjects(
-                    TaskType.class,
-                    queryForActivityType(resourceOid, SchemaConstantsGenerated.C_MAPPINGS_SUGGESTION),
-                    taskRetrievalOptions(),
+            var tasks = listObjectTypeRelatedSuggestionTasks(
+                    objectTypeIdentification,
+                    resourceOid,
+                    null,
+                    List.of(SchemaConstantsGenerated.C_MAPPINGS_SUGGESTION),
                     result);
+
             var resultingList = new ArrayList<StatusInfo<MappingsSuggestionType>>();
             for (PrismObject<TaskType> t : tasks) {
                 TaskType tt = t.asObjectable();
 
                 ActivityDefinitionType activityDef = tt.getActivity();
-                if (activityDef == null || activityDef.getWork() == null || activityDef.getWork().getMappingsSuggestion() == null) {
-                    resultingList.add(new StatusInfoImpl<>(tt, MappingsSuggestionWorkStateType.F_RESULT, MappingsSuggestionType.class));
+                if (activityDef == null
+                        || activityDef.getWork() == null
+                        || activityDef.getWork().getMappingsSuggestion() == null) {
+                    resultingList.add(new StatusInfoImpl<>(
+                            tt,
+                            MappingsSuggestionWorkStateType.F_RESULT,
+                            MappingsSuggestionType.class));
                     continue;
                 }
+
                 var workDef = activityDef.getWork().getMappingsSuggestion();
-                if (objectTypeIdentification != null && workDef.getObjectType() != null) {
-                    if (!Objects.equals(workDef.getObjectType().getKind(), objectTypeIdentification.getKind())
-                            || !Objects.equals(workDef.getObjectType().getIntent(), objectTypeIdentification.getIntent())) {
-                        continue;
-                    }
-                }
                 if (isInbound != workDef.isInbound()) {
                     continue;
                 }
-                resultingList.add(new StatusInfoImpl<>(tt, MappingsSuggestionWorkStateType.F_RESULT, MappingsSuggestionType.class));
+
+                resultingList.add(new StatusInfoImpl<>(
+                        tt,
+                        MappingsSuggestionWorkStateType.F_RESULT,
+                        MappingsSuggestionType.class));
             }
+
             sortByFinishAndStartTime(resultingList);
             return resultingList;
         } catch (Throwable t) {
@@ -981,40 +1017,52 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
     }
 
-    @Override
     public @NotNull SearchResultList<PrismObject<TaskType>> listObjectTypeRelatedSuggestionTasks(
-            @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             @NotNull String resourceOid,
+            @Nullable QName objectClass,
             @NotNull List<ItemName> activityTypes,
-            @NotNull Task task,
             @NotNull OperationResult result)
-            throws CommonException {
-        ObjectQuery query = SmartIntegrationServiceImpl.createQueryForObjectTypeSuggestionTasks(
-                objectTypeIdentification, resourceOid, activityTypes);
+            throws SchemaException {
+        ObjectQuery query = createQueryForObjectTypeSuggestionTasks(
+                objectTypeIdentification, resourceOid, objectClass, activityTypes);
 
-        return modelService.searchObjects(TaskType.class, query, null, task, result);
+        return taskManager.searchObjects(TaskType.class, query, taskRetrievalOptions(), result);
     }
 
-    public @NotNull static ObjectQuery createQueryForObjectTypeSuggestionTasks(
-            @NotNull ResourceObjectTypeIdentification typeIdentification,
+    public static @NotNull ObjectQuery createQueryForObjectTypeSuggestionTasks(
+            @Nullable ResourceObjectTypeIdentification typeIdentification,
             @NotNull String resourceOid,
+            @Nullable QName objectClass,
             @NotNull List<ItemName> activityTypes) {
 
-        S_FilterExit filter = PrismContext.get()
+        var query = PrismContext.get()
                 .queryFor(TaskType.class)
                 .item(createResourceObjectPath(BasicResourceObjectSetType.F_RESOURCE_REF))
-                .ref(resourceOid)
-                .and()
-                .item(createResourceObjectPath(BasicResourceObjectSetType.F_KIND))
-                .eq(typeIdentification.getKind())
-                .and()
-                .item(createResourceObjectPath(BasicResourceObjectSetType.F_INTENT))
-                .eq(typeIdentification.getIntent());
+                .ref(resourceOid);
+
+        if (typeIdentification != null) {
+            query = query.and()
+                    .item(createResourceObjectPath(BasicResourceObjectSetType.F_KIND))
+                    .eq(typeIdentification.getKind());
+
+            query = query.and()
+                    .item(createResourceObjectPath(BasicResourceObjectSetType.F_INTENT))
+                    .eq(typeIdentification.getIntent());
+        }
+
+        if (objectClass != null) {
+            query = query.and()
+                    .item(createResourceObjectPath(BasicResourceObjectSetType.F_OBJECTCLASS))
+                    .eq(objectClass);
+        }
 
         if (!activityTypes.isEmpty()) {
-            S_FilterEntry block = filter.and().block();
+            S_FilterEntry block = query.and().block();
 
             boolean first = true;
+            S_FilterExit filter = query;
+
             for (ItemName activityType : activityTypes) {
                 filter = first
                         ? addActivityTypeRule(block, activityType)
@@ -1022,10 +1070,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 first = false;
             }
 
-            filter = filter.endBlock();
+            return filter.endBlock().build();
         }
 
-        return filter.build();
+        return query.build();
     }
 
     public static @NotNull ItemPath createResourceObjectPath(ItemName subPath) {

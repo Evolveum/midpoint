@@ -53,7 +53,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
@@ -455,7 +455,7 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
         QName objectClass = modelObject.getObjectClass();
         String resourceOid = modelObject.getResourceOid();
 
-        StatusInfo<ObjectTypesSuggestionType> statusInfo = loadObjectClassObjectTypeSuggestions(getPageBase(),
+        StatusInfo<ObjectTypesSuggestionType> statusInfo = loadLatestObjectClassObjectTypeSuggestion(getPageBase(),
                 resourceOid,
                 objectClass,
                 task,
