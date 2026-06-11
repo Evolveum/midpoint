@@ -37,6 +37,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.SecretsResolver;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.time.DateUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -144,7 +146,7 @@ public class BasicExpressionFunctions {
         return objectStr.contains(searchStr);
     }
 
-    public boolean containsIgnoreCase(Object object, Object search) {
+    public boolean containsIgnoreCase(@Nullable Object object, @Nullable Object search) {
         String objectStr = stringify(object);
         if (StringUtils.isEmpty(objectStr)) {
             return false;
@@ -153,7 +155,11 @@ public class BasicExpressionFunctions {
         if (StringUtils.isEmpty(searchStr)) {
             return false;
         }
-        return StringUtils.containsIgnoreCase(objectStr, searchStr);
+        return Strings.CI.contains(objectStr, searchStr);
+    }
+
+    public boolean equalsIgnoreCase(@Nullable Object o1, @Nullable Object o2) {
+        return Strings.CI.equals(stringify(o1), stringify(o2));
     }
 
     /**
