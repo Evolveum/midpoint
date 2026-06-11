@@ -18,7 +18,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoiceWithThreadSelectionPopup;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoicePopup;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
