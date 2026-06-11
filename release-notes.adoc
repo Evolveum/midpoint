@@ -140,6 +140,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed missing .zip extension when downloading tracing report files. See bug:MID-11096[]
 * Fixed resource wizard mapping property autocomplete to find partial matches regardless of letter case. See bug:MID-10415[]
 * Fixed missing input variable in resource activation existence mappings. See bug:MID-10905[]
+* Fixed stale page recovery after viewing page source causing internal server error. See bug:MID-9998[]
 
 === Releases Of Other Components
 
