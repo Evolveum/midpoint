@@ -82,7 +82,8 @@ public class GenerateDbDocsMojo extends AbstractMojo {
                 }
             }
 
-            writeReleaseNotesSchemaChanges(schemaDoc);
+            //TODO: Release notes changes are commented out for now.
+            //writeReleaseNotesSchemaChanges(schemaDoc);
         } catch (IOException e) {
             throw new MojoExecutionException("Couldn't generate DB schema documentation", e);
         }

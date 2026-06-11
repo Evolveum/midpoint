@@ -27,47 +27,63 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | Mark object identifier.
-| `objectType` | `ObjectType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Mark object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
 |===
 
 == Triggers
 
 Triggers run routines automatically when table rows are inserted, updated, or deleted.
 
+[cols="2,3,2,2", options="header"]
+|===
+| Trigger
+| Description
+| Table
+| Executes
+
 [[trigger_m_mark_oid_delete_tr]]
-=== `m_mark_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_mark`.
-
-Table: xref:#m_mark[`m_mark`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_mark_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_mark`.
+| xref:#m_mark[`m_mark`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_mark_oid_insert_tr]]
-=== `m_mark_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_mark`.
-
-Table: xref:#m_mark[`m_mark`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_mark_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_mark`.
+| xref:#m_mark[`m_mark`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_mark_update_tr]]
-=== `m_mark_update_tr`
+| `m_mark_update_tr`
+| Maintains object update metadata before rows are updated in `m_mark`.
+| xref:#m_mark[`m_mark`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
-Maintains object update metadata before rows are updated in `m_mark`.
-
-Table: xref:#m_mark[`m_mark`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+|===
 

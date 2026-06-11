@@ -1,0 +1,147 @@
+= postgres-upgrade.sql - midPoint 4.5
+
+== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| <<change-5,Change 5>>
+| Adds correlation timestamps and situation columns to shadows, including supporting indexes.
+
+| <<change-4,Change 4>>
+| Adds `CorrelationSituationType` enum type for identity matching.
+
+| <<change-3,Change 3>>
+| Adds `m_message_template` table, triggers, and indexes.
+
+| <<change-2,Change 2>>
+| Adds `MESSAGE_TEMPLATE` object type value.
+
+|===
+
+[[change-5]]
+== Change 5
+
+Since version: 4.5
+
+Adds correlation timestamps and situation columns to shadows, including supporting indexes.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_shadow`
+| Modified table
+| Adds correlation timestamps and correlation situation columns.
+
+| `m_shadow_correlationStartTimestamp_idx`
+| New index
+| Supports filtering by correlation start time.
+
+| `m_shadow_correlationEndTimestamp_idx`
+| New index
+| Supports filtering by correlation end time.
+
+| `m_shadow_correlationCaseOpenTimestamp_idx`
+| New index
+| Supports filtering by correlation case open time.
+
+| `m_shadow_correlationCaseCloseTimestamp_idx`
+| New index
+| Supports filtering by correlation case close time.
+
+|===
+
+[[change-4]]
+== Change 4
+
+Since version: 4.5
+
+Adds `CorrelationSituationType` enum type for identity matching.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `CorrelationSituationType`
+| New enum type
+| Adds identity matching correlation situation values.
+
+|===
+
+[[change-3]]
+== Change 3
+
+Since version: 4.5
+
+Adds `m_message_template` table, triggers, and indexes.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_message_template`
+| New table
+| Stores message template objects.
+
+| `m_message_template_oid_insert_tr`
+| New trigger
+| Reserves OID rows for inserted message templates.
+
+| `m_message_template_update_tr`
+| New trigger
+| Maintains update metadata for message templates.
+
+| `m_message_template_oid_delete_tr`
+| New trigger
+| Releases OID rows for deleted message templates.
+
+| `m_message_template_nameOrig_idx`
+| New index
+| Supports lookup by original object name.
+
+| `m_message_template_nameNorm_key`
+| New unique index
+| Enforces unique normalized object names.
+
+| `m_message_template_policySituation_idx`
+| New index
+| Supports filtering by policy situation.
+
+| `m_message_template_createTimestamp_idx`
+| New index
+| Supports filtering or ordering by creation time.
+
+| `m_message_template_modifyTimestamp_idx`
+| New index
+| Supports filtering or ordering by modification time.
+
+|===
+
+[[change-2]]
+== Change 2
+
+Since version: 4.5
+
+Adds `MESSAGE_TEMPLATE` object type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ObjectType`
+| Modified enum type
+| Adds `MESSAGE_TEMPLATE`.
+
+|===
+

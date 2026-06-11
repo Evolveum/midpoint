@@ -108,12 +108,40 @@ public class ParsedSchemaAccumulator {
                 table.sourceFile(),
                 table.region(),
                 table.metadata(),
-                columns,
+                directColumns(table, columns),
+                table.primaryKeyColumns(),
                 indexes,
                 foreignKeys,
                 table.inheritsFrom(),
                 table.partitionOf(),
                 table.parseNote());
+    }
+
+    private List<ColumnDoc> directColumns(TableDoc table, List<ColumnDoc> columns) {
+        if (!table.primaryKeyColumns().isEmpty() || table.inheritsFrom() == null) {
+            return columns;
+        }
+
+        return columns.stream()
+                .map(this::withoutPrimaryKeyConstraint)
+                .toList();
+    }
+
+    private ColumnDoc withoutPrimaryKeyConstraint(ColumnDoc column) {
+        if (!column.primaryKey()) {
+            return column;
+        }
+
+        return new ColumnDoc(
+                column.name(),
+                column.type(),
+                column.metadata(),
+                column.required(),
+                column.defaultValue(),
+                false,
+                column.constraints().stream()
+                        .filter(constraint -> !"primary key".equals(constraint))
+                        .toList());
     }
 
     private String tableKey(String tableName) {

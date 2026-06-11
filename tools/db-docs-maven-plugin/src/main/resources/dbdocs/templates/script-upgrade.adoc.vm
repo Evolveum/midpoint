@@ -4,25 +4,38 @@ xref:../schema.adoc[Back to native PostgreSQL schema overview]
 
 This page documents schema changes applied to existing databases by `$r.displayPath($sourceFile.path())`.
 
-== Changes
+== Version summary
 
-    #foreach ($change in $schema.upgradeChanges())
-[[$r.upgradeChangeAnchor($change)]]
-=== $r.upgradeChangeLabel($change)
-
-Since version: $r.metadataValue($change.metadata().since())
-
-        $r.changeText($change)
-
-        #if (!$change.affectedObjects().isEmpty())
-[cols="1,1,3", options="header"]
+[cols="1,1", options="header"]
 |===
-| Object | Change type | Description
-    #foreach ($affectedObject in $change.affectedObjects())
-| `$affectedObject.objectName()` | $affectedObject.changeType() | $affectedObject.description()
-    #end
+| MidPoint version
+| Changes range
+
+#foreach ($versionChanges in $view.upgradeChangesByMidpointVersion())
+| $r.pageXref($view.upgradeVersionPagePath($sourceFile, $versionChanges.midpointVersion()), $r.upgradeVersionLabel($versionChanges.midpointVersion()), $view)
+| $versionChanges.changesRange()
+
+#end
 |===
 
+#foreach ($versionChanges in $view.upgradeChangesByMidpointVersion())
+== $r.fileName($sourceFile.path()) - $r.upgradeVersionLabel($versionChanges.midpointVersion())
 
-    #end
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+#foreach ($change in $versionChanges.changes())
+#set ($versionPage = $view.upgradeVersionPagePath($sourceFile, $versionChanges.midpointVersion()))
+#set ($changeAnchor = $r.upgradeChangeAnchor($change))
+#set ($changeLabel = $r.upgradeChangeLabel($change))
+| $r.pageAnchorXref($versionPage, $changeAnchor, $changeLabel, $view)
+| $r.changeText($change)
+
+#end
+|===
+
 #end

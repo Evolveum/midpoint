@@ -39,7 +39,7 @@ public class DbSchemaAsciiDocRenderer {
      */
     public List<String> renderLandingPage(List<Path> sqlFiles, SchemaDoc schemaDoc) {
         Map<String, Object> context = baseContext(new SchemaDocView(sqlFiles, schemaDoc));
-        return renderTemplate("schema.adoc.vm", context);
+        return renderTemplate("schema-index.adoc.vm", context);
     }
 
     /**
@@ -59,7 +59,7 @@ public class DbSchemaAsciiDocRenderer {
             return renderTemplate("script-upgrade.adoc.vm", context);
         }
 
-        return renderTemplate("script-schema.adoc.vm", context);
+        return renderTemplate("script-detail.adoc.vm", context);
     }
 
     /**
@@ -67,7 +67,11 @@ public class DbSchemaAsciiDocRenderer {
      */
     public List<RenderedAsciiDocPage> renderScriptPages(SqlFileDoc sourceFile, SchemaDoc schemaDoc) {
         SchemaDocView schemaView = new SchemaDocView(List.of(sourceFile.path()), schemaDoc);
-        if (sourceFile.category() == Category.UPGRADE || !schemaView.isSplitScript(sourceFile)) {
+        if (sourceFile.category() == Category.UPGRADE) {
+            return renderUpgradeScriptPages(sourceFile, schemaDoc);
+        }
+
+        if (!schemaView.isSplitScript(sourceFile)) {
             return List.of(new RenderedAsciiDocPage(
                     pageResolver.scriptPagePath(sourceFile.path()),
                     renderScriptPage(sourceFile, schemaDoc)));
@@ -85,7 +89,7 @@ public class DbSchemaAsciiDocRenderer {
                 null);
         pages.add(new RenderedAsciiDocPage(
                 pageResolver.scriptPagePath(sourceFile.path()),
-                renderTemplate("script-postgres-landing.adoc.vm", landingContext)));
+                renderTemplate("script-postgres-index.adoc.vm", landingContext)));
 
         for (DocRegion region : scriptView.postgresRegions()) {
             SchemaDocView regionView = scriptView.forRegion(sourceFile, region);
@@ -98,7 +102,37 @@ public class DbSchemaAsciiDocRenderer {
                     region);
             pages.add(new RenderedAsciiDocPage(
                     regionView.postgresRegionPagePath(region),
-                    renderTemplate("script-schema.adoc.vm", regionContext)));
+                    renderTemplate("region.adoc.vm", regionContext)));
+        }
+
+        return pages;
+    }
+
+    /**
+     * Renders the main upgrade-script page and one detail page for each midPoint version.
+     */
+    private List<RenderedAsciiDocPage> renderUpgradeScriptPages(SqlFileDoc sourceFile, SchemaDoc schemaDoc) {
+        SchemaDocView scriptView = new SchemaDocView(List.of(sourceFile.path()), schemaDoc).forSourceFile(sourceFile);
+        List<RenderedAsciiDocPage> pages = new ArrayList<>();
+
+        pages.add(new RenderedAsciiDocPage(
+                pageResolver.scriptPagePath(sourceFile.path()),
+                renderScriptPage(sourceFile, schemaDoc)));
+
+        for (SchemaDocView.UpgradeVersionChanges versionChanges : scriptView.upgradeChangesByMidpointVersion()) {
+            SchemaDocView versionView = scriptView.forUpgradeVersion(sourceFile, versionChanges.midpointVersion());
+            Map<String, Object> versionContext = scriptContext(
+                    versionView,
+                    sourceFile,
+                    "Native PostgreSQL Upgrade Script: " + format.fileName(sourceFile.path())
+                            + " - midPoint " + versionChanges.midpointVersion(),
+                    "../../schema.adoc",
+                    "../" + PageResolver.scriptOutputFileName(sourceFile.path()),
+                    null);
+            versionContext.put("versionChanges", versionChanges);
+            pages.add(new RenderedAsciiDocPage(
+                    pageResolver.upgradeVersionPagePath(sourceFile.path(), versionChanges.midpointVersion()),
+                    renderTemplate("script-upgrade-version.adoc.vm", versionContext)));
         }
 
         return pages;

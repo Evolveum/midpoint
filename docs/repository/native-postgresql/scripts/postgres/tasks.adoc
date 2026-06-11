@@ -27,39 +27,115 @@ Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the operation execution record.
-| `containerType` | `ContainerType` |  | 
-| `status` | `OperationResultStatusType` |  | Result status of the operation execution.
-| `recordType` | `OperationExecutionRecordTypeType` |  | Operation execution record type.
-| `initiatorRefTargetOid` | `UUID` |  | OID of the initiator reference target.
-| `initiatorRefTargetType` | `ObjectType` |  | Object type of the initiator reference target.
-| `initiatorRefRelationId` | `INTEGER` |  | Relation URI identifier of the initiator reference.
-| `taskRefTargetOid` | `UUID` |  | OID of the related task reference target.
-| `taskRefTargetType` | `ObjectType` |  | Object type of the related task reference target.
-| `taskRefRelationId` | `INTEGER` |  | Relation URI identifier of the task reference.
-| `timestamp` | `TIMESTAMPTZ` |  | Time of the operation execution.
-| `fullObject` | `BYTEA` |  | Serialized full operation execution value.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the object that owns the operation execution record.
+
+| `containerType`
+| `ContainerType`
+| 
+| 
+
+| `status`
+| `OperationResultStatusType`
+| 
+| Result status of the operation execution.
+
+| `recordType`
+| `OperationExecutionRecordTypeType`
+| 
+| Operation execution record type.
+
+| `initiatorRefTargetOid`
+| `UUID`
+| 
+| OID of the initiator reference target.
+
+| `initiatorRefTargetType`
+| `ObjectType`
+| 
+| Object type of the initiator reference target.
+
+| `initiatorRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the initiator reference.
+
+| `taskRefTargetOid`
+| `UUID`
+| 
+| OID of the related task reference target.
+
+| `taskRefTargetType`
+| `ObjectType`
+| 
+| Object type of the related task reference target.
+
+| `taskRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the task reference.
+
+| `timestamp`
+| `TIMESTAMPTZ`
+| 
+| Time of the operation execution.
+
+| `fullObject`
+| `BYTEA`
+| 
+| Serialized full operation execution value.
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_operation_execution_initiatorRefTargetOid_idx` | `initiatorRefTargetOid` | Speeds up lookup of operation executions by initiator. Used for: operation execution initiator searches
-| `m_operation_execution_taskRefTargetOid_idx` | `taskRefTargetOid` | Speeds up lookup of operation executions by related task. Used for: operation execution task searches
-| `m_operation_execution_timestamp_idx` | `timestamp` | Speeds up filtering or ordering operation executions by time. Used for: operation execution time filters and ordering
+| Name
+| Columns
+| Purpose / notes
+
+| `m_operation_execution_initiatorRefTargetOid_idx`
+| `initiatorRefTargetOid`
+| Speeds up lookup of operation executions by initiator. Used for: operation execution initiator searches
+
+| `m_operation_execution_taskRefTargetOid_idx`
+| `taskRefTargetOid`
+| Speeds up lookup of operation executions by related task. Used for: operation execution task searches
+
+| `m_operation_execution_timestamp_idx`
+| `timestamp`
+| Speeds up filtering or ordering operation executions by time. Used for: operation execution time filters and ordering
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
-| `initiatorRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
-| `taskRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `initiatorRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+| `taskRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
 |===
 
 [[m_ref_task_affected_object]]
@@ -69,32 +145,68 @@ Stores target references for task affected object entries.
 
 Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 
+No primary key is defined directly on this table. The table inherits from xref:infrastructure.adoc#m_reference[`m_reference`].
+
 ==== Columns
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | required | OID of the task that owns the affected object reference.
-| `affectedObjectCid` | `INTEGER` | required | Container ID of the affected object entry.
-| `referenceType` | `ReferenceType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| required
+| OID of the task that owns the affected object reference.
+
+| `affectedObjectCid`
+| `INTEGER`
+| required
+| Container ID of the affected object entry.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_ref_task_affected_object_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of task affected object references by target object and relation. Used for: task affected object target searches
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_task_affected_object_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of task affected object references by target object and relation. Used for: task affected object target searches
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
-| `ownerOid` | xref:#m_task_affected_objects[`m_task_affected_objects.ownerOid`] | ON DELETE CASCADE
-| `affectedObjectCid` | xref:#m_task_affected_objects[`m_task_affected_objects.cid`] | ON DELETE CASCADE
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `ownerOid`
+| xref:#m_task_affected_objects[`m_task_affected_objects.ownerOid`]
+| ON DELETE CASCADE
+
+| `affectedObjectCid`
+| xref:#m_task_affected_objects[`m_task_affected_objects.cid`]
+| ON DELETE CASCADE
+
 |===
 
 [[m_task]]
@@ -110,63 +222,220 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | Task object identifier.
-| `objectType` | `ObjectType` |  | 
-| `taskIdentifier` | `TEXT` |  | Stable task identifier used by task manager logic.
-| `binding` | `TaskBindingType` |  | Task binding mode controlling node affinity.
-| `category` | `TEXT` |  | 
-| `completionTimestamp` | `TIMESTAMPTZ` |  | Time when the task completed.
-| `executionState` | `TaskExecutionStateType` |  | Current task execution state.
-| `fullResult` | `BYTEA` |  | Serialized full operation result for the task.
-| `resultStatus` | `OperationResultStatusType` |  | Summary operation result status for the task.
-| `handlerUriId` | `INTEGER` |  | URI identifier of the task handler.
-| `lastRunStartTimestamp` | `TIMESTAMPTZ` |  | Time when the last task run started.
-| `lastRunFinishTimestamp` | `TIMESTAMPTZ` |  | Time when the last task run finished.
-| `node` | `TEXT` |  | 
-| `objectRefTargetOid` | `UUID` |  | OID of the task object reference target.
-| `objectRefTargetType` | `ObjectType` |  | Object type of the task object reference target.
-| `objectRefRelationId` | `INTEGER` |  | Relation URI identifier of the task object reference.
-| `ownerRefTargetOid` | `UUID` |  | OID of the task owner reference target.
-| `ownerRefTargetType` | `ObjectType` |  | Object type of the task owner reference target.
-| `ownerRefRelationId` | `INTEGER` |  | Relation URI identifier of the task owner reference.
-| `parent` | `TEXT` |  | 
-| `recurrence` | `TaskRecurrenceType` |  | Task recurrence mode.
-| `schedulingState` | `TaskSchedulingStateType` |  | Task scheduling state.
-| `autoScalingMode` | `TaskAutoScalingModeType` |  | 
-| `threadStopAction` | `ThreadStopActionType` |  | Action taken when a task thread is stopped.
-| `waitingReason` | `TaskWaitingReasonType` |  | Reason why the task is waiting.
-| `dependentTaskIdentifiers` | `TEXT[]` |  | Identifiers of tasks this task depends on.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Task object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `taskIdentifier`
+| `TEXT`
+| 
+| Stable task identifier used by task manager logic.
+
+| `binding`
+| `TaskBindingType`
+| 
+| Task binding mode controlling node affinity.
+
+| `category`
+| `TEXT`
+| 
+| 
+
+| `completionTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the task completed.
+
+| `executionState`
+| `TaskExecutionStateType`
+| 
+| Current task execution state.
+
+| `fullResult`
+| `BYTEA`
+| 
+| Serialized full operation result for the task.
+
+| `resultStatus`
+| `OperationResultStatusType`
+| 
+| Summary operation result status for the task.
+
+| `handlerUriId`
+| `INTEGER`
+| 
+| URI identifier of the task handler.
+
+| `lastRunStartTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the last task run started.
+
+| `lastRunFinishTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the last task run finished.
+
+| `node`
+| `TEXT`
+| 
+| 
+
+| `objectRefTargetOid`
+| `UUID`
+| 
+| OID of the task object reference target.
+
+| `objectRefTargetType`
+| `ObjectType`
+| 
+| Object type of the task object reference target.
+
+| `objectRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the task object reference.
+
+| `ownerRefTargetOid`
+| `UUID`
+| 
+| OID of the task owner reference target.
+
+| `ownerRefTargetType`
+| `ObjectType`
+| 
+| Object type of the task owner reference target.
+
+| `ownerRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the task owner reference.
+
+| `parent`
+| `TEXT`
+| 
+| 
+
+| `recurrence`
+| `TaskRecurrenceType`
+| 
+| Task recurrence mode.
+
+| `schedulingState`
+| `TaskSchedulingStateType`
+| 
+| Task scheduling state.
+
+| `autoScalingMode`
+| `TaskAutoScalingModeType`
+| 
+| 
+
+| `threadStopAction`
+| `ThreadStopActionType`
+| 
+| Action taken when a task thread is stopped.
+
+| `waitingReason`
+| `TaskWaitingReasonType`
+| 
+| Reason why the task is waiting.
+
+| `dependentTaskIdentifiers`
+| `TEXT[]`
+| 
+| Identifiers of tasks this task depends on.
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_task_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
-| `m_task_nameNorm_idx` | `nameNorm` | Speeds up lookup by normalized object name. Used for: normalized name lookup
-| `m_task_parent_idx` | `parent` | Speeds up lookup of task children by parent task identifier. Used for: task hierarchy searches
-| `m_task_objectRefTargetOid_idx` | `objectRefTargetOid` | Speeds up lookup of tasks by referenced object. Used for: task object reference searches
-| `m_task_taskIdentifier_key` | `taskIdentifier` | Enforces unique task identifiers and speeds up task lookup by identifier. Used for: task identifier lookup and uniqueness checks. unique
-| `m_task_dependentTaskIdentifiers_idx` | `USING gin (dependentTaskIdentifiers)` | Speeds up lookup of tasks by dependent task identifiers. Used for: task dependency searches
-| `m_task_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
-| `m_task_policySituation_idx` | `USING gin (policysituations)` | Speeds up filtering by policy situation. Used for: policy situation filters
-| `m_task_ext_idx` | `USING gin (ext)` | Speeds up filtering by indexed extension values. Used for: extension item filters
-| `m_task_fullTextInfo_idx` | `USING gin (fullTextInfo)` | Speeds up full-text-like object searches. Used for: full-text-like object searches
-| `m_task_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
-| `m_task_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+| Name
+| Columns
+| Purpose / notes
+
+| `m_task_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_task_nameNorm_idx`
+| `nameNorm`
+| Speeds up lookup by normalized object name. Used for: normalized name lookup
+
+| `m_task_parent_idx`
+| `parent`
+| Speeds up lookup of task children by parent task identifier. Used for: task hierarchy searches
+
+| `m_task_objectRefTargetOid_idx`
+| `objectRefTargetOid`
+| Speeds up lookup of tasks by referenced object. Used for: task object reference searches
+
+| `m_task_taskIdentifier_key`
+| `taskIdentifier`
+| Enforces unique task identifiers and speeds up task lookup by identifier. Used for: task identifier lookup and uniqueness checks. unique
+
+| `m_task_dependentTaskIdentifiers_idx`
+| `USING gin (dependentTaskIdentifiers)`
+| Speeds up lookup of tasks by dependent task identifiers. Used for: task dependency searches
+
+| `m_task_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_task_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_task_ext_idx`
+| `USING gin (ext)`
+| Speeds up filtering by indexed extension values. Used for: extension item filters
+
+| `m_task_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_task_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_task_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
-| `handlerUriId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
-| `objectRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
-| `ownerRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+| `handlerUriId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `objectRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `ownerRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
 |===
 
 [[m_task_affected_objects]]
@@ -182,34 +451,116 @@ Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | primary key, required | OID of the task that owns the affected object entry.
-| `containerType` | `ContainerType` |  | 
-| `activityId` | `INTEGER` |  | URI identifier of the task activity.
-| `type` | `ObjectType` |  | Object type of the affected object.
-| `archetypeRefTargetOid` | `UUID` |  | OID of the affected object's archetype reference target.
-| `archetypeRefTargetType` | `ObjectType` |  | Object type of the affected object's archetype reference target.
-| `archetypeRefRelationId` | `INTEGER` |  | Relation URI identifier of the affected object's archetype reference.
-| `objectClassId` | `INTEGER` |  | URI identifier of the affected object class.
-| `resourceRefTargetOid` | `UUID` |  | OID of the affected object's resource reference target.
-| `resourceRefTargetType` | `ObjectType` |  | Object type of the affected object's resource reference target.
-| `resourceRefRelationId` | `INTEGER` |  | Relation URI identifier of the affected object's resource reference.
-| `intent` | `TEXT` |  | Intent of the affected resource object.
-| `kind` | `ShadowKindType` |  | Kind of the affected shadow object.
-| `executionMode` | `ExecutionModeType` |  | Execution mode associated with the affected object.
-| `predefinedConfigurationToUse` | `PredefinedConfigurationType` |  | Predefined configuration used for the affected object.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the task that owns the affected object entry.
+
+| `containerType`
+| `ContainerType`
+| 
+| 
+
+| `activityId`
+| `INTEGER`
+| 
+| URI identifier of the task activity.
+
+| `type`
+| `ObjectType`
+| 
+| Object type of the affected object.
+
+| `archetypeRefTargetOid`
+| `UUID`
+| 
+| OID of the affected object's archetype reference target.
+
+| `archetypeRefTargetType`
+| `ObjectType`
+| 
+| Object type of the affected object's archetype reference target.
+
+| `archetypeRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the affected object's archetype reference.
+
+| `objectClassId`
+| `INTEGER`
+| 
+| URI identifier of the affected object class.
+
+| `resourceRefTargetOid`
+| `UUID`
+| 
+| OID of the affected object's resource reference target.
+
+| `resourceRefTargetType`
+| `ObjectType`
+| 
+| Object type of the affected object's resource reference target.
+
+| `resourceRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the affected object's resource reference.
+
+| `intent`
+| `TEXT`
+| 
+| Intent of the affected resource object.
+
+| `kind`
+| `ShadowKindType`
+| 
+| Kind of the affected shadow object.
+
+| `executionMode`
+| `ExecutionModeType`
+| 
+| Execution mode associated with the affected object.
+
+| `predefinedConfigurationToUse`
+| `PredefinedConfigurationType`
+| 
+| Predefined configuration used for the affected object.
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
-| `activityId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
-| `archetypeRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
-| `objectClassId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
-| `resourceRefRelationId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `activityId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+| `archetypeRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+| `objectClassId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+| `resourceRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
 |===
 
 [[m_trigger]]
@@ -225,58 +576,93 @@ Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the trigger.
-| `containerType` | `ContainerType` |  | 
-| `handlerUriId` | `INTEGER` |  | URI identifier of the trigger handler.
-| `timestamp` | `TIMESTAMPTZ` |  | Time when the trigger should fire.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the object that owns the trigger.
+
+| `containerType`
+| `ContainerType`
+| 
+| 
+
+| `handlerUriId`
+| `INTEGER`
+| 
+| URI identifier of the trigger handler.
+
+| `timestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the trigger should fire.
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_trigger_timestamp_idx` | `timestamp` | Speeds up lookup of triggers by firing time. Used for: trigger scheduling searches
+| Name
+| Columns
+| Purpose / notes
+
+| `m_trigger_timestamp_idx`
+| `timestamp`
+| Speeds up lookup of triggers by firing time. Used for: trigger scheduling searches
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
-| `handlerUriId` | xref:infrastructure.adoc#m_uri[`m_uri.id`] | -
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `handlerUriId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
 |===
 
 == Triggers
 
 Triggers run routines automatically when table rows are inserted, updated, or deleted.
 
+[cols="2,3,2,2", options="header"]
+|===
+| Trigger
+| Description
+| Table
+| Executes
+
 [[trigger_m_task_oid_delete_tr]]
-=== `m_task_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_task`.
-
-Table: xref:#m_task[`m_task`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_task_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_task`.
+| xref:#m_task[`m_task`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_task_oid_insert_tr]]
-=== `m_task_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_task`.
-
-Table: xref:#m_task[`m_task`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_task_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_task`.
+| xref:#m_task[`m_task`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_task_update_tr]]
-=== `m_task_update_tr`
+| `m_task_update_tr`
+| Maintains object update metadata before rows are updated in `m_task`.
+| xref:#m_task[`m_task`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
-Maintains object update metadata before rows are updated in `m_task`.
-
-Table: xref:#m_task[`m_task`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+|===
 

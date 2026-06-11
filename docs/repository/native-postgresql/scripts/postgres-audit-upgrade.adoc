@@ -4,181 +4,146 @@ xref:../schema.adoc[Back to native PostgreSQL schema overview]
 
 This page documents schema changes applied to existing databases by `config/sql/native/postgres-audit-upgrade.sql`.
 
-== Changes
+== Version summary
 
-[[change-12]]
-=== Change 12
-
-Since version: 4.11
-
-        Adds `CONNECTOR_DEVELOPMENT` object type value.
-
-[cols="1,1,3", options="header"]
+[cols="1,1", options="header"]
 |===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `CONNECTOR_DEVELOPMENT`.
-|===
+| MidPoint version
+| Changes range
 
+| xref:postgres-audit-upgrade/4.11.adoc[midPoint 4.11]
+| 11-12
 
-[[change-11]]
-=== Change 11
+| xref:postgres-audit-upgrade/4.10.adoc[midPoint 4.10]
+| 10
 
-Since version: 4.11
+| xref:postgres-audit-upgrade/4.9.adoc[midPoint 4.9]
+| 9
 
-        Adds application object type value.
+| xref:postgres-audit-upgrade/4.8.adoc[midPoint 4.8]
+| 4-8
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `APPLICATION`.
-|===
+| xref:postgres-audit-upgrade/4.7.adoc[midPoint 4.7]
+| 3
 
+| xref:postgres-audit-upgrade/4.5.adoc[midPoint 4.5]
+| 2
 
-[[change-10]]
-=== Change 10
+| xref:postgres-audit-upgrade/4.4.1.adoc[midPoint 4.4.1]
+| 1
 
-Since version: 4.10
-
-        Adds schema object type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `SCHEMA`.
 |===
 
+== postgres-audit-upgrade.sql - midPoint 4.11
 
-[[change-9]]
-=== Change 9
+=== Changes
 
-Since version: 4.9
-
-        Adds policy object type value.
-
-[cols="1,1,3", options="header"]
+[cols="1,3", options="header"]
 |===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `POLICY`.
-|===
+| Change
+| Description
 
+| xref:postgres-audit-upgrade/4.11.adoc#change-12[Change 12]
+| Adds `CONNECTOR_DEVELOPMENT` object type value.
 
-[[change-8]]
-=== Change 8
+| xref:postgres-audit-upgrade/4.11.adoc#change-11[Change 11]
+| Adds application object type value.
 
-Since version: 4.8
-
-        Adds information disclosure audit event type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `AuditEventTypeType` | Modified enum type | Adds `INFORMATION_DISCLOSURE` audit event type.
 |===
 
+== postgres-audit-upgrade.sql - midPoint 4.10
 
-[[change-7]]
-=== Change 7
+=== Changes
 
-Since version: 4.8
-
-        Adds role analysis cluster and role analysis session object type values.
-
-[cols="1,1,3", options="header"]
+[cols="1,3", options="header"]
 |===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `ROLE_ANALYSIS_CLUSTER` and `ROLE_ANALYSIS_SESSION`.
-|===
+| Change
+| Description
 
+| xref:postgres-audit-upgrade/4.10.adoc#change-10[Change 10]
+| Adds schema object type value.
 
-[[change-6]]
-=== Change 6
-
-Since version: 4.8
-
-        Adds shadow kind and intent audit delta columns.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ShadowKindType` | New enum type | Adds shadow kind values when audit is installed separately.
-| `ma_audit_delta` | Modified table | Adds shadowKind and shadowIntent columns.
 |===
 
+== postgres-audit-upgrade.sql - midPoint 4.9
 
-[[change-5]]
-=== Change 5
+=== Changes
 
-Since version: 4.8
-
-        Adds effective-principal audit columns and privilege modification type.
-
-[cols="1,1,3", options="header"]
+[cols="1,3", options="header"]
 |===
-| Object | Change type | Description
-| `EffectivePrivilegesModificationType` | New enum type | Stores effective-principal privilege modification values.
-| `ma_audit_event` | Modified table | Adds effective-principal columns and privilege modification column.
-|===
+| Change
+| Description
 
+| xref:postgres-audit-upgrade/4.9.adoc#change-9[Change 9]
+| Adds policy object type value.
 
-[[change-4]]
-=== Change 4
-
-Since version: 4.8
-
-        Adds `RESOURCE` audit stage and `DISCOVER_OBJECT` audit event type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `AuditEventStageType` | Modified enum type | Adds `RESOURCE` audit stage.
-| `AuditEventTypeType` | Modified enum type | Adds `DISCOVER_OBJECT` audit event type.
 |===
 
+== postgres-audit-upgrade.sql - midPoint 4.8
 
-[[change-3]]
-=== Change 3
+=== Changes
 
-Since version: 4.7
-
-        Adds `SIMULATION_RESULT` and `MARK` object type values used by audit records.
-
-[cols="1,1,3", options="header"]
+[cols="1,3", options="header"]
 |===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `SIMULATION_RESULT` and `MARK`.
-|===
+| Change
+| Description
 
+| xref:postgres-audit-upgrade/4.8.adoc#change-8[Change 8]
+| Adds information disclosure audit event type value.
 
-[[change-2]]
-=== Change 2
+| xref:postgres-audit-upgrade/4.8.adoc#change-7[Change 7]
+| Adds role analysis cluster and role analysis session object type values.
 
-Since version: 4.5
+| xref:postgres-audit-upgrade/4.8.adoc#change-6[Change 6]
+| Adds shadow kind and intent audit delta columns.
 
-        Adds `MESSAGE_TEMPLATE` to audit object type values.
+| xref:postgres-audit-upgrade/4.8.adoc#change-5[Change 5]
+| Adds effective-principal audit columns and privilege modification type.
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `MESSAGE_TEMPLATE`.
+| xref:postgres-audit-upgrade/4.8.adoc#change-4[Change 4]
+| Adds `RESOURCE` audit stage and `DISCOVER_OBJECT` audit event type value.
+
 |===
 
+== postgres-audit-upgrade.sql - midPoint 4.7
 
-[[change-1]]
-=== Change 1
+=== Changes
 
-Since version: 4.4.1
-
-        Updates the audit monthly partition creation procedure to support creating partitions in the past using a negative argument.
-
-[cols="1,1,3", options="header"]
+[cols="1,3", options="header"]
 |===
-| Object | Change type | Description
-| `audit_create_monthly_partitions` | Modified procedure | Supports creating audit partitions in past months using a negative argument.
-| `ma_audit_event_<month>` | New generated partition | Creates monthly audit event partitions.
-| `ma_audit_delta_<month>` | New generated partition | Creates monthly audit delta partitions.
-| `ma_audit_ref_<month>` | New generated partition | Creates monthly audit reference partitions.
-| `ma_audit_delta_<month>_fk` | New generated foreign key | Links monthly audit delta partitions to matching audit event partitions.
-| `ma_audit_ref_<month>_fk` | New generated foreign key | Links monthly audit reference partitions to matching audit event partitions.
+| Change
+| Description
+
+| xref:postgres-audit-upgrade/4.7.adoc#change-3[Change 3]
+| Adds `SIMULATION_RESULT` and `MARK` object type values used by audit records.
+
 |===
 
+== postgres-audit-upgrade.sql - midPoint 4.5
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-audit-upgrade/4.5.adoc#change-2[Change 2]
+| Adds `MESSAGE_TEMPLATE` to audit object type values.
+
+|===
+
+== postgres-audit-upgrade.sql - midPoint 4.4.1
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-audit-upgrade/4.4.1.adoc#change-1[Change 1]
+| Updates the audit monthly partition creation procedure to support creating partitions in the past using a negative argument.
+
+|===
 

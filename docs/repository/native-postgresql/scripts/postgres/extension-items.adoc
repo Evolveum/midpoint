@@ -23,19 +23,49 @@ Catalog of extension and attribute items indexed in JSON extension storage.
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `id` | `SERIAL` | primary key, required | Numeric extension item identifier used as key in JSON extension storage.
-| `itemName` | `TEXT` | required | Extension or attribute item QName.
-| `valueType` | `TEXT` | required | Value type QName.
-| `holderType` | `ExtItemHolderType` | required | Holder category for the indexed item.
-| `cardinality` | `ExtItemCardinality` | required | Cardinality of indexed item values.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `id`
+| `SERIAL`
+| primary key, required
+| Numeric extension item identifier used as key in JSON extension storage.
+
+| `itemName`
+| `TEXT`
+| required
+| Extension or attribute item QName.
+
+| `valueType`
+| `TEXT`
+| required
+| Value type QName.
+
+| `holderType`
+| `ExtItemHolderType`
+| required
+| Holder category for the indexed item.
+
+| `cardinality`
+| `ExtItemCardinality`
+| required
+| Cardinality of indexed item values.
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_ext_item_key` | `itemName, holderType, valueType, cardinality` | Enforces unique extension item definitions and speeds up lookup during raw extension processing. Used for: extension item catalog lookup and uniqueness checks. unique
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ext_item_key`
+| `itemName, holderType, valueType, cardinality`
+| Enforces unique extension item definitions and speeds up lookup during raw extension processing. Used for: extension item catalog lookup and uniqueness checks. unique
+
 |===
 

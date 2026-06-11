@@ -20,6 +20,7 @@ public final class TableDoc {
     private final DocRegion region;
     private final DocMetadata metadata;
     private final List<ColumnDoc> columns;
+    private final List<String> primaryKeyColumns;
     private final List<IndexDoc> indexes;
     private final List<ForeignKeyDoc> foreignKeys;
     private final String inheritsFrom;
@@ -32,6 +33,7 @@ public final class TableDoc {
             DocRegion region,
             DocMetadata metadata,
             List<ColumnDoc> columns,
+            List<String> primaryKeyColumns,
             List<IndexDoc> indexes,
             List<ForeignKeyDoc> foreignKeys,
             String inheritsFrom,
@@ -42,6 +44,7 @@ public final class TableDoc {
         this.region = region;
         this.metadata = metadata != null ? metadata : DocMetadata.EMPTY;
         this.columns = List.copyOf(columns);
+        this.primaryKeyColumns = List.copyOf(primaryKeyColumns);
         this.indexes = List.copyOf(indexes);
         this.foreignKeys = List.copyOf(foreignKeys);
         this.inheritsFrom = inheritsFrom;
@@ -67,6 +70,10 @@ public final class TableDoc {
 
     public List<ColumnDoc> columns() {
         return columns;
+    }
+
+    public List<String> primaryKeyColumns() {
+        return primaryKeyColumns;
     }
 
     public List<IndexDoc> indexes() {

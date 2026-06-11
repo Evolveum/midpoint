@@ -8,14 +8,16 @@ The following native PostgreSQL schema changes are introduced in this release.
 
 [cols="1,1,4", options="header"]
 |===
-| Change number | Script | Change
+| Change number
+| Script
+| Change
 
-    #foreach ($change in $changes)
+#foreach ($change in $changes)
 | $r.upgradeChangeNumber($change)
 | `$r.upgradeChangeScript($change)`
 | $r.changeText($change)
 
-    #end
+#end
 |===
 #end
 // DB-DOCS-SCHEMA-CHANGES-END

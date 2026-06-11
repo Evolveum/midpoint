@@ -44,12 +44,29 @@ public class AsciiDocFormat {
         return "xref:" + relativePageLink(targetPage, view) + "[" + label + "]";
     }
 
+    public String pageAnchorXref(Path targetPage, String anchor, String label, SchemaDocView view) {
+        return "xref:" + relativePageLink(targetPage, view) + "#" + anchor + "[" + label + "]";
+    }
+
     public String tableXref(TableDoc table, SchemaDocView view) {
         return xref(view.pageFor(table), table.name(), table.name(), view);
     }
 
     public String objectXref(String kind, SqlObjectDoc object, SchemaDocView view) {
         return xref(view.pageFor(object), anchor(kind, object.name()), object.name(), view);
+    }
+
+    public String objectAnchorKind(SqlObjectDoc object) {
+        return switch (object.kind()) {
+            case FUNCTION, PROCEDURE -> "routine";
+            case TRIGGER -> "trigger";
+            case EXTENSION -> "extension";
+            case SCHEMA -> "schema";
+            case ENUM_TYPE -> "enum";
+            case MATERIALIZED_VIEW, VIEW -> "view";
+            case DO_BLOCK -> "do-block";
+            case ALTER_TABLE -> "alter-table";
+        };
     }
 
     public String tableReference(String tableName, SchemaDocView view) {
@@ -116,6 +133,10 @@ public class AsciiDocFormat {
         return "Unnumbered change";
     }
 
+    public String upgradeVersionLabel(String midpointVersion) {
+        return "midPoint " + midpointVersion;
+    }
+
     public String upgradeChangeNumber(UpgradeChangeDoc change) {
         return metadataValue(change.changeNumber(), "-");
     }
@@ -130,6 +151,26 @@ public class AsciiDocFormat {
         }
 
         return String.join(", ", column.constraints());
+    }
+
+    public String enumValues(SqlObjectDoc enumType) {
+        return enumType.values().stream()
+                .map(value -> "`" + value + "`")
+                .reduce((left, right) -> left + ", " + right)
+                .orElse("");
+    }
+
+    public boolean hasPrimaryKeySummary(TableDoc table) {
+        return table.primaryKeyColumns().isEmpty();
+    }
+
+    public String primaryKeySummary(TableDoc table, SchemaDocView view) {
+        if (table.inheritsFrom() != null) {
+            return "No primary key is defined directly on this table. The table inherits from "
+                    + tableReference(table.inheritsFrom(), view) + ".";
+        }
+
+        return "No primary key is defined for this table.";
     }
 
     /**

@@ -27,28 +27,61 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | Node object identifier.
-| `objectType` | `ObjectType` |  | 
-| `nodeIdentifier` | `TEXT` |  | Node identifier used by the cluster.
-| `operationalState` | `NodeOperationalStateType` |  | Operational state of the node.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Node object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `nodeIdentifier`
+| `TEXT`
+| 
+| Node identifier used by the cluster.
+
+| `operationalState`
+| `NodeOperationalStateType`
+| 
+| Operational state of the node.
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_node_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
-| `m_node_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+| Name
+| Columns
+| Purpose / notes
+
+| `m_node_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_node_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
 |===
 
 [[m_security_policy]]
@@ -64,31 +97,71 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | Security policy object identifier.
-| `objectType` | `ObjectType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Security policy object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_security_policy_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
-| `m_security_policy_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
-| `m_security_policy_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
-| `m_security_policy_policySituation_idx` | `USING gin (policysituations)` | Speeds up filtering by policy situation. Used for: policy situation filters
-| `m_security_policy_fullTextInfo_idx` | `USING gin (fullTextInfo)` | Speeds up full-text-like object searches. Used for: full-text-like object searches
-| `m_security_policy_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
-| `m_security_policy_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+| Name
+| Columns
+| Purpose / notes
+
+| `m_security_policy_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_security_policy_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_security_policy_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_security_policy_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_security_policy_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_security_policy_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_security_policy_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
 |===
 
 [[m_system_configuration]]
@@ -104,109 +177,113 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | System configuration object identifier.
-| `objectType` | `ObjectType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| System configuration object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_system_configuration_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+| Name
+| Columns
+| Purpose / notes
+
+| `m_system_configuration_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
 |===
 
 == Triggers
 
 Triggers run routines automatically when table rows are inserted, updated, or deleted.
 
+[cols="2,3,2,2", options="header"]
+|===
+| Trigger
+| Description
+| Table
+| Executes
+
 [[trigger_m_node_oid_delete_tr]]
-=== `m_node_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_node`.
-
-Table: xref:#m_node[`m_node`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_node_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_node`.
+| xref:#m_node[`m_node`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_node_oid_insert_tr]]
-=== `m_node_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_node`.
-
-Table: xref:#m_node[`m_node`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_node_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_node`.
+| xref:#m_node[`m_node`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_node_update_tr]]
-=== `m_node_update_tr`
-
-Maintains object update metadata before rows are updated in `m_node`.
-
-Table: xref:#m_node[`m_node`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+| `m_node_update_tr`
+| Maintains object update metadata before rows are updated in `m_node`.
+| xref:#m_node[`m_node`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
 [[trigger_m_security_policy_oid_delete_tr]]
-=== `m_security_policy_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_security_policy`.
-
-Table: xref:#m_security_policy[`m_security_policy`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_security_policy_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_security_policy`.
+| xref:#m_security_policy[`m_security_policy`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_security_policy_oid_insert_tr]]
-=== `m_security_policy_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_security_policy`.
-
-Table: xref:#m_security_policy[`m_security_policy`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_security_policy_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_security_policy`.
+| xref:#m_security_policy[`m_security_policy`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_security_policy_update_tr]]
-=== `m_security_policy_update_tr`
-
-Maintains object update metadata before rows are updated in `m_security_policy`.
-
-Table: xref:#m_security_policy[`m_security_policy`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+| `m_security_policy_update_tr`
+| Maintains object update metadata before rows are updated in `m_security_policy`.
+| xref:#m_security_policy[`m_security_policy`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
 [[trigger_m_system_configuration_oid_delete_tr]]
-=== `m_system_configuration_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_system_configuration`.
-
-Table: xref:#m_system_configuration[`m_system_configuration`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_system_configuration_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_system_configuration`.
+| xref:#m_system_configuration[`m_system_configuration`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_system_configuration_oid_insert_tr]]
-=== `m_system_configuration_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_system_configuration`.
-
-Table: xref:#m_system_configuration[`m_system_configuration`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_system_configuration_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_system_configuration`.
+| xref:#m_system_configuration[`m_system_configuration`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_system_configuration_update_tr]]
-=== `m_system_configuration_update_tr`
+| `m_system_configuration_update_tr`
+| Maintains object update metadata before rows are updated in `m_system_configuration`.
+| xref:#m_system_configuration[`m_system_configuration`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
-Maintains object update metadata before rows are updated in `m_system_configuration`.
-
-Table: xref:#m_system_configuration[`m_system_configuration`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+|===
 

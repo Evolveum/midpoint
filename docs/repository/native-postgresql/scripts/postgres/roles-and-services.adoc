@@ -23,18 +23,52 @@ Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#Abstrac
 
 Inherits from: xref:focus-and-users.adoc#m_focus[`m_focus`]
 
+No primary key is defined directly on this table. The table inherits from xref:focus-and-users.adoc#m_focus[`m_focus`].
+
 ==== Columns
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `objectType` | `ObjectType` | required | 
-| `autoAssignEnabled` | `BOOLEAN` |  | Whether auto-assignment is enabled for this abstract role.
-| `displayNameOrig` | `TEXT` |  | Display name in original form.
-| `displayNameNorm` | `TEXT` |  | Display name in normalized form used for searches.
-| `identifier` | `TEXT` |  | Business or application identifier of the abstract role.
-| `requestable` | `BOOLEAN` |  | Whether this abstract role can be requested.
-| `riskLevel` | `TEXT` |  | Risk level associated with the abstract role.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `objectType`
+| `ObjectType`
+| required
+| 
+
+| `autoAssignEnabled`
+| `BOOLEAN`
+| 
+| Whether auto-assignment is enabled for this abstract role.
+
+| `displayNameOrig`
+| `TEXT`
+| 
+| Display name in original form.
+
+| `displayNameNorm`
+| `TEXT`
+| 
+| Display name in normalized form used for searches.
+
+| `identifier`
+| `TEXT`
+| 
+| Business or application identifier of the abstract role.
+
+| `requestable`
+| `BOOLEAN`
+| 
+| Whether this abstract role can be requested.
+
+| `riskLevel`
+| `TEXT`
+| 
+| Risk level associated with the abstract role.
+
 |===
 
 [[m_application]]
@@ -50,33 +84,79 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | Application object identifier.
-| `objectType` | `ObjectType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Application object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_application_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
-| `m_application_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
-| `m_application_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
-| `m_application_identifier_idx` | `identifier` | Speeds up lookup by abstract role identifier. Used for: identifier searches
-| `m_application_validFrom_idx` | `validFrom` | Speeds up filtering by activation validity start time. Used for: validity interval filters
-| `m_application_validTo_idx` | `validTo` | Speeds up filtering by activation validity end time. Used for: validity interval filters
-| `m_application_fullTextInfo_idx` | `USING gin (fullTextInfo)` | Speeds up full-text-like object searches. Used for: full-text-like object searches
-| `m_application_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
-| `m_application_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+| Name
+| Columns
+| Purpose / notes
+
+| `m_application_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_application_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_application_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_application_identifier_idx`
+| `identifier`
+| Speeds up lookup by abstract role identifier. Used for: identifier searches
+
+| `m_application_validFrom_idx`
+| `validFrom`
+| Speeds up filtering by activation validity start time. Used for: validity interval filters
+
+| `m_application_validTo_idx`
+| `validTo`
+| Speeds up filtering by activation validity end time. Used for: validity interval filters
+
+| `m_application_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_application_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_application_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
 |===
 
 [[m_archetype]]
@@ -92,33 +172,79 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | Archetype object identifier.
-| `objectType` | `ObjectType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Archetype object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_archetype_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
-| `m_archetype_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
-| `m_archetype_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
-| `m_archetype_identifier_idx` | `identifier` | Speeds up lookup by abstract role identifier. Used for: identifier searches
-| `m_archetype_validFrom_idx` | `validFrom` | Speeds up filtering by activation validity start time. Used for: validity interval filters
-| `m_archetype_validTo_idx` | `validTo` | Speeds up filtering by activation validity end time. Used for: validity interval filters
-| `m_archetype_fullTextInfo_idx` | `USING gin (fullTextInfo)` | Speeds up full-text-like object searches. Used for: full-text-like object searches
-| `m_archetype_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
-| `m_archetype_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+| Name
+| Columns
+| Purpose / notes
+
+| `m_archetype_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_archetype_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_archetype_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_archetype_identifier_idx`
+| `identifier`
+| Speeds up lookup by abstract role identifier. Used for: identifier searches
+
+| `m_archetype_validFrom_idx`
+| `validFrom`
+| Speeds up filtering by activation validity start time. Used for: validity interval filters
+
+| `m_archetype_validTo_idx`
+| `validTo`
+| Speeds up filtering by activation validity end time. Used for: validity interval filters
+
+| `m_archetype_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_archetype_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_archetype_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
 |===
 
 [[m_policy]]
@@ -134,33 +260,79 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | Policy object identifier.
-| `objectType` | `ObjectType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Policy object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_policy_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
-| `m_policy_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
-| `m_policy_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
-| `m_policy_identifier_idx` | `identifier` | Speeds up lookup by abstract role identifier. Used for: identifier searches
-| `m_policy_validFrom_idx` | `validFrom` | Speeds up filtering by activation validity start time. Used for: validity interval filters
-| `m_policy_validTo_idx` | `validTo` | Speeds up filtering by activation validity end time. Used for: validity interval filters
-| `m_policy_fullTextInfo_idx` | `USING gin (fullTextInfo)` | Speeds up full-text-like object searches. Used for: full-text-like object searches
-| `m_policy_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
-| `m_policy_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+| Name
+| Columns
+| Purpose / notes
+
+| `m_policy_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_policy_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_policy_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_policy_identifier_idx`
+| `identifier`
+| Speeds up lookup by abstract role identifier. Used for: identifier searches
+
+| `m_policy_validFrom_idx`
+| `validFrom`
+| Speeds up filtering by activation validity start time. Used for: validity interval filters
+
+| `m_policy_validTo_idx`
+| `validTo`
+| Speeds up filtering by activation validity end time. Used for: validity interval filters
+
+| `m_policy_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_policy_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_policy_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
 |===
 
 [[m_role]]
@@ -176,33 +348,79 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | Role object identifier.
-| `objectType` | `ObjectType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Role object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_role_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
-| `m_role_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
-| `m_role_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
-| `m_role_identifier_idx` | `identifier` | Speeds up lookup by abstract role identifier. Used for: identifier searches
-| `m_role_validFrom_idx` | `validFrom` | Speeds up filtering by activation validity start time. Used for: validity interval filters
-| `m_role_validTo_idx` | `validTo` | Speeds up filtering by activation validity end time. Used for: validity interval filters
-| `m_role_fullTextInfo_idx` | `USING gin (fullTextInfo)` | Speeds up full-text-like object searches. Used for: full-text-like object searches
-| `m_role_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
-| `m_role_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+| Name
+| Columns
+| Purpose / notes
+
+| `m_role_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_role_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_role_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_role_identifier_idx`
+| `identifier`
+| Speeds up lookup by abstract role identifier. Used for: identifier searches
+
+| `m_role_validFrom_idx`
+| `validFrom`
+| Speeds up filtering by activation validity start time. Used for: validity interval filters
+
+| `m_role_validTo_idx`
+| `validTo`
+| Speeds up filtering by activation validity end time. Used for: validity interval filters
+
+| `m_role_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_role_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_role_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
 |===
 
 [[m_service]]
@@ -218,172 +436,186 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required | Service object identifier.
-| `objectType` | `ObjectType` |  | 
-| `displayOrder` | `INTEGER` |  | Display ordering value for service presentation.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Service object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `displayOrder`
+| `INTEGER`
+| 
+| Display ordering value for service presentation.
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_service_nameOrig_idx` | `nameOrig` | Speeds up lookup by original object name. Used for: original name searches
-| `m_service_nameNorm_key` | `nameNorm` | Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
-| `m_service_subtypes_idx` | `USING gin (subtypes)` | Speeds up filtering by object subtype. Used for: subtype filters
-| `m_service_identifier_idx` | `identifier` | Speeds up lookup by abstract role identifier. Used for: identifier searches
-| `m_service_validFrom_idx` | `validFrom` | Speeds up filtering by activation validity start time. Used for: validity interval filters
-| `m_service_validTo_idx` | `validTo` | Speeds up filtering by activation validity end time. Used for: validity interval filters
-| `m_service_fullTextInfo_idx` | `USING gin (fullTextInfo)` | Speeds up full-text-like object searches. Used for: full-text-like object searches
-| `m_service_createTimestamp_idx` | `createTimestamp` | Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
-| `m_service_modifyTimestamp_idx` | `modifyTimestamp` | Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+| Name
+| Columns
+| Purpose / notes
+
+| `m_service_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_service_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_service_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_service_identifier_idx`
+| `identifier`
+| Speeds up lookup by abstract role identifier. Used for: identifier searches
+
+| `m_service_validFrom_idx`
+| `validFrom`
+| Speeds up filtering by activation validity start time. Used for: validity interval filters
+
+| `m_service_validTo_idx`
+| `validTo`
+| Speeds up filtering by activation validity end time. Used for: validity interval filters
+
+| `m_service_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_service_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_service_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `oid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
 |===
 
 == Triggers
 
 Triggers run routines automatically when table rows are inserted, updated, or deleted.
 
+[cols="2,3,2,2", options="header"]
+|===
+| Trigger
+| Description
+| Table
+| Executes
+
 [[trigger_m_application_oid_delete_tr]]
-=== `m_application_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_application`.
-
-Table: xref:#m_application[`m_application`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_application_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_application`.
+| xref:#m_application[`m_application`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_application_oid_insert_tr]]
-=== `m_application_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_application`.
-
-Table: xref:#m_application[`m_application`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_application_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_application`.
+| xref:#m_application[`m_application`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_application_update_tr]]
-=== `m_application_update_tr`
-
-Maintains object update metadata before rows are updated in `m_application`.
-
-Table: xref:#m_application[`m_application`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+| `m_application_update_tr`
+| Maintains object update metadata before rows are updated in `m_application`.
+| xref:#m_application[`m_application`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
 [[trigger_m_archetype_oid_delete_tr]]
-=== `m_archetype_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_archetype`.
-
-Table: xref:#m_archetype[`m_archetype`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_archetype_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_archetype`.
+| xref:#m_archetype[`m_archetype`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_archetype_oid_insert_tr]]
-=== `m_archetype_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_archetype`.
-
-Table: xref:#m_archetype[`m_archetype`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_archetype_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_archetype`.
+| xref:#m_archetype[`m_archetype`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_archetype_update_tr]]
-=== `m_archetype_update_tr`
-
-Maintains object update metadata before rows are updated in `m_archetype`.
-
-Table: xref:#m_archetype[`m_archetype`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+| `m_archetype_update_tr`
+| Maintains object update metadata before rows are updated in `m_archetype`.
+| xref:#m_archetype[`m_archetype`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
 [[trigger_m_policy_oid_delete_tr]]
-=== `m_policy_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_policy`.
-
-Table: xref:#m_policy[`m_policy`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_policy_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_policy`.
+| xref:#m_policy[`m_policy`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_policy_oid_insert_tr]]
-=== `m_policy_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_policy`.
-
-Table: xref:#m_policy[`m_policy`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_policy_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_policy`.
+| xref:#m_policy[`m_policy`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_policy_update_tr]]
-=== `m_policy_update_tr`
-
-Maintains object update metadata before rows are updated in `m_policy`.
-
-Table: xref:#m_policy[`m_policy`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+| `m_policy_update_tr`
+| Maintains object update metadata before rows are updated in `m_policy`.
+| xref:#m_policy[`m_policy`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
 [[trigger_m_role_oid_delete_tr]]
-=== `m_role_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_role`.
-
-Table: xref:#m_role[`m_role`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_role_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_role`.
+| xref:#m_role[`m_role`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_role_oid_insert_tr]]
-=== `m_role_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_role`.
-
-Table: xref:#m_role[`m_role`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_role_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_role`.
+| xref:#m_role[`m_role`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_role_update_tr]]
-=== `m_role_update_tr`
-
-Maintains object update metadata before rows are updated in `m_role`.
-
-Table: xref:#m_role[`m_role`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+| `m_role_update_tr`
+| Maintains object update metadata before rows are updated in `m_role`.
+| xref:#m_role[`m_role`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
 [[trigger_m_service_oid_delete_tr]]
-=== `m_service_oid_delete_tr`
-
-Removes the object OID registry entry when rows are deleted from `m_service`.
-
-Table: xref:#m_service[`m_service`]
-
-Executes: xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+| `m_service_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_service`.
+| xref:#m_service[`m_service`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
 
 [[trigger_m_service_oid_insert_tr]]
-=== `m_service_oid_insert_tr`
-
-Maintains the object OID registry when rows are inserted into `m_service`.
-
-Table: xref:#m_service[`m_service`]
-
-Executes: xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+| `m_service_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_service`.
+| xref:#m_service[`m_service`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
 
 [[trigger_m_service_update_tr]]
-=== `m_service_update_tr`
+| `m_service_update_tr`
+| Maintains object update metadata before rows are updated in `m_service`.
+| xref:#m_service[`m_service`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
-Maintains object update metadata before rows are updated in `m_service`.
-
-Table: xref:#m_service[`m_service`]
-
-Executes: xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+|===
 

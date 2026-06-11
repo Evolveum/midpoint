@@ -42,6 +42,22 @@ public class SchemaDocView {
     private static final Set<SqlObjectDoc.Kind> DOCUMENTED_ALTERS = EnumSet.of(SqlObjectDoc.Kind.ALTER_TABLE);
     private static final Set<SqlObjectDoc.Kind> INFRASTRUCTURE = EnumSet.of(
             SqlObjectDoc.Kind.EXTENSION, SqlObjectDoc.Kind.SCHEMA);
+    private static final Set<SqlObjectDoc.Kind> OVERVIEW_OBJECTS = EnumSet.of(
+            SqlObjectDoc.Kind.VIEW,
+            SqlObjectDoc.Kind.MATERIALIZED_VIEW,
+            SqlObjectDoc.Kind.ENUM_TYPE,
+            SqlObjectDoc.Kind.FUNCTION,
+            SqlObjectDoc.Kind.PROCEDURE,
+            SqlObjectDoc.Kind.TRIGGER,
+            SqlObjectDoc.Kind.EXTENSION,
+            SqlObjectDoc.Kind.SCHEMA,
+            SqlObjectDoc.Kind.DO_BLOCK,
+            SqlObjectDoc.Kind.ALTER_TABLE);
+    private static final Set<SqlObjectDoc.Kind> OTHER_OVERVIEW_OBJECTS = EnumSet.copyOf(OVERVIEW_OBJECTS);
+
+    static {
+        OTHER_OVERVIEW_OBJECTS.removeAll(VIEWS);
+    }
 
     // Full schema, used for cross-page links and lookups.
     private final SchemaDoc schemaDoc;
@@ -103,6 +119,19 @@ public class SchemaDocView {
                 region);
     }
 
+    public SchemaDocView forUpgradeVersion(SqlFileDoc sourceFile, String midpointVersion) {
+        return new SchemaDocView(
+                schemaDoc,
+                new SchemaDoc(
+                        List.of(),
+                        List.of(),
+                        List.of(sourceFile),
+                        upgradeChangesFor(sourceFile, midpointVersion)),
+                List.of(sourceFile),
+                pageResolver.upgradeVersionPagePath(sourceFile.path(), midpointVersion),
+                null);
+    }
+
     public Path currentPage() {
         return currentPage;
     }
@@ -119,6 +148,10 @@ public class SchemaDocView {
 
     public Path postgresRegionPagePath(DocRegion region) {
         return pageResolver.postgresRegionPagePath(region);
+    }
+
+    public Path upgradeVersionPagePath(SqlFileDoc sourceFile, String midpointVersion) {
+        return pageResolver.upgradeVersionPagePath(sourceFile.path(), midpointVersion);
     }
 
     public Path pageFor(TableDoc table) {
@@ -204,10 +237,32 @@ public class SchemaDocView {
         return objectsFor(sourceFile, DOCUMENTED_ALTERS);
     }
 
+    public boolean hasOverviewObjectsFor(SqlFileDoc sourceFile) {
+        return !overviewObjectsFor(sourceFile).isEmpty();
+    }
+
+    public List<SqlObjectDoc> overviewObjectsFor(SqlFileDoc sourceFile) {
+        return objectsFor(sourceFile, OVERVIEW_OBJECTS);
+    }
+
+    public boolean hasOtherOverviewObjectsFor(SqlFileDoc sourceFile) {
+        return !otherOverviewObjectsFor(sourceFile).isEmpty();
+    }
+
+    public List<SqlObjectDoc> otherOverviewObjectsFor(SqlFileDoc sourceFile) {
+        return objectsFor(sourceFile, OTHER_OVERVIEW_OBJECTS);
+    }
+
     private List<UpgradeChangeDoc> upgradeChangesFor(SqlFileDoc sourceFile) {
         return schemaDoc.upgradeChanges().stream()
                 .filter(change -> samePath(change.sourceFile(), sourceFile.path()))
                 .sorted(Comparator.comparingInt(UpgradeChangeDoc::numericChangeNumber).reversed())
+                .toList();
+    }
+
+    private List<UpgradeChangeDoc> upgradeChangesFor(SqlFileDoc sourceFile, String midpointVersion) {
+        return upgradeChangesFor(sourceFile).stream()
+                .filter(change -> upgradeVersion(change).equals(midpointVersion))
                 .toList();
     }
 
@@ -241,6 +296,24 @@ public class SchemaDocView {
 
     public List<SqlObjectDoc> documentedAlters() {
         return objects(DOCUMENTED_ALTERS);
+    }
+
+    public List<UpgradeVersionChanges> upgradeChangesByMidpointVersion() {
+        Map<String, List<UpgradeChangeDoc>> changesByVersion = new LinkedHashMap<>();
+        for (UpgradeChangeDoc change : visibleSchemaDoc.upgradeChanges()) {
+            changesByVersion
+                    .computeIfAbsent(upgradeVersion(change), ignored -> new ArrayList<>())
+                    .add(change);
+        }
+
+        return changesByVersion.entrySet().stream()
+                .sorted((left, right) -> compareVersions(right.getKey(), left.getKey()))
+                .map(entry -> new UpgradeVersionChanges(
+                        entry.getKey(),
+                        entry.getValue().stream()
+                                .sorted(Comparator.comparingInt(UpgradeChangeDoc::numericChangeNumber).reversed())
+                                .toList()))
+                .toList();
     }
 
     public DocRegion regionFor(TableDoc table) {
@@ -317,6 +390,43 @@ public class SchemaDocView {
         return null;
     }
 
+    private String upgradeVersion(UpgradeChangeDoc change) {
+        return change.metadata().since() != null ? change.metadata().since() : "Unspecified";
+    }
+
+    private int compareVersions(String left, String right) {
+        if ("Unspecified".equals(left) && "Unspecified".equals(right)) {
+            return 0;
+        } else if ("Unspecified".equals(left)) {
+            return -1;
+        } else if ("Unspecified".equals(right)) {
+            return 1;
+        }
+
+        String[] leftParts = left.split("\\.");
+        String[] rightParts = right.split("\\.");
+        int length = Math.max(leftParts.length, rightParts.length);
+        for (int i = 0; i < length; i++) {
+            int comparison = Integer.compare(versionPart(leftParts, i), versionPart(rightParts, i));
+            if (comparison != 0) {
+                return comparison;
+            }
+        }
+        return left.compareTo(right);
+    }
+
+    private int versionPart(String[] versionParts, int index) {
+        if (index >= versionParts.length) {
+            return 0;
+        }
+
+        try {
+            return Integer.parseInt(versionParts[index]);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     private boolean samePath(Path left, Path right) {
         return left.toAbsolutePath().normalize().equals(right.toAbsolutePath().normalize());
     }
@@ -331,5 +441,23 @@ public class SchemaDocView {
             sourceFiles.add(new SqlFileDoc(sqlFile, SqlFileDoc.category(sqlFile)));
         }
         return sourceFiles;
+    }
+
+    public record UpgradeVersionChanges(String midpointVersion, List<UpgradeChangeDoc> changes) {
+
+        public String changesRange() {
+            List<Integer> numbers = changes.stream()
+                    .map(UpgradeChangeDoc::numericChangeNumber)
+                    .filter(number -> number >= 0)
+                    .sorted()
+                    .toList();
+            if (numbers.isEmpty()) {
+                return "-";
+            }
+
+            int first = numbers.get(0);
+            int last = numbers.get(numbers.size() - 1);
+            return first == last ? String.valueOf(first) : first + "-" + last;
+        }
     }
 }

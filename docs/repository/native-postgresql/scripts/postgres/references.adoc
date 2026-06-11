@@ -25,25 +25,49 @@ Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the archetype reference.
-| `referenceType` | `ReferenceType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the object that owns the archetype reference.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_ref_archetype_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of archetype references by target object and relation. Used for: archetype reference target searches
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_archetype_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of archetype references by target object and relation. Used for: archetype reference target searches
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
 |===
 
 [[m_ref_delegated]]
@@ -57,25 +81,49 @@ Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the delegated reference.
-| `referenceType` | `ReferenceType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the object that owns the delegated reference.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_ref_delegated_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of delegated references by target object and relation. Used for: delegated reference target searches
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_delegated_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of delegated references by target object and relation. Used for: delegated reference target searches
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
 |===
 
 [[m_ref_object_create_approver]]
@@ -89,25 +137,49 @@ Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the create-approver reference.
-| `referenceType` | `ReferenceType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the object that owns the create-approver reference.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_ref_object_create_approver_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of object create-approver references by target object and relation. Used for: object create-approver reference target searches
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_object_create_approver_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of object create-approver references by target object and relation. Used for: object create-approver reference target searches
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
 |===
 
 [[m_ref_object_effective_mark]]
@@ -121,25 +193,49 @@ Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the effective mark reference.
-| `referenceType` | `ReferenceType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the object that owns the effective mark reference.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_ref_object_effective_mark_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of object effective mark references by target object and relation. Used for: effective mark reference target searches
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_object_effective_mark_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of object effective mark references by target object and relation. Used for: effective mark reference target searches
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
 |===
 
 [[m_ref_object_modify_approver]]
@@ -153,25 +249,49 @@ Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the modify-approver reference.
-| `referenceType` | `ReferenceType` |  | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the object that owns the modify-approver reference.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_ref_object_modify_approver_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of object modify-approver references by target object and relation. Used for: object modify-approver reference target searches
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_object_modify_approver_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of object modify-approver references by target object and relation. Used for: object modify-approver reference target searches
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
 |===
 
 [[m_ref_role_membership]]
@@ -185,25 +305,53 @@ Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | primary key, required | OID of the object that owns the role membership reference.
-| `referenceType` | `ReferenceType` |  | 
-| `fullObject` | `BYTEA` |  | Serialized reference value when full reference data is needed.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the object that owns the role membership reference.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
+| `fullObject`
+| `BYTEA`
+| 
+| Serialized reference value when full reference data is needed.
+
 |===
 
 ==== Indexes
 
 [cols="1,2,2", options="header"]
 |===
-| Name | Columns | Purpose / notes
-| `m_ref_role_membership_targetOidRelationId_idx` | `targetOid, relationId` | Speeds up reverse lookup of role membership references by target object and relation. Used for: role membership target searches
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_role_membership_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of role membership references by target object and relation. Used for: role membership target searches
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
 |===
 

@@ -23,6 +23,18 @@ public class PageResolver {
     }
 
     /**
+     * Returns the generated upgrade detail page path for one midPoint version.
+     */
+    public Path upgradeVersionPagePath(Path sourceFile, String midpointVersion) {
+        String scriptName = scriptOutputFileName(sourceFile);
+        scriptName = scriptName.substring(0, scriptName.length() - ".adoc".length());
+        return Path.of(
+                DbSchemaAsciiDocRenderer.SCRIPTS_DIRECTORY,
+                scriptName,
+                upgradeVersionOutputFileName(midpointVersion));
+    }
+
+    /**
      * Returns the generated AsciiDoc file name for a source SQL file.
      */
     public static String scriptOutputFileName(Path sqlFile) {
@@ -31,6 +43,10 @@ public class PageResolver {
             fileName = fileName.substring(0, fileName.length() - ".sql".length());
         }
         return fileName + ".adoc";
+    }
+
+    private String upgradeVersionOutputFileName(String midpointVersion) {
+        return midpointVersion.replaceAll("[^A-Za-z0-9._-]", "_") + ".adoc";
     }
 
     /**

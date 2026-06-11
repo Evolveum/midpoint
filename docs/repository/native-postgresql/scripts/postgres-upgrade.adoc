@@ -4,919 +4,295 @@ xref:../schema.adoc[Back to native PostgreSQL schema overview]
 
 This page documents schema changes applied to existing databases by `config/sql/native/postgres-upgrade.sql`.
 
-== Changes
+== Version summary
 
-[[change-57]]
-=== Change 57
-
-Since version: 4.11
-
-        Recreates connector type/version uniqueness indexes with connector-host specific predicates.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_connector_typeVersion_key` | New index | Enforces connector type/version uniqueness when connector host is not set.
-| `m_connector_typeVersionHost_key` | New index | Enforces connector type/version/host uniqueness when connector host is set.
-|===
-
-
-[[change-56]]
-=== Change 56
-
-Since version: 4.11
-
-        Drops old connector type/version uniqueness indexes before recreating them.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_connector_typeVersion_key` | Removed index | Drops old connector type/version uniqueness index.
-| `m_connector_typeversionhost_key` | Removed index | Drops old connector type/version/host uniqueness index.
-|===
-
-
-[[change-55]]
-=== Change 55
-
-Since version: 4.11
-
-        Adds connector development object table and triggers.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_connector_development` | New table | Stores connector development objects.
-| `m_connector_development_oid_insert_tr` | New trigger | Reserves OID rows for inserted connector development objects.
-| `m_connector_development_update_tr` | New trigger | Maintains update metadata for connector development objects.
-| `m_connector_development_oid_delete_tr` | New trigger | Releases OID rows for deleted connector development objects.
-|===
-
-
-[[change-54]]
-=== Change 54
-
-Since version: 4.11
-
-        Adds `CONNECTOR_DEVELOPMENT` object type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `CONNECTOR_DEVELOPMENT`.
-|===
-
-
-[[change-53]]
-=== Change 53
-
-Since version: 4.11
-
-        Adds application object table, triggers, and indexes.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_application` | New table | Stores application objects.
-| `m_application_oid_insert_tr` | New trigger | Reserves OID rows for inserted applications.
-| `m_application_update_tr` | New trigger | Maintains update metadata for applications.
-| `m_application_oid_delete_tr` | New trigger | Releases OID rows for deleted applications.
-| `m_application_nameOrig_idx` | New index | Supports lookup by original object name.
-| `m_application_nameNorm_key` | New unique index | Enforces unique normalized object names.
-| `m_application_subtypes_idx` | New index | Supports filtering by subtype.
-| `m_application_identifier_idx` | New index | Supports lookup by identifier.
-| `m_application_validFrom_idx` | New index | Supports filtering by validity start.
-| `m_application_validTo_idx` | New index | Supports filtering by validity end.
-| `m_application_fullTextInfo_idx` | New index | Supports full-text-like searches.
-| `m_application_createTimestamp_idx` | New index | Supports filtering or ordering by creation time.
-| `m_application_modifyTimestamp_idx` | New index | Supports filtering or ordering by modification time.
-|===
-
-
-[[change-52]]
-=== Change 52
-
-Since version: 4.11
-
-        Adds `APPLICATION` object type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `APPLICATION`.
-|===
-
-
-[[change-51]]
-=== Change 51
-
-Since version: 4.10
-
-        Updates shadow partition creation function to disable and re-enable only user triggers.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_shadow_create_partition` | Modified function | Disables and re-enables only user triggers while moving shadow data.
-|===
-
-
-[[change-50]]
-=== Change 50
-
-Since version: 4.9
-
-        Adds overall confidence column and index to role analysis outlier partitions.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_role_analysis_outlier_partition` | Modified table | Adds overall confidence column.
-| `m_role_analysis_outlier_partition_overallConfidence_idx` | New index | Supports filtering by overall confidence.
-|===
-
-
-[[change-49]]
-=== Change 49
-
-Since version: 4.9
-
-        Adds role analysis detected pattern and outlier partition tables, columns, and indexes.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_role_analysis_cluster_detected_pattern` | New table | Stores detected patterns for role analysis clusters.
-| `m_role_analysis_cluster_detected_pattern_reductionCount_idx` | New index | Supports filtering by reduction count.
-| `m_role_analysis_outlier_partition` | New table | Stores role analysis outlier partitions.
-| `m_role_analysis_outlier_partition_clusterRefOid_idx` | New index | Supports lookup by cluster reference OID.
-| `m_role_analysis_outlier` | Modified table | Adds overall confidence column.
-| `m_role_analysis_outlier_overallConfidence_idx` | New index | Supports filtering by overall confidence.
-|===
-
-
-[[change-48]]
-=== Change 48
-
-Since version: 4.9
-
-        Adds role analysis cluster detected pattern and outlier partition container type values.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ContainerType` | Modified enum type | Adds `CLUSTER_DETECTED_PATTERN` and `OUTLIER_PARTITION`.
-|===
-
-
-[[change-47]]
-=== Change 47
-
-Since version: 4.9
-
-        Adds last login timestamp column and index to shadows.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_shadow` | Modified table | Adds last login timestamp column.
-| `m_shadow_default_lastLoginTimestamp_idx` | New index | Supports filtering by last login timestamp.
-|===
-
-
-[[change-46]]
-=== Change 46
-
-Since version: 4.9
-
-        Adds target object reference columns and indexes to role analysis outliers.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_role_analysis_outlier` | Modified table | Adds target object reference columns.
-| `m_role_analysis_outlier_targetObjectRefTargetOid_idx` | New index | Supports lookup by target object OID.
-| `m_role_analysis_outlier_targetObjectRefTargetType_idx` | New index | Supports lookup by target object type.
-| `m_role_analysis_outlier_targetObjectRefRelationId_idx` | New index | Supports lookup by target object relation.
-|===
-
-
-[[change-45]]
-=== Change 45
-
-Since version: 4.9
-
-        Adds shadow enable/disable timestamp and disable reason columns.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_shadow` | Modified table | Adds disable reason, enable timestamp, and disable timestamp columns.
-|===
-
-
-[[change-44]]
-=== Change 44
-
-Since version: 4.9
-
-        Renames shadow kind value from `ASSOCIATED` to `ASSOCIATION`.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ShadowKindType` | Modified enum type | Renames `ASSOCIATED` to `ASSOCIATION`.
-|===
-
-
-[[change-43]]
-=== Change 43
-
-Since version: 4.9
-
-        Adds shadow partition management functions, partition definition table, and triggers.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_shadow_create_partition` | New function | Creates shadow partitions and moves existing shadow data.
-| `m_shadow_delete_partition` | New function | Drops shadow partitions when partition definitions are removed.
-| `m_shadow_update_partition` | New function | Attaches shadow partitions when partition definitions change.
-| `m_shadow_partition_def` | New table | Stores shadow partition definitions.
-| `m_shadow_partition_def_bi` | New trigger | Creates shadow partitions from inserted partition definitions.
-| `m_shadow_partition_def_bu` | New trigger | Updates shadow partition attachment state.
-| `m_shadow_partition_def_bd` | New trigger | Drops shadow partitions when definitions are deleted.
-|===
-
-
-[[change-42]]
-=== Change 42
-
-Since version: 4.9
-
-        Converts shadow storage to resource-partitioned shadow tables and recreates object view.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_shadow` | Recreated table | Converts shadow storage to resource-partitioned table.
-| `m_shadow_default` | Modified table | Becomes default partition of the new shadow table.
-| `m_object_view` | Recreated view | Combines object and shadow rows for object-wide queries.
-| `m_shadow_oid_insert_tr` | Recreated trigger | Reserves OID rows for inserted shadows.
-| `m_shadow_update_tr` | Recreated trigger | Maintains update metadata for shadows.
-| `m_shadow_oid_delete_tr` | Recreated trigger | Releases OID rows for deleted shadows.
-|===
-
-
-[[change-41]]
-=== Change 41
-
-Since version: 4.9
-
-        Adds assignment effective mark reference table and target lookup index.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_ref_assignment_effective_mark` | New table | Stores effective mark references for assignments.
-| `m_ref_assignment_effective_mark_targetOidRelationId_idx` | New index | Supports reverse lookup of assignment effective mark references.
-|===
-
-
-[[change-40]]
-=== Change 40
-
-Since version: 4.9
-
-        Adds `ASSIGNMENT_EFFECTIVE_MARK` reference type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ReferenceType` | Modified enum type | Adds `ASSIGNMENT_EFFECTIVE_MARK`.
-|===
-
-
-[[change-39]]
-=== Change 39
-
-Since version: 4.9
-
-        Adds task affected object reference table, foreign key, and target lookup index.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_ref_task_affected_object` | New table | Stores affected-object references for tasks.
-| `m_ref_task_affected_object_id_fk` | New foreign key | Links affected-object references to task affected object rows.
-| `m_ref_task_affected_object_targetOidRelationId_idx` | New index | Supports reverse lookup by target object and relation.
-|===
-
-
-[[change-38]]
-=== Change 38
-
-Since version: 4.9
-
-        Adds `TASK_AFFECTED_OBJECT` reference type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ReferenceType` | Modified enum type | Adds `TASK_AFFECTED_OBJECT`.
-|===
-
-
-[[change-37]]
-=== Change 37
-
-Since version: 4.9
-
-        Adds shadow reference attribute table and owner OID index.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_shadow_ref_attribute` | New table | Stores shadow reference attribute values.
-| `m_shadow_ref_attribute_ownerOid_idx` | New index | Supports lookup of shadow reference attributes by owner OID.
-|===
-
-
-[[change-36]]
-=== Change 36
-
-Since version: 4.9
-
-        Adds role analysis outlier table and triggers.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_role_analysis_outlier` | New table | Stores role analysis outlier objects.
-| `m_role_analysis_outlier_oid_insert_tr` | New trigger | Reserves OID rows for inserted role analysis outliers.
-| `m_role_analysis_outlier_update_tr` | New trigger | Maintains update metadata for role analysis outliers.
-| `m_role_analysis_outlier_oid_delete_tr` | New trigger | Releases OID rows for deleted role analysis outliers.
-|===
-
-
-[[change-35]]
-=== Change 35
-
-Since version: 4.9
-
-        Adds `ROLE_ANALYSIS_OUTLIER` object type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `ROLE_ANALYSIS_OUTLIER`.
-|===
-
-
-[[change-34]]
-=== Change 34
-
-Since version: 4.9
-
-        Updates assignment metadata primary key and adds foreign key to assignments.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_assignment_metadata` | Modified table | Replaces primary key and adds foreign key to assignments.
-|===
-
-
-[[change-33]]
-=== Change 33
-
-Since version: 4.9
-
-        Adds assignment metadata table and updates assignment approval reference keys.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_assignment_metadata` | New table | Stores value metadata for assignments and inducements.
-| `m_assignment_metadata_createTimestamp_idx` | New index | Supports filtering or ordering assignment metadata by creation time.
-| `m_assignment_metadata_modifyTimestamp_idx` | New index | Supports filtering or ordering assignment metadata by modification time.
-| `m_assignment_ref_create_approver` | Modified table | Adds metadata container ID and updates uniqueness key.
-| `m_assignment_ref_modify_approver` | Modified table | Adds metadata container ID and updates uniqueness key.
-|===
-
-
-[[change-32]]
-=== Change 32
-
-Since version: 4.9
-
-        Adds `ASSIGNMENT_METADATA` container type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ContainerType` | Modified enum type | Adds `ASSIGNMENT_METADATA`.
-|===
-
-
-[[change-31]]
-=== Change 31
-
-Since version: 4.9
-
-        Adds `ASSOCIATED` shadow kind value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ShadowKindType` | Modified enum type | Adds temporary `ASSOCIATED` shadow kind value.
-|===
-
-
-[[change-30]]
-=== Change 30
-
-Since version: 4.9
-
-        Adds schema object table and triggers.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_schema` | New table | Stores schema objects.
-| `m_schema_oid_insert_tr` | New trigger | Reserves OID rows for inserted schema objects.
-| `m_schema_update_tr` | New trigger | Maintains update metadata for schema objects.
-| `m_schema_oid_delete_tr` | New trigger | Releases OID rows for deleted schema objects.
+[cols="1,1", options="header"]
 |===
+| MidPoint version
+| Changes range
 
+| xref:postgres-upgrade/4.11.adoc[midPoint 4.11]
+| 52-57
 
-[[change-29]]
-=== Change 29
+| xref:postgres-upgrade/4.10.adoc[midPoint 4.10]
+| 51
 
-Since version: 4.9
+| xref:postgres-upgrade/4.9.adoc[midPoint 4.9]
+| 26-50
 
-        Adds `SCHEMA` object type value.
+| xref:postgres-upgrade/4.8.adoc[midPoint 4.8]
+| 16-25
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `SCHEMA`.
-|===
-
-
-[[change-28]]
-=== Change 28
-
-Since version: 4.9
-
-        Adds policy object table, triggers, and indexes.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_policy` | New table | Stores policy objects.
-| `m_policy_oid_insert_tr` | New trigger | Reserves OID rows for inserted policy objects.
-| `m_policy_update_tr` | New trigger | Maintains update metadata for policy objects.
-| `m_policy_oid_delete_tr` | New trigger | Releases OID rows for deleted policy objects.
-| `m_policy_nameOrig_idx` | New index | Supports lookup by original object name.
-| `m_policy_nameNorm_key` | New unique index | Enforces unique normalized object names.
-| `m_policy_subtypes_idx` | New index | Supports filtering by subtype.
-| `m_policy_identifier_idx` | New index | Supports lookup by identifier.
-| `m_policy_validFrom_idx` | New index | Supports filtering by validity start.
-| `m_policy_validTo_idx` | New index | Supports filtering by validity end.
-| `m_policy_fullTextInfo_idx` | New index | Supports full-text-like searches.
-| `m_policy_createTimestamp_idx` | New index | Supports filtering or ordering by creation time.
-| `m_policy_modifyTimestamp_idx` | New index | Supports filtering or ordering by modification time.
-|===
+| xref:postgres-upgrade/4.7.adoc[midPoint 4.7]
+| 12-15
 
+| xref:postgres-upgrade/4.6.adoc[midPoint 4.6]
+| 6-11
 
-[[change-27]]
-=== Change 27
+| xref:postgres-upgrade/4.5.adoc[midPoint 4.5]
+| 2-5
 
-Since version: 4.9
+| xref:postgres-upgrade/4.4.1.adoc[midPoint 4.4.1]
+| 1
 
-        Adds `POLICY` object type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `POLICY`.
-|===
-
-
-[[change-26]]
-=== Change 26
-
-Since version: 4.9
-
-        Adds separate full object storage to assignments, operation executions, and selected reference tables.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_assignment` | Modified table | Adds separate full object storage.
-| `m_operation_execution` | Modified table | Adds separate full object storage.
-| `m_ref_projection` | Modified table | Adds separate full object storage.
-| `m_ref_role_membership` | Modified table | Adds separate full object storage.
 |===
 
+== postgres-upgrade.sql - midPoint 4.11
 
-[[change-25]]
-=== Change 25
+=== Changes
 
-Since version: 4.8
-
-        Updates organization closure refresh procedure to use advisory locking.
-
-[cols="1,1,3", options="header"]
+[cols="1,3", options="header"]
 |===
-| Object | Change type | Description
-| `m_refresh_org_closure` | Modified procedure | Uses advisory locking while refreshing organization closure data.
-|===
-
+| Change
+| Description
 
-[[change-24]]
-=== Change 24
+| xref:postgres-upgrade/4.11.adoc#change-57[Change 57]
+| Recreates connector type/version uniqueness indexes with connector-host specific predicates.
 
-Since version: 4.8
-
-        Adds connector display name columns.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_connector` | Modified table | Adds original and normalized display name columns.
-|===
+| xref:postgres-upgrade/4.11.adoc#change-56[Change 56]
+| Drops old connector type/version uniqueness indexes before recreating them.
 
+| xref:postgres-upgrade/4.11.adoc#change-55[Change 55]
+| Adds connector development object table and triggers.
 
-[[change-23]]
-=== Change 23
+| xref:postgres-upgrade/4.11.adoc#change-54[Change 54]
+| Adds `CONNECTOR_DEVELOPMENT` object type value.
 
-Since version: 4.8
+| xref:postgres-upgrade/4.11.adoc#change-53[Change 53]
+| Adds application object table, triggers, and indexes.
 
-        Adds role analysis cluster and role analysis session tables, triggers, and indexes.
+| xref:postgres-upgrade/4.11.adoc#change-52[Change 52]
+| Adds `APPLICATION` object type value.
 
-[cols="1,1,3", options="header"]
 |===
-| Object | Change type | Description
-| `m_role_analysis_cluster` | New table | Stores role analysis cluster objects.
-| `m_role_analysis_cluster_oid_insert_tr` | New trigger | Reserves OID rows for inserted role analysis clusters.
-| `m_role_analysis_cluster_update_tr` | New trigger | Maintains update metadata for role analysis clusters.
-| `m_role_analysis_cluster_oid_delete_tr` | New trigger | Releases OID rows for deleted role analysis clusters.
-| `m_role_analysis_cluster_parentRefTargetOid_idx` | New index | Supports lookup by parent reference target OID.
-| `m_role_analysis_cluster_parentRefTargetType_idx` | New index | Supports lookup by parent reference target type.
-| `m_role_analysis_cluster_parentRefRelationId_idx` | New index | Supports lookup by parent reference relation.
-| `m_role_analysis_session` | New table | Stores role analysis session objects.
-| `m_role_analysis_session_oid_insert_tr` | New trigger | Reserves OID rows for inserted role analysis sessions.
-| `m_role_analysis_session_update_tr` | New trigger | Maintains update metadata for role analysis sessions.
-| `m_role_analysis_session_oid_delete_tr` | New trigger | Releases OID rows for deleted role analysis sessions.
-|===
-
 
-[[change-22]]
-=== Change 22
+== postgres-upgrade.sql - midPoint 4.10
 
-Since version: 4.8
+=== Changes
 
-        Adds `ROLE_ANALYSIS_CLUSTER` and `ROLE_ANALYSIS_SESSION` object type values.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `ROLE_ANALYSIS_CLUSTER` and `ROLE_ANALYSIS_SESSION`.
+[cols="1,3", options="header"]
 |===
+| Change
+| Description
 
+| xref:postgres-upgrade/4.10.adoc#change-51[Change 51]
+| Updates shadow partition creation function to disable and re-enable only user triggers.
 
-[[change-21]]
-=== Change 21
-
-Since version: 4.8
-
-        Adds personal number column to users.
-
-[cols="1,1,3", options="header"]
 |===
-| Object | Change type | Description
-| `m_user` | Modified table | Adds personal number column.
-|===
-
 
-[[change-20]]
-=== Change 20
+== postgres-upgrade.sql - midPoint 4.9
 
-Since version: 4.8
+=== Changes
 
-        Adds execution mode and predefined configuration enum types and task affected object columns.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ExecutionModeType` | New enum type | Adds task execution mode values.
-| `PredefinedConfigurationType` | New enum type | Adds predefined configuration values.
-| `m_task_affected_objects` | Modified table | Adds execution mode and predefined configuration columns.
+[cols="1,3", options="header"]
 |===
-
-
-[[change-19]]
-=== Change 19
+| Change
+| Description
 
-Since version: 4.8
+| xref:postgres-upgrade/4.9.adoc#change-50[Change 50]
+| Adds overall confidence column and index to role analysis outlier partitions.
 
-        Recreates task affected object indexing table.
+| xref:postgres-upgrade/4.9.adoc#change-49[Change 49]
+| Adds role analysis detected pattern and outlier partition tables, columns, and indexes.
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_task_affected_resource_objects` | Removed table | Drops obsolete development-time table if present.
-| `m_task_affected_objects` | Recreated table | Stores affected object data for tasks.
-|===
+| xref:postgres-upgrade/4.9.adoc#change-48[Change 48]
+| Adds role analysis cluster detected pattern and outlier partition container type values.
 
+| xref:postgres-upgrade/4.9.adoc#change-47[Change 47]
+| Adds last login timestamp column and index to shadows.
 
-[[change-18]]
-=== Change 18
+| xref:postgres-upgrade/4.9.adoc#change-46[Change 46]
+| Adds target object reference columns and indexes to role analysis outliers.
 
-Since version: 4.8
-
-        Adds resource super-reference columns.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_resource` | Modified table | Adds resource super-reference columns.
-|===
+| xref:postgres-upgrade/4.9.adoc#change-45[Change 45]
+| Adds shadow enable/disable timestamp and disable reason columns.
 
+| xref:postgres-upgrade/4.9.adoc#change-44[Change 44]
+| Renames shadow kind value from `ASSOCIATED` to `ASSOCIATION`.
 
-[[change-17]]
-=== Change 17
+| xref:postgres-upgrade/4.9.adoc#change-43[Change 43]
+| Adds shadow partition management functions, partition definition table, and triggers.
 
-Since version: 4.8
+| xref:postgres-upgrade/4.9.adoc#change-42[Change 42]
+| Converts shadow storage to resource-partitioned shadow tables and recreates object view.
 
-        Keeps change number reserved for replaced task affected object indexing change.
+| xref:postgres-upgrade/4.9.adoc#change-41[Change 41]
+| Adds assignment effective mark reference table and target lookup index.
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `change number` | Reserved change | Keeps this change number reserved because the original table change was replaced by a later change.
-|===
+| xref:postgres-upgrade/4.9.adoc#change-40[Change 40]
+| Adds `ASSIGNMENT_EFFECTIVE_MARK` reference type value.
 
+| xref:postgres-upgrade/4.9.adoc#change-39[Change 39]
+| Adds task affected object reference table, foreign key, and target lookup index.
 
-[[change-16]]
-=== Change 16
+| xref:postgres-upgrade/4.9.adoc#change-38[Change 38]
+| Adds `TASK_AFFECTED_OBJECT` reference type value.
 
-Since version: 4.8
+| xref:postgres-upgrade/4.9.adoc#change-37[Change 37]
+| Adds shadow reference attribute table and owner OID index.
 
-        Adds `AFFECTED_OBJECTS` container type value for task affected object indexing.
+| xref:postgres-upgrade/4.9.adoc#change-36[Change 36]
+| Adds role analysis outlier table and triggers.
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ContainerType` | Modified enum type | Adds `AFFECTED_OBJECTS`.
-|===
+| xref:postgres-upgrade/4.9.adoc#change-35[Change 35]
+| Adds `ROLE_ANALYSIS_OUTLIER` object type value.
 
+| xref:postgres-upgrade/4.9.adoc#change-34[Change 34]
+| Updates assignment metadata primary key and adds foreign key to assignments.
 
-[[change-15]]
-=== Change 15
+| xref:postgres-upgrade/4.9.adoc#change-33[Change 33]
+| Adds assignment metadata table and updates assignment approval reference keys.
 
-Since version: 4.7
+| xref:postgres-upgrade/4.9.adoc#change-32[Change 32]
+| Adds `ASSIGNMENT_METADATA` container type value.
 
-        Adds queryable `abstract` flag to resources.
+| xref:postgres-upgrade/4.9.adoc#change-31[Change 31]
+| Adds `ASSOCIATED` shadow kind value.
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_resource` | Modified table | Adds queryable `abstract` flag.
-|===
+| xref:postgres-upgrade/4.9.adoc#change-30[Change 30]
+| Adds schema object table and triggers.
 
+| xref:postgres-upgrade/4.9.adoc#change-29[Change 29]
+| Adds `SCHEMA` object type value.
 
-[[change-14]]
-=== Change 14
+| xref:postgres-upgrade/4.9.adoc#change-28[Change 28]
+| Adds policy object table, triggers, and indexes.
 
-Since version: 4.7
+| xref:postgres-upgrade/4.9.adoc#change-27[Change 27]
+| Adds `POLICY` object type value.
 
-        Renames approval reference indexes to use consistent naming.
+| xref:postgres-upgrade/4.9.adoc#change-26[Change 26]
+| Adds separate full object storage to assignments, operation executions, and selected reference tables.
 
-[cols="1,1,3", options="header"]
 |===
-| Object | Change type | Description
-| `m_ref_object_create_approverTargetOidRelationId_idx` | Renamed index | Renames create-approver reference index to consistent naming.
-| `m_ref_object_modify_approverTargetOidRelationId_idx` | Renamed index | Renames modify-approver reference index to consistent naming.
-|===
-
 
-[[change-13]]
-=== Change 13
+== postgres-upgrade.sql - midPoint 4.8
 
-Since version: 4.7
+=== Changes
 
-        Adds simulation result, processed object, mark, and effective mark tables, triggers, functions, and indexes.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_simulation_result` | New table | Stores simulation result objects.
-| `m_simulation_result_oid_insert_tr` | New trigger | Reserves OID rows for inserted simulation results.
-| `m_simulation_result_update_tr` | New trigger | Maintains update metadata for simulation results.
-| `m_simulation_result_oid_delete_tr` | New trigger | Releases OID rows for deleted simulation results.
-| `ObjectProcessingStateType` | New enum type | Stores processed object states for simulation results.
-| `m_simulation_result_processed_object` | New table | Stores processed objects belonging to simulation results.
-| `m_simulation_result_processed_object_default` | New partition | Default partition for processed simulation objects.
-| `m_simulation_result_create_partition` | New function | Creates processed-object partitions for partitioned simulation results.
-| `m_simulation_result_create_partition` | New trigger | Creates processed-object partition when a partitioned simulation result is inserted.
-| `m_simulation_result_delete_partition` | New function | Drops processed-object partitions when a simulation result is deleted.
-| `m_simulation_result_delete_partition` | New trigger | Deletes processed-object partition before deleting a simulation result.
-| `m_processed_object_event_mark` | New table | Stores event mark references for processed simulation objects.
-| `m_processed_object_event_mark_default` | New partition | Default partition for processed-object event mark references.
-| `m_mark` | New table | Stores mark objects.
-| `m_ref_object_effective_mark` | New table | Stores effective mark references for objects.
-| `m_ref_object_effective_mark_targetOidRelationId_idx` | New index | Supports reverse lookup of effective mark references.
+[cols="1,3", options="header"]
 |===
-
-
-[[change-12]]
-=== Change 12
+| Change
+| Description
 
-Since version: 4.7
+| xref:postgres-upgrade/4.8.adoc#change-25[Change 25]
+| Updates organization closure refresh procedure to use advisory locking.
 
-        Adds simulation, mark, and related reference/container enum values.
+| xref:postgres-upgrade/4.8.adoc#change-24[Change 24]
+| Adds connector display name columns.
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `MARK` and `SIMULATION_RESULT`.
-| `ReferenceType` | Modified enum type | Adds processed-object event mark and object effective mark reference values.
-| `ContainerType` | Modified enum type | Adds `SIMULATION_RESULT_PROCESSED_OBJECT`.
-|===
+| xref:postgres-upgrade/4.8.adoc#change-23[Change 23]
+| Adds role analysis cluster and role analysis session tables, triggers, and indexes.
 
+| xref:postgres-upgrade/4.8.adoc#change-22[Change 22]
+| Adds `ROLE_ANALYSIS_CLUSTER` and `ROLE_ANALYSIS_SESSION` object type values.
 
-[[change-11]]
-=== Change 11
+| xref:postgres-upgrade/4.8.adoc#change-21[Change 21]
+| Adds personal number column to users.
 
-Since version: 4.6
-
-        Adds connector availability flag.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_connector` | Modified table | Adds connector availability flag.
-|===
+| xref:postgres-upgrade/4.8.adoc#change-20[Change 20]
+| Adds execution mode and predefined configuration enum types and task affected object columns.
 
+| xref:postgres-upgrade/4.8.adoc#change-19[Change 19]
+| Recreates task affected object indexing table.
 
-[[change-10]]
-=== Change 10
+| xref:postgres-upgrade/4.8.adoc#change-18[Change 18]
+| Adds resource super-reference columns.
 
-Since version: 4.6
+| xref:postgres-upgrade/4.8.adoc#change-17[Change 17]
+| Keeps change number reserved for replaced task affected object indexing change.
 
-        Adds resource template flag.
+| xref:postgres-upgrade/4.8.adoc#change-16[Change 16]
+| Adds `AFFECTED_OBJECTS` container type value for task affected object indexing.
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_resource` | Modified table | Adds resource template flag.
 |===
-
-
-[[change-9]]
-=== Change 9
 
-Since version: 4.6
+== postgres-upgrade.sql - midPoint 4.7
 
-        Adds focus identity container table and normalized focus data indexing.
+=== Changes
 
-[cols="1,1,3", options="header"]
+[cols="1,3", options="header"]
 |===
-| Object | Change type | Description
-| `m_focus_identity` | New table | Stores focus identity containers for correlation.
-| `m_focus_identity_sourceResourceRefTargetOid_idx` | New index | Supports lookup of focus identities by source resource.
-| `m_focus` | Modified table | Adds normalized focus data storage.
-| `m_focus_normalizedData_idx` | New index | Supports filtering by normalized focus data.
-|===
+| Change
+| Description
 
+| xref:postgres-upgrade/4.7.adoc#change-15[Change 15]
+| Adds queryable `abstract` flag to resources.
 
-[[change-8]]
-=== Change 8
+| xref:postgres-upgrade/4.7.adoc#change-14[Change 14]
+| Renames approval reference indexes to use consistent naming.
 
-Since version: 4.6
+| xref:postgres-upgrade/4.7.adoc#change-13[Change 13]
+| Adds simulation result, processed object, mark, and effective mark tables, triggers, functions, and indexes.
 
-        Adds fuzzy string matching extension and `FOCUS_IDENTITY` container type value for smart correlation.
+| xref:postgres-upgrade/4.7.adoc#change-12[Change 12]
+| Adds simulation, mark, and related reference/container enum values.
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `fuzzystrmatch` | New extension | Enables fuzzy string matching used by smart correlation.
-| `ContainerType` | Modified enum type | Adds `FOCUS_IDENTITY`.
 |===
 
+== postgres-upgrade.sql - midPoint 4.6
 
-[[change-7]]
-=== Change 7
+=== Changes
 
-Since version: 4.6
-
-        Adds administrative availability status column to resources.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_resource` | Modified table | Adds administrative availability status column.
+[cols="1,3", options="header"]
 |===
+| Change
+| Description
 
+| xref:postgres-upgrade/4.6.adoc#change-11[Change 11]
+| Adds connector availability flag.
 
-[[change-6]]
-=== Change 6
+| xref:postgres-upgrade/4.6.adoc#change-10[Change 10]
+| Adds resource template flag.
 
-Since version: 4.6
+| xref:postgres-upgrade/4.6.adoc#change-9[Change 9]
+| Adds focus identity container table and normalized focus data indexing.
 
-        Adds `AdministrativeAvailabilityStatusType` enum type.
+| xref:postgres-upgrade/4.6.adoc#change-8[Change 8]
+| Adds fuzzy string matching extension and `FOCUS_IDENTITY` container type value for smart correlation.
 
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `AdministrativeAvailabilityStatusType` | New enum type | Adds administrative availability values for resources.
-|===
-
-
-[[change-5]]
-=== Change 5
+| xref:postgres-upgrade/4.6.adoc#change-7[Change 7]
+| Adds administrative availability status column to resources.
 
-Since version: 4.5
+| xref:postgres-upgrade/4.6.adoc#change-6[Change 6]
+| Adds `AdministrativeAvailabilityStatusType` enum type.
 
-        Adds correlation timestamps and situation columns to shadows, including supporting indexes.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `m_shadow` | Modified table | Adds correlation timestamps and correlation situation columns.
-| `m_shadow_correlationStartTimestamp_idx` | New index | Supports filtering by correlation start time.
-| `m_shadow_correlationEndTimestamp_idx` | New index | Supports filtering by correlation end time.
-| `m_shadow_correlationCaseOpenTimestamp_idx` | New index | Supports filtering by correlation case open time.
-| `m_shadow_correlationCaseCloseTimestamp_idx` | New index | Supports filtering by correlation case close time.
 |===
 
+== postgres-upgrade.sql - midPoint 4.5
 
-[[change-4]]
-=== Change 4
+=== Changes
 
-Since version: 4.5
-
-        Adds `CorrelationSituationType` enum type for identity matching.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `CorrelationSituationType` | New enum type | Adds identity matching correlation situation values.
+[cols="1,3", options="header"]
 |===
+| Change
+| Description
 
+| xref:postgres-upgrade/4.5.adoc#change-5[Change 5]
+| Adds correlation timestamps and situation columns to shadows, including supporting indexes.
 
-[[change-3]]
-=== Change 3
+| xref:postgres-upgrade/4.5.adoc#change-4[Change 4]
+| Adds `CorrelationSituationType` enum type for identity matching.
 
-Since version: 4.5
+| xref:postgres-upgrade/4.5.adoc#change-3[Change 3]
+| Adds `m_message_template` table, triggers, and indexes.
 
-        Adds `m_message_template` table, triggers, and indexes.
+| xref:postgres-upgrade/4.5.adoc#change-2[Change 2]
+| Adds `MESSAGE_TEMPLATE` object type value.
 
-[cols="1,1,3", options="header"]
 |===
-| Object | Change type | Description
-| `m_message_template` | New table | Stores message template objects.
-| `m_message_template_oid_insert_tr` | New trigger | Reserves OID rows for inserted message templates.
-| `m_message_template_update_tr` | New trigger | Maintains update metadata for message templates.
-| `m_message_template_oid_delete_tr` | New trigger | Releases OID rows for deleted message templates.
-| `m_message_template_nameOrig_idx` | New index | Supports lookup by original object name.
-| `m_message_template_nameNorm_key` | New unique index | Enforces unique normalized object names.
-| `m_message_template_policySituation_idx` | New index | Supports filtering by policy situation.
-| `m_message_template_createTimestamp_idx` | New index | Supports filtering or ordering by creation time.
-| `m_message_template_modifyTimestamp_idx` | New index | Supports filtering or ordering by modification time.
-|===
-
 
-[[change-2]]
-=== Change 2
+== postgres-upgrade.sql - midPoint 4.4.1
 
-Since version: 4.5
+=== Changes
 
-        Adds `MESSAGE_TEMPLATE` object type value.
-
-[cols="1,1,3", options="header"]
-|===
-| Object | Change type | Description
-| `ObjectType` | Modified enum type | Adds `MESSAGE_TEMPLATE`.
+[cols="1,3", options="header"]
 |===
+| Change
+| Description
 
+| xref:postgres-upgrade/4.4.1.adoc#change-1[Change 1]
+| Adds triggers that mark organization closure data for refresh after organization insert, delete, or truncate.
 
-[[change-1]]
-=== Change 1
-
-Since version: 4.4.1
-
-        Adds triggers that mark organization closure data for refresh after organization insert, delete, or truncate.
-
-[cols="1,1,3", options="header"]
 |===
-| Object | Change type | Description
-| `mark_org_closure_for_refresh_org` | New function | Marks organization closure data for refresh after organization changes.
-| `m_org_mark_refresh_tr` | New trigger | Marks organization closure data for refresh after organization insert or delete.
-| `m_org_mark_refresh_trunc_tr` | New trigger | Marks organization closure data for refresh after organization table truncate.
-|===
-
 

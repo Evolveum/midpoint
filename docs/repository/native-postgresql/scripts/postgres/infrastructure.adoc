@@ -23,12 +23,22 @@ Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#Assignm
 
 Inherits from: xref:#m_object[`m_object`]
 
+No primary key is defined directly on this table. The table inherits from xref:#m_object[`m_object`].
+
 ==== Columns
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `objectType` | `ObjectType` | required | 
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `objectType`
+| `ObjectType`
+| required
+| 
+
 |===
 
 [[m_container]]
@@ -36,13 +46,27 @@ Inherits from: xref:#m_object[`m_object`]
 
 Abstract base table for separately persisted container values.
 
+No primary key is defined for this table.
+
 ==== Columns
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | required | OID of the owning object row.
-| `cid` | `BIGINT` | required | Container identifier unique within the owning object.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| required
+| OID of the owning object row.
+
+| `cid`
+| `BIGINT`
+| required
+| Container identifier unique within the owning object.
+
 |===
 
 [[m_object]]
@@ -52,49 +76,171 @@ Abstract base table containing common fields inherited by all repository object 
 
 Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ObjectType`
 
+No primary key is defined for this table.
+
 ==== Columns
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | required | Object identifier inherited by concrete object tables.
-| `nameOrig` | `TEXT` | required | Original object name as entered or displayed.
-| `nameNorm` | `TEXT` | required | Normalized object name used for exact case-insensitive lookup and uniqueness.
-| `fullObject` | `BYTEA` |  | Serialized full object representation.
-| `tenantRefTargetOid` | `UUID` |  | OID of the tenant reference target object.
-| `tenantRefTargetType` | `ObjectType` |  | Object type of the tenant reference target.
-| `tenantRefRelationId` | `INTEGER` |  | Relation URI identifier of the tenant reference.
-| `lifecycleState` | `TEXT` |  | 
-| `cidSeq` | `BIGINT` | required, default `1` | Next container identifier value allocated within this object.
-| `version` | `INTEGER` | required, default `1` | Object version used for optimistic locking.
-| `policySituations` | `INTEGER[]` |  | Policy situation URI identifiers attached to the object.
-| `subtypes` | `TEXT[]` |  | Object subtype values used for subtype filtering.
-| `fullTextInfo` | `TEXT` |  | Text search helper content derived from selected object data.
-| `ext` | `JSONB` |  | Indexed extension and attribute values stored as JSON data.
-| `creatorRefTargetOid` | `UUID` |  | OID of the object that created this object.
-| `creatorRefTargetType` | `ObjectType` |  | Object type of the object that created this object.
-| `creatorRefRelationId` | `INTEGER` |  | Relation URI identifier for the creator reference.
-| `createChannelId` | `INTEGER` |  | URI identifier of the channel that created the object.
-| `createTimestamp` | `TIMESTAMPTZ` |  | Time when the object was created.
-| `modifierRefTargetOid` | `UUID` |  | OID of the object that last modified this object.
-| `modifierRefTargetType` | `ObjectType` |  | Object type of the object that last modified this object.
-| `modifierRefRelationId` | `INTEGER` |  | Relation URI identifier for the modifier reference.
-| `modifyChannelId` | `INTEGER` |  | URI identifier of the channel that last modified the object.
-| `modifyTimestamp` | `TIMESTAMPTZ` |  | Time when the object was last modified.
-| `db_created` | `TIMESTAMPTZ` | required, default `current_timestamp` | Database timestamp when this row was created.
-| `db_modified` | `TIMESTAMPTZ` | required, default `current_timestamp` | Database timestamp when this row was last modified.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| required
+| Object identifier inherited by concrete object tables.
+
+| `nameOrig`
+| `TEXT`
+| required
+| Original object name as entered or displayed.
+
+| `nameNorm`
+| `TEXT`
+| required
+| Normalized object name used for exact case-insensitive lookup and uniqueness.
+
+| `fullObject`
+| `BYTEA`
+| 
+| Serialized full object representation.
+
+| `tenantRefTargetOid`
+| `UUID`
+| 
+| OID of the tenant reference target object.
+
+| `tenantRefTargetType`
+| `ObjectType`
+| 
+| Object type of the tenant reference target.
+
+| `tenantRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the tenant reference.
+
+| `lifecycleState`
+| `TEXT`
+| 
+| 
+
+| `cidSeq`
+| `BIGINT`
+| required, default `1`
+| Next container identifier value allocated within this object.
+
+| `version`
+| `INTEGER`
+| required, default `1`
+| Object version used for optimistic locking.
+
+| `policySituations`
+| `INTEGER[]`
+| 
+| Policy situation URI identifiers attached to the object.
+
+| `subtypes`
+| `TEXT[]`
+| 
+| Object subtype values used for subtype filtering.
+
+| `fullTextInfo`
+| `TEXT`
+| 
+| Text search helper content derived from selected object data.
+
+| `ext`
+| `JSONB`
+| 
+| Indexed extension and attribute values stored as JSON data.
+
+| `creatorRefTargetOid`
+| `UUID`
+| 
+| OID of the object that created this object.
+
+| `creatorRefTargetType`
+| `ObjectType`
+| 
+| Object type of the object that created this object.
+
+| `creatorRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier for the creator reference.
+
+| `createChannelId`
+| `INTEGER`
+| 
+| URI identifier of the channel that created the object.
+
+| `createTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the object was created.
+
+| `modifierRefTargetOid`
+| `UUID`
+| 
+| OID of the object that last modified this object.
+
+| `modifierRefTargetType`
+| `ObjectType`
+| 
+| Object type of the object that last modified this object.
+
+| `modifierRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier for the modifier reference.
+
+| `modifyChannelId`
+| `INTEGER`
+| 
+| URI identifier of the channel that last modified the object.
+
+| `modifyTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the object was last modified.
+
+| `db_created`
+| `TIMESTAMPTZ`
+| required, default `current_timestamp`
+| Database timestamp when this row was created.
+
+| `db_modified`
+| `TIMESTAMPTZ`
+| required, default `current_timestamp`
+| Database timestamp when this row was last modified.
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2", options="header"]
 |===
-| Column | References
-| `tenantRefRelationId` | xref:#m_uri[`m_uri.id`]
-| `creatorRefRelationId` | xref:#m_uri[`m_uri.id`]
-| `createChannelId` | xref:#m_uri[`m_uri.id`]
-| `modifierRefRelationId` | xref:#m_uri[`m_uri.id`]
-| `modifyChannelId` | xref:#m_uri[`m_uri.id`]
+| Column
+| References
+
+| `tenantRefRelationId`
+| xref:#m_uri[`m_uri.id`]
+
+| `creatorRefRelationId`
+| xref:#m_uri[`m_uri.id`]
+
+| `createChannelId`
+| xref:#m_uri[`m_uri.id`]
+
+| `modifierRefRelationId`
+| xref:#m_uri[`m_uri.id`]
+
+| `modifyChannelId`
+| xref:#m_uri[`m_uri.id`]
+
 |===
 
 [[m_object_oid]]
@@ -106,8 +252,16 @@ Provides generated object identifiers shared by all concrete object tables.
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `oid` | `UUID` | primary key, required, default `gen_random_uuid ()` | Generated repository object identifier referenced by concrete object rows.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required, default `gen_random_uuid ()`
+| Generated repository object identifier referenced by concrete object rows.
+
 |===
 
 [[m_reference]]
@@ -115,25 +269,60 @@ Provides generated object identifiers shared by all concrete object tables.
 
 Abstract base table for object and container references.
 
+No primary key is defined for this table.
+
 ==== Columns
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `ownerOid` | `UUID` | required | OID of the object that owns the reference.
-| `ownerType` | `ObjectType` | required | Object type of the reference owner.
-| `targetOid` | `UUID` | required | OID of the referenced target object.
-| `targetType` | `ObjectType` | required | Object type of the referenced target object.
-| `relationId` | `INTEGER` | required | Relation URI identifier of the reference.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| required
+| OID of the object that owns the reference.
+
+| `ownerType`
+| `ObjectType`
+| required
+| Object type of the reference owner.
+
+| `targetOid`
+| `UUID`
+| required
+| OID of the referenced target object.
+
+| `targetType`
+| `ObjectType`
+| required
+| Object type of the referenced target object.
+
+| `relationId`
+| `INTEGER`
+| required
+| Relation URI identifier of the reference.
+
 |===
 
 ==== Foreign keys
 
 [cols="1,2,2", options="header"]
 |===
-| Column | References | Notes
-| `ownerOid` | xref:#m_object_oid[`m_object_oid.oid`] | ON DELETE CASCADE
-| `relationId` | xref:#m_uri[`m_uri.id`] | -
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `relationId`
+| xref:#m_uri[`m_uri.id`]
+| -
+
 |===
 
 [[m_uri]]
@@ -145,395 +334,174 @@ Stores frequently used URI values, such as channels and relation QNames, as comp
 
 [cols="1,1,2,3", options="header"]
 |===
-| Column | Type | Required / constraints | Description
-| `id` | `SERIAL` | primary key, required | Numeric URI identifier referenced by repository tables.
-| `uri` | `TEXT` | required | URI text value.
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `id`
+| `SERIAL`
+| primary key, required
+| Numeric URI identifier referenced by repository tables.
+
+| `uri`
+| `TEXT`
+| required
+| URI text value.
+
 |===
 
 == Enum types
 
 Enum types define allowed database values for selected columns.
 
+[cols="1,3,3", options="header"]
+|===
+| Enum type
+| Description
+| Values
+
 [[enum_AccessCertificationCampaignStateType]]
-=== `AccessCertificationCampaignStateType`
-
-Stores access certification campaign states used by certification campaign tables.
-
-==== Values
-
-* `CREATED`
-* `IN_REVIEW_STAGE`
-* `REVIEW_STAGE_DONE`
-* `IN_REMEDIATION`
-* `CLOSED`
+| `AccessCertificationCampaignStateType`
+| Stores access certification campaign states used by certification campaign tables.
+| `CREATED`, `IN_REVIEW_STAGE`, `REVIEW_STAGE_DONE`, `IN_REMEDIATION`, `CLOSED`
 
 [[enum_ActivationStatusType]]
-=== `ActivationStatusType`
-
-Stores activation administrative status values used by focus, assignment, and resource data.
-
-==== Values
-
-* `ENABLED`
-* `DISABLED`
-* `ARCHIVED`
+| `ActivationStatusType`
+| Stores activation administrative status values used by focus, assignment, and resource data.
+| `ENABLED`, `DISABLED`, `ARCHIVED`
 
 [[enum_AdministrativeAvailabilityStatusType]]
-=== `AdministrativeAvailabilityStatusType`
-
-Stores administrative availability values used by resource search data.
-
-==== Values
-
-* `MAINTENANCE`
-* `OPERATIONAL`
+| `AdministrativeAvailabilityStatusType`
+| Stores administrative availability values used by resource search data.
+| `MAINTENANCE`, `OPERATIONAL`
 
 [[enum_AvailabilityStatusType]]
-=== `AvailabilityStatusType`
-
-Stores availability status values used for operational resource and connector state.
-
-==== Values
-
-* `DOWN`
-* `UP`
-* `BROKEN`
+| `AvailabilityStatusType`
+| Stores availability status values used for operational resource and connector state.
+| `DOWN`, `UP`, `BROKEN`
 
 [[enum_ContainerType]]
-=== `ContainerType`
-
-Identifies separately stored container table categories in the native repository.
-
-==== Values
-
-* `ACCESS_CERTIFICATION_CASE`
-* `ACCESS_CERTIFICATION_WORK_ITEM`
-* `AFFECTED_OBJECTS`
-* `ASSIGNMENT`
-* `ASSIGNMENT_METADATA`
-* `CASE_WORK_ITEM`
-* `CLUSTER_DETECTED_PATTERN`
-* `FOCUS_IDENTITY`
-* `INDUCEMENT`
-* `LOOKUP_TABLE_ROW`
-* `OPERATION_EXECUTION`
-* `OUTLIER_PARTITION`
-* `SIMULATION_RESULT_PROCESSED_OBJECT`
-* `TRIGGER`
+| `ContainerType`
+| Identifies separately stored container table categories in the native repository.
+| `ACCESS_CERTIFICATION_CASE`, `ACCESS_CERTIFICATION_WORK_ITEM`, `AFFECTED_OBJECTS`, `ASSIGNMENT`, `ASSIGNMENT_METADATA`, `CASE_WORK_ITEM`, `CLUSTER_DETECTED_PATTERN`, `FOCUS_IDENTITY`, `INDUCEMENT`, `LOOKUP_TABLE_ROW`, `OPERATION_EXECUTION`, `OUTLIER_PARTITION`, `SIMULATION_RESULT_PROCESSED_OBJECT`, `TRIGGER`
 
 [[enum_CorrelationSituationType]]
-=== `CorrelationSituationType`
-
-Stores correlation situation values used by shadow identity matching.
-
-==== Values
-
-* `UNCERTAIN`
-* `EXISTING_OWNER`
-* `NO_OWNER`
-* `ERROR`
+| `CorrelationSituationType`
+| Stores correlation situation values used by shadow identity matching.
+| `UNCERTAIN`, `EXISTING_OWNER`, `NO_OWNER`, `ERROR`
 
 [[enum_ExecutionModeType]]
-=== `ExecutionModeType`
-
-Stores execution mode values used by tasks, simulations, and repository-side reporting.
-
-==== Values
-
-* `FULL`
-* `PREVIEW`
-* `SHADOW_MANAGEMENT_PREVIEW`
-* `DRY_RUN`
-* `NONE`
-* `BUCKET_ANALYSIS`
+| `ExecutionModeType`
+| Stores execution mode values used by tasks, simulations, and repository-side reporting.
+| `FULL`, `PREVIEW`, `SHADOW_MANAGEMENT_PREVIEW`, `DRY_RUN`, `NONE`, `BUCKET_ANALYSIS`
 
 [[enum_ExtItemCardinality]]
-=== `ExtItemCardinality`
-
-Identifies whether an indexed extension item stores a single value or an array of values.
-
-==== Values
-
-* `SCALAR`
-* `ARRAY`
+| `ExtItemCardinality`
+| Identifies whether an indexed extension item stores a single value or an array of values.
+| `SCALAR`, `ARRAY`
 
 [[enum_ExtItemHolderType]]
-=== `ExtItemHolderType`
-
-Identifies whether an extension item belongs to object extension data or resource attributes.
-
-==== Values
-
-* `EXTENSION`
-* `ATTRIBUTES`
+| `ExtItemHolderType`
+| Identifies whether an extension item belongs to object extension data or resource attributes.
+| `EXTENSION`, `ATTRIBUTES`
 
 [[enum_LockoutStatusType]]
-=== `LockoutStatusType`
-
-Stores lockout status values used by focus activation data.
-
-==== Values
-
-* `NORMAL`
-* `LOCKED`
+| `LockoutStatusType`
+| Stores lockout status values used by focus activation data.
+| `NORMAL`, `LOCKED`
 
 [[enum_NodeOperationalStateType]]
-=== `NodeOperationalStateType`
-
-Stores node operational state values used by node repository objects.
-
-==== Values
-
-* `UP`
-* `DOWN`
-* `STARTING`
+| `NodeOperationalStateType`
+| Stores node operational state values used by node repository objects.
+| `UP`, `DOWN`, `STARTING`
 
 [[enum_ObjectType]]
-=== `ObjectType`
-
-Identifies midPoint object kinds stored in native repository object tables.
-
-==== Values
-
-* `ABSTRACT_ROLE`
-* `ACCESS_CERTIFICATION_CAMPAIGN`
-* `ACCESS_CERTIFICATION_DEFINITION`
-* `APPLICATION`
-* `ARCHETYPE`
-* `ASSIGNMENT_HOLDER`
-* `CASE`
-* `CONNECTOR`
-* `CONNECTOR_DEVELOPMENT`
-* `CONNECTOR_HOST`
-* `DASHBOARD`
-* `FOCUS`
-* `FORM`
-* `FUNCTION_LIBRARY`
-* `GENERIC_OBJECT`
-* `LOOKUP_TABLE`
-* `MARK`
-* `MESSAGE_TEMPLATE`
-* `NODE`
-* `OBJECT`
-* `OBJECT_COLLECTION`
-* `OBJECT_TEMPLATE`
-* `ORG`
-* `POLICY`
-* `REPORT`
-* `REPORT_DATA`
-* `RESOURCE`
-* `ROLE`
-* `ROLE_ANALYSIS_CLUSTER`
-* `ROLE_ANALYSIS_SESSION`
-* `ROLE_ANALYSIS_OUTLIER`
-* `SCHEMA`
-* `SECURITY_POLICY`
-* `SEQUENCE`
-* `SERVICE`
-* `SHADOW`
-* `SIMULATION_RESULT`
-* `SYSTEM_CONFIGURATION`
-* `TASK`
-* `USER`
-* `VALUE_POLICY`
+| `ObjectType`
+| Identifies midPoint object kinds stored in native repository object tables.
+| `ABSTRACT_ROLE`, `ACCESS_CERTIFICATION_CAMPAIGN`, `ACCESS_CERTIFICATION_DEFINITION`, `APPLICATION`, `ARCHETYPE`, `ASSIGNMENT_HOLDER`, `CASE`, `CONNECTOR`, `CONNECTOR_DEVELOPMENT`, `CONNECTOR_HOST`, `DASHBOARD`, `FOCUS`, `FORM`, `FUNCTION_LIBRARY`, `GENERIC_OBJECT`, `LOOKUP_TABLE`, `MARK`, `MESSAGE_TEMPLATE`, `NODE`, `OBJECT`, `OBJECT_COLLECTION`, `OBJECT_TEMPLATE`, `ORG`, `POLICY`, `REPORT`, `REPORT_DATA`, `RESOURCE`, `ROLE`, `ROLE_ANALYSIS_CLUSTER`, `ROLE_ANALYSIS_SESSION`, `ROLE_ANALYSIS_OUTLIER`, `SCHEMA`, `SECURITY_POLICY`, `SEQUENCE`, `SERVICE`, `SHADOW`, `SIMULATION_RESULT`, `SYSTEM_CONFIGURATION`, `TASK`, `USER`, `VALUE_POLICY`
 
 [[enum_OperationExecutionRecordTypeType]]
-=== `OperationExecutionRecordTypeType`
-
-Stores operation execution record type values used by operation execution containers.
-
-==== Values
-
-* `SIMPLE`
-* `COMPLEX`
+| `OperationExecutionRecordTypeType`
+| Stores operation execution record type values used by operation execution containers.
+| `SIMPLE`, `COMPLEX`
 
 [[enum_OperationResultStatusType]]
-=== `OperationResultStatusType`
-
-Stores operation result status values used by tasks, operation executions, and audit-related data.
-
-==== Values
-
-* `SUCCESS`
-* `WARNING`
-* `PARTIAL_ERROR`
-* `FATAL_ERROR`
-* `HANDLED_ERROR`
-* `NOT_APPLICABLE`
-* `IN_PROGRESS`
-* `UNKNOWN`
+| `OperationResultStatusType`
+| Stores operation result status values used by tasks, operation executions, and audit-related data.
+| `SUCCESS`, `WARNING`, `PARTIAL_ERROR`, `FATAL_ERROR`, `HANDLED_ERROR`, `NOT_APPLICABLE`, `IN_PROGRESS`, `UNKNOWN`
 
 [[enum_OrientationType]]
-=== `OrientationType`
-
-Stores orientation values for report output and presentation metadata.
-
-==== Values
-
-* `PORTRAIT`
-* `LANDSCAPE`
+| `OrientationType`
+| Stores orientation values for report output and presentation metadata.
+| `PORTRAIT`, `LANDSCAPE`
 
 [[enum_PredefinedConfigurationType]]
-=== `PredefinedConfigurationType`
-
-Stores predefined configuration profile values.
-
-==== Values
-
-* `PRODUCTION`
-* `DEVELOPMENT`
+| `PredefinedConfigurationType`
+| Stores predefined configuration profile values.
+| `PRODUCTION`, `DEVELOPMENT`
 
 [[enum_ReferenceType]]
-=== `ReferenceType`
-
-Identifies reference table categories used for object and container references.
-
-==== Values
-
-* `ARCHETYPE`
-* `ASSIGNMENT_CREATE_APPROVER`
-* `ASSIGNMENT_MODIFY_APPROVER`
-* `ASSIGNMENT_EFFECTIVE_MARK`
-* `ACCESS_CERT_WI_ASSIGNEE`
-* `ACCESS_CERT_WI_CANDIDATE`
-* `CASE_WI_ASSIGNEE`
-* `CASE_WI_CANDIDATE`
-* `DELEGATED`
-* `INCLUDE`
-* `OBJECT_CREATE_APPROVER`
-* `OBJECT_EFFECTIVE_MARK`
-* `OBJECT_MODIFY_APPROVER`
-* `OBJECT_PARENT_ORG`
-* `PERSONA`
-* `PROCESSED_OBJECT_EVENT_MARK`
-* `PROJECTION`
-* `RESOURCE_BUSINESS_CONFIGURATION_APPROVER`
-* `ROLE_MEMBERSHIP`
-* `TASK_AFFECTED_OBJECT`
+| `ReferenceType`
+| Identifies reference table categories used for object and container references.
+| `ARCHETYPE`, `ASSIGNMENT_CREATE_APPROVER`, `ASSIGNMENT_MODIFY_APPROVER`, `ASSIGNMENT_EFFECTIVE_MARK`, `ACCESS_CERT_WI_ASSIGNEE`, `ACCESS_CERT_WI_CANDIDATE`, `CASE_WI_ASSIGNEE`, `CASE_WI_CANDIDATE`, `DELEGATED`, `INCLUDE`, `OBJECT_CREATE_APPROVER`, `OBJECT_EFFECTIVE_MARK`, `OBJECT_MODIFY_APPROVER`, `OBJECT_PARENT_ORG`, `PERSONA`, `PROCESSED_OBJECT_EVENT_MARK`, `PROJECTION`, `RESOURCE_BUSINESS_CONFIGURATION_APPROVER`, `ROLE_MEMBERSHIP`, `TASK_AFFECTED_OBJECT`
 
 [[enum_ResourceAdministrativeStateType]]
-=== `ResourceAdministrativeStateType`
-
-Stores administrative state values used by resource objects.
-
-==== Values
-
-* `ENABLED`
-* `DISABLED`
+| `ResourceAdministrativeStateType`
+| Stores administrative state values used by resource objects.
+| `ENABLED`, `DISABLED`
 
 [[enum_ShadowKindType]]
-=== `ShadowKindType`
-
-Stores shadow kind values used to classify resource object shadows.
-
-==== Values
-
-* `ACCOUNT`
-* `ENTITLEMENT`
-* `GENERIC`
-* `ASSOCIATION`
-* `UNKNOWN`
+| `ShadowKindType`
+| Stores shadow kind values used to classify resource object shadows.
+| `ACCOUNT`, `ENTITLEMENT`, `GENERIC`, `ASSOCIATION`, `UNKNOWN`
 
 [[enum_SynchronizationSituationType]]
-=== `SynchronizationSituationType`
-
-Stores synchronization situation values used by shadow lifecycle and synchronization processing.
-
-==== Values
-
-* `DELETED`
-* `DISPUTED`
-* `LINKED`
-* `UNLINKED`
-* `UNMATCHED`
+| `SynchronizationSituationType`
+| Stores synchronization situation values used by shadow lifecycle and synchronization processing.
+| `DELETED`, `DISPUTED`, `LINKED`, `UNLINKED`, `UNMATCHED`
 
 [[enum_TaskAutoScalingModeType]]
-=== `TaskAutoScalingModeType`
-
-Stores task auto-scaling mode values.
-
-==== Values
-
-* `DISABLED`
-* `DEFAULT`
+| `TaskAutoScalingModeType`
+| Stores task auto-scaling mode values.
+| `DISABLED`, `DEFAULT`
 
 [[enum_TaskBindingType]]
-=== `TaskBindingType`
-
-Stores task binding values describing whether task execution is tied to a specific node.
-
-==== Values
-
-* `LOOSE`
-* `TIGHT`
+| `TaskBindingType`
+| Stores task binding values describing whether task execution is tied to a specific node.
+| `LOOSE`, `TIGHT`
 
 [[enum_TaskExecutionStateType]]
-=== `TaskExecutionStateType`
-
-Stores task execution state values.
-
-==== Values
-
-* `RUNNING`
-* `RUNNABLE`
-* `WAITING`
-* `SUSPENDED`
-* `CLOSED`
+| `TaskExecutionStateType`
+| Stores task execution state values.
+| `RUNNING`, `RUNNABLE`, `WAITING`, `SUSPENDED`, `CLOSED`
 
 [[enum_TaskRecurrenceType]]
-=== `TaskRecurrenceType`
-
-Stores task recurrence values for single-run and recurring tasks.
-
-==== Values
-
-* `SINGLE`
-* `RECURRING`
+| `TaskRecurrenceType`
+| Stores task recurrence values for single-run and recurring tasks.
+| `SINGLE`, `RECURRING`
 
 [[enum_TaskSchedulingStateType]]
-=== `TaskSchedulingStateType`
-
-Stores task scheduling state values.
-
-==== Values
-
-* `READY`
-* `WAITING`
-* `SUSPENDED`
-* `CLOSED`
+| `TaskSchedulingStateType`
+| Stores task scheduling state values.
+| `READY`, `WAITING`, `SUSPENDED`, `CLOSED`
 
 [[enum_TaskWaitingReasonType]]
-=== `TaskWaitingReasonType`
-
-Stores task waiting reason values.
-
-==== Values
-
-* `OTHER_TASKS`
-* `OTHER`
+| `TaskWaitingReasonType`
+| Stores task waiting reason values.
+| `OTHER_TASKS`, `OTHER`
 
 [[enum_ThreadStopActionType]]
-=== `ThreadStopActionType`
-
-Stores task thread stop action values.
-
-==== Values
-
-* `RESTART`
-* `RESCHEDULE`
-* `SUSPEND`
-* `CLOSE`
+| `ThreadStopActionType`
+| Stores task thread stop action values.
+| `RESTART`, `RESCHEDULE`, `SUSPEND`, `CLOSE`
 
 [[enum_TimeIntervalStatusType]]
-=== `TimeIntervalStatusType`
+| `TimeIntervalStatusType`
+| Stores time interval status values.
+| `BEFORE`, `IN`, `AFTER`
 
-Stores time interval status values.
-
-==== Values
-
-* `BEFORE`
-* `IN`
-* `AFTER`
+|===
 
 == Functions and procedures
 

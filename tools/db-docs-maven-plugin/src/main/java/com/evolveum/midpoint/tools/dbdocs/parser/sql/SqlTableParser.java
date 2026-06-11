@@ -8,7 +8,7 @@ package com.evolveum.midpoint.tools.dbdocs.parser.sql;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -73,6 +73,7 @@ public class SqlTableParser {
                 List.of(),
                 List.of(),
                 List.of(),
+                List.of(),
                 normalized.inheritsFrom(),
                 normalized.partitionOf(),
                 normalized.parseNote());
@@ -86,6 +87,7 @@ public class SqlTableParser {
             Map<String, DocMetadata> metadataByColumn,
             PostgresCreateTableNormalizer.Result normalized) {
         Set<String> primaryKeyColumns = primaryKeyColumns(createTable);
+        List<String> primaryKeyColumnList = List.copyOf(primaryKeyColumns);
         List<ColumnDoc> columns = columns(createTable, primaryKeyColumns, metadataByColumn);
         List<ForeignKeyDoc> foreignKeys = tableForeignKeys(createTable);
 
@@ -104,6 +106,7 @@ public class SqlTableParser {
                 region,
                 metadata,
                 columns,
+                primaryKeyColumnList,
                 List.of(),
                 foreignKeys,
                 normalized.inheritsFrom(),
@@ -286,13 +289,25 @@ public class SqlTableParser {
     }
 
     private Set<String> primaryKeyColumns(CreateTable createTable) {
-        Set<String> primaryKeyColumns = new HashSet<>();
+        Set<String> primaryKeyColumns = new LinkedHashSet<>();
+
+        if (createTable.getColumnDefinitions() != null) {
+            for (ColumnDefinition columnDefinition : createTable.getColumnDefinitions()) {
+                List<String> specs = columnDefinition.getColumnSpecs() != null
+                        ? columnDefinition.getColumnSpecs()
+                        : List.of();
+                if (containsSpecSequence(specs, "PRIMARY", "KEY")) {
+                    primaryKeyColumns.add(normalizeIdentifier(columnDefinition.getColumnName()));
+                }
+            }
+        }
+
         if (createTable.getIndexes() == null) {
             return primaryKeyColumns;
         }
 
         for (Index index : createTable.getIndexes()) {
-            if (index.getType() == null || !"PRIMARY KEY".equalsIgnoreCase(index.getType())) {
+            if (!isPrimaryKey(index)) {
                 continue;
             }
 
@@ -302,6 +317,15 @@ public class SqlTableParser {
         }
 
         return primaryKeyColumns;
+    }
+
+    private boolean isPrimaryKey(Index index) {
+        String type = index.getType();
+        if (type != null && "PRIMARY KEY".equalsIgnoreCase(type)) {
+            return true;
+        }
+
+        return index.toString().toUpperCase(Locale.ROOT).startsWith("PRIMARY KEY");
     }
 
     private boolean containsSpecSequence(List<String> specs, String first, String second) {
