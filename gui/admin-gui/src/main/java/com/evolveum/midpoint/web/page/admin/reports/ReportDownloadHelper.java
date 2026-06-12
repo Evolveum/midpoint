@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.common.MimeTypeUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.report.api.ReportManager;
@@ -61,6 +62,13 @@ public class ReportDownloadHelper implements Serializable {
         String name = WebComponentUtil.getName(currentReport);
         if (StringUtils.isEmpty(name)) {
             name = "report"; // A fallback - this should not really occur
+        }
+
+        // Check if the file name contains the extension
+        String extension = getReportExtension(currentReport);
+        String dotExtension = "." + extension;
+        if (StringUtils.isNotEmpty(dotExtension) && !name.endsWith(dotExtension)) {
+            name = name + dotExtension;
         }
 
         // Sanitize to remove any path components for defense in depth
@@ -122,6 +130,19 @@ public class ReportDownloadHelper implements Serializable {
     public static void downloadPerformed(
             AjaxRequestTarget target, AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
         ajaxDownloadBehavior.initiate(target);
+    }
+
+    private static String getReportExtension(ReportDataType report) {
+        String filePath = report.getFilePath();
+        FileFormatTypeType fileFormat = report.getFileFormat();
+
+        String extension;
+        if (fileFormat != null) {
+            extension = fileFormat.value().toLowerCase();
+        } else {
+            extension = FilenameUtils.getExtension(filePath);
+        }
+        return extension;
     }
 
 }
