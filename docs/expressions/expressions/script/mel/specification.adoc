@@ -1613,6 +1613,13 @@ Timestamp referring to the "current" time instant is available in variable `now`
 The value of this variable refers to an approximate moment of the start of expression evaluation.
 Value of this variable is fixed through the evaluation of the expression.
 
+.Reference time vs "now"
+TIP: Some expression provide a xref:/midpoint/reference/expressions/mappings/#time-constraints[reference time] in `referenceTime` variable.
+This timestamp is different than the one provided in `now` variable.
+Variable `now` always contains "current" time instant, which is usually a time when an expression evaluation started.
+On the other hand, `referenceTime` variable contains a timestamp which is relevant for evaluation of a particular mapping, such as a timestamp when relevant object was disabled.
+When dealing with time-constrained mappings, use of `referenceTime` is usually correct and use of `now` is usually wrong.
+
 === atStartOfDay
 
 `timestamp.atStartOfDay()` -> timestamp +
