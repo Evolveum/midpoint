@@ -653,11 +653,32 @@ public class PageCreatedReports extends PageAdmin {
 
     public static String getReportFileName(ReportDataType currentReport) {
         String name = WebComponentUtil.getName(currentReport);
-        if (StringUtils.isNotEmpty(name)) {
-            // Sanitize to remove any path components for defense in depth
-            // (browsers also ignore path components, but better to be safe)
-            return FilenameUtils.getName(name);
+        if (StringUtils.isEmpty(name)) {
+            name = "report"; // A fallback - this should not really occur
         }
-        return "report"; // A fallback - this should not really occur
+
+        // Check if the file name contains the extension
+        String extension = getReportExtension(currentReport);
+        String dotExtension = "." + extension;
+        if (StringUtils.isNotEmpty(dotExtension) && !name.endsWith(dotExtension)) {
+            name = name + dotExtension;
+        }
+
+        // Sanitize to remove any path components for defense in depth
+        // (browsers also ignore path components, but better to be safe)
+        return FilenameUtils.getName(name);
+    }
+
+    private static String getReportExtension(ReportDataType report) {
+        String filePath = report.getFilePath();
+        FileFormatTypeType fileFormat = report.getFileFormat();
+
+        String extension;
+        if (fileFormat != null) {
+            extension = fileFormat.value().toLowerCase();
+        } else {
+            extension = FilenameUtils.getExtension(filePath);
+        }
+        return extension;
     }
 }
