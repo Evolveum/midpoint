@@ -19,7 +19,6 @@ import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
 import org.hibernate.annotations.*;
@@ -95,7 +94,6 @@ import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
         @Index(name = "iObjectCreateTimestamp", columnList = "createTimestamp"),
         @Index(name = "iObjectLifecycleState", columnList = "lifecycleState") })
 @Inheritance(strategy = InheritanceType.JOINED)
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public abstract class RObject implements Metadata<RObjectReference<RFocus>>, EntityState, Serializable {
 
@@ -171,7 +169,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return trigger;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 0")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 0")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true, cascade = ALL)
     public Set<RObjectReference<ROrg>> getParentOrgRef() {
         if (parentOrgRef == null) {
@@ -211,7 +209,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     }
 
     @Override
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 5")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 5")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true, cascade = ALL)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RObjectReference<RFocus>> getCreateApproverRef() {
@@ -221,7 +219,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return createApproverRef;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 8")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 8")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = ALL)
     public Set<RObjectReference<RAbstractRole>> getRoleMembershipRef() {
         if (roleMembershipRef == null) {
@@ -230,7 +228,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return roleMembershipRef;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 9")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 9")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = ALL)
     public Set<RObjectReference<RFocus>> getDelegatedRef() {
         if (delegatedRef == null) {
@@ -239,7 +237,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return delegatedRef;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 11")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 11")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = ALL)
     public Set<RObjectReference<RArchetype>> getArchetypeRef() {
         if (archetypeRef == null) {
@@ -309,7 +307,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     }
 
     @Override
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 6")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 6")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true, cascade = ALL)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RObjectReference<RFocus>> getModifyApproverRef() {
@@ -554,7 +552,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     }
 
     @ElementCollection
-    @ForeignKey(name = "fk_object_policy_situation")
     @CollectionTable(name = "m_object_policy_situation", joinColumns = {
             @JoinColumn(name = "object_oid", referencedColumnName = "oid")
     })

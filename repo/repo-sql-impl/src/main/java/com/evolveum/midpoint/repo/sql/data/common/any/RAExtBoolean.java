@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtBooleanId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
@@ -36,8 +35,6 @@ public class RAExtBoolean extends RAExtBase<Boolean> implements RAExtValue<Boole
     public RAExtBoolean(Boolean value) {
         this.value = value;
     }
-
-    @ForeignKey(name = "fk_a_ext_boolean_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({

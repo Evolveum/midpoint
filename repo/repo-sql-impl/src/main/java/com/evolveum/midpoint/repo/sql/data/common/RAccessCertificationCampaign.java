@@ -30,12 +30,10 @@ import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 @Entity
@@ -45,8 +43,6 @@ import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
                 @Index(name = "iCertCampaignNameOrig", columnList = "name_orig")
         }
 )
-@Persister(impl = MidPointJoinedPersister.class)
-@ForeignKey(name = "fk_acc_cert_campaign")
 @DynamicUpdate
 public class RAccessCertificationCampaign extends RObject {
 

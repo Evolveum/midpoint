@@ -49,8 +49,8 @@ public class RLookupTableRow implements Container<RLookupTable> {
 
     private XMLGregorianCalendar lastChangeTimestamp;
 
-    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_lookup_table_owner"))
-    @MapsId("ownerOid")
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_lookup_table_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @Override
     @NotQueryable

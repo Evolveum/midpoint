@@ -13,7 +13,7 @@ import org.hibernate.PessimisticLockException;
 import org.hibernate.StaleStateException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.LockAcquisitionException;
-import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -45,7 +45,7 @@ public class TransactionSerializationProblemDetector {
         if (ExceptionUtil.findCause(ex, SerializationRelatedException.class) != null
                 || ExceptionUtil.findCause(ex, PessimisticLockException.class) != null
                 || ExceptionUtil.findCause(ex, LockAcquisitionException.class) != null
-                || ExceptionUtil.findCause(ex, HibernateOptimisticLockingFailureException.class) != null
+                || ExceptionUtil.findCause(ex, OptimisticLockingFailureException.class) != null
                 // TODO: previously just StaleObjectStateException marked as "questionable".
                 //  Generalized to StaleStateException to cause retry in cases like MID-6471.
                 || ExceptionUtil.findCause(ex, StaleStateException.class) != null) {

@@ -62,10 +62,10 @@ public class RObjectTextInfo implements Serializable {
         this.text = text;
     }
 
-    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
-    @JoinColumn(name = COLUMN_OWNER_OID, foreignKey = @ForeignKey(name = "fk_object_text_info_owner"))
+    @JoinColumn(name = COLUMN_OWNER_OID, insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_object_text_info_owner"))
     public RObject getOwner() {
         return owner;
     }

@@ -57,15 +57,16 @@ public class RTrigger implements Container<RObject> {
     }
 
     @Override
-    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_trigger_owner"))
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_trigger_owner"))
     @NotQueryable
     public RObject getOwner() {
         return owner;
     }
 
     @Override
+    @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {

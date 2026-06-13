@@ -41,10 +41,10 @@ public class ROExtDate extends ROExtBase<Timestamp> {
         this.value = value;
     }
 
-    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
-    @JoinColumn(name="owner_oid", foreignKey = @ForeignKey(name = "fk_o_ext_date_owner"))
+    @JoinColumn(name = "owner_oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_o_ext_date_owner"))
     public RObject getOwner() {
         return super.getOwner();
     }

@@ -50,10 +50,10 @@ public class ROExtPolyString extends ROExtBase<String> {
         }
     }
 
-    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
-    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_o_ext_poly_owner"))
+    @JoinColumn(name = "owner_oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_o_ext_poly_owner"))
     public RObject getOwner() {
         return super.getOwner();
     }

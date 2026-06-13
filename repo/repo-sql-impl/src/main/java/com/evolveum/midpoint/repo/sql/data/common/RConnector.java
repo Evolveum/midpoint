@@ -11,8 +11,6 @@ import jakarta.persistence.*;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
@@ -21,13 +19,10 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
 @Entity
-@ForeignKey(name = "fk_connector")
-@Persister(impl = MidPointJoinedPersister.class)
 @Table(indexes = {
         @Index(name = "iConnectorNameOrig", columnList = "name_orig"),
         @Index(name = "iConnectorNameNorm", columnList = "name_norm") })
@@ -66,7 +61,6 @@ public class RConnector extends RObject {
     }
 
     @ElementCollection
-    @ForeignKey(name = "fk_connector_target_system")
     @CollectionTable(name = "m_connector_target_system", joinColumns = {
             @JoinColumn(name = "connector_oid", referencedColumnName = "oid")
     })

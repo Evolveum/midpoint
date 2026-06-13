@@ -14,7 +14,6 @@ import java.util.Set;
 import jakarta.persistence.*;
 
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
@@ -128,8 +127,6 @@ public class RAuditEventRecord implements Serializable {
     public String getChannel() {
         return channel;
     }
-
-    @ForeignKey(name = "fk_audit_delta")
     @OneToMany(mappedBy = "record", orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectDeltaOperation> getDeltas() {
@@ -138,8 +135,6 @@ public class RAuditEventRecord implements Serializable {
         }
         return deltas;
     }
-
-    @ForeignKey(name = "fk_audit_item")
     @OneToMany(mappedBy = "record", orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAuditItem> getChangedItems() {
@@ -148,8 +143,6 @@ public class RAuditEventRecord implements Serializable {
         }
         return changedItems;
     }
-
-    @ForeignKey(name = "fk_audit_prop_value")
     @OneToMany(mappedBy = "record", orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAuditPropertyValue> getPropertyValues() {
@@ -158,8 +151,6 @@ public class RAuditEventRecord implements Serializable {
         }
         return propertyValues;
     }
-
-    @ForeignKey(name = "fk_audit_ref_value")
     @OneToMany(mappedBy = "record", orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAuditReferenceValue> getReferenceValues() {
@@ -168,8 +159,6 @@ public class RAuditEventRecord implements Serializable {
         }
         return referenceValues;
     }
-
-    @ForeignKey(name = "fk_audit_resource")
     @OneToMany(mappedBy = "record", orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RTargetResourceOid> getResourceOids() {

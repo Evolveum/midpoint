@@ -9,12 +9,15 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.util.Objects;
 
 @Entity
 @Ignore
+@Table(name = RGlobalMetadata.TABLE_NAME)
 public class RGlobalMetadata {
 
     public static final String TABLE_NAME = "m_global_metadata";
@@ -24,6 +27,7 @@ public class RGlobalMetadata {
     private String value;
 
     @Id
+    @Column(name = "name")
     public String getName() {
         return name;
     }
@@ -32,6 +36,7 @@ public class RGlobalMetadata {
         this.name = name;
     }
 
+    @Column(name = "value")
     public String getValue() {
         return value;
     }

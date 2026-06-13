@@ -9,8 +9,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import jakarta.persistence.*;
 
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -18,12 +16,9 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 @Entity
-@ForeignKey(name = "fk_archetype")
-@Persister(impl = MidPointJoinedPersister.class)
 @Table(indexes = {
         @Index(name = "iArchetypeNameOrig", columnList = "name_orig"),
         @Index(name = "iArchetypeNameNorm", columnList = "name_norm") })

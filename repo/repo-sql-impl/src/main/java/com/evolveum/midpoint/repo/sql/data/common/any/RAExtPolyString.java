@@ -13,7 +13,6 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
-import org.hibernate.annotations.ForeignKey;
 
 import jakarta.persistence.*;
 import java.util.Objects;
@@ -44,8 +43,6 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
             norm = polyString.getNorm();
         }
     }
-
-    @ForeignKey(name = "fk_a_ext_poly_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
