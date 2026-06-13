@@ -33,7 +33,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
         @Index(name = "iTenantRefTargetOid", columnList = "tenantRef_targetOid"),
         @Index(name = "iOrgRefTargetOid", columnList = "orgRef_targetOid"),
         @Index(name = "iResourceRefTargetOid", columnList = "resourceRef_targetOid") })
-@Persister(impl = MidPointSingleTablePersister.class)
 @DynamicUpdate
 public class RAssignment implements Container<RObject>, Metadata<RAssignmentReference> {
 
@@ -94,8 +92,8 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     }
 
     @Override
-    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_assignment_owner"))
-    @MapsId
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_assignment_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     public RObject getOwner() {
@@ -178,7 +176,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     }
 
     @Override
-    @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 0")
+    @SQLRestriction(RAssignmentReference.REFERENCE_TYPE + "= 0")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true, cascade = CascadeType.ALL)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RAssignmentReference> getCreateApproverRef() {
@@ -216,7 +214,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     }
 
     @Override
-    @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 1")
+    @SQLRestriction(RAssignmentReference.REFERENCE_TYPE + "= 1")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true, cascade = CascadeType.ALL)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RAssignmentReference> getModifyApproverRef() {

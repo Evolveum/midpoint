@@ -28,6 +28,10 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.8.13
+
+* Updated spring boot to 4.0. See bug:MID-11002[]
+
 == Changes with Respect To Version 4.8.12
 
 * Hided conflict warning on Shopping cart panel of the Request Access wizard in case of prune action. See bug:MID-11250[] and xref:#_behavior_changes_since_4_8_12[behavior changes since 4.8.12].

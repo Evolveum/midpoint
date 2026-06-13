@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCObjectReferenceId;
@@ -17,7 +16,6 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -33,18 +31,18 @@ import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 @Table(name = "m_assignment_reference", indexes = {
         @jakarta.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
 })
-@Persister(impl = MidPointSingleTablePersister.class)
 public class RAssignmentReference extends RContainerReference {
 
     private RAssignment owner;
 
-    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     @JoinColumns(
             value = {
-                    @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid"),
-                    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+                    @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid",
+                            insertable = false, updatable = false),
+                    @JoinColumn(name = "owner_id", referencedColumnName = "id",
+                            insertable = false, updatable = false)
             },
             foreignKey = @ForeignKey(name = "fk_assignment_reference")
     )

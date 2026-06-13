@@ -11,8 +11,6 @@ import jakarta.persistence.*;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -20,7 +18,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -32,8 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                 @Index(name = "iGivenName", columnList = "givenName_orig"),
                 @Index(name = "iEmployeeNumber", columnList = "employeeNumber"),
                 @Index(name = "iUserNameOrig", columnList = "name_orig") })
-@ForeignKey(name = "fk_user")
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public class RUser extends RFocus {
 
@@ -51,9 +46,14 @@ public class RUser extends RFocus {
     private Set<RPolyString> organization;
 
     @ElementCollection
-    @ForeignKey(name = "fk_user_organization")
-    @CollectionTable(name = "m_user_organization", joinColumns = {
+    @CollectionTable(name = "m_user_organization",
+            foreignKey = @ForeignKey(name = "fk_user_organization"),
+            joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid")
+    })
+    @AttributeOverrides({
+            @AttributeOverride(name = "norm", column = @Column(name = "norm")),
+            @AttributeOverride(name = "orig", column = @Column(name = "orig"))
     })
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RPolyString> getOrganization() {
@@ -66,9 +66,14 @@ public class RUser extends RFocus {
     }
 
     @ElementCollection
-    @ForeignKey(name = "fk_user_org_unit")
-    @CollectionTable(name = "m_user_organizational_unit", joinColumns = {
+    @CollectionTable(name = "m_user_organizational_unit",
+            foreignKey = @ForeignKey(name = "fk_user_org_unit"),
+            joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid")
+    })
+    @AttributeOverrides({
+            @AttributeOverride(name = "norm", column = @Column(name = "norm")),
+            @AttributeOverride(name = "orig", column = @Column(name = "orig"))
     })
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RPolyString> getOrganizationalUnit() {

@@ -54,8 +54,6 @@ public class RAuditPropertyValue implements EntityState {
     public void setId(long id) {
         this.id = id;
     }
-
-    //@ForeignKey(name = "none")
     @MapsId("record")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({

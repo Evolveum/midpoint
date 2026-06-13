@@ -11,7 +11,6 @@ import java.sql.Timestamp;
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtDateId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
@@ -37,8 +36,6 @@ public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timest
     public RAExtDate(Timestamp value) {
         this.value = value;
     }
-
-    @ForeignKey(name = "fk_a_ext_date_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({

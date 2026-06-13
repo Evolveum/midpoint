@@ -10,8 +10,6 @@ import jakarta.persistence.*;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
@@ -20,13 +18,10 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
 @Entity
-@ForeignKey(name = "fk_report_output")
-@Persister(impl = MidPointJoinedPersister.class)
 @Table(name = RReportData.TABLE_NAME, indexes = {
         @Index(name = "iReportOutputNameOrig", columnList = "name_orig"),
         @Index(name = "iReportOutputNameNorm", columnList = "name_norm") })

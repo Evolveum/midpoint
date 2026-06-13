@@ -15,8 +15,7 @@ import jakarta.persistence.*;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
@@ -40,13 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
                         value = "ABSTRACT_ROLE") }, collectionType = RAssignment.class) })
 
 @Entity
-@org.hibernate.annotations.ForeignKey(name = "fk_abstract_role")
 @Table(indexes = {
         @Index(name = "iAbstractRoleIdentifier", columnList = "identifier"),
         @Index(name = "iRequestable", columnList = "requestable"),
         @Index(name = "iAutoassignEnabled", columnList = "autoassign_enabled")
 })
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public abstract class RAbstractRole extends RFocus {
 
@@ -75,7 +71,7 @@ public abstract class RAbstractRole extends RFocus {
         return getAssignments(RAssignmentOwner.ABSTRACT_ROLE);
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 3")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 3")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RFocus>> getApproverRef() {

@@ -16,7 +16,6 @@ import org.apache.commons.lang3.Validate;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
-import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -42,7 +40,6 @@ import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 @Table(name = "m_reference", indexes = {
         @Index(name = "iReferenceTargetTypeRelation", columnList = "targetOid, reference_type, relation")
 })
-@Persister(impl = MidPointSingleTablePersister.class)
 public class RObjectReference<T extends RObject> implements ObjectReference, EntityState {
 
     public static final String REFERENCE_TYPE = "reference_type";
@@ -78,8 +75,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         this.trans = trans;
     }
 
-    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_reference_owner"))
-    @MapsId("ownerOid")
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_reference_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     public RObject getOwner() {

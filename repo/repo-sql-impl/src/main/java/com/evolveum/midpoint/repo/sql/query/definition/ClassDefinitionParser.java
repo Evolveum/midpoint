@@ -18,7 +18,6 @@ import jakarta.persistence.*;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Index;
 
 import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
 import com.evolveum.midpoint.prism.path.ItemName;

@@ -57,12 +57,14 @@ public class OidcClientProvider extends RemoteModuleProvider {
     public OidcClientProvider(Map<String, OidcAdditionalConfiguration> additionalConfiguration) {
         this.additionalConfiguration = additionalConfiguration;
         initJwkResolver();
+
         JwtDecoderFactory<ClientRegistration> decoder = new OidcIdTokenDecoderFactory();
-        OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter =
-                new OAuth2AuthorizationCodeGrantRequestEntityConverter();
-        requestEntityConverter.addParametersConverter(createParameterConverter());
-        DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
-        client.setRequestEntityConverter(requestEntityConverter);
+
+        RestClientAuthorizationCodeTokenResponseClient client =
+                new RestClientAuthorizationCodeTokenResponseClient();
+
+        client.addParametersConverter(createParameterConverter());
+
         oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(client, getUserService(decoder));
         oidcProvider.setJwtDecoderFactory(decoder);
     }

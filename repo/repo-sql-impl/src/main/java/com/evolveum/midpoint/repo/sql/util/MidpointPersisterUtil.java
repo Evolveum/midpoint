@@ -81,10 +81,14 @@ public class MidpointPersisterUtil {
         killUnwantedAssociationValues(propertyNames, propertyTypes, values, 0);
     }
 
-    private static void killUnwantedAssociationValues(String[] propertyNames, Type[] propertyTypes, Object[] values, int depth) {
+    private static boolean killUnwantedAssociationValues(
+            String[] propertyNames, Type[] propertyTypes, Object[] values, int depth) {
+
         if (values == null) {
-            return;
+            return false;
         }
+
+        boolean changed = false;
 
         for (int i = 0; i < propertyTypes.length; i++) {
             String name = propertyNames[i];
@@ -94,18 +98,44 @@ public class MidpointPersisterUtil {
                 LOGGER.trace("{}- killUnwantedAssociationValues processing #{}: {} (type={}, value={})",
                         StringUtils.repeat("  ", depth), i, name, type, value);
             }
-            if (type instanceof ComponentType) {
-                ComponentType componentType = (ComponentType) type;
-                killUnwantedAssociationValues(componentType.getPropertyNames(), componentType.getSubtypes(), (Object[]) value, depth+1);
-            } else if (type instanceof ManyToOneType) {
-                if (ASSOCIATION_TO_REMOVE.equals(name)) {
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("{}- killUnwantedAssociationValues KILLED #{}: {} (type={}, value={})",
-                                StringUtils.repeat("  ", depth), i, name, type, value);
-                    }
-                    values[i] = null;
+            if (type instanceof ComponentType componentType) {
+                changed |= killUnwantedAssociationValues(componentType, value, depth + 1);
+            } else if (type instanceof ManyToOneType && ASSOCIATION_TO_REMOVE.equals(name)) {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("{}- killUnwantedAssociationValues KILLED #{}: {} (type={}, value={})",
+                            StringUtils.repeat("  ", depth), i, name, type, value);
                 }
+
+                values[i] = null;
+                changed = true;
             }
         }
+
+        return changed;
+    }
+
+    private static boolean killUnwantedAssociationValues(ComponentType componentType, Object value, int depth) {
+        if (value == null) {
+            return false;
+        }
+
+        if (value instanceof Object[] componentValues) {
+            return killUnwantedAssociationValues(
+                    componentType.getPropertyNames(), componentType.getSubtypes(), componentValues, depth);
+        }
+
+        /*
+         * Hibernate 7 may pass component values as component instances instead of Object[].
+         * Convert them to property values, clean nested associations, and write them back.
+         */
+        Object[] componentValues = componentType.getPropertyValues(value);
+
+        if (!killUnwantedAssociationValues(
+                componentType.getPropertyNames(), componentType.getSubtypes(), componentValues, depth)) {
+            return false;
+        }
+
+        componentType.setPropertyValues(value, componentValues);
+        return true;
     }
 }

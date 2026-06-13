@@ -14,7 +14,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -26,12 +25,10 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 @Entity
-@ForeignKey(name = "fk_focus")
 @Table(indexes = {
         @Index(name = "iFocusAdministrative", columnList = "administrativeStatus"),
         @Index(name = "iFocusEffective", columnList = "effectiveStatus"),
@@ -39,7 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
         @Index(name = "iFocusValidFrom", columnList = "validFrom"),
         @Index(name = "iFocusValidTo", columnList = "validTo")
 })
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public abstract class RFocus extends RObject {
 
@@ -62,9 +58,8 @@ public abstract class RFocus extends RObject {
     private XMLGregorianCalendar passwordCreateTimestamp;
     private XMLGregorianCalendar passwordModifyTimestamp;
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 1")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 1")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RShadow>> getLinkRef() {
         if (linkRef == null) {
@@ -73,9 +68,8 @@ public abstract class RFocus extends RObject {
         return linkRef;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 10")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 10")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RFocus>> getPersonaRef() {
         if (personaRef == null) {

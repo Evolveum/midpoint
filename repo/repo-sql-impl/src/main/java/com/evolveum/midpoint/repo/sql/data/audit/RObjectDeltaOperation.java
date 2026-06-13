@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.CO
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.repo.sql.data.common.ROperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -70,13 +69,11 @@ public class RObjectDeltaOperation implements ROperationResultFull, EntityState 
     private RPolyString objectName;
     private String resourceOid;
     private RPolyString resourceName;
-
-    @ForeignKey(name = "none")
     @MapsId("record")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
+    @JoinColumns(value = {
             @JoinColumn(name = COLUMN_RECORD_ID, referencedColumnName = "id")
-    })
+    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     public RAuditEventRecord getRecord() {
         return record;
     }

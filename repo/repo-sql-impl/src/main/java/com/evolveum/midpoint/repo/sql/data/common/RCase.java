@@ -12,8 +12,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -25,13 +23,11 @@ import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 @Entity
-@ForeignKey(name = "fk_case")
 @Table(indexes = {
         @Index(name = "iCaseNameOrig", columnList = "name_orig"),
         @Index(name = "iCaseTypeObjectRefTargetOid", columnList = "objectRef_targetOid"),
@@ -40,7 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
         @Index(name = "iCaseTypeRequestorRefTargetOid", columnList = "requestorRef_targetOid"),
         @Index(name = "iCaseTypeCloseTimestamp", columnList = "closeTimestamp")
 })
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public class RCase extends RObject {
 
@@ -126,7 +121,6 @@ public class RCase extends RObject {
 
     @JaxbName(localPart = "workItem")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
-    @org.hibernate.annotations.ForeignKey(name = "none")
     public Set<RCaseWorkItem> getWorkItems() {
         return workItems;
     }

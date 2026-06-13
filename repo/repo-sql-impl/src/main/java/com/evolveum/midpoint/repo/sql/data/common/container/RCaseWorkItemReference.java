@@ -15,7 +15,6 @@ import java.util.Set;
 import jakarta.persistence.*;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemReferenceId;
@@ -23,7 +22,6 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOw
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -41,7 +39,6 @@ import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 @Table(name = RCaseWorkItemReference.TABLE, indexes = {
         @Index(name = "iCaseWorkItemRefTargetOid", columnList = "targetOid")
 })
-@Persister(impl = MidPointSingleTablePersister.class)
 public class RCaseWorkItemReference extends RReference {
 
     public static final String TABLE = "m_case_wi_reference";
@@ -52,13 +49,14 @@ public class RCaseWorkItemReference extends RReference {
     private Integer ownerId;                            // work item ID
     private RCaseWorkItemReferenceOwner referenceType;
 
-    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     @JoinColumns(
             value = {
-                    @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid"),
-                    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+                    @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid",
+                            insertable = false, updatable = false),
+                    @JoinColumn(name = "owner_id", referencedColumnName = "id",
+                            insertable = false, updatable = false)
             },
             foreignKey = @ForeignKey(name = "fk_case_wi_reference_owner"))
     public RCaseWorkItem getOwner() {
@@ -73,6 +71,7 @@ public class RCaseWorkItemReference extends RReference {
         }
     }
 
+    @Id
     @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public String getOwnerOwnerOid() {
@@ -86,6 +85,7 @@ public class RCaseWorkItemReference extends RReference {
         this.ownerOwnerOid = ownerOwnerOid;
     }
 
+    @Id
     @Column(name = "owner_id")
     @NotQueryable
     public Integer getOwnerId() {

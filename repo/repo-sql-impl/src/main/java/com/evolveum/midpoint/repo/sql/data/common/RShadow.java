@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import jakarta.persistence.Table;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -24,34 +23,26 @@ import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 @Entity
 @Table(name = "m_shadow", indexes = {
         @jakarta.persistence.Index(name = "iShadowNameOrig", columnList = "name_orig"),
         @jakarta.persistence.Index(name = "iShadowNameNorm", columnList = "name_norm"),
-        @jakarta.persistence.Index(name = "iPrimaryIdentifierValueWithOC", columnList = "primaryIdentifierValue,objectClass,resourceRef_targetOid", unique = true) })
-@org.hibernate.annotations.Table(appliesTo = "m_shadow",
-        indexes = {
-                @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
-                @Index(name = "iShadowDead", columnNames = "dead"),
-                @Index(name = "iShadowKind", columnNames = "kind"),
-                @Index(name = "iShadowIntent", columnNames = "intent"),
-                @Index(name = "iShadowObjectClass", columnNames = "objectClass"),
-                @Index(name = "iShadowFailedOperationType", columnNames = "failedOperationType"),
-                @Index(name = "iShadowSyncSituation", columnNames = "synchronizationSituation"),
-                @Index(name = "iShadowPendingOperationCount", columnNames = "pendingOperationCount")
-        })
-@ForeignKey(name = "fk_shadow")
+        @jakarta.persistence.Index(name = "iPrimaryIdentifierValueWithOC", columnList = "primaryIdentifierValue,objectClass,resourceRef_targetOid", unique = true),
+        @jakarta.persistence.Index(name = "iShadowResourceRef", columnList = "resourceRef_targetOid"),
+        @jakarta.persistence.Index(name = "iShadowDead", columnList = "dead"),
+        @jakarta.persistence.Index(name = "iShadowKind", columnList = "kind"),
+        @jakarta.persistence.Index(name = "iShadowIntent", columnList = "intent"),
+        @jakarta.persistence.Index(name = "iShadowObjectClass", columnList = "objectClass"),
+        @jakarta.persistence.Index(name = "iShadowFailedOperationType", columnList = "failedOperationType"),
+        @jakarta.persistence.Index(name = "iShadowSyncSituation", columnList = "synchronizationSituation"),
+        @jakarta.persistence.Index(name = "iShadowPendingOperationCount", columnList = "pendingOperationCount") })
 @QueryEntity(anyElements = {
         @VirtualAny(jaxbNameLocalPart = "attributes", ownerType = RObjectExtensionType.ATTRIBUTES) })
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public class RShadow extends RObject implements ROperationResult {
 

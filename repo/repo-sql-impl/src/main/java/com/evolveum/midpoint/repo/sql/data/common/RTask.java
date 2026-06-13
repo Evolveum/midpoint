@@ -15,8 +15,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAutoScalingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -40,10 +37,9 @@ import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 @Entity
 @Table(name = "m_task", indexes = {
         @jakarta.persistence.Index(name = "iTaskObjectOid", columnList = "objectRef_targetOid"),
-        @jakarta.persistence.Index(name = "iTaskNameOrig", columnList = "name_orig") },
+        @jakarta.persistence.Index(name = "iTaskNameOrig", columnList = "name_orig"),
+        @jakarta.persistence.Index(name = "iParent", columnList = "parent") },
         uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = { "taskIdentifier" }))
-@ForeignKey(name = "fk_task")
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public class RTask extends RObject implements ROperationResultFull {
 
@@ -74,7 +70,6 @@ public class RTask extends RObject implements ROperationResultFull {
     private RTaskAutoScaling autoScaling;
 
     @ElementCollection
-    @ForeignKey(name = "fk_task_dependent")
     @CollectionTable(name = "m_task_dependent", joinColumns = {
             @JoinColumn(name = "task_oid", referencedColumnName = "oid")
     })
@@ -129,7 +124,6 @@ public class RTask extends RObject implements ROperationResultFull {
         return ownerRefTask;
     }
 
-    @Index(name = "iParent")
     @Column(name = "parent")
     public String getParent() {
         return parent;

@@ -29,7 +29,6 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOw
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
@@ -38,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 @Entity
 @IdClass(RCaseWorkItemId.class)
 @Table(name = TABLE)
-@Persister(impl = MidPointSingleTablePersister.class)
 @DynamicUpdate
 public class RCaseWorkItem implements Container<RCase> {
 
@@ -64,8 +62,8 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Override
-    @MapsId
-    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_case_wi_owner"))
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_case_wi_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RCase.class)
     public RCase getOwner() {
@@ -127,10 +125,9 @@ public class RCaseWorkItem implements Container<RCase> {
         this.originalAssigneeRef = originalAssigneeRef;
     }
 
-    @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 0")
+    @SQLRestriction(RCaseWorkItemReference.REFERENCE_TYPE + "= 0")
     @JaxbName(localPart = "assigneeRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
-    @org.hibernate.annotations.ForeignKey(name = "none")
     public Set<RCaseWorkItemReference> getAssigneeRef() {
         return assigneeRef;
     }
@@ -139,10 +136,9 @@ public class RCaseWorkItem implements Container<RCase> {
         this.assigneeRef = assigneeRef;
     }
 
-    @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 1")
+    @SQLRestriction(RCaseWorkItemReference.REFERENCE_TYPE + "= 1")
     @JaxbName(localPart = "candidateRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
-    @org.hibernate.annotations.ForeignKey(name = "none")
     public Set<RCaseWorkItemReference> getCandidateRef() {
         return candidateRef;
     }

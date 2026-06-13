@@ -28,7 +28,6 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
@@ -37,7 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
 @Entity
 @IdClass(RCertWorkItemId.class)
 @Table(name = TABLE)
-@Persister(impl = MidPointSingleTablePersister.class)
 @DynamicUpdate
 public class RAccessCertificationWorkItem implements L2Container<RAccessCertificationCase> {
 
@@ -147,7 +145,6 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 
     @JaxbName(localPart = "assigneeRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
-    @org.hibernate.annotations.ForeignKey(name = "none")
     public Set<RCertWorkItemReference> getAssigneeRef() {
         return assigneeRef;
     }
