@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.gui.api.component.button;
 
 import java.io.OutputStream;
+import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.StreamingCsvDataExporter;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
@@ -26,7 +28,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 public class CsvDownloadInlineMenuItem extends ExportDownloadInlineMenuItem {
 
     private static final Trace LOGGER = TraceManager.getTrace(CsvDownloadInlineMenuItem.class);
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public CsvDownloadInlineMenuItem(ContainerableListPanel component, String fileNamePrefix) {
         super(ColumnUtils.createStringResource("CsvDownloadButtonPanel.export"), component, fileNamePrefix);
@@ -46,8 +48,8 @@ public class CsvDownloadInlineMenuItem extends ExportDownloadInlineMenuItem {
 
     @Override
     protected AbstractDataExporter getDataExporter() {
-        return new CSVDataExporter() {
-            private static final long serialVersionUID = 1L;
+        return new StreamingCsvDataExporter(component.getPageBase()) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public <T> void exportData(IDataProvider<T> dataProvider,

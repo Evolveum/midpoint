@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;
@@ -183,6 +182,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     public void showResourceObjectTypePreviewWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         ResourceObjectTypeWizardPanel wizard = showObjectTypeWizard(null, target, pathToValue, null);
+        addWizardBreadcrumbsResourceName(wizard);
         wizard.setShowChoicePanel(true);
     }
 
@@ -283,7 +283,8 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     private <P extends AbstractWizardPanel> void showContainerWizardForObjectType(
             AjaxRequestTarget target, ItemPath pathToValue, Class<P> wizardClass) {
         P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
-        addWizardBreadcrumbsForObjectType(wizardPanel, 0);
+        addWizardBreadcrumbsResourceName(wizardPanel);
+        addWizardBreadcrumbsForObjectType(wizardPanel, 1);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -305,7 +306,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         addWizardBreadcrumbsForObjectType(wizardPanel, 1);
     }
 
-    private <C extends Containerable> void addWizardBreadcrumbsForObjectType(
+    public  <C extends Containerable> void addWizardBreadcrumbsForObjectType(
             @NotNull AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel,
             int index) {
         List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();

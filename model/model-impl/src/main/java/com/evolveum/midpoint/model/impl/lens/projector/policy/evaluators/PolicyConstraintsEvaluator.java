@@ -6,27 +6,27 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.toConstraintsList;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import jakarta.xml.bind.JAXBElement;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import jakarta.xml.bind.JAXBElement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.toConstraintsList;
 
 @Component
 public class PolicyConstraintsEvaluator {
@@ -56,7 +56,7 @@ public class PolicyConstraintsEvaluator {
             return Collections.emptyList();
         }
         List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
-        for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false, false)) {
+        for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false)) {
             PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
                     (PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) getConstraintEvaluator(constraint);
             Collection<? extends EvaluatedPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(constraint, ctx, result);

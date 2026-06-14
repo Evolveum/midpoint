@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="be22f4bb-70ec-4951-94bb-c9f41ffb0300">
+
+    <name>task-live-sync-conflict-3</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+    <executionEnvironment>
+        <conflictResolution>
+            <action>restart</action>
+            <delayUnit>1000</delayUnit>
+            <maxAttempts>10</maxAttempts>
+        </conflictResolution>
+    </executionEnvironment>
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="f9208c71-6ef6-4cb9-a890-821cd3a06a51"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
+</task>

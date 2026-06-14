@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager.SimulatedFunctionCall;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
@@ -589,7 +588,7 @@ public interface ModelInteractionService {
      */
     @Experimental
     @NotNull
-    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
+    Collection<DirectlyEvaluatedClockworkPolicyRule> evaluateCollectionPolicyRules(
             @NotNull PrismObject<ObjectCollectionType> collection,
             @Nullable CompiledObjectCollectionView preCompiledView,
             @Nullable Class<? extends ObjectType> targetTypeClass,

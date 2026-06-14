@@ -240,11 +240,16 @@ public final class StatusAwareDataFactory {
                 try {
                     PrismPropertyWrapper<ItemPathType> refProperty =
                             mappingWrapper.findProperty(AbstractAttributeMappingsDefinitionType.F_REF);
-                    return refProperty != null && refProperty.getValue() != null
-                            ? refProperty.getValue().getRealValue().toString()
-                            : "";
+
+                    if (refProperty == null || refProperty.getValue() == null) {
+                        return "";
+                    }
+
+                    ItemPathType realValue = refProperty.getValue().getRealValue();
+                    return realValue != null ? realValue.toString() : "";
+
                 } catch (SchemaException e) {
-                    LOGGER.error("Couldn't get ref attribute path: {}", e.getMessage());
+                    LOGGER.error("Couldn't get ref attribute path: {}", e.getMessage(), e);
                     return "";
                 }
             }

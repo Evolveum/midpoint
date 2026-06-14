@@ -6,20 +6,30 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.*;
+
 import java.util.List;
 import java.util.Set;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.repo.common.activity.policy.*;
-import com.evolveum.midpoint.util.QNameUtil;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyConstraintsEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.DataNeed;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyConstraintsType;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 // TODO create package com.evolveum.midpoint.repo.common.policy and merge this class with
 //  CompositeConstraintEvaluator (from model) it will be quite a lot of refactoring moving
@@ -27,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyConstr
 // TODO too much code duplication with CompositeConstraintEvaluator, refactor !!!! [viliam]
 @Component
 public class ActivityCompositeConstraintEvaluator
-        implements ActivityPolicyConstraintEvaluator<ActivityPolicyConstraintsType, ActivityCompositeTrigger> {
+        implements ActivityPolicyConstraintEvaluator<PolicyConstraintsType, EvaluatedCompositeTrigger> {
 
     private static final String OP_EVALUATE = ActivityCompositeConstraintEvaluator.class.getName() + ".evaluate";
 
@@ -45,8 +55,8 @@ public class ActivityCompositeConstraintEvaluator
     }
 
     @Override
-    public List<ActivityCompositeTrigger> evaluate(
-            JAXBElement<ActivityPolicyConstraintsType> constraint,
+    public List<EvaluatedCompositeTrigger> evaluate(
+            JAXBElement<PolicyConstraintsType> constraint,
             ActivityPolicyRuleEvaluationContext context,
             OperationResult parentResult) {
 
@@ -54,25 +64,22 @@ public class ActivityCompositeConstraintEvaluator
                 .setMinor()
                 .build();
         try {
-            boolean isAnd = QNameUtil.match(ActivityPolicyConstraintsType.F_AND, constraint.getName());
-            boolean isOr = QNameUtil.match(ActivityPolicyConstraintsType.F_OR, constraint.getName());
-            boolean isNot = QNameUtil.match(ActivityPolicyConstraintsType.F_NOT, constraint.getName());
+            boolean isAnd = QNameUtil.match(PolicyConstraintsType.F_AND, constraint.getName());
+            boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
+            boolean isNot = QNameUtil.match(PolicyConstraintsType.F_NOT, constraint.getName());
             assert isAnd || isOr || isNot;
-            List<EvaluatedActivityPolicyRuleTrigger<?>> triggers =
+            List<EvaluatedPolicyRuleTrigger<?>> triggers =
                     activityPolicyConstraintsEvaluator.evaluateConstraints(constraint.getValue(), !isOr, context, result);
-            ActivityCompositeTrigger rv;
+            EvaluatedCompositeTrigger rv;
             if (isNot) {
                 if (triggers.isEmpty()) {
-                    rv = createTrigger(ActivityPolicyConstraintsType.F_NOT, constraint, triggers);
+                    rv = createTrigger(NOT, constraint, triggers);
                 } else {
                     rv = null;
                 }
             } else {
                 if (!triggers.isEmpty()) {
-                    rv = createTrigger(
-                            isAnd ? ActivityPolicyConstraintsType.F_AND : ActivityPolicyConstraintsType.F_OR,
-                            constraint,
-                            triggers);
+                    rv = createTrigger(isAnd ? AND : OR, constraint, triggers);
                 } else {
                     rv = null;
                 }
@@ -87,14 +94,56 @@ public class ActivityCompositeConstraintEvaluator
     }
 
     @Override
-    public Set<DataNeed> getDataNeeds(JAXBElement<ActivityPolicyConstraintsType> constraint) {
+    public Set<DataNeed> getDataNeeds(JAXBElement<PolicyConstraintsType> constraint) {
         return activityPolicyConstraintsEvaluator.getDataNeeds(constraint.getValue());
     }
 
-    private ActivityCompositeTrigger createTrigger(
-            QName kind,
-            JAXBElement<ActivityPolicyConstraintsType> element,
-            List<EvaluatedActivityPolicyRuleTrigger<?>> triggers) {
-        return new ActivityCompositeTrigger(kind, element.getValue(), triggers);
+    private EvaluatedCompositeTrigger createTrigger(
+            PolicyConstraintKind kind,
+            JAXBElement<PolicyConstraintsType> element,
+            List<EvaluatedPolicyRuleTrigger<?>> triggers) {
+
+        LocalizableMessage message = createLocalizableMessage(kind, element);
+        LocalizableMessage shortMessage = createLocalizableShortMessage(kind, element);
+
+        return new EvaluatedCompositeTrigger(kind, element.getValue(), message, shortMessage, triggers);
+    }
+
+    private LocalizableMessage createLocalizableMessage(
+            PolicyConstraintKind kind,
+            JAXBElement<? extends AbstractPolicyConstraintType> constraintElement) {
+
+        LocalizableMessage fallback = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.getSerializableVersion().value())
+                .build();
+
+        AbstractPolicyConstraintType constraint = constraintElement.getValue();
+        if (constraint.getName() != null) {
+            return new LocalizableMessageBuilder()
+                    .key(SchemaConstants.POLICY_CONSTRAINT_KEY_PREFIX + constraint.getName())
+                    .fallbackLocalizableMessage(fallback)
+                    .build();
+        }
+
+        return fallback;
+    }
+
+    private LocalizableMessage createLocalizableShortMessage(
+            PolicyConstraintKind kind,
+            JAXBElement<? extends AbstractPolicyConstraintType> constraintElement) {
+
+        LocalizableMessage fallback = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.getSerializableVersion().value())
+                .build();
+
+        AbstractPolicyConstraintType constraint = constraintElement.getValue();
+        if (constraint.getName() != null) {
+            return new LocalizableMessageBuilder()
+                    .key(SchemaConstants.POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraint.getName())
+                    .fallbackLocalizableMessage(fallback)
+                    .build();
+        }
+
+        return fallback;
     }
 }

@@ -644,7 +644,7 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
     private <O extends ObjectType> List<CelValue> searchObjects(QName type, Object filter) {
         Class<O> typeClass = prismContext.getSchemaRegistry().determineClassForType(type);
         String filterString;
-        if (CelTypeMapper.isCellNull(filter)) {
+        if (CelTypeMapper.isCelNull(filter)) {
             filterString = null;
         } else {
             filterString = (String) filter;

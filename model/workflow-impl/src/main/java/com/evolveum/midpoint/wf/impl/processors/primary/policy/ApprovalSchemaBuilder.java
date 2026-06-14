@@ -17,8 +17,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Creates complete approval schema and related information ({@link Result}) from partial information collected from
- * individual policy rules via {@link #add(ApprovalSchemaType, ApprovalPolicyActionType, PrismObject, AssociatedPolicyRule)}
+ * individual policy rules via {@link #add(ApprovalSchemaType, ApprovalPolicyActionType, PrismObject, EvaluatedClockworkPolicyRule)}
  * and {@link #addPredefined(PrismObject, RelationKindType, OperationResult)} methods.
  */
 class ApprovalSchemaBuilder {
@@ -68,7 +68,7 @@ class ApprovalSchemaBuilder {
         // TODO test this thoroughly in presence of non-direct rules and merged schemas
         final PrismObject<?> target;
         @NotNull final ApprovalSchemaType schema;
-        final AssociatedPolicyRule policyRule;
+        final EvaluatedClockworkPolicyRule policyRule;
         final ApprovalCompositionStrategyType compositionStrategy;
         final LocalizableMessageTemplateType approvalDisplayName;
 
@@ -76,7 +76,7 @@ class ApprovalSchemaBuilder {
                 ApprovalCompositionStrategyType compositionStrategy,
                 PrismObject<?> target,
                 @NotNull ApprovalSchemaType schema,
-                AssociatedPolicyRule policyRule,
+                EvaluatedClockworkPolicyRule policyRule,
                 LocalizableMessageTemplateType approvalDisplayName) {
             this.compositionStrategy = compositionStrategy;
             this.target = target;
@@ -129,7 +129,7 @@ class ApprovalSchemaBuilder {
             ApprovalSchemaType schema,
             ApprovalPolicyActionType approvalAction,
             PrismObject<?> defaultTarget,
-            AssociatedPolicyRule policyRule) throws SchemaException {
+            EvaluatedClockworkPolicyRule policyRule) throws SchemaException {
         ApprovalCompositionStrategyType compositionStrategy = approvalAction.getCompositionStrategy();
         Fragment fragment = new Fragment(
                 compositionStrategy, defaultTarget, schema, policyRule, approvalAction.getApprovalDisplayName());
@@ -255,12 +255,11 @@ class ApprovalSchemaBuilder {
             resultingSchemaType.getStage().add(stageDef);
         }
         if (firstFragment.policyRule != null) {
-            List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
-            firstFragment.policyRule.addToEvaluatedPolicyRuleBeans(
-                    rules,
-                    new PolicyRuleExternalizationOptions(FULL, false),
-                    null,
-                    firstFragment.policyRule.getNewOwner());
+            Collection<EvaluatedPolicyRuleType> rules =
+                    firstFragment.policyRule.toEvaluatedPolicyRuleBeans(
+                            new PolicyRuleExternalizationOptions(
+                                    FULL, false, firstFragment.policyRule.getRelevantTriggersFilter()),
+                            null);
             for (EvaluatedPolicyRuleType rule : rules) {
                 SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
                 attachedRule.setStageMin(from);

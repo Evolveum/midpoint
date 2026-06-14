@@ -137,6 +137,11 @@ public abstract class SmartCorrelationTable
     }
 
     @Override
+    protected String getTileCssStyle() {
+        return "";
+    }
+
+    @Override
     protected void customizeNewRowItem(PrismContainerValueWrapper<ItemsSubCorrelatorType> value, Item<PrismContainerValueWrapper<ItemsSubCorrelatorType>> item) {
         super.customizeNewRowItem(value, item);
         applySuggestionAutoRefresh(value, item, Duration.ofSeconds(3), this::getStatusInfo, this::refreshAndDetach);
@@ -339,7 +344,8 @@ public abstract class SmartCorrelationTable
             }
         };
 
-        LabelWithBadgePanel labelWithBadgePanel = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel, status);
+        LabelWithBadgePanel labelWithBadgePanel = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel,
+                createStringResource("SmartIntegration.suggestion.text"), status);
         cellItem.add(labelWithBadgePanel);
     }
 
@@ -377,7 +383,7 @@ public abstract class SmartCorrelationTable
     public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
         List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems(tileModel);
         inlineMenuItems.add(createViewRuleInlineMenu(tileModel));
-        inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
+        inlineMenuItems.add(createSuggestionStopGeneratingInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
         inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
         return inlineMenuItems;
     }
@@ -703,7 +709,7 @@ public abstract class SmartCorrelationTable
 
     @Override
     protected String getTileCssClasses() {
-        return "col-12 col-sm-12 col-md-6 col-lg-6 col-xl-4 col-xxl-3 p-2";
+        return "col-12 py-1";
     }
 }
 

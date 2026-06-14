@@ -3,11 +3,11 @@
  *
  * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.gui.impl.util;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.handleSuggestionSuspendResumeOperation;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.showSuggestionInfoPanelPopup;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiBadgeModel;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -179,32 +179,13 @@ public class StatusInfoTableUtil {
      * Creates an inline menu item that allows suspending or resuming the generation of mapping suggestions.
      * The item is only visible when the suggestion generation is in progress or suspended.
      */
-    public static <C extends Containerable, T> @NotNull ButtonInlineMenuItem createSuggestionOperationInlineMenu(
+    public static <C extends Containerable, T> @NotNull ButtonInlineMenuItem createSuggestionStopGeneratingInlineMenu(
             @NotNull PageBase pageBase,
             @NotNull SerializableFunction<PrismContainerValueWrapper<C>, @Nullable StatusInfo<T>> getStatusInfoFn,
             @NotNull SerializableConsumer<AjaxRequestTarget> refreshFn) {
         return new ButtonInlineMenuItem(
-                pageBase.createStringResource("SuggestionOperationInlineMenu.suspend.generating.inlineMenu")) {
+                pageBase.createStringResource("SuggestionOperationInlineMenu.stop.generating.inlineMenu")) {
             @Serial private static final long serialVersionUID = 1L;
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public IModel<String> getLabel() {
-                ColumnMenuAction<?> action = (ColumnMenuAction<?>) getAction();
-                IModel<?> rowModel = action.getRowModel();
-                if (rowModel != null && rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
-                    StatusInfo<T> s = getStatusInfoFn.apply((PrismContainerValueWrapper<C>) wrapper);
-                    if (s != null) {
-                        if (s.isExecuting() && !s.isSuspended()) {
-                            return pageBase.createStringResource("SuggestionOperationInlineMenu.suspend.generating.inlineMenu");
-                        }
-                        if (s.isSuspended()) {
-                            return pageBase.createStringResource("SuggestionOperationInlineMenu.resume.generating.inlineMenu");
-                        }
-                    }
-                }
-                return super.getLabel();
-            }
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -247,7 +228,11 @@ public class StatusInfoTableUtil {
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
                             StatusInfo<T> statusInfo = getStatusInfoFn.apply((PrismContainerValueWrapper<C>) valueWrapper);
                             if (statusInfo != null) {
-                                handleSuggestionSuspendResumeOperation(pageBase, statusInfo, task, result);
+                                String token = statusInfo.getToken();
+                                if (token == null) {
+                                    return;
+                                }
+                                removeWholeTaskObject(pageBase, task, result, token);
                                 refreshFn.accept(target);
                             }
                         }
@@ -372,9 +357,10 @@ public class StatusInfoTableUtil {
             @NotNull String componentId,
             @NotNull StatusInfo<?> suggestionTypeStatusInfo,
             @NotNull IModel<String> displayNameModel,
+            @NotNull IModel<String> suggestionBadgeModel,
             @NotNull OperationResultStatusType status) {
         LabelWithBadgePanel labelWithBadgePanel = new LabelWithBadgePanel(
-                componentId, getAiBadgeModel(), displayNameModel) {
+                componentId, getAiCustomTextBadgeModel(suggestionBadgeModel.getObject()), displayNameModel) {
             @Override
             protected boolean isIconVisible() {
                 return suggestionTypeStatusInfo.isExecuting();

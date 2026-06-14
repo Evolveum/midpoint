@@ -6,20 +6,37 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.PipelineItem;
+import static java.util.Collections.emptyList;
+
+import static com.evolveum.midpoint.schema.config.ConfigurationItem.configItem;
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_OBJECT;
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ASSIGNMENT_STATE;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.OBJECT_STATE;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import jakarta.xml.bind.JAXBElement;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
-import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
-import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,21 +49,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import jakarta.xml.bind.JAXBElement;
-
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.config.ConfigurationItem.configItem;
-import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_OBJECT;
-import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ASSIGNMENT_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.OBJECT_STATE;
-import static java.util.Collections.emptyList;
 
 @Component
 public class StateConstraintEvaluator implements PolicyConstraintEvaluator<StatePolicyConstraintType, EvaluatedStateTrigger> {
@@ -69,7 +71,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
     @Override
     public @NotNull <O extends ObjectType> Collection<EvaluatedStateTrigger> evaluate(
             @NotNull JAXBElement<StatePolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<O> rctx, OperationResult parentResult)
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
@@ -109,9 +112,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         StatePolicyConstraintType constraint = constraintElement.getValue();
         int count =
                 (constraint.getFilter() != null ? 1 : 0)
-                + (constraint.getExpression() != null ? 1 : 0)
-                + (constraint.getMessageExpression() != null ? 1 : 0)
-                + (constraint.getExecuteScript() != null ? 1 : 0);
+                        + (constraint.getExpression() != null ? 1 : 0)
+                        + (constraint.getMessageExpression() != null ? 1 : 0)
+                        + (constraint.getExecuteScript() != null ? 1 : 0);
 
         if (count != 1) {
             throw new SchemaException(
@@ -237,7 +240,6 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                         result);
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
-
 
     private @NotNull LocalizableMessage createBuiltInMessage(String keyPrefix,
             JAXBElement<StatePolicyConstraintType> constraintElement,

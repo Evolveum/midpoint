@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.common.MimeTypeUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.report.api.ReportManager;
@@ -30,6 +31,7 @@ public class ReportDownloadHelper implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(ReportDownloadHelper.class);
     private static final String DOT_CLASS = ReportDownloadHelper.class.getName() + ".";
     private static final String OPERATION_DOWNLOAD_REPORT = DOT_CLASS + ".downloadReport";
+    private static final String ZIP_EXTENSION = "zip";
 
     private static final Map<FileFormatTypeType, String> REPORT_EXPORT_TYPE_MAP = new HashMap<>();
     static {
@@ -58,12 +60,35 @@ public class ReportDownloadHelper implements Serializable {
 
     public static String getReportFileName(ReportDataType currentReport) {
         String name = WebComponentUtil.getName(currentReport);
-        if (StringUtils.isNotEmpty(name)) {
-            // Sanitize to remove any path components for defense in depth
-            // (browsers also ignore path components, but better to be safe)
-            return FilenameUtils.getName(name);
+        if (StringUtils.isEmpty(name)) {
+            name = "report"; // A fallback - this should not really occur
         }
-        return "report"; // A fallback - this should not really occur
+
+        // Check if the file name contains the extension
+        String extension = getReportExtension(currentReport);
+        String dotExtension = "." + extension;
+        if (StringUtils.isNotEmpty(dotExtension) && !name.endsWith(dotExtension)) {
+            name = name + dotExtension;
+        }
+
+        // Sanitize to remove any path components for defense in depth
+        // (browsers also ignore path components, but better to be safe)
+        String sanitizedName = FilenameUtils.getName(name);
+        if (isZipReport(currentReport) && !hasZipExtension(sanitizedName)) {
+            return sanitizedName + "." + ZIP_EXTENSION;
+        }
+        return sanitizedName;
+    }
+
+    private static boolean isZipReport(ReportDataType report) {
+        // ReportDataType has no ZIP file-format enum value, tracing stores ZIP outputs as files with .zip suffix.
+        return report != null
+                && report.getFilePath() != null
+                && hasZipExtension(report.getFilePath());
+    }
+
+    private static boolean hasZipExtension(String fileName) {
+        return ZIP_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(fileName));
     }
 
     public static InputStream createReport(ReportDataType report,
@@ -105,6 +130,19 @@ public class ReportDownloadHelper implements Serializable {
     public static void downloadPerformed(
             AjaxRequestTarget target, AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
         ajaxDownloadBehavior.initiate(target);
+    }
+
+    private static String getReportExtension(ReportDataType report) {
+        String filePath = report.getFilePath();
+        FileFormatTypeType fileFormat = report.getFileFormat();
+
+        String extension;
+        if (fileFormat != null) {
+            extension = fileFormat.value().toLowerCase();
+        } else {
+            extension = FilenameUtils.getExtension(filePath);
+        }
+        return extension;
     }
 
 }

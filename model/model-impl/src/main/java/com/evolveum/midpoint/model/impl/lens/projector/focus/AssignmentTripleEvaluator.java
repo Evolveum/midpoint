@@ -37,6 +37,8 @@ import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.activity.ActivityUtil;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.OriginProvider;
@@ -44,6 +46,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -59,7 +63,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentTripleEvaluator.class);
 
-    private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName()+".evaluateAssignment";
+    private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName() + ".evaluateAssignment";
 
     private final LensContext<AH> context;
     private final LensFocusContext<AH> focusContext;
@@ -167,9 +171,29 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                         .toList();
         LOGGER.trace("Task assignment: {}", taskAssignments);
 
+        Collection<AssignmentConfigItem> taskActivityAssignments = createActivityAssignments(task);
+        LOGGER.trace("Task activity assignments: {}", taskActivityAssignments);
+
         List<AssignmentConfigItem> virtualAssignments = new ArrayList<>(forcedAssignments);
         virtualAssignments.addAll(taskAssignments);
+        virtualAssignments.addAll(taskActivityAssignments);
+
         return virtualAssignments;
+    }
+
+    /**
+     * Collects all virtual assignments from current activity up to root activity.
+     */
+    private Collection<AssignmentConfigItem> createActivityAssignments(Task fromTask) {
+        ExecutionSupport support = fromTask.getExecutionSupport();
+        if (!(support instanceof AbstractActivityRun<?, ?, ?> activityRun)) {
+            return List.of();
+        }
+
+        return ActivityUtil.getAllVirtualAssignments(activityRun.getActivity())
+                .stream()
+                .map(p -> AssignmentConfigItem.of(p.getLeft(), OriginProvider.generated(), p.getRight()))
+                .toList();
     }
 
     // [EP:APSO] DONE
@@ -198,7 +222,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         boolean forceRecon;
 
         // Deltas that modify the content of the assignment.
-        Collection<? extends ItemDelta<?,?>> innerAssignmentDeltas;
+        Collection<? extends ItemDelta<?, ?>> innerAssignmentDeltas;
 
         // Human-readable description of the assignment "placement" (not quite concise name).
         String assignmentPlacementDesc;
@@ -503,7 +527,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiAdd(
             SmartAssignmentElement element) throws SchemaException {
         PrismContainerValue<AssignmentType> value = element.getAssignmentCVal();
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta =
                 (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
                         getDeltaItemFragment(value)
@@ -531,7 +555,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiDelete(
             SmartAssignmentElement element) throws SchemaException {
         PrismContainerValue<AssignmentType> value = element.getAssignmentCVal();
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta =
                 (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
                         getDeltaItemFragment(value)
@@ -559,7 +583,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     /** Returns deltas related to given assignment element. */
-    private @NotNull Collection<? extends ItemDelta<?,?>> getInnerAssignmentDeltas(LensFocusContext<AH> focusContext,
+    private @NotNull Collection<? extends ItemDelta<?, ?>> getInnerAssignmentDeltas(LensFocusContext<AH> focusContext,
             SmartAssignmentElement assignmentElement) {
         ObjectDelta<AH> focusDelta = focusContext.getCurrentDelta(); // TODO is this correct?
         if (focusDelta == null) {
@@ -610,7 +634,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
      * Returns null in exceptional situations.
      */
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
             PlusMinusZero primaryAssignmentMode,
             boolean evaluateOld,
             String assignmentPlacementDesc,
@@ -706,7 +730,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             //noinspection unchecked
             return (ContainerDelta<AssignmentType>) PrismContext.get().deltaFor(currentObjectable.getClass())
                     .item(AssignmentHolderType.F_ASSIGNMENT)
-                        .deleteRealValues(cloneCollectionMembers(currentObjectable.getAssignment()))
+                    .deleteRealValues(cloneCollectionMembers(currentObjectable.getAssignment()))
                     .asItemDelta();
         } else {
             return createEmptyAssignmentDelta(focusContext);

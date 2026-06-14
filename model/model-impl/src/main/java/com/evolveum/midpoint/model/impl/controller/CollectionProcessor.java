@@ -10,7 +10,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType;
 import com.evolveum.midpoint.schema.config.AbstractAssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
@@ -29,10 +30,9 @@ import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.ConditionState;
@@ -77,7 +77,7 @@ public class CollectionProcessor {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private SchemaService schemaService;
 
-    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
+    Collection<DirectlyEvaluatedClockworkPolicyRule> evaluateCollectionPolicyRules(
             PrismObject<ObjectCollectionType> collection, // [EP:APSO] DONE 1/1
             CompiledObjectCollectionView preCompiledCollectionView,
             Class<? extends ObjectType> targetTypeClass,
@@ -95,7 +95,7 @@ public class CollectionProcessor {
                     collectionView, null, collectionBean, targetTypeClass, task, result);
         }
 
-        Collection<EvaluatedPolicyRule> evaluatedPolicyRules = new ArrayList<>();
+        Collection<DirectlyEvaluatedClockworkPolicyRule> evaluatedPolicyRules = new ArrayList<>();
         for (AssignmentType assignmentBean : collectionBean.getAssignment()) {
             PolicyRuleType policyRuleBean = assignmentBean.getPolicyRule();
             if (policyRuleBean != null) {
@@ -116,7 +116,7 @@ public class CollectionProcessor {
      * Assumes the assignment has a policy rule.
      */
     @NotNull
-    private EvaluatedPolicyRule evaluatePolicyRule(
+    private DirectlyEvaluatedClockworkPolicyRule evaluatePolicyRule(
             @NotNull PrismObject<ObjectCollectionType> collection,
             @NotNull CompiledObjectCollectionView collectionView,
             @NotNull AbstractAssignmentConfigItem assignmentCI, // [EP:APSO] DONE 1/1
@@ -144,8 +144,8 @@ public class CollectionProcessor {
         String ruleId = PolicyRuleTypeUtil.createId(collection.getOid(), assignmentCI.value().getId());
 
         PolicyRuleConfigItem policyRule = Objects.requireNonNull(assignmentCI.getPolicyRule());
-        EvaluatedPolicyRuleImpl evaluatedPolicyRule = // TODO why cloning here?
-                new EvaluatedPolicyRuleImpl(policyRule.clone(), ruleId, assignmentPath, TargetType.OBJECT);
+        DirectlyEvaluatedClockworkPolicyRuleImpl evaluatedPolicyRule = // TODO why cloning here?
+                new DirectlyEvaluatedClockworkPolicyRuleImpl(policyRule.clone(), ruleId, assignmentPath, TargetType.OBJECT);
 
         PolicyConstraintsType policyConstraints = policyRule.value().getPolicyConstraints();
         if (policyConstraints == null) {
@@ -157,8 +157,8 @@ public class CollectionProcessor {
         for (CollectionStatsPolicyConstraintType collectionStatsPolicy : policyConstraints.getCollectionStats()) {
             CollectionStats stats = determineCollectionStats(collectionView, task, result);
             if (isThresholdTriggered(stats, collection, policyThreshold)) {
-                EvaluatedPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(
-                        PolicyConstraintKindType.COLLECTION_STATS, collectionStatsPolicy,
+                EvaluatedClockworkPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(
+                        collectionStatsPolicy,
                         new LocalizableMessageBuilder()
                                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
                                 .arg(ObjectTypeUtil.createDisplayInformation(collection, false))
@@ -169,7 +169,7 @@ public class CollectionProcessor {
                                 .arg(ObjectTypeUtil.createDisplayInformation(collection, false))
                                 .args(/* TODO */)
                                 .build());
-                evaluatedPolicyRule.addTrigger(trigger);
+                evaluatedPolicyRule.trigger(trigger);
             }
         }
 
@@ -298,21 +298,63 @@ public class CollectionProcessor {
         } else if (collectionSpec.getFilter() != null) {
 
             SearchFilterType filter = collectionSpec.getFilter();
+            Class<?> effectiveTargetTypeClass = determineTargetTypeClass(collectionSpec, targetTypeClass);
 
             CollectionRefSpecificationType baseCollectionSpec = collectionSpec.getBaseCollectionRef();
             if (baseCollectionSpec == null) {
-                if (targetTypeClass == null) {
+                if (effectiveTargetTypeClass == null) {
                     throw new IllegalArgumentException("UndefinedTypeForCollection type: " + collectionSpec);
                 }
-                ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
+                ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, effectiveTargetTypeClass);
                 existingView.setFilter(objectFilter);
+                setContainerTypeIfNeeded(existingView, collectionSpec.getType());
             } else {
-                compileBaseCollectionSpec(filter, existingView, baseCollectionSpec, targetTypeClass, task, result);
+                compileBaseCollectionSpec(filter, existingView, baseCollectionSpec, effectiveTargetTypeClass, task, result);
+                setContainerTypeIfNeeded(existingView, collectionSpec.getType());
             }
         } else {
             // E.g. the case of empty domain specification. Nothing to do. Just return what we have.
             //noinspection UnnecessaryReturnStatement
             return;
+        }
+    }
+
+    /**
+     * Determines the type to be used for parsing an inline collection filter.
+     *
+     * The type can come either from the surrounding configuration, e.g. object
+     * list view or base collection, or from the collection specification itself.
+     * The explicit collection type is mainly needed for standalone inline filters,
+     * where there is no referenced object collection that would provide the type.
+     *
+     * If both types are present, the explicit collection type may only keep or
+     * narrow the surrounding type. It must not broaden it or point to an unrelated
+     * type, because the filter is evaluated in the context of the effective type.
+     */
+    private Class<?> determineTargetTypeClass(
+            CollectionRefSpecificationType collectionSpec,
+            Class<?> targetTypeClass) throws ConfigurationException {
+
+        QName explicitType = collectionSpec.getType();
+        if (explicitType == null) {
+            return targetTypeClass;
+        }
+
+        Class<?> explicitTargetTypeClass =
+                prismContext.getSchemaRegistry().determineClassForType(explicitType);
+
+        if (targetTypeClass != null && !targetTypeClass.isAssignableFrom(explicitTargetTypeClass)) {
+            throw new ConfigurationException(
+                    "Conflicting collection types: " + targetTypeClass.getSimpleName()
+                            + " and " + explicitType);
+        }
+
+        return explicitTargetTypeClass;
+    }
+
+    private void setContainerTypeIfNeeded(CompiledObjectCollectionView existingView, QName collectionType) {
+        if (existingView.getContainerType() == null && collectionType != null) {
+            existingView.setContainerType(collectionType);
         }
     }
 
@@ -685,8 +727,11 @@ public class CollectionProcessor {
                 if (newSearchBoxConfig.getSearchItems() == null) {
                     newSearchBoxConfig.setSearchItems(oldSearchBoxConfig.getSearchItems());
                 }
-                if (CollectionUtils.isEmpty(newSearchBoxConfig.getAvailableFilter())) {
-                    newSearchBoxConfig.getAvailableFilter().addAll(oldSearchBoxConfig.getAvailableFilter());
+                // Due to the ticket #11181 it was decided to change merging strategy for the availableFilter
+                // values in order to gather the saved filters from different admin gui configurations
+                if (CollectionUtils.isNotEmpty(oldSearchBoxConfig.getAvailableFilter())) {
+                    oldSearchBoxConfig.getAvailableFilter().forEach(filter ->
+                            newSearchBoxConfig.getAvailableFilter().add(filter.clone()));
                 }
                 if (newSearchBoxConfig.getDefaultMode() == null) {
                     newSearchBoxConfig.setDefaultMode(oldSearchBoxConfig.getDefaultMode());

@@ -67,7 +67,7 @@ public class GroupOfNamesLdapMappingProvider implements WellKnownSchemaProvider 
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "dn",
                     AbstractRoleType.F_IDENTIFIER,
-                    "basic.composeDnWithSuffix('cn', identifier, '%s')".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', identifier, '%s'])".formatted(ouSuffix),
                     "Compose DN: cn=<identifier>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
         }

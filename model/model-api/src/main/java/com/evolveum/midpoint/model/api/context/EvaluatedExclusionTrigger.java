@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -17,6 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.EXCLUSION;
 
 /**
  * Represents triggered exclusion constraint.
@@ -50,7 +53,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedExclusionRequirementTrig
             @NotNull AssignmentPath thisPath,
             @NotNull AssignmentPath conflictingPath,
             boolean enforcementOverride) {
-        super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage, thisAssignment, thisTarget, thisPath, enforcementOverride);
+        super(EXCLUSION, constraint, message, shortMessage, thisAssignment, thisTarget, thisPath, enforcementOverride);
         this.conflictingAssignment = conflictingAssignment;
         this.conflictingTarget = conflictingTarget;
         this.conflictingPath = conflictingPath;
@@ -60,6 +63,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedExclusionRequirementTrig
         return conflictingAssignment;
     }
 
+    /** TODO docs */
     public @NotNull EvaluatedAssignment getRealConflictingAssignment(@NotNull EvaluatedAssignment owner) {
         // We are relying on equals method here, but most probably the identity is (in fact) checked there, and it should be OK.
         if (conflictingAssignment.equals(owner)) {
@@ -110,10 +114,8 @@ public class EvaluatedExclusionTrigger extends EvaluatedExclusionRequirementTrig
     }
 
     @Override
-    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
-        fillCommonContent(rv);
+    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerBean(@NotNull PolicyRuleExternalizationOptions options) {
+        var rv = toEvaluatedPolicyRuleTriggerBean(options, EvaluatedExclusionTriggerType::new);
         if (options.isFullStorageStrategy()) {
             rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
             rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
@@ -131,8 +133,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedExclusionRequirementTrig
     }
 
     @Override
-    public boolean isRelevantForNewOwner(@Nullable EvaluatedAssignment newOwner) {
-        return newOwner == null
-                || conflictingAssignment.equals(newOwner);
+    public boolean isRelevantForAssignmentOverride(@NotNull EvaluatedAssignment assignmentOverride) {
+        return conflictingAssignment.equals(assignmentOverride);
     }
 }

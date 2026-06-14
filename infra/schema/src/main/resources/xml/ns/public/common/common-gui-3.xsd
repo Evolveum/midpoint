@@ -364,6 +364,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element minOccurs="0" name="imageUploadProcessing" type="tns:ImageUploadProcessingType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AdminGuiConfigurationType.imageUploadProcessing</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -4091,6 +4099,20 @@
         <xsd:complexContent>
             <xsd:extension base="tns:CollectionSpecificationType">
                 <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of objects that belong to this collection. This is used when the collection
+                                is specified by an inline filter and the type cannot be derived from a referenced
+                                collection or from the containing configuration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                                <a:displayName>CollectionSpecificationType.type</a:displayName>
+                                <a:displayOrder>5</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:choice>
                         <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0">
                             <xsd:annotation>
@@ -5141,39 +5163,74 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:complexType name="ImageUploadProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains options for image upload processing.
+                It is possible to configure various types of sanitization
+                e.g. strip EXIF data or conversion to fixed format.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="processing" minOccurs="0" type="tns:ImageProcessingType" default="preserveOriginal"/>
+            <xsd:element name="format" minOccurs="0" type="tns:ImageFormatType" default="jpg"/>
+            <xsd:element name="stripExifData" minOccurs="0" type="xsd:boolean" default="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="ImageProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of processing for uploaded image.
+                Format can be specified using `format` for `fixed` processing.
 
-    <!--<xsd:simpleType name="GuiParameterTypeType">-->
-    <!--    <xsd:annotation>-->
-    <!--        <xsd:documentation>-->
-    <!--            if the parameter is request from user, or if it is derived from other parameters.-->
-    <!--        </xsd:documentation>-->
-    <!--        <xsd:appinfo>-->
-    <!--            <a:since>4.9</a:since>-->
-    <!--        </xsd:appinfo>-->
-    <!--    </xsd:annotation>-->
-    <!--    <xsd:restriction base="xsd:string">-->
-    <!--        <xsd:enumeration value="manual">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Requires user input-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="MANUAL"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--        <xsd:enumeration value="automatic">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Gives the possibility to select individual items without possibility to select all at once.-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="AUTOMATIC"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--    </xsd:restriction>-->
-    <!--</xsd:simpleType>-->
+                Default value is `preserveOriginal`.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="preserveOriginal">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRESERVE_ORIGINAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fixed">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FIXED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="ImageFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Image format that is used to store uploaded image.
+                It is used only if `processing` is set to `fixed`.
 
-
+                Default value is jpg.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="jpg">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JPG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="png">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PNG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

@@ -536,6 +536,51 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionEqualsIgnoreCaseGlobalStringTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-equalsignorecase-global.xml",
+                createVariables(
+                        "foo", "foobar", PrimitiveType.STRING,
+                        "bar", "FooBar", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionEqualsIgnoreCaseGlobalStringFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-equalsignorecase-global.xml",
+                createVariables(
+                        "foo", "foobar", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionEqualsIgnoreCaseGlobalPolyStringTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-equalsignorecase-global.xml",
+                createVariables(
+                        "foo", createPolyStringType("foobar"), PolyStringType.COMPLEX_TYPE,
+                        "bar", createPolyStringType("FooBar"), PolyStringType.COMPLEX_TYPE
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionEqualsIgnoreCaseGlobalPolyStringFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-equalsignorecase-global.xml",
+                createVariables(
+                        "foo", createPolyStringType("foobar"), PolyStringType.COMPLEX_TYPE,
+                        "bar", createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
+                ),
+                Boolean.FALSE);
+    }
+
+
+    @Test
     public void testExpressionStringPlusString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-foo-plus-bar.xml",
@@ -858,6 +903,31 @@ public class TestMelExpressions extends AbstractScriptTest {
                         "bar", "FooBar", PrimitiveType.STRING
                 ),
                 "true/false : true/false : true/false : true/false");
+    }
+
+    @Test
+    public void testExpressionStringMix4PolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-mix-4.xml",
+                createVariables(
+                        "foo", createPolyStringType("Foo\n\tBar"), PolyStringType.COMPLEX_TYPE,
+                        "bar", createPolyStringType("fooBar"), PolyStringType.COMPLEX_TYPE
+                ),
+                "\"Foo\\n\\tBar\" raBoof FooBar");
+    }
+
+    /**
+     * Control test, making sure stock CEL interprets the expression in the same way using plain strings.
+     */
+    @Test
+    public void testExpressionStringMix4String() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-mix-4.xml",
+                createVariables(
+                        "foo", "Foo\n\tBar", PrimitiveType.STRING,
+                        "bar", "fooBar", PrimitiveType.STRING
+                ),
+                "\"Foo\\n\\tBar\" raBoof FooBar");
     }
 
     @Test
@@ -2045,6 +2115,74 @@ public class TestMelExpressions extends AbstractScriptTest {
         assertEquals("Expression " + getTestName() + " resulted in wrong values",
                 "[PolyString(Leaders,leaders)PolyString(Followers,followers)]",
                 expressionResult.replaceAll("[\\s]+", ""));
+    }
+
+    @Test
+    public void testMapDefaultNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-map-default-null.xml",
+                null,
+                "HELLO");
+    }
+
+    @Test
+    public void testStrange1Foobar() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-strange-1.xml",
+                createVariables(
+                        "input", "foobar", PrimitiveType.STRING
+                ),
+                "foobar");
+    }
+
+    @Test
+    public void testStrange1SpaceFoobar() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-strange-1.xml",
+                createVariables(
+                        "input", " foobar", PrimitiveType.STRING
+                ),
+                "foobar");
+    }
+
+    @Test
+    public void testStrange1Null() throws Exception {
+        evaluateAndAssertStringScalarNullExpression(
+                "expression-strange-1.xml",
+                createVariables(
+                        "input", null, PrimitiveType.STRING
+                ));
+    }
+
+    @Test
+    public void testConditionalNullStringFoobar() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-conditional-nil-string.xml",
+                createVariables(
+                        "input", "foobar", PrimitiveType.STRING
+                ),
+                "We have foobar");
+    }
+
+    @Test
+    public void testConditionalNullStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-conditional-nil-string.xml",
+                createVariables(
+                        "input", null, PrimitiveType.STRING
+                ),
+                null);
+    }
+
+
+    @Test
+    public void testConditionalStringNullFoobar() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-conditional-string-nil.xml",
+                createVariables(
+                        "input", "foobar", PrimitiveType.STRING
+                ),
+                "We have foobar");
     }
 
     @Test

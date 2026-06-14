@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 
+import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -21,7 +22,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
@@ -48,12 +48,13 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
             return "";
         }
 
+        // TODO how is this supposed to work? [pavol]
         if (PolicyConstraintsType.class.isAssignableFrom(realValue.getClass())) {
-            return PolicyRuleTypeUtil.toShortString((PolicyConstraintsType) realValue);
+            return PolicyRuleDumpUtil.toShortString((PolicyConstraintsType) realValue);
         }
 
         if (PolicyActionsType.class.isAssignableFrom(realValue.getClass())) {
-            return PolicyRuleTypeUtil.toShortString((PolicyActionsType) realValue);
+            return PolicyRuleDumpUtil.toShortString((PolicyActionsType) realValue);
         }
 
         if (ActivationType.class.isAssignableFrom(realValue.getClass())) {

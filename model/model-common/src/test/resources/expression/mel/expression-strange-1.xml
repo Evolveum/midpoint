@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- Strictly speaking, this expression should not work.
+     Conditional (?:) requires the same type in both branches.
+     Null is not string, therefore the first conditional should fail.
+     But it works.
+     Insight: in fact it may work because the right-hand side of the first condisional does not evaluate to string.
+     It evaluates to nullable or dynamic type.
+     If it evaluated to string, the expression fails.
+     -->
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+    <code>
+        isNull(input) ? null : (input.indexOf(' ') == -1 ? input : input.substring(input.indexOf(' ') + 1))
+    </code>
+</script>

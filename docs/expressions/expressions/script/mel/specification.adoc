@@ -256,6 +256,19 @@ ASCII characters with diacritical marks are converted to their basic variants (r
 ascii('Čórtův hrád, tam Strašá!')
 ----
 
+=== capitalize
+
+`string.capitalize()` -> string
+
+Converts first character of a string to upper case.
+Works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+'midPoint'.capitalize()   // Returns 'MidPoint'
+----
+
 
 === charAt
 
@@ -287,7 +300,8 @@ focus.fullName.contains('Mr.')
 
 === containsIgnoreCase
 
-`string.containsIgnoreCase(substring)` -> bool
+`string.containsIgnoreCase(substring)` -> bool +
+`containsIgnoreCase(string, substring)` -> bool
 
 Function that tests whether the string contains the substring without regard to character case.
 Works on strings as well as polystrings.
@@ -295,8 +309,8 @@ Works on strings as well as polystrings.
 .Example
 [source,mel]
 ----
-// Checks whether the full name contains substring 'Mr.'
-focus.fullName.contains('Mr.')
+// Checks whether the full name contains substring 'phd.' in any combination of cases
+focus.fullName.containsIgnoreCase('phd.')
 ----
 
 === debugDump
@@ -346,6 +360,20 @@ Works on strings as well as polystrings.
 ----
 // Checks whether the full name ends with 'PhD.' suffix
 focus.fullName.endsWith('PhD.')
+----
+
+=== equalsIgnoreCase
+
+`string.equalsIgnoreCase(string)` -> bool +
+`equalsIgnoreCase(string, string)` -> bool
+
+Function that tests whether strings equally match without regard to character case.
+Works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+'FooBar'.equalsIgnoreCase('foobar')  // Returns true
 ----
 
 === exists
@@ -471,9 +499,9 @@ Also returns true if the argument is an empty list.
 isEmpty([])      // Returns true
 ----
 
-=== isNull
+=== isNil
 
-`isNull(any)` -> bool
+`isNil(any)` -> bool
 
 Returns true if the argument is `null` or any of its equivalents.
 This function works reliably in all the cases when a test for "nullness" would be done.
@@ -484,21 +512,21 @@ Use of this function is strongly recommended for null checks in all places.
 .Example
 [source,mel]
 ----
-isNull(null)     // Returns true
-isNull('foo')    // Returns false
+isNil(null)     // Returns true
+isNil('foo')    // Returns false
 ----
 
-Function `isNull()` can be used with structured data as well.
+Function `isNil()` can be used with structured data as well.
 The following expression returns `false` only if (non-null) value of `validFrom` property is present.
 It returns `true` in all other cases, such as when `focus` variable contains `null`, if the object in `focus` variable does not have `activation` container, if the container does not contain `validFrom` property or if that property is `null`.
 
 .Example
 [source,mel]
 ----
-isNull(focus.?activation.?validFrom)
+isNil(focus.?activation.?validFrom)
 ----
 
-It is strongly recommended to use `isNull()` function instead of `null` equality check (e.g. `foo == null`) in all cases.
+It is strongly recommended to use `isNil()` function instead of `null` equality check (e.g. `foo == null`) in all cases.
 
 === isPresent
 
@@ -674,6 +702,20 @@ This function works on strings as well as polystrings.
 norm('  Semančík')    // Returns 'semancik'
 ----
 
+=== quote
+
+`string.quote()` -> string
+
+Takes orig part of the given string and makes it safe to print
+(without any formatting due to escape sequences).
+If any invalid UTF-8 characters are encountered, they are replaced with \uFFFD.
+
+.Example
+[source,mel]
+----
+'foo\nbar'.quote()  // Returns '"foo\\nbar"'
+----
+
 === replace
 
 `string.replace(search, replacement)` -> string +
@@ -690,6 +732,18 @@ When the limit is a negative number, the function behaves the same as replace al
 'sailpoint'.replace('sail','mid')  // Returns 'midpoint'
 ----
 
+=== reverse
+
+`string.reverse()` -> string
+
+Returns a new string whose characters are the same as the target string,
+only formatted in reverse order.
+
+.Example
+[source,mel]
+----
+'foobar'.reverse()  // Returns 'raboof'
+----
 
 === single
 
@@ -1559,6 +1613,13 @@ Timestamp referring to the "current" time instant is available in variable `now`
 The value of this variable refers to an approximate moment of the start of expression evaluation.
 Value of this variable is fixed through the evaluation of the expression.
 
+.Reference time vs "now"
+TIP: Some expression provide a xref:/midpoint/reference/expressions/mappings/#time-constraints[reference time] in `referenceTime` variable.
+This timestamp is different than the one provided in `now` variable.
+Variable `now` always contains "current" time instant, which is usually a time when an expression evaluation started.
+On the other hand, `referenceTime` variable contains a timestamp which is relevant for evaluation of a particular mapping, such as a timestamp when relevant object was disabled.
+When dealing with time-constrained mappings, use of `referenceTime` is usually correct and use of `now` is usually wrong.
+
 === atStartOfDay
 
 `timestamp.atStartOfDay()` -> timestamp +
@@ -1951,7 +2012,7 @@ has(focus.fullName)
 
 However, the `has()` macro is not null-safe.
 E.g. the expression above fails in case the `focus` variable is `null`.
-It is recommended to use `isNull()` and `isPresent()` functions instead (see below).
+It is recommended to use `isNil()` and `isPresent()` functions instead (see below).
 
 === Optional Values in Structured Data
 
@@ -1980,7 +2041,7 @@ In such cases the expression evaluates to an _empty optional_, which is supposed
 MidPoint interprets the value correctly when it is a result value of an expression.
 Most of MEL functions can interpret the value correctly as well.
 However, interpretation of some built-in CEL operators (e.g. `==` and `+`) can be confusing.
-Therefore, it is recommended to use functions `isPresent()` and `isNull()` for checks, and `format()` for string formatting when dealing with optional values.
+Therefore, it is recommended to use functions `isPresent()` and `isNil()` for checks, and `format()` for string formatting when dealing with optional values.
 E.g. the `isPresent()` function can be used to determine whether a particular item is present in data:
 
 [source,mel]
@@ -2013,116 +2074,33 @@ focus.find('activation/administrativeStatus')
 
 == Null and Optional Values
 
-MEL expressions often need to deal with `null` and optional values, values which may or may not be present.
-This applies to script variables, which may have value in some cases, and may not have value (`null`) in others.
-Then there are structured data (midPoint/prism objects), which have many optional items.
+Use following constructs when dealing with `null` values:
 
-CEL language provides some mechanisms to deal with such optional values.
-Unfortunately, there are two mechanisms to represent value which is not present: _null values_ and _optionals_.
-These mechanisms are not perfectly aligned, which may cause a lot of confusion.
+|===
+| Instead of (wrong) | Use this (correct)
 
-When it comes to structured types, CEL assumes that all the items in a structured data referenced by an expression exist, and are present in the data.
-E.g. following expression fails in case that the object in the `focus` variable does not have `activation` container, that container does not have `administrativeStatus` property, or even if `focus` variable has `null` value.
+| `focus.activation.administrativeStatus`
+| `focus.?activation.?administrativeStatus`
 
-.Fragile processing of structured data, not recommended
-[source,mel]
-----
-focus.activation.administrativeStatus
-----
+| `null`
+| `nil`
 
-The method used in expression above is not recommended in MEL expressions.
-Such expressions are reliable only if you are absolutely sure that all the referenced items are present in the data, which usually means that the expressions have explicitly checked their existence before.
-In general case, the use of `.?` operator is recommended instead:
+| `foo == null`
+| `isNil(foo)`
 
-.Robust processing of structured data, recommended
-[source,mel]
-----
-focus.?activation.?administrativeStatus
-----
+| `foo != null`
+| `isPresent(foo)`
 
-The `.?` operator is using _optionals_, which means it does not fail even if there is no `activation` container, that container does not have `administrativeStatus` property, or even if `focus` variable is `null`.
-In all such cases the expression evaluates to _empty optional_, which is supposed to have the same meaning as `null` value.
-However, it is not _completely_ equivalent to `null`, as _empty optional_ is formally a non-null value.
-This means that CEL/MEL has two mechanisms for representing values that may or may not be present.
-Therefore, simple equality check for `null` is not reliable:
+| `foo.contains('#')`
+| `stringify(foo).contains('#')`
 
-.Not recommended, not reliable
-[source,mel]
-----
-foo == null
-----
+|===
 
-This equality operator checks whether the value is `null`.
-As optional are always non-null, the expression above returns non-intuitive result (`false`) for empty optionals.
-The expression above is likely to work correctly when used with variables which contain primitive values, but it will not work with optionals.
-This can be counter-intuitive when dealing with structured data:
+As a rule of thumb, never use `null` literal.
+Use `nil` instead.
+Use functions `isNil()` and `isPresent()` whenever possible.
 
-.Incorrect, counter-intuitive expression
-[source,mel]
-----
-focus.?activation.?administrativeStatus == null
-----
-
-The expression above never evaluates to `false`, as optionals are always non-null values, even if the item that they reference does not exist.
-As a rule of thumb, it is recommended to *always avoid use of null equality check (`foo == null`)*.
-
-MEL provides a special purpose functions `isNull()` and `isPresent()` which can be reliably used in all the cases.
-All the expressions below will be evaluated correctly, providing results that the user would intuitively expect.
-
-.Recommended check for optional/null values
-[source,mel]
-----
-isNull(foo)
-isNull(focus.?activation.?validFrom)
-isPresent(focus.?activation.?administrativeStatus)
-----
-
-NOTE: There is a `has()` macro in CEL, which can be used to check for presence of a particular element in structured data.
-However, the `has()` macro has limitations, which makes it difficult to use in some cases.
-The use of `isNull()` and `isPresent()` functions is recommended instead of use of `has()` macro, especially for new users.
-
-Moreover, there is a `default()` function which is very handy, and it reliably detects present or missing value in all the cases:
-
-.Recommended check for optional/null values
-[source,mel]
-----
-default(focus.?lifecycleState, 'active')
-----
-
-The expression above will always return a valid string value, even in case that `focus` variable is `null`, or that the object present in `focus` variable does not have `lifecycleState` property.
-
-While MEL provides functions that work reliably (`isNull()`, `isPresent()`) and even some convenience functions (`default()`) which make it easy to work with null and optional values, there is still one drawback given by the nature of CEL.
-
-While the `.?` operator works reliably with structured data, it cannot be used for function invocation.
-E.g. the following expression is invalid:
-
-.Invalid expression
-[source,mel]
-----
-foo.?contains('#')
-----
-
-Assuming that `foo` is a string variable, which may either contain a string or `null`, the expression above is specifying execution of `contains()` function on that variable.
-However, the use of `.?` operator in this way is illegal in CEL, and currently there is no practical way for MEL extensions to implement this behavior.
-Therefore, the only practical option in this case is to explicitly check for `null` value using a conditional operator (`?:`):
-
-.Correct expression
-[source,mel]
-----
-isPresent(foo) ? foo.contains('#') : null
-----
-
-When working with strings, `stringify()` function can be very handy.
-As `stringify()` never returns null, any string function can be safely invoked on stringified value:
-
-.Simpler correct expression
-[source,mel]
-----
-stringify(foo).contains('#')
-----
-
-Such use of `stringify()` can be very handy in case of string formatting as well.
-If your intent is to return empty string instead of null
+See xref:../null[] for details.
 
 == Custom Function Libraries
 
@@ -2254,6 +2232,8 @@ Java classes and libraries are intentionally _not_ exposed to MEL expressions.
 MEL expressions are living in their own safe little world.
 
 // TODO: later: types and conversions
+
+// TODO: cel.bind(var, val, expression)
 
 == See Also
 

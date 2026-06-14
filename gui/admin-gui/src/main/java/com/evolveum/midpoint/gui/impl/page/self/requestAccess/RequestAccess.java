@@ -18,10 +18,12 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
+import com.evolveum.midpoint.repo.common.policy.EvaluatedCompositeTrigger;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -57,7 +59,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -618,8 +619,12 @@ public class RequestAccess implements Serializable, DebugDumpable {
         }
 
         for (EvaluatedAssignment evaluatedAssignment : assignments) {
-            for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+            for (DirectlyEvaluatedClockworkPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
                 if (!policyRule.isTriggered() || !policyRule.containsEnabledAction()) {
+                    continue;
+                }
+
+                if (containsOnlyPruneAction(policyRule)) {
                     continue;
                 }
 
@@ -629,6 +634,11 @@ public class RequestAccess implements Serializable, DebugDumpable {
                 createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
             }
         }
+    }
+
+   private boolean containsOnlyPruneAction(DirectlyEvaluatedClockworkPolicyRule policyRule) {
+        int pruneActionCount = policyRule.getEnabledActions(PrunePolicyActionType.class).size();
+        return policyRule.getEnabledActions().size() == pruneActionCount;
     }
 
     private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,
@@ -673,8 +683,12 @@ public class RequestAccess implements Serializable, DebugDumpable {
         }
     }
 
-    private void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
+    private void createConflicts(
+            ObjectReferenceType userRef,
+            Map<String, Conflict> conflicts,
+            EvaluatedAssignment evaluatedAssignment,
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers,
+            boolean warning) {
 
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger evaluatedExclusionTrigger) {

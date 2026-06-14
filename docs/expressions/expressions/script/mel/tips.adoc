@@ -1,0 +1,50 @@
+---
+midpoint-feature: expression-mel
+doc-type: config
+---
+= MidPoint Expression Language Tips and Recommendations
+:page-nav-title: Tips
+:page-upkeep-status: green
+:page-toc: top
+
+xref:../introduction/[MidPoint Expression Language (MEL)] is an expression language, designed to support customization of midPoint functionality in an easy-to-use and secure way.
+This page lists miscellaneous tips and recommendations for writing MEL expressions.
+
+== Formatting
+
+Use xref:../specification/#format[`format()`] function to format data into strings instead of string concatenation.
+I.e. use this:
+
+.Correct data formatting
+[source,mel]
+----
+'%s:%s'.format([foo, bar])
+----
+
+instead of this:
+
+.Fragile data formatting
+[source,mel]
+----
+foo + ':' + bar
+----
+
+String concatenation using the plus (`+`) operator is quite fragile method to construct strings in Common Expression Language (CEL).
+This method is susceptible to problems with various data types, null values and so on.
+On the other hand, the `format()` method handles all such details, making the formatting code much more robust.
+
+When formatting timestamps, use specialized timestamp functions, such as xref:../specification/#format-strftime[`format.strftime()`]:
+
+.Correct timestamp formatting
+[source,mel]
+----
+// Returns formatted time, e.g. `11/02/26 09:32:15`
+format.strftime(ts, '%d/%m/%Y %H:%M:%S')
+----
+
+Overall, the xref:../specification/#format-extension[format extension] of MEL provides may useful functions for string formatting and parsing.
+
+== See Also
+
+* xref:../specification/[MidPoint Expression Language Specification]
+* xref:../troubleshooting/[Troubleshooting MidPoint Expression Language]

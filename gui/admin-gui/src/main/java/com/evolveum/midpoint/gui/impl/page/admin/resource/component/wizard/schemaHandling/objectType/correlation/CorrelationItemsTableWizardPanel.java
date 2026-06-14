@@ -159,7 +159,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 if (resourceObjectTypeIdentification == null) {
                     return null;
                 }
-                return loadCorrelationTypeSuggestion(getPageBase(), resourceOid, resourceObjectTypeIdentification, task, result);
+                return loadLastCorrelationTypeSuggestion(getPageBase(), resourceOid, resourceObjectTypeIdentification, task, result);
             }
         };
     }
@@ -304,8 +304,12 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     AssignmentObjectRelation relationSpec,
                     boolean isDuplicate,
                     StatusInfo<?> statusInfo) {
+
                 PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(
                         getPageBase(), value, target);
+                if (newValue == null) {
+                    return;
+                }
                 showTableForItemRefs(target, this::findAssociatedParentContainerWrapper,
                         () -> newValue, (StatusInfo<CorrelationSuggestionsType>) statusInfo);
             }
@@ -453,7 +457,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             PrismContainerValue<ItemsSubCorrelatorType> value,
             AjaxRequestTarget target) {
         return SmartIntegrationWrapperUtils.createNewItemsSubCorrelatorValue(
-                pageBase, getValueModel(), value, target);
+                pageBase, getFeedback(), getValueModel(), value, target);
     }
 
     private @NotNull Boolean isNotShownContainerInfo() {
@@ -618,7 +622,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         return "";
     }
 
-    protected IModel<Boolean> getSwitchToggleModel(){
+    protected IModel<Boolean> getSwitchToggleModel() {
         return switchToggleModel;
     }
 }

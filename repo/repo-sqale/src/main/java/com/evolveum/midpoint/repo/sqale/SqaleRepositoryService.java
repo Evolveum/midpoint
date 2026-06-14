@@ -1083,6 +1083,13 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult operationResult) throws SchemaException, RepositoryException {
 
+        // Check if streaming mode is requested via iterationPageSize = -1
+        Integer configuredPageSize = getIterationPageSize(options);
+        if (configuredPageSize != null && configuredPageSize == -1) {
+            // Use JDBC streaming mode with default fetch size of 1000
+            return executeSearchObjectsIterativeStreaming(type, originalQuery, handler, options, operationResult, 1000);
+        }
+
         try {
             ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
             // this is total requested size of the search
@@ -1181,6 +1188,41 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // This just counts the operation and adds zero/minimal time not to confuse user
             // with what could be possibly very long duration.
             long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
+            registerOperationFinish(opHandle);
+        }
+    }
+
+    /**
+     * Streaming version of searchObjectsIterative that uses JDBC cursor-based streaming.
+     * Does not use keyset pagination - fetches all matching rows in a single query with cursor.
+     * This is more efficient for large exports as it avoids multiple SQL round trips.
+     *
+     * @param fetchSize JDBC fetch size for streaming (e.g., 1000)
+     */
+    private <T extends ObjectType> SearchResultMetadata executeSearchObjectsIterativeStreaming(
+            Class<T> type,
+            ObjectQuery query,
+            ResultHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult operationResult,
+            int fetchSize) throws SchemaException, RepositoryException {
+
+        long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
+        try {
+            SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
+                    SqaleQueryContext.from(type, sqlRepoContext);
+
+            // Wrap handler to convert ObjectType to PrismObject
+            ObjectHandler<T> wrappedHandler = (object, opResult) -> {
+                @SuppressWarnings("unchecked")
+                PrismObject<T> prismObject = (PrismObject<T>) object.asPrismObject();
+                return handler.handle(prismObject, opResult);
+            };
+
+            int count = sqlQueryExecutor.listStreaming(queryContext, query, options, wrappedHandler, operationResult, fetchSize);
+
+            return new SearchResultMetadata().approxNumberOfAllResults(count);
+        } finally {
             registerOperationFinish(opHandle);
         }
     }
@@ -1633,6 +1675,13 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult operationResult) throws SchemaException, RepositoryException {
 
+        // Check if streaming mode is requested via iterationPageSize = -1
+        Integer configuredPageSize = getIterationPageSize(options);
+        if (configuredPageSize != null && configuredPageSize == -1) {
+            // Use JDBC streaming mode with default fetch size of 1000
+            return executeSearchContainersIterativeStreaming(type, originalQuery, handler, options, operationResult, 1000);
+        }
+
         try {
             ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
             // this is total requested size of the search
@@ -1739,6 +1788,73 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             }
         }
         return repositoryConfiguration().getIterativeSearchByPagingBatchSize();
+    }
+
+    /**
+     * Streaming version of searchContainersIterative that uses JDBC cursor-based streaming.
+     * Does not use keyset pagination - fetches all matching rows in a single query with cursor.
+     * This is more efficient for large exports as it avoids multiple SQL round trips.
+     *
+     * @param fetchSize JDBC fetch size for streaming (e.g., 1000)
+     */
+    public <T extends Containerable> SearchResultMetadata searchContainersIterativeStreaming(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<T> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult,
+            int fetchSize) throws SchemaException {
+
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(handler, "Result handler must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_CONTAINERS_ITERATIVE)
+                .addQualifier(type.getSimpleName())
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_QUERY, query)
+                .addParam("streaming", true)
+                .addParam("fetchSize", fetchSize)
+                .build();
+
+        try {
+            logSearchInputParameters(type, query, "Streaming iterative search containers");
+
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
+                return new SearchResultMetadata().approxNumberOfAllResults(0);
+            }
+
+            return executeSearchContainersIterativeStreaming(type, query, handler, options, operationResult, fetchSize);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
+        }
+    }
+
+    private <T extends Containerable> SearchResultMetadata executeSearchContainersIterativeStreaming(
+            Class<T> type,
+            ObjectQuery query,
+            ObjectHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult operationResult,
+            int fetchSize) throws SchemaException, RepositoryException {
+
+        long opHandle = registerOperationStart(OP_SEARCH_CONTAINERS_ITERATIVE, type);
+        try {
+            SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
+                    SqaleQueryContext.from(type, sqlRepoContext, this::readByOid);
+
+            int count = sqlQueryExecutor.listStreaming(queryContext, query, options, handler, operationResult, fetchSize);
+
+            return new SearchResultMetadata().approxNumberOfAllResults(count);
+        } finally {
+            registerOperationFinish(opHandle);
+        }
     }
 
     /**
@@ -1975,28 +2091,68 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         Validate.notNull(ancestorOrgOid, "ancestorOrgOid must not be null");
 
         logger.trace("Querying if object {} is descendant of {}", object.getOid(), ancestorOrgOid);
+        return isDescendantOfAnyInternal(object, List.of(ancestorOrgOid), OP_IS_DESCENDANT);
+    }
+
+    /**
+     * Batched variant of {@link #isDescendant(PrismObject, String)} used by selector post-filtering.
+     * It checks all supplied ancestors against all parentOrgRefs of the object with a single closure query.
+     */
+    @Override
+    public <O extends ObjectType> boolean isDescendantOfAny(
+            PrismObject<O> object, Collection<String> ancestorOrgOids) {
+        Validate.notNull(object, "object must not be null");
+
+        logger.trace("Querying if object {} is descendant of any of {}", object.getOid(), ancestorOrgOids);
+        if (ancestorOrgOids == null || ancestorOrgOids.isEmpty()) {
+            return false;
+        }
+
+        return isDescendantOfAnyInternal(object, ancestorOrgOids, OP_IS_DESCENDANT_OF_ANY);
+    }
+
+    private <O extends ObjectType> boolean isDescendantOfAnyInternal(
+            PrismObject<O> object, Collection<String> ancestorOrgOids, String operationName) {
         List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
         if (objParentOrgRefs == null || objParentOrgRefs.isEmpty()) {
             return false;
         }
 
-        List<UUID> objParentOrgOids = objParentOrgRefs.stream()
-                .map(ref -> UUID.fromString(ref.getOid()))
-                .collect(Collectors.toList());
-
-        long opHandle = registerOperationStart(OP_IS_DESCENDANT, OrgType.class);
+        Set<UUID> objParentOrgOids = new LinkedHashSet<>();
+        Set<UUID> ancestorUuids = new LinkedHashSet<>();
         try {
-            return executeRetriable(OP_IS_DESCENDANT, SqaleUtils.oidToUuid(object.getOid()), opHandle, () -> {
+            for (ObjectReferenceType ref : objParentOrgRefs) {
+                String parentOrgOid = ref.getOid();
+                if (parentOrgOid == null) {
+                    throw new SystemException("Object parentOrgRef without OID cannot be used for descendant check");
+                }
+                objParentOrgOids.add(UUID.fromString(parentOrgOid));
+            }
+            for (String ancestorOrgOid : ancestorOrgOids) {
+                if (ancestorOrgOid == null) {
+                    throw new SystemException("Null ancestor org OID cannot be used for descendant check");
+                }
+                ancestorUuids.add(UUID.fromString(ancestorOrgOid));
+            }
+        } catch (IllegalArgumentException e) {
+            throw new SystemException("Cannot convert org OID to UUID for descendant check", e);
+        }
+
+        long opHandle = registerOperationStart(operationName, OrgType.class);
+        try {
+            return executeRetriable(operationName, SqaleUtils.oidToUuid(object.getOid()), opHandle, () -> {
                 try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
                     jdbcSession.executeStatement("CALL m_refresh_org_closure()");
 
                     QOrgClosure oc = new QOrgClosure();
-                    long count = jdbcSession.newQuery()
+                    Integer one = jdbcSession.newQuery()
+                            .select(Expressions.ONE)
                             .from(oc)
-                            .where(oc.ancestorOid.eq(UUID.fromString(ancestorOrgOid))
+                            .where(oc.ancestorOid.in(ancestorUuids)
                                     .and(oc.descendantOid.in(objParentOrgOids)))
-                            .fetchCount();
-                    return count != 0L;
+                            .limit(1)
+                            .fetchFirst();
+                    return one != null;
                 }
             });
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RepositoryException e) {

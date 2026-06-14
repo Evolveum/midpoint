@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.14</version>
+        <version>3.5.15</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
         -->
@@ -180,8 +180,8 @@
         JVM args for testing plugins, can be used to add profiling, etc.
         Option add-exports is added because OpenDJ on JDK 17 uses some recently hidden API.
         -->
-        <surefire.args>-Xms1024m -Xmx6144m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
-        <failsafe.args>-Xms1024m -Xmx6144m -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
+        <surefire.args>-Xms1g -Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
+        <failsafe.args>-Xms1g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
         <!-- surefire & failsafe argument line for integration with jacoco code coverage
              by default it is empty (no jacoco) but jacoco-maven-plugin) sets it to actual configuration in build.
              this argLine should be used as @{jacoco.argLine} to not replace it during POM reading for surefire and failsafe
@@ -209,9 +209,10 @@
         -->
         <oracle-database.version>21.9.0.0</oracle-database.version>
 
-        <commons.io.version>2.18.0</commons.io.version>
+        <commons.io.version>2.22.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
-        <cxf.version>4.0.9</cxf.version>
+        <commons.configuration.version>2.15.1</commons.configuration.version>
+        <cxf.version>4.0.11</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
@@ -225,22 +226,22 @@
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- security fixes -->
-        <postgresql.version>42.7.7</postgresql.version>
 
         <!-- Groovy 4.0.x supports Java 25 class files (major version 69). -->
         <groovy.version>4.0.31</groovy.version>
 
-        <cel.version>0.12.0</cel.version>
+        <cel.version>0.13.0</cel.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+        <log4j2.version>2.26.0</log4j2.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
-        <commons.fileupload2.version>2.0.0-M4</commons.fileupload2.version>
+        <commons.fileupload2.version>2.0.0-M5</commons.fileupload2.version>
 
-        <wicket.version>10.8.0</wicket.version>
+        <wicket.version>10.9.1</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6</wicket.chartjs.version>
 
@@ -630,7 +631,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
-                <version>2.10.1</version>
+                <version>${commons.configuration.version}</version>
                 <exclusions>
                     <!-- replaced by org.slf4j:jcl-over-slf4j -->
                     <exclusion>
@@ -1548,7 +1549,7 @@
             <dependency>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-runtime</artifactId>
-                <version>4.10.1</version>
+                <version>4.13.2</version>
             </dependency>
             <dependency>
                 <groupId>net.ttddyy</groupId>
@@ -2233,8 +2234,8 @@
             <id>sqale</id>
             <properties>
                 <!-- Switches test config.xml to the one declaring "sqale" repository. -->
-                <surefire.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
-                <failsafe.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
+                <surefire.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
+                <failsafe.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
         </profile>
         <profile>
