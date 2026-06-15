@@ -140,6 +140,9 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed missing .zip extension when downloading tracing report files. See bug:MID-11096[]
 * Fixed resource wizard mapping property autocomplete to find partial matches regardless of letter case. See bug:MID-10415[]
 * Fixed missing input variable in resource activation existence mappings. See bug:MID-10905[]
+* Fixed stale page recovery after viewing page source causing internal server error. See bug:MID-9998[]
+* Hided conflict warning on Shopping cart panel of the Request Access wizard in case of prune action. See bug:MID-11250[] and xref:#_behavior_changes_since_4_10[behavior changes since 4.10].
+* Fixed NPE when selecting deprecated action in resource object type editor. See bug:MID-10957[]
 
 === Releases Of Other Components
 
@@ -453,7 +456,11 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 [#_behavior_changes_since_4_10]
 === Behavior Changes Since 4.10
 
-// TODO
+* Request access wizard behaves differently in case when conflicting situation occurs and prune action will be used for resolving the conflict.
+
+Previously, the wizard showed warning on the Shopping cart panel about conflicting roles or other shopping cart items even in case when prune action resolves the situation automatically.
+In order to correspond to the definition of the prune action, which says that "The removal of the conflicting assignments is automatic and silent", it was decided to hide the warning from Shopping cart panel.
+See also bug:MID-11250[].
 
 ++++
 {% include release-issues.html %}
