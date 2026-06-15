@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
@@ -25,12 +26,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.Strings;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -205,18 +206,16 @@ public abstract class SimulationResultObjectPanel extends BasePanel<SimulationRe
                             @Override
                             protected String load() {
                                 SimulationResultProcessedObjectType object = objectModel.getObject();
-
-                                Object[] names = object.getEventMarkRef().stream()
-                                        .map(ref -> WebModelServiceUtils.resolveReferenceName(ref, getPageBase()))
-                                        .filter(Objects::nonNull)
-                                        .sorted()
-                                        .toArray();
-
-                                return StringUtils.joinWith("\n", names);
+                                List<Badge> badges = SimulationsGuiUtil.createEventMarkBadges(
+                                        object.getEventMarkRef(), getPageBase());
+                                return badges.stream()
+                                        .map(b -> "<span class=\"" + b.getCssClass() + "\">" + Strings.escapeMarkup(b.getText()) + "</span>")
+                                        .collect(Collectors.joining(" "));
                             }
                         };
 
-                        MultiLineLabel label = new MultiLineLabel(id, model);
+                        Label label = new Label(id, model);
+                        label.setEscapeModelStrings(false);
                         label.setRenderBodyOnly(true);
 
                         return label;

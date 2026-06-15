@@ -397,7 +397,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForMapping(@NotNull Class<T> objectClass,
-            @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction)
+            @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction,
+            boolean failed)
             throws SchemaException {
         final T objectAfter = (T) objectBefore.clone();
 
@@ -421,11 +422,13 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ParsedMetricValues.fromEventMarks(
                         List.of(determineItemValueChangesEventMarks(
                                 (PrismObject<T>) objectBefore.asPrismObject(),
-                                prismObjectAfter)),
+                                prismObjectAfter,
+                                failed)),
                         List.of(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value(),
-                                SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value())),
+                                SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value(),
+                                SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())),
                 objectClass.isAssignableFrom(FocusType.class),
                 null,
                 objectBefore,
@@ -450,10 +453,15 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
      *
      * @param before object state before the change
      * @param after object state after the change
-     * @return OID of the corresponding system event mark
+     * @param failed whether the mapping evaluation failed
+     * @return OID of the corresponding system event mark (including FAILED if {@code failed} is true)
      */
     private static <T extends ObjectType> String determineItemValueChangesEventMarks(@NotNull PrismObject<T> before,
-            PrismObject<T> after) {
+            PrismObject<T> after, boolean failed) {
+        if (failed) {
+            return SystemObjectsType.MARK_ITEM_VALUE_FAILED.value();
+        }
+
         final List<? extends ItemDelta> modifications = before.diffModifications(after,
                 EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
 
@@ -674,6 +682,9 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         assert result == null || result.isClosed();
         this.result = result;
         this.resultStatus = result != null ? result.getStatus() : null;
+        if (resultStatus != null && resultStatus.isError()) {
+            parsedMetricValues.addMatchingEventMark(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value());
+        }
         invalidateCachedBean();
     }
 
@@ -1295,6 +1306,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                         SimulationMetricReference.forExplicit(valueBean.getIdentifier()),
                         new MetricValue(valueBean.getValue(), BooleanUtils.toBooleanDefaultIfNull(valueBean.isSelected(), false)));
             }
+        }
+
+        void addMatchingEventMark(String oid) {
+            valueMap.put(
+                    SimulationMetricReference.forMark(oid),
+                    new MetricValue(BigDecimal.ONE, true));
         }
 
         @NotNull Collection<String> getMatchingEventMarks() {

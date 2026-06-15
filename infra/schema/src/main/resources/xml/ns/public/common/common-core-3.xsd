@@ -17747,6 +17747,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="3a7de4b1-8c5f-4e9a-b2d6-0f1e8c3d7a5b">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_FAILED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000738">
                 <xsd:annotation>
                     <xsd:appinfo>

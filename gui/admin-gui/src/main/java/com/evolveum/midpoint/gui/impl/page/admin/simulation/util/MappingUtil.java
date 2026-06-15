@@ -39,7 +39,8 @@ public class MappingUtil {
         REMOVED("badge badge-danger badge-opaque", "Correlation.simulation.state.removed"),
         MODIFIED("badge badge-info badge-opaque", "Correlation.simulation.state.modified"),
         NOT_CHANGED("badge badge-secondary badge-opaque", "Correlation.simulation.state.notChanged"),
-        CHANGE_NOT_APPLIED("badge badge-secondary badge-opaque", "Correlation.simulation.state.changeNotApplied");
+        CHANGE_NOT_APPLIED("badge badge-secondary badge-opaque", "Correlation.simulation.state.changeNotApplied"),
+        FAILED("badge badge-danger badge-opaque", "Correlation.simulation.state.failed");
 
         private final String cssClass;
         private final String translationKey;
@@ -68,7 +69,10 @@ public class MappingUtil {
             }
         });
 
-        if (eventMarkOids.contains(MARK_ITEM_VALUE_ADDED.value())) {
+        if (eventMarkOids.contains(MARK_ITEM_VALUE_FAILED.value())) {
+            String label = pageBase.getString(MappingStatus.FAILED.translationKey);
+            return new Badge(MappingStatus.FAILED.cssClass(), label);
+        } else if (eventMarkOids.contains(MARK_ITEM_VALUE_ADDED.value())) {
             String label = pageBase.getString(MappingStatus.ADDED.translationKey);
             return new Badge(MappingStatus.ADDED.cssClass(), label);
         } else if (eventMarkOids.contains(MARK_ITEM_VALUE_REMOVED.value())) {
