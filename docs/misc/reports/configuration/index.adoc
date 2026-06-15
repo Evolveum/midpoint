@@ -36,10 +36,9 @@ Only one can be defined at the same time.
 Supported formats for now are CSV and HTML.
 Default format for the dashboard-based reports is HTML and for object collection based reports is CSV.
 
-.*All Configuration Attributes of a Report*
-[%collapsible]
-====
+The table below lists all configuration attributes of a report object:
 
+.All configuration attributes of a report
 [%autowidth]
 |===
 | Name | Type | Description
@@ -74,8 +73,6 @@ Output filename will be passed to the script as the "file" argument.
 
 
 |===
-
-====
 
 == Export Behaviour
 
