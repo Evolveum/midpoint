@@ -72,6 +72,11 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
     }
 
     @Override
+    protected boolean useDefaultAuthorization() {
+        return false;
+    }
+
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
 
         super.configure(http);
