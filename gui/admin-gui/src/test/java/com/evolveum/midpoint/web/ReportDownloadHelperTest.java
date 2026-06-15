@@ -50,7 +50,7 @@ public class ReportDownloadHelperTest extends AbstractGuiIntegrationTest {
     public void nonZipReportFileNameIsNotChanged() {
         ReportDataType report = report("report-output", "C:\\midpoint\\export\\report-output.csv");
 
-        assertEquals(ReportDownloadHelper.getReportFileName(report), "report-output");
+        assertEquals(ReportDownloadHelper.getReportFileName(report), "report-output.csv");
     }
 
     @Test

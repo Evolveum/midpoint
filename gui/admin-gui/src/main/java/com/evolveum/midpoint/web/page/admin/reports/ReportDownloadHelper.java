@@ -66,7 +66,7 @@ public class ReportDownloadHelper implements Serializable {
 
         // Check if the file name contains the extension
         String extension = getReportExtension(currentReport);
-        String dotExtension = "." + extension;
+        String dotExtension = extension != null ? "." + extension : null;
         if (StringUtils.isNotEmpty(dotExtension) && !name.endsWith(dotExtension)) {
             name = name + dotExtension;
         }
