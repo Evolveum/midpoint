@@ -48,6 +48,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
@@ -204,6 +205,7 @@ public class SecurityConfigurer {
         Map<Class<?>, Object> sharedObjects = new HashMap<>();
         sharedObjects.put(ApplicationContext.class, this.context);
         sharedObjects.put(ContentNegotiationStrategy.class, this.contentNegotiationStrategy);
+        sharedObjects.put(PathPatternRequestMatcher.Builder.class, PathPatternRequestMatcher.withDefaults());
         return sharedObjects;
     }
 

@@ -143,8 +143,10 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     protected void configure(HttpSecurity http) throws Exception {
 
         http.setSharedObject(AuthenticationTrustResolver.class, new MidpointAuthenticationTrustResolverImpl());
-        http.authorizeHttpRequests(registry ->
-                registry.anyRequest().access(authorizationManager(accessDecisionManager)));
+        if (useDefaultAuthorization()) {
+            http.authorizeHttpRequests(registry ->
+                    registry.anyRequest().access(authorizationManager(accessDecisionManager)));
+        }
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .accessDeniedHandler(accessDeniedHandler)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
@@ -163,6 +165,10 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
 
         http.headers(configurer -> configurer.defaultsDisabled()
                 .frameOptions(frameOptions -> frameOptions.deny()));
+    }
+
+    protected boolean useDefaultAuthorization() {
+        return true;
     }
 
     protected AnonymousAuthenticationFilter createAnonymousFilter(Map<Class<?>, Object> sharedObjects) {

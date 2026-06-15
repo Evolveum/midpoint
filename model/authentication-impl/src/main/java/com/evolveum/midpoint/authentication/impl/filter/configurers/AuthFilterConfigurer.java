@@ -20,6 +20,7 @@ import org.springframework.security.config.annotation.web.configurers.SecurityCo
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.web.accept.ContentNegotiationStrategy;
@@ -41,6 +42,10 @@ public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         setSharedObject(sharedObjects, http, ApplicationContext.class);
         setSharedObject(sharedObjects, http, ContentNegotiationStrategy.class);
         setSharedObject(sharedObjects, http, SecurityContextRepository.class);
+        setSharedObject(sharedObjects, http, PathPatternRequestMatcher.Builder.class);
+        sharedObjects.computeIfAbsent(
+                PathPatternRequestMatcher.Builder.class,
+                ignored -> PathPatternRequestMatcher.withDefaults());
 
         MidpointAuthFilter mpFilter = postProcess(new MidpointAuthFilter(sharedObjects));
         mpFilter.createFilterForAuthenticatedRequest();
