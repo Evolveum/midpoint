@@ -208,7 +208,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             return new Message();
         }
 
-        Locale locale = recipient != null ? LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)) : null;
+        Locale locale = recipient != null ? LocalizationUtil.toLocale(focusLanguageOrLocale(recipient.getRecipientRef())) : null;
         String subscriptionFooter =
                 SubscriptionUtil.missingSubscriptionAppeal(localizationService, locale);
         if (subscriptionFooter != null) {
@@ -348,7 +348,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 // TODO the recipient object from ref may lack telephoneNumber, email, of has old data.
                 //  This happens when actor is logged in (e.g. administrator) and changed some of this info
                 //  and did not re-login.
-                Objectable object = recipientRef.asReferenceValue().getObjectable();
+                Objectable object = recipientRef.asReferenceValue().getObject() != null ?
+                        recipientRef.asReferenceValue().getObject().asObjectable() : null;
                 if (object instanceof FocusType) {
                     return getRecipientAddressFromFocus(transport, (FocusType) object, ctx, result);
                 }
@@ -444,8 +445,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     private MessageTemplateContentType findLocalizedContent(
             @NotNull MessageTemplateType messageTemplate, @NotNull ObjectReferenceType recipientRef) {
-        FocusType recipientFocus = (FocusType) recipientRef.asReferenceValue().getObjectable();
-        String recipientLocale = FocusTypeUtil.languageOrLocale(recipientFocus);
+        String recipientLocale = focusLanguageOrLocale(recipientRef);
         if (recipientLocale != null) {
             // TODO: Currently supports only equal strings - add matching of en-US to en if en-US is not available, etc.
             for (LocalizedMessageTemplateContentType localizedContent : messageTemplate.getLocalizedContent()) {
@@ -457,13 +457,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return null;
     }
 
-    private String focusLanguageOrLocale(RecipientExpressionResultType recipient) {
-        ObjectReferenceType recipientRef = recipient.getRecipientRef();
-        if (recipientRef != null) {
-            return FocusTypeUtil.languageOrLocale(
-                    (FocusType) recipientRef.asReferenceValue().getObjectable());
-        }
-        return null;
+    private String focusLanguageOrLocale(ObjectReferenceType recipientRef) {
+        return recipientRef != null && recipientRef.asReferenceValue().getObject() != null ?
+                FocusTypeUtil.languageOrLocale((FocusType) recipientRef.asReferenceValue().getObject().asObjectable()) : null;
     }
 
     protected String getContentType() {
