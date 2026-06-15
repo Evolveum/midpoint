@@ -60,6 +60,7 @@ public class ExpressionUtil {
     public enum Language {
         GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy"),
         PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python"),
+        MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#MEL"),
         VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity"),
         JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");
 
