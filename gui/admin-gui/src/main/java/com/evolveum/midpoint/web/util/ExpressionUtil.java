@@ -60,7 +60,7 @@ public class ExpressionUtil {
     public enum Language {
         GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy"),
         PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python"),
-        MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#MEL"),
+        MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#mel"),
         VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity"),
         JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");
 
@@ -181,6 +181,8 @@ public class ExpressionUtil {
                 return Language.PYTHON;
             } else if (expression.contains(Language.JAVASCRIPT.getLanguage())) {
                 return Language.JAVASCRIPT;
+            } else if (expression.contains(Language.MEL.getLanguage())) {
+                return Language.MEL;
             } else {
                 return Language.GROOVY;
             }
