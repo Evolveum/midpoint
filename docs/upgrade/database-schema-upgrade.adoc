@@ -21,7 +21,8 @@ These scripts contain a set of SQL commands (usually `ALTER TABLE` commands) tha
 The scripts are designed to be non-desctructive, therefore they can safely be executed over a database that is populated with data.
 (Of course, the usual backup routine is strongly recommended.)
 
-IMPORTANT: Database schema upgrade usually introduces new columns which needs to be populated from full object. It is highly recommended to run Reindex Repository Task (GUI -> About -> Reindex Repository Objects) after database schema upgrades.
+IMPORTANT: Database schema upgrade usually introduces new columns which needs to be populated from full object.
+It is highly recommended to run Reindex Repository Task (GUI -> About -> Reindex Repository Objects) after database schema upgrades.
 
 == Upgrading Native PostgreSQL Repository
 
@@ -30,17 +31,26 @@ For future releases, the process should be similar to previous upgrades.
 
 === Upgrade Script Location
 
-[%autowidth,cols="h,1"]
-|===
-| Distribution | Script location
+Upgrade scripts are included in every midPoint release in the same directories.
 
-| Binary
-| <distribution root>/doc/config/sql/native/
+Depending on how you obtained midPoint, the scripts can be found in one of the following locations:
 
-| Source
-| <source code root>/config/sql/native/
+* Binary distributions:
++
+----
+<distribution root>/doc/config/sql/native/
+----
 
-|===
+* Source code repository:
++
+----
+<source code root>/config/sql/native/
+----
+
+where:
+
+* `<distribution root>` is the root directory of the unpacked midPoint release package.
+* `<source code root>` is the root directory of the midPoint source code repository.
 
 [IMPORTANT]
 Always use the scripts from the version you want to upgrade to - either from distribution or from sources.
@@ -49,7 +59,7 @@ contain development changes already (unless you really want to try the cutting e
 
 === Executing the script
 
-The Native repository has separate upgrade scripts for the main portion of the repository
+The repository has separate upgrade scripts for the main portion of the repository
 (`postgres-upgrade.sql`) and for the audit tables (`postgres-audit-upgrade.sql`).
 This makes the process easier for deployments with separate audit database - you simply use the right upgrade script on each database.
 If both repository and audit is in the same database, use both scripts on the same database.
@@ -64,27 +74,72 @@ This is also a good reason to use `-v ON_ERROR_STOP=1` flag with the `psql` - as
 This stops the upgrade when the first such problem occurs, but works fine if the extension already exists.
 ====
 
-To upgrade the main repository run this command:
+To upgrade the repository schema, execute the appropriate SQL upgrade script against the PostgreSQL database.
+Upgrade scripts can be executed using the PostgreSQL psql client.
+
+If you choose to execute the upgrade script using the psql command-line tool, provide the appropriate values for the following options:
+
+The following option is required when executing an upgrade script using the `psql` command-line tool:
+
+[%autowidth,cols="1,3"]
+|===
+| Option | Description
+
+| `-f`
+| SQL script file to execute.
+|===
+
+These options are optional. If not specified, `psql` uses its default behavior and connection settings.
+
+[%autowidth,cols="1,3"]
+|===
+| Option | Description
+
+| `-v ON_ERROR_STOP=1`
+| Terminates script execution on the first SQL error.
+
+| `-h`
+| Database host name or IP address.
+
+| `-U`
+| Database username.
+
+| `-W`
+| Prompts for the database password.
+
+| `-d`
+| Database name.
+|===
+
+=== Examples
+
+The exact `psql` command depends on your deployment topology, database configuration, and credentials.
+The following examples illustrate common upgrade scenarios.
+
+To upgrade the main repository database:
+
 [source,bash]
 ----
 psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint -f postgres-upgrade.sql
 ----
 
-To upgrade the audit database (here on the same server, but different database) run:
+To upgrade a separate audit database:
+
 [source,bash]
 ----
 psql -v ON_ERROR_STOP=1 -h localhost -U midaudit -W -d midaudit -f postgres-audit-upgrade.sql
 ----
 
-To upgrade database containing both, use multiple `-f` options:
+If repository and audit data are stored in the same database, execute both upgrade scripts:
+
 [source,bash]
 ----
 psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint \
-  -f postgres-upgrade.sql -f postgres-audit-upgrade.sql
+  -f postgres-upgrade.sql \
+  -f postgres-audit-upgrade.sql
 ----
 
-The scripts store their internal version information in the `m_global_metadata` table.
-Please, do not modify this table manually.
+The upgrade scripts store their internal version information in the `m_global_metadata` table. Do not modify this table manually.
 
 [IMPORTANT]
 ====
@@ -94,6 +149,19 @@ E.g. IDEA Ultimate Edition or DataGrip from JetBrains work fine.
 Some clients, notably https://www.pgadmin.org/[pgAdmin], send the whole content in a single request.
 Please, do not use them to run upgrade scripts!
 ====
+
+
+=== Executing Upgrade Scripts Using Ninja
+
+Executing upgrade scripts using the `psql` command-line tool may not always be straightforward.
+In containerized deployments, the upgrade scripts are typically located in the midPoint container, while the PostgreSQL database runs in a separate database container.
+In addition, the `psql` client may not be available in the environment from which the upgrade is being executed.
+As an alternative, upgrade scripts can be executed using the Ninja tool.
+Ninja reads the SQL script from a file and executes it against the configured repository database using the database connection settings from the midPoint configuration.
+
+To upgrade the database schema using Ninja, see xref:/midpoint/deployment/ninja/command/run-sql/[Run SQL].
+
+This approach avoids the need to install the PostgreSQL client or manually establish a connection to the database.
 
 == See Also
 
