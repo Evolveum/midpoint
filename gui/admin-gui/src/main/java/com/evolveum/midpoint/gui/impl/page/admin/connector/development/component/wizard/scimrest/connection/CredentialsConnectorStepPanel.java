@@ -39,7 +39,6 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -53,6 +52,8 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jspecify.annotations.NonNull;
 
 /**
  * @author lskublik
@@ -77,6 +78,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
     private static final String ID_FORM = "form";
 
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevAuthInfoType>>> valuesModel;
+    private PrismContainerWrapper<?> containerWrapper;
 
     public CredentialsConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -92,6 +94,16 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        PrismContainerWrapper<?> wrapper = getContainerFormModel().getObject();
+        if (containerWrapper != null && containerWrapper != wrapper) {
+            initLayout();
+        }
+        containerWrapper = wrapper;
+        super.onBeforeRender();
     }
 
     private void createValuesModel() {
@@ -152,16 +164,90 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
 
         Label noMethodsMessage = new Label(ID_NO_METHODS_MESSAGE, createStringResource("CredentialsConnectorStepPanel.noMethods"));
         noMethodsMessage.add(new VisibleBehaviour(() -> valuesModel.getObject().isEmpty()));
-        add(noMethodsMessage);
+        addOrReplace(noMethodsMessage);
 
         RadioGroup<String> radioGroup = new RadioGroup<>(ID_RADIO_GROUP, radioGroupModel);
         radioGroup.setOutputMarkupId(true);
-        add(radioGroup);
+        addOrReplace(radioGroup);
 
         WebMarkupContainer credentialsSection = new WebMarkupContainer(ID_CREDENTIALS_SECTION);
         credentialsSection.setOutputMarkupId(true);
-        add(credentialsSection);
+        addOrReplace(credentialsSection);
 
+        ListView<PrismContainerValueWrapper<ConnDevAuthInfoType>> panel = createAuthMethodList(radioGroupModel, radioGroup, credentialsSection);
+        radioGroup.add(panel);
+
+        radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(radioGroup);
+                target.add(credentialsSection);
+            }
+        });
+
+        Label noSelectionMessage = new Label(ID_NO_SELECTION_MESSAGE, () -> {
+            if (valuesModel.getObject().isEmpty()) {
+                return createStringResource("CredentialsConnectorStepPanel.noCredentialsNeeded").getObject();
+            }
+            return createStringResource("CredentialsConnectorStepPanel.selectMethod").getObject();
+        });
+        noSelectionMessage.add(new VisibleBehaviour(() -> selectedAuthModel.getObject() == null));
+        credentialsSection.add(noSelectionMessage);
+
+        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+                .visibilityHandler(wrapper -> {
+                    ConnDevAuthInfoType authType = selectedAuthModel.getObject();
+                    if (authType == null) {
+                        return ItemVisibility.HIDDEN;
+                    }
+                    return ConnectorDevelopmentWizardUtil.getVisibleAuthorizationAttributes(getDetailsModel(), authType).stream()
+                            .anyMatch(vi -> StringUtils.equals(wrapper.getItemName().getLocalPart(), vi.getLocalPart()))
+                            ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
+                })
+                .mandatoryHandler(wrapper -> false)
+                .build();
+
+        VerticalFormPanel formPanel = getVerticalFormPanel(settings);
+        formPanel.add(new VisibleBehaviour(() -> selectedAuthModel.getObject() != null));
+        formPanel.add(AttributeAppender.replace("class", "col-12 gen-list-group"));
+        credentialsSection.add(formPanel);
+    }
+
+    private @NonNull VerticalFormPanel getVerticalFormPanel(ItemPanelSettings settings) {
+        VerticalFormPanel formPanel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration(getPanelType())) {
+
+            @Override
+            protected void onBeforeRender() {
+                super.onBeforeRender();
+                ((VerticalFormPrismContainerPanel) getSingleContainerPanel().getContainer().get("1"))
+                        .getContainer().add(AttributeAppender.remove("class"));
+            }
+
+            @Override
+            protected WrapperContext createWrapperContext() {
+                return getDetailsModel().createWrapperContext();
+            }
+
+            @Override
+            protected boolean isShowEmptyButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isHeaderVisible(IModel model) {
+                return false;
+            }
+
+            @Override
+            protected String getCssClassForFormContainerOfValuePanel() {
+                return "";
+            }
+        };
+        formPanel.setOutputMarkupId(true);
+        return formPanel;
+    }
+
+    private @NonNull ListView<PrismContainerValueWrapper<ConnDevAuthInfoType>> createAuthMethodList(IModel<String> radioGroupModel, RadioGroup<String> radioGroup, WebMarkupContainer credentialsSection) {
         ListView<PrismContainerValueWrapper<ConnDevAuthInfoType>> panel = new ListView<>(ID_PANEL, valuesModel) {
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<ConnDevAuthInfoType>> listItem) {
@@ -197,91 +283,14 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
             }
         };
         panel.setOutputMarkupId(true);
-        radioGroup.add(panel);
-
-        radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                target.add(radioGroup);
-                target.add(credentialsSection);
-            }
-        });
-
-        Label noSelectionMessage = new Label(ID_NO_SELECTION_MESSAGE, () -> {
-            if (valuesModel.getObject().isEmpty()) {
-                return createStringResource("CredentialsConnectorStepPanel.noCredentialsNeeded").getObject();
-            }
-            return createStringResource("CredentialsConnectorStepPanel.selectMethod").getObject();
-        });
-        noSelectionMessage.add(new VisibleBehaviour(() -> selectedAuthModel.getObject() == null));
-        credentialsSection.add(noSelectionMessage);
-
-        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                .visibilityHandler(wrapper -> {
-                    ConnDevAuthInfoType authType = selectedAuthModel.getObject();
-                    if (authType == null) {
-                        return ItemVisibility.HIDDEN;
-                    }
-                    return getVisibleItemsFor(authType).stream()
-                            .anyMatch(vi -> StringUtils.equals(wrapper.getItemName().getLocalPart(), vi.getLocalPart()))
-                            ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
-                })
-                .mandatoryHandler(wrapper -> false)
-                .build();
-
-        VerticalFormPanel formPanel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration(getPanelType())) {
-
-            @Override
-            protected void onBeforeRender() {
-                super.onBeforeRender();
-                ((VerticalFormPrismContainerPanel) getSingleContainerPanel().getContainer().get("1"))
-                        .getContainer().add(AttributeAppender.remove("class"));
-            }
-
-            @Override
-            protected WrapperContext createWrapperContext() {
-                return getDetailsModel().createWrapperContext();
-            }
-
-            @Override
-            protected boolean isShowEmptyButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isHeaderVisible(IModel model) {
-                return false;
-            }
-
-            @Override
-            protected String getCssClassForFormContainerOfValuePanel() {
-                return "";
-            }
-        };
-        formPanel.setOutputMarkupId(true);
-        formPanel.add(new VisibleBehaviour(() -> selectedAuthModel.getObject() != null));
-        formPanel.add(AttributeAppender.replace("class", "col-12 gen-list-group"));
-        credentialsSection.add(formPanel);
+        return panel;
     }
 
-    private List<ItemName> getVisibleItemsFor(ConnDevAuthInfoType authType) {
-        try {
-            PrismPropertyWrapper<ConnDevIntegrationType> integration =
-                    getDetailsModel().getObjectWrapper().findProperty(
-                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
-            return new ArrayList<>(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private IModel<? extends PrismContainerWrapper> getContainerFormModel() {
         try {
-            PrismReferenceWrapper<Referencable> resource = getDetailsModel().getObjectWrapper().findReference(
-                    ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
-
             ObjectDetailsModels<ResourceType> objectDetailsModel =
-                    resource.getValue().getNewObjectModel(getContainerConfiguration(PANEL_TYPE), getPageBase(), new OperationResult("getResourceModel"));
+                    ConnectorDevelopmentWizardUtil.getTestingResourceModel(getDetailsModel(), PANEL_TYPE);
 
             ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
             return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), path);

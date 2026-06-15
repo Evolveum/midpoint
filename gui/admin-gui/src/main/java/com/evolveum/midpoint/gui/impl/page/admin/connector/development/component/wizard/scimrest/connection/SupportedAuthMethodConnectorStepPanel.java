@@ -9,7 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,12 +30,17 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -93,6 +100,11 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                             ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH));
                     List<PrismContainerValueWrapper<ConnDevAuthInfoType>> values = new ArrayList<>(container.getValues());
 
+                    PrismContainerWrapper<ConnDevAuthInfoType> connContainer = getDetailsModel().getObjectWrapper().findContainer(
+                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH));
+                    List<ConnDevHttpAuthTypeType> alreadySelected = connContainer.getValues().stream()
+                            .map(v -> v.getRealValue().getType())
+                            .toList();
                     if (showAllModel.getObject()) {
                         for (SupportedAuthorization auth : SupportedAuthorization.values()) {
                             if (auth == SupportedAuthorization.NONE) {
@@ -109,17 +121,22 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                         values = values.stream()
                                 .filter(v -> Boolean.TRUE.equals(v.getRealValue().isRecommended()))
                                 .collect(Collectors.toCollection(ArrayList::new));
+                        for (ConnDevHttpAuthTypeType selectedType : alreadySelected) {
+                            boolean alreadyPresent = values.stream()
+                                    .anyMatch(v -> selectedType.equals(v.getRealValue().getType()));
+                            if (!alreadyPresent) {
+                                SupportedAuthorization auth = SupportedAuthorization.forAuthorizationType(selectedType);
+                                if (auth != null && auth != SupportedAuthorization.NONE) {
+                                    ConnDevAuthInfoType newVal = auth.crateBasicInformation();
+                                    values.add(getPageBase().createValueWrapper(container, newVal.asPrismContainerValue(), ValueStatus.NOT_CHANGED, getDetailsModel().createWrapperContext()));
+                                }
+                            }
+                        }
                     }
 
                     values.sort(Comparator.comparing((PrismContainerValueWrapper<ConnDevAuthInfoType> v) ->
                                     !Boolean.TRUE.equals(v.getRealValue().isRecommended()))
                             .thenComparing(v -> v.getRealValue().getName()));
-
-                    PrismContainerWrapper<ConnDevAuthInfoType> connContainer = getDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH));
-                    List<ConnDevHttpAuthTypeType> alreadySelected = connContainer.getValues().stream()
-                            .map(v -> v.getRealValue().getType())
-                            .toList();
 
                     if (!alreadySelected.isEmpty()) {
                         values.forEach(v -> v.setSelected(alreadySelected.contains(v.getRealValue().getType())));
@@ -285,7 +302,6 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                     .filter(PrismContainerValueWrapper::isSelected)
                     .map(v -> v.getRealValue().getType())
                     .collect(Collectors.toCollection(ArrayList::new));
-
             new ArrayList<>(container.getValues()).forEach(existing -> {
                 if (selectedTypes.remove(existing.getRealValue().getType())) {
                     if (existing.getStatus() == ValueStatus.DELETED) {
@@ -295,25 +311,60 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                     existing.setStatus(ValueStatus.DELETED);
                 }
             });
+            PrismPropertyWrapper<ConnDevIntegrationType> integrationProp = getDetailsModel().getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            ConnDevIntegrationType integrationType = integrationProp != null && integrationProp.getValue() != null
+                    ? integrationProp.getValue().getRealValue() : null;
+            if (integrationType != null) {
+                Set<String> neededLocalParts = Stream.concat(
+                        container.getValues().stream()
+                                .filter(v -> v.getStatus() != ValueStatus.DELETED)
+                                .map(v -> v.getRealValue().getType()),
+                        selectedTypes.stream()
+                ).flatMap(t -> SupportedAuthorization.attributesFor(integrationType, t).stream())
+                .map(n -> n.getLocalPart())
+                .collect(Collectors.toSet());
+                ObjectDetailsModels<ResourceType> resourceModel =
+                        ConnectorDevelopmentWizardUtil.getTestingResourceModel(getDetailsModel(), getPanelType());
 
-            for (ConnDevHttpAuthTypeType type : selectedTypes) {
-                valuesModel.getObject().stream()
-                        .filter(v -> type.equals(v.getRealValue().getType()))
-                        .findFirst()
-                        .ifPresent(value -> {
-                            try {
-                                //noinspection unchecked
-                                PrismContainerValueWrapper<ConnDevAuthInfoType> newVal =
-                                        (PrismContainerValueWrapper<ConnDevAuthInfoType>) getPageBase().createValueWrapper(
-                                                container, value.getRealValue().asPrismContainerValue().clone(),
-                                                ValueStatus.ADDED, getDetailsModel().createWrapperContext());
-                                container.getItem().add(newVal.getRealValue().asPrismContainerValue());
-                                container.getValues().add(newVal);
-                            } catch (SchemaException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
+                Set<String> toClear = Stream.of(SupportedAuthorization.values())
+                        .filter(a -> a != SupportedAuthorization.NONE)
+                        .flatMap(a -> a.attributesFor(integrationType).stream())
+                        .map(ItemName::getLocalPart)
+                        .filter(lp -> !neededLocalParts.contains(lp))
+                        .collect(Collectors.toSet());
+
+                for (String localPart : toClear) {
+                    ItemPath propPath = ItemPath.create("connectorConfiguration",
+                            SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME, localPart);
+                    //noinspection rawtypes
+                    PrismPropertyWrapper prop = resourceModel.getObjectWrapper().findProperty(propPath);
+                    if (prop != null && !prop.getValues().isEmpty()) {
+                        //noinspection unchecked,rawtypes
+                        PrismPropertyValueWrapper valueWrapper = (PrismPropertyValueWrapper) prop.getValue();
+                        if (valueWrapper.getRealValue() != null) {
+                            valueWrapper.setRealValue(null);
+                            valueWrapper.setStatus(ValueStatus.MODIFIED);
+                        }
+                    }
+                }
             }
+
+            valuesModel.getObject().stream()
+                    .filter(v -> selectedTypes.contains(v.getRealValue().getType()))
+                    .forEach(value -> {
+                        try {
+                            //noinspection unchecked
+                            PrismContainerValueWrapper<ConnDevAuthInfoType> newVal =
+                                    (PrismContainerValueWrapper<ConnDevAuthInfoType>) getPageBase().createValueWrapper(
+                                            container, value.getRealValue().asPrismContainerValue().clone(),
+                                            ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                            container.getItem().add(newVal.getRealValue().asPrismContainerValue());
+                            container.getValues().add(newVal);
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);
