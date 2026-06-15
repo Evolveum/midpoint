@@ -189,7 +189,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
                 LOGGER.debug("Skipping empty processing instruction (returning deltas to the 'without approval' set): {}",
                         instruction.debugDumpLazily());
                 //noinspection unchecked
-                changesWithoutApproval.merge((ObjectTreeDeltas<O>) instruction.getDeltasToApprove());
+                changesWithoutApproval.mergeUnordered((ObjectTreeDeltas<O>) instruction.getDeltasToApprove());
                 iterator.remove();
             }
         }
