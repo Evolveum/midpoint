@@ -19,4 +19,4 @@ files in the order named above. Even if tables are not needed, no harm is done.
 
 See also:
 
-* Using native repo: https://docs.evolveum.com/midpoint/reference/repository/repository-native-usage/
+* Using native repo: https://docs.evolveum.com/midpoint/reference/repository/native-postgresql/usage/
