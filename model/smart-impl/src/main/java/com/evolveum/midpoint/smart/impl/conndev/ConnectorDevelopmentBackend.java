@@ -34,6 +34,7 @@ public abstract class ConnectorDevelopmentBackend {
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
     private static final String CONNECTOR_MANIFEST = "connector.manifest.json";
     private static final String CONFIGURATION_OVERRIDE = "configurationOverride.properties";
+    private static final int MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS = 5;
     protected final Task task;
     protected final OperationResult result;
 
@@ -336,7 +337,7 @@ public abstract class ConnectorDevelopmentBackend {
     public void populateConnectivityEndpoints(List<ConnDevHttpEndpointType> endpoints) throws CommonException {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_SUGGESTED_ENDPOINT)
-                .replaceRealValues(endpoints)
+                .replaceRealValues(endpoints.stream().limit(MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS).toList())
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
