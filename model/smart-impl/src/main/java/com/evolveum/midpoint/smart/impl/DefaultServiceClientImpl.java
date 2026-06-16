@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
 import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -102,6 +104,31 @@ public class DefaultServiceClientImpl implements ServiceClient {
     @VisibleForTesting
     public static boolean hasServiceUrlOverride() {
         return getServiceUrlOverride() != null;
+    }
+
+    @Override
+    public AiInfo getAiInfo() {
+        try {
+            webClient.reset();
+            webClient.accept(MediaType.APPLICATION_JSON);
+            webClient.path("/health");
+            try (var response = webClient.get()) {
+                if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+                    LOGGER.warn("Health endpoint returned non-success status: {}", response.getStatus());
+                    return null;
+                }
+                var responseText = response.readEntity(String.class);
+                var root = new ObjectMapper().readTree(responseText);
+                var ai = root.path("ai");
+                if (ai.isMissingNode()) {
+                    return null;
+                }
+                return new AiInfo(ai.path("provider").asText(null), ai.path("model").asText(null));
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Failed to fetch AI info from health endpoint: {}", e.getMessage());
+            return null;
+        }
     }
 
     /** A generic method that calls a remote service synchronously. Treats serialization/parsing of the exchanged data. */

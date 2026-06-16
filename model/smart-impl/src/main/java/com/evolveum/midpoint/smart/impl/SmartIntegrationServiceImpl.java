@@ -54,6 +54,7 @@ import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.api.synchronization.SourceSynchronizationAnswers;
 import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
@@ -145,6 +146,16 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         this.statisticsService = statisticsService;
         this.schemaMatchService = schemaMatchService;
         this.systemObjectCache = systemObjectCache;
+    }
+
+    @Override
+    public AiInfo getAiInfo() {
+        try (var client = clientFactory.getServiceClient(new OperationResult("getAiInfo"))) {
+            return client.getAiInfo();
+        } catch (Exception e) {
+            LOGGER.warn("Failed to retrieve AI info: {}", e.getMessage());
+            return null;
+        }
     }
 
     @Override

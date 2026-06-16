@@ -17,6 +17,7 @@ import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.api.synchronization.SourceSynchronizationAnswers;
 import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
@@ -37,6 +38,12 @@ import java.util.List;
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.
  */
 public interface SmartIntegrationService {
+
+    /**
+     * Returns AI provider and model info fetched from the microservice health endpoint.
+     * Returns null if the information is unavailable.
+     */
+    AiInfo getAiInfo();
 
     /**
      * Creates a new resource with the given connector and the given connector configuration.
