@@ -28,6 +28,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.Counter;
@@ -258,8 +261,18 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
             newValue = credentialType.asPrismContainerValue();
         }
 
-        PrismContainerValueWrapper<OtpCredentialType> credential =
-                createNewItemContainerValueWrapper(newValue, getContainerModel().getObject(), target);
+        PrismContainerValueWrapper<OtpCredentialType> credential;
+        try {
+            Task wrapperTask = getPageBase().createSimpleTask("addOtpCredential");
+            WrapperContext wrapperContext = new WrapperContext(wrapperTask, wrapperTask.getResult());
+            wrapperContext.setObjectStatus(getContainerModel().getObject().findObjectStatus());
+            wrapperContext.setShowEmpty(true);
+            wrapperContext.setCreateIfEmpty(true);
+            credential = WebPrismUtil.addNewValueToContainer(getContainerModel().getObject(), newValue, getPageBase(), wrapperContext);
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot create new OTP credential wrapper: {}", e.getMessage(), e);
+            return;
+        }
 
         OtpPopupPanel<F> panel = new OtpPopupPanel<>(getPageBase().getMainPopupBodyId(), focusModel, Model.of(credential)) {
 
