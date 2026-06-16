@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -60,7 +61,9 @@ public class ButtonWithConfirmationOptionsDialog<T extends Describable> extends 
 
         final ConfirmationWithOptionsPopupPanel<T> dialog = new ConfirmationWithOptionsPopupPanel<>(
                 pageBase.getMainPopupBodyId(),
-                cfg.confirmationDialogConfig()) {
+                // Capture a snapshot of the DTO to prevent changes after the dialog is shown.
+                // Note: Models inside the DTO (e.g., infoEntries) can still be evaluated lazily.
+                Model.of(cfg.confirmationDialogConfig().getObject())) {
 
             @Override
             public void confirmationPerformed(AjaxRequestTarget target,

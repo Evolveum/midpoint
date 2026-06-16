@@ -7,19 +7,25 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ActivityIndicationInteractionsPair;
 import com.evolveum.midpoint.web.component.input.BlockingActionButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.web.component.util.Describable;
 
 /**
@@ -41,15 +47,58 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
             IModel<String> icon, IModel<String> title,
             List<ConfirmationOption<DataAccessPermission>> options, PageBase pageBase) {
 
-        final ConfirmationWithOptionsDto<DataAccessPermission> confirmationDialogConfig =
-                ConfirmationWithOptionsDto.<DataAccessPermission>builder()
-                        .confirmationTitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.title"))
-                        .confirmationSubtitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.subtitle"))
-                        .confirmationOptionsTitle(pageBase.createStringResource(
-                                "SmartSuggestConfirmationPanel.request.component.title"))
-                        .confirmationOptions(options)
-                        .build();
-        return new ButtonConfig<>(icon, title, () -> confirmationDialogConfig, () -> pageBase);
+        IModel<List<ConfirmationWithOptionsDto.InfoEntry>> infoEntriesModel = new LoadableDetachableModel<>() {
+            @Override
+            protected List<ConfirmationWithOptionsDto.InfoEntry> load() {
+                var service = pageBase.getSmartIntegrationService();
+                if (service == null) {
+                    return List.of();
+                }
+                try {
+                    return service.getAiInfo()
+                            .map(aiInfo -> buildAiInfoEntries(aiInfo, pageBase))
+                            .orElse(List.of());
+                } catch (SystemException e) {
+                    return List.of();
+                }
+            }
+        };
+
+        IModel<ConfirmationWithOptionsDto<DataAccessPermission>> confirmationDialogConfig = () -> {
+            var service = pageBase.getSmartIntegrationService();
+            List<ConfirmationWithOptionsDto.InfoEntry> entries = infoEntriesModel.getObject();
+            boolean serviceInfoUnavailable = service != null && (entries == null || entries.isEmpty());
+
+            return ConfirmationWithOptionsDto.<DataAccessPermission>builder()
+                    .confirmationTitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.title"))
+                    .confirmationSubtitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.subtitle"))
+                    .confirmationOptionsTitle(pageBase.createStringResource(
+                            "SmartSuggestConfirmationPanel.request.component.title"))
+                    .infoEntries(infoEntriesModel)
+                    .errorMessage(serviceInfoUnavailable
+                            ? pageBase.createStringResource("SmartSuggestConfirmationPanel.serviceUnreachable")
+                            : null)
+                    .confirmationOptions(options)
+                    .build();
+        };
+
+        return new ButtonConfig<>(icon, title, confirmationDialogConfig, () -> pageBase);
+    }
+
+    private static @NotNull List<ConfirmationWithOptionsDto.InfoEntry> buildAiInfoEntries(
+            @NotNull AiInfo aiInfo, PageBase pageBase) {
+        var entries = new ArrayList<ConfirmationWithOptionsDto.InfoEntry>();
+        if (aiInfo.provider() != null && !aiInfo.provider().isBlank()) {
+            entries.add(new ConfirmationWithOptionsDto.InfoEntry(
+                    pageBase.createStringResource("SmartSuggestConfirmationPanel.aiProvider"),
+                    Model.of(aiInfo.provider())));
+        }
+        if (aiInfo.model() != null && !aiInfo.model().isBlank()) {
+            entries.add(new ConfirmationWithOptionsDto.InfoEntry(
+                    pageBase.createStringResource("SmartSuggestConfirmationPanel.aiModel"),
+                    Model.of(aiInfo.model())));
+        }
+        return entries;
     }
 
     /**
