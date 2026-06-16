@@ -33,7 +33,6 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
         + "'midpoint.repository.type',"
         + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sql\\..*', '(?i)sql')"
         + "}")
-@ComponentScan
 @Import(SqlRepositoryBeanConfig.class)
 public class TestSqlRepositoryBeanConfig {
 

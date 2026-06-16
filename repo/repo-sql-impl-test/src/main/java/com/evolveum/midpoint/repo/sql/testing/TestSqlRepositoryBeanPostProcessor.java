@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql.testing;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
 import jakarta.persistence.EntityManager;
@@ -32,12 +34,28 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
 
     @Autowired private SqlRepositoryConfiguration repoConfig;
 
+    /**
+     * Ensures that database cleanup is executed only once per Spring context.
+     *
+     * After the Spring upgrade, repository test configuration can be processed through
+     * more than one imported configuration path. Running the cleanup more than once is
+     * dangerous: the second cleanup can remove objects already created during test
+     * context initialization, e.g. the local task-manager NodeType.
+     */
+    private final AtomicBoolean databaseCleanupDone = new AtomicBoolean();
+
     @Override
     public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName)
             throws BeansException {
         if (!(bean instanceof EntityManagerFactory entityManagerFactory)) {
             return bean;
         }
+
+        if (!databaseCleanupDone.compareAndSet(false, true)) {
+            LOGGER.info("Test database cleanup was already done for this Spring context.");
+            return bean;
+        }
+
         LOGGER.info("Postprocessing entity manager factory - removing everything from database if necessary.");
 
         //we'll attempt to drop database objects if configuration contains dropIfExists=true and embedded=false
