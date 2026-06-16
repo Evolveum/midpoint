@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -56,7 +57,7 @@ public class ButtonWithConfirmationOptionsDialog<T extends Describable> extends 
         final PageBase pageBase = cfg.pageBase().getObject();
         final ConfirmationWithOptionsPanel<T> dialog = new ConfirmationWithOptionsPanel<>(
                 pageBase.getMainPopupBodyId(),
-                cfg.confirmationDialogConfig()) {
+                Model.of(cfg.confirmationDialogConfig().getObject())) {
 
             @Override
             public void confirmationPerformed(AjaxRequestTarget target,

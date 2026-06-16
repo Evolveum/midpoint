@@ -61,6 +61,12 @@ public class ConfirmationWithOptionsPanel<T extends Describable> extends BasePan
     private static final String ID_LEARN_MORE = "learnMore";
     private static final String ID_INFO_MESSAGE = "infoMessage";
 
+    private static final String ID_ERROR_MESSAGE = "errorMessage";
+    private static final String ID_ERROR_TEXT = "errorText";
+    private static final String ID_INFO_DETAILS = "infoDetails";
+    private static final String ID_INFO_ENTRY = "infoEntry";
+    private static final String ID_ENTRY_LABEL = "entryLabel";
+    private static final String ID_ENTRY_VALUE = "entryValue";
     private static final String ID_OPTIONS_CONTAINER = "requestContainer";
     private static final String ID_OPTION_LABEL = "requestLabel";
     private static final String ID_LIST_VIEW = "listView";
@@ -85,6 +91,8 @@ public class ConfirmationWithOptionsPanel<T extends Describable> extends BasePan
         add(subtitleLabel);
 
         initInfoMessage();
+        initErrorMessage();
+        initInfoDetails();
         initConfirmationOptionsDetailsPart();
     }
 
@@ -175,6 +183,32 @@ public class ConfirmationWithOptionsPanel<T extends Describable> extends BasePan
     /**
      * Confirmation options details part contains a list of options with checkboxes and action button.
      */
+    private void initErrorMessage() {
+        final IModel<String> errorMessage = getModelObject().getConfirmationErrorMessage();
+        WebMarkupContainer errorContainer = new WebMarkupContainer(ID_ERROR_MESSAGE);
+        errorContainer.setOutputMarkupId(true);
+        errorContainer.add(new VisibleBehaviour(() -> errorMessage != null));
+        errorContainer.add(new Label(ID_ERROR_TEXT, errorMessage));
+        add(errorContainer);
+    }
+
+    private void initInfoDetails() {
+        final List<ConfirmationWithOptionsDto.InfoEntry> entries = getModelObject().getInfoEntries();
+        WebMarkupContainer infoDetails = new WebMarkupContainer(ID_INFO_DETAILS);
+        infoDetails.setOutputMarkupId(true);
+        infoDetails.add(new VisibleBehaviour(() -> entries != null && !entries.isEmpty()));
+        ListView<ConfirmationWithOptionsDto.InfoEntry> listView = new ListView<>(ID_INFO_ENTRY,
+                entries != null ? entries : List.of()) {
+            @Override
+            protected void populateItem(@NotNull ListItem<ConfirmationWithOptionsDto.InfoEntry> item) {
+                item.add(new Label(ID_ENTRY_LABEL, item.getModelObject().label()));
+                item.add(new Label(ID_ENTRY_VALUE, item.getModelObject().value()));
+            }
+        };
+        infoDetails.add(listView);
+        add(infoDetails);
+    }
+
     private void initConfirmationOptionsDetailsPart() {
         Form<?> form = new Form<>("form");
         form.setOutputMarkupId(true);

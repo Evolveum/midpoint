@@ -12,6 +12,17 @@
         <div>
             <p class="text-muted mb-3" style="white-space: pre-line;" wicket:id="subtitle"></p>
             <span wicket:id="infoMessage"></span>
+            <div wicket:id="errorMessage" class="alert alert-warning d-flex align-items-center gap-2 mt-2 py-2 px-3">
+                <i class="fa fa-exclamation-triangle"></i>
+                <span wicket:id="errorText"></span>
+            </div>
+            <div wicket:id="infoDetails" class="d-flex flex-wrap gap-2 mt-2">
+                <div wicket:id="infoEntry" class="alert alert-info d-flex align-items-center gap-2 py-2 px-3 mb-0">
+                    <i class="fa fa-info-circle"></i>
+                    <span class="fw-semibold" wicket:id="entryLabel"></span>
+                    <span wicket:id="entryValue"></span>
+                </div>
+            </div>
         </div>
     </div>
 

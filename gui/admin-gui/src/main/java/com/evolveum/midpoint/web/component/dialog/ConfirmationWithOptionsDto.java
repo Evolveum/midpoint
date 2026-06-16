@@ -20,6 +20,9 @@ import com.evolveum.midpoint.web.component.util.Describable;
  */
 public class ConfirmationWithOptionsDto<T extends Describable> implements Serializable {
 
+    /** A labeled key-value pair rendered with a highlighted label inside the confirmation popup. */
+    public record InfoEntry(IModel<String> label, IModel<String> value) implements Serializable {}
+
     private final StringResourceModel confirmationTitle;
     private final String titleIconCssClass;
     private final StringResourceModel confirmationSubtitle;
@@ -32,6 +35,8 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
     private final String cancelButtonCssClass;
     private final StringResourceModel confirmationOptionsTitle;
     private final List<ConfirmationOption<T>> confirmationOptions;
+    private final List<InfoEntry> infoEntries;
+    private final IModel<String> confirmationErrorMessage;
 
     private ConfirmationWithOptionsDto(Builder<T> builder) {
         confirmationTitle = builder.confirmationTitle;
@@ -46,6 +51,8 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         cancelButtonLabel = builder.cancelButtonLabel;
         cancelButtonCssClass = builder.cancelButtonClass;
         confirmationOptions = builder.confirmationOptions;
+        infoEntries = builder.infoEntries;
+        confirmationErrorMessage = builder.confirmationErrorMessage;
     }
 
     public IModel<String> getConfirmationTitle() {
@@ -70,6 +77,14 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
 
     public List<ConfirmationOption<T>> getConfirmationOptions() {
         return confirmationOptions;
+    }
+
+    public List<InfoEntry> getInfoEntries() {
+        return infoEntries;
+    }
+
+    public IModel<String> getConfirmationErrorMessage() {
+        return confirmationErrorMessage;
     }
 
     public StringResourceModel getExternalLinkButtonLabel() {
@@ -117,6 +132,8 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         private String cancelButtonClass = "btn btn-default";
         private StringResourceModel confirmationOptionsTitle;
         private List<ConfirmationOption<T>> confirmationOptions;
+        private List<InfoEntry> infoEntries;
+        private IModel<String> confirmationErrorMessage;
 
         /**
          * Used as a confirmation popup title.
@@ -214,6 +231,16 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
          */
         public Builder<T> confirmationOptions(List<ConfirmationOption<T>> confirmationOptions) {
             this.confirmationOptions = confirmationOptions;
+            return this;
+        }
+
+        public Builder<T> infoEntries(List<InfoEntry> infoEntries) {
+            this.infoEntries = infoEntries;
+            return this;
+        }
+
+        public Builder<T> confirmationErrorMessage(IModel<String> confirmationErrorMessage) {
+            this.confirmationErrorMessage = confirmationErrorMessage;
             return this;
         }
 
