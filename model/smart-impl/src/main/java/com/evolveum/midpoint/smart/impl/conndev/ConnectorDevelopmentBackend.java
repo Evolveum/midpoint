@@ -118,7 +118,10 @@ public abstract class ConnectorDevelopmentBackend {
     public void populateApplicationAuthInfo(List<ConnDevAuthInfoType> authInfo) throws CommonException {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH)
-                .addRealValues( authInfo.stream().map(ConnDevAuthInfoType::clone).toList())
+                .addRealValues(authInfo.stream()
+                        .filter(info -> info.getType() != ConnDevHttpAuthTypeType.OTHER)
+                        .map(ConnDevAuthInfoType::clone)
+                        .toList())
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
