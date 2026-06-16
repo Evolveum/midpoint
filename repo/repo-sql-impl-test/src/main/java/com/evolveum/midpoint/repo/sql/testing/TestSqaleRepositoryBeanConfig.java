@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Configuration
 @ConditionalOnExpression(
         "#{midpointConfiguration.keyMatches('midpoint.repository.type', '(?i)s[qc]ale|native')}")
-@ComponentScan
 @Import(SqaleRepositoryBeanConfig.class)
 public class TestSqaleRepositoryBeanConfig {
 
