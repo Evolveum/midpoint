@@ -53,7 +53,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -213,7 +213,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
         credentialsSection.add(formPanel);
     }
 
-    private @NonNull VerticalFormPanel getVerticalFormPanel(ItemPanelSettings settings) {
+    private @NotNull VerticalFormPanel getVerticalFormPanel(ItemPanelSettings settings) {
         VerticalFormPanel formPanel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration(getPanelType())) {
 
             @Override
@@ -247,7 +247,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
         return formPanel;
     }
 
-    private @NonNull ListView<PrismContainerValueWrapper<ConnDevAuthInfoType>> createAuthMethodList(IModel<String> radioGroupModel, RadioGroup<String> radioGroup, WebMarkupContainer credentialsSection) {
+    private @NotNull ListView<PrismContainerValueWrapper<ConnDevAuthInfoType>> createAuthMethodList(IModel<String> radioGroupModel, RadioGroup<String> radioGroup, WebMarkupContainer credentialsSection) {
         ListView<PrismContainerValueWrapper<ConnDevAuthInfoType>> panel = new ListView<>(ID_PANEL, valuesModel) {
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<ConnDevAuthInfoType>> listItem) {

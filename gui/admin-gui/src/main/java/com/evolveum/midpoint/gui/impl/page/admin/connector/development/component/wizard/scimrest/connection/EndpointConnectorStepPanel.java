@@ -54,7 +54,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -235,7 +235,7 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         });
     }
 
-    private @NonNull ListView<ConnDevHttpEndpointType> createSuggestedEndpointList(RadioGroup<String> radioGroup) {
+    private @NotNull ListView<ConnDevHttpEndpointType> createSuggestedEndpointList(RadioGroup<String> radioGroup) {
         ListView<ConnDevHttpEndpointType> panel = new ListView<>(ID_PANEL, endpointsModel) {
             @Override
             protected void populateItem(ListItem<ConnDevHttpEndpointType> item) {
