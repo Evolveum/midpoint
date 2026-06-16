@@ -53,6 +53,7 @@ import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.api.synchronization.SourceSynchronizationAnswers;
 import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
@@ -67,6 +68,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -144,6 +146,15 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         this.statisticsService = statisticsService;
         this.schemaMatchService = schemaMatchService;
         this.systemObjectCache = systemObjectCache;
+    }
+
+    @Override
+    public Optional<AiInfo> getAiInfo() {
+        try (var client = clientFactory.getServiceClient(new OperationResult("getAiInfo"))) {
+            return client.getAiInfo();
+        } catch (Exception e) {
+            throw new SystemException("Failed to retrieve AI info: " + e.getMessage(), e);
+        }
     }
 
     @Override
