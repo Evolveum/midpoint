@@ -102,7 +102,7 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
             }
         };
         feedback.setFilter(new ComponentFeedbackMessageFilter(nameField));
-        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
