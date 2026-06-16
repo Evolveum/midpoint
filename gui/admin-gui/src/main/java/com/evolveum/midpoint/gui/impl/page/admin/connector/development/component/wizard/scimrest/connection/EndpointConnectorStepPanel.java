@@ -27,24 +27,24 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardListener;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -53,6 +53,8 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -63,9 +65,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.endpointPath", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
+public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardListener {
 
-    private static final String PANEL_TYPE = "cdw-endpoint-path";
+    public static final String PANEL_TYPE = "cdw-endpoint-path";
 
     public static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "restTestEndpoint");
 
@@ -95,6 +97,7 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
     @Override
     public void init(WizardModel wizard) {
         super.init(wizard);
+        wizard.addWizardListener(this);
 
         endpointsModel = new LoadableModel<>() {
             @Override
@@ -135,9 +138,14 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         manualUrlModel = Model.of("");
         connectedUrl = Model.of((String) null);
 
+        refreshUrlModels();
+    }
+
+    private void refreshUrlModels() {
         Object existingUrlObj = ConnectorDevelopmentWizardUtil.getTestingResourcePropertyValue(
                 getDetailsModel(), PANEL_TYPE, PROPERTY_ITEM_NAME);
         String existingUrl = existingUrlObj instanceof String s ? s : null;
+        connectedUrl.setObject(null);
         if (StringUtils.isNotEmpty(existingUrl)) {
             boolean matchesSuggested = endpointsModel.getObject().stream()
                     .anyMatch(e -> existingUrl.equals(e.getUri()));
@@ -147,10 +155,18 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
                 selectedModel.setObject(MANUAL_OPTION);
                 manualUrlModel.setObject(existingUrl);
             }
-            if (isCompleted()) {
+            if (ConnectorDevelopmentWizardUtil.isConnectionComplete(getDetailsModel(), PANEL_TYPE)) {
                 connectedUrl.setObject(existingUrl);
             }
         }
+    }
+
+    @Override
+    public void onStepChanged(WizardStep newStep) {
+        if (!EndpointConnectorStepPanel.this.equals(newStep)) {
+            return;
+        }
+        refreshUrlModels();
     }
 
     @Override
@@ -169,35 +185,7 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         radioGroup.setOutputMarkupId(true);
         add(radioGroup);
 
-        ListView<ConnDevHttpEndpointType> panel = new ListView<>(ID_PANEL, endpointsModel) {
-            @Override
-            protected void populateItem(ListItem<ConnDevHttpEndpointType> item) {
-                ConnDevHttpEndpointType endpoint = item.getModelObject();
-
-                Radio<String> radio = new Radio<>(ID_RADIO, Model.of(endpoint.getUri()), radioGroup);
-                radio.setOutputMarkupId(true);
-                item.add(radio);
-
-                item.add(new Label(ID_NAME, StringUtils.defaultString(endpoint.getUri())));
-
-                WebMarkupContainer badge = new WebMarkupContainer(ID_CONNECTED_BADGE);
-                badge.setOutputMarkupPlaceholderTag(true);
-                badge.add(new VisibleBehaviour(() ->
-                        StringUtils.equals(endpoint.getUri(), connectedUrl.getObject())));
-                item.add(badge);
-
-                item.add(AttributeAppender.append("style", "cursor: pointer;"));
-                item.add(new AjaxEventBehavior("click") {
-                    @Override
-                    protected void onEvent(AjaxRequestTarget target) {
-                        selectedModel.setObject(endpoint.getUri());
-                        target.add(radioGroup);
-                        target.add(getButtonContainer());
-                    }
-                });
-            }
-        };
-        panel.setOutputMarkupId(true);
+        ListView<ConnDevHttpEndpointType> panel = createSuggestedEndpointList(radioGroup);
         radioGroup.add(panel);
 
         WebMarkupContainer manualItem = new WebMarkupContainer(ID_MANUAL_ITEM);
@@ -247,42 +235,52 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         });
     }
 
+    private @NotNull ListView<ConnDevHttpEndpointType> createSuggestedEndpointList(RadioGroup<String> radioGroup) {
+        ListView<ConnDevHttpEndpointType> panel = new ListView<>(ID_PANEL, endpointsModel) {
+            @Override
+            protected void populateItem(ListItem<ConnDevHttpEndpointType> item) {
+                ConnDevHttpEndpointType endpoint = item.getModelObject();
+
+                Radio<String> radio = new Radio<>(ID_RADIO, Model.of(endpoint.getUri()), radioGroup);
+                radio.setOutputMarkupId(true);
+                item.add(radio);
+
+                item.add(new Label(ID_NAME, StringUtils.defaultString(endpoint.getUri())));
+
+                WebMarkupContainer badge = new WebMarkupContainer(ID_CONNECTED_BADGE);
+                badge.setOutputMarkupPlaceholderTag(true);
+                badge.add(new VisibleBehaviour(() ->
+                        StringUtils.equals(endpoint.getUri(), connectedUrl.getObject())));
+                item.add(badge);
+
+                item.add(AttributeAppender.append("style", "cursor: pointer;"));
+                item.add(new AjaxEventBehavior("click") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                        selectedModel.setObject(endpoint.getUri());
+                        target.add(radioGroup);
+                        target.add(getButtonContainer());
+                    }
+                });
+            }
+        };
+        panel.setOutputMarkupId(true);
+        return panel;
+    }
+
     private String getSelectedUrl() {
         return MANUAL_OPTION.equals(selectedModel.getObject())
                 ? manualUrlModel.getObject()
                 : selectedModel.getObject();
     }
 
-    private boolean isCurrentUrlConnected() {
-        String url = getSelectedUrl();
-        return StringUtils.isNotEmpty(url) && url.equals(connectedUrl.getObject());
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private void setRestTestEndpoint(String url) throws SchemaException {
         ObjectDetailsModels<ResourceType> resourceModel = ConnectorDevelopmentWizardUtil.getTestingResourceModel(getDetailsModel(), PANEL_TYPE);
         ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME, PROPERTY_ITEM_NAME);
-        PrismPropertyWrapper prop = resourceModel.getObjectWrapper().findProperty(path);
+        PrismPropertyWrapper<String> prop = resourceModel.getObjectWrapper().findProperty(path);
         if (prop != null && !prop.getValues().isEmpty()) {
-            ((PrismPropertyValueWrapper) prop.getValue()).setRealValue(url);
+            prop.getValue().setRealValue(url);
         }
-    }
-
-    private OperationResult runResourceTest() throws SchemaException {
-        PrismReferenceWrapper<Referencable> resource = getDetailsModel().getObjectWrapper().findReference(
-                ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
-        String resourceOid = resource.getValue().getRealValue().getOid();
-
-        Task task = getPageBase().createSimpleTask("testResource");
-        ConnectorDevelopmentWizardUtil.enableConnectorLogCapture(task);
-        OperationResult result = task.getResult();
-        try {
-            getPageBase().getModelService().testResource(resourceOid, task, result);
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-        }
-        result.computeStatus();
-        return result;
     }
 
     private void testConnection(AjaxRequestTarget target) {
@@ -299,18 +297,8 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
 
         OperationResult saveResult = getHelper().onSaveObjectPerformed(target);
         if (saveResult != null && !saveResult.isError()) {
-            try {
-                OperationResult testResult = runResourceTest();
-                if (!testResult.isError()) {
-                    connectedUrl.setObject(url);
-                    target.add(get(ID_RADIO_GROUP));
-                } else {
-                    getPageBase().showResult(testResult);
-                }
-                target.add(getFeedback());
-            } catch (SchemaException e) {
-                throw new RuntimeException(e);
-            }
+            getDetailsModel().reloadPrismObjectByOid();
+            super.onNextPerformed(target);
         } else {
             target.add(getFeedback());
         }
@@ -319,23 +307,15 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        if (isCurrentUrlConnected()) {
-            super.onNextPerformed(target);
-            return false;
-        }
         testConnection(target);
         return false;
     }
 
     @Override
     protected void initCustomButtons(RepeatingView customButtons) {
-        IModel<String> iconModel = () -> isCurrentUrlConnected()
-                ? "fa fa-arrow-right"
-                : "fa fa-tower-broadcast";
+        IModel<String> iconModel = () -> "fa fa-tower-broadcast";
 
-        IModel<String> labelModel = () -> isCurrentUrlConnected()
-                ? getString("EndpointConnectorStepPanel.continue")
-                : getString("EndpointConnectorStepPanel.submit");
+        IModel<String> labelModel = () -> getString("EndpointConnectorStepPanel.submit");
 
         actionButton = new AjaxIconButton(customButtons.newChildId(), iconModel, labelModel) {
             @Override
@@ -346,11 +326,6 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         actionButton.showTitleAsLabel(true);
         actionButton.setOutputMarkupId(true);
         actionButton.add(AttributeAppender.replace("class", "btn btn-primary"));
-        actionButton.add(AttributeAppender.append("onclick",
-                "if(!this.classList.contains('connected-btn')){"
-                + "this.innerHTML='<i class=\"fa fa-spinner fa-spin mr-1\"></i>"
-                + getString("EndpointConnectorStepPanel.connecting") + "';"
-                + "this.style.pointerEvents='none';}"));
         customButtons.add(actionButton);
     }
 
@@ -376,6 +351,10 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
 
     @Override
     public boolean isCompleted() {
+        if (getWizard() instanceof WizardModelWithParentSteps wizardModel
+                && wizardModel.isStepWithError(FixConnectionConnectorStepPanel.PANEL_TYPE)) {
+            return true;
+        }
         return ConnectorDevelopmentWizardUtil.isConnectionComplete(getDetailsModel(), PANEL_TYPE);
     }
 

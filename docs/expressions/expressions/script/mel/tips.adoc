@@ -44,6 +44,41 @@ format.strftime(ts, '%d/%m/%Y %H:%M:%S')
 
 Overall, the xref:../specification/#format-extension[format extension] of MEL provides may useful functions for string formatting and parsing.
 
+== Single-Valued and Multi-Valued Data
+
+CEL and therefore MEL makes a strict distinction between single-valued (scalar) and multi-valued (list/array) data.
+Functions often require multi-valued (list) arguments.
+Also, some functions return list values.
+Therefore, it is often necessary to convert single-valued and multi-valued (list) data.
+
+Correct method to convert list (multi-valued data) to a single value is to use `single()` function:
+
+.Converting list to single value
+[source,mel]
+----
+single(['foo'])     // Returns 'foo'
+----
+
+Primary purpose of `single()` function is conversion of list to single value.
+Moreover, it does the conversion in a safe way.
+Error is raised in case that the argument is a list with more than one value.
+The `single()` function returns `null` value in a robust way, handling all the valid argument values such as empty list, `null` and empty optional.
+On the other hand, other methods (such as `x[0]`) does not provide such robustness.
+
+Correct method to convert single value to list (multi-valued data) is use of `list()` function:
+
+.Converting single value to list
+[source,mel]
+----
+list('foo')       // Returns ['foo']
+list(['foo'])     // Returns ['foo']
+----
+
+The `list()` function always returns list.
+If a single-valued (scalar_ argument is provided, it returns a single-element list containing that argument.
+If a list is provided as argument, the same list is returned.
+Hence, the `list()` function can be used to make sure that list is provided in context where list arguments are required.
+
 == See Also
 
 * xref:../specification/[MidPoint Expression Language Specification]

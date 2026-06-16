@@ -1907,7 +1907,7 @@ Ordinary string value can be encrypted, to gain additional protection of a _prot
 
 [source,mel]
 ----
-string.endecrypt()
+string.encrypt()
 ----
 
 === decrypt
@@ -2002,6 +2002,14 @@ focus.extension['ship']
 ----
 
 When working with midPoint (prism) objects, both strings and qnames can be used as indexes.
+
+Similar approach works with xref:/midpoint/architecture/concepts/shadow/[shadow attributes] as well:
+
+[source,mel]
+----
+projection.attributes.cn
+projection.attributes['cn']
+----
 
 The `has()` macro can be used for tests regarding presence of items in structured objects and maps:
 

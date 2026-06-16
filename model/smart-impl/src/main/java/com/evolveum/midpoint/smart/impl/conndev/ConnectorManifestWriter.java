@@ -32,11 +32,12 @@ public class ConnectorManifestWriter {
 
 
     private void writeConnector(ConnDevConnectorType connector) {
-        var operations = FACTORY.arrayNode();
         var schemas = FACTORY.arrayNode();
-        // Write schema scripts
+        var authorization = FACTORY.arrayNode();
+        var operations = FACTORY.arrayNode();
+
+        writeScript(authorization, connector.getAuthenticationScript());
         writeScript(operations, connector.getTestOperation());
-        writeScript(operations, connector.getAuthenticationScript());
 
         for (var objClass : connector.getObjectClass()) {
             writeScript(schemas, objClass.getNativeSchemaScript());
@@ -47,9 +48,16 @@ public class ConnectorManifestWriter {
             writeScript(operations, objClass.getCreateScript());
             writeScript(operations, objClass.getUpdateScript());
             writeScript(operations, objClass.getDeleteScript());
-
         }
+
+        for (var relation : connector.getRelation()) {
+            writeScript(schemas, relation.getSchemaScript());
+        }
+
         this.connector.set("schema", schemas);
+        if (!authorization.isEmpty()) {
+            this.connector.set("authorization", authorization);
+        }
         this.connector.set("operation", operations);
     }
 

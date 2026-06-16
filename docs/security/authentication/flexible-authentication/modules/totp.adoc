@@ -3,12 +3,14 @@
 :page-since: "4.11"
 :page-upkeep-status: green
 
-WARNING:  `totp` module can't be the first module in the sequence.
-Before `totp` module, midPoint need to use authentication module for identification of the user, for example `loginForm` or `focusIdentification`.
-
 The TOTP module is used for MFA authentication of a user by using Time-based One-Time Password (TOTP) algorithm.
 Configuration consists of two parts, module definition and authentication sequence configuration.
 Both have to be defined in security policy.
+
+== Security policy configuration
+
+WARNING:  `totp` module can't be the first module in the sequence.
+Before `totp` module, midPoint need to use authentication module for identification of the user, for example `loginForm` or `focusIdentification`.
 
 .Module configuration parameters
 [cols="3",options="header"]
@@ -138,6 +140,47 @@ For others TOTP authentication will be skipped.
 </authentication>
 ----
 
+== UI Related Configuration
+
+=== Self-service
+
+OTP tab on user self-service credentials page is displayed only if TOTP module is configured in security policy.
+
+=== User details
+
+New Panel was implemented for focus details page, that displays list of TOTP credentials for the user.
+
+.Configuration details
+[options="header", cols=2]
+|===
+| Name
+| Value
+
+| Name
+| otp
+
+| Applicable for
+| FocusType
+
+| Label
+| FocusOtpsPanel.title
+
+| Icon
+| GuiStyleConstants.CLASS_PASSWORD_ICON
+
+| Order
+| 55
+
+| Container path
+| credentials/otp
+
+| Type
+| OtpCredentialsType
+
+| Expanded
+| true
+|===
+
 == Use cases
 
 === TOTP authentication setup (enrolling user)
@@ -211,7 +254,7 @@ image::totp/login.png[Login using TOTP]
 
 * Only one TOTP module can be configured in security policy.
 * TOTP will be available only for GUI authentication, specifically for `http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user` channel.
-* TOTP can't be configured during self-registration process
+* TOTP can't be configured for self-registration process
 ** Possible improvement in the future is to create new option for "force-setup".
 Such option will force user to set up TOTP credentials after login if the user doesn't have TOTP credentials configured yet.
 

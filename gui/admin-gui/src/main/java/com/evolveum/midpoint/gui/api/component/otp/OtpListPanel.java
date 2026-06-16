@@ -10,6 +10,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.OtpManager;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -68,6 +70,10 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
     @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(OtpListPanel.class);
+
+    private static final String DOT_CLASS = OtpListPanel.class.getName() + ".";
+
+    private static final String OPERATION_IS_OTP_AVAILABLE = DOT_CLASS + "isOtpAvailable";
 
     private final IModel<F> focusModel;
 
@@ -140,7 +146,13 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
 
     @Override
     protected boolean isCreateNewObjectVisible() {
-        return true;
+        PrismObject<FocusType> focus = getFocusObject();
+
+        Task task = getPageBase().createSimpleTask(OPERATION_IS_OTP_AVAILABLE);
+        OperationResult result = task.getResult();
+
+        OtpManager manager = MidPointApplication.get().getOtpManager();
+        return manager.isOtpAvailable(focus, task, result);
     }
 
     @Override

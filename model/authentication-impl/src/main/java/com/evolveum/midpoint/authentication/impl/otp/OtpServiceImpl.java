@@ -107,7 +107,7 @@ public abstract class OtpServiceImpl implements OtpService {
     }
 
     @Override
-    public boolean verifyCode(String secret, int code) {
+    public boolean verifyCode( @NotNull String secret, int code) {
         return code == generateCode(secret);
     }
 
