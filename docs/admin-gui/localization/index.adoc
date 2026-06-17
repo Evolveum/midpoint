@@ -1,15 +1,16 @@
 ---
 midpoint-feature: localization
-doc-type: intro
+doc-type: config
 ---
-= Localization
+= Localization configuration
 :page-description: This section describes how to adjust various localization aspects of midPoint to fit your needs.
 :page-keywords: localization, translation, language, language selector, locale
+:page-moved-from: /midpoint/reference/admin-gui/localization-configuration/
 
 MidPoint is localized into many languages and various localization aspects of midPoint can be adjusted to fit your needs.
 This section describes the details of the localization tailoring options.
 
-For the introduction to midPoint localization, including how it is done, where they are managed, and how you can help improve midPoint localization, refer to xref:/midpoint/localization/[].
+Refer to xref:/midpoint/localization/[] for the general introduction to midPoint localization, including how it is done, where it is managed, and how you can help improve midPoint localization.
 
 ++++
 {% children style: table %}
