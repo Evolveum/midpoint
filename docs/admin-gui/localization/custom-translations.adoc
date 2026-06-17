@@ -6,10 +6,10 @@
 MidPoint supports custom UI translations without requiring a custom build.
 
 Custom translations can be used to adjust localization of certain properties in a given language.
-The property translations are placed in `.properties` files in the `${midpoint.home}/localization/` directory.
+The property translations are placed in `.properties` files in the `xref:/midpoint/reference/deployment/midpoint-home-directory/[${midpoint.home}]/localization/` directory.
 MidPoint loads these files at startup and merges them with the built-in translations.
 
-== Translation file naming convention
+== Localization property file naming conventions
 
 MidPoint uses two localization resource bundles, each with locale-specific variants:
 
@@ -52,4 +52,4 @@ It contains the following files relevant to custom translations:
 
 * `localization/schema.properties` — schema keys
 * `localization/Midpoint.properties` — GUI keys
-* Locale-specific variants, such as `Midpoint_en.properties`, `Midpoint_fr.properties`, etc.
+* Locale-specific variants of the files, such as `Midpoint_en.properties`, `Midpoint_fr.properties`, etc.
