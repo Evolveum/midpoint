@@ -1,24 +1,26 @@
 = Pre-upgrade check
+:page-description: Pre-upgrade check verifies version consistency of the midPoint application and its database schemas across your running cluster nodes
+:page-keywords: pre-upgrade check, version consistency, database, schema, upgrade, audit database, repository
 
-The pre-upgrade check verifies that the repository, audit and all running cluster nodes are on the same version that is going to be upgraded.
-There are two items being checked:
-
-* database schema version
-* midPoint cluster nodes version
+The pre-upgrade check verifies version consistency of the midPoint application and its database schemas across your running cluster nodes.
+It also checks that the identified midPoint version is eligible for upgrade.
 
 == Database schema version check
 
-This check verifies that database schema version matches supported version.
-Database schema version is stored in `m_global_metadata` table and separate version is stored for midPoint repository and audit.
-Schema version check can be skipped if necessary using option `--skip-database-version-check`.
+The check verifies that the database schema versions match a supported version.
+MidPoint stores the schema version values separately for the midPoint repository database and the audit database.
+The schema versions are stored in `m_global_metadata` table.
 
-== Nodes version check
+You can skip the schema version check if necessary using `--skip-database-version-check`.
 
-This check verifies that all nodes in midPoint cluster have the same version and that version is eligible for upgrade.
-Running a cluster with nodes on different midPoint versions is not supported.
-Nodes version check can be skipped if necessary using option `--skip-nodes-version-check`.
+== Node version check
 
-.Example of how to do pre-upgrade check
+This check verifies that all nodes in your midPoint cluster run the same midPoint version and that the version is eligible for upgrade.
+Running a cluster with nodes hosting different midPoint versions is not supported.
+
+You can skip the node version check if necessary using `--skip-nodes-version-check`.
+
+.Example of executing the pre-upgrade check with node version check skipped
 [source,bash]
 ----
 ./bin/ninja.sh pre-upgrade-check \
