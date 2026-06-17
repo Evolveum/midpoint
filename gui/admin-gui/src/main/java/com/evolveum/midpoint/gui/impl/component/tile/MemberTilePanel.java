@@ -162,7 +162,7 @@ public class MemberTilePanel<T extends Serializable> extends ObjectTilePanel<T, 
     }
 
     protected String getCssForUnassignButton() {
-        return "btn btn-link mt-3 ml-auto";
+        return "btn btn-link mt-3 ms-auto";
     }
 
     protected List<InlineMenuItem> createMenuItems() {

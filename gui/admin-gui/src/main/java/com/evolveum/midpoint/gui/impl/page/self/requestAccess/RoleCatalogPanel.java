@@ -182,7 +182,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 text = getString("RoleCatalogPanel.badgeOthers", count);
             }
 
-            return List.of(new Badge("badge badge-info", text));
+            return List.of(new Badge("badge bg-info", text));
         };
     }
 
@@ -717,7 +717,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-12 col-md-6 col-lg-4 col-xxl-5i px-2";
+                        return "col-12 col-md-6 col-lg-4 col-3xl-5i px-2";
                     }
 
                     @Override

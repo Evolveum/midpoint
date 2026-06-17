@@ -12,14 +12,14 @@
         <wicket:container wicket:id="menu">
             <li class="navigation-details" wicket:id="navLinkStyle" role="menuitem">
                 <a wicket:id="navItemLink" class="d-flex align-items-center">
-                    <div class="d-flex flex-grow-1 mr-auto align-items-center">
+                    <div class="d-flex flex-grow-1 me-auto align-items-center">
                         <i wicket:id="navItemIcon"></i>
-                        <div class="sr-only" wicket:id="navItemSrCurrentMessage"/>
+                        <div class="visually-hidden" wicket:id="navItemSrCurrentMessage"/>
                         <div class="text-truncate" wicket:id="navItem"/>
                     </div>
                     <div class="d-flex gap-1 flex-grow-1 details-menu-items align-items-center">
                         <wicket:enclosure key="count">
-                            <span class="sr-only"><wicket:message key="DetailsNavigationPanel.count"/></span>
+                            <span class="visually-hidden"><wicket:message key="DetailsNavigationPanel.count"/></span>
                             <span class="badge bg-blue" wicket:id="count"></span>
                         </wicket:enclosure>
                         <span class="details-caret">

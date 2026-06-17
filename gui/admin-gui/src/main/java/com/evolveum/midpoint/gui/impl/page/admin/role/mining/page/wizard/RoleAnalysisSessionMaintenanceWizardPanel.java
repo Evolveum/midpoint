@@ -47,7 +47,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     private static final String ID_REBUILD_PROCESSING = "rebuild-processing";
     private static final String ID_DELETE_PROCESSING = "delete-processing";
 
-    private static final String DEFAULT_BUTTON_CSS = "text-left btn btn-default ";
+    private static final String DEFAULT_BUTTON_CSS = "text-start btn btn-default ";
     private static final String COLORED_BUTTON_CSS = "colored-form-primary ";
 
     boolean isRebuild = true;

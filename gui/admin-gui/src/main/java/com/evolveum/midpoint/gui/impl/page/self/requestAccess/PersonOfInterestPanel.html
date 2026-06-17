@@ -21,20 +21,18 @@
             <div class="card w-100">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <i class="fa-solid fa-user-group mr-1"></i>
+                        <i class="fa-solid fa-user-group me-1"></i>
                         <span wicket:id="userSelectionLabel"/>
                     </h3>
                 </div>
                 <div class="card-body">
                     <div class="input-group">
-                        <div id="comboBoxLiveStatus" wicket:message="data-live-status:PersonOfInterestPanel.multiSelectStatus" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-                        <div wicket:id="multiselect" class="flex-grow-1 input-group-prepend"/>
-                        <div class="input-group-append">
-                            <a class="btn btn-default" type="button" wicket:id="selectManually">
-                                <i class="fa-solid fa-arrow-pointer mr-1"></i>
-                                <wicket:message key="PersonOfInterestPanel.selectManually"/>
-                            </a>
-                        </div>
+                        <div id="comboBoxLiveStatus" wicket:message="data-live-status:PersonOfInterestPanel.multiSelectStatus" aria-live="polite" aria-atomic="true" class="visually-hidden"></div>
+                        <div wicket:id="multiselect" class="flex-grow-1"/>
+                        <a class="btn btn-default" type="button" wicket:id="selectManually">
+                            <i class="fa-solid fa-arrow-pointer me-1"></i>
+                            <wicket:message key="PersonOfInterestPanel.selectManually"/>
+                        </a>
                     </div>
                 </div>
             </div>

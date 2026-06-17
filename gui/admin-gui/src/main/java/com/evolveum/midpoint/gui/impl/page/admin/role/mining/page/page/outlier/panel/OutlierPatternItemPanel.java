@@ -156,7 +156,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
                     }
                 };
                 statisticsPanel.setOutputMarkupId(true);
-                statisticsPanel.add(AttributeAppender.append("class", "bg-white rounded elevation-1"));
+                statisticsPanel.add(AttributeAppender.append("class", "bg-white rounded shadow-sm"));
 
                 return statisticsPanel;
             }

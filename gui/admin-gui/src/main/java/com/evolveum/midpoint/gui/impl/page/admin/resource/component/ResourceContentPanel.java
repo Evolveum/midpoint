@@ -788,7 +788,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 getPageBase().showMainPopup(confirmationPanel, target);
             }
         };
-        reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
+        reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm me-2"));
         reclassify.setOutputMarkupId(true);
         reclassify.showTitleAsLabel(true);
         reclassify.add(new VisibleBehaviour(() -> getObjectClass() != null && isReclassifyButtonVisible()));

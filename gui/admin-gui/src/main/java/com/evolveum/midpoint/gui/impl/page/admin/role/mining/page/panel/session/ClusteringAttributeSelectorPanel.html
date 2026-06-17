@@ -6,15 +6,14 @@
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
-    <div class="input-group pl-3 pr-3">
+    <div class="input-group ps-3 pe-3">
         <select wicket:id="multiselect" class="form-control flex-grow-1"></select>
-        <div class="input-group-append">
-            <a class="btn btn-default" type="button" wicket:id="selectManually">
-                <i class="fa fa-cog mr-1"></i>
-                <wicket:message key="MultiSelectDropDown.advance.configure"/>
-            </a>
-        </div>
-        <div wicket:id="container"></div>
+        <a class="btn btn-default" type="button" wicket:id="selectManually">
+            <i class="fa fa-cog me-1"></i>
+            <wicket:message key="MultiSelectDropDown.advance.configure"/>
+        </a>
+    </div>
+    <div wicket:id="container"></div>
     </div>
 
 </wicket:panel>

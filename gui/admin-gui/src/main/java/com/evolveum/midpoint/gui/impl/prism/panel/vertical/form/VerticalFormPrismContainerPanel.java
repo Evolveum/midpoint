@@ -105,7 +105,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     }
 
     protected String getCssForHeader() {
-        return "bg-white border-bottom-0 p-2 pl-3 pr-3 mb-0 btn w-100";
+        return "bg-white border-bottom-0 p-2 ps-3 pe-3 mb-0 btn w-100";
     }
 
     protected IModel<String> getTitleModel() {

@@ -95,7 +95,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             @Override
             protected @NotNull AjaxLink<?> createNextButton(String id, IModel<String> nextTitle) {
                 if(isCorrelationSimulation) {
-                    AjaxIconButton export = new AjaxIconButton(id, () -> "fa fa-download mr-2",
+                    AjaxIconButton export = new AjaxIconButton(id, () -> "fa fa-download me-2",
                             () -> getString("PageSimulationResult.export")) {
                         @Override
                         public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -107,7 +107,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                     return export;
                 }
 
-                AjaxIconButton next = new AjaxIconButton(id, () -> "fa-solid fa-magnifying-glass mr-2",
+                AjaxIconButton next = new AjaxIconButton(id, () -> "fa-solid fa-magnifying-glass me-2",
                         () -> getString("PageSimulationResult.viewProcessedObjects")) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {

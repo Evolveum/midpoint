@@ -11,19 +11,9 @@ const path = require('path');
 
 module.exports = {
     entry: {
-        vendors: [
-            './src/frontend/js/vendors.js',
-            './src/frontend/scss/vendors.scss',
-        ],
-        "vendors-passwords": [
-            './src/frontend/js/vendors-passwords.js',
-        ],
-        "vendors-fonts": [
-            './src/frontend/scss/vendors-fonts.scss',
-        ],
         midpoint: [
-            './src/frontend/js/midpoint.js',
-            './src/frontend/scss/midpoint.scss',
+            './src/frontend/js/app.js',
+            './src/frontend/scss/app.scss',
         ],
     },
     output: {
@@ -34,6 +24,13 @@ module.exports = {
     },
     module: {
         rules: [
+            {
+                test: require.resolve('jquery'),
+                loader: 'expose-loader',
+                options: {
+                    exposes: ['$', 'jQuery']
+                }
+            },
             {
                 test: /\.(sass|scss|css)$/,
                 use: [
@@ -53,7 +50,8 @@ module.exports = {
                             sassOptions: {
                                 outputStyle: "expanded",
                                 quietDeps: true,
-                                silenceDeprecations: ["abs-percent", "color-4-api", "import", "legacy-js-api", "color-functions", "fs-importer-cwd", "css-function-mixin", "duplicate-var-flags", "feature-exists", "global-builtin", "mixed-decls"]
+                                loadPaths: ['node_modules'],
+                                silenceDeprecations: ["extend", "abs-percent", "color-4-api", "import", "legacy-js-api", "color-functions", "fs-importer-cwd", "css-function-mixin", "duplicate-var-flags", "feature-exists", "global-builtin", "mixed-decls"]
                             }
                         },
                     },
@@ -78,7 +76,7 @@ module.exports = {
             {
                 test: /\.(woff(2)?|eot|ttf|otf|svg|)$/,
                 type: 'asset/inline'
-            },
+            }
         ],
     },
     plugins: [

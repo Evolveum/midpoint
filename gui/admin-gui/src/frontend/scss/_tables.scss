@@ -8,7 +8,7 @@
 
 //table context menu border fix
 th.cog, td.cog {
-  & ul.dropdown-menu.pull-right {
+  & ul.dropdown-menu.pull-end {
     border-color: #337ab7;
   }
 }
@@ -61,7 +61,7 @@ th.countLabel{
   width: 70px;
 }
 
-td.rounded-icon-column div.img-circle {
+td.rounded-icon-column div.rounded-circle {
   background-color: #f5f5f5;
 }
 

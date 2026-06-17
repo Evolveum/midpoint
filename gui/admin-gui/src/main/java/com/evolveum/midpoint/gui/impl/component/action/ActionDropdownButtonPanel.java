@@ -144,7 +144,7 @@ public abstract class ActionDropdownButtonPanel<C extends Containerable> extends
     }
 
     protected String getSpecialDropdownMenuClass() {
-        return "dropdown-menu-right";
+        return "dropdown-menu-end";
     }
 
     protected abstract List<C> getObjectsToProcess();

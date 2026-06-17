@@ -53,7 +53,7 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
     protected void initLayout() {
         add(AttributeAppender.append("class", () -> horizontal ?
                 "tile-panel d-flex flex-column align-items-center rounded p-3 justify-content-center" :
-                "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-left"));
+                "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-start"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         add(AttributeAppender.append("aria-checked", () -> getModelObject().isSelected() ? "true" : "false"));
         setOutputMarkupId(true);
@@ -67,7 +67,7 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
         });
         title.add(AttributeAppender.append("class", () ->  horizontal ?
                 "mt-4 text-center" :
-                "ml-2"));
+                "ms-2"));
         add(title);
 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());

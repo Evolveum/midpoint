@@ -443,7 +443,7 @@ public class PolyStringEditorPanel extends InputPanel {
     }
 
     private AttributeAppender getInputFieldClassAppenderForContainer() {
-        return AttributeModifier.append("class", () -> showFullData ? "prism-property row no-gutters" : "");
+        return AttributeModifier.append("class", () -> showFullData ? "prism-property row g-0" : "");
     }
 
     private AttributeAppender getInputFieldClassAppender() {

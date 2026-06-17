@@ -11,7 +11,7 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title" wicket:id="summary"></h3>
-                <span class="ml-1"><wicket:message key="TaskIterativeInformationPanel.progressSummary.description"/></span>
+                <span class="ms-1"><wicket:message key="TaskIterativeInformationPanel.progressSummary.description"/></span>
                 <h4>
                     <div wicket:id="wallClockThroughput"/>
                 </h4>
@@ -20,16 +20,16 @@
             <div class="card-body">
                 <div class="row">
                     <wicket:enclosure wicket:child="currentItems">
-                        <div class="col-12 col-xl-8 col-xxl-3">
+                        <div class="col-12 col-xl-8 col-3xl-3">
                             <div wicket:id="currentItems"/>
                         </div>
                     </wicket:enclosure>
-                    <div class="col-12 col-xl-4 col-xxl-3 mb-3">
+                    <div class="col-12 col-xl-4 col-3xl-3 mb-3">
                         <div class="col-xl-12" style="height:35vh;">
                             <canvas wicket:id="chart"></canvas>
                         </div>
                     </div>
-                    <div class="col-xl-12 col-xxl-6">
+                    <div class="col-xl-12 col-3xl-6">
                         <div class="activity-item-processing" wicket:id="successItem"/>
                         <div class="activity-item-processing" wicket:id="failedItem"/>
                         <div class="activity-item-processing" wicket:id="skippedItem"/>

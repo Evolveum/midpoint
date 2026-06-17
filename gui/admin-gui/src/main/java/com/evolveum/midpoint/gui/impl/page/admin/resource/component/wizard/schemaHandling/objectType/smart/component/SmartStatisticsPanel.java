@@ -411,11 +411,11 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     protected String getBadgeTypeCss(@NotNull String type) {
         if (type.equals("prefix") || type.equals("firstToken")) {
-            return "badge badge-info px-2 py-1";
+            return "badge bg-info px-2 py-1";
         } else if (type.equals("suffix") || type.equals("lastToken")) {
-            return "badge badge-success px-2 py-1";
+            return "badge bg-success px-2 py-1";
         } else {
-            return "badge badge-secondary px-2 py-1";
+            return "badge bg-secondary px-2 py-1";
         }
     }
 
@@ -488,7 +488,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             @Override
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, valueCount);
-                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1"));
+                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1"));
                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:20px"));
                 return label;
             }

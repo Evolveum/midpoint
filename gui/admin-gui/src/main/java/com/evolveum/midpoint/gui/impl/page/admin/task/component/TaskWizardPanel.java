@@ -127,7 +127,7 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
     private Component createSaveAndRun(String id, PrismObjectWrapper<TaskType> objectWrapper) {
         AjaxIconButton saveAndRun = new AjaxIconButton(
                 id,
-                Model.of("mr-1 fa fa-save"),
+                Model.of("me-1 fa fa-save"),
                 getPageBase().createStringResource("WizardPanel.submit")) {
             @Override
             public void onClick(AjaxRequestTarget target) {

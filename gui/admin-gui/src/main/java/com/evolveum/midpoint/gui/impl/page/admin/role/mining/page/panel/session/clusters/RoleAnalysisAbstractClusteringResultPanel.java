@@ -363,13 +363,13 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                             String labelClass;
                             if (resolvedPatternExist) {
                                 status = "Rebuild recommended";
-                                labelClass = "badge badge-warning text-center";
+                                labelClass = "badge bg-warning text-center";
                             } else if (candidateExist) {
                                 status = "In progress";
-                                labelClass = "badge badge-info text-center";
+                                labelClass = "badge bg-info text-center";
                             } else {
                                 status = "New";
-                                labelClass = "badge badge-primary text-center";
+                                labelClass = "badge bg-primary text-center";
                             }
 
                             Label label = new Label(componentId, status);
@@ -575,7 +575,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                                 @Contract(pure = true)
                                 @Override
                                 protected @NotNull String getLabelComponentCssClass() {
-                                    return "ml-1 text-success";
+                                    return "ms-1 text-success";
                                 }
 
                                 @Override
@@ -631,9 +631,9 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                             int outlierCount = outliers.size();
                             Label badgeLabel = new Label(componentId, String.valueOf(outlierCount));
                             if (outlierCount > 0) {
-                                badgeLabel.add(AttributeModifier.append(CLASS_CSS, "badge badge-danger"));
+                                badgeLabel.add(AttributeModifier.append(CLASS_CSS, "badge bg-danger"));
                             } else {
-                                badgeLabel.add(AttributeModifier.append(CLASS_CSS, "badge badge-info"));
+                                badgeLabel.add(AttributeModifier.append(CLASS_CSS, "badge bg-info"));
                             }
                             badgeLabel.add(AttributeModifier.append(TITLE_CSS, "Outliers count"));
                             badgeLabel.add(new TooltipBehavior());
@@ -802,7 +802,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             @Contract(pure = true)
             @Override
             protected @NotNull String getCssClassForCardContainer() {
-                return "m-3 elevation-1 card";
+                return "m-3 shadow-sm card";
             }
         };
         roleAnalysisAttributePanel.setOutputMarkupId(true);

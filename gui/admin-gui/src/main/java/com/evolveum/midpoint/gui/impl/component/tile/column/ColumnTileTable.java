@@ -86,9 +86,9 @@ public abstract class ColumnTileTable<O extends Serializable>
         if (item.getValue() instanceof PrismContainerValueWrapper<?> pcvw) {
             switch (pcvw.getStatus()) {
                 case DELETED -> tile.add(AttributeModifier.append("class",
-                        "border border-danger border-large-left" + applyIfSelectedCssClass(item.getValue())));
+                        "border border-danger border-large-start" + applyIfSelectedCssClass(item.getValue())));
                 case ADDED -> tile.add(AttributeModifier.append("class",
-                        "border border-success border-large-left" + applyIfSelectedCssClass(item.getValue())));
+                        "border border-success border-large-start" + applyIfSelectedCssClass(item.getValue())));
                 default ->
                         applyDefaultRowCss(tile, item.getValue(), applyIfSelectedCssClass(item.getValue()), this::getStatusInfo);
             }
@@ -274,7 +274,7 @@ public abstract class ColumnTileTable<O extends Serializable>
     }
 
     protected String getTileContainerCssClass() {
-        return "d-flex flex-wrap justify-content-left pt-2";
+        return "d-flex flex-wrap justify-content-start pt-2";
     }
 
     public @NotNull List<InlineMenuItem> getInlineMenuItems() {
@@ -465,7 +465,7 @@ public abstract class ColumnTileTable<O extends Serializable>
                 SmartIntegrationUtils.SuggestionUiStyle uiStyle = SmartIntegrationUtils.SuggestionUiStyle
                         .from(statusInfo, ((PrismContainerValueWrapper<?>) value));
                 String styleClass = uiStyle.tileClass;
-                tile.add(AttributeModifier.append("class", baseCss + " border-large-left " + styleClass));
+                tile.add(AttributeModifier.append("class", baseCss + " border-large-start " + styleClass));
             }
         }
     }
@@ -486,7 +486,7 @@ public abstract class ColumnTileTable<O extends Serializable>
         };
 
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-auto"));
+        newObjectButton.add(AttributeAppender.replace("class", "btn btn-outline-primary ms-auto"));
         newObjectButton.add(new VisibleBehaviour(this::isNewObjectCreationEnabled));
         return newObjectButton;
     }

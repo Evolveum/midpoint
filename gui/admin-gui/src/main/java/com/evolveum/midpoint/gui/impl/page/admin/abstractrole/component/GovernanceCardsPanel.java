@@ -233,7 +233,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                             }
                         };
                         menu.add(new VisibleBehaviour(() -> !menu.getModel().getObject().getMenuItems().isEmpty()));
-                        menu.add(AttributeAppender.replace("class", "ml-2"));
+                        menu.add(AttributeAppender.replace("class", "ms-2"));
                         repView.add(menu);
 
                         repView.add(createRefreshButton(repView.newChildId()));
@@ -404,7 +404,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     }
 
     protected String getTileCssClasses() {
-        return "col-xs-6 col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl-3 px-4 mb-3";
+        return "col-xs-6 col-sm-6 col-md-6 col-lg-4 col-xl-3 col-3xl-3 px-4 mb-3";
     }
 
     protected List<InlineMenuItem> createToolbarMenuActions() {

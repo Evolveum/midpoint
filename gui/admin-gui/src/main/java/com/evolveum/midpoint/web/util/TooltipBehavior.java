@@ -23,7 +23,7 @@ public class TooltipBehavior extends Behavior {
     public void onConfigure(final Component component) {
         component.setOutputMarkupId(true);
 
-        component.add(AttributeModifier.replace("data-toggle", "tooltip"));
+        component.add(AttributeModifier.replace("data-bs-toggle", "tooltip"));
         component.add(new AttributeModifier("data-placement", getDataPlacement()) {
 
             @Override

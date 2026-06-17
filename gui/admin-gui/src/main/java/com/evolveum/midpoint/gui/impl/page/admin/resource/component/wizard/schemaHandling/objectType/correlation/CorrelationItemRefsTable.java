@@ -644,7 +644,7 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
                 addExistingMappingPerformed(target);
             }
         };
-        addExistingButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
+        addExistingButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm me-2"));
         addExistingButton.showTitleAsLabel(true);
         addExistingButton.add(new VisibleBehaviour(() -> !isReadOnlyTable()));
         buttons.add(addExistingButton);

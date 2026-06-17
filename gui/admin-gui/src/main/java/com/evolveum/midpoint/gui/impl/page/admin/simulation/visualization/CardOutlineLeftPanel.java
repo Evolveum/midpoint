@@ -44,7 +44,7 @@ public class CardOutlineLeftPanel<T extends Serializable> extends BasePanel<T> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "card card-outline-left"));
+        add(AttributeAppender.append("class", "card card-outline-start"));
         add(AttributeAppender.append("class", createCardOutlineCssModel()));
 
         Component header = createHeader(ID_HEADER);

@@ -16,7 +16,7 @@
                     <div class="border-bottom mb-2">
                         <a class="btn py-2 px-4 mx-3 mb-2 d-flex flex-row " wicket:id="summary">
                             <span>
-                                <i class="fa fa-list-check pr-1"></i>
+                                <i class="fa fa-list-check pe-1"></i>
                             </span>
                             <wicket:message key="WizardWithNavigationPanel.summary"/>
                         </a>
@@ -32,13 +32,13 @@
                     <div wicket:id="stepInProgress" class="d-flex flex-column px-3">
                         <div class="d-flex flex-row">
                             <div>
-                        <span class="rounded-circle bg-info text-center mr-1 d-block" style="width: 24px;">
+                        <span class="rounded-circle bg-info text-center me-1 d-block" style="width: 24px;">
                             <i class="fa-sm fa fa-spinner"></i>
                         </span>
                             </div>
                             <div wicket:id="parentStepLabel"></div>
                         </div>
-                        <div class="d-flex flex-column pl-3 border-left" style="margin-left: 12px;">
+                        <div class="d-flex flex-column ps-3 border-start" style="margin-left: 12px;">
                             <div wicket:id="card" class="d-flex flex-column card m-0 mt-2 p-2">
                                 <div class="pb-2" wicket:id="stepLabel"></div>
                                 <div>
@@ -57,7 +57,7 @@
     </form>
 
     <!--    <div class="bs-stepper-header flex-column overflow-auto justify-content-around" role="tablist" wicket:id="header">-->
-    <!--        <div wicket:id="stepStatus" class="sr-only" aria-live="polite"/>-->
+    <!--        <div wicket:id="stepStatus" class="visually-hidden" aria-live="polite"/>-->
     <!--        <wicket:container wicket:id="steps">-->
     <!--            <div class="flex flex-column no-wrap" wicket:id="step" role="tab"/>-->
     <!--            <div class="line" wicket:id="line"/>-->

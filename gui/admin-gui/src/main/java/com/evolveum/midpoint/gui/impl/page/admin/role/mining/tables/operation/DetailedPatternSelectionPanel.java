@@ -245,7 +245,7 @@ public class DetailedPatternSelectionPanel extends BasePanel<PatternStatistics<?
         };
         explorePatternButton.titleAsLabel(true);
         explorePatternButton.setOutputMarkupId(true);
-        explorePatternButton.add(AttributeModifier.append(CLASS_CSS, "ml-auto btn btn-primary btn-sm"));
+        explorePatternButton.add(AttributeModifier.append(CLASS_CSS, "ms-auto btn btn-primary btn-sm"));
         explorePatternButton.setOutputMarkupId(true);
         return explorePatternButton;
     }

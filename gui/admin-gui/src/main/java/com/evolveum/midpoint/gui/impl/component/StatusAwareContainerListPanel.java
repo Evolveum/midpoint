@@ -321,7 +321,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
             }
         };
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm mr-2"));
+        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm me-2"));
         newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
         bar.add(newObjectButton);
     }

@@ -341,7 +341,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col header-border-right";
+                return "col header-border-end";
             }
 
             @Override
@@ -386,7 +386,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
         });
 
@@ -397,7 +397,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
         });
 
@@ -424,7 +424,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
                 @Override
                 public String getCssClass() {
-                    return "col-2 header-border-right";
+                    return "col-2 header-border-end";
                 }
             });
         } else {
@@ -435,7 +435,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     getPageBase()) {
                 @Override
                 public String getCssClass() {
-                    return "col-2 header-border-right";
+                    return "col-2 header-border-end";
                 }
 
                 @Override
@@ -650,16 +650,16 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     protected InlineMenuItem createAcceptItemMenu() {
         return createSuggestActionMenuBuilder()
                 .label(createStringResource("SmartMappingTable.apply"))
-                .icon("fa fa-check mr-2")
+                .icon("fa fa-check me-2")
                 .action(createAcceptSuggestionColumnAction())
-                .additionalCssClass("btn-link text-primary rounded border-primary mr-2")
+                .additionalCssClass("btn-link text-primary rounded border-primary me-2")
                 .buildButtonMenu();
     }
 
     protected InlineMenuItem createDiscardItemMenu() {
         return createSuggestActionMenuBuilder()
                 .label(createStringResource("SmartMappingTable.dismiss"))
-                .icon("fa fa-times mr-2")
+                .icon("fa fa-times me-2")
                 .action(createDiscardColumnAction())
                 .additionalCssClass("btn-link text-danger")
                 .buildButtonMenu();

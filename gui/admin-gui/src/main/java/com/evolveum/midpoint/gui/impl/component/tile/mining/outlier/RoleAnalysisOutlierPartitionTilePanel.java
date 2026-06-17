@@ -403,7 +403,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         setOutputMarkupId(true);
 
         add(AttributeModifier.append(CLASS_CSS,
-                "catalog-tile-panel d-flex flex-column align-items-center w-100 h-100 p-0 elevation-1"));
+                "catalog-tile-panel d-flex flex-column align-items-center w-100 h-100 p-0 shadow-sm"));
 
         add(AttributeModifier.append(STYLE_CSS, "width:25%"));
     }

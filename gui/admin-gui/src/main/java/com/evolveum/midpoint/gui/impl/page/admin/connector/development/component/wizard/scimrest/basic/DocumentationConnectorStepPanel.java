@@ -294,7 +294,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                 };
 
                 addUrl.showTitleAsLabel(true);
-                addUrl.add(AttributeAppender.replace("class", "btn btn-default rounded-0 ml-auto"));
+                addUrl.add(AttributeAppender.replace("class", "btn btn-default rounded-0 ms-auto"));
                 addUrl.add(AttributeAppender.replace("style", "border-right: 0 !important;"));
                 buttons.add(addUrl);
 

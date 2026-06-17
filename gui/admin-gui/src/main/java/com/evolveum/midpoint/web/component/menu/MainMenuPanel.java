@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.web.component.menu;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.IPageFactory;
@@ -108,7 +110,8 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         link.add(AttributeModifier.append("class", () -> {
             MainMenuItem mmi = getModelObject();
 
-            return mmi.hasActiveSubmenu(getPageBase()) || mmi.isMenuActive(getPageBase()) ? "active" : null;
+            return mmi.hasActiveSubmenu(getPageBase()) || mmi.isMenuActive(getPageBase()) ?
+                    "active text-white " + WebComponentUtil.getMidPointSkin().getBackgroundCss() : null;
         }));
 
         if (getModelObject().containsSubMenu()) {

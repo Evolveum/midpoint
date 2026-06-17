@@ -44,7 +44,7 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
     }
 
     protected void initLayout() {
-        add(AttributeAppender.append("class", () -> "mb-2 tile-panel d-flex flex-row vertical align-items-center rounded justify-content-left selectable"));
+        add(AttributeAppender.append("class", () -> "mb-2 tile-panel d-flex flex-row vertical align-items-center rounded justify-content-start selectable"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         add(AttributeAppender.append("aria-checked", () -> getModelObject().isSelected() ? "true" : "false"));
         setOutputMarkupId(true);

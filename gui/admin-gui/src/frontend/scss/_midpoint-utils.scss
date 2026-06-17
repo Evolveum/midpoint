@@ -103,7 +103,7 @@ div[role="button"].btn,
       }
   }
   &.btn.link-default {
-    color:lighten($text-color, 35%);
+    color:tint-color($text-color, 35%);
     &:hover {
       color:$text-color;
     }
@@ -116,35 +116,35 @@ div[role="button"].btn,
 }
 
 //Button pill - neutralized
-div[role="button"].btn, .btn {
-  //Custom links styles (tertiary style)
-  &.btn-pill {
-    border: 1px solid $button-default-border-color;
-    border-radius: 50rem !important;
-    color: $text-toned-color;
-    background-color: $white;
-
-    & > .pill-label {
-      color:$text-color;
-    }
-
-    &:hover {
-      background-color: darken($button-default-background-color, 5%);
-
-      & > * {
-        color:$text-color;
-      }
-    }
-    &.active {
-      border: 1px solid $primary;
-      background-color: mix($primary, $white, 10%);
-
-      & > * {
-        color:$primary;
-      }
-    }
-  }
-}
+// div[role="button"].btn, .btn { TODO:revision
+//   //Custom links styles (tertiary style)
+//   &.btn-pill {
+//     border: 1px solid $button-default-border-color;
+//     border-radius: 50rem !important;
+//     color: $text-toned-color;
+//     background-color: $white;
+//
+//     & > .pill-label {
+//       color:$text-color;
+//     }
+//
+//     &:hover {
+//       background-color: shade-color($button-default-background-color, 5%);
+//
+//       & > * {
+//         color:$text-color;
+//       }
+//     }
+//     &.active {
+//       border: 1px solid $primary;
+//       background-color: mix($primary, $white, 10%);
+//
+//       & > * {
+//         color:$primary;
+//       }
+//     }
+//   }
+// }
 
 .txt-toned {
   color:$text-toned-color;
@@ -155,7 +155,7 @@ div[role="button"].btn, .btn {
 }
 
 @each $color, $value in $theme-colors {
-  $backgroundValue: color-yiq($value);
+  $backgroundValue: color-contrast($value);
   .bg-toned-#{$color} {
       background-color: mix(#ffffff, $value, 90%);
   }

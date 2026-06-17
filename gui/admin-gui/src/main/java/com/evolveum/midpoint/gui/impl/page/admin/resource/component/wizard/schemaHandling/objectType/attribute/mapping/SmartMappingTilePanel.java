@@ -273,7 +273,7 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
                 if (isExpressionPanel) {
                     return "d-flex align-items-center gap-2";
                 }
-                return "pl-2";
+                return "ps-2";
             }
         };
     }
@@ -332,7 +332,7 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
 
     private @NotNull DropdownButtonPanel createDropdownButton(@NotNull RepeatingView buttonContainer) {
         DropdownButtonPanel buttonPanel = new DropdownButtonPanel(buttonContainer.newChildId(), new DropdownButtonDto(
-                null, "fa-ellipsis-h ml-1", null, buildMenuItems())) {
+                null, "fa-ellipsis-h ms-1", null, buildMenuItems())) {
             @Override
             protected boolean hasToggleIcon() {
                 return false;

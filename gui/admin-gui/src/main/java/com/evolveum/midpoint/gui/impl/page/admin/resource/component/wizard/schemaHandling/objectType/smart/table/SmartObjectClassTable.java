@@ -477,7 +477,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
             @Override
             public String getCssClass() {
-                return "text-right";
+                return "text-end";
             }
         });
 
@@ -506,7 +506,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     protected String getTileContainerCssClass() {
-        return "h-100 justify-content-left pt-2 ";
+        return "h-100 justify-content-start pt-2 ";
     }
 
     @Override

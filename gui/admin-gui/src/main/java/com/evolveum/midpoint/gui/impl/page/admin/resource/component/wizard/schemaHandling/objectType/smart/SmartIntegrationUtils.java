@@ -267,7 +267,7 @@ public class SmartIntegrationUtils {
 
     public static @NotNull IModel<Badge> getAiCustomTextBadgeModel(String text) {
         Badge aiBadge = new Badge(
-                "badge badge-light-purple d-flex align-items-center",
+                "badge bg-light-purple d-flex align-items-center",
                 "fa fa-wand-magic-sparkles text-purple",
                 text,
                 "text-purple",
@@ -277,7 +277,7 @@ public class SmartIntegrationUtils {
 
     public static @NotNull IModel<Badge> getAiEfficiencyBadgeModel(String text) {
         Badge aiBadge = new Badge(
-                "badge badge-purple d-flex align-items-center",
+                "badge bg-purple d-flex align-items-center",
                 "fa fa fas fa-bolt",
                 text,
                 "text-white",

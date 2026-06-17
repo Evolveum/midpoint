@@ -135,7 +135,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        add(AttributeAppender.append("class", "card card-outline-left"));
+        add(AttributeAppender.append("class", "card card-outline-start"));
         add(AttributeModifier.append("class", () -> {
             VisualizationDto dto = getModelObject();
 
@@ -170,7 +170,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             QName type = value.getTypeName();
             String icon = IconAndStylesUtil.createDefaultBlackIcon(type);
 
-            return StringUtils.isNotEmpty(icon) ? "mr-1 " + icon : null;
+            return StringUtils.isNotEmpty(icon) ? "me-1 " + icon : null;
         };
 
         IconComponent icon = new IconComponent(ID_ICON, iconModel);

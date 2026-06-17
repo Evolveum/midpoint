@@ -467,7 +467,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     protected String getTileContainerCssClass() {
-        return "d-flex flex-wrap justify-content-left pt-3";
+        return "d-flex flex-wrap justify-content-start pt-3";
     }
 
     protected Component createTile(String id, IModel<T> model) {

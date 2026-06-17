@@ -245,7 +245,7 @@ public abstract class AssociationTablePanel
                             RepeatingView container = new RepeatingView(s);
                             Label nameLabel = new Label(container.newChildId(), valueWrapper.getRealValue().getName() != null
                                     ? valueWrapper.getRealValue().getName() : "-");
-                            nameLabel.add(AttributeModifier.append("class", "font-weight-semibold"));
+                            nameLabel.add(AttributeModifier.append("class", "fw-semibold"));
 
                             IconWithLabel tag = buildTag(container.newChildId());
                             container.add(nameLabel);
@@ -256,14 +256,14 @@ public abstract class AssociationTablePanel
                             Label nameLabel = new Label(s, valueWrapper.getRealValue().getName() != null
                                     ? valueWrapper.getRealValue().getName()
                                     : "-");
-                            nameLabel.add(AttributeModifier.append("class", "font-weight-semibold"));
+                            nameLabel.add(AttributeModifier.append("class", "fw-semibold"));
                             item.add(nameLabel);
                         }
                     }
 
                     @Override
                     public String getCssClass() {
-                        return "col-3 text-left";
+                        return "col-3 text-start";
                     }
                 });
 
@@ -324,7 +324,7 @@ public abstract class AssociationTablePanel
 
                     @Override
                     public String getCssClass() {
-                        return "col-2 text-right";
+                        return "col-2 text-end";
                     }
                 });
 
@@ -461,7 +461,7 @@ public abstract class AssociationTablePanel
         IconWithLabel tag = new IconWithLabel(id, () -> "System suggestion") {
             @Override
             protected @NotNull String getIconCssClass() {
-                return "fa fa-gear mr-1";
+                return "fa fa-gear me-1";
             }
         };
 
@@ -513,7 +513,7 @@ public abstract class AssociationTablePanel
 
         button.setOutputMarkupId(true);
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.replace("class", "ml-2 px-2 btn " + cssClass));
+        button.add(AttributeModifier.replace("class", "ms-2 px-2 btn " + cssClass));
         button.add(new VisibleBehaviour(() -> getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel()
                 && getStatusAwareDataProvider().getPageSuggestionCount() > 1));
         return button;

@@ -9,7 +9,7 @@
 <wicket:panel>
     <div wicket:id="valueForm">
         <div class="prism-header mb-3" wicket:id="header">
-            <button type="button" data-toggle="collapse" class="btn btn-tool" aria-live="polite" wicket:id="expandableLabelContainer">
+            <button type="button" data-bs-toggle="collapse" class="btn btn-tool" aria-live="polite" wicket:id="expandableLabelContainer">
                 <i wicket:id="expandCollapseButton" class="expand-collapse-button"/>
                 <span class="prism-title" wicket:id="label"/>
             </button>
@@ -38,11 +38,11 @@
             </wicket:enclosure>
 
             <wicket:enclosure child="deleteStatusMessage">
-                <span wicket:id="deleteStatusMessage" role="status" class="sr-only" aria-live="polite"></span>
+                <span wicket:id="deleteStatusMessage" role="status" class="visually-hidden" aria-live="polite"></span>
             </wicket:enclosure>
 
         </div>
-        <div class="mb-3 ml-3" wicket:id="metadata"/>
+        <div class="mb-3 ms-3" wicket:id="metadata"/>
 
         <wicket:container wicket:id="valueContainer">
             <span wicket:id="input"></span>

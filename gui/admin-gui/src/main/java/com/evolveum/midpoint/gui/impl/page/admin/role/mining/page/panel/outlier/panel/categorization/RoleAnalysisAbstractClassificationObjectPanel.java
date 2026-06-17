@@ -305,7 +305,7 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
                             String valueDisplayString = getCategoryValueDisplayString(categorization, isRoleSelectedModel.getObject());
                             Label label = new Label(repeatingView.newChildId(), valueDisplayString);
                             label.add(AttributeModifier.append("class",
-                                    "badge p-1 bg-transparent-blue border border-primary text-primary mr-1"));
+                                    "badge p-1 bg-transparent-blue border border-primary text-primary me-1"));
                             repeatingView.add(label);
                         }
 

@@ -100,14 +100,14 @@ export default class MidPointAceEditor {
     }
 
     getMaxSizeHeight(minHeight) {
-        var footerHeight = $('footer.main-footer').outerHeight(true);
+        var footerHeight = $('footer.app-footer').outerHeight(true);
 
         var newHeight;
         if (footerHeight) {
             newHeight = $(document).innerHeight()
-                - footerHeight - $('nav.main-header').outerHeight(true);
+                - footerHeight - $('nav.app-header').outerHeight(true);
         } else {
-            newHeight = $(document).innerHeight() - $('nav.main-header').outerHeight(true);
+            newHeight = $(document).innerHeight() - $('nav.app-header').outerHeight(true);
         }
 
         var boxHeader = $('div.card-header').outerHeight(true);

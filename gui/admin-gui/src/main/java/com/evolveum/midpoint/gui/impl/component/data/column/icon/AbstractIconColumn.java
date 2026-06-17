@@ -39,7 +39,7 @@ public abstract class AbstractIconColumn<T, S> extends AbstractColumn<T, S> {
     public Component getHeader(String componentId) {
         if (getDisplayModel() == null || StringUtils.isBlank(getDisplayModel().getObject())) {
             Label label = new Label(componentId, () -> LocalizationUtil.translate("AbstractIconColumn.header"));
-            label.add(AttributeAppender.append("class", "sr-only"));
+            label.add(AttributeAppender.append("class", "visually-hidden"));
             label.add(new VisibleBehaviour(this::isHeaderAriaLabelVisible));
             return label;
         }

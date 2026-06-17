@@ -283,7 +283,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        IconComponent iconPanel = new IconComponent(id, Model.of("fa fa-circle-half-stroke mt-1 mr-1")) {
+                        IconComponent iconPanel = new IconComponent(id, Model.of("fa fa-circle-half-stroke mt-1 me-1")) {
 
                             @Serial private static final long serialVersionUID = 1L;
 
@@ -311,7 +311,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        IconComponent iconPanel = new IconComponent(id, Model.of("fa fa-rotate-right mt-1 mr-1")) {
+                        IconComponent iconPanel = new IconComponent(id, Model.of("fa fa-end mt-1 me-1")) {
 
                             @Serial private static final long serialVersionUID = 1L;
 

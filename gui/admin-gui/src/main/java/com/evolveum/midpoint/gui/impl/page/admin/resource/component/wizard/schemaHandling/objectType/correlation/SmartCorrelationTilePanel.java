@@ -203,7 +203,7 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     private void initActionButton(@NotNull Fragment fragment) {
         DropdownButtonPanel buttonPanel = new DropdownButtonPanel(ID_MORE_ACTION, new DropdownButtonDto(
-                null, "fa-ellipsis-h ml-1", null, buildMenuItems())) {
+                null, "fa-ellipsis-h ms-1", null, buildMenuItems())) {
             @Override
             protected boolean hasToggleIcon() {
                 return false;

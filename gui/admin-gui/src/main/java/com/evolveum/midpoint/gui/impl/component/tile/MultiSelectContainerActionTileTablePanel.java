@@ -201,9 +201,9 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         if (isTile) {
             switch (value.getStatus()) {
                 case DELETED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger border-large-left"));
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger border-large-start"));
                 case ADDED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success border-large-left"));
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success border-large-start"));
                 default -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0"));
             }
             return;
@@ -228,7 +228,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             @Contract(pure = true)
             @Override
             protected @NotNull String getSpecialButtonClass() {
-                return "btn btn-default mr-2";
+                return "btn btn-default me-2";
             }
 
             @Override
@@ -239,7 +239,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         inlineMenu.setOutputMarkupPlaceholderTag(true);
         inlineMenu.setOutputMarkupId(true);
-        inlineMenu.add(AttributeAppender.append("class", "mr-2"));
+        inlineMenu.add(AttributeAppender.append("class", "me-2"));
         inlineMenu.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
         inlineMenu.setRenderBodyOnly(true);
         return inlineMenu;
@@ -262,7 +262,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(AttributeAppender.replace("class",
-                "text-nowrap btn btn-primary rounded ml-auto text-nowrap mr-2"));
+                "text-nowrap btn btn-primary rounded ms-auto text-nowrap me-2"));
         return newObjectButton;
     }
 
@@ -555,7 +555,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
 
         suggestObjectButton.showTitleAsLabel(true);
-        suggestObjectButton.add(AttributeAppender.replace("class", "btn btn-default rounded mr-2"));
+        suggestObjectButton.add(AttributeAppender.replace("class", "btn btn-default rounded me-2"));
         suggestObjectButton.add(new VisibleBehaviour(this::isSuggestButtonVisible));
         suggestObjectButton.setOutputMarkupId(true);
         return suggestObjectButton;
@@ -591,7 +591,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected String getDiscardButtonCssClass() {
-        return "col-auto px-4 btn btn-default btn-sm rounded ml-auto";
+        return "col-auto px-4 btn btn-default btn-sm rounded ms-auto";
     }
 
     protected AjaxIconButton createAcceptButton(String id, IModel<PrismContainerValueWrapper<C>> rowModel) {
@@ -614,7 +614,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected String getAcceptButtonCssClass() {
-        return "col-auto px-4 btn btn-primary btn-sm rounded ml-auto";
+        return "col-auto px-4 btn btn-primary btn-sm rounded ms-auto";
     }
 
     protected boolean isDuplicationSupported() {
@@ -699,7 +699,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     @Override
     protected String getTileContainerCssClass() {
-        return "row justify-content-left pt-2 ";
+        return "row justify-content-start pt-2 ";
     }
 
     @Override

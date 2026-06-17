@@ -139,7 +139,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-12 col-md-6 col-lg-4 col-xl-3 col-xxl-5i p-2 d-flex flex-column";
+                        return "col-12 col-md-6 col-lg-4 col-xl-3 col-3xl-5i p-2 d-flex flex-column";
                     }
 
                     @Override

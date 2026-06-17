@@ -4,8 +4,6 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-@import "@fortawesome/fontawesome-free/scss/mixins";
-
 //Expanded
 //$media screen and (min-width: $screen-lg) {
 .details-menu {
@@ -94,7 +92,7 @@
 
   .details-menu {
     padding-top: 0px;
-    background-color: $sidebar-light-submenu-bg;
+    background-color: $lte-sidebar-submenu-bg; // TODO:revision
   }
 }
 //}
@@ -119,7 +117,7 @@
 //        width: 100%;
 //      }
 //
-//      & .pull-right-container {
+//      & .pull-end-container {
 //        display: none;
 //      }
 //    }
@@ -208,7 +206,7 @@
 .details-menu a {
   text-decoration: none;
   font-size: 15px;
-  color: $sidebar-light-color;
+  color: var(--#{$lte-prefix}sidebar-color); // TODO:revision
   display: block;
   cursor: pointer;
   padding: 8px 8px 8px 10px;
@@ -232,8 +230,8 @@
 }
 
 .details-menu a:hover {
-  color: $sidebar-light-hover-color;
-  background-color: $sidebar-light-hover-bg;
+  color: var(--#{$lte-prefix}sidebar-hover-color); // TODO:revision
+  background-color: var(--#{$lte-prefix}sidebar-hover-bg); // TODO:revision
 }
 
 ul.details-menu {
@@ -253,7 +251,7 @@ ul.details-menu {
     }
 
   .menu-item:hover {
-    color: $sidebar-light-hover-color;
-    background-color: $sidebar-light-hover-bg;
+    color: var(--#{$lte-prefix}sidebar-hover-color); // TODO:revision
+    background-color: var(--#{$lte-prefix}sidebar-hover-bg); // TODO:revision
   }
 }

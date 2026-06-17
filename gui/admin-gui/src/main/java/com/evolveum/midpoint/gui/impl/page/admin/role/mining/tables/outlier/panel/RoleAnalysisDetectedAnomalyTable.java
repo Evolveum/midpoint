@@ -514,6 +514,6 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
     }
 
     public String getAdditionalBoxCssClasses() {
-        return " m-0 elevation-0";
+        return " m-0 shadow-none";
     }
 }

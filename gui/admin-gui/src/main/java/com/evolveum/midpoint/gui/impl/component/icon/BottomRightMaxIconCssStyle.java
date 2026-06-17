@@ -13,7 +13,7 @@ public class BottomRightMaxIconCssStyle extends BottomRightIconCssStyle {
 
     @Override
     public String getLayerCssClass() {
-        return "bottom-right-layer-max-icon";
+        return "bottom-end-layer-max-icon";
     }
 
 }

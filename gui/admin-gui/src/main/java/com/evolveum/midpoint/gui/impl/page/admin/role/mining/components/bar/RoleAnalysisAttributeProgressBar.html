@@ -11,16 +11,16 @@
 
     <div class="d-flex flex-wrap align-items-center pt-2 pb-1" wicket:id="title-container">
         <div wicket:id="progressBarTitle" class="col progress-label p-0 text-truncate" style="text-transform: capitalize; font-size:16px;"></div>
-        <div wicket:id="progressBarPercentage" class="col-auto progress-label float-right p-0 pl-2" style=""></div> <!-- font-size:14px; -->
+        <div wicket:id="progressBarPercentage" class="col-auto progress-label float-end p-0 ps-2" style=""></div> <!-- font-size:14px; -->
 
         <span class="btn btn-tool progress-label p-0" wicket:id="details-container">
-          <i wicket:id="progressBarDetails" data-toggle="tooltip" data-placement="right"
-                  class="fa fa-fw  float-left"></i>
+          <i wicket:id="progressBarDetails" data-bs-toggle="tooltip" data-placement="right"
+                  class="fa fa-fw  float-start"></i>
         </span>
     </div>
 
     <div class="d-flex flex-wrap align-items-center">
-        <div class="col pl-0 pr-0" wicket:id="progress-container">
+        <div class="col ps-0 pe-0" wicket:id="progress-container">
             <div wicket:id="progressBarContainer" class="progress" style="border-radius: 3px; height:13px;">
 
                 <div wicket:id="progressBar" class="progress-bar" role="progressbar"

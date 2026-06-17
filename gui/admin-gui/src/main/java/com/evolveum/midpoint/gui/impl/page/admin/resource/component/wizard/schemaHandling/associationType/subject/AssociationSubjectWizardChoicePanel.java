@@ -33,7 +33,7 @@ public abstract class AssociationSubjectWizardChoicePanel
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(AttributeAppender.append("class", "col-xxl-8 col-10 gap-3 m-auto"));
+        add(AttributeAppender.append("class", "col-3xl-8 col-10 gap-3 m-auto"));
     }
 
     public enum AssociationSubjectPreviewTileType implements TileEnum {

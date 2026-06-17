@@ -167,7 +167,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
             @Contract(pure = true)
             @Override
             protected @NotNull String getProgressBarContainerCssClass() {
-                return "col-12 pl-0 pr-0";
+                return "col-12 ps-0 pe-0";
             }
 
 
@@ -252,7 +252,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
     private void initDefaultStyle() {
         setOutputMarkupId(true);
         add(AttributeModifier.append(CLASS_CSS,
-                "bg-white d-flex flex-column align-items-center elevation-1 rounded w-100 h-100 p-0"));
+                "bg-white d-flex flex-column align-items-center shadow-sm rounded w-100 h-100 p-0"));
     }
 
     private void initToolBarPanel() {
@@ -293,7 +293,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
         String status = modelObject.getStatus();
 
         Label statusBar = new Label(ID_STATUS_BAR, Model.of(status));
-        statusBar.add(AttributeModifier.append(CLASS_CSS, "badge badge-pill badge-info"));
+        statusBar.add(AttributeModifier.append(CLASS_CSS, "badge rounded-pill bg-info"));
         statusBar.add(AttributeModifier.append(STYLE_CSS, "width: 80px"));
         statusBar.setOutputMarkupId(true);
         add(statusBar);

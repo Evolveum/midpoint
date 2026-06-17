@@ -59,6 +59,6 @@ public class VerticalFormClusteringAttributesPanel extends VerticalFormPrismCont
 
     @Override
     protected String getCssForHeader() {
-        return "pb-0 pt-2 pl-3 pr-3 text-gray font-weight-bold text-center w-100";
+        return "pb-0 pt-2 ps-3 pe-3 text-gray fw-bold text-center w-100";
     }
 }

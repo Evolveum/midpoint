@@ -7,14 +7,14 @@
 
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="showHideMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    <div wicket:id="showHideMessage" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
     <wicket:enclosure child="propertiesLabel">
 
         <wicket:container wicket:id="propertiesLabel">
             <div wicket:enclosure="showEmptyButtonContainer" wicket:id="formContainer">
                 <div class="d-flex">
-                    <button wicket:id="removeValue" class="ml-auto btn btn-tool text-danger" trigger="hover">
-                        <i class="fa fa-eraser pr-1"></i>
+                    <button wicket:id="removeValue" class="ms-auto btn btn-tool text-danger" trigger="hover">
+                        <i class="fa fa-eraser pe-1"></i>
                         <wicket:message key="VerticalFormDefaultContainerablePanel.removeValue"/>
                     </button>
                 </div>
@@ -23,7 +23,7 @@
                 </wicket:container>
                 <div class="d-flex">
                     <div class="d-flex btn btn-outline-primary" wicket:id="showEmptyButtonContainer">
-                        <i class="fas fa-eye mr-2 mt-1"></i>
+                        <i class="fas fa-eye me-2 mt-1"></i>
                         <div class="clickable-by-enter" wicket:id="showEmptyButton" tabindex="0"/>
                     </div>
                 </div>

@@ -5,19 +5,6 @@
  */
 
 @import "midpoint-variables";
-
-// AdminLTE and Bootstrap
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/functions";
-@import "../../../node_modules/admin-lte/build/scss/bootstrap-variables";
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables";
-@import "../../../node_modules/admin-lte/build/scss/variables";
-@import "../../../node_modules/admin-lte/build/scss/variables-alt";
-@import "../../../node_modules/admin-lte/build/scss/mixins/_miscellaneous";
-@import "../../../node_modules/admin-lte/build/scss/mixins/dark-mode";
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins";
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/utilities";
-// AdminLTE and Bootstrap end
-
 @import "admin-lte-overrides";
 @import "icon-style";
 @import "prism-forms";
@@ -41,13 +28,13 @@
 @import "smart-int";
 
 body.custom-hold-transition {
-  .content-wrapper,
+  .app-main,
   .right-side,
-  .main-footer,
-  .main-sidebar,
+  .app-footer,
+  .app-sidebar,
   .left-side,
-  .main-header .navbar,
-  .main-header .logo {
+  .app-header .navbar,
+  .app-header .logo {
     -webkit-transition: none !important;
     -moz-transition: none !important;
     -ms-transition: none !important;
@@ -56,33 +43,55 @@ body.custom-hold-transition {
 }
 
 //Fix when hovering collapsed sidemenu to use bigger default logo
-.sidebar-mini-xs.sidebar-collapse .main-sidebar:not(.sidebar-no-expand):hover > a.logo > span {
-  &:before {
-    opacity: 1;
+.sidebar-mini-xs.sidebar-collapse .app-sidebar:not(.sidebar-no-expand):hover {
+  & .sidebar-brand > a.logo > span {
+    &:before {
+      opacity: 1;
+    }
+
+    &:after {
+      opacity: 0;
+    }
   }
 
-  &:after {
-    opacity: 0;
-  }
+  & .user-panel > .info {
+      opacity: 1;
+    }
 }
 
 //Change default midPoint logo when sidemenu is collapsed
-body.sidebar-collapse .main-sidebar > a.logo > span {
+body.sidebar-collapse .app-sidebar {
+  & .sidebar-brand > a.logo > span {
+    &:before {
+      opacity: 0;
+    }
 
-  &:before {
-    opacity: 0;
+    &:after {
+      opacity: 1;
+    }
   }
 
-  &:after {
-    opacity: 1;
+  & .user-panel > .info {
+    opacity: 0;
   }
 }
 
-.main-sidebar {
-  & > a.logo {
+.app-sidebar {
+  & .sidebar-wrapper > .user-panel > .info {
+    transition: opacity 0.3s ease;
+  }
+
+  & .sidebar-brand > a.logo {
     padding: 0;
     max-height: 3.5rem;
     height: 100%;
+    width: 100%;
+
+    & > span {
+          height: 100%;
+          width: 100%;
+          position: relative;
+    }
 
     & > span:before, & > span:after {
       height: 100%;
@@ -90,18 +99,17 @@ body.sidebar-collapse .main-sidebar > a.logo > span {
       display: inline-block;
       content: '';
       transition: opacity 0.3s;
+      pointer-events: none;
     }
 
     & > span:before {
       background: url("../img/midpoint_logo_white_250x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
-      z-index: -101;
       background-size: contain;
       background-position: 50%;
     }
 
     & > span:after {
       background: url("../img/midpoint_logo_white_56x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
-      z-index: -100;
       opacity: 0;
       background-size: contain;
       background-position: 50%;
@@ -111,9 +119,11 @@ body.sidebar-collapse .main-sidebar > a.logo > span {
     }
   }
 
-  & > a.custom-logo {
+  & .sidebar-brand > a.custom-logo {
     height: 3.5rem;
     max-height: 3.5rem;
+    width: 100%;
+    height: 100%;
 
     & > img {
       vertical-align: middle;
@@ -125,7 +135,7 @@ body.sidebar-collapse .main-sidebar > a.logo > span {
     }
   }
 
-  & > .sidebar > nav > ul.nav-sidebar > li.nav-item > a.active {
+  & > .sidebar-wrapper > nav > ul.sidebar-menu > li.nav-item > a.active {
     box-shadow: none;
   }
 }
@@ -160,15 +170,16 @@ li.dropdown.user.user-menu {
 }
 
 // sidebar styles extension
-.sidebar-menu .treeview-menu > li > span > .fe {
-  width: 20px;
-}
+// TODO we need it? we not use it in code and adminlte changed .nav-sidebar to .sidebar-menu
+// .sidebar-menu .treeview-menu > li > span > .fe {
+//   width: 20px;
+// }
+//
+// .sidebar-menu > li > a > .fe {
+//   width: 20px;
+// }
 
-.sidebar-menu > li > a > .fe {
-  width: 20px;
-}
-
-.nav-sidebar {
+.sidebar-menu {
   & li.nav-header {
     cursor: pointer;
 
@@ -176,12 +187,12 @@ li.dropdown.user.user-menu {
       width: auto;
       height: auto;
       padding: 0;
-      @include transition(transform $transition-fn $transition-speed);
+      @include transition(transform var(--bs-transition-timing) var(--bs-transition-duration));
     }
 
     &.closed {
       & span > i.fa-chevron-down {
-        @include rotate(90deg);
+        transform: rotate(90deg);
       }
     }
   }
@@ -630,7 +641,7 @@ li.dropdown.user.user-menu {
 
 .btn-resource-capability:hover {
   background: $light;
-  border-color: darken($light, 3%);
+  border-color: shade-color($light, 3%);
 }
 
 // Feedback messages
@@ -737,7 +748,7 @@ li.dropdown.user.user-menu {
   max-width: fit-content;
 }
 
-.navbar-right {
+.navbar-end {
   margin-left: auto !important;
   display: flex !important;
 
@@ -747,7 +758,7 @@ li.dropdown.user.user-menu {
 }
 
 @media (min-width: 1200px) {
-  .navbar-right {
+  .navbar-end {
     width: 100%;
     max-width: 100%;
     min-width: 0;
@@ -1323,8 +1334,8 @@ span.tree-content > table tr td:first-child {
   max-height: 50vh;
 }
 
-.skin-red > .wrapper > .main-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge,
-.skin-red-light > .wrapper > .main-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge {
+.skin-red > .app-wrapper > .app-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge,
+.skin-red-light > .app-wrapper > .app-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge {
   border-style: solid;
   padding: 2px 5px;
   border-color: #f4f4f4;
@@ -1410,7 +1421,7 @@ td .prism-property-value {
 }
 
 .card.card-outline,
-.card.card-outline-left,
+.card.card-outline-start,
 .card.card-outline-tabs {
   & > .card-header > .card-tools > a.btn.btn-tool {
     border-top: 0 !important;
@@ -1432,22 +1443,21 @@ td .prism-property-value {
   color: $white !important;
 }
 
-@include bg-variant(".search-item", $gray-300, true);
-
-// deprecated, uses should be replaced by "d-flex gap-1 px-2 bg-light rounded-sm align-items-center"
+// deprecated, uses should be replaced by "d-flex gap-1 px-2 bg-light rounded-1 align-items-center"
 .search-item {
+  background-color: $gray-300;
   display: flex;
   gap: 0.25em;
   border-radius: $border-radius-sm;
   padding-left: 0.5rem;
   align-items: center;
 
-  // deprecated, uses should be replaced by "col-form-label-sm font-weight-normal mb-0"
+  // deprecated, uses should be replaced by "col-form-label-sm fw-normal mb-0"
   .search-item-label {
     padding-top: add($input-padding-y-sm, $input-border-width);
     padding-bottom: add($input-padding-y-sm, $input-border-width);
     @include font-size($input-font-size-sm);
-    line-height: $input-line-height-sm;
+    line-height: $line-height-base;
   }
 }
 
@@ -1815,7 +1825,7 @@ th, td {
   }
 }
 
-.nav-sidebar .nav-header span {
+.sidebar-menu .nav-header span {
   text-transform: uppercase;
 }
 
@@ -2020,9 +2030,9 @@ button.tooltip-button[data-tooltip]:hover::after {
   }
 }
 
-.card-outline-left {
+.card-outline-start {
   @each $name, $color in $theme-colors {
-    &.card-outline-left-#{$name} {
+    &.card-outline-start-#{$name} {
       border-left: 5px solid $color;
     }
   }
@@ -2120,14 +2130,14 @@ button.tooltip-button[data-tooltip]:hover::after {
   background-color: $white;
 }
 
-@include dark-mode() {
+[data-bs-theme="dark"] {
   .metric-widget {
     background-color: $dark;
   }
 }
 
 @each $color, $value in $theme-colors {
-  $backgroundValue: color-yiq($value);
+  $backgroundValue: color-contrast($value);
 
   .colored-form-#{$color}, .colored-form-#{$color}:hover, .colored-form-#{$color}:active, .colored-form-#{$color}:focus {
     color: mix($black, $value, 5%);
@@ -2145,11 +2155,11 @@ button.tooltip-button[data-tooltip]:hover::after {
   }
 }
 
-#toastsContainerTopRight.toasts-top-right {
+#toastsContainerTopEnd.toasts-top-end {
   top: 3.5rem;
 }
 
-#toastsContainerTopRight .toast {
+#toastsContainerTopEnd .toast {
   min-width: 400px;
 }
 
@@ -2162,8 +2172,8 @@ button.tooltip-button[data-tooltip]:hover::after {
 }
 
 //When sidebar link is active make icon white to match contrast
-.sidebar-dark-lightblue .nav-sidebar > .nav-item > .nav-link.active .nav-icon,
-.sidebar-light-lightblue .nav-sidebar > .nav-item > .nav-link.active .nav-icon {
+.sidebar-dark-lightblue .sidebar-menu > .nav-item > .nav-link.active .nav-icon,
+.sidebar-light-lightblue .sidebar-menu > .nav-item > .nav-link.active .nav-icon {
   color: white;
 }
 
@@ -2171,8 +2181,8 @@ button.tooltip-button[data-tooltip]:hover::after {
 //Grouped classes with smooth-transition function
 .details-menu a,
 .details-menu a:hover,
-.nav-sidebar .nav-item > .nav-link,
-.nav-sidebar .nav-item > .nav-link:hover,
+.sidebar-menu .nav-item > .nav-link,
+.sidebar-menu .nav-item > .nav-link:hover,
 div > a > div > i.fas {
   @include smooth-transition(0.08s);
 }
@@ -2263,7 +2273,7 @@ div.show > a > div > i.fas {
 }
 
 @each $color, $value in $theme-colors {
-  $backgroundValue: color-yiq($value);
+  $backgroundValue: color-contrast($value);
 
   .btn-#{$color}-hover:hover {
     color: $value;
@@ -2340,16 +2350,6 @@ div.show > a > div > i.fas {
       color: $danger;
     }
   }
-}
-
-.input-group-prepend .form-control, .input-group-prepend .select2-selection {
-  border-bottom-right-radius: 0;
-  border-top-right-radius: 0;
-}
-
-.input-group-append .form-control, .input-group-append .select2-selection {
-  border-bottom-left-radius: 0;
-  border-top-left-radius: 0;
 }
 
 .midpoint-input-suffix {
@@ -2448,7 +2448,7 @@ div.show > a > div > i.fas {
   margin-top: 56px;
 }
 
-footer.main-footer a {
+footer.app-footer a {
   text-decoration: underline;
 }
 
@@ -2533,7 +2533,7 @@ footer.main-footer a {
     }
 
     .collapsed-menu {
-      @extend .border-left;
+      @extend .border-start;
       width: 50px;
 
       .collapsed-menu-icon {
@@ -2568,7 +2568,7 @@ footer.main-footer a {
     }
 
     .collapsed-details-panel {
-      @extend .border-left;
+      @extend .border-start;
       @extend .p-2;
       width: 350px;
       height: 100%;
@@ -2576,6 +2576,6 @@ footer.main-footer a {
   }
 }
 
-.font-weight-semibold {
+.fw-semibold {
   font-weight: 600 !important;
 }

@@ -151,7 +151,7 @@ public class PageError extends PageBase {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.render(OnDomReadyHeaderItem.forScript("$('div.content-wrapper').css('margin-left', '0');"));
+        response.render(OnDomReadyHeaderItem.forScript("$('div.app-main').css('margin-left', '0');"));
     }
 
     private boolean isStackTraceVisible() {

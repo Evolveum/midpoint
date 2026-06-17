@@ -51,7 +51,7 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
 
         String icon = getModelObject();
         if (StringUtils.isNotEmpty(icon)) {
-            String margin = showTitleAsLabel ? "mr-1" : "";
+            String margin = showTitleAsLabel ? "me-1" : "";
             sb.append("<i class=\"" + margin + " ").append(Strings.escapeMarkup(icon)).append("\"></i>");
         }
 

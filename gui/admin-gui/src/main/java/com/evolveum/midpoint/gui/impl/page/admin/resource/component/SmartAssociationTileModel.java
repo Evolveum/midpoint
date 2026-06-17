@@ -56,7 +56,7 @@ public class SmartAssociationTileModel extends TemplateTile<PrismContainerValueW
         this.description = realValue.getDescription() != null ? realValue.getDescription() : "-";
 
         this.cssTag = "system-badge";
-        this.cssIconTag = "fa fa-gear mr-1";
+        this.cssIconTag = "fa fa-gear me-1";
         this.textTag = "System suggestion";
 
         List<ResourceObjectTypeIdentificationType> subjectList =

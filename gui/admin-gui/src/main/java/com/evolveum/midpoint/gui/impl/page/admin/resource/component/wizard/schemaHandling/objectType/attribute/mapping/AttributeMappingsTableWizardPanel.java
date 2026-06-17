@@ -474,7 +474,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Contract(pure = true)
             @Override
             protected @NotNull String getAdditionalSplitComponentCssClass() {
-                return "ml-auto";
+                return "ms-auto";
             }
         };
 

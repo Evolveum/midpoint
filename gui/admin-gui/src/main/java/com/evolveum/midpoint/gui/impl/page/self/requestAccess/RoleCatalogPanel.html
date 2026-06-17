@@ -8,18 +8,18 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="row">
-        <div class="col-sm-12 col-md-5 col-lg-4 col-xxl-2 d-flex flex-column align-items-stretch gap-3">
+        <div class="col-sm-12 col-md-5 col-lg-4 col-3xl-2 d-flex flex-column align-items-stretch gap-3">
             <div wicket:id="viewToggle"/>
             <ul wicket:id="menu"/>
         </div>
-        <div class="col-sm-12 col-md-7 col-lg-8 col-xxl-10 role-catalog-tiles-table" wicket:id="tilesTable"/>
+        <div class="col-sm-12 col-md-7 col-lg-8 col-3xl-10 role-catalog-tiles-table" wicket:id="tilesTable"/>
     </div>
 </wicket:panel>
 
 <wicket:fragment wicket:id="tableFooterFragment">
     <div class="d-flex flex-wrap gap-2">
         <a class="btn btn-primary" wicket:id="addSelected">
-            <i class="fas fa-cart-plus mr-1"></i>
+            <i class="fas fa-cart-plus me-1"></i>
             <wicket:message key="RoleCatalogPanel.addSelected"/>
         </a>
         <a class="btn btn-default" wicket:id="addAll">

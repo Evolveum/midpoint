@@ -186,6 +186,6 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     }
 
     protected String getSpecialDropdownMenuClass() {
-        return "dropdown-menu-right";
+        return "dropdown-menu-end";
     }
 }

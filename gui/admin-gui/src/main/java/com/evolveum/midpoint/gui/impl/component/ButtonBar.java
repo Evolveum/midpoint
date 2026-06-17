@@ -111,7 +111,7 @@ public class ButtonBar<C extends Containerable, PO extends SelectableRow> extend
             }
         };
         viewAll.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(action.getVisibility())));
-        viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm mr-2"));
+        viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm me-2"));
         viewAll.showTitleAsLabel(true);
         return viewAll;
     }

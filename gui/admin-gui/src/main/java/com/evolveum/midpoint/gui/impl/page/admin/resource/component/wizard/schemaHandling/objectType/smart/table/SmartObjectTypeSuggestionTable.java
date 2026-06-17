@@ -217,7 +217,7 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
 
     @Override
     protected String getTileContainerCssClass() {
-        return "justify-content-left pt-2 ";
+        return "justify-content-start pt-2 ";
     }
 
     @Override

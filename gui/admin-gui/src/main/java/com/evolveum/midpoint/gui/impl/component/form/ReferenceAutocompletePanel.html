@@ -7,23 +7,21 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-          <div wicket:id="textWrapper">
-            <div class="input-group input-group-sm">
-                <div wicket:id="text" class="flex-grow-1"/>
-                <span class="input-group-append">
-                    <button wicket:id="edit" class="btn btn-default" type="button">
-                        <span>
-                            <i class="fa-fw fa-solid fa-arrow-pointer"></i>
-                            <span wicket:id="buttonLabel"></span>
-                        </span>
-                    </button>
+    <div wicket:id="textWrapper">
+        <div class="input-group input-group-sm">
+            <div wicket:id="text" class="flex-grow-1"/>
+            <button wicket:id="edit" class="btn btn-default" type="button">
+                <span>
+                    <i class="fa-fw fa-solid fa-arrow-pointer"></i>
+                        <span wicket:id="buttonLabel"></span>
                 </span>
+            </button>
 
-            </div>
-            <div>
-                <span wicket:id="feedback" />
-            </div>
         </div>
+        <div>
+            <span wicket:id="feedback"/>
+        </div>
+    </div>
 
 </wicket:panel>
 </html>

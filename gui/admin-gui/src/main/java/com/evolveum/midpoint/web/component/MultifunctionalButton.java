@@ -50,7 +50,7 @@ public abstract class MultifunctionalButton extends BasePanel<MultiFunctinalButt
                 }
             }
         };
-        mainButton.add(AttributeAppender.append(" data-toggle", additionalButtonsExist() ? "dropdown" : ""));
+        mainButton.add(AttributeAppender.append(" data-bs-toggle", additionalButtonsExist() ? "dropdown" : ""));
 //        if (!additionalButtonsExist()) {
             mainButton.add(new VisibleBehaviour(this::isMainButtonVisible));
 //        }

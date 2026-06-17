@@ -272,7 +272,7 @@ public class CompareContainerPanel<C extends Containerable> extends BasePanel<Co
 
             @Override
             public String getCssClass() {
-                return "compared-header-column border-right";
+                return "compared-header-column border-end";
             }
 
             @Override
@@ -298,7 +298,7 @@ public class CompareContainerPanel<C extends Containerable> extends BasePanel<Co
 
             @Override
             public String getCssClass() {
-                return "compared-item-column border-right";
+                return "compared-item-column border-end";
             }
         };
     }

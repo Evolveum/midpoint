@@ -7,19 +7,19 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div wicket:id="card" class="card card-outline-left m-0">
+    <div wicket:id="card" class="card card-outline-start m-0">
         <div class="d-flex flex-column">
-            <span wicket:id="closeButton" class="btn btn-tool ml-auto pt-3 pr-2 text-secondary">
+            <span wicket:id="closeButton" class="btn btn-tool ms-auto pt-3 pe-2 text-secondary">
                 <i class="fa fa-xmark text-secondary fa-sm"/>
             </span>
             <div class="d-flex flex-wrap">
                 <div>
-                    <div wicket:id="badgeContainer" class="badge d-flex flex-wrap ml-3 small mt-1">
-                        <div wicket:id="badgeIcon" class="pr-1"/>
+                    <div wicket:id="badgeContainer" class="badge d-flex flex-wrap ms-3 small mt-1">
+                        <div wicket:id="badgeIcon" class="pe-1"/>
                         <div wicket:id="badgeLabel"/>
                     </div>
                 </div>
-                <div wicket:id="title" class="ml-3 font-weight-bold text-gray"/>
+                <div wicket:id="title" class="ms-3 fw-bold text-gray"/>
             </div>
             <div wicket:id="message" class="text-secondary p-3 small"/>
         </div>

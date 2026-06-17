@@ -77,7 +77,7 @@ public class RoleAnalysisWebUtils {
     public static final String TEXT_MUTED = "text-muted";
     public static final String TEXT_TONED = "txt-toned";
     public static final String TEXT_TRUNCATE = "text-truncate";
-    public static final String FONT_WEIGHT_BOLD = "font-weight-bold";
+    public static final String FONT_WEIGHT_BOLD = "fw-bold";
 
     public static final String PANEL_ID = "panelId";
 

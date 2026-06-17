@@ -207,7 +207,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
     }
 
     protected String getButtonCssClass() {
-        return "btn btn-primary btn-sm mr-2";
+        return "btn btn-primary btn-sm me-2";
     }
 
     protected IModel<String> getDisabledClassModel() {

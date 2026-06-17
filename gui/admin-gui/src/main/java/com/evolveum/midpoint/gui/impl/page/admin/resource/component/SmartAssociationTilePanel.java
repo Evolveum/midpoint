@@ -296,7 +296,7 @@ public abstract class SmartAssociationTilePanel
 
     protected void customizeTileItemCss() {
         if (getModelObject().isSuggestion()) {
-            add(AttributeModifier.append("class", "border border-system border-large-left"));
+            add(AttributeModifier.append("class", "border border-system border-large-start"));
         }
     }
 

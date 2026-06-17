@@ -92,7 +92,7 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
             }
 
             protected String getSpecialDropdownMenuClass() {
-                return "dropdown-menu-left";
+                return "dropdown-menu-start";
             }
 
             @Override

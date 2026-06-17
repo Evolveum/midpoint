@@ -211,7 +211,7 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
     }
     @Override
     protected String getExitButtonCssClass() {
-        return "btn-link mr-auto";
+        return "btn-link me-auto";
     }
 
     @Override

@@ -9,16 +9,16 @@
 <body>
 <wicket:extend>
     <div wicket:id="providers" class="col-md-12 pt-3">
-        <a wicket:id="provider" class="p-3 mb-2 card tile-panel selectable btn text-left"/>
+        <a wicket:id="provider" class="p-3 mb-2 card tile-panel selectable btn text-start"/>
     </div>
-    <div class="pull-right">
+    <div class="pull-end">
         <form method="post" wicket:id="logoutForm">
 
             <div wicket:id="csrfField"/>
 
             <button type="submit" class="m-auto btn btn-link nav-link" wicket:message="title:PageBase.logout">
                 <i class="fas fa-power-off"></i>
-                <span class="pl-2">
+                <span class="ps-2">
                     <wicket:message key="PageBase.logout"/>
                 </span>
             </button>

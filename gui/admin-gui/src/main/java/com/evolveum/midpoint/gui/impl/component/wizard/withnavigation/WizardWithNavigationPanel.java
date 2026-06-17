@@ -215,17 +215,17 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         listItem.add(new Label(ID_STEP_LABEL, listItem.getModelObject().getTitle()));
 
         String keySuffix = "complete";
-        String badgeClass = "badge-success";
+        String badgeClass = "bg-success";
         if (listItem.getIndex() == lastShowedIndex) {
             keySuffix = "inProgress";
-            badgeClass = "badge-info";
+            badgeClass = "bg-info";
         } else if (setSelectedItem && listItem.getIndex() == activeIndex) {
             if (getController().isStepWithError(listItem.getModelObject().getStepId())) {
                 keySuffix = "fixing";
-                badgeClass = "badge-danger";
+                badgeClass = "bg-danger";
             } else {
                 keySuffix = "edited";
-                badgeClass = "badge-primary";
+                badgeClass = "bg-primary";
             }
         }
 

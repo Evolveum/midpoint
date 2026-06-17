@@ -6,12 +6,15 @@
 
 @import "../../../node_modules/flag-icons/css/flag-icons.css";
 
-@import "midpoint-variables";
+@import "../../../node_modules/bootstrap/scss/functions";
 
-@import "../../../node_modules/admin-lte/build/scss/adminlte";
-@import "../../../node_modules/admin-lte/build/scss/plugins/bootstrap-switch";
-@import "../../../node_modules/overlayscrollbars/css/OverlayScrollbars.css";
-@import "../../../node_modules/datatables.net-bs4/css/dataTables.bootstrap4";
+@import "bootstrap-variables-overrides";
+
+@import "../../../node_modules/bootstrap/scss/variables";
+@import "../../../node_modules/bootstrap/scss/variables-dark";
+@import "../../../node_modules/bootstrap/scss/mixins";
+@import "../../../node_modules/bootstrap/scss/bootstrap";
+@import "../../../node_modules/admin-lte/src/scss/adminlte";
 
 @import "../../../node_modules/bootstrap-select/dist/css/bootstrap-select.css";
 @import "../../../node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css";
