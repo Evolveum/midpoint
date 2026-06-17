@@ -137,18 +137,18 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
 
         final OperationResult evaluationResult = result.createSubresult("Evaluation of inbound mappings on shadow "
                 + shadow);
-        ObjectDelta<FocusType> objectDelta = null;
+        final ObjectDelta<FocusType> objectDelta;
         try {
-            try {
-                final Collection<ItemDelta<?, ?>> deltas = evaluateMappings(shadow, targetFocus, evaluationResult, task);
-                if (!deltas.isEmpty()) {
-                    objectDelta = (ObjectDelta<FocusType>) targetFocus.asPrismObject().createModifyDelta();
-                    objectDelta.addModifications(deltas);
-                }
-            } finally {
-                evaluationResult.close();
+            final Collection<ItemDelta<?, ?>> deltas = evaluateMappings(shadow, targetFocus, evaluationResult, task);
+            if (!deltas.isEmpty()) {
+                objectDelta = (ObjectDelta<FocusType>) targetFocus.asPrismObject().createModifyDelta();
+                objectDelta.addModifications(deltas);
+            } else {
+                objectDelta = null;
             }
         } catch (CommonException e) {
+            // Result must be closed before writing simulation data because close() calls computeStatus() which propagates error message from subresults to root result
+            evaluationResult.close();
             final SimulationTransaction failSimulationTransaction = Objects.requireNonNull(getSimulationTransaction(),
                     "Required simulation transaction does not exist.");
             try {
@@ -158,6 +158,10 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
                 e.addSuppressed(writeException);
             }
             throw e;
+        } finally {
+            if (!evaluationResult.isClosed()) {
+                evaluationResult.close();
+            }
         }
 
         final SimulationTransaction simulationTransaction = Objects.requireNonNull(getSimulationTransaction(),

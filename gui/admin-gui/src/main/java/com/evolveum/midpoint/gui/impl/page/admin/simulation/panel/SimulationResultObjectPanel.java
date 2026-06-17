@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObject;
@@ -201,24 +202,17 @@ public abstract class SimulationResultObjectPanel extends BasePanel<SimulationRe
 
                     @Override
                     public Component createValueComponent(String id) {
-                        IModel<String> model = new LoadableDetachableModel<>() {
+                        IModel<List<Badge>> badgesModel = new LoadableDetachableModel<>() {
 
                             @Override
-                            protected String load() {
+                            protected List<Badge> load() {
                                 SimulationResultProcessedObjectType object = objectModel.getObject();
-                                List<Badge> badges = SimulationsGuiUtil.createEventMarkBadges(
+                                return SimulationsGuiUtil.createEventMarkBadges(
                                         object.getEventMarkRef(), getPageBase());
-                                return badges.stream()
-                                        .map(b -> "<span class=\"" + b.getCssClass() + "\">" + Strings.escapeMarkup(b.getText()) + "</span>")
-                                        .collect(Collectors.joining(" "));
                             }
                         };
 
-                        Label label = new Label(id, model);
-                        label.setEscapeModelStrings(false);
-                        label.setRenderBodyOnly(true);
-
-                        return label;
+                        return new BadgeListPanel(id, badgesModel);
                     }
                 });
 

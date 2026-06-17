@@ -371,10 +371,10 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
         }
 
         if (identifier == BuiltInSimulationMetricType.ERRORS) {
-            PageParameters params = new PageParameters();
-            params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, resultOid);
-            params.set(SimulationPage.PAGE_PARAMETER_MARK_OID, SystemObjectsType.MARK_ITEM_VALUE_FAILED.value());
-            getPageBase().navigateToNext(PageSimulationResultObjects.class, params);
+            ObjectReferenceType markRef = new ObjectReferenceType()
+                    .oid(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())
+                    .type(MarkType.COMPLEX_TYPE);
+            navigateToSimulationResultObjects(resultOid, markRef, null, target);
             return;
         }
 

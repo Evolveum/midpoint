@@ -682,10 +682,14 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         assert result == null || result.isClosed();
         this.result = result;
         this.resultStatus = result != null ? result.getStatus() : null;
+        invalidateCachedBean();
+    }
+
+    void addFailedEventMarkIfNeeded() {
         if (resultStatus != null && resultStatus.isError()) {
             parsedMetricValues.addMatchingEventMark(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value());
+            invalidateCachedBean();
         }
-        invalidateCachedBean();
     }
 
     private void setResultAndStatus(@Nullable OperationResultType resultBean, @Nullable OperationResultStatusType statusBean) {

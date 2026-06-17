@@ -106,6 +106,7 @@ class ProcessedObjectsWriter {
                     if (projectionContext.isSynchronizationSource()) {
                         LOGGER.trace("Result recorded to {}", projectionContext);
                         projectionRecord.setResultAndStatus(resultToRecord);
+                        projectionRecord.addFailedEventMarkIfNeeded();
                         resultRecordedToProjection = true;
                     }
                     projectionRecords.add(projectionRecord);
@@ -118,6 +119,7 @@ class ProcessedObjectsWriter {
                 if (focusRecord != null) {
                     LOGGER.trace("Result recorded to focus");
                     focusRecord.setResultAndStatus(resultToRecord);
+                    focusRecord.addFailedEventMarkIfNeeded();
                 } else if (!result.isError()) {
                     LOGGER.trace("Result not recorded, but it is not an error -> ignoring");
                 } else {
@@ -126,6 +128,7 @@ class ProcessedObjectsWriter {
                         ProcessedObjectImpl<ShadowType> any = projectionRecords.get(0);
                         LOGGER.warn("Couldn't find the element context where an error should be recorded, using any: {}", any);
                         any.setResultAndStatus(resultToRecord);
+                        any.addFailedEventMarkIfNeeded();
                     } else {
                         LOGGER.warn("Error during simulated processing couldn't be recorded: {}", result.getMessage());
                     }
@@ -203,10 +206,7 @@ class ProcessedObjectsWriter {
         }
     }
 
-    private static boolean isMappingFailed(@Nullable OperationResult mappingResult) {
-        if (mappingResult == null) {
-            return false;
-        }
+    private static boolean isMappingFailed(@NotNull OperationResult mappingResult) {
         OperationResultStatus status = mappingResult.getStatus();
         return status == OperationResultStatus.FATAL_ERROR || status == OperationResultStatus.PARTIAL_ERROR;
     }

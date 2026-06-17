@@ -64,8 +64,10 @@ public class SimulationDetailsPanel extends BasePanel<OperationResult> {
         box.add(icon);
 
 
-        Label messageLabel = new Label(ID_MESSAGE, Model.of(resolveMessage(result)));
-        messageLabel.add(AttributeModifier.replace("title", resolveMessage(result)));
+        String message = resolveMessage(result);
+        Label messageLabel = new Label(ID_MESSAGE, Model.of(message));
+        messageLabel.add(AttributeModifier.replace("title", message));
+        messageLabel.add(AttributeModifier.replace("style", "max-width: 280px"));
         box.add(messageLabel);
 
         box.add(new AjaxLink<Void>(ID_LINK) {
