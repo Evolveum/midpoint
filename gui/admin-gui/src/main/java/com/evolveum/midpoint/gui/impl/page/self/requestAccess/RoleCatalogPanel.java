@@ -294,14 +294,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             QName relation = getModelObject().getRelation();
 
             String[] oids = user.asObjectable().getAssignment().stream()
-                    .filter(a -> a.getTargetRef() != null)
+                    .filter(a -> a.getTargetRef() != null && a.getTargetRef().getType() != null)
                     .filter(a -> QNameUtil.match(relation, a.getTargetRef().getRelation()))
+                    .filter(a -> RequestAccess.ASSIGNABLE_OBJECT_TYPE_SET.contains(a.getTargetRef().getType()))
                     .map(a -> a.getTargetRef().getOid())
                     .toArray(String[]::new);
 
             ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
                     .id(oids)
-                    .and().not().type(ArchetypeType.class)
                     .build();
             query.setQuery(oq);
 
