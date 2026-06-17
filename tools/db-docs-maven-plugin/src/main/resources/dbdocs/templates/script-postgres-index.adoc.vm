@@ -1,0 +1,70 @@
+= Native PostgreSQL Schema Script: postgres.sql
+
+xref:../schema.adoc[Back to native PostgreSQL schema overview]
+
+This page documents schema objects parsed from `$r.displayPath($sourceFile.path())`.
+The detailed documentation is split into logical region pages because this schema script is large.
+
+== Region documentation
+
+#foreach ($region in $view.postgresRegions())
+* $r.pageXref($view.postgresRegionPagePath($region), $region.title(), $view) - $region.description()
+#end
+
+== Overview
+
+=== Tables
+
+[cols="1,2,3", options="header"]
+|===
+| Table
+| Region
+| Description
+
+#foreach ($table in $view.tablesFor($sourceFile))
+| $r.tableXref($table, $view)
+| $r.pageXref($view.pageFor($table), $view.regionFor($table).title(), $view)
+| $r.metadataValue($table.metadata().description())
+
+#end
+|===
+
+#if (!$view.viewsFor($sourceFile).isEmpty())
+=== Views
+
+[cols="1,2,3,1", options="header"]
+|===
+| View
+| Region
+| Description
+| Type
+
+#foreach ($viewObject in $view.viewsFor($sourceFile))
+| $r.objectXref("view", $viewObject, $view)
+| $r.pageXref($view.pageFor($viewObject), $view.regionFor($viewObject).title(), $view)
+| $r.metadataValue($viewObject.metadata().description())
+| $r.viewType($viewObject)
+
+#end
+|===
+#end
+
+#if ($view.hasOtherOverviewObjectsFor($sourceFile))
+=== Other schema objects
+
+[cols="1,2,3,1", options="header"]
+|===
+| Object
+| Region
+| Description
+| Type
+
+#foreach ($object in $view.otherOverviewObjectsFor($sourceFile))
+| $r.objectXref($r.objectAnchorKind($object), $object, $view)
+| $r.pageXref($view.pageFor($object), $view.regionFor($object).title(), $view)
+| $r.metadataValue($object.metadata().description())
+| $r.objectType($object)
+
+#end
+|===
+#end

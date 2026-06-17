@@ -1380,6 +1380,26 @@ public class TestMelExpressions extends AbstractScriptTest {
                 " while expecting null", expressionResult);
     }
 
+    @Test
+    public void testExpressionListFunctionFoo() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-list-function.xml",
+                createVariables(
+                        "foo", "Foo", PrimitiveType.QNAME
+                ),
+                "Foo");
+    }
+
+    @Test
+    public void testExpressionListFunctionNull() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-list-function.xml",
+                createVariables(
+                        "foo", null, PrimitiveType.QNAME
+                )
+                // expected no values (empty list)
+        );
+    }
 
     @Test
     public void testExpressionQName() throws Exception {
@@ -1407,6 +1427,81 @@ public class TestMelExpressions extends AbstractScriptTest {
                 createVariables(),
                 new QName(NS_EXTENSION,"foo"));
     }
+
+    @Test
+    public void testExpressionQNameEqualsQNameExactTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", new QName("http://example.com/q/ns", "foo"), PrimitiveType.QNAME,
+                        "bar", new QName("http://example.com/q/ns", "foo"), PrimitiveType.QNAME
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionQNameEqualsQNameExactFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", new QName("http://example.com/q/ns", "foo"), PrimitiveType.QNAME,
+                        "bar", new QName("http://example.com/q/ns", "bar"), PrimitiveType.QNAME
+                ),
+                Boolean.FALSE);
+    }
+
+    // Does not work due to CEL limitation
+    // There is no easy way to set up custom equality function for objects.
+    // Setting up custom == overload for (qname,qname) clashes with default equals overload.
+    // Good chance would be to set up custom RuntimeEquality in CEL Runtime.
+    // However, CelRuntimeImpl hardcodes the RuntimeEquality to ProtoMessageRuntimeEquality
+    // (see CelRuntimeImpl.build() line 490)
+    // Disabling the tests until a good solution is found.
+    @Test(enabled = false)
+    public void testExpressionQNameEqualsQNameNoNsTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", new QName("http://example.com/q/ns", "foo"), PrimitiveType.QNAME,
+                        "bar", new QName(null, "foo"), PrimitiveType.QNAME
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test(enabled = false)
+    public void testExpressionQNameEqualsQNameNoNsFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", new QName("http://example.com/q/ns", "foo"), PrimitiveType.QNAME,
+                        "bar", new QName(null, "bar"), PrimitiveType.QNAME
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionQNameEqualsStringTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", new QName("http://example.com/q/ns", "foo"), PrimitiveType.QNAME,
+                        "bar", "foo", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionQNameEqualsStringFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", new QName("http://example.com/q/ns", "foo"), PrimitiveType.QNAME,
+                        "bar", "bar", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    // TODO: qname == string
 
     @Test
     public void testExpressionNullString() throws Exception {

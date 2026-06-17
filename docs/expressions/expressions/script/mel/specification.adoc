@@ -610,12 +610,16 @@ Returns list composed of specified argument.
 If a scalar argument is provided, it returns a single-element list containing that argument.
 If a list is provided as argument, the same list is returned.
 
+This function always returns list.
+Even if `null` or `nil` input is provided, empty list is returned.
+
 .Example
 [source,mel]
 ----
 list('foo')          // Returns ['foo']
 list(['foo'])        // Returns ['foo']
 list(['foo','bar'])  // Returns ['foo','bar']
+list(nil)            // Returns []
 ----
 
 === lowerAscii

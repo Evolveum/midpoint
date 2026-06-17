@@ -417,6 +417,16 @@ If the variable `input` may be null, using a conditional is perhaps the only pra
 ----
 isPresent(input) ? input.contains('#') : false
 ----
+
+In some cases, this can be elegantly addressed by using global version of the function instead of using member function:
+
+.Correct use of global function
+[source,mel]
+----
+contains(input, '#')
+----
+
+See xref:../null/[] for more details.
 ====
 
 Conditional operator can handle branching of expression evaluation.
@@ -505,7 +515,8 @@ Use following constructs when dealing with `null` values:
 | `isPresent(foo)`
 
 | `foo.contains('#')`
-| `stringify(foo).contains('#')`
+| `contains(input, '#')` or +
+`stringify(foo).contains('#')`
 
 |===
 

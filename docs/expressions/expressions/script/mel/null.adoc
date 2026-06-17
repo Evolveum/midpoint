@@ -27,7 +27,8 @@ Use following constructs when dealing with `null` values:
 | `isPresent(foo)`
 
 | `foo.contains('#')`
-| `stringify(foo).contains('#')`
+| `contains(input, '#')` or +
+`stringify(foo).contains('#')`
 
 |===
 
@@ -192,6 +193,14 @@ Therefore, the only practical option in this case is to explicitly check for `nu
 isPresent(foo) ? foo.contains('#') : false
 ----
 
+In some cases, this can be elegantly addressed by using global version of the function instead of using member function:
+
+.Correct use of global function
+[source,mel]
+----
+contains(input, '#')
+----
+
 When working with strings, `stringify()` function can be very handy.
 As `stringify()` never returns null, any string function can be safely invoked on stringified value:
 
@@ -202,7 +211,7 @@ stringify(foo).contains('#')
 ----
 
 Such use of `stringify()` can be very handy in case of string formatting as well.
-If your intent is to return empty string instead of null
+If your intent is to return empty string instead of `null`.
 
 == See Also
 
