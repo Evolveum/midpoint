@@ -36,7 +36,7 @@ Non-ASCII characters may be escaped as Unicode sequences (for example, `\u010d` 
 [source,properties]
 ----
 # Use "Surname" instead of "Family name" in all English locales (en_US, en_GB, en_IE, etc.).
-UserType.fullName=Surname
+UserType.familyName=Surname
 ----
 
 The above localization override can be seen in the GUI as follows:
