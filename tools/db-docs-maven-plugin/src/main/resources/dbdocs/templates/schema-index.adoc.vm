@@ -1,0 +1,29 @@
+= Native PostgreSQL Database Schema
+
+This is generated reference documentation for the native PostgreSQL repository schema used by midPoint.
+
+The documentation is generated from schema and upgrade SQL scripts. It covers repository tables, views, indexes, foreign keys, enum types, routines, triggers, extensions, and numbered upgrade changes.
+
+[NOTE]
+====
+This documentation is intended for development, troubleshooting, and schema review.
+Repository schema changes should be made through SQL schema and upgrade scripts.
+====
+
+== Initial schema files
+
+#foreach ($sourceFile in $view.initialSourceFiles())
+* $r.scriptXref($sourceFile)
+#end
+
+== Upgrade files
+
+#foreach ($sourceFile in $view.upgradeSourceFiles())
+* $r.scriptXref($sourceFile)
+#end
+
+== How to use this reference
+
+Start with the script that defines the object you are looking for. Each script page lists schema objects defined by that script.
+
+Table sections describe columns, indexes, and foreign keys. Upgrade pages describe numbered schema changes applied to existing databases.

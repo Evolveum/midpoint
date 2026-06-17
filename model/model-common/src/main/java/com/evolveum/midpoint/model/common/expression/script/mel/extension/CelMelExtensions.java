@@ -104,6 +104,12 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             (polystring, string) -> stringEqualsPolyString(string, polystring))
             ),
 
+            // Does not work due to CEL limitation
+            // There is no easy way to set up custom equality function for objects.
+            // Setting up custom == overload for (qname,qname) clashes with default equals overload.
+            // Good chance would be to set up custom RuntimeEquality in CEL Runtime.
+            // However, CelRuntimeImpl hardcodes the RuntimeEquality to ProtoMessageRuntimeEquality
+            // (see CelRuntimeImpl.build() line 490)
 //            // qname == qname
 //            new Function(
 //                    CelFunctionDecl.newFunctionDeclaration(
@@ -640,7 +646,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "isNull_any", Object.class,
                             CelMelExtensions::isNull)),
 
-                // isPresent(any)
+            // isPresent(any)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "isPresent",
@@ -1579,8 +1585,11 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         return eodZdt.toInstant();
     }
 
-    // TODO: do we need this?
-    public static List<Object> melList(Object input) {
+    @NotNull
+    public static List<Object> melList(@Nullable Object input) {
+        if (isCelNull(input)) {
+            return ImmutableList.of();
+        }
         if (input instanceof List) {
             return (List)input;
         } else {

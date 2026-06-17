@@ -2239,6 +2239,32 @@
             </properties>
         </profile>
         <profile>
+            <id>db-docs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.evolveum.midpoint.tools</groupId>
+                        <artifactId>db-docs-maven-plugin</artifactId>
+                        <version>${project.version}</version>
+                        <configuration>
+                            <nativeSqlDirectory>${maven.multiModuleProjectDirectory}/config/sql/native</nativeSqlDirectory>
+                            <outputDirectory>${maven.multiModuleProjectDirectory}/docs/repository/native-postgresql</outputDirectory>
+                            <releaseNotesFile>${maven.multiModuleProjectDirectory}/release-notes.adoc</releaseNotesFile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>native-postgresql-schema-docs</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>generate-db-docs</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>coverage</id>
             <build>
                 <plugins>

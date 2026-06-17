@@ -143,6 +143,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed stale page recovery after viewing page source causing internal server error. See bug:MID-9998[]
 * Hided conflict warning on Shopping cart panel of the Request Access wizard in case of prune action. See bug:MID-11250[] and xref:#_behavior_changes_since_4_10[behavior changes since 4.10].
 * Fixed NPE when selecting deprecated action in resource object type editor. See bug:MID-10957[]
+* Fixed tooltip lifecycle in search popovers to prevent blinking, stuck, and duplicate tooltips. See bug:MID-10908[]
 
 === Releases Of Other Components
 

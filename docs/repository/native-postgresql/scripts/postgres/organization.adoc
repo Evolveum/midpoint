@@ -1,0 +1,265 @@
+= Native PostgreSQL Schema Script: postgres.sql - Organization
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Organization
+
+Organization objects, parent organization references, and organization hierarchy closure support.
+
+
+== Tables
+
+[[m_org]]
+=== `m_org`
+
+Stores organization objects and hierarchy-related organization attributes.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#OrgType`
+
+Inherits from: xref:roles-and-services.adoc#m_abstract_role[`m_abstract_role`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Organization object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `displayOrder`
+| `INTEGER`
+| 
+| Display ordering value used when presenting organizations.
+
+| `tenant`
+| `BOOLEAN`
+| 
+| Marks whether this organization represents a tenant.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_org_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_org_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_org_displayOrder_idx`
+| `displayOrder`
+| Speeds up ordering or filtering organizations by display order. Used for: organization display ordering
+
+| `m_org_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_org_identifier_idx`
+| `identifier`
+| Speeds up lookup by abstract role identifier. Used for: identifier searches
+
+| `m_org_validFrom_idx`
+| `validFrom`
+| Speeds up filtering by activation validity start time. Used for: validity interval filters
+
+| `m_org_validTo_idx`
+| `validTo`
+| Speeds up filtering by activation validity end time. Used for: validity interval filters
+
+| `m_org_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_org_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_org_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+|===
+
+[[m_ref_object_parent_org]]
+=== `m_ref_object_parent_org`
+
+Stores parent organization references that define the organization hierarchy.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the object that owns the parent organization reference.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_object_parent_org_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of parent organization references by target organization and relation. Used for: organization hierarchy parent and child searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+|===
+
+== Views
+
+Views present derived or queryable data from repository tables.
+
+[[view_m_org_closure]]
+=== `m_org_closure`
+
+Materialized transitive closure of organization parent-child relationships.
+
+Kind: materialized view
+
+== Functions and procedures
+
+Functions and procedures implement repository-side database behavior.
+
+[[routine_mark_org_closure_for_refresh]]
+=== `mark_org_closure_for_refresh`
+
+Marks organization closure data for refresh when parent organization references change.
+
+Kind: function
+
+[[routine_mark_org_closure_for_refresh_org]]
+=== `mark_org_closure_for_refresh_org`
+
+Marks organization closure data for refresh when organization rows are inserted or deleted.
+
+Kind: function
+
+[[routine_m_refresh_org_closure]]
+=== `m_refresh_org_closure`
+
+Refreshes the organization closure materialized view when a refresh is needed or explicitly forced.
+
+Kind: procedure
+
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+[cols="2,3,2,2", options="header"]
+|===
+| Trigger
+| Description
+| Table
+| Executes
+
+[[trigger_m_org_mark_refresh_tr]]
+| `m_org_mark_refresh_tr`
+| Marks organization closure data for refresh after organization rows are inserted or deleted.
+| xref:#m_org[`m_org`]
+| xref:#routine_mark_org_closure_for_refresh_org[`mark_org_closure_for_refresh_org`]
+
+[[trigger_m_org_mark_refresh_trunc_tr]]
+| `m_org_mark_refresh_trunc_tr`
+| Marks organization closure data for refresh after organization rows are truncated.
+| xref:#m_org[`m_org`]
+| xref:#routine_mark_org_closure_for_refresh_org[`mark_org_closure_for_refresh_org`]
+
+[[trigger_m_org_oid_delete_tr]]
+| `m_org_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_org`.
+| xref:#m_org[`m_org`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_org_oid_insert_tr]]
+| `m_org_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_org`.
+| xref:#m_org[`m_org`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_org_update_tr]]
+| `m_org_update_tr`
+| Maintains object update metadata before rows are updated in `m_org`.
+| xref:#m_org[`m_org`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_ref_object_parent_mark_refresh_tr]]
+| `m_ref_object_parent_mark_refresh_tr`
+| Marks organization closure data for refresh after parent organization reference row changes.
+| xref:#m_ref_object_parent_org[`m_ref_object_parent_org`]
+| xref:#routine_mark_org_closure_for_refresh[`mark_org_closure_for_refresh`]
+
+[[trigger_m_ref_object_parent_mark_refresh_trunc_tr]]
+| `m_ref_object_parent_mark_refresh_trunc_tr`
+| Marks organization closure data for refresh after parent organization references are truncated.
+| xref:#m_ref_object_parent_org[`m_ref_object_parent_org`]
+| xref:#routine_mark_org_closure_for_refresh[`mark_org_closure_for_refresh`]
+
+|===
+

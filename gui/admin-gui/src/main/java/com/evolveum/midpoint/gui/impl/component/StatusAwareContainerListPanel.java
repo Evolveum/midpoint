@@ -267,8 +267,13 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
      * Helper that extracts a display name depending on the value type and status.
      */
     private String getDisplayNameFor(C realValue, OperationResultStatusType status) {
-        if (status == OperationResultStatusType.IN_PROGRESS || status == OperationResultStatusType.UNKNOWN) {
+        if (status == OperationResultStatusType.IN_PROGRESS
+                || status == OperationResultStatusType.UNKNOWN) {
             return createStringResource("Generating.suggestion").getString();
+        }
+
+        if (status == OperationResultStatusType.FATAL_ERROR) {
+            return createStringResource("Generation.failed").getString();
         }
 
         if (realValue instanceof ResourceObjectTypeDefinitionType typeDef) {

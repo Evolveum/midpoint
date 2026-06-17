@@ -1,0 +1,159 @@
+= postgres-upgrade.sql - midPoint 4.6
+
+== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| <<change-11,Change 11>>
+| Adds connector availability flag.
+
+| <<change-10,Change 10>>
+| Adds resource template flag.
+
+| <<change-9,Change 9>>
+| Adds focus identity container table and normalized focus data indexing.
+
+| <<change-8,Change 8>>
+| Adds fuzzy string matching extension and `FOCUS_IDENTITY` container type value for smart correlation.
+
+| <<change-7,Change 7>>
+| Adds administrative availability status column to resources.
+
+| <<change-6,Change 6>>
+| Adds `AdministrativeAvailabilityStatusType` enum type.
+
+|===
+
+[[change-11]]
+== Change 11
+
+Since version: 4.6
+
+Adds connector availability flag.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_connector`
+| Modified table
+| Adds connector availability flag.
+
+|===
+
+[[change-10]]
+== Change 10
+
+Since version: 4.6
+
+Adds resource template flag.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_resource`
+| Modified table
+| Adds resource template flag.
+
+|===
+
+[[change-9]]
+== Change 9
+
+Since version: 4.6
+
+Adds focus identity container table and normalized focus data indexing.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_focus_identity`
+| New table
+| Stores focus identity containers for correlation.
+
+| `m_focus_identity_sourceResourceRefTargetOid_idx`
+| New index
+| Supports lookup of focus identities by source resource.
+
+| `m_focus`
+| Modified table
+| Adds normalized focus data storage.
+
+| `m_focus_normalizedData_idx`
+| New index
+| Supports filtering by normalized focus data.
+
+|===
+
+[[change-8]]
+== Change 8
+
+Since version: 4.6
+
+Adds fuzzy string matching extension and `FOCUS_IDENTITY` container type value for smart correlation.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `fuzzystrmatch`
+| New extension
+| Enables fuzzy string matching used by smart correlation.
+
+| `ContainerType`
+| Modified enum type
+| Adds `FOCUS_IDENTITY`.
+
+|===
+
+[[change-7]]
+== Change 7
+
+Since version: 4.6
+
+Adds administrative availability status column to resources.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_resource`
+| Modified table
+| Adds administrative availability status column.
+
+|===
+
+[[change-6]]
+== Change 6
+
+Since version: 4.6
+
+Adds `AdministrativeAvailabilityStatusType` enum type.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `AdministrativeAvailabilityStatusType`
+| New enum type
+| Adds administrative availability values for resources.
+
+|===
+

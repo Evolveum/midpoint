@@ -1380,6 +1380,26 @@ public class TestMelExpressions extends AbstractScriptTest {
                 " while expecting null", expressionResult);
     }
 
+    @Test
+    public void testExpressionListFunctionFoo() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-list-function.xml",
+                createVariables(
+                        "foo", "Foo", PrimitiveType.QNAME
+                ),
+                "Foo");
+    }
+
+    @Test
+    public void testExpressionListFunctionNull() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-list-function.xml",
+                createVariables(
+                        "foo", null, PrimitiveType.QNAME
+                )
+                // expected no values (empty list)
+        );
+    }
 
     @Test
     public void testExpressionQName() throws Exception {
