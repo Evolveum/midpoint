@@ -2592,7 +2592,7 @@ footer.app-footer a {
 
 .right-sidebar-help {
   @extend .bg-white;
-  @extend .border-left;
+  @extend .border-start;
   width: 350px;
 
   > .header {
