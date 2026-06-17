@@ -9,6 +9,7 @@ package com.evolveum.midpoint.rest.impl;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ConnectorGeneratorConstants;
+import com.evolveum.midpoint.model.api.util.SmartIntegrationOperationExecutor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
@@ -16,7 +17,11 @@ import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationOperationStatusInfoType;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration2.Configuration;
@@ -27,7 +32,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
@@ -37,11 +41,15 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
 
     private static final String CLASS_DOT = ConnectorDevelopmentRestController.class.getName() + ".";
 
+    public static final String CONTINUE_FROM = CLASS_DOT + "continueFrom";
     public static final String OPERATION_CREATE_CONNECTOR = CLASS_DOT + "CreateConnector";
     public static final String OPERATION_DISCOVER_BASIC_INFORMATION = CLASS_DOT + "DiscoverBasicInformation";
     public static final String OPERATION_DISCOVER_DOCUMENTATION = CLASS_DOT + "DiscoverDocumentation";
     public static final String OPERATION_PROCESS_DOCUMENTATION = CLASS_DOT + "ProcessDocumentation";
     public static final String OPERATION_GENERATE_ARTIFACT = CLASS_DOT + "GenerateArtifact";
+    public static final String OPERATION_GENERATE_NATIVE_SCHEMA = CLASS_DOT + "GenerateNativeSchema";
+    public static final String OPERATION_GENERATE_CONN_ID_SCHEMA = CLASS_DOT + "GenerateConnIdSchema";
+    public static final String OPERATION_GENERATE_AUTHENTICATION_SCRIPT = CLASS_DOT + "GenerateAuthenticationScript";
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_INFORMATION = CLASS_DOT + "DiscoverObjectClassInformation";
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_ATTRIBUTES = CLASS_DOT + "DiscoverObjectClassAttribute";
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_ENDPOINTS = CLASS_DOT + "DiscoverObjectClassEndpoints";
@@ -50,6 +58,26 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     @Autowired private MidpointConfiguration configuration;
     @Autowired private ModelService modelService;
 
+    @GetMapping(ConnectorGeneratorConstants.RPC_CONTINUE_FROM)
+    public ResponseEntity<?> continueFrom(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, CONTINUE_FROM);
+
+        try {
+            return createResponse(
+                    HttpStatus.OK,
+                    getConnectorDevelopmentOperation(oid, task, result),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
     @GetMapping(ConnectorGeneratorConstants.RPC_CREATE_CONNECTOR_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationCreateConnector(
             @RequestParam("oid") @NotNull String oid
@@ -57,47 +85,25 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_CREATE_CONNECTOR);
 
-       try {
-           var operation = getConnectorDevelopmentOperation(oid, task, result);
-           return createResponse(HttpStatus.OK, operation.submitCreateConnector(task, result), result);
-       } catch (Exception e) {
-            return handleException(result, e);
-       }
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitCreateConnector(task, result)
+        );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_CREATE_CONNECTOR_STATUS)
+    @GetMapping(ConnectorGeneratorConstants.RPC_CREATE_CONNECTOR_STATUS_INFO)
     public ResponseEntity<?> getCreateConnectorStatus(
             @RequestParam("token") @NotNull String token
     ) {
-        return handleStatusInfo(
-                token,
-                OPERATION_CREATE_CONNECTOR,
-                ConnectorDevelopmentService::getCreateConnectorStatus,
-                StatusInfo::getStatus
-        );
-    }
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_CREATE_CONNECTOR);
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_CREATE_CONNECTOR_MESSAGE)
-    public ResponseEntity<?> getCreateConnectorMessage(
-            @RequestParam("token") @NotNull String token
-    ) {
         return handleStatusInfo(
-                token,
-                OPERATION_CREATE_CONNECTOR,
-                ConnectorDevelopmentService::getCreateConnectorStatus,
-                statusInfo -> Objects.requireNonNull(statusInfo.getMessage()).getFallbackMessage()
-        );
-    }
-
-    @GetMapping(ConnectorGeneratorConstants.RPC_CREATE_CONNECTOR_RESULT)
-    public ResponseEntity<?> getCreateConnectorResult(
-            @RequestParam("token") @NotNull String token
-    ) {
-        return handleStatusInfo(
-                token,
-                OPERATION_CREATE_CONNECTOR,
-                ConnectorDevelopmentService::getCreateConnectorStatus,
-                StatusInfo::getResult
+                task,
+                result,
+                (service) -> service.getCreateConnectorStatus(token, task, result)
         );
     }
 
@@ -108,47 +114,25 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_DISCOVER_BASIC_INFORMATION);
 
-        try {
-            var operation = getConnectorDevelopmentOperation(oid, task, result);
-            return createResponse(HttpStatus.OK, operation.submitDiscoverBasicInformation(task, result), result);
-        } catch (Exception e) {
-            return handleException(result, e);
-        }
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitDiscoverBasicInformation(task, result)
+        );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_BASIC_INFORMATION_STATUS)
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_BASIC_INFORMATION_STATUS_INFO)
     public ResponseEntity<?> getDiscoverBasicInformationStatus(
             @RequestParam("token") @NotNull String token
     ) {
-        return handleStatusInfo(
-                token,
-                OPERATION_DISCOVER_BASIC_INFORMATION,
-                ConnectorDevelopmentService::getDiscoverBasicInformationStatus,
-                StatusInfo::getStatus
-        );
-    }
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_BASIC_INFORMATION);
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_BASIC_INFORMATION_MESSAGE)
-    public ResponseEntity<?> getDiscoverBasicInformationMessage(
-            @RequestParam("token") @NotNull String token
-    ) {
         return handleStatusInfo(
-                token,
-                OPERATION_DISCOVER_BASIC_INFORMATION,
-                ConnectorDevelopmentService::getDiscoverBasicInformationStatus,
-                statusInfo -> Objects.requireNonNull(statusInfo.getMessage()).getFallbackMessage()
-        );
-    }
-
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_BASIC_INFORMATION_RESULT)
-    public ResponseEntity<?> getDiscoverBasicInformationResult(
-            @RequestParam("token") @NotNull String token
-    ) {
-        return handleStatusInfo(
-                token,
-                OPERATION_DISCOVER_BASIC_INFORMATION,
-                ConnectorDevelopmentService::getDiscoverBasicInformationStatus,
-                StatusInfo::getResult
+                task,
+                result,
+                (service) -> service.getDiscoverBasicInformationStatus(token, task, result)
         );
     }
 
@@ -159,47 +143,25 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_DISCOVER_DOCUMENTATION);
 
-        try {
-            var operation = getConnectorDevelopmentOperation(oid, task, result);
-            return createResponse(HttpStatus.OK, operation.submitDiscoverDocumentation(task, result), result);
-        } catch (Exception e) {
-            return handleException(result, e);
-        }
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitDiscoverDocumentation(task, result)
+        );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_STATUS)
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_STATUS_INFO)
     public ResponseEntity<?> getDiscoverDocumentationStatus(
             @RequestParam("token") @NotNull String token
     ) {
-        return handleStatusInfo(
-                token,
-                OPERATION_DISCOVER_DOCUMENTATION,
-                ConnectorDevelopmentService::getDiscoverDocumentationStatus,
-                StatusInfo::getStatus
-        );
-    }
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_DOCUMENTATION);
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_MESSAGE)
-    public ResponseEntity<?> getDiscoverDocumentationMessage(
-            @RequestParam("token") @NotNull String token
-    ) {
         return handleStatusInfo(
-                token,
-                OPERATION_CREATE_CONNECTOR,
-                ConnectorDevelopmentService::getCreateConnectorStatus,
-                statusInfo -> Objects.requireNonNull(statusInfo.getMessage()).getFallbackMessage()
-        );
-    }
-
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_RESULT)
-    public ResponseEntity<?> getDiscoverDocumentationResult(
-            @RequestParam("token") @NotNull String token
-    ) {
-        return handleStatusInfo(
-                token,
-                OPERATION_DISCOVER_DOCUMENTATION,
-                ConnectorDevelopmentService::getDiscoverDocumentationStatus,
-                StatusInfo::getResult
+                task,
+                result,
+                (service) -> service.getDiscoverDocumentationStatus(token, task, result)
         );
     }
 
@@ -210,53 +172,116 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_PROCESS_DOCUMENTATION);
 
-        try {
-            var operation = getConnectorDevelopmentOperation(oid, task, result);
-            return createResponse(HttpStatus.OK, operation.submitProcessDocumentation(task, result), result);
-        } catch (Exception e) {
-            return handleException(result, e);
-        }
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitProcessDocumentation(task, result)
+        );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_PROCESS_DOCUMENTATION_STATUS)
+    @GetMapping(ConnectorGeneratorConstants.RPC_PROCESS_DOCUMENTATION_STATUS_INFO)
     public ResponseEntity<?> getProcessDocumentationStatus(
             @RequestParam("token") @NotNull String token
     ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_PROCESS_DOCUMENTATION);
+
         return handleStatusInfo(
-                token,
-                OPERATION_PROCESS_DOCUMENTATION,
-                ConnectorDevelopmentService::getProcessDocumentationStatus,
-                StatusInfo::getStatus
+                task,
+                result,
+                (service) -> service.getProcessDocumentationStatus(token, task, result)
         );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_PROCESS_DOCUMENTATION_MESSAGE)
-    public ResponseEntity<?> getProcessDocumentationMessage(
-            @RequestParam("token") @NotNull String token
+    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_NATIVE_SCHEMA_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationGenerateArtifact(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("objectClass") @NotNull String objectClass,
+            @RequestParam("retry") boolean retry
     ) {
-        return handleStatusInfo(
-                token,
-                OPERATION_PROCESS_DOCUMENTATION,
-                ConnectorDevelopmentService::getProcessDocumentationStatus,
-                statusInfo -> Objects.requireNonNull(statusInfo.getMessage()).getFallbackMessage()
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_NATIVE_SCHEMA);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitGenerateNativeSchema(objectClass, retry, task, result)
         );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_PROCESS_DOCUMENTATION_RESULT)
-    public ResponseEntity<?> getProcessDocumentationResult(
+    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_CONN_ID_SCHEMA_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationGenerateConnIdSchema(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("objectClass") @NotNull String objectClass,
+            @RequestParam("retry") boolean retry
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_CONN_ID_SCHEMA);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitGenerateConnIdSchema(objectClass, retry, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_AUTHENTICATION_SCRIPT_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationGenerateAuthenticationScript(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("retry") boolean retry
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_AUTHENTICATION_SCRIPT);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitGenerateAuthenticationScript(retry, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_ARTIFACT_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationGenerateArtifact(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("artifactType") @NotNull ConnDevArtifactType artifactType,
+            @RequestParam("retry") boolean retry
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_ARTIFACT);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitGenerateArtifact(artifactType, retry, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_ARTIFACT_STATUS_INFO)
+    public ResponseEntity<?> getGenerateArtifactStatus(
             @RequestParam("token") @NotNull String token
     ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_ARTIFACT);
+
         return handleStatusInfo(
-                token,
-                OPERATION_PROCESS_DOCUMENTATION,
-                ConnectorDevelopmentService::getProcessDocumentationStatus,
-                StatusInfo::getResult
+                task,
+                result,
+                (service) -> service.getGenerateArtifactStatus(token, task, result)
         );
     }
 
     @GetMapping(ConnectorGeneratorConstants.RPC_DOWNLOAD_CONNECTOR)
     public ResponseEntity<?> downloadConnector(
-            @RequestParam("bundleName") @NotNull String bundleName,
+            @RequestParam("name") @NotNull String name,
             HttpServletResponse response
     ) throws IOException {
         Configuration config = configuration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
@@ -273,13 +298,13 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             return ResponseEntity.internalServerError().body("Base connector directory configuration not found.");
         }
 
-        File connectorDir = new File(downloadDirectory, bundleName);
+        File connectorDir = new File(downloadDirectory, name);
 
         String canonicalBase = downloadDirectory.getCanonicalPath();
         String canonicalTarget = connectorDir.getCanonicalPath();
 
-        if (!canonicalTarget.equals(canonicalBase + "/" + bundleName)) {
-            return ResponseEntity.internalServerError().body("Invalid bundle name or version format.");
+        if (!canonicalTarget.equals(canonicalBase + "/" + name)) {
+            return ResponseEntity.internalServerError().body("Invalid name or version format.");
         }
 
         if (!connectorDir.exists() || !connectorDir.isDirectory()) {
@@ -287,7 +312,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         }
 
         response.setContentType("application/jar");
-        String cleanFileName = bundleName.replaceAll("[^a-zA-Z0-9.-]", "_") + ".jar";
+        String cleanFileName = name.replaceAll("[^a-zA-Z0-9.-]", "_") + ".jar";
 
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + cleanFileName + "\"");
 
@@ -350,28 +375,44 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         return connectorDevelopmentService.continueFrom(connectorDevelopmentType.asObjectable());
     }
 
-    private ResponseEntity<?> handleStatusInfo(
-            String token,
-            String operationName,
-            StatusInfoExecutor service,
-            Function<StatusInfo<?>, Object> extractor
+    private ResponseEntity<?> submitOperation(
+            String oid,
+            Task task,
+            OperationResult result,
+            SmartIntegrationOperationExecutor<ConnectorDevelopmentOperation, String> operationExecutor
     ) {
-        var task = initRequest();
-        var result = createSubresult(task, operationName);
-
         try {
-            var statusInfo = service.execute(connectorDevelopmentService, token, task, result);
-            return createResponse(HttpStatus.OK, extractor.apply(statusInfo), result);
+            return createResponse(
+                    HttpStatus.OK,
+                    operationExecutor.execute(
+                            getConnectorDevelopmentOperation(oid, task, result)
+                    ),
+                    result
+            );
         } catch (Exception e) {
             return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
         }
     }
 
-    @FunctionalInterface
-    public interface StatusInfoExecutor {
-        StatusInfo<?> execute(ConnectorDevelopmentService service,
-                String token,
-                Task task,
-                OperationResult result) throws SchemaException, ObjectNotFoundException;
+    private ResponseEntity<?> handleStatusInfo(
+            Task task,
+            OperationResult result,
+            SmartIntegrationOperationExecutor<ConnectorDevelopmentService, StatusInfo<?>> serviceExecutor
+    ) {
+        try {
+            var statusInfo = serviceExecutor.execute(connectorDevelopmentService);
+            var smartIntegrationOperationStatusInfoType = new SmartIntegrationOperationStatusInfoType();
+            smartIntegrationOperationStatusInfoType.setStatus(statusInfo.getStatus());
+            smartIntegrationOperationStatusInfoType.setMessage(statusInfo.getLocalizedMessage());
+            smartIntegrationOperationStatusInfoType.setResult(statusInfo.getResult());
+
+            return createResponse(HttpStatus.OK, smartIntegrationOperationStatusInfoType, result);
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
     }
 }
