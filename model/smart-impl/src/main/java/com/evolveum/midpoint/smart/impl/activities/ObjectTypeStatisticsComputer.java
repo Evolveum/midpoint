@@ -17,6 +17,9 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,8 +62,13 @@ public class ObjectTypeStatisticsComputer {
     /** Attribute local names that should be treated as DN attributes. */
     private static final Set<String> DN_ATTRIBUTE_LOCAL_NAMES = Set.of("dn", "distinguishedname");
 
-    /** Per-attribute incremental aggregation state, insertion-ordered to match attribute[] output. */
-    private final Map<QName, AttributeAggregation> aggregations = new LinkedHashMap<>();
+    /** Per-attribute incremental aggregation state. Attribute order is kept separately in attributeOrder. */
+    private final Map<QName, AttributeAggregation> aggregations = new ConcurrentHashMap<>();
+
+    /** Attribute processing order matching the resource object type definition. */
+    private final List<QName> attributeOrder = new ArrayList<>();
+
+    private final AtomicInteger size = new AtomicInteger();
 
     /**
      * JAXB statistics object being built.
@@ -69,12 +77,18 @@ public class ObjectTypeStatisticsComputer {
 
     public ObjectTypeStatisticsComputer(ResourceObjectTypeDefinition typeDefinition) {
         statistics.setSize(0);
-        List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions = typeDefinition.getAttributeDefinitions();
+
+        List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions =
+                typeDefinition.getAttributeDefinitions();
+
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
             ItemName attrName = attrDef.getItemName();
+
             if (!aggregations.containsKey(attrName)) {
                 boolean isDn = isDnAttribute(attrName);
                 aggregations.put(attrName, new AttributeAggregation(isDn));
+                attributeOrder.add(attrName);
+
                 statistics.getAttribute().add(
                         new ShadowAttributeStatisticsType().ref(toAttributeRef(attrName)));
             }
@@ -82,28 +96,34 @@ public class ObjectTypeStatisticsComputer {
     }
 
     public void process(ShadowType shadow) {
-        statistics.setSize(statistics.getSize() + 1);
-        for (Map.Entry<QName, AttributeAggregation> entry : aggregations.entrySet()) {
-            List<?> values = ShadowUtil.getAttributeValues(shadow, entry.getKey());
-            aggregateAttribute(entry.getValue(), values);
+        size.incrementAndGet();
+
+        for (QName attrName : attributeOrder) {
+            AttributeAggregation aggregation = aggregations.get(attrName);
+            if (aggregation == null) {
+                continue;
+            }
+
+            List<?> values = ShadowUtil.getAttributeValues(shadow, attrName);
+            aggregateAttribute(aggregation, values);
         }
     }
 
-    /**
-     * Performs post-processing of collected values and converts internal structures
-     * to JAXB-compatible statistics. Emits ALL value counts and pattern counts without topN restrictions.
-     */
-    public void postProcessStatistics() {
-        for (Iterator<ShadowAttributeStatisticsType> statisticsIterator = statistics.getAttribute().iterator(); statisticsIterator.hasNext(); ) {
+    public synchronized void postProcessStatistics() {
+        statistics.setSize(size.get());
+
+        for (var statisticsIterator = statistics.getAttribute().iterator(); statisticsIterator.hasNext(); ) {
             ShadowAttributeStatisticsType statisticsAttribute = statisticsIterator.next();
+
             QName attrKey = fromAttributeRef(statisticsAttribute.getRef());
             AttributeAggregation attributeAggregation = aggregations.get(attrKey);
+
             if (attributeAggregation == null) {
                 statisticsIterator.remove();
                 continue;
             }
 
-            statisticsAttribute.setMissingValueCount(attributeAggregation.missingCount);
+            statisticsAttribute.setMissingValueCount(attributeAggregation.missingCount.get());
             statisticsAttribute.setUniqueValueCount(attributeAggregation.valueCounts.size());
 
             emitAllValueCounts(attributeAggregation.valueCounts, statisticsAttribute);
@@ -114,10 +134,7 @@ public class ObjectTypeStatisticsComputer {
                 emitAllPatterns(attributeAggregation.firstTokenCounts, ShadowValuePatternType.FIRST_TOKEN, statisticsAttribute);
                 emitAllPatterns(attributeAggregation.lastTokenCounts, ShadowValuePatternType.LAST_TOKEN, statisticsAttribute);
             }
-
         }
-        statistics.getAttribute();
-        statistics.getAttributeTuple();
     }
 
     /**
@@ -134,7 +151,7 @@ public class ObjectTypeStatisticsComputer {
      */
     private void aggregateAttribute(AttributeAggregation agg, List<?> values) {
         if (values == null || values.isEmpty()) {
-            agg.missingCount++;
+            agg.missingCount.incrementAndGet();
             return;
         }
 
@@ -144,7 +161,7 @@ public class ObjectTypeStatisticsComputer {
 
         Object rawValue = values.get(0);
         if (rawValue == null) {
-            agg.missingCount++;
+            agg.missingCount.incrementAndGet();
             return;
         }
 
@@ -226,8 +243,13 @@ public class ObjectTypeStatisticsComputer {
     /**
      * Emits ALL value counts into the statistics without any topN limit.
      */
-    private void emitAllValueCounts(Map<String, Integer> valueCounts, ShadowAttributeStatisticsType stats) {
-        valueCounts.entrySet().stream()
+    private void emitAllValueCounts(
+            Map<String, Integer> valueCounts,
+            ShadowAttributeStatisticsType stats) {
+
+        List<Map.Entry<String, Integer>> snapshot = new ArrayList<>(valueCounts.entrySet());
+
+        snapshot.stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .forEach(entry -> stats.beginValueCount()
                         .value(entry.getKey())
@@ -241,7 +263,10 @@ public class ObjectTypeStatisticsComputer {
             Map<String, Integer> counts,
             ShadowValuePatternType type,
             ShadowAttributeStatisticsType stats) {
-        counts.entrySet().stream()
+
+        List<Map.Entry<String, Integer>> snapshot = new ArrayList<>(counts.entrySet());
+
+        snapshot.stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .forEach(entry -> stats.beginValuePatternCount()
                         .value(entry.getKey())
@@ -312,14 +337,17 @@ public class ObjectTypeStatisticsComputer {
      * Holds incrementally aggregated counts for a single attribute.
      */
     private static class AttributeAggregation {
-        int missingCount;
-        final Map<String, Integer> valueCounts = new HashMap<>();
-        final Map<String, Integer> dnSuffixCounts = new HashMap<>();
-        final Map<String, Integer> firstTokenCounts = new HashMap<>();
-        final Map<String, Integer> lastTokenCounts = new HashMap<>();
-        final boolean isDnAttribute;
 
-        AttributeAggregation(boolean isDnAttribute) {
+        private final AtomicInteger missingCount = new AtomicInteger();
+
+        private final ConcurrentMap<String, Integer> valueCounts = new ConcurrentHashMap<>();
+        private final ConcurrentMap<String, Integer> dnSuffixCounts = new ConcurrentHashMap<>();
+        private final ConcurrentMap<String, Integer> firstTokenCounts = new ConcurrentHashMap<>();
+        private final ConcurrentMap<String, Integer> lastTokenCounts = new ConcurrentHashMap<>();
+
+        private final boolean isDnAttribute;
+
+        private AttributeAggregation(boolean isDnAttribute) {
             this.isDnAttribute = isDnAttribute;
         }
     }

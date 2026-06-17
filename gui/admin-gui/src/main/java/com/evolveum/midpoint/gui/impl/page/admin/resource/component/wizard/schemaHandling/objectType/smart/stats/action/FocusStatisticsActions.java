@@ -18,11 +18,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,20 +61,35 @@ public final class FocusStatisticsActions {
             if (!forceRegeneration) {
                 GenericObjectType latestStatistics =
                         smartIntegrationService.getLatestFocusObjectStatistics(
-                                focusObjectTypeName, resourceOid, kind, intent, task.getResult());
+                                focusObjectTypeName,
+                                resourceOid,
+                                kind,
+                                intent,
+                                task.getResult());
 
                 if (latestStatistics != null) {
-                    showStatisticsPopup(target, pageBase, latestStatistics, preSelectedAttribute,
-                            focusObjectTypeName, resourceOid, kind, intent);
+                    showStatisticsPopup(
+                            target,
+                            pageBase,
+                            latestStatistics,
+                            preSelectedAttribute,
+                            focusObjectTypeName,
+                            resourceOid,
+                            kind,
+                            intent);
                     return;
                 }
             }
 
-            String taskOid = smartIntegrationService.regenerateFocusObjectStatistics(
-                    focusObjectTypeName, resourceOid, kind, intent, task, task.getResult());
-
-            showProgressPopup(target, pageBase, smartIntegrationService,
-                    focusObjectTypeName, resourceOid, kind, intent, taskOid, preSelectedAttribute);
+            showProgressPopup(
+                    target,
+                    pageBase,
+                    smartIntegrationService,
+                    focusObjectTypeName,
+                    resourceOid,
+                    kind,
+                    intent,
+                    preSelectedAttribute);
 
         } catch (CommonException e) {
             pageBase.error("Couldn't get focus statistics for " + focusObjectTypeName + ": " + e.getMessage());
@@ -119,7 +136,6 @@ public final class FocusStatisticsActions {
             @NotNull String resourceOid,
             @NotNull ShadowKindType kind,
             @NotNull String intent,
-            @NotNull String taskOid,
             @Nullable ItemPathType preSelectedAttribute) {
 
         String displayName = focusObjectTypeName.getLocalPart();
@@ -128,7 +144,15 @@ public final class FocusStatisticsActions {
                 pageBase.getMainPopupBodyId(),
                 pageBase.createStringResource("FocusStatisticsButton.regeneratingStatistics"),
                 pageBase.createStringResource("FocusStatisticsButton.regeneratingStatistics.subText", displayName),
-                () -> loadTask(pageBase, taskOid)) {
+                (ajaxTarget, threads) -> regenerateFocusObjectStatistics(
+                        ajaxTarget,
+                        pageBase,
+                        smartIntegrationService,
+                        threads,
+                        focusObjectTypeName,
+                        resourceOid,
+                        kind,
+                        intent)) {
 
             @Override
             protected boolean showResultAfterCompletion() {
@@ -137,8 +161,15 @@ public final class FocusStatisticsActions {
 
             @Override
             protected void onShowResults(AjaxRequestTarget target) {
-                onProgressFinished(target, pageBase, smartIntegrationService,
-                        focusObjectTypeName, resourceOid, kind, intent, preSelectedAttribute);
+                onProgressFinished(
+                        target,
+                        pageBase,
+                        smartIntegrationService,
+                        focusObjectTypeName,
+                        resourceOid,
+                        kind,
+                        intent,
+                        preSelectedAttribute);
             }
 
             @Override
@@ -148,6 +179,46 @@ public final class FocusStatisticsActions {
         };
 
         pageBase.replaceMainPopup(panel, target);
+    }
+
+    private static @Nullable IModel<TaskType> regenerateFocusObjectStatistics(
+            @NotNull AjaxRequestTarget target,
+            @NotNull PageBase pageBase,
+            @NotNull SmartIntegrationService smartIntegrationService,
+            Integer threads,
+            @NotNull QName focusObjectTypeName,
+            @NotNull String resourceOid,
+            @NotNull ShadowKindType kind,
+            @NotNull String intent) {
+
+        Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_FOCUS_STATISTICS);
+
+        try {
+            String taskOid = smartIntegrationService.regenerateFocusObjectStatistics(
+                    focusObjectTypeName,
+                    resourceOid,
+                    kind,
+                    intent,
+                    threads,
+                    task,
+                    task.getResult());
+
+            return new LoadableDetachableModel<>() {
+
+                @Override
+                protected TaskType load() {
+                    return loadTask(pageBase, taskOid);
+                }
+            };
+
+        } catch (CommonException e) {
+            pageBase.error("Couldn't regenerate focus statistics for " + focusObjectTypeName + ": " + e.getMessage());
+            target.add(pageBase.getFeedbackPanel());
+            return null;
+
+        } finally {
+            task.getResult().computeStatusIfUnknown();
+        }
     }
 
     private static void onProgressFinished(
@@ -165,7 +236,11 @@ public final class FocusStatisticsActions {
         try {
             GenericObjectType latestStatistics =
                     smartIntegrationService.getLatestFocusObjectStatistics(
-                            focusObjectTypeName, resourceOid, kind, intent, task.getResult());
+                            focusObjectTypeName,
+                            resourceOid,
+                            kind,
+                            intent,
+                            task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");
@@ -173,11 +248,19 @@ public final class FocusStatisticsActions {
                 return;
             }
 
-            showStatisticsPopup(target, pageBase, latestStatistics, preSelectedAttribute,
-                    focusObjectTypeName, resourceOid, kind, intent);
+            showStatisticsPopup(
+                    target,
+                    pageBase,
+                    latestStatistics,
+                    preSelectedAttribute,
+                    focusObjectTypeName,
+                    resourceOid,
+                    kind,
+                    intent);
 
         } catch (CommonException e) {
-            pageBase.error("Couldn't load regenerated focus statistics for " + focusObjectTypeName + ": " + e.getMessage());
+            pageBase.error("Couldn't load regenerated focus statistics for "
+                    + focusObjectTypeName + ": " + e.getMessage());
             target.add(pageBase.getFeedbackPanel());
         } finally {
             task.getResult().computeStatusIfUnknown();

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -145,9 +146,16 @@ public class StatisticsService {
      *
      * @return OID of the running or newly created statistics computation task
      */
-    public @NotNull String regenerateObjectClassStatistics(String resourceOid, QName objectClassName,
-            Task task, OperationResult parentResult) throws CommonException {
-        String runningTaskOid = findRunningObjectClassStatisticsComputationTaskOid(resourceOid, objectClassName, parentResult, task);
+    public @NotNull String regenerateObjectClassStatistics(
+            String resourceOid,
+            QName objectClassName,
+            Integer threads,
+            Task task,
+            OperationResult parentResult) throws CommonException {
+
+        String runningTaskOid = findRunningObjectClassStatisticsComputationTaskOid(
+                resourceOid, objectClassName, parentResult, task);
+
         if (runningTaskOid != null) {
             LOGGER.debug("There is already a running statistics computation task (OID {}) for resourceOid {}, objectClassName {};"
                             + " will not start another one",
@@ -163,20 +171,29 @@ public class StatisticsService {
         try {
             deleteStatisticsForResource(resourceOid, objectClassName, parentResult);
 
+            ActivityDefinitionType activity = new ActivityDefinitionType()
+                    .work(new WorkDefinitionsType()
+                            .objectClassStatisticsComputation(new ObjectClassStatisticsComputationWorkDefinitionType()
+                                    .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                    .objectClassName(objectClassName)));
+
+            if (threads != null && threads > 0) {
+                ActivityDefinitionUtil.findOrCreateDistribution(activity)
+                        .setWorkerThreads(threads);
+            }
+
             var oid = modelInteractionService.submit(
-                    new ActivityDefinitionType()
-                            .work(new WorkDefinitionsType()
-                                    .objectClassStatisticsComputation(new ObjectClassStatisticsComputationWorkDefinitionType()
-                                            .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
-                                            .objectClassName(objectClassName))),
+                    activity,
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
                             .name("Regenerate statistics for " + objectClassName.getLocalPart() + " on " + resourceOid)
                             .cleanupAfterCompletion(DEFAULT_STATISTICS_TTL)),
-                    task, result);
+                    task,
+                    result);
 
             LOGGER.debug("Submitted regenerate statistics operation for resourceOid {}, objectClassName {}: {}",
                     resourceOid, objectClassName, oid);
             return oid;
+
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -195,13 +212,19 @@ public class StatisticsService {
      *
      * @return OID of the running or newly created statistics computation task
      */
-    public @NotNull String regenerateObjectTypeStatistics(String resourceOid,
+    public @NotNull String regenerateObjectTypeStatistics(
+            String resourceOid,
             ResourceObjectTypeIdentification resourceObjectTypeIdentification,
-            Task task, OperationResult parentResult) throws CommonException {
+            Integer threads,
+            Task task,
+            OperationResult parentResult) throws CommonException {
+
         ShadowKindType kind = resourceObjectTypeIdentification.getKind();
         String intent = resourceObjectTypeIdentification.getIntent();
 
-        String runningTaskOid = findRunningObjectTypeStatisticsComputationTaskOid(resourceOid, kind.value(), intent, parentResult, task);
+        String runningTaskOid = findRunningObjectTypeStatisticsComputationTaskOid(
+                resourceOid, kind.value(), intent, parentResult, task);
+
         if (runningTaskOid != null) {
             LOGGER.debug("There is already a running statistics computation task (OID {}) for resourceOid {}, kind {}, intent {};"
                             + " will not start another one",
@@ -218,21 +241,30 @@ public class StatisticsService {
         try {
             deleteObjectTypeStatistics(resourceOid, kind.value(), intent, parentResult);
 
+            ActivityDefinitionType activity = new ActivityDefinitionType()
+                    .work(new WorkDefinitionsType()
+                            .objectTypeStatisticsComputation(new ObjectTypeStatisticsComputationWorkDefinitionType()
+                                    .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                    .kind(kind)
+                                    .intent(intent)));
+
+            if (threads != null && threads > 0) {
+                ActivityDefinitionUtil.findOrCreateDistribution(activity)
+                        .setWorkerThreads(threads);
+            }
+
             var oid = modelInteractionService.submit(
-                    new ActivityDefinitionType()
-                            .work(new WorkDefinitionsType()
-                                    .objectTypeStatisticsComputation(new ObjectTypeStatisticsComputationWorkDefinitionType()
-                                            .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
-                                            .kind(resourceObjectTypeIdentification.getKind())
-                                            .intent(resourceObjectTypeIdentification.getIntent()))),
+                    activity,
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
                             .name("Regenerate statistics for " + resourceObjectTypeIdentification + " on " + resourceOid)
                             .cleanupAfterCompletion(DEFAULT_STATISTICS_TTL)),
-                    task, result);
+                    task,
+                    result);
 
             LOGGER.debug("Submitted regenerate statistics operation for resourceOid {}, kind {}, intent {}: {}",
                     resourceOid, kind, intent, oid);
             return oid;
+
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -426,7 +458,10 @@ public class StatisticsService {
                     .and().item(ShadowType.F_INTENT).eq(typeIdentification.getIntent())
                     .build();
             repositoryService.searchObjectsIterative(ShadowType.class, query,
-                    (shadow, lResult) -> { computer.process(shadow.asObjectable()); return true; },
+                    (shadow, lResult) -> {
+                        computer.process(shadow.asObjectable());
+                        return true;
+                    },
                     null, true, result);
             computer.postProcessStatistics();
             var statistics = computer.getStatistics()
@@ -642,6 +677,7 @@ public class StatisticsService {
             @NotNull String resourceOid,
             @NotNull ShadowKindType kind,
             @NotNull String intent,
+            Integer threads,
             Task task,
             OperationResult parentResult) throws CommonException {
         String runningTaskOid = findRunningFocusObjectStatisticsComputationTaskOid(
@@ -663,14 +699,21 @@ public class StatisticsService {
         try {
             deleteFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, parentResult);
 
+            ActivityDefinitionType activity = new ActivityDefinitionType()
+                    .work(new WorkDefinitionsType()
+                            .focusObjectStatisticsComputation(new FocusObjectStatisticsComputationWorkDefinitionType()
+                                    .type(objectTypeName)
+                                    .resourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE))
+                                    .kind(kind)
+                                    .intent(intent)));
+
+            if (threads != null && threads > 0) {
+                ActivityDefinitionUtil.findOrCreateDistribution(activity)
+                        .setWorkerThreads(threads);
+            }
+
             var oid = modelInteractionService.submit(
-                    new ActivityDefinitionType()
-                            .work(new WorkDefinitionsType()
-                                    .focusObjectStatisticsComputation(new FocusObjectStatisticsComputationWorkDefinitionType()
-                                            .type(objectTypeName)
-                                            .resourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE))
-                                            .kind(kind)
-                                            .intent(intent))),
+                    activity,
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
                             .name("Regenerate focus object statistics for " + objectTypeName.getLocalPart())
                             .cleanupAfterCompletion(DEFAULT_STATISTICS_TTL)),

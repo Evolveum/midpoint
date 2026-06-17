@@ -2,9 +2,8 @@
  * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
- *
- *
  */
+
 package com.evolveum.midpoint.smart.impl.activities;
 
 import com.evolveum.midpoint.prism.*;
@@ -17,6 +16,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,30 +39,30 @@ public class FocusObjectStatisticsComputer {
     /** Compiled pattern for token delimiters (used by Matcher). */
     private static final Pattern DELIMITER_PATTERN = Pattern.compile(DELIMITERS);
 
-    /**
-     * Regular expression pattern for matching URLs.
-     */
+    /** Regular expression pattern for matching URLs. */
     private static final Pattern URL_PATTERN = Pattern.compile(
             "^(https?://|www\\.)\\S+$",
             Pattern.CASE_INSENSITIVE
     );
 
-    /**
-     * Regular expression pattern for matching email addresses.
-     */
+    /** Regular expression pattern for matching email addresses. */
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
     );
 
-    /**
-     * Regular expression pattern for matching phone numbers.
-     */
+    /** Regular expression pattern for matching phone numbers. */
     private static final Pattern PHONE_PATTERN = Pattern.compile(
             "^\\+?[\\d\\s\\-()]{7,20}$"
     );
 
-    /** Per-property incremental aggregation state, insertion-ordered to match attribute[] output. */
-    private final Map<ItemName, PropertyAggregation> aggregations = new LinkedHashMap<>();
+    /** Per-property incremental aggregation state. Property order is kept separately in propertyOrder. */
+    private final Map<ItemName, PropertyAggregation> aggregations = new ConcurrentHashMap<>();
+
+    /** Property processing order matching the prism object definition. */
+    private final List<ItemName> propertyOrder = new ArrayList<>();
+
+    /** Number of processed objects. */
+    private final AtomicInteger size = new AtomicInteger();
 
     /** JAXB statistics object being built. */
     private final ShadowObjectClassStatisticsType statistics = new ShadowObjectClassStatisticsType();
@@ -93,6 +95,8 @@ public class FocusObjectStatisticsComputer {
             ItemName propName = propDef.getItemName();
             if (!aggregations.containsKey(propName)) {
                 aggregations.put(propName, new PropertyAggregation());
+                propertyOrder.add(propName);
+
                 statistics.getAttribute().add(
                         new ShadowAttributeStatisticsType().ref(toPropertyRef(propName)));
             }
@@ -103,53 +107,61 @@ public class FocusObjectStatisticsComputer {
      * Processes a single midpoint object, extracting values for all tracked properties.
      */
     public <O extends ObjectType> void process(O object) {
-        statistics.setSize(statistics.getSize() + 1);
+        size.incrementAndGet();
+
         PrismObject<? extends ObjectType> prismObject = object.asPrismObject();
 
-        for (Map.Entry<ItemName, PropertyAggregation> entry : aggregations.entrySet()) {
-            ItemName propName = entry.getKey();
-            PropertyAggregation agg = entry.getValue();
+        for (ItemName propName : propertyOrder) {
+            PropertyAggregation aggregation = aggregations.get(propName);
+            if (aggregation == null) {
+                continue;
+            }
 
             PrismProperty<?> property = prismObject.findProperty(propName);
-            if (property == null || property.isEmpty()) {
-                agg.missingCount++;
-                continue;
-            }
-
-            Collection<?> realValues = property.getRealValues();
-            if (realValues.isEmpty()) {
-                agg.missingCount++;
-                continue;
-            }
-
-            // Only aggregate single-valued properties for meaningful statistics
-            if (realValues.size() > 1) {
-                continue;
-            }
-
-            Object rawValue = realValues.iterator().next();
-            if (rawValue == null) {
-                agg.missingCount++;
-                continue;
-            }
-
-            String stringValue = toStringValue(rawValue);
-            if (stringValue == null || stringValue.isBlank()) {
-                agg.missingCount++;
-                continue;
-            }
-
-            agg.valueCounts.merge(stringValue, 1, Integer::sum);
-            aggregateTokenPatterns(agg, stringValue);
+            aggregateProperty(aggregation, property);
         }
+    }
+
+    private void aggregateProperty(PropertyAggregation agg, PrismProperty<?> property) {
+        if (property == null || property.isEmpty()) {
+            agg.missingCount.incrementAndGet();
+            return;
+        }
+
+        Collection<?> realValues = property.getRealValues();
+        if (realValues.isEmpty()) {
+            agg.missingCount.incrementAndGet();
+            return;
+        }
+
+        if (realValues.size() > 1) {
+            return;
+        }
+
+        Object rawValue = realValues.iterator().next();
+        if (rawValue == null) {
+            agg.missingCount.incrementAndGet();
+            return;
+        }
+
+        String stringValue = toStringValue(rawValue);
+        if (stringValue == null || stringValue.isBlank()) {
+            agg.missingCount.incrementAndGet();
+            return;
+        }
+
+        agg.valueCounts.merge(stringValue, 1, Integer::sum);
+        aggregateTokenPatterns(agg, stringValue);
     }
 
     /**
      * Performs post-processing of collected values and converts internal structures
      * to JAXB-compatible statistics.
      */
-    public void postProcessStatistics() {
-        for (Iterator<ShadowAttributeStatisticsType> it = statistics.getAttribute().iterator(); it.hasNext(); ) {
+    public synchronized void postProcessStatistics() {
+        statistics.setSize(size.get());
+
+        for (var it = statistics.getAttribute().iterator(); it.hasNext(); ) {
             ShadowAttributeStatisticsType statsAttr = it.next();
             ItemName propKey = fromPropertyRef(statsAttr.getRef());
             PropertyAggregation agg = aggregations.get(propKey);
@@ -158,7 +170,7 @@ public class FocusObjectStatisticsComputer {
                 continue;
             }
 
-            statsAttr.setMissingValueCount(agg.missingCount);
+            statsAttr.setMissingValueCount(agg.missingCount.get());
             statsAttr.setUniqueValueCount(agg.valueCounts.size());
 
             emitAllValueCounts(agg.valueCounts, statsAttr);
@@ -205,6 +217,7 @@ public class FocusObjectStatisticsComputer {
         if (rawValue instanceof PolyString polyString) {
             return polyString.getOrig();
         }
+
         return String.valueOf(rawValue).trim();
     }
 
@@ -246,8 +259,13 @@ public class FocusObjectStatisticsComputer {
     /**
      * Emits ALL value counts into the statistics without any topN limit.
      */
-    private void emitAllValueCounts(Map<String, Integer> valueCounts, ShadowAttributeStatisticsType stats) {
-        valueCounts.entrySet().stream()
+    private void emitAllValueCounts(
+            Map<String, Integer> valueCounts,
+            ShadowAttributeStatisticsType stats) {
+
+        List<Map.Entry<String, Integer>> snapshot = new ArrayList<>(valueCounts.entrySet());
+
+        snapshot.stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .forEach(entry -> stats.beginValueCount()
                         .value(entry.getKey())
@@ -261,7 +279,10 @@ public class FocusObjectStatisticsComputer {
             Map<String, Integer> counts,
             ShadowValuePatternType type,
             ShadowAttributeStatisticsType stats) {
-        counts.entrySet().stream()
+
+        List<Map.Entry<String, Integer>> snapshot = new ArrayList<>(counts.entrySet());
+
+        snapshot.stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .forEach(entry -> stats.beginValuePatternCount()
                         .value(entry.getKey())
@@ -295,9 +316,11 @@ public class FocusObjectStatisticsComputer {
      * Holds incrementally aggregated counts for a single property.
      */
     private static class PropertyAggregation {
-        int missingCount;
-        final Map<String, Integer> valueCounts = new HashMap<>();
-        final Map<String, Integer> firstTokenCounts = new HashMap<>();
-        final Map<String, Integer> lastTokenCounts = new HashMap<>();
+
+        private final AtomicInteger missingCount = new AtomicInteger();
+
+        private final ConcurrentMap<String, Integer> valueCounts = new ConcurrentHashMap<>();
+        private final ConcurrentMap<String, Integer> firstTokenCounts = new ConcurrentHashMap<>();
+        private final ConcurrentMap<String, Integer> lastTokenCounts = new ConcurrentHashMap<>();
     }
 }

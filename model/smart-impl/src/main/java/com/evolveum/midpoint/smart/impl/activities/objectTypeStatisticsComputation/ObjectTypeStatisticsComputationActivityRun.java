@@ -84,7 +84,6 @@ public class ObjectTypeStatisticsComputationActivityRun
         }
 
         ensureNoDryRun();
-        ensureNoParallelism();
 
         // Resolve resource
         resource = getActivityHandler().getModelBeans().modelService

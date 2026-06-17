@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.Duration;
@@ -304,14 +303,14 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
+    public String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Integer threads, Task task, OperationResult parentResult)
             throws CommonException {
-        return statisticsService.regenerateObjectClassStatistics(resourceOid, objectClassName, task, parentResult);
+        return statisticsService.regenerateObjectClassStatistics(resourceOid, objectClassName, threads, task, parentResult);
     }
 
     @Override
-    public String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Task task, OperationResult result) throws CommonException {
-        return statisticsService.regenerateObjectTypeStatistics(resourceOid, resourceObjectTypeIdentification, task, result);
+    public String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Integer threads, Task task, OperationResult result) throws CommonException {
+        return statisticsService.regenerateObjectTypeStatistics(resourceOid, resourceObjectTypeIdentification, threads, task, result);
     }
 
     @Override
@@ -348,10 +347,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid,
             ShadowKindType kind,
             String intent,
+            Integer threads,
             Task task,
             OperationResult result)
             throws CommonException {
-        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, task, result);
+        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, threads, task, result);
     }
 
     @Override
