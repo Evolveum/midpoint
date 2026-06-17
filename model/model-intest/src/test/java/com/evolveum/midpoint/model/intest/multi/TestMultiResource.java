@@ -1115,11 +1115,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                         .assertModifiedExclusive(
                                 UserType.F_NAME,
                                 UserType.F_FULL_NAME,
-                                UserType.F_DISPLAY_NAME,
                                 InfraItemName.METADATA)
                         .assertPolyStringModification(UserType.F_NAME, "jack", toName)
                         .assertPolyStringModification(UserType.F_FULL_NAME, "Jack Sparrow", toFullName)
-                        .assertPolyStringModification(UserType.F_DISPLAY_NAME, "Jack Sparrow", toFullName)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).resourceOid(RESOURCE_DUMMY_OID).find()

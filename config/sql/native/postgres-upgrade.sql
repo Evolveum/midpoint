@@ -1462,6 +1462,11 @@ CREATE INDEX m_connector_typeVersionHost_key
     WHERE connectorHostRefTargetOid IS NOT NULL;
 $aa$);
 
+-- @change: Adds display and preferred name columns and indexes to users.
+-- @since: 4.11
+-- @affects: table m_user | Modified table | Adds display and preferred name columns.
+-- @affects: index m_user_displayNameOrig_idx | New index | Supports lookup by original display name.
+-- @affects: index m_user_preferredNameOrig_idx | New index | Supports lookup by original preferred name.
 call apply_change(58, $aa$
 ALTER TABLE m_user
     ADD COLUMN displayNameOrig TEXT,

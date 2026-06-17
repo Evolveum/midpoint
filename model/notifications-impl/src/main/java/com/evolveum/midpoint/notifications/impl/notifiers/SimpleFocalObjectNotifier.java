@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.Date;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -24,14 +23,13 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleFocalObjectNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * This is the "main" notifier that deals with modifications of focal objects i.e. AssignmentHolderType and below.
@@ -163,17 +161,8 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         return body.toString();
     }
 
-    @Nullable
     private String getDisplayName(AssignmentHolderType focus) {
-        String displayName;
-        if (focus instanceof UserType) {
-            displayName = PolyString.getOrig(((UserType) focus).getDisplayName());
-        } else if (focus instanceof AbstractRoleType) {
-            displayName = PolyString.getOrig(((AbstractRoleType) focus).getDisplayName());
-        } else {
-            displayName = "";          // TODO
-        }
-        return displayName;
+        return PolyString.getOrig(ObjectTypeUtil.getDisplayName(focus));
     }
 
     @Override

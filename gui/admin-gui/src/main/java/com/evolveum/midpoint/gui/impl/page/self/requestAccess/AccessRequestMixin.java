@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -22,6 +21,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -74,8 +74,8 @@ public interface AccessRequestMixin {
 
     default String getDefaultUserDisplayName(PrismObject<UserType> o) {
         String name = WebComponentUtil.getOrigStringFromPoly(o.getName());
-        String displayName = WebComponentUtil.getOrigStringFromPoly(o.asObjectable().getDisplayName());
+        String displayName = WebComponentUtil.getOrigStringFromPoly(ObjectTypeUtil.getDisplayName(o));
 
-        return StringUtils.isNotEmpty(displayName) ? displayName + " (" + name + ")" : name;
+        return displayName != null && !displayName.equals(name) ? displayName + " (" + name + ")" : name;
     }
 }

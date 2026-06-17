@@ -24,7 +24,6 @@ public class Components {
     public static final String FOCUS_LIFECYCLE = "focusLifecycle";
     public static final String OBJECT_TEMPLATE_AFTER_ASSIGNMENTS = "objectTemplateAfterAssignments";
     public static final String FOCUS_CREDENTIALS = "focusCredentials";
-    public static final String FOCUS_DISPLAY_NAME = "focusDisplayName";
     public static final String FOCUS_POLICY_RULES = "focusPolicyRules";
     public static final String POLICY_RULE_COUNTERS = "policyRuleCounters";
     public static final String EXECUTION = "execution";

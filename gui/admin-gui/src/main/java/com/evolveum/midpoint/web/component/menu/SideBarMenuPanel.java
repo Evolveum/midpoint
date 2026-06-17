@@ -36,10 +36,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -133,11 +133,8 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         }
 
         if (principalObj instanceof MidPointPrincipal principal) {
-            if (principal.getFocus() instanceof UserType user) {
-                String displayName = WebComponentUtil.getOrigStringFromPoly(user.getDisplayName());
-                if (StringUtils.isNotEmpty(displayName)) {
-                    return displayName;
-                }
+            if (principal.getFocus() != null) {
+                return WebComponentUtil.getOrigStringFromPoly(ObjectTypeUtil.getDisplayName(principal.getFocus()));
             }
             return WebComponentUtil.getOrigStringFromPoly(principal.getName());
         }

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import org.apache.wicket.model.IModel;
@@ -122,8 +123,8 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
     }
 
     @Override
-    protected QName getDisplayNamePropertyName() {
-        return UserType.F_DISPLAY_NAME;
+    protected IModel<String> getDisplayNameModel() {
+        return () -> WebComponentUtil.getDisplayName(getModelObject().asPrismObject());
     }
 
     @Override

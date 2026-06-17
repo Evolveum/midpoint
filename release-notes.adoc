@@ -437,7 +437,7 @@ Modified:
 * 200-lookup-languages.xml - Added Slovenian (sl) and Latvian (lv) languages.
 * 210-lookup-locales.xml - Added Slovenian (sl) and Latvian (lv) locales.
 * 250-mark-privileged-access.xml - Added archetype.
-* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction.
+* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName.
 * 300-policy-require-classification.xml - Added archetype.
 * 300-policy-require-owner.xml - Added archetype.
 * 000-system-configuration.xml -  Poly-string translation keys added.

@@ -342,14 +342,9 @@ public final class WebComponentUtil {
             return getReferencedObjectDisplayNamesAndNames(ref, false, true);
         }
         ObjectType object = prismObject.asObjectable();
-        String displayName = null;
-        if (object instanceof UserType) {
-            displayName = getTranslatedPolyString(((UserType) object).getDisplayName());
-        } else if (object instanceof AbstractRoleType) {
-            displayName = getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
-        }
+        String displayName = getTranslatedPolyString(ObjectTypeUtil.getDisplayName(object));
         String name = getTranslatedPolyString(object.getName());
-        return StringUtils.isNotEmpty(displayName) ? displayName + " (" + name + ")" : name;
+        return StringUtils.isNotEmpty(displayName) && !Objects.equals(displayName, name) ? displayName + " (" + name + ")" : name;
     }
 
     public static String getReferencedObjectDisplayNamesAndNames(List<ObjectReferenceType> refs, boolean showTypes) {

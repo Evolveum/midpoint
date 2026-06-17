@@ -1334,7 +1334,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
                 .summarySecondaryDelta()
                 .display()
                 .assertModify()
-                .assertModifications(2)
+                .assertModifications(1)
                 .end()
                 .end()
                 .projectionContexts()

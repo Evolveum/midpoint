@@ -690,13 +690,24 @@ public class ObjectTypeUtil {
     }
 
     public static PolyStringType getDisplayName(ObjectType object) {
-        if (object instanceof AbstractRoleType) {
-            return ((AbstractRoleType) object).getDisplayName();
-        } else if (object instanceof UserType) {
-            return ((UserType) object).getFullName();
-        } else {
+        if (object == null) {
             return null;
+        } else if (object instanceof AbstractRoleType) {
+            return firstNonEmpty(((AbstractRoleType) object).getDisplayName(), object.getName());
+        } else if (object instanceof UserType) {
+            return firstNonEmpty(((UserType) object).getDisplayName(), ((UserType) object).getFullName(), object.getName());
+        } else {
+            return object.getName();
         }
+    }
+
+    private static PolyStringType firstNonEmpty(PolyStringType... values) {
+        for (PolyStringType value : values) {
+            if (StringUtils.isNotBlank(getOrig(value))) {
+                return value;
+            }
+        }
+        return null;
     }
 
     public static PolyStringType getDisplayName(Referencable ref) {

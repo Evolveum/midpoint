@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
-import java.util.Objects;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -19,13 +17,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcesso
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -200,14 +195,6 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                         partialProcessingOptions::getFocusCredentials,
                         Projector.class, context, now, task, result);
 
-                // Maintain UserType.displayName (computed from preferredName/fullName)
-
-                medic.partialExecute(
-                        Components.FOCUS_DISPLAY_NAME, this,
-                        this::maintainUserDisplayName,
-                        () -> PartialProcessingTypeType.PROCESS,
-                        Projector.class, context, now, task, result);
-
                 // We need to evaluate this as a last step. We need to make sure we have all the
                 // focus deltas so we can properly trigger the rules.
 
@@ -259,45 +246,6 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
         medic.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
         LensUtil.checkContextSanity(context, "focus processing");
-    }
-
-    @ProcessorMethod
-    private <AH extends AssignmentHolderType> void maintainUserDisplayName(
-            LensContext<AH> context, XMLGregorianCalendar now, Task task, OperationResult result)
-            throws SchemaException {
-        LensFocusContext<AH> focusContext = context.getFocusContext();
-        if (!focusContext.represents(UserType.class) || focusContext.isDelete()) {
-            return;
-        }
-
-        PrismObject<AH> objectNew = focusContext.getObjectNew();
-        if (objectNew == null) {
-            return;
-        }
-
-        UserType user = (UserType) objectNew.asObjectable();
-        String currentDisplayName = StringUtils.trimToNull(PolyString.getOrig(user.getDisplayName()));
-        String targetDisplayName = determineUserDisplayName(user);
-        if (Objects.equals(currentDisplayName, targetDisplayName)) {
-            return;
-        }
-
-        LOGGER.trace("Updating user displayName to {}", targetDisplayName);
-        PropertyDelta<?> displayNameDelta = targetDisplayName != null ?
-                prismContext.deltaFactory().property()
-                        .createModificationReplaceProperty(
-                                UserType.F_DISPLAY_NAME, focusContext.getObjectDefinition(), PolyString.fromOrig(targetDisplayName)) :
-                prismContext.deltaFactory().property()
-                        .createReplaceEmptyDelta(focusContext.getObjectDefinition(), UserType.F_DISPLAY_NAME);
-        focusContext.swallowToSecondaryDelta(displayNameDelta);
-    }
-
-    private String determineUserDisplayName(UserType user) {
-        String preferredName = StringUtils.trimToNull(PolyString.getOrig(user.getPreferredName()));
-        if (preferredName != null) {
-            return preferredName;
-        }
-        return StringUtils.trimToNull(PolyString.getOrig(user.getFullName()));
     }
 
     ExpressionFactory getExpressionFactory() {
