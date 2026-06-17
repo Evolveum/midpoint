@@ -61,7 +61,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 return ret;
             });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't discover basic application information", e);
         }
     }
 
@@ -71,6 +71,9 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             if ("application/json".equals(doc.contentType()) || "application/yaml".equals(doc.contentType())) {
                 return doc;
             }
+        }
+        if (processedDocumentation.isEmpty()) {
+            throw new SystemException("No processed documentation is available to select from");
         }
         return processedDocumentation.get(0);
     }
@@ -92,7 +95,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 return ret;
             });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't discover authorization information", e);
         }
     }
 
@@ -281,7 +284,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 return ret;
             });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't discover object classes from documentation", e);
         }
     }
 
@@ -297,13 +300,13 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 if (ret.isEmpty()) {
                     var jsonErrors = o.get("errors");
                     if (jsonErrors != null && !jsonErrors.isEmpty()) {
-                        throw new RuntimeException("Connectivity endpoint discovery failed with errors: " + jsonErrors);
+                        throw new SystemException("Connectivity endpoint discovery failed with errors: " + jsonErrors);
                     }
                 }
                 return ret;
             });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't discover connectivity endpoints", e);
         }
     }
 
@@ -319,7 +322,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 return ret;
             });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't discover endpoints for object class " + objectClass, e);
         }
     }
 
@@ -336,7 +339,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 return ret;
             });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't discover attributes for object class " + objectClass, e);
         }
     }
 
@@ -379,7 +382,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             });
             documentations.addAll(scrapped);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't scrape documentation", e);
         }
 
     }
@@ -423,7 +426,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             beans.downloadFile(url, documentation.asOutputStream());
             return documentation;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't download documentation from " + openApi.getUri(), e);
         }
 
     }
@@ -456,7 +459,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 });
             }
         } catch (Exception e) {
-            throw new SystemException(e.getMessage(), e);
+            throw new SystemException("Couldn't discover relations between object classes", e);
         }
     }
 
