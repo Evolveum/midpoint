@@ -3,7 +3,6 @@
 :page-toc: top
 :page-description: Reference to midPoint GUI language selector customization
 :page-keywords: localization, translation, language list, locale list, language selector, locale selector
-:page-moved-from: /midpoint/reference/admin-gui/localization-configuration/
 
 This article explains how to customize the midPoint GUI language and locale selector.
 
