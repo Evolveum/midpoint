@@ -4,6 +4,9 @@
 -- Licensed under the EUPL-1.2 or later.
 --
 
+-- Developer documentation for SQL documentation annotations:
+-- https://docs.evolveum.com/midpoint/devel/guides/sql-script-annotations/
+
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 -- This is the update script for the MAIN REPOSITORY, it will not work for a separate audit database.
 -- It is safe to run this script repeatedly, so if you're not sure, just run it to be up to date.

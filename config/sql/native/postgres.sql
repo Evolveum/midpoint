@@ -4,6 +4,9 @@
 -- Licensed under the EUPL-1.2 or later.
 --
 
+-- Developer documentation for SQL documentation annotations:
+-- https://docs.evolveum.com/midpoint/devel/guides/sql-script-annotations/
+
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 -- Naming conventions:
 -- M_ prefix is used for tables in main part of the repo, MA_ for audit tables (can be separate)

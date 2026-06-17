@@ -47,13 +47,13 @@ public class GenerateDbDocsMojo extends AbstractMojo {
     @Parameter
     private List<File> sourceSqlFiles;
 
-    @Parameter(defaultValue = "${maven.multiModuleProjectDirectory}/config/sql/native", required = true)
+    @Parameter(defaultValue = "${project.basedir}/src/main/sql", required = true)
     private File nativeSqlDirectory;
 
-    @Parameter(defaultValue = "${maven.multiModuleProjectDirectory}/docs/repository/native-postgresql", required = true)
+    @Parameter(defaultValue = "${project.basedir}/target/sql-schema", required = true)
     private File outputDirectory;
 
-    @Parameter(defaultValue = "${maven.multiModuleProjectDirectory}/release-notes.adoc", required = true)
+    @Parameter(defaultValue = "${project.basedir}/target/sql-schema-release-notes.adoc", required = true)
     private File releaseNotesFile;
 
     @Override

@@ -4,6 +4,9 @@
 -- Licensed under the EUPL-1.2 or later.
 --
 
+-- Developer documentation for SQL documentation annotations:
+-- https://docs.evolveum.com/midpoint/devel/guides/sql-script-annotations/
+
 -- USAGE NOTES: You can apply this to the main repository schema.
 -- For separate audit use this in a separate database.
 -- See the docs here: https://docs.evolveum.com/midpoint/reference/repository/native-audit

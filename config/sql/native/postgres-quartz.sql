@@ -1,5 +1,8 @@
 -- Thanks to Patrick Lightbody for submitting this.
 
+-- Developer documentation for SQL documentation annotations:
+-- https://docs.evolveum.com/midpoint/devel/guides/sql-script-annotations/
+
 drop table if exists qrtz_fired_triggers;
 DROP TABLE if exists QRTZ_PAUSED_TRIGGER_GRPS;
 DROP TABLE if exists QRTZ_SCHEDULER_STATE;
