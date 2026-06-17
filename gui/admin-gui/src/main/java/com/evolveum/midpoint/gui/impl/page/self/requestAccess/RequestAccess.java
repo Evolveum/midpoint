@@ -148,6 +148,13 @@ public class RequestAccess implements Serializable {
 
     private List<Conflict> conflicts = new ArrayList<>();
 
+    public static final Set<QName> ASSIGNABLE_OBJECT_TYPE_SET = Set.of(
+            RoleType.COMPLEX_TYPE,
+            OrgType.COMPLEX_TYPE,
+            ServiceType.COMPLEX_TYPE,
+            ApplicationType.COMPLEX_TYPE
+    );
+
     public Map<ObjectReferenceType, List<ObjectReferenceType>> getExistingPoiRoleMemberships() {
         return Collections.unmodifiableMap(existingPoiRoleMemberships);
     }
