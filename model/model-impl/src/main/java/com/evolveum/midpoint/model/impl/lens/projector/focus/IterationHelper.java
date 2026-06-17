@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -348,14 +350,18 @@ class IterationHelper<AH extends AssignmentHolderType> {
             var template = context.getFocusTemplate();
             if (template != null) {
                 sb.append(", produced by the template ");
-                sb.append(template);
+                sb.append(ObjectTypeUtil.getQuotedNameAndOid(template));
             }
             if (ctx.iteration > 0) {
                 sb.append(", in iteration ");
                 sb.append(ctx.iteration);
             }
-            sb.append(". We cannot process an object without a name. ");
-            sb.append("Are inbound and/or object template mappings correct and enabled?");
+            sb.append(". We cannot create an object without a name. ");
+            if (template != null) {
+                sb.append("Are inbound and/or object template mappings correct and enabled?");
+            } else {
+                sb.append("Are inbound mappings correct and enabled?");
+            }
             throw new NoFocusNameSchemaException(sb.toString());
         }
     }

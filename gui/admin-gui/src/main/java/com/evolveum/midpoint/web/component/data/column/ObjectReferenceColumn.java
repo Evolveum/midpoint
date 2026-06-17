@@ -54,6 +54,11 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
                 protected boolean useNameAsLabel() {
                     return ObjectReferenceColumn.this.useNameAsLabel();
                 }
+
+                @Override
+                protected boolean showDisplayNameAndName() {
+                    return ObjectReferenceColumn.this.showDisplayNameAndName();
+                }
             });
         }
         item.add(view);
@@ -82,7 +87,7 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
 
     public abstract IModel<List<ObjectReferenceType>> extractDataModel(IModel<T> rowModel);
 
-
-
-
+    protected boolean showDisplayNameAndName() {
+        return false;
+    }
 }

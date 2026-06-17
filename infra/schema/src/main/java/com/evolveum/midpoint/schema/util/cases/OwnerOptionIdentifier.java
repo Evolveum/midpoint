@@ -92,7 +92,7 @@ public class OwnerOptionIdentifier {
         }
     }
 
-    public boolean isNewOwner() {
+    public boolean isNoOwner() {
         return isValid() && existingOwnerId == null;
     }
 

@@ -266,7 +266,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -302,7 +302,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -339,7 +339,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -379,7 +379,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -416,7 +416,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -457,7 +457,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -504,7 +504,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -561,7 +561,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
 
         List<CorrelationSuggestionType> suggestionList = suggestions.getSuggestion();
 
@@ -583,6 +583,121 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 .as("PersonalNumber should be treated as existing mapping (no AI inbound mapping suggested)")
                 .isEmpty();
 
+    }
+
+    /**
+     * Verifies the name-expansion post-schema-match heuristic.
+     *
+     * AI matches given:
+     * email -> name – seed mapping that lets heuristic resolve the name focus def
+     * code personalNumber -> personalNumber – correlatable, must be expanded to name
+     * department -> description – NOT correlatable, must NOT be expanded to name
+     */
+    @Test
+    public void test090NameExpansionHeuristic() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var mockClient = createClient(
+                List.of(
+                        ItemPath.create(FocusType.F_NAME),
+                        ItemPath.create(UserType.F_PERSONAL_NUMBER),
+                        ItemPath.create(UserType.F_DESCRIPTION)),
+                List.of(
+                        EMAIL.path(),
+                        PERSONAL_NUMBER.path(),
+                        DEPARTMENT.path())
+        );
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
+
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+
+        List<SchemaMatchOneResultType> matchResults = match.getSchemaMatchResult();
+
+        var emailToName = matchResults.stream()
+                .filter(r -> r.getShadowAttributePath().contains(EMAIL.local())
+                        && r.getFocusPropertyPath().endsWith(":name"))
+                .toList();
+        assertThat(emailToName)
+                .as("email -> name match from AI")
+                .hasSize(1);
+
+        var personalNumberToPersonalNumber = matchResults.stream()
+                .filter(r -> r.getShadowAttributePath().contains(PERSONAL_NUMBER.local())
+                        && r.getFocusPropertyPath().contains("personalNumber"))
+                .toList();
+        assertThat(personalNumberToPersonalNumber)
+                .as("personalNumber -> personalNumber match from AI")
+                .hasSize(1);
+
+        var personalNumberToName = matchResults.stream()
+                .filter(r -> r.getShadowAttributePath().contains(PERSONAL_NUMBER.local())
+                        && r.getFocusPropertyPath().endsWith(":name"))
+                .toList();
+        assertThat(personalNumberToName)
+                .as("personalNumber -> name mapping added by name-expansion heuristic (correlatable)")
+                .hasSize(1);
+        assertThat(personalNumberToName.get(0).isIsSystemProvided())
+                .as("heuristic-added entry must be marked as system-provided")
+                .isFalse();
+
+        var departmentToName = matchResults.stream()
+                .filter(r -> r.getShadowAttributePath().contains(DEPARTMENT.local())
+                        && r.getFocusPropertyPath().endsWith(":name"))
+                .toList();
+        assertThat(departmentToName)
+                .as("department -> name must NOT be added (description is not a correlatable focus attribute)")
+                .isEmpty();
+    }
+
+    /**
+     * Directly exercises the uniqueness-filter heuristic in PostSchemaMatchHeuristics.
+     *
+     * Statistics (100 total objects):
+     *   email  -> 95 unique values => ratio 0.95 (above threshold 0.9) -> kept
+     *   status ->  4 unique values => ratio 0.04 (below threshold 0.9) -> removed
+     */
+    @Test
+    public void test091UniquenessFilterHeuristic() {
+        var focusDef = PrismContext.get().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class);
+
+        var emailAttr = EMAIL.path();
+        var statusAttr = STATUS.path();
+        var namePath = ItemPath.create(FocusType.F_NAME).toStringStandalone();
+
+        var statistics = new ShadowObjectClassStatisticsType().size(100);
+        statistics.getAttribute().add(new ShadowAttributeStatisticsType()
+                .ref(emailAttr.toBean()).missingValueCount(0).uniqueValueCount(95));
+        statistics.getAttribute().add(new ShadowAttributeStatisticsType()
+                .ref(statusAttr.toBean()).missingValueCount(0).uniqueValueCount(4));
+
+        var emailToName = new SchemaMatchOneResultType()
+                .shadowAttributePath(emailAttr.toStringStandalone())
+                .focusPropertyPath(namePath);
+        var statusToName = new SchemaMatchOneResultType()
+                .shadowAttributePath(statusAttr.toStringStandalone())
+                .focusPropertyPath(namePath);
+        var schemaMatchResult = new SchemaMatchResultType();
+        schemaMatchResult.getSchemaMatchResult().add(emailToName);
+        schemaMatchResult.getSchemaMatchResult().add(statusToName);
+
+        new PostSchemaMatchHeuristics(focusDef, statistics).applyAll(schemaMatchResult);
+
+        var remaining = schemaMatchResult.getSchemaMatchResult();
+
+        assertThat(remaining.stream()
+                .anyMatch(r -> r.getShadowAttributePath().contains(EMAIL.local())
+                        && r.getFocusPropertyPath().endsWith(":name")))
+                .as("email -> name must be kept (ratio 0.95 >= threshold " + PostSchemaMatchHeuristics.UNIQUENESS_THRESHOLD + ")")
+                .isTrue();
+
+        assertThat(remaining.stream()
+                .anyMatch(r -> r.getShadowAttributePath().contains(STATUS.local())
+                        && r.getFocusPropertyPath().endsWith(":name")))
+                .as("status -> name must be removed (ratio 0.04 < threshold " + PostSchemaMatchHeuristics.UNIQUENESS_THRESHOLD + ")")
+                .isFalse();
     }
 
 }

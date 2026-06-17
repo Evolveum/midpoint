@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.model;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.wicket.model.IModel;
@@ -38,7 +39,12 @@ public class RelationModel implements IModel<String> {
         if (QNameUtil.isUri(object)) {
             newRelation = QNameUtil.uriToQName(object);
         } else {
-            new ItemName(SchemaConstants.NS_ORG, object);
+            QName matchingRelation = RelationTypes.getRelationByLocalPart(object);
+            if (matchingRelation != null) {
+                newRelation = matchingRelation;
+            } else {
+                newRelation = new ItemName(SchemaConstants.NS_ORG, object);
+            }
         }
 
         baseModel.setObject(newRelation);

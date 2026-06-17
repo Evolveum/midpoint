@@ -6,20 +6,22 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardNavigationBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRefsTable;
-
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultObjectPanel;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardNavigationBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRefsTable;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultObjectPanel;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 @PanelType(name = "rw-simulation-object-result")
 @PanelInstance(identifier = "rw-simulation-object-result",
@@ -125,4 +127,8 @@ public class ResourceSimulationResultObjectWizardPanel extends AbstractWizardNav
         return true;
     }
 
+    @Override
+    protected boolean isOnlyChildLeft() {
+        return true;
+    }
 }

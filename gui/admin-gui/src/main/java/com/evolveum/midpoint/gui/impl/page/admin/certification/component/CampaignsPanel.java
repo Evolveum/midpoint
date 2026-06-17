@@ -12,15 +12,19 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.Toggle;
 
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertCampaign;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -28,7 +32,6 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
@@ -40,13 +43,15 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscU
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.CertCampaignsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
@@ -232,7 +237,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     }
 
     private CertCampaignsStorage getCampaignsStorage() {
-        return getPageBase().getSessionStorage().getCertCampaigns();
+        return getPageBase().getBrowserTabSessionStorage().getCertCampaigns();
     }
 
     private List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> initColumns(
@@ -244,14 +249,34 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
         column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
                 SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                nameColumnLinkClickPerformed(target, rowModel);
-            }
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                return isNameColumnLinkEnabled(rowModel);
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> cellItem,
+                    String componentId, final IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AjaxLinkWithNewTabSupport link = new AjaxLinkWithNewTabSupport(componentId, createLinkModel(rowModel)) {
+                    @Serial private static final long serialVersionUID = 1L;
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        CampaignsPanel.this.nameColumnLinkClickPerformed(target, rowModel);
+                    }
+
+                    @Override
+                    protected String getNavigationUrl() {
+                        if (rowModel.getObject() != null && rowModel.getObject().getValue() != null
+                                && isNameColumnLinkEnabled(rowModel)) {
+                            return urlForNameColumnLink(rowModel.getObject().getValue());
+                        }
+                        return "#";
+                    }
+
+
+                    @Override
+                    public boolean isEnabled() {
+                        return isNameColumnLinkEnabled(rowModel);
+                    }
+                };
+                cellItem.add(link);
             }
         };
         columns.add(column);
@@ -271,6 +296,12 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
         return columns;
     }
 
+    private @NotNull String urlForNameColumnLink(@NotNull AccessCertificationCampaignType campaignObj) {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, campaignObj.getOid());
+        var url = RequestCycle.get().urlFor(PageCertCampaign.class, parameters);
+        return url != null ? url.toString() : "#";
+    }
 
     private Search<AccessCertificationCampaignType> createSearch() {
         SearchBuilder<AccessCertificationCampaignType> searchBuilder = new SearchBuilder<>(AccessCertificationCampaignType.class)

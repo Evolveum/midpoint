@@ -6,29 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.ProcessedObjectsProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadWrapper;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.performMarkObjects;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -37,22 +23,60 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicInitializer;
+import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.ProcessedObjectsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.ProcessedObjectsProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND;
-
+//TODO remove duplication with ProcessedObjectsPanel
 public abstract class CorrelationProcessedObjectPanel
         extends ContainerableListPanel<SimulationResultProcessedObjectType, SelectableBean<SimulationResultProcessedObjectType>> {
+
+    private static final String DOT_CLASS = ProcessedObjectsPanel.class.getName() + ".";
+    private static final String OPERATION_MARK_OBJECT = DOT_CLASS + "markObject";
+
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationProcessedObjectPanel.class);
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -88,8 +112,147 @@ public abstract class CorrelationProcessedObjectPanel
         correlationDefinitionModel.setObject(correlationDefinition);
     }
 
-    protected String getMarkOidForSearch() {
+    protected @Nullable String getMarkOidForSearch() {
         return null;
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return createRowMenuItems();
+    }
+
+    private @NotNull List<InlineMenuItem> createRowMenuItems() {
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.markProtected"), true) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-fw " + GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED);
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return getMarkMenuAction(SystemObjectsType.MARK_PROTECTED);
+            }
+        });
+
+        items.add(markInlineMenuAction("pageContentAccounts.menu.markDoNotTouch", SystemObjectsType.MARK_DO_NOT_TOUCH));
+        items.add(markInlineMenuAction("pageContentAccounts.menu.markCorrelateLater", SystemObjectsType.MARK_CORRELATE_LATER));
+        items.add(markInlineMenuAction("pageContentAccounts.menu.markInvalidData", SystemObjectsType.MARK_INVALID_DATA));
+        items.add(modifyMarkInlineMenuAction());
+        return items;
+    }
+
+    private @NotNull InlineMenuItem markInlineMenuAction(final String key, final SystemObjectsType mark) {
+        return new InlineMenuItem(createStringResource(key), true) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return getMarkMenuAction(mark);
+            }
+        };
+    }
+
+    private @NotNull ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>> getMarkMenuAction(SystemObjectsType mark) {
+        return new ColumnMenuAction<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                markObjects(getRowModel(), Collections.singletonList(mark.value()), target);
+            }
+        };
+    }
+
+    public InlineMenuItem modifyMarkInlineMenuAction() {
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("MainObjectListPanel.menu.modifyMark"))
+                .headerMenuItem(false)
+                .action(createMarkColumnAction())
+                .buildInlineMenu();
+    }
+
+    private @NotNull ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>> createMarkColumnAction() {
+        return new ColumnMenuAction<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                IModel<SelectableBean<SimulationResultProcessedObjectType>> selected = getRowModel();
+                if (selected == null) {
+                    warn(getString("MainObjectListPanel.message.noFocusSelected"));
+                    target.add(getFeedback());
+                    return;
+                }
+                SimulationResultProcessedObjectType selectedValue = selected.getObject().getValue();
+                var focusModel = loadWrapper(getPageBase(), selectedValue);
+
+                if (focusModel.getObject() == null) {
+                    warn(getString("ProcessedObjectsPanel.message.noObjectFound", selectedValue.getOid()));
+                    target.add(getFeedback());
+                    return;
+                }
+
+                @SuppressWarnings({ "unchecked", "rawtypes" })
+                MarksOfObjectListPopupPanel<?> popup = new MarksOfObjectListPopupPanel(
+                        getPageBase().getMainPopupBodyId(), focusModel) {
+
+                    @Override
+                    protected void onSave(AjaxRequestTarget target) {
+                        refreshTable(target);
+                    }
+                };
+
+                getPageBase().showMainPopup(popup, target);
+            }
+        };
+    }
+
+    private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
+            AjaxRequestTarget target) {
+
+        List<SimulationResultProcessedObjectType> selected = getSelectedObjects(rowModel);
+        PageBase page = getPageBase();
+
+        if (selected == null || selected.isEmpty()) {
+            page.warn(getString("ResourceContentPanel.message.markShadowPerformed.warning"));
+            target.add(getFeedback());
+            return;
+        }
+
+        Task task = page.createSimpleTask(OPERATION_MARK_OBJECT);
+        OperationResult result = task.getResult();
+
+        performMarkObjects(markOids, selected, page, task, result);
+
+        result.computeStatusIfUnknown();
+        page.showResult(result);
+        target.add(getFeedback());
+        refreshTable(target);
+    }
+
+    protected WebMarkupContainer getFeedback() {
+        AbstractWizardBasicInitializer parent = this.findParent(AbstractWizardBasicInitializer.class);
+        if (parent == null) {
+            return (WebMarkupContainer) getFeedbackPanel();
+        }
+        return this.findParent(AbstractWizardBasicInitializer.class).getFeedback();
+    }
+
+    private List<SimulationResultProcessedObjectType> getSelectedObjects(
+            IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+        if (rowModel != null) {
+            return Collections.singletonList(rowModel.getObject().getValue());
+        }
+
+        return getSelectedRealObjects();
+    }
+
+    public static String createRealMarksList(PageBase page, ProcessedObject<?> obj) {
+        return ProcessedObjectsPanel.createRealMarksList(page, obj);
     }
 
     @Override
@@ -105,7 +268,8 @@ public abstract class CorrelationProcessedObjectPanel
     @SuppressWarnings("unchecked")
     protected <T extends Serializable> Search<T> loadSearch(PageStorage storage) {
         Search<T> search = null;
-        if (storage != null && markOidForSearch.equals(getMarkOidForSearch())) {
+
+        if (storage != null && Objects.equals(markOidForSearch, getMarkOidForSearch())) {
             search = storage.getSearch();
         }
 
@@ -113,6 +277,11 @@ public abstract class CorrelationProcessedObjectPanel
             search = createSearch();
         }
         return search;
+    }
+
+    @Override
+    protected String getStorageKey() {
+        return UserProfileStorage.TableId.PAGE_SIMULATION_RESULT_CORRELATION_PROCESSED_OBJECTS.name();
     }
 
     private List<DisplayableValue<String>> createSearchValuesForAvailableMarks() {
@@ -136,8 +305,8 @@ public abstract class CorrelationProcessedObjectPanel
     }
 
     @Override
-    protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createCheckboxColumn() {
-        return null; // Disable selection for now. Do we want to support actions (e.g. marking)?
+    protected int getCollapsibleToggleColumnIndex() {
+        return 1;
     }
 
     @Override
@@ -181,15 +350,19 @@ public abstract class CorrelationProcessedObjectPanel
                     Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item,
                     String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-                ProcessedObject<?> processedObject = SimulationsGuiUtil
-                        .parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
 
+                ProcessedObject<?> processedObject = SimulationsGuiUtil.parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
                 IModel<String> title = () -> SimulationsGuiUtil.getShadowNameFromAttribute(processedObject);
-
-                AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, title) {
+                IModel<String> realMarksModel = () -> createRealMarksList(getPageBase(), processedObject);
+                item.add(new TitleWithMarks(id, title, realMarksModel) {
 
                     @Override
-                    public void onClick(AjaxRequestTarget target) {
+                    protected boolean isTitleLinkEnabled() {
+                        return rowModel.getObject().getValue() != null;
+                    }
+
+                    @Override
+                    protected void onTitleClicked(AjaxRequestTarget target) {
                         SimulationResultProcessedObjectType object = rowModel.getObject().getValue();
                         if (object == null) {
                             return;
@@ -199,9 +372,8 @@ public abstract class CorrelationProcessedObjectPanel
                                 .getSimulationResultModel().getObject().getOid();
                         navigateToSimulationResultObject(simulationResultOid, null, object, target);
                     }
-                };
-                linkPanel.setOutputMarkupId(true);
-                item.add(linkPanel);
+
+                });
             }
         };
     }
@@ -247,7 +419,6 @@ public abstract class CorrelationProcessedObjectPanel
                 BadgeListPanel statusPanel =
                         new BadgeListPanel(componentId, () -> Collections.singletonList(badge));
                 statusPanel.add(AttributeModifier.append("class", "fw-semibold"));
-                statusPanel.add(AttributeModifier.append("style", "font-size:12px"));
                 cellItem.add(statusPanel);
             }
 
@@ -268,18 +439,35 @@ public abstract class CorrelationProcessedObjectPanel
                     String componentId,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
 
-                ProcessedObject<?> processedObject = SimulationsGuiUtil
-                        .parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
+                final SimulationResultProcessedObjectType processedObjectType = rowModel.getObject().getValue();
+                @SuppressWarnings("unchecked")
+                ProcessedObject<ShadowType> processedObject = (ProcessedObject<ShadowType>) SimulationsGuiUtil
+                        .parseProcessedObject(processedObjectType, getPageBase());
 
-                assert processedObject != null;
-                @Nullable ObjectDelta<?> delta = processedObject.getDelta();
-                List<String> correlatedOwnersOid = findCorrelatedOwners(delta);
+                if (processedObject == null) {
+                    LOGGER.error("Couldn't find processed object for correlated candidates");
+                    throw new SystemException("Processed object " + processedObjectType + " was not parsed correctly");
+                }
+
+                final ShadowType shadowAfterChanges = getShadowAfterChanges(processedObject);
+                final Optional<String> correlatedOwnerOid = getCorrelatedOwner(shadowAfterChanges);
 
                 List<ResourceObjectOwnerOptionType> candidates =
-                        getCorrelationCandidateModel(processedObject).getObject();
+                        getCorrelationCandidateModel(shadowAfterChanges).getObject();
 
-                CandidateDisplayData displayData = createCandidateDisplay(getPageBase(), candidates, correlatedOwnersOid);
+                CandidateDisplayData displayData = createCandidateDisplay(getPageBase(), candidates,
+                        correlatedOwnerOid.orElse(null));
 
+                AjaxIconButton panel = createCandidateLinkButton(componentId, displayData, candidates);
+                if (panel.isEnabled()) {
+                    panel.add(AttributeAppender.append("class", "btn btn-link p-0"));
+                }
+
+                cellItem.add(panel);
+            }
+
+            private @NotNull AjaxIconButton createCandidateLinkButton(String componentId, CandidateDisplayData displayData,
+                    @NotNull List<ResourceObjectOwnerOptionType> candidates) {
                 AjaxIconButton panel = new AjaxIconButton(componentId,
                         () -> displayData.icon,
                         () -> displayData.text) {
@@ -306,11 +494,7 @@ public abstract class CorrelationProcessedObjectPanel
                 panel.setOutputMarkupId(true);
                 panel.showTitleAsLabel(true);
                 panel.setEnabled(candidates.size() == 1);
-                if (panel.isEnabled()) {
-                    panel.add(AttributeAppender.append("class", "btn btn-link p-0"));
-                }
-
-                cellItem.add(panel);
+                return panel;
             }
 
             @Override

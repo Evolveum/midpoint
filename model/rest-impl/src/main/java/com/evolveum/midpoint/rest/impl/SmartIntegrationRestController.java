@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
+import java.util.List;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -29,16 +31,15 @@ public class SmartIntegrationRestController extends AbstractRestController {
 
     private static final String CLASS_DOT = SmartIntegrationRestController.class.getName() + ".";
 
-    private static final String OPERATION_SUGGEST_OBJECT_TYPES = CLASS_DOT + "suggestObjectTypes";
-    private static final String OPERATION_SUGGEST_CORRELATIONS = CLASS_DOT + "suggestCorrelations";
-    private static final String OPERATION_SUGGEST_MAPPINGS = CLASS_DOT + "suggestMappings";
-    private static final String OPERATION_SUGGEST_FOCUS_TYPE = CLASS_DOT + "suggestFocusType";
-    private static final String OPERATION_SUGGEST_ASSOCIATION_TYPE = CLASS_DOT + "suggestAssociations";
+    private static final String OPERATION_SUGGEST_OBJECT_TYPES = CLASS_DOT + "SuggestObjectTypes";
+    private static final String OPERATION_SUGGEST_CORRELATIONS = CLASS_DOT + "SuggestCorrelations";
+    private static final String OPERATION_SUGGEST_MAPPINGS = CLASS_DOT + "SuggestMappings";
+    private static final String OPERATION_SUGGEST_FOCUS_TYPE = CLASS_DOT + "SuggestFocusType";
+    private static final String OPERATION_SUGGEST_ASSOCIATION_TYPE = CLASS_DOT + "SuggestAssociations";
 
     private static final int TIMEOUT = 1000;
 
     @Autowired private SmartIntegrationService smartIntegrationService;
-    @Autowired private ModelService modelService;
 
     /**
      * Suggests object types (and their delineations) for the given resource and object class.
@@ -54,7 +55,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
 
         try {
             QName objectClassQName = QName.valueOf(objectClass);
-            var oid = smartIntegrationService.submitSuggestObjectTypesOperation(resourceOid, objectClassQName, task, result);
+            var oid = smartIntegrationService.submitSuggestObjectTypesOperation(resourceOid, objectClassQName, List.of(), null, null, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestObjectTypesOperationStatus(oid, task, result);
@@ -94,7 +95,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
                     ShadowKindType.fromValue(kind),
                     intent
             );
-            var oid = smartIntegrationService.submitSuggestCorrelationOperation(resourceOid, resourceObjectTypeIdentification, task, result);
+            var oid = smartIntegrationService.submitSuggestCorrelationOperation(resourceOid, resourceObjectTypeIdentification, List.of(), false, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestCorrelationOperationStatus(oid, task, result);
@@ -135,7 +136,9 @@ public class SmartIntegrationRestController extends AbstractRestController {
                     ShadowKindType.fromValue(kind),
                     intent
             );
-            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid, resourceObjectTypeIdentification, isInbound, null, task, result);
+            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid,
+                    resourceObjectTypeIdentification, isInbound, null, List.of(DataAccessPermissionType.SCHEMA_ACCESS,
+                            DataAccessPermissionType.RAW_DATA_ACCESS), false, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);
@@ -205,9 +208,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
             @RequestParam("intent") String intent) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_FOCUS_TYPE);
+
         try {
             var typeIdentification = ResourceObjectTypeIdentification.of(ShadowKindType.fromValue(kind), intent);
-            var focusTypeName = smartIntegrationService.suggestFocusType(resourceOid, typeIdentification, task, result);
+            var focusTypeName = smartIntegrationService.suggestFocusType(
+                    resourceOid, typeIdentification, List.of(DataAccessPermissionType.SCHEMA_ACCESS), task, result);
             return createResponse(HttpStatus.OK, focusTypeName.getFocusType().getLocalPart(), result);
         } catch (Throwable t) {
             return handleException(result, t);

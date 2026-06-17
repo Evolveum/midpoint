@@ -1472,6 +1472,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         context.setVariableProducer(variableProducer);
         context.setValueMetadataComputer(valueMetadataComputer);
         context.setLocalContextDescription("expression");
+        context.setNamespaceContext(getNamespaceContext());
 
         if (mappingPreExpression != null) {
             mappingPreExpression.mappingPreExpression(context, result);
@@ -1509,6 +1510,14 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 outputTriple.clearPlusSet();
             }
         }
+    }
+
+    private PrismNamespaceContext getNamespaceContext() {
+        PrismContainer<?> container = mappingBean.asPrismContainerValue().getContainer();
+        if (container == null) {
+            return null;
+        }
+        return container.getNamespaceContext();
     }
 
     private void setupValueMetadataComputer(OperationResult result) throws CommunicationException,

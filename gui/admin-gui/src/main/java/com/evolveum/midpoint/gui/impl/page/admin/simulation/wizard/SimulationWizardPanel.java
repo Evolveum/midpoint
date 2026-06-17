@@ -42,15 +42,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public abstract class SimulationWizardPanel<C extends Containerable> extends AbstractWizardPanel<C, ResourceDetailsModel> {
 
+    IModel<SimulationResultType> simulationResultModel;
+
     public SimulationWizardPanel(String id, WizardPanelHelper<C, ResourceDetailsModel> helper) {
         super(id, helper);
+    }
+
+    public SimulationWizardPanel(String id, WizardPanelHelper<C, ResourceDetailsModel> helper, IModel<SimulationResultType> simulationResultModel) {
+        super(id, helper);
+        this.simulationResultModel = simulationResultModel;
     }
 
     /**
      * Initializes the layout by showing the initial simulation tasks panel.
      */
     protected void initLayout() {
-        add(createChoiceFragment(buildSimulationTasksPanel(getIdOfChoicePanel())));
+        if (simulationResultModel == null || simulationResultModel.getObject() == null) {
+            add(createChoiceFragment(buildSimulationTasksPanel(getIdOfChoicePanel())));
+        } else {
+            add(createChoiceFragment(buildSimulationResultPanel(getIdOfChoicePanel(), simulationResultModel, false)));
+        }
     }
 
     /**
@@ -73,7 +84,7 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
                 if (!hasUnsavedChanges()) {
                     SimulationResultType simulationResultType = loadSimulationResult(pageBase, resultOid);
                     showChoiceFragment(target,
-                            buildSimulationResultPanel(idOfChoicePanel, () -> simulationResultType));
+                            buildSimulationResultPanel(idOfChoicePanel, () -> simulationResultType,true));
                     return;
                 }
 
@@ -86,7 +97,7 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
                         getHelper().onSaveObjectPerformed(target);
                         SimulationResultType simulationResultType = loadSimulationResult(getPageBase(), resultOid);
                         showChoiceFragment(target,
-                                buildSimulationResultPanel(idOfChoicePanel, () -> simulationResultType));
+                                buildSimulationResultPanel(idOfChoicePanel, () -> simulationResultType, true));
                     }
 
                     @Serial
@@ -96,7 +107,7 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
                     public void yesPerformed(AjaxRequestTarget target) {
                         SimulationResultType simulationResultType = loadSimulationResult(getPageBase(), resultOid);
                         showChoiceFragment(target,
-                                buildSimulationResultPanel(idOfChoicePanel, () -> simulationResultType));
+                                buildSimulationResultPanel(idOfChoicePanel, () -> simulationResultType, false));
                     }
                 };
 
@@ -116,7 +127,7 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
 
             @Override
             protected IModel<String> getBackLabel() {
-                return createStringResource("SimulationWizardPanel.back");
+                return SimulationWizardPanel.this.getBackButtonLabel();
             }
         };
     }
@@ -126,66 +137,34 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
      *
      * @param idOfChoicePanel Wicket component ID
      * @param model model of the simulation result
+     * @param fromTaskPanel indicates if the navigation to this panel is from the tasks panel (true) or from another result panel (false)
      * @return the result wizard panel
      */
     private @NotNull Component buildSimulationResultPanel(
-            @NotNull String idOfChoicePanel, IModel<SimulationResultType> model) {
-
-        //TODO
-        boolean isCorrelationSimulation = false;
-        if(isCorrelationSimulation){
-            return new ResourceCorrelationSimulationResultWizardPanel(idOfChoicePanel, getAssignmentHolderModel(), model) {
-
-                @Override
-                protected void navigateToSimulationTasksWizard(@NotNull String resultOid,
-                        @Nullable ObjectReferenceType ref,
-                        @Nullable ObjectProcessingStateType state,
-                        @NotNull AjaxRequestTarget target) {
-                    removeLastBreadcrumb();
-                    showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, state));
-                }
-
-                @Override
-                protected void navigateToSimulationResultObject(@NotNull String simulationResultOid,
-                        @Nullable String markOid,
-                        @NotNull SimulationResultProcessedObjectType object,
-                        @NotNull AjaxRequestTarget target) {
-                    removeLastBreadcrumb();
-                    showChoiceFragment(target, buildSimulationObjectResultPanel(idOfChoicePanel,
-                            model, object.getId(), markOid, null));
-                }
-
-                @Override
-                protected void onBackPerformed(AjaxRequestTarget target) {
-                    removeLastBreadcrumb();
-                    showChoiceFragment(target, buildSimulationTasksPanel(idOfChoicePanel));
-                }
-
-                @Override
-                protected boolean isExitButtonVisible() {
-                    return false;
-                }
-
-                @Override
-                protected IModel<String> getBackLabel() {
-                    return createStringResource("SimulationTaskWizardPanel.correlationWizardPanel.back");
-                }
-            };
-        }
+            @NotNull String idOfChoicePanel, IModel<SimulationResultType> model, boolean fromTaskPanel) {
 
         return new ResourceSimulationResultWizardPanel(idOfChoicePanel, getAssignmentHolderModel(), model) {
             @Override
-            protected void navigateToSimulationTasksWizard(
-                    @NotNull String resultOid,
-                    @Nullable ObjectReferenceType ref,
-                    @Nullable ObjectProcessingStateType state,
-                    @NotNull AjaxRequestTarget target) {
+            protected void navigateToSimulationResultObjects(@NotNull String resultOid, @Nullable ObjectReferenceType markRef, @Nullable ObjectProcessingStateType state, @NotNull AjaxRequestTarget target) {
                 removeLastBreadcrumb();
-                showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, state));
+                String markOid = markRef != null ? markRef.getOid() : null;
+                showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, markOid, state));
+            }
+
+            @Override
+            protected void navigateToSimulationResultObject(@NotNull String simulationResultOid, @Nullable String markOid, @NotNull SimulationResultProcessedObjectType object, @NotNull AjaxRequestTarget target) {
+                removeLastBreadcrumb();
+                showChoiceFragment(target, buildSimulationObjectResultPanel(idOfChoicePanel, model, object.getId(), markOid,
+                        null, false));
             }
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
+                if (SimulationWizardPanel.this.simulationResultModel != null && SimulationWizardPanel.this.simulationResultModel.getObject() != null) {
+                    removeLastBreadcrumb();
+                    SimulationWizardPanel.this.onBackPerformed(target);
+                    return;
+                }
                 removeLastBreadcrumb();
                 showChoiceFragment(target, buildSimulationTasksPanel(idOfChoicePanel));
             }
@@ -197,9 +176,17 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
 
             @Override
             protected IModel<String> getBackLabel() {
-                return createStringResource("SimulationTaskWizardPanel.correlationWizardPanel.back");
+                if(fromTaskPanel){
+                    return createStringResource("SimulationWizardPanel.back");
+                }
+
+                return getBackButtonLabel();
             }
         };
+    }
+
+    protected IModel<String> getBackButtonLabel() {
+        return createStringResource("SimulationWizardPanel.back");
     }
 
     /**
@@ -207,11 +194,13 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
      *
      * @param idOfChoicePanel Wicket component ID
      * @param model model of the simulation result
+     * @param markOid optional mark reference to filter the objects
      * @param state optional processing state filter
      * @return the objects wizard panel
      */
     private @NotNull ResourceSimulationResultObjectsWizardPanel buildSimulationObjectsResultPanel(
             @NotNull String idOfChoicePanel, IModel<SimulationResultType> model,
+            @Nullable String markOid,
             @Nullable ObjectProcessingStateType state) {
         return new ResourceSimulationResultObjectsWizardPanel(idOfChoicePanel, getAssignmentHolderModel(),
                 model, state) {
@@ -224,24 +213,23 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
                     @NotNull AjaxRequestTarget target) {
                 removeLastBreadcrumb();
                 showChoiceFragment(target,
-                        buildSimulationObjectResultPanel(idOfChoicePanel, model, object.getId(), markOid, state));
+                        buildSimulationObjectResultPanel(idOfChoicePanel, model, object.getId(), markOid, state, true));
+            }
+
+            @Override
+            protected String getPredefinedMarkOid() {
+                return markOid;
             }
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
                 removeLastBreadcrumb();
-                showChoiceFragment(target, buildSimulationResultPanel(idOfChoicePanel, model));
+                showChoiceFragment(target, buildSimulationResultPanel(idOfChoicePanel, model, false));
             }
 
             @Override
             protected boolean isExitButtonVisible() {
                 return false;
-            }
-
-            @Override
-            protected IModel<String> getBackLabel() {
-                return createStringResource(
-                        "ResourceSimulationResultObjectsWizardPanel.simulationWizardPanel.back");
             }
         };
     }
@@ -255,6 +243,7 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
      * @param simulationResultProcessedObjectId id of the processed object
      * @param markOid optional mark OID
      * @param state optional processing state
+     * @param fromSimulationObjects indicates if the navigation to this panel is from the objects list (true) or from the result overview (false)
      * @return the object wizard panel
      */
     private @NotNull ResourceSimulationResultObjectWizardPanel buildSimulationObjectResultPanel(
@@ -262,7 +251,8 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
             @NotNull IModel<SimulationResultType> model,
             @Nullable Long simulationResultProcessedObjectId,
             @Nullable String markOid,
-            @Nullable ObjectProcessingStateType state) {
+            @Nullable ObjectProcessingStateType state,
+            boolean fromSimulationObjects) {
         LoadableDetachableModel<SimulationResultProcessedObjectType> prModel = loadSimulationResultProcessedObjectModel(
                 getPageBase(),
                 model.getObject().getOid(), simulationResultProcessedObjectId);
@@ -277,13 +267,18 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
                     @NotNull AjaxRequestTarget target) {
                 removeLastBreadcrumb();
                 showChoiceFragment(target, buildSimulationObjectResultPanel(idOfChoicePanel,
-                        model, object.getId(), markOid, state));
+                        model, object.getId(), markOid, state, false));
             }
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
                 removeLastBreadcrumb();
-                showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, state));
+
+                if (fromSimulationObjects) {
+                    showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, markOid, state));
+                } else {
+                    showChoiceFragment(target, buildSimulationResultPanel(idOfChoicePanel, model, false));
+                }
             }
 
             @Override

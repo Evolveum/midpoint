@@ -9,6 +9,13 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:dms="http://midpoint.evolveum.com/xml/ns/samples/dms">
     <name>SystemConfiguration</name>
+    <internals>
+        <repository>
+            <statistics>
+                <classification>perOperationAndObjectType</classification> <!-- needed by performance tests -->
+            </statistics>
+        </repository>
+    </internals>
     <roleManagement>
         <relations>
             <relation>

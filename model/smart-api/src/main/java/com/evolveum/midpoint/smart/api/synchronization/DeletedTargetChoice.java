@@ -6,6 +6,6 @@
 package com.evolveum.midpoint.smart.api.synchronization;
 
 public enum DeletedTargetChoice {
-    REMOVE_BROKEN_LINK,
-    DO_NOTHING
+    REMOVE_LINK_AND_SYNCHRONIZE,
+    JUST_REMOVE_LINK
 }

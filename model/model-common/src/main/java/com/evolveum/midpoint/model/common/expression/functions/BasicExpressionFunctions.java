@@ -17,6 +17,8 @@ import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -35,10 +37,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.SecretsResolver;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -46,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.time.DateUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -141,7 +146,7 @@ public class BasicExpressionFunctions {
         return objectStr.contains(searchStr);
     }
 
-    public boolean containsIgnoreCase(Object object, Object search) {
+    public boolean containsIgnoreCase(@Nullable Object object, @Nullable Object search) {
         String objectStr = stringify(object);
         if (StringUtils.isEmpty(objectStr)) {
             return false;
@@ -150,7 +155,11 @@ public class BasicExpressionFunctions {
         if (StringUtils.isEmpty(searchStr)) {
             return false;
         }
-        return StringUtils.containsIgnoreCase(objectStr, searchStr);
+        return Strings.CI.contains(objectStr, searchStr);
+    }
+
+    public boolean equalsIgnoreCase(@Nullable Object o1, @Nullable Object o2) {
+        return Strings.CI.equals(stringify(o1), stringify(o2));
     }
 
     /**
@@ -307,7 +316,12 @@ public class BasicExpressionFunctions {
         return norm(polyString);
     }
 
+    @Deprecated // use ascii() instead
     public String toAscii(Object input) {
+        return ascii(input);
+    }
+
+    public String ascii(Object input) {
         if (input == null) {
             return null;
         }
@@ -317,82 +331,33 @@ public class BasicExpressionFunctions {
     }
 
     /**
+     * Capitalizes a String changing the first character to title case as per Character.toTitleCase(int).
+     * No other characters are changed.
+     */
+    public String capitalize(Object input) {
+        if (input == null) {
+            return null;
+        }
+        String inputString = stringify(input);
+        return StringUtils.capitalize(inputString);
+    }
+
+    /**
      * Converts whatever it gets to a string. But it does it in a sensitive way.
      * E.g. it tries to detect collections and returns the first element (if there is only one).
      * Never returns null. Returns empty string instead.
      */
     public String stringify(Object whatever) {
+        return ExpressionUtil.stringify(whatever, "");
+    }
 
-        if (whatever == null) {
-            return "";
-        }
-
-        if (whatever instanceof String) {
-            return (String) whatever;
-        }
-
-        if (whatever instanceof PolyString) {
-            return ((PolyString) whatever).getOrig();
-        }
-
-        if (whatever instanceof PolyStringType) {
-            return ((PolyStringType) whatever).getOrig();
-        }
-
-        if (whatever instanceof Collection<?> collection) {
-            if (collection.isEmpty()) {
-                return "";
-            }
-            if (collection.size() > 1) {
-                throw new IllegalArgumentException("Cannot stringify collection because it has " + collection.size() + " values");
-            }
-            whatever = collection.iterator().next();
-        }
-
-        Class<?> whateverClass = whatever.getClass();
-        if (whateverClass.isArray()) {
-            Object[] array = (Object[]) whatever;
-            if (array.length == 0) {
-                return "";
-            }
-            if (array.length > 1) {
-                throw new IllegalArgumentException("Cannot stringify array because it has " + array.length + " values");
-            }
-            whatever = array[0];
-        }
-
-        if (whatever == null) {
-            return "";
-        }
-
-        if (whatever instanceof String) {
-            return (String) whatever;
-        }
-
-        if (whatever instanceof PolyString) {
-            return ((PolyString) whatever).getOrig();
-        }
-
-        if (whatever instanceof PolyStringType) {
-            return ((PolyStringType) whatever).getOrig();
-        }
-
-        if (whatever instanceof Element element) {
-            Element origElement = DOMUtil.getChildElement(element, PolyString.F_ORIG);
-            //noinspection ReplaceNullCheck
-            if (origElement != null) {
-                // This is most likely a PolyStringType
-                return origElement.getTextContent();
-            } else {
-                return element.getTextContent();
-            }
-        }
-
-        if (whatever instanceof Node) {
-            return ((Node) whatever).getTextContent();
-        }
-
-        return whatever.toString();
+    /**
+     * Converts whatever it gets to a string. But it does it in a sensitive way.
+     * E.g. it tries to detect collections and returns the first element (if there is only one).
+     * Never returns null, returns value provided as second argument instead.
+     */
+    public String stringify(Object whatever, String nullRepresentation) {
+        return ExpressionUtil.stringify(whatever, nullRepresentation);
     }
 
     public Collection<String> getOids(Collection<ObjectReferenceType> refs) {
@@ -477,7 +442,7 @@ public class BasicExpressionFunctions {
     public <T> @Nullable T getExtensionPropertyValue(
             Containerable containerable, @NotNull javax.xml.namespace.QName propertyQname)
             throws SchemaException {
-        return toSingle(
+        return single(
                 ObjectTypeUtil.getExtensionPropertyValues(containerable, propertyQname),
                 lazy(() -> "a multi-valued extension property " + propertyQname));
     }
@@ -509,7 +474,7 @@ public class BasicExpressionFunctions {
     public @Nullable Referencable getExtensionReferenceValue(
             Containerable containerable, @NotNull javax.xml.namespace.QName itemQName)
             throws SchemaException {
-        return toSingle(
+        return single(
                 ObjectTypeUtil.getExtensionReferenceValues(containerable, itemQName),
                 lazy(() -> "a multi-valued extension property " + itemQName));
     }
@@ -576,7 +541,7 @@ public class BasicExpressionFunctions {
 
     public <T> T getPropertyValue(PrismContainerValue<?> pcv, ItemPathType path) throws SchemaException {
         Collection<T> values = getPropertyValues(pcv, path);
-        return toSingle(values, "a multi-valued property " + path);
+        return single(values, "a multi-valued property " + path);
     }
 
     public <T> Collection<T> getPropertyValues(PrismContainerValue<?> pcv, String path) {
@@ -681,7 +646,12 @@ public class BasicExpressionFunctions {
         return getMetadataValues(value, ValueMetadataType.F_EXTENSION, itemLocalPart);
     }
 
+    @Deprecated // Use getPrimaryIdentifierValue instead
     public <T> T getIdentifierValue(ShadowType shadow) throws SchemaException {
+        return getPrimaryIdentifierValue(shadow);
+    }
+
+    public <T> T getPrimaryIdentifierValue(ShadowType shadow) throws SchemaException {
         if (shadow == null) {
             return null;
         }
@@ -716,7 +686,7 @@ public class BasicExpressionFunctions {
             return null;
         }
         if (realValues.size() > 1) {
-            throw new SchemaException("More than one secondary idenfier value in " + shadow);
+            throw new SchemaException("More than one secondary identifier value in " + shadow);
         }
         return realValues.iterator().next();
     }
@@ -786,6 +756,11 @@ public class BasicExpressionFunctions {
         return determineLdapSingleAttributeValue(dns.iterator().next(), attributeName, values);
     }
 
+    /**
+     * Selects single value from many LDAP values, based on object DN.
+     * E.g. value 'bar' is selected from list of values ['foo','bar','baz']
+     * because that value is present in DN 'uid=bar,o=example'.
+     */
     // We cannot have Collection<String> here. The generic type information will disappear at runtime and the scripts can pass
     // anything that they find suitable. E.g. XPath is passing elements
     public String determineLdapSingleAttributeValue(String dn, String attributeName, Collection<?> values) throws NamingException {
@@ -841,7 +816,17 @@ public class BasicExpressionFunctions {
         return Collections.min(stringValues);
     }
 
+    @Deprecated // Use 'single' instead. Changed to match with MEL.
     public <T> T toSingle(Collection<T> values) throws SchemaException {
+        return single(values);
+    }
+
+    @Deprecated // Use 'single' instead. Changed to match with MEL.
+    private <T> T toSingle(Collection<T> values, Object contextDesc) throws SchemaException {
+        return single(values, contextDesc);
+    }
+
+    public <T> T single(Collection<T> values) throws SchemaException {
         if (values == null || values.isEmpty()) {
             return null;
         } else if (values.size() > 1) {
@@ -851,7 +836,7 @@ public class BasicExpressionFunctions {
         }
     }
 
-    private <T> T toSingle(Collection<T> values, Object contextDesc) throws SchemaException {
+    private <T> T single(Collection<T> values, Object contextDesc) throws SchemaException {
         if (values == null || values.isEmpty()) {
             return null;
         } else if (values.size() > 1) {
@@ -891,6 +876,32 @@ public class BasicExpressionFunctions {
         return XmlTypeConverter.createXMLGregorianCalendar(date);
     }
 
+    // POSIX-like function, compatible with the UNIX world
+    public String strftime(String posixFormat, XMLGregorianCalendar xmlCal) {
+        if (xmlCal == null || posixFormat == null) {
+            return null;
+        }
+        return TimestampFormatUtil.strftime(xmlCal.toGregorianCalendar().toZonedDateTime(), posixFormat);
+    }
+
+    // POSIX-like function, compatible with the UNIX world
+    public String strftime(String posixFormat, Long millis) {
+        if (millis == null || posixFormat == null) {
+            return null;
+        }
+        return TimestampFormatUtil.strftime(Instant.ofEpochMilli(millis), posixFormat);
+    }
+
+    // POSIX-like function, compatible with the UNIX world
+    public XMLGregorianCalendar strptime(String posixFormat, String stringDate) throws ParseException {
+        if (posixFormat == null || stringDate == null) {
+            return null;
+        }
+        ZonedDateTime zdt = TimestampFormatUtil.strptime(stringDate, posixFormat);
+        return XmlTypeConverter.createXMLGregorianCalendar(zdt);
+    }
+
+
     public XMLGregorianCalendar currentDateTime() {
         return clock.currentTimeXMLGregorianCalendar();
     }
@@ -929,13 +940,23 @@ public class BasicExpressionFunctions {
         return XmlTypeConverter.addMillis(now, duration);
     }
 
+    @Deprecated // Use atStartOfDay instead
     public XMLGregorianCalendar roundDownToMidnight(XMLGregorianCalendar in) {
+        return atStartOfDay(in);
+    }
+
+    public XMLGregorianCalendar atStartOfDay(XMLGregorianCalendar in) {
         XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
         out.setTime(0, 0, 0, 0);
         return out;
     }
 
+    @Deprecated // Use atEndOfDay instead
     public XMLGregorianCalendar roundUpToEndOfDay(XMLGregorianCalendar in) {
+        return atEndOfDay(in);
+    }
+
+    public XMLGregorianCalendar atEndOfDay(XMLGregorianCalendar in) {
         XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
         out.setTime(23, 59, 59, 999);
         return out;
@@ -1115,6 +1136,10 @@ public class BasicExpressionFunctions {
         }
     }
 
+    public ProtectedStringType resolveSecretProtectedString(@NotNull String provider, @NotNull String key) {
+        return encrypt(resolveSecretString(provider,key));
+    }
+
     /**
      * Creates a valid LDAP distinguished name from the wide range of components. The method
      * can be invoked in many ways, e.g.:
@@ -1175,10 +1200,10 @@ public class BasicExpressionFunctions {
      * Creates a valid LDAP distinguished name from the wide range of components assuming that
      * the last component is a suffix. The method can be invoked in many ways, e.g.:
      * <p>
-     * composeDn("cn","foo","o=bar")
-     * composeDn(new Rdn("cn","foo"),"ou=baz,o=bar")
-     * composeDn(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar"))
-     * composeDn("cn","foo",new LdapName("ou=baz,o=bar"))
+     * composeDnWithSuffix("cn","foo","o=bar")
+     * composeDnWithSuffix(new Rdn("cn","foo"),"ou=baz,o=bar")
+     * composeDnWithSuffix(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar"))
+     * composeDnWithSuffix("cn","foo",new LdapName("ou=baz,o=bar"))
      * <p>
      * The last element is a complete suffix represented either as String or LdapName.
      * <p>
@@ -1310,5 +1335,35 @@ public class BasicExpressionFunctions {
         }
         activity.getDistribution().setWorkerThreads(value);
         // Maybe we could delete empty distribution container if value is null - but most probably we shouldn't.
+    }
+
+    // TODO decide about this method
+    public static String substringAfter(String string, String separator) {
+        if (string == null || separator == null) {
+            return null;
+        }
+        int index = string.indexOf(separator);
+        if (index < 0) {
+            return string;
+        }
+        return string.substring(index + separator.length());
+    }
+
+    // TODO decide about this method
+    public static String map(String string, String... keyValuePairs) {
+        if (string == null || keyValuePairs == null) {
+            return string;
+        }
+        if (keyValuePairs.length % 2 != 0) {
+            throw new IllegalArgumentException("keyValuePairs must contain even number of elements");
+        }
+        for (int i = 0; i < keyValuePairs.length; i += 2) {
+            String key = keyValuePairs[i];
+            String value = keyValuePairs[i + 1];
+            if (string.equals(key)) {
+                return value;
+            }
+        }
+        return string;
     }
 }

@@ -19,7 +19,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -183,7 +183,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
         //noinspection unchecked
         LensContext<RoleType> context = (LensContext<RoleType>) recordingListener.getModelContext();
         System.out.println(context.dumpObjectPolicyRules(0));
-        EvaluatedPolicyRule incompleteActivationRule = context.getFocusContext().getObjectPolicyRules().stream()
+        DirectlyEvaluatedClockworkPolicyRule incompleteActivationRule = context.getFocusContext().getObjectPolicyRules().stream()
                 .filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("rule not found"));
@@ -218,7 +218,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
         //noinspection unchecked
         LensContext<RoleType> context = (LensContext<RoleType>) recordingListener.getModelContext();
         System.out.println(context.dumpObjectPolicyRules(0));
-        EvaluatedPolicyRule incompleteActivationRule = context.getFocusContext().getObjectPolicyRules().stream()
+        DirectlyEvaluatedClockworkPolicyRule incompleteActivationRule = context.getFocusContext().getObjectPolicyRules().stream()
                 .filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("rule not found"));

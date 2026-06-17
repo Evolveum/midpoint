@@ -122,7 +122,8 @@ public class SearchableItemsDefinitions {
         SEARCHABLE_OBJECTS.put(ConnectorType.class, Arrays.asList(
                 ItemPath.create(ConnectorType.F_CONNECTOR_BUNDLE),
                 ItemPath.create(ConnectorType.F_CONNECTOR_VERSION),
-                ItemPath.create(ConnectorType.F_CONNECTOR_TYPE)
+                ItemPath.create(ConnectorType.F_CONNECTOR_TYPE),
+                ItemPath.create(ConnectorType.F_AVAILABLE)
         ));
         SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
                 ItemPath.create(AbstractRoleType.F_IDENTIFIER),
@@ -156,7 +157,7 @@ public class SearchableItemsDefinitions {
         ));
 
         SEARCHABLE_OBJECTS.put(CaseWorkItemType.class, Arrays.asList(
-                ItemPath.create(AbstractWorkItemType.F_NAME),
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_NAME),
                 ItemPath.create(CaseWorkItemType.F_ASSIGNEE_REF),
                 ItemPath.create(CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
                 ItemPath.create(PrismConstants.T_PARENT, CaseType.F_STATE),

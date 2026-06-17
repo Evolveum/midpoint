@@ -39,6 +39,7 @@ class CloseStageAction extends InternalAction {
         StageClosingResult closingInformation;
         if (autoClosingInformation != null) {
             recordAutoCompletionToCaseHistory();
+            auditRecords.addAutoClosingWorkItem(autoClosingInformation, result);
             closingInformation = autoClosingInformation;
         } else {
             closingInformation = getEngineExtension().processStageClosing(operation, result);

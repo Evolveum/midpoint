@@ -16,7 +16,11 @@ public enum WellKnownSchemaType {
 
     SCIM_2_0_USER("SCIM 2.0 User", "RFC 7643 User Schema"),
     LDAP_INETORGPERSON("LDAP inetOrgPerson", "RFC 2798 inetOrgPerson Object Class"),
-    AD_USER("Active Directory User", "Active Directory User Object");
+    LDAP_GROUP_OF_NAMES("LDAP groupOfNames", "LDAP groupOfNames/groupOfUniqueNames Object Class"),
+    LDAP_ORGANIZATIONAL_UNIT("LDAP organizationalUnit", "LDAP organizationalUnit Object Class"),
+    AD_USER("Active Directory User", "Active Directory User Object"),
+    AD_GROUP("Active Directory Group", "Active Directory Group Object"),
+    AD_ORGANIZATIONAL_UNIT("Active Directory organizationalUnit", "Active Directory organizationalUnit Object");
 
     private final String displayName;
     private final String description;

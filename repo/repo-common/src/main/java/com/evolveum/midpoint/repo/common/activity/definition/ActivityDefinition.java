@@ -6,12 +6,11 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -52,6 +51,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     /** Definition for activity policies. Currently, not tailorable. */
     @NotNull private final ActivityPoliciesDefinition policiesDefinition;
 
+    @NotNull private final ActivityVirtualAssignmentsDefinition virtualAssignmentsDefinition;
+
     private ActivityDefinition(
             @Nullable String explicitlyDefinedIdentifier,
             @NotNull WD workDefinition,
@@ -59,7 +60,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
             @NotNull ActivityDistributionDefinition distributionDefinition,
             @NotNull ActivityReportingDefinition reportingDefinition,
             @NotNull ActivityExecutionModeDefinition executionModeDefinition,
-            @NotNull ActivityPoliciesDefinition policiesDefinition) {
+            @NotNull ActivityPoliciesDefinition policiesDefinition,
+            @NotNull ActivityVirtualAssignmentsDefinition virtualAssignmentsDefinition) {
         this.explicitlyDefinedIdentifier = explicitlyDefinedIdentifier;
         this.workDefinition = workDefinition;
         this.controlFlowDefinition = controlFlowDefinition;
@@ -67,6 +69,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         this.reportingDefinition = reportingDefinition;
         this.executionModeDefinition = executionModeDefinition;
         this.policiesDefinition = policiesDefinition;
+        this.virtualAssignmentsDefinition = virtualAssignmentsDefinition;
     }
 
     /**
@@ -114,7 +117,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 ActivityDistributionDefinition.create(definitionBean),
                 ActivityReportingDefinition.create(definitionBean),
                 ActivityExecutionModeDefinition.create(definitionBean),
-                ActivityPoliciesDefinition.create(definitionBean));
+                ActivityPoliciesDefinition.create(definitionBean),
+                ActivityVirtualAssignmentsDefinition.create(definitionBean));
     }
 
     /**
@@ -170,6 +174,10 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return policiesDefinition;
     }
 
+    public @NotNull ActivityVirtualAssignmentsDefinition getVirtualAssignmentsDefinition() {
+        return virtualAssignmentsDefinition;
+    }
+
     @Override
     public String toString() {
         return "ActivityDefinition{" +
@@ -179,6 +187,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 ", reportingDefinition: " + reportingDefinition +
                 ", executionModeDefinition: " + executionModeDefinition +
                 ", policiesDefinition: " + policiesDefinition +
+                ", virtualAssignmentsDefinition: " + virtualAssignmentsDefinition +
                 '}';
     }
 
@@ -188,7 +197,9 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "work", workDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "control flow", controlFlowDefinition, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "distribution", distributionDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "distribution", distributionDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "policies", policiesDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "virtualAssignments", virtualAssignmentsDefinition, indent + 1);
         return sb.toString();
     }
 
@@ -237,7 +248,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 distributionDefinition.clone(),
                 reportingDefinition.clone(),
                 executionModeDefinition.clone(),
-                policiesDefinition.clone());
+                policiesDefinition.clone(),
+                virtualAssignmentsDefinition.clone());
     }
 
     public @NotNull ActivityReportingDefinition getReportingDefinition() {

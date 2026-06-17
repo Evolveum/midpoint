@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.*;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -37,14 +38,20 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
         return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
 
             @Override
-            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
-                SimulationWizardPanel<?> simulationWizardPanel = buildSimulationWizard();
-                showChoiceFragment(target, simulationWizardPanel);
+            protected boolean isAssociationView() {
+                return CorrelationWizardPanel.this.isAssociationTypeWizardPanel();
             }
 
             @Override
-            protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
-                CorrelationWizardPanel.this.navigateToSynchronizationPanel(target);
+            protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+                SimulationWizardPanel<?> simulationResultPanel = buildSimulationResultWizard(simulationResultTypeIModel);
+                showChoiceFragment(target, simulationResultPanel);
+            }
+
+            @Override
+            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                SimulationWizardPanel<?> simulationWizardPanel = buildSimulationTaskWizard();
+                showChoiceFragment(target, simulationWizardPanel);
             }
 
             @Override
@@ -54,9 +61,9 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
             }
 
             @Override
-            protected void showTableForItemRefs(
+            protected <C extends Containerable> void showTableForItemRefs(
                     @NotNull AjaxRequestTarget target,
-                    @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
+                    @NotNull IModel<PrismContainerValueWrapper<C>> parentContainerDefWrapper,
                     @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
                     @Nullable StatusInfo<CorrelationSuggestionsType> statusInfo) {
                 WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(
@@ -68,13 +75,24 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                     }
                 };
 
-                showChoiceFragment(target, new CorrelationItemRuleWizardPanel(getIdOfChoicePanel(),
-                        resourceObjectTypeDefinition, helper, () -> statusInfo) {
+                showChoiceFragment(target, new CorrelationItemRuleWizardPanel<>(getIdOfChoicePanel(),
+                        parentContainerDefWrapper, helper, () -> statusInfo) {
                     @Override
                     protected void acceptSuggestionPerformed(
                             @NotNull AjaxRequestTarget target,
                             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
-                        acceptSuggestionItemPerformed(getPageBase(), target, valueModel, resourceObjectTypeDefinition, statusInfo);
+                        PrismContainerValueWrapper<? extends Containerable> parent = parentContainerDefWrapper.getObject();
+                        if (parent == null || parent.getRealValue() == null) {
+                            return;
+                        }
+
+                        if (parent.getRealValue() instanceof ResourceObjectTypeDefinitionType) {
+                            @SuppressWarnings("unchecked")
+                            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> rotWrapper =
+                                    (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) parent;
+
+                            acceptSuggestionItemPerformed(getPageBase(), target, valueModel, () -> rotWrapper, statusInfo);
+                        }
                     }
 
                     @Override
@@ -86,25 +104,51 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                         performDiscard(pageBase, target, valueModel, statusInfo);
                     }
 
-                    @Override
-                    protected boolean isShowEmptyField() {
-                        return true;
-                    }
-
                 });
             }
         };
     }
 
-    private @NotNull SimulationWizardPanel<?> buildSimulationWizard() {
+    private @NotNull SimulationWizardPanel<?> buildSimulationTaskWizard() {
         return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper()) {
             @Override
             public void onBackPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTablePanel());
             }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("SimulationTaskWizardPanel.correlationWizardPanel.back");
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel());
+            }
         };
     }
 
-    protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
+    private @NotNull SimulationWizardPanel<?> buildSimulationResultWizard(IModel<SimulationResultType> simulationResultTypeIModel) {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper(), simulationResultTypeIModel) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel());
+            }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("SimulationWizardPanel.correlationWizardPanel.back");
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel());
+            }
+        };
     }
+
+    protected boolean isAssociationTypeWizardPanel() {
+        return false;
+    }
+
 }

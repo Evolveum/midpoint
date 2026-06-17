@@ -13,6 +13,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicyHistory;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.application.PanelTypeConstants;
 
+import com.evolveum.midpoint.web.page.admin.services.PageServiceHistory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -79,7 +80,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        getPageBase().getSessionStorage().setObjectHistoryAuditLog(getObjectWrapper().getTypeName(), new AuditLogStorage());
+        getPageBase().getBrowserTabSessionStorage().setObjectHistoryAuditLog(getObjectWrapper().getTypeName(), new AuditLogStorage());
     }
 
     protected void initLayout() {
@@ -182,7 +183,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
 
     protected void currentStateButtonClicked(String oid, String eventIdentifier, Class<F> type, String date) {
         //TODO fix sessionStorage
-        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + type.getSimpleName(), null);
+        getPageBase().getBrowserTabSessionStorage().setObjectDetailsStorage("details" + type.getSimpleName(), null);
 
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OID_PARAMETER_LABEL, oid);

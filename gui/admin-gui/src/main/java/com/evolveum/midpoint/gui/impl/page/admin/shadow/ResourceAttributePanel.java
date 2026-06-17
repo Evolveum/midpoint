@@ -157,7 +157,8 @@ public class ResourceAttributePanel extends ItemRefinedPanel<ResourceAttributeDe
         displayType.setIcon(icon);
         detailsPanel.setDisplay(displayType);
 
-        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + parent.getType().getSimpleName(), detailsPanel);
+        getPageBase().getBrowserTabSessionStorage()
+                .setObjectDetailsStorage("details" + parent.getType().getSimpleName(), detailsPanel);
 
         ResourceAttributePanel.this.getConfig().getPanel().add(detailsPanel);
         target.add(parent);

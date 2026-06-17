@@ -60,8 +60,8 @@ public class StatusInfoImpl<T> implements StatusInfo<T> {
         this.taskInformation = ActivityBasedTaskInformation.createForTask(task, null);
 
         var affected = task.getAffectedObjects();
-        if (affected != null && affected.getActivity() != null) {
-            this.request = task.getAffectedObjects().getActivity().get(0).getResourceObjects(); // FIXME implement more robustly
+        if (affected != null && !affected.getActivity().isEmpty()) {
+            this.request = affected.getActivity().get(0).getResourceObjects(); // FIXME implement more robustly
         } else {
             this.request = null;
         }

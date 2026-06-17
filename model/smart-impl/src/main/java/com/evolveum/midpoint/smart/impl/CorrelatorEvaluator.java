@@ -36,7 +36,7 @@ class CorrelatorEvaluator {
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationServiceImpl.class);
 
     private static final int MAX_SHADOW_SAMPLE_SIZE = 2000;
-    private static final boolean NO_FETCH_SHADOWS = true;
+    private static final boolean NO_FETCH_SHADOWS = false;
 
     private final TypeOperationContext ctx;
     private final List<CorrelatorSuggestion> suggestions;
@@ -255,7 +255,7 @@ class CorrelatorEvaluator {
         Map<String, Set<String>> shadowToFocusLinks = collectShadowToFocusLinks(suggestion);
         double linkCoverage = computeLinkCoverage(shadowToFocusLinks);
 
-        return Math.round(linkCoverage * 100.0) / 100.0;
+        return linkCoverage;
     }
 
     /**

@@ -153,6 +153,18 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_SERVICES_QNAME = new QName(NS_AUTHORIZATION_UI, "services");
     public static final String AUTZ_UI_SERVICES_URL = NS_AUTHORIZATION_UI + "#services";
 
+    public static final QName AUTZ_UI_SERVICES_INTEGRATION_APPLICATIONS_URL_QNAME = new QName(NS_AUTHORIZATION_UI, "integrationApplicationServices");
+    public static final String AUTZ_UI_SERVICES_INTEGRATION_APPLICATIONS_URL = NS_AUTHORIZATION_UI + "#integrationApplicationServices";
+
+    public static final QName AUTZ_UI_SERVICES_INTEGRATION_APPLICATIONS_VIEW_URL_QNAME = new QName(NS_AUTHORIZATION_UI, "integrationApplicationServicesView");
+    public static final String AUTZ_UI_SERVICES_INTEGRATION_APPLICATIONS_VIEW_URL = NS_AUTHORIZATION_UI + "#integrationApplicationServicesView";
+
+    public static final QName AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_URL_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationServices");
+    public static final String AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_URL = NS_AUTHORIZATION_UI + "#applicationServices";
+
+    public static final QName AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_VIEW_URL_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationServicesView");
+    public static final String AUTZ_UI_SERVICES_DEFAULT_APPLICATIONS_VIEW_URL = NS_AUTHORIZATION_UI + "#applicationServicesView";
+
     public static final QName AUTZ_UI_SERVICE_QNAME = new QName(NS_AUTHORIZATION_UI, "service");
     public static final String AUTZ_UI_SERVICE_URL = NS_AUTHORIZATION_UI + "#service";
 
@@ -255,6 +267,9 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_CONNECTOR_HOSTS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorHostsAll");
     public static final String AUTZ_UI_CONNECTOR_HOSTS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorHostsAll";
+
+    public static final QName AUTZ_UI_CONNECTORS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorsAll");
+    public static final String AUTZ_UI_CONNECTORS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorsAll";
 
     // Resource XML editor
     public static final QName AUTZ_UI_RESOURCE_QNAME = new QName(NS_AUTHORIZATION_UI, "resource");
@@ -518,6 +533,19 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_DELEGATE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "delegate");
     public static final String AUTZ_UI_DELEGATE_ACTION_URL = QNameUtil.qNameToUri(AUTZ_UI_DELEGATE_ACTION_QNAME);
 
+    public static final QName AUTZ_UI_CREDENTIALS_ALL = new QName(NS_AUTHORIZATION_UI, "credentials");
+    public static final String AUTZ_UI_CREDENTIALS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_ALL);
+
+    public static final QName AUTZ_UI_CREDENTIALS_PASSWORD = new QName(NS_AUTHORIZATION_UI, "credentialsPassword");
+    public static final String AUTZ_UI_CREDENTIALS_PASSWORD_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_PASSWORD);
+
+    public static final QName AUTZ_UI_CREDENTIALS_TOTP = new QName(NS_AUTHORIZATION_UI, "credentialsTotp");
+    public static final String AUTZ_UI_CREDENTIALS_TOTP_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_TOTP);
+
+    public static final QName AUTZ_UI_CREDENTIALS_SECURITY_QUESTIONS = new QName(NS_AUTHORIZATION_UI, "credentialsSecurityQuestions");
+    public static final String AUTZ_UI_CREDENTIALS_SECURITY_QUESTIONS_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_SECURITY_QUESTIONS);
+
+
     // UI administrator authorizations
     //
     // Those authorizations enable advanced functionality that is supposed to be available to administrators only.
@@ -633,6 +661,10 @@ public class AuthorizationConstants {
     //ui authorization for CSV export button (will be applied everywhere over mp)
     public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
     public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);
+
+    //ui authorization for XLSX export button (will be applied everywhere over mp)
+    public static final QName AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminXLSXexport");
+    public static final String AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_XLSX_EXPORT_ACTION_QNAME);
 
     //ui authorization for create report button under object list table (will be applied everywhere over mp)
     public static final QName AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCreateReportButton");

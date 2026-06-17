@@ -13,9 +13,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-class Util {
+public class Util {
 
-    static ActivityState getParentState(AbstractActivityRun<?, ?, ?> run, OperationResult result)
+    public static ActivityState getParentState(AbstractActivityRun<?, ?, ?> run, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         // Use the root work state type from the current activity handler to fetch the parent state correctly.
         // This works for both ObjectTypes and Mappings suggestion trees.

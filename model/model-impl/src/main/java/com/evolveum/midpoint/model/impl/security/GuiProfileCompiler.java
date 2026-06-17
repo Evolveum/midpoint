@@ -12,10 +12,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.security.api.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,17 +31,20 @@ import com.evolveum.midpoint.model.impl.lens.LoginAssignmentCollector;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -144,7 +143,9 @@ public class GuiProfileCompiler {
             profileDependencies.add(systemConfiguration.getOid());
         }
 
-        collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, options, task, result);
+        if (!reuseLoginGuiProfileInputs(adminGuiConfigurations, profileDependencies, principal, options)) {
+            collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, options, task, result);
+        }
 
         if (!options.isCompileGuiAdminConfiguration()) {
             return;
@@ -165,6 +166,25 @@ public class GuiProfileCompiler {
 
         guiProfileCompilerRegistry.invokeCompiler(compiledGuiProfile);
         principal.setCompiledGuiProfile(compiledGuiProfile);
+        principal.clearLoginGuiProfileInputs();
+    }
+
+    private boolean reuseLoginGuiProfileInputs(
+            List<AdminGuiConfigurationType> adminGuiConfigurations,
+            Set<String> profileDependencies,
+            GuiProfiledPrincipal principal,
+            ProfileCompilerOptions options) {
+        if (!options.isCompileGuiAdminConfiguration()) {
+            return false;
+        }
+        GuiProfiledPrincipal.LoginGuiProfileInputs loginGuiProfileInputs = principal.getLoginGuiProfileInputs();
+        if (loginGuiProfileInputs == null) {
+            return false;
+        }
+
+        adminGuiConfigurations.addAll(loginGuiProfileInputs.adminGuiConfigurations());
+        profileDependencies.addAll(loginGuiProfileInputs.profileDependencies());
+        return true;
     }
 
     private void collect(
@@ -193,6 +213,8 @@ public class GuiProfileCompiler {
 
         MidpointAuthentication auth = AuthUtil.getMidpointAuthenticationNotRequired();
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
+        boolean storeLoginGuiProfileInputs =
+                shouldStoreLoginGuiProfileInputs(options, channel);
 
         List<Authorization> collectedAuthorizationList = new ArrayList<>();
         OtherPrivilegesLimitations collectedOtherPrivilegesLimitations = new OtherPrivilegesLimitations();
@@ -206,7 +228,7 @@ public class GuiProfileCompiler {
 
         for (EvaluatedAssignment assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
-                if (options.isCompileGuiAdminConfiguration()) {
+                if (options.isCompileGuiAdminConfiguration() || storeLoginGuiProfileInputs) {
                     // TODO: Should we add also invalid assignments?
                     consideredOids.addAll(assignment.getAdminGuiDependencies());
                 }
@@ -214,11 +236,10 @@ public class GuiProfileCompiler {
                 if (options.isCollectAuthorization()) {
                     collectedAuthorizationList.addAll(collectAuthorizations(channel, assignment.getAuthorizations(), options));
                 }
-                if (options.isCompileGuiAdminConfiguration()) {
+                if (options.isCompileGuiAdminConfiguration() || storeLoginGuiProfileInputs) {
                     adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
                 }
             }
-
 
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // TODO see MID-6403
                 if (target.isValid() && target.getAssignmentPath().containsDelegation()) {
@@ -234,9 +255,28 @@ public class GuiProfileCompiler {
         //end of code restructuring due to #10781
 
         if (!options.isCompileGuiAdminConfiguration()) {
+            if (storeLoginGuiProfileInputs) {
+                addFocusAdminGuiConfiguration(adminGuiConfigurations, focus);
+                principal.setLoginGuiProfileInputs(
+                        new GuiProfiledPrincipal.LoginGuiProfileInputs(adminGuiConfigurations, consideredOids));
+            } else {
+                principal.clearLoginGuiProfileInputs();
+            }
             return;
         }
 
+        addFocusAdminGuiConfiguration(adminGuiConfigurations, focus);
+    }
+
+    private boolean shouldStoreLoginGuiProfileInputs(
+            ProfileCompilerOptions options, @Nullable AuthenticationChannel channel) {
+        return options.isCollectAuthorization()
+                && !options.isCompileGuiAdminConfiguration()
+                && (channel == null || channel.isSupportGuiConfigByChannel());
+    }
+
+    private void addFocusAdminGuiConfiguration(
+            List<AdminGuiConfigurationType> adminGuiConfigurations, FocusType focus) {
         if (focus instanceof UserType user && user.getAdminGuiConfiguration() != null) {
             // config from the user object should go last (to be applied as the last one)
             adminGuiConfigurations.add(user.getAdminGuiConfiguration());
@@ -456,6 +496,10 @@ public class GuiProfileCompiler {
             mergeAccessRequestConfiguration(composite, adminGuiConfiguration.getAccessRequest());
         }
 
+        if (adminGuiConfiguration.getImageUploadProcessing() != null) {
+            mergeImageUploadProcessingConfiguration(composite, adminGuiConfiguration.getImageUploadProcessing());
+        }
+
         if (adminGuiConfiguration.getHomePage() != null) {
             QName principalType = null;
             if (principal != null) {
@@ -597,6 +641,25 @@ public class GuiProfileCompiler {
 
         if (accessRequest.getCheckout() != null) {
             ar.setCheckout(accessRequest.getCheckout().cloneWithoutId());
+        }
+    }
+
+    private void mergeImageUploadProcessingConfiguration(CompiledGuiProfile composite, ImageUploadProcessingType imageUploadProcessing) {
+        if (composite.getImageUploadProcessing() == null) {
+            composite.setImageUploadProcessing(imageUploadProcessing.cloneWithoutId());
+        }
+
+        ImageUploadProcessingType iup = composite.getImageUploadProcessing();
+        if (imageUploadProcessing.getProcessing() != null) {
+            iup.setProcessing(imageUploadProcessing.getProcessing());
+        }
+
+        if (imageUploadProcessing.getFormat() != null) {
+            iup.setFormat(imageUploadProcessing.getFormat());
+        }
+
+        if (imageUploadProcessing.getStripExifData() != null) {
+            iup.setStripExifData(imageUploadProcessing.getStripExifData());
         }
     }
 

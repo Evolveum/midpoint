@@ -1,19 +1,20 @@
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
+import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
-import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
+import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.task.api.Task;
@@ -63,6 +64,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
     @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
+    @Autowired private CorrelationService correlationService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -106,6 +108,23 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                         .item(UserType.F_LINK_REF)
                         .add(shadow.getRef())
                         .asObjectDelta(user.oid),
+                null, task, result);
+    }
+
+    private void correlateAccount(TestObject<UserType> user, Task task, OperationResult result)
+            throws CommonException, IOException {
+        var shadow = findShadowRequest()
+                .withResource(RESOURCE_DUMMY.getObjectable())
+                .withDefaultAccountType()
+                .withNameValue(user.getNameOrig())
+                .build().findRequired(task, result);
+        final PrismReferenceValue userReference = PrismContext.get().itemFactory().createReferenceValue(user.oid,
+                UserType.COMPLEX_TYPE);
+        executeChanges(
+                PrismContext.get().deltaFor(ShadowType.class)
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
+                        .add(userReference)
+                        .asObjectDelta(shadow.getOid()),
                 null, task, result);
     }
 
@@ -167,10 +186,28 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
     @Test
     public void test001AsIsMappingWhenDataIdentical() throws Exception {
+        testAsIsMapping();
+    }
+
+    @Test
+    public void test002AsIsMappingWhenUsersAreNotLinkedButOnlyCorrelated() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_LINK_REF), (Object) null);
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_LINK_REF), (Object) null);
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_LINK_REF), (Object) null);
+
+        correlateAccount(USER1, task, result);
+        correlateAccount(USER2, task, result);
+        correlateAccount(USER3, task, result);
 
         refreshShadows();
+        testAsIsMapping();
+    }
+
+    private void testAsIsMapping() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         // Personal number is identical on both sides
         var mockClient = createClient(
@@ -184,12 +221,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -205,7 +246,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test002TransformationMappingWhenScriptProvided() throws Exception {
+    public void test003TransformationMappingWhenScriptProvided() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -227,12 +268,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -245,7 +290,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test003InvalidScriptShouldBeIgnored() throws Exception {
+    public void test004InvalidScriptShouldBeIgnored() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -269,12 +314,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -285,7 +334,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test004InvalidScriptWithCorrectRetry() throws Exception {
+    public void test005InvalidScriptWithCorrectRetry() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -310,12 +359,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                1);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -331,7 +384,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test005LowQualityMappingShouldBeSkipped() throws Exception {
+    public void test006LowQualityMappingShouldBeSkipped() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -357,12 +410,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -389,12 +446,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 false,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -436,12 +497,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 false,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -483,12 +548,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 false,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -529,12 +598,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 false,
-                true);
+                true,
+                null,
+                1);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -575,12 +648,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 false,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -604,12 +681,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -642,12 +723,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -674,12 +759,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -712,12 +801,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -755,12 +848,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -795,12 +892,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 false,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -835,12 +936,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 false,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -852,64 +957,6 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getExpectedQuality())
                 .as("With no target data, expected quality should be null")
                 .isNull();
-    }
-
-    @Test
-    public void test100SystemMappingsFromLdapWithPerfectMatch() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        modifyUserReplace(USER1.oid, UserType.F_FULL_NAME, PolyString.fromOrig("John Doe"));
-        modifyUserReplace(USER2.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Jane Smith"));
-        modifyUserReplace(USER3.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Bob Johnson"));
-
-        modifyShadowReplace("user1", CN, "John Doe");
-        modifyShadowReplace("user2", CN, "Different Name");
-        modifyShadowReplace("user3", CN, "Another Name");
-
-        refreshShadows();
-
-        var mockClient = createClient(List.of(), List.of());
-        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
-        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
-
-        var op = MappingsSuggestionOperation.init(
-                ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService,
-                heuristicRuleMatcher,
-                true,
-                true);
-
-        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
-        match.setWellKnownSchemaType(WellKnownSchemaType.LDAP_INETORGPERSON.name());
-        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
-
-        assertThat(suggestion.getAttributeMappings())
-                .as("LDAP system mappings should be present")
-                .isNotEmpty();
-
-        var cnMappings = suggestion.getAttributeMappings().stream()
-                .filter(m -> m.getDefinition() != null
-                        && m.getDefinition().getRef() != null
-                        && m.getDefinition().getRef().toString().endsWith("cn"))
-                .toList();
-
-        assertThat(cnMappings)
-                .as("Should have exactly one cn mapping")
-                .hasSize(1);
-
-        var cnMapping = cnMappings.get(0);
-
-        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(cnMapping.asPrismContainerValue()))
-                .as("System-provided should be preferred when quality is similar")
-                .isTrue();
-
-        assertThat(cnMapping.getExpectedQuality())
-                .as("System mapping with partial match should have lower quality (~0.33)")
-                .isLessThan(1.0f)
-                .isGreaterThan(0.0f);
     }
 
     @Test
@@ -936,12 +983,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -982,12 +1033,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1028,12 +1083,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1047,52 +1106,6 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
                 .as("Should contain trim expression")
-                .isNotNull();
-    }
-
-    @Test
-    public void test203HeuristicFirstWordFoundAndUsed() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "John");
-        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Jane");
-        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Bob");
-
-        modifyShadowReplace("user1", PERSONAL_NUMBER, "John Doe");
-        modifyShadowReplace("user2", PERSONAL_NUMBER, "Jane Smith");
-        modifyShadowReplace("user3", PERSONAL_NUMBER, "Bob Johnson");
-
-        refreshShadows();
-
-        var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
-        );
-        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
-        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
-
-        var op = MappingsSuggestionOperation.init(
-                ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
-                wellKnownSchemaService,
-                heuristicRuleMatcher,
-                true,
-                false);
-
-        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
-
-        assertThat(suggestion.getAttributeMappings()).hasSize(1);
-        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
-
-        assertThat(mapping.getExpectedQuality())
-                .as("Heuristic firstWord should have perfect quality")
-                .isEqualTo(1.0f);
-
-        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
-                .as("Should contain firstWord expression")
                 .isNotNull();
     }
 
@@ -1122,12 +1135,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1170,12 +1187,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1216,12 +1237,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1248,7 +1273,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33333");
 
         modifyShadowReplace("user1", PERSONAL_NUMBER, "xyz11111");
-        modifyShadowReplace("user2", PERSONAL_NUMBER, "xyz22222");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "22222");
         modifyShadowReplace("user3", PERSONAL_NUMBER, "33333");
 
         refreshShadows();
@@ -1262,12 +1287,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1279,7 +1308,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 .isNull();
         assertThat(mapping.getExpectedQuality())
                 .as("No assessment performed => null quality")
-                .isCloseTo(0.33F, Offset.offset(0.01F));
+                .isCloseTo(0.66F, Offset.offset(0.01F));
     }
 
     @Test
@@ -1306,12 +1335,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 false,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1354,12 +1387,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                true);
+                true,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1377,11 +1414,11 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Michal");
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Rene");
         modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Muller");
         modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Jose");
 
-        modifyShadowReplace("user1", PERSONAL_NUMBER, "Michał");
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "René");
         modifyShadowReplace("user2", PERSONAL_NUMBER, "Müller");
         modifyShadowReplace("user3", PERSONAL_NUMBER, "José");
 
@@ -1396,12 +1433,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1442,12 +1483,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1469,12 +1514,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Łukasz");
-        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Søren");
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Štefan");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Niño");
         modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Tomáš");
 
-        modifyShadowReplace("user1", PERSONAL_NUMBER, "Lukasz");
-        modifyShadowReplace("user2", PERSONAL_NUMBER, "Soren");
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "Stefan");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "Nino");
         modifyShadowReplace("user3", PERSONAL_NUMBER, "Tomas");
 
         refreshShadows();
@@ -1488,12 +1533,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 false,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1516,12 +1565,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Bjorn");
-        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Ake");
-        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Oslash");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Ines");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Helene");
 
         modifyShadowReplace("user1", PERSONAL_NUMBER, "Björn");
-        modifyShadowReplace("user2", PERSONAL_NUMBER, "Åke");
-        modifyShadowReplace("user3", PERSONAL_NUMBER, "Øslash");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "Inés");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "Hélène");
 
         refreshShadows();
 
@@ -1534,12 +1583,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderFromResource(),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
                 true,
-                false);
+                false,
+                null,
+                0);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -1553,6 +1606,256 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
                 .as("Should contain stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test300HeuristicCombinedTrimAndLowerCaseOrder2() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "aaaa");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "bbbb");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "cccc");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "  AAAA  ");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "  BBBB  ");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "  CCCC  ");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                true,
+                false,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Combined heuristic trimAndLowerCase (order 2) should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain trim+toLowerCase expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test301HeuristicCombinedTrimAndStripDiacritics() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Rene");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Muller");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Jose");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "  René  ");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "  Müller  ");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "  José  ");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                true,
+                false,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Combined heuristic trimAndStripDiacritics (order 2) should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain trim+stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test302HeuristicCombinedLowerCaseAndStripDiacritics() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "rene");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "muller");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "jose");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "RENÉ");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "MÜLLER");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "JOSÉ");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                true,
+                false,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Combined heuristic lowerCaseAndStripDiacritics (order 2) should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain toLowerCase+stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test303HeuristicThreeOperationsOrder3() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "rene");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "muller");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "jose");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "  RENÉ  ");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "  MÜLLER  ");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "  JOSÉ  ");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                true,
+                false,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Three-operation heuristic trimLowerCaseAndStripDiacritics (order 3) should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain trim+toLowerCase+stripDiacritics expression")
+                .isNotNull();
+    }
+
+    @Test
+    public void test304HeuristicOutboundCombinedTrimAndUpperCase() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "  aaaa  ");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "  bbbb  ");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "  cccc  ");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "AAAA");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "BBBB");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "CCCC");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                false,
+                false,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality())
+                .as("Outbound combined heuristic trimAndUpperCase should have perfect quality")
+                .isEqualTo(1.0f);
+
+        assertThat(mapping.getDefinition().getOutbound().getExpression())
+                .as("Should contain trim+toUpperCase expression with correct variable")
                 .isNotNull();
     }
 

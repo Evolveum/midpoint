@@ -2460,11 +2460,64 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsType" minOccurs="0" />
+            <xsd:element name="otps" type="tns:OtpCredentialsType" minOccurs="0"/>
             <!-- More credential types may be here, such as OTP seeds, X.509 credentials, etc. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="credentials" type="tns:CredentialsType"/>
+
+    <xsd:complexType name="OtpCredentialType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <!-- todo -->
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="secret" type="t:ProtectedStringType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shared secret used for OTP code computation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createTimestamp" type="xsd:dateTime"/>
+            <xsd:element name="verified" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Flag that marks completed user enrollment for this OTP credential.
+                        E.g. User supplied current TOTP code and server verified it.
+
+                        If OTP credential is not verified, it won't be tested during authentication.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OtpCredentialsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <!-- todo -->
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialType">
+                <xsd:sequence>
+                    <xsd:element name="totp" type="tns:OtpCredentialType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
     <xsd:complexType name="BehaviorType">
         <xsd:annotation>
@@ -3148,6 +3201,8 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.5</a:since>
+                        <a:displayName>AssignmentType.orderConstraint</a:displayName>
+                        <a:help>AssignmentType.orderConstraint.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6578,10 +6633,11 @@
             <xsd:element name="includeNullInputs" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true (which is the default) the script will be evaluated with null value
-                        as argument when the input is changed from or to an empty value. This generally works
-                        well for most cases. It may be set to false as an optimization.
-                        Note: default setting for this property may be overridden in specific expression evaluators.
+                        If set to true the script will be evaluated with null value as argument when the input is
+                        changed from or to an empty value. This generally works well for most cases. It may be set to
+                        false as an optimization.
+                        Note: default setting (true) for this property may be overridden in specific expression
+                        evaluators.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -13812,18 +13868,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="smartIntegrationStatisticsTtl" type="xsd:duration" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Time-to-live for smart integration statistics objects. Statistics older than this
-                        will be automatically deleted when accessed. Default is P1D (1 day).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.11</a:since>
-                        <a:displayName>InternalsConfigurationType.smartIntegrationStatisticsTtl</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -15064,7 +15108,8 @@
                     <xsd:documentation>
                         Operation should be end with an error.
                         This is a recoverable error (precondition failed).
-                        TODO: align with "fail"
+
+                        (Currently, this option is not implemented.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ERROR"/>
@@ -15074,7 +15119,7 @@
             <xsd:enumeration value="restart">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Operation should be restarted.
+                        Concurrent execution is prevented. After the failure, the operation is restarted.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RESTART"/>
@@ -15084,7 +15129,8 @@
             <xsd:enumeration value="recompute">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The focus object should be recomputed.
+                        Concurrent execution is not prevented: the original operation is executed in full.
+                        However, if there was a conflict present, the focus object is recomputed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RECOMPUTE"/>
@@ -15094,7 +15140,9 @@
             <xsd:enumeration value="reconcile">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The focus object should be recomputed and all projections reconciled.
+                        Concurrent execution is not prevented: the original operation is executed in full.
+                        However, if there was a conflict present, the focus object is recomputed, with all projections
+                        reconciled.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RECONCILE"/>
@@ -15107,7 +15155,6 @@
                         The whole operation should fail. This is to be used mainly for testing purposes,
                         to check if conflict detection algorithm does not yield false positive results.
                         This fails with a system error. This is a definitive, non-recoverable failure.
-                        TODO: align with "error"
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FAIL"/>
@@ -16555,6 +16602,14 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="order" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="enabled" type="xsd:boolean" default="true" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the policy rule will be evaluated.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
              <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16745,7 +16800,10 @@
     <xsd:simpleType name="PolicyConstraintKindType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Denotes the policy constraint kind (type).
+
+                Corresponds to constraint kinds present as items in PolicyConstraintsType
+                and those defined in PolicyConstraintKind (Java).
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -16777,6 +16835,22 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MAX_ASSIGNEES_VIOLATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="objectMinAssigneesViolation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_MIN_ASSIGNEES_VIOLATION"/>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="objectMaxAssigneesViolation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_MAX_ASSIGNEES_VIOLATION"/>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -16877,6 +16951,30 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="COLLECTION_STATS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executionTime">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTION_TIME"/>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executionAttempts">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTION_ATTEMPTS"/>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="itemProcessingResult">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ITEM_PROCESSING_RESULT"/>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17611,6 +17709,41 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="65eedb14-5aba-4692-bd93-62f7f56671b4">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_CHANGE_NOT_APPLIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="8f831987-f7d4-48fe-8dbf-662cec3bf81f">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_NOT_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="de5563b7-96e9-4c34-8732-588de9ac1776">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_MODIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="c216b0c4-3381-432c-a67c-bcf6c3208266">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_REMOVED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="5f627d94-c4b1-46ff-b848-16df52b7597e">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_ADDED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -51,6 +51,18 @@ public class CorrelationCaseEngineExtension extends DefaultEngineExtension {
     }
 
     @Override
+    public void prepareCaseClosing(
+            @NotNull CaseEngineOperation operation,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException {
+        correlationService.prepareCorrelationCaseClosing(
+                operation.getCurrentCase(),
+                operation.getTask(),
+                result);
+    }
+
+    @Override
     public void finishCaseClosing(
             @NotNull CaseEngineOperation operation,
             @NotNull OperationResult result)

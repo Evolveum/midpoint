@@ -10,14 +10,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
-
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.*;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-
-import com.evolveum.midpoint.web.component.data.table.CollapsibleBoxedTablePanel;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -37,16 +30,20 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
 import org.apache.wicket.validation.ValidatorAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonUtil;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -65,7 +62,11 @@ import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableChartedHeader;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoValuePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoValuePanelDto;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
@@ -76,10 +77,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -91,6 +92,7 @@ import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.data.table.CollapsibleBoxedTablePanel;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -105,8 +107,6 @@ import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @param <C> the container of displayed objects in table
@@ -661,6 +661,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
+            public int getCollapsibleToggleColumnIndex() {
+                return ContainerableListPanel.this.getCollapsibleToggleColumnIndex();
+            }
+
+            @Override
             public boolean displayIsolatedNoValuePanel() {
                 return ContainerableListPanel.this.displayIsolatedNoValuePanel();
             }
@@ -675,6 +680,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 return ContainerableListPanel.this.isFooterVisible(super.isFooterVisible(provider, pageSize));
             }
         };
+    }
+
+    protected int getCollapsibleToggleColumnIndex() {
+        return 0;
     }
 
     protected int getDefaultPageSize() {
@@ -697,7 +706,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
 
         if (getTableId() != null) {
-            return getSession().getSessionStorage().getUserProfile().getPagingSize(getTableId());
+            return getPageBase().getBrowserTabSessionStorage().getUserProfile().getPagingSize(getTableId());
         }
 
         return UserProfileStorage.DEFAULT_PAGING_SIZE;
@@ -806,11 +815,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected PageStorage getPageStorage(String storageKey) {
-        PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
-        if (storage == null) {
-            storage = getSession().getSessionStorage().initPageStorage(storageKey);
-        }
-        return storage;
+        return getPageBase().getBrowserTabSessionStorage().getOrCreatePageStorage(storageKey);
     }
 
     public PageStorage getPageStorage() {
@@ -1048,6 +1053,16 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return instantiatePredefinedColumn(columnClass, customColumn);
     }
 
+    private boolean isColumnAlreadyInList(@NotNull List<GuiObjectColumnType> columnList,
+            @NotNull GuiObjectColumnType columnToCheck) {
+        if (columnList.isEmpty()) {
+            return false;
+        }
+        return columnList.stream()
+                .anyMatch(c -> c.getName() != null && c.getName().equals(columnToCheck.getName())
+                        || c.getPath() != null && c.getPath().equivalent(columnToCheck.getPath()));
+    }
+
     private AbstractGuiColumn<?, ?> instantiatePredefinedColumn(Class<? extends AbstractGuiColumn> columnClass,
             GuiObjectColumnType columnConfig) {
         if (columnClass == null) {
@@ -1265,32 +1280,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        buttonsList.add(createDownloadButton(idButton));
+        buttonsList.add(DropdownButtonUtil.createDownloadButtonPanel(idButton, this, getType().getSimpleName()));
         return buttonsList;
-    }
-
-    protected CsvDownloadButtonPanel createDownloadButton(String buttonId) {
-
-        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId) {
-            @Override
-            protected DataTable<?, ?> getDataTable() {
-                return getTable().getDataTable();
-            }
-
-            @Override
-            protected String getFilename() {
-                return getType().getSimpleName() +
-                        "_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-            }
-
-        };
-        exportDataLink.add(new VisibleBehaviour(this::isExportDataLinkVisible));
-        return exportDataLink;
-    }
-
-    private boolean isExportDataLinkVisible() {
-        return !WebComponentUtil.hasPopupableParent(ContainerableListPanel.this)
-                && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
     }
 
     protected String getStorageKey() {
@@ -1629,6 +1620,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         } else {
             objectCollection.setView(getDefaultView());
         }
+        handleObjectListViewColumns(objectCollection);
+
         SearchFilterType searchFilter = null;
         ISelectableDataProvider<?> dataProvider = getDataProvider();
         ObjectQuery query = (dataProvider instanceof BaseSortableDataProvider)
@@ -1667,6 +1660,31 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
         PageReport pageReport = new PageReport(report.asPrismObject());
         getPageBase().navigateToNext(pageReport);
+    }
+
+    private void handleObjectListViewColumns(ObjectCollectionReportEngineConfigurationType objectCollection) {
+        // we need to handle view columns here (previously it was managed by ReportServiceImpl.createCompiledView)
+        // in order to set to the report view all those columns which are present in the current gui view
+        // Relates to #10967
+        if (objectCollection.getView().getColumn() == null) {
+            objectCollection.getView().createColumnList();
+        }
+        if (isCustomColumnsListConfigured() && shouldIncludeDefaultColumns()) {
+            List<GuiObjectColumnType> viewColumnsNew = objectCollection.getView().getColumn().stream()
+                    .map(column -> (GuiObjectColumnType) column.cloneWithoutId())
+                    .collect(Collectors.toList());
+            int index = 0;
+            for (GuiObjectColumnType column : getDefaultView().getColumn()) {
+                if (isColumnAlreadyInList(viewColumnsNew, column)) {
+                    continue;
+                }
+                viewColumnsNew.add(index, column.cloneWithoutId());
+                index++;
+            }
+            objectCollection.getView().getColumn().clear();
+            viewColumnsNew
+                    .forEach(c -> objectCollection.getView().getColumn().add(c.cloneWithoutId()));
+        }
     }
 
     protected GuiObjectListViewType getDefaultView() {

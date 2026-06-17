@@ -143,12 +143,12 @@ public class SynchronizationConfigurationScenarioHandler {
                                 .inactivateFocus()
                                 .build();
                         break;
-                    case REMOVE_BROKEN_LINK:
+                    case REMOVE_LINK_AND_SYNCHRONIZE:
                         actions = new SynchronizationActionsBuilder()
                                 .synchronize()
                                 .build();
                         break;
-                    case DO_NOTHING:
+                    case JUST_REMOVE_LINK:
                     default:
                         actions = new SynchronizationActionsType();
                         break;
@@ -199,12 +199,12 @@ public class SynchronizationConfigurationScenarioHandler {
             if (deleted != null) {
                 SynchronizationActionsType actions;
                 switch (deleted) {
-                    case REMOVE_BROKEN_LINK:
+                    case REMOVE_LINK_AND_SYNCHRONIZE:
                         actions = new SynchronizationActionsBuilder()
                                 .synchronize()
                                 .build();
                         break;
-                    case DO_NOTHING:
+                    case JUST_REMOVE_LINK:
                     default:
                         actions = new SynchronizationActionsType();
                         break;

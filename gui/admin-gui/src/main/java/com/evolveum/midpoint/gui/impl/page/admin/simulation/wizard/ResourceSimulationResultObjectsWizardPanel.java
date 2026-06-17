@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardNavigationBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRefsTable;
@@ -14,12 +20,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @PanelType(name = "rw-simulation-objects-result")
 @PanelInstance(identifier = "rw-simulation-objects-result",
@@ -66,6 +66,11 @@ public abstract class ResourceSimulationResultObjectsWizardPanel extends Abstrac
             protected @Nullable ObjectProcessingStateType getStateQueryParameter() {
                 return state;
             }
+
+            @Override
+            protected @Nullable String getPredefinedMarkOid() {
+                return ResourceSimulationResultObjectsWizardPanel.this.getPredefinedMarkOid();
+            }
         };
         panel.setOutputMarkupId(true);
         add(panel);
@@ -79,6 +84,11 @@ public abstract class ResourceSimulationResultObjectsWizardPanel extends Abstrac
 
     protected boolean isBackButtonVisible() {
         return true;
+    }
+
+    @Override
+    protected IModel<String> getBackLabel() {
+        return createStringResource("ResourceSimulationResultObjectsWizardPanel.back");
     }
 
     @Override
@@ -119,4 +129,10 @@ public abstract class ResourceSimulationResultObjectsWizardPanel extends Abstrac
         return true;
     }
 
+    protected abstract String getPredefinedMarkOid();
+
+    @Override
+    protected boolean isOnlyChildLeft() {
+        return true;
+    }
 }

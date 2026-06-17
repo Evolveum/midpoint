@@ -26,6 +26,7 @@
 
 @import "form-validation";
 @import "smart-int";
+@import "con-gen";
 
 body.custom-hold-transition {
   .app-main,
@@ -2484,11 +2485,16 @@ footer.app-footer a {
   outline-offset: 2px;
 }
 
-.btn.btn-tool > i {
-  display: inline-flex;
+.select2-selection__clear {
+  max-height: 20px;
+  display: flex;
   align-items: center;
-  min-width: 24px;
-  min-height: 24px;
+  margin-top: 2px;
+}
+
+.select2-selection__clear:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffa836;
 }
 
 .help-icon-after-label {
@@ -2578,4 +2584,55 @@ footer.app-footer a {
 
 .fw-semibold {
   font-weight: 600 !important;
+}
+
+.text-help > p {
+  margin-bottom: .25rem;
+}
+
+.right-sidebar-help {
+  @extend .bg-white;
+  @extend .border-left;
+  width: 350px;
+
+  > .header {
+    @extend .border-bottom;
+    @extend .p-3;
+  }
+
+  > .body {
+    @extend .p-3;
+  }
+}
+
+//Wizard stepper button navigation scaling
+.wizard-actions-strip {
+  .wizard-actions-container {
+    flex-shrink: 1;
+    flex-grow: 0;
+
+    &:first-child {
+      flex-grow: 1;
+    }
+
+    &:only-child {
+      flex-grow: 1;
+    }
+    &:last-child, &:only-child {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+  &.only-child-centered .wizard-actions-container {
+    &:only-child {
+      display: flex;
+      justify-content: center;
+    }
+  }
+  &.only-child-left .wizard-actions-container {
+      &:only-child {
+        display: flex;
+        justify-content: left;
+      }
+    }
 }

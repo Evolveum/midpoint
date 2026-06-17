@@ -90,8 +90,8 @@
             <aside class="app-sidebar" wicket:id="sidebarMenu"/>
         </wicket:enclosure>
 
-        <main class="app-main" id="main-content" role="main" style="min-height: 916px; padding: 15px 0">
-            <div class="app-content">
+        <main class="app-main d-flex" id="main-content" role="main" style="min-height: 916px;">
+            <div class="app-content py-3 flex-grow-1">
                 <wicket:enclosure child="contentVisible">
                     <div wicket:id="contentVisible"/>
                     <div class="container-fluid">
@@ -102,6 +102,7 @@
                     </div>
                 </wicket:enclosure>
             </div>
+            <div wicket:id="rightSidebar" />
         </main>
         <footer wicket:id="footerContainer" class="app-footer d-flex flex-column">
             <div class="d-flex flex-wrap" wicket:id="legalFooter">

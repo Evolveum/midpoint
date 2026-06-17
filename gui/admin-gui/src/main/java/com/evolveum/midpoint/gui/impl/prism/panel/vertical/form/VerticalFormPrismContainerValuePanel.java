@@ -7,9 +7,13 @@
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 
+import com.evolveum.midpoint.gui.impl.util.GuiConfigUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,6 +39,8 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
+    // todo rename to help after PrismContainerValuePanel#ID_HELP is renamed to ID_TOOLTIP
+    private static final String ID_LONG_HELP = "longHelp";
 
     public VerticalFormPrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -145,6 +151,14 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
         header.add(labelComponent);
 
         header.add(createExpandCollapseButton());
+
+        header.add(
+                ItemPanel.createHelpPanel(
+                        ID_LONG_HELP,
+                        () -> {
+                            ContainerPanelConfigurationType config = getSettings() != null ? getSettings().getConfig() : null;
+                            return GuiConfigUtil.findItemSpecForPath(config, getModelObject().getPath());
+                        }));
 
         return header;
     }

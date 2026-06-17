@@ -1,0 +1,50 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="9f78c6e2-124d-11f1-a7ec-8f778e084091">
+    <name>safe-bad-mel</name>
+    <documentation>Role that contains MEL expression using secret.* function, which is not permitted by `safe` expression profile.</documentation>
+    <assignment>
+        <targetRef oid="2a68ff58-b009-11f0-9b5e-236da66bcdb4" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <source>
+                    <path>name</path>
+                </source>
+                <expression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>secret.resolveString('foo','bar')</code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="2003a0c3-62a3-413d-9941-6fecaef84a16"/>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>midpoint.hello('I-am-bad')</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+</role>

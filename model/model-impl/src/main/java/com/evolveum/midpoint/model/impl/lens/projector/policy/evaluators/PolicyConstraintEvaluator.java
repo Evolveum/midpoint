@@ -6,8 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -32,7 +32,7 @@ public interface PolicyConstraintEvaluator<C extends AbstractPolicyConstraintTyp
     <O extends ObjectType> @NotNull Collection<T> evaluate(
             @NotNull JAXBElement<C> constraint,
             @NotNull PolicyRuleEvaluationContext<O> ctx,
-            OperationResult result)
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 }

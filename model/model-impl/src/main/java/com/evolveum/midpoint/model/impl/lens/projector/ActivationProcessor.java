@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -164,15 +165,22 @@ public class ActivationProcessor implements ProjectorProcessor {
             // There may be contexts with unknown resources (e.g. for broken linkRefs). We want to execute the activation
             // for them - at least for now.
             if (projectionContext.hasResource() && !projectionContext.isVisible()) {
-                LOGGER.trace("Projection {} is not visible for this task execution mode, skipping activation processing",
-                        projectionContext.getHumanReadableName());
-                result.recordNotApplicable("Not visible");
+                recordSkipReason(result, "Skipping projection because it is not visible for this task execution mode");
                 return;
             }
 
             if (!projectionContext.isCurrentForProjection()) {
-                LOGGER.trace("Projection {} is not current, skipping activation processing", projectionContext.getHumanReadableName());
-                result.recordNotApplicable("Not current");
+                recordSkipReason(result, "Skipping projection because it is not current");
+                return;
+            }
+
+            if (projectionContext.isOutboundSyncDisabled(result)) {
+                recordSkipReason(result, "Skipping projection because it is has outbound sync disabled");
+                return;
+            }
+
+            if (projectionContext.isMarkedReadOnly(result)) {
+                recordSkipReason(result, "Skipping projection because it is marked read-only");
                 return;
             }
 
@@ -202,6 +210,11 @@ public class ActivationProcessor implements ProjectorProcessor {
         } finally {
             result.close();
         }
+    }
+
+    private static void recordSkipReason(OperationResult result, String message) {
+        LOGGER.trace("{}", message);
+        result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
     }
 
     private <F extends FocusType> void processActivationMappingsCurrent(
@@ -461,6 +474,11 @@ public class ActivationProcessor implements ProjectorProcessor {
     private void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now)
             throws SchemaException {
 
+        if (projCtx.isGone()) {
+            LOGGER.trace("Object is gone, skipping activation metadata processing for {}", projCtx);
+            return;
+        }
+
         // We can take either current or old object. Note that if the object is loaded on demand, it is put into "current".
         ActivationStatusType oldStatus = ActivationUtil.getAdministrativeStatus(projCtx.getObjectCurrentOrOld());
         ActivationStatusType newStatus = ActivationUtil.getAdministrativeStatus(projCtx.getObjectNew());
@@ -714,7 +732,9 @@ public class ActivationProcessor implements ProjectorProcessor {
                     .implicitSourcePath(LEGAL_PROPERTY_NAME)
                     .implicitTargetPath(SHADOW_EXISTS_PROPERTY_NAME);
 
-            builder.defaultSource(new Source<>(getLegalIdi(projCtx), ExpressionConstants.VAR_LEGAL_QNAME));
+            ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> legalIdi = getLegalIdi(projCtx);
+            builder.defaultSource(new Source<>(legalIdi, ExpressionConstants.VAR_LEGAL_QNAME));
+            builder.additionalSource(new Source<>(legalIdi, ExpressionConstants.VAR_INPUT_QNAME));
             builder.additionalSource(new Source<>(getAssignedIdi(projCtx), ExpressionConstants.VAR_ASSIGNED_QNAME));
             builder.additionalSource(new Source<>(getFocusExistsIdi(context.getFocusContext()), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
 

@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareObjectDto;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartStatisticsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -21,7 +21,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -45,7 +46,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
 
@@ -66,6 +67,7 @@ import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSyst
 public class SmartIntegrationUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationUtils.class);
+    private static final String OP_LOAD_TASK = "loadTask";
 
     private static final int MAX_SIZE_FOR_ESTIMATION = 100;
 
@@ -117,65 +119,6 @@ public class SmartIntegrationUtils {
     }
 
     /**
-     * Formats the elapsed time between the suggestion's start and finish (or now if still running)
-     * into a human-readable string with days, hours, minutes, seconds, and milliseconds.
-     */
-    public static @NotNull String formatElapsedTime(StatusInfo<?> s) {
-        if (s == null || s.getRealizationStartTimestamp() == null) {
-            return "Elapsed time: unknown";
-        }
-
-        long startMillis = s.getRealizationStartTimestamp().toGregorianCalendar().getTimeInMillis();
-        long endMillis = (s.getRealizationEndTimestamp() != null
-                ? s.getRealizationEndTimestamp().toGregorianCalendar().getTimeInMillis()
-                : System.currentTimeMillis());
-
-        return formatElapsedTime(startMillis, endMillis);
-    }
-
-    public static @NotNull String formatElapsedTime(Long startMillis, Long endMillis) {
-        return formatElapsedTime(startMillis, endMillis, null);
-    }
-
-    public static @NotNull String formatElapsedTime(Long startMillis, Long endMillis, String prefix) {
-        if (endMillis == null) {
-            endMillis = System.currentTimeMillis();
-        }
-
-        long elapsedMillis = endMillis - startMillis;
-        if (elapsedMillis < 0) {elapsedMillis = 0;}
-
-        long days = elapsedMillis / 86_400_000;
-        elapsedMillis %= 86_400_000;
-        long hours = elapsedMillis / 3_600_000;
-        elapsedMillis %= 3_600_000;
-        long minutes = elapsedMillis / 60_000;
-        elapsedMillis %= 60_000;
-        long seconds = elapsedMillis / 1_000;
-        elapsedMillis %= 1_000;
-        long millis = elapsedMillis;
-
-        String timeDisplay;
-        if (days > 0) {
-            timeDisplay = String.format("%dd %02dh %02dm %02ds %03dms", days, hours, minutes, seconds, millis);
-        } else if (hours > 0) {
-            timeDisplay = String.format("%dh %02dm %02ds %03dms", hours, minutes, seconds, millis);
-        } else if (minutes > 0) {
-            timeDisplay = String.format("%dm %02ds %03dms", minutes, seconds, millis);
-        } else if (seconds > 0) {
-            timeDisplay = String.format("%ds %03dms", seconds, millis);
-        } else {
-            timeDisplay = millis + "ms";
-        }
-
-        if (prefix != null && !prefix.isEmpty()) {
-            return prefix + ": " + timeDisplay;
-        }
-
-        return "Elapsed time: " + timeDisplay;
-    }
-
-    /**
      * Executes an object type suggestion operation if no suggestion is currently available.
      * If suggestions exist, no background task is started.
      * Returns {@code true} if the task was executed, {@code false} otherwise.
@@ -186,9 +129,28 @@ public class SmartIntegrationUtils {
             @NotNull QName objectClassName,
             @NotNull AjaxRequestTarget target,
             @NotNull String operationName,
-            @NotNull Task task) {
+            @NotNull Task task,
+            @NotNull List<DataAccessPermissionType> permissions) {
+        return runSuggestionAction(pageBase, resourceOid, objectClassName, target, operationName, task, permissions,
+                null, null);
+    }
+
+    /**
+     * Executes an object type suggestion operation if no suggestion is currently available.
+     * If suggestions exist, no background task is started.
+     */
+    public static boolean runSuggestionAction(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull QName objectClassName,
+            @NotNull AjaxRequestTarget target,
+            @NotNull String operationName,
+            @NotNull Task task,
+            @NotNull List<DataAccessPermissionType> permissions,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes) {
         OperationResult opResult = task.getResult();
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 pageBase, resourceOid, objectClassName, task, opResult);
 
         if (opResult.isError() || opResult.isFatalError()) {
@@ -210,7 +172,9 @@ public class SmartIntegrationUtils {
                             .withHideInProgress(true))
                     .runVoid((activityTask, activityResult) -> {
                         var oid = pageBase.getSmartIntegrationService().submitSuggestObjectTypesOperation(
-                                resourceOid, objectClassName, activityTask, activityResult);
+                                resourceOid, objectClassName, permissions,
+                                regenerateMode, previousObjectTypes,
+                                activityTask, activityResult);
                         activityResult.setBackgroundTaskOid(oid);
                     });
         }
@@ -261,10 +225,6 @@ public class SmartIntegrationUtils {
 
     }
 
-    public static @NotNull IModel<Badge> getAiBadgeModel() {
-        return getAiCustomTextBadgeModel("AI");
-    }
-
     public static @NotNull IModel<Badge> getAiCustomTextBadgeModel(String text) {
         Badge aiBadge = new Badge(
                 "badge bg-light-purple d-flex align-items-center",
@@ -294,9 +254,9 @@ public class SmartIntegrationUtils {
                 "SuggestionUiStyle.inProgress"),
         NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
-        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-purple",
+        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-ai left-border-2px",
                 "SuggestionUiStyle.default"),
-        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system",
+        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system left-border-2px",
                 "SuggestionUiStyle.default");
 
         public final String tileClass;
@@ -688,7 +648,7 @@ public class SmartIntegrationUtils {
      */
     //TODO look at getCorrelationStrategyLabel
     public static @NotNull String computeCorrelationStrategyMethod(@NotNull CorrelationItemType correlationItemType) {
-        String strategy = "(Exact)";
+        String strategy = "EXACT";
 
         ItemSearchDefinitionType search = correlationItemType.getSearch();
         if (search != null) {
@@ -698,9 +658,9 @@ public class SmartIntegrationUtils {
                 TrigramSimilaritySearchDefinitionType sim = fuzzy.getSimilarity();
 
                 if (lev != null && lev.getThreshold() != null) {
-                    strategy = "(Levenshtein)";
+                    strategy = "LEVENSHTEIN";
                 } else if (sim != null && sim.getThreshold() != null) {
-                    strategy = "(Trigram)";
+                    strategy = "TRIGRAM";
                 }
             }
         }
@@ -725,14 +685,14 @@ public class SmartIntegrationUtils {
         ShadowObjectClassStatisticsType statisticsRequired;
         try {
             GenericObjectType latestStatistics = smartIntegrationService
-                    .getLatestStatistics(resourceOid, objectClass, pageTask.getResult());
+                    .getLatestObjectClassStatistics(resourceOid, objectClass, pageTask.getResult());
             if (latestStatistics == null) {
                 pageBase.warn(pageBase.getString("SmartIntegrationUtils.noStatistics.available.for.on",
                         objectClass, resourceOid));
                 target.add(pageBase.getFeedbackPanel());
                 return;
             }
-            statisticsRequired = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(latestStatistics);
+            statisticsRequired = ShadowObjectClassUtil.getStatisticsRequired(latestStatistics);
         } catch (SchemaException e) {
             throw new RuntimeException("Couldn't get statistics for "
                     + objectClass + " on resource " + resourceOid, e);
@@ -791,11 +751,20 @@ public class SmartIntegrationUtils {
 
         return LambdaModel.of(
                 () -> pageBase.getSessionStorage()
-                        .getSuggestions()
+                        .getSuggestionsStorage()
                         .isEnabled(type),
                 value -> pageBase.getSessionStorage()
-                        .getSuggestions()
+                        .getSuggestionsStorage()
                         .setEnabled(type, Boolean.TRUE.equals(value))
         );
+    }
+
+    public static @Nullable TaskType loadTask(@NotNull PageBase pageBase, @NotNull String taskOid) {
+        Task task = pageBase.createSimpleTask(OP_LOAD_TASK);
+
+        PrismObject<TaskType> taskObject = WebModelServiceUtils.loadObject(
+                TaskType.class, taskOid, null, true, pageBase, task, task.getResult());
+
+        return taskObject != null ? taskObject.asObjectable() : null;
     }
 }

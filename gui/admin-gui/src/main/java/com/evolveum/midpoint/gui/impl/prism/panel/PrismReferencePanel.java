@@ -35,6 +35,7 @@ public class PrismReferencePanel<R extends Referencable>
 
     protected static final String ID_HEADER = "header";
     protected static final String ID_VALUE = "value";
+    protected static final String ID_HELP = "help";
 
     public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -79,8 +80,15 @@ public class PrismReferencePanel<R extends Referencable>
     }
 
     @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        add(createHelpPanel(ID_HELP));
+    }
+
+    @Override
     protected ItemHeaderPanel createHeaderPanel() {
-        return new PrismReferenceHeaderPanel<R>(ID_HEADER, getModel()) {
+        return new PrismReferenceHeaderPanel<R>(ID_HEADER, getModel(), getSettings()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(PrismReferencePanel.this);

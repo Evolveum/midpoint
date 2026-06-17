@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.TestEntitlements;
 import com.evolveum.midpoint.model.intest.complexAttributes.TestComplexAttributes;
 import com.evolveum.midpoint.model.intest.dummys.DummyAdTrivialScenario;
@@ -23,9 +24,12 @@ import com.evolveum.midpoint.model.intest.dummys.DummyHrScenarioExtended.CostCen
 import com.evolveum.midpoint.model.intest.dummys.DummyHrScenarioExtended.OrgUnit;
 import com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.util.Resource;
 
 import com.evolveum.midpoint.test.TestObject;
@@ -207,6 +211,33 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
     //endregion
 
+    //region "Performance" (cached) scenario
+
+    private static DummyAdTrivialScenario adCachedScenario;
+
+    private static final String CACHED_ROLE_PREFIX = "cached-role-";
+
+    private static final int NUM_OF_ROLES_IN_CACHED_SCENARIO = 50;
+
+    private static final DummyTestResource RESOURCE_DUMMY_AD_CACHED = new DummyTestResource(
+            TEST_DIR, "resource-dummy-ad-cached.xml", "cbccbff0-80ca-4447-b4f7-0ef07b0bd89e", "ad-cached",
+            c -> adCachedScenario = DummyAdTrivialScenario.on(c).initialize());
+
+
+    private void initCachedScenario(Task initTask, OperationResult initResult) throws Exception {
+        RESOURCE_DUMMY_AD_CACHED.initAndTest(this, initTask, initResult);
+
+        modelObjectCreatorFor(RoleType.class)
+                .withObjectCount(NUM_OF_ROLES_IN_CACHED_SCENARIO)
+                .withNamePattern(CACHED_ROLE_PREFIX + "%04d")
+                .withCustomizer((role, number) ->
+                        role
+                                .assignment(RESOURCE_DUMMY_AD_CACHED.assignmentTo(ENTITLEMENT, "group"))
+                                .inducement(RESOURCE_DUMMY_AD_CACHED.assignmentTo(ACCOUNT, INTENT_DEFAULT)))
+                .execute(initResult);
+    }
+    //endregion
+
     //region Raw references
     private static final File TEST_RAW_DIR = new File(TEST_DIR, "raw-references");
 
@@ -327,6 +358,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
         initRumScenario(initTask, initResult);
         initRawScenario(initTask, initResult);
+        initCachedScenario(initTask, initResult);
     }
 
     /**
@@ -1925,6 +1957,79 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         assertThat(adminAccount.getLinkedObjects(DummyAdTrivialScenario.Account.LinkNames.GROUP.local()))
                 .as("linked objects for the admin account")
                 .hasSize(1);
+    }
+
+    /**
+     * This test is aimed to optimize processing of "shadow load" operation during context loading, especially when there are
+     * many groups: the operation then takes a long time because all referenced cached shadows must be resolved.
+     */
+    @Test(description = "MID-11115")
+    public void test600ProcessingAccountWithManyGroups() throws Exception {
+        skipTestIf(
+                isUsingCachingOverride(),
+                "The caching is ON in this test anyway, so there's no point in running it with caching override");
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+
+        given("a user with many group memberships on the resource");
+        var userOid = addObject(createUserWithCachedRoles(userName), task, result);
+        assertUser(userOid, "before")
+                .assertLiveLinks(1); // there should be an account on the resource
+
+        when("user is reconciled");
+
+        repositoryService.getPerformanceMonitor().clearGlobalPerformanceInformation();
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION).replace("any change")
+                        .asObjectDelta(userOid),
+                ModelExecuteOptions.create().reconcile(),
+                task, result);
+
+        then("the reconciliation is successful and there are not too many calls to resolve cached shadows");
+
+        var performanceInformation = repositoryService.getPerformanceMonitor().getGlobalPerformanceInformation();
+        dumpRepositoryPerformanceInfo(performanceInformation);
+        int shadowGetOperations = performanceInformation.getInvocationCount("SqaleRepositoryService.getObject.ShadowType");
+
+        // Now there are the following calls for each group shadow:
+        // 1. one "get" call during the initial loading (this is quite inevitable)
+        // 2. one "get" and one "search" call during the outbound mapping processing - this is to be researched later
+        //
+        // So, let's simply assert for these two "get" calls. Even this is better than before, when there were 5 of them.
+
+        assertSuccess(result);
+        assertThat(shadowGetOperations)
+                .as("getObject.ShadowType operation count")
+                .isGreaterThan(1) // there should be some calls, but not too many
+                .isLessThan(NUM_OF_ROLES_IN_CACHED_SCENARIO * 2 + 10); // 10 is just a safety margin
+    }
+
+    private void dumpRepositoryPerformanceInfo(PerformanceInformation performanceInformation) {
+        displayValue("performance info", RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
+    }
+
+    private UserType createUserWithCachedRoles(String userName) throws CommonException, IOException {
+        var user = new UserType()
+                .name(userName);
+        var roles = getCachedRoles();
+        assertThat(roles).as("cached roles").hasSize(NUM_OF_ROLES_IN_CACHED_SCENARIO);
+        roles.forEach(role ->
+                user.assignment(
+                        new AssignmentType()
+                                .targetRef(role.getOid(), RoleType.COMPLEX_TYPE)));
+        return user;
+    }
+
+    private List<PrismObject<RoleType>> getCachedRoles() throws CommonException {
+        return modelService.searchObjects(
+                RoleType.class,
+                queryFor(RoleType.class)
+                        .item(RoleType.F_NAME).startsWith("cached-role-")
+                        .build(),
+                null,
+                getTestTask(), getTestOperationResult());
     }
 
     private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {

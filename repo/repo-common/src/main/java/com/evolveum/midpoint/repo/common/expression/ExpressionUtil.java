@@ -17,6 +17,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.util.*;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import groovy.lang.GString;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +63,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 public class ExpressionUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
@@ -81,13 +86,25 @@ public class ExpressionUtil {
             return (O) inputVal;
         }
 
-        Object intermediateInputVal = treatGString(inputVal);
+        Object intermediateInputVal = treatOptionals(inputVal);
+        if (intermediateInputVal == null) {
+            return null;
+        }
+        intermediateInputVal = treatGString(intermediateInputVal);
         intermediateInputVal = treatEncryption(finalExpectedJavaType, intermediateInputVal, protector);
         intermediateInputVal = treatAdditionalConvertor(additionalConvertor, intermediateInputVal);
 
         O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateInputVal);
         PrismUtil.recomputeRealValue(convertedVal);
         return convertedVal;
+    }
+
+    private static Object treatOptionals(Object inputVal) {
+        if (inputVal instanceof Optional<?> optional) {
+            return optional.orElse(null);
+        } else {
+            return inputVal;
+        }
     }
 
     private static Object treatGString(Object inputVal) {
@@ -1397,5 +1414,93 @@ public class ExpressionUtil {
         variables.put(ExpressionConstants.VAR_PROJECTION, shadow, shadowDef);
         variables.put(ExpressionConstants.VAR_RESOURCE, resource, resourceDef);
         variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, configDef);
+    }
+
+    /**
+     * Converts whatever it gets to a string. But it does it in a sensitive way.
+     * E.g. it tries to detect collections and returns the first element (if there is only one).
+     * Never returns null. Returns string representation of null instead.
+     */
+    @NotNull
+    public static String stringify(@Nullable Object whatever, @NotNull String nullRepresentation) {
+
+        if (whatever == null) {
+            return nullRepresentation;
+        }
+
+        if (whatever instanceof Optional<?> opt) {
+            if (opt.isEmpty()) {
+                return nullRepresentation;
+            } else {
+                whatever = opt.get();
+            }
+        }
+
+        if (whatever instanceof String s) {
+            return s;
+        }
+
+        if (whatever instanceof PolyString ps) {
+            return ps.getOrig();
+        }
+
+        if (whatever instanceof PolyStringType ps) {
+            return ps.getOrig();
+        }
+
+        if (whatever instanceof Collection<?> collection) {
+            if (collection.isEmpty()) {
+                return "";
+            }
+            if (collection.size() > 1) {
+                throw new IllegalArgumentException("Cannot stringify collection because it has " + collection.size() + " values");
+            }
+            whatever = collection.iterator().next();
+        }
+
+        Class<?> whateverClass = whatever.getClass();
+        if (whateverClass.isArray()) {
+            Object[] array = (Object[]) whatever;
+            if (array.length == 0) {
+                return "";
+            }
+            if (array.length > 1) {
+                throw new IllegalArgumentException("Cannot stringify array because it has " + array.length + " values");
+            }
+            whatever = array[0];
+        }
+
+        if (whatever == null) {
+            return "";
+        }
+
+        if (whatever instanceof String) {
+            return (String) whatever;
+        }
+
+        if (whatever instanceof PolyString) {
+            return ((PolyString) whatever).getOrig();
+        }
+
+        if (whatever instanceof PolyStringType) {
+            return ((PolyStringType) whatever).getOrig();
+        }
+
+        if (whatever instanceof Element element) {
+            Element origElement = DOMUtil.getChildElement(element, PolyString.F_ORIG);
+            //noinspection ReplaceNullCheck
+            if (origElement != null) {
+                // This is most likely a PolyStringType
+                return origElement.getTextContent();
+            } else {
+                return element.getTextContent();
+            }
+        }
+
+        if (whatever instanceof Node) {
+            return ((Node) whatever).getTextContent();
+        }
+
+        return whatever.toString();
     }
 }

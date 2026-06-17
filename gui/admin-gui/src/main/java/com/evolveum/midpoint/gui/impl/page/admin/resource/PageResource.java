@@ -9,15 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundEvaluatorWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundMappingContainerWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundEvaluatorWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundMappingContainerWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page.SmartObjectTypeSuggestionWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -188,6 +182,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     public void showResourceObjectTypePreviewWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         ResourceObjectTypeWizardPanel wizard = showObjectTypeWizard(null, target, pathToValue, null);
+        addWizardBreadcrumbsResourceName(wizard);
         wizard.setShowChoicePanel(true);
     }
 
@@ -231,18 +226,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         showContainerWizardForObjectType(target, pathToValue, ResourceObjectTypeBasicWizardPanel.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void showSynchronizationWizard(
-            @NotNull IModel<PrismContainerValueWrapper<SynchronizationReactionsType>> valueModel,
-            @NotNull AjaxRequestTarget target) {
-        SynchronizationWizardPanel<?, ?> synchronizationWizardPanel = showWizard(
-                valueModel,
-                target,
-                SynchronizationWizardPanel.class
-        );
-        addWizardBreadcrumbsForObjectType(synchronizationWizardPanel, 0);
     }
 
     public void showSynchronizationWizard(AjaxRequestTarget target, @NotNull ItemPath pathToValue) {
@@ -289,56 +272,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         showContainerWizardForObjectType(target, pathToValue, PoliciesObjectTypeWizardPanel.class);
     }
 
-    public void showAssociationInboundsWizard(
-            AjaxRequestTarget target,
-            ItemPath pathToValue,
-            ShadowAssociationTypeDefinitionType association,
-            IModel<String> exitLabel) {
-        showWizard(target, pathToValue, AssociationInboundMappingContainerWizardPanel.class, exitLabel);
-        addWizardBreadcrumbsForAssociationType(
-                association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
-    }
-
-    public void showAssociationInboundWizard(
-            AjaxRequestTarget target,
-            ItemPath pathToValue,
-            ShadowAssociationTypeDefinitionType association,
-            IModel<String> exitLabel) {
-        AssociationInboundEvaluatorWizardPanel panel = showWizard(
-                target,
-                pathToValue,
-                AssociationInboundEvaluatorWizardPanel.class,
-                exitLabel);
-        panel.setShowChoicePanel(true);
-        addWizardBreadcrumbsForAssociationType(
-                association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
-    }
-
-    public void showAssociationOutboundsWizard(
-            AjaxRequestTarget target,
-            ItemPath pathToValue,
-            ShadowAssociationTypeDefinitionType association,
-            IModel<String> exitLabel) {
-        showWizard(target, pathToValue, AssociationOutboundMappingContainerWizardPanel.class, exitLabel);
-        addWizardBreadcrumbsForAssociationType(
-                association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
-    }
-
-    public void showAssociationOutboundWizard(
-            AjaxRequestTarget target,
-            ItemPath pathToValue,
-            ShadowAssociationTypeDefinitionType association,
-            IModel<String> exitLabel) {
-        AssociationOutboundEvaluatorWizardPanel panel = showWizard(
-                target,
-                pathToValue,
-                AssociationOutboundEvaluatorWizardPanel.class,
-                exitLabel);
-        panel.setShowChoicePanel(true);
-        addWizardBreadcrumbsForAssociationType(
-                association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
-    }
-
     public void showComplexOrEnumerationTypeWizard(AjaxRequestTarget target) {
         showWizard(
                 target,
@@ -350,7 +283,8 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     private <P extends AbstractWizardPanel> void showContainerWizardForObjectType(
             AjaxRequestTarget target, ItemPath pathToValue, Class<P> wizardClass) {
         P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
-        addWizardBreadcrumbsForObjectType(wizardPanel, 0);
+        addWizardBreadcrumbsResourceName(wizardPanel);
+        addWizardBreadcrumbsForObjectType(wizardPanel, 1);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -372,7 +306,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         addWizardBreadcrumbsForObjectType(wizardPanel, 1);
     }
 
-    private <C extends Containerable> void addWizardBreadcrumbsForObjectType(
+    public  <C extends Containerable> void addWizardBreadcrumbsForObjectType(
             @NotNull AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel,
             int index) {
         List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();

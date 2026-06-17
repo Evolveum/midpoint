@@ -1,0 +1,69 @@
+---
+midpoint-feature: expression-mel
+doc-type: intro
+---
+= MidPoint Expression Language strftime Formatting
+:page-nav-title: strftime
+:page-upkeep-status: yellow
+:page-toc: top
+
+Following formatting clauses can be used in MEL `strftime` and `strptime` functions:
+
+[%autowidth]
+|===
+| Conversion character | Meaning | Example
+
+| `%d`
+| The day of the month as a decimal number (range 01 to 31).
+| `15`
+
+| `%H`
+| The hour as a decimal number using a 24-hour clock (range 00 to 23).
+| `09`
+
+| `%m`
+| The month as a decimal number (range 01 to 12).
+| `03`
+
+| `%M`
+| The minute as a decimal number (range 00 to 59).
+| `45`
+
+| `%S`
+| The second as a decimal number (range 00 to 60).
+(The range is up to 60 to allow for occasional leap seconds.)
+| `30`
+
+| `%y`
+| The year as a decimal number without a century (range 00 to 99).
+| `26`
+
+| `%Y`
+| The year as a decimal number including the century.
+| `2026`
+
+| `%z`
+| The +hhmm or -hhmm numeric timezone (that is, the hour and minute offset from UTC).
+| `+02`
+
+| `%Z`
+| The timezone name or abbreviation.
+| `CET`
+
+|===
+
+== Examples
+
+// TODO: more examples
+
+[%autowidth]
+|===
+| Pattern | Example
+
+| `%Y-%m-%dT%H%M%S%Z`
+| `2026-03-15T09:30:10Z`
+
+| `%d/%m/%Y %H:%M:%S`
+| `03/15/2026 09:30:10`
+
+|===

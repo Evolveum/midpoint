@@ -62,6 +62,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class CorrelationCaseManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationCaseManager.class);
+    private static final String OP_APPLY_CORRELATION_OUTCOME =
+            CorrelationCaseManager.class.getName() + ".importSelectedOutcome";
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private ModelService modelService;
@@ -121,7 +123,7 @@ public class CorrelationCaseManager {
                         .schema(createCaseSchema(resource.getBusiness())))
                 .state(SchemaConstants.CASE_STATE_CREATED)
                 .metadata(new MetadataType()
-                    .createTimestamp(now));
+                        .createTimestamp(now));
         try {
             repositoryService.addObject(newCase.asPrismObject(), null, result);
         } catch (ObjectAlreadyExistsException e) {
@@ -289,32 +291,78 @@ public class CorrelationCaseManager {
             return;
         }
 
-        recordCaseCompletionInShadow(aCase, task, result);
+        recordCorrelationCompletionMetadataInShadow(aCase, task, result);
         caseCloser.closeCase(result);
+
+    }
+
+    /**
+     * Executes retry-safe correlation completion logic before the case is persisted as closing.
+     * Throws on failure to keep the case open.
+     */
+    void prepareCorrelationCaseClosing(
+            @NotNull CaseType aCase,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        recordCorrelationOutcomeInShadow(aCase, result);
+
         correlationService.resolve(aCase, task, result);
+        if (result.isError()) {
+            throw new SystemException(result.getMessage());
+        }
 
         // As a convenience, we try to re-import the object. Technically this is not a part of the correlation case processing.
         // Whether we do this should be made configurable (in the future).
 
         String shadowOid = CorrelationCaseUtil.getShadowOidRequired(aCase);
+        OperationResult importResult = result.createSubresult(OP_APPLY_CORRELATION_OUTCOME);
         try {
-            modelService.importFromResource(shadowOid, task, result);
+            modelService.importFromResource(shadowOid, task, importResult);
+            importResult.computeStatusIfUnknown();
+            if (importResult.isError()) {
+                // Abort the case close if the real import/projector path reported an error.
+                throw new SystemException(importResult.getMessage());
+            }
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import shadow {} from resource", e, shadowOid);
-            // Not throwing the exception higher (import itself is not prerequisite for completing the correlation case
+            throw e;
+        } finally {
+            importResult.close();
         }
+
     }
 
-    private void recordCaseCompletionInShadow(CaseType aCase, Task task, OperationResult result)
+    private void recordCorrelationOutcomeInShadow(CaseType aCase, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-
         String shadowOid = CorrelationCaseUtil.getShadowOidRequired(aCase);
-        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
         ObjectReferenceType resultingOwnerRef =
                 CloneUtil.clone(
                         CorrelationCaseUtil.getResultingOwnerRef(aCase));
         CorrelationSituationType situation = resultingOwnerRef != null ?
                 CorrelationSituationType.EXISTING_OWNER : CorrelationSituationType.NO_OWNER;
+
+        try {
+            repositoryService.modifyObject(
+                    ShadowType.class,
+                    shadowOid,
+                    prismContext.deltaFor(ShadowType.class)
+                            .item(CORRELATION_RESULTING_OWNER_PATH)
+                            .replace(resultingOwnerRef)
+                            .item(CORRELATION_SITUATION_PATH)
+                            .replace(situation)
+                            .asItemDeltas(),
+                    result);
+        } catch (SchemaException | ObjectAlreadyExistsException e) {
+            throw SystemException.unexpected(e, "while recording correlation outcome in shadow");
+        }
+    }
+
+    private void recordCorrelationCompletionMetadataInShadow(CaseType aCase, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        String shadowOid = CorrelationCaseUtil.getShadowOidRequired(aCase);
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
 
         try {
             repositoryService.modifyObject(
@@ -327,10 +375,6 @@ public class CorrelationCaseManager {
                             .replaceRealValues(getPerformerRefs(aCase))
                             .item(CORRELATION_PERFORMER_COMMENT_PATH)
                             .replaceRealValues(getPerformerComments(aCase, task, result))
-                            .item(CORRELATION_RESULTING_OWNER_PATH)
-                            .replace(resultingOwnerRef)
-                            .item(CORRELATION_SITUATION_PATH)
-                            .replace(situation)
                             .asItemDeltas(),
                     result);
         } catch (SchemaException | ObjectAlreadyExistsException e) {

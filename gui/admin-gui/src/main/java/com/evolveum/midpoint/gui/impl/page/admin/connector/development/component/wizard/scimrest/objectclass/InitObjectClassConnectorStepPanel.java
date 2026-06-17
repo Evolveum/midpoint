@@ -17,6 +17,14 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllEndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllObjectsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchAllConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdEndpointsConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchByIdConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdObjectConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterEndpointsConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchFilterConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterObjectsConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -61,7 +69,11 @@ public class InitObjectClassConnectorStepPanel extends AbstractObjectClassConnec
                 new SearchAllEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingSearchAllConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new SearchAllScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchAllObjectsConnectorStepPanel(getHelper(), getObjectClassModel()));
+                new SearchAllObjectsConnectorStepPanel(getHelper(), getObjectClassModel()),
+                new SearchByIdEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
+                new WaitingSearchByIdConnectorStepPanel(getHelper(), getObjectClassModel()),
+                new SearchByIdScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
+                new SearchByIdObjectConnectorStepPanel(getHelper(), getObjectClassModel()));
     }
 
     @Override

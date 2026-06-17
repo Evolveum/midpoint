@@ -1,0 +1,789 @@
+= Native PostgreSQL Schema Script: postgres-quartz.sql
+
+xref:../schema.adoc[Back to native PostgreSQL schema overview]
+
+This page documents schema objects parsed from `config/sql/native/postgres-quartz.sql`.
+
+== Tables
+
+[[qrtz_blob_triggers]]
+=== `qrtz_blob_triggers`
+
+Stores serialized binary data for Quartz blob triggers.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `TRIGGER_NAME`
+| `VARCHAR (200)`
+| primary key, required
+| Name of the related trigger.
+
+| `TRIGGER_GROUP`
+| `VARCHAR (200)`
+| primary key, required
+| Group of the related trigger.
+
+| `BLOB_DATA`
+| `BYTEA`
+| 
+| Serialized blob trigger data.
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `SCHED_NAME`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.SCHED_NAME`]
+
+| `TRIGGER_NAME`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.TRIGGER_NAME`]
+
+| `TRIGGER_GROUP`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.TRIGGER_GROUP`]
+
+|===
+
+[[qrtz_calendars]]
+=== `qrtz_calendars`
+
+Stores Quartz calendar definitions used by triggers.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `CALENDAR_NAME`
+| `VARCHAR (200)`
+| primary key, required
+| Calendar name assigned by Quartz.
+
+| `CALENDAR`
+| `BYTEA`
+| required
+| Serialized Quartz calendar data.
+
+|===
+
+[[qrtz_cron_triggers]]
+=== `qrtz_cron_triggers`
+
+Stores additional data for Quartz cron triggers.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `TRIGGER_NAME`
+| `VARCHAR (200)`
+| primary key, required
+| Name of the related trigger.
+
+| `TRIGGER_GROUP`
+| `VARCHAR (200)`
+| primary key, required
+| Group of the related trigger.
+
+| `CRON_EXPRESSION`
+| `VARCHAR (120)`
+| required
+| Cron expression defining when the trigger fires.
+
+| `TIME_ZONE_ID`
+| `VARCHAR (80)`
+| 
+| Time zone used to evaluate the cron expression.
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `SCHED_NAME`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.SCHED_NAME`]
+
+| `TRIGGER_NAME`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.TRIGGER_NAME`]
+
+| `TRIGGER_GROUP`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.TRIGGER_GROUP`]
+
+|===
+
+[[qrtz_fired_triggers]]
+=== `qrtz_fired_triggers`
+
+Stores currently fired Quartz trigger instances.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `ENTRY_ID`
+| `VARCHAR (95)`
+| primary key, required
+| Unique fired-trigger entry identifier.
+
+| `TRIGGER_NAME`
+| `VARCHAR (200)`
+| required
+| Name of the fired trigger.
+
+| `TRIGGER_GROUP`
+| `VARCHAR (200)`
+| required
+| Group of the fired trigger.
+
+| `INSTANCE_NAME`
+| `VARCHAR (200)`
+| required
+| Scheduler instance that fired the trigger.
+
+| `FIRED_TIME`
+| `BIGINT`
+| required
+| Time when the trigger fired.
+
+| `SCHED_TIME`
+| `BIGINT`
+| required
+| Scheduled fire time.
+
+| `PRIORITY`
+| `INTEGER`
+| required
+| Trigger priority at fire time.
+
+| `EXECUTION_GROUP`
+| `VARCHAR (200)`
+| 
+| Execution group used for this fired trigger.
+
+| `STATE`
+| `VARCHAR (16)`
+| required
+| State of the fired trigger entry.
+
+| `JOB_NAME`
+| `VARCHAR (200)`
+| 
+| Job name associated with this fired trigger, if any.
+
+| `JOB_GROUP`
+| `VARCHAR (200)`
+| 
+| Job group associated with this fired trigger, if any.
+
+| `IS_NONCONCURRENT`
+| `BOOL`
+| 
+| Indicates whether the associated job disallows concurrent execution.
+
+| `REQUESTS_RECOVERY`
+| `BOOL`
+| 
+| Indicates whether the associated job requests recovery.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `idx_qrtz_ft_trig_inst_name`
+| `SCHED_NAME, INSTANCE_NAME`
+| Speeds up lookup of fired triggers by scheduler instance. Used for: scheduler instance recovery and fired-trigger tracking
+
+| `idx_qrtz_ft_inst_job_req_rcvry`
+| `SCHED_NAME, INSTANCE_NAME, REQUESTS_RECOVERY`
+| Speeds up lookup of fired triggers by instance and recovery flag. Used for: recovery processing for fired jobs
+
+| `idx_qrtz_ft_j_g`
+| `SCHED_NAME, JOB_NAME, JOB_GROUP`
+| Speeds up lookup of fired triggers by job. Used for: fired-trigger lookup by job identity
+
+| `idx_qrtz_ft_jg`
+| `SCHED_NAME, JOB_GROUP`
+| Speeds up lookup of fired triggers by job group. Used for: fired-trigger lookup by job group
+
+| `idx_qrtz_ft_t_g`
+| `SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP`
+| Speeds up lookup of fired triggers by trigger identity. Used for: fired-trigger lookup by trigger name and group
+
+| `idx_qrtz_ft_tg`
+| `SCHED_NAME, TRIGGER_GROUP`
+| Speeds up lookup of fired triggers by trigger group. Used for: fired-trigger lookup by trigger group
+
+|===
+
+[[qrtz_job_details]]
+=== `qrtz_job_details`
+
+Stores Quartz scheduler job definitions used by midPoint task scheduling.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `JOB_NAME`
+| `VARCHAR (200)`
+| primary key, required
+| Job name assigned by Quartz.
+
+| `JOB_GROUP`
+| `VARCHAR (200)`
+| primary key, required
+| Job group assigned by Quartz.
+
+| `DESCRIPTION`
+| `VARCHAR (250)`
+| 
+| Optional human-readable job description.
+
+| `JOB_CLASS_NAME`
+| `VARCHAR (250)`
+| required
+| Java class implementing the scheduled job.
+
+| `IS_DURABLE`
+| `BOOL`
+| required
+| Indicates whether the job should remain stored even when it has no triggers.
+
+| `IS_NONCONCURRENT`
+| `BOOL`
+| required
+| Indicates whether Quartz must avoid concurrent execution of this job.
+
+| `IS_UPDATE_DATA`
+| `BOOL`
+| required
+| Indicates whether job data should be updated after execution.
+
+| `REQUESTS_RECOVERY`
+| `BOOL`
+| required
+| Indicates whether the job requests recovery after scheduler failure.
+
+| `JOB_DATA`
+| `BYTEA`
+| 
+| Serialized Quartz job data.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `idx_qrtz_j_req_recovery`
+| `SCHED_NAME, REQUESTS_RECOVERY`
+| Speeds up lookup of jobs that request recovery. Used for: Quartz recovery processing
+
+| `idx_qrtz_j_grp`
+| `SCHED_NAME, JOB_GROUP`
+| Speeds up lookup of Quartz jobs by group. Used for: scheduler job group lookup
+
+|===
+
+[[qrtz_locks]]
+=== `qrtz_locks`
+
+Stores Quartz scheduler lock records used for cluster coordination.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `LOCK_NAME`
+| `VARCHAR (40)`
+| primary key, required
+| Lock name used by Quartz.
+
+|===
+
+[[qrtz_paused_trigger_grps]]
+=== `qrtz_paused_trigger_grps`
+
+Stores Quartz trigger groups that are currently paused.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `TRIGGER_GROUP`
+| `VARCHAR (200)`
+| primary key, required
+| Paused trigger group name.
+
+|===
+
+[[qrtz_scheduler_state]]
+=== `qrtz_scheduler_state`
+
+Stores Quartz scheduler instances and their last check-in times.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `INSTANCE_NAME`
+| `VARCHAR (200)`
+| primary key, required
+| Scheduler node or instance name.
+
+| `LAST_CHECKIN_TIME`
+| `BIGINT`
+| required
+| Last check-in time of the scheduler instance.
+
+| `CHECKIN_INTERVAL`
+| `BIGINT`
+| required
+| Expected check-in interval for this scheduler instance.
+
+|===
+
+[[qrtz_simple_triggers]]
+=== `qrtz_simple_triggers`
+
+Stores additional data for Quartz simple triggers.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `TRIGGER_NAME`
+| `VARCHAR (200)`
+| primary key, required
+| Name of the related trigger.
+
+| `TRIGGER_GROUP`
+| `VARCHAR (200)`
+| primary key, required
+| Group of the related trigger.
+
+| `REPEAT_COUNT`
+| `BIGINT`
+| required
+| Number of times the trigger should repeat.
+
+| `REPEAT_INTERVAL`
+| `BIGINT`
+| required
+| Interval between repeated executions.
+
+| `TIMES_TRIGGERED`
+| `BIGINT`
+| required
+| Number of times the trigger has already fired.
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `SCHED_NAME`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.SCHED_NAME`]
+
+| `TRIGGER_NAME`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.TRIGGER_NAME`]
+
+| `TRIGGER_GROUP`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.TRIGGER_GROUP`]
+
+|===
+
+[[qrtz_simprop_triggers]]
+=== `qrtz_simprop_triggers`
+
+Stores additional string, numeric, decimal, and boolean properties for Quartz triggers.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `TRIGGER_NAME`
+| `VARCHAR (200)`
+| primary key, required
+| Name of the related trigger.
+
+| `TRIGGER_GROUP`
+| `VARCHAR (200)`
+| primary key, required
+| Group of the related trigger.
+
+| `STR_PROP_1`
+| `VARCHAR (512)`
+| 
+| First string property stored by Quartz for this trigger.
+
+| `STR_PROP_2`
+| `VARCHAR (512)`
+| 
+| Second string property stored by Quartz for this trigger.
+
+| `STR_PROP_3`
+| `VARCHAR (512)`
+| 
+| Third string property stored by Quartz for this trigger.
+
+| `INT_PROP_1`
+| `INT`
+| 
+| First integer property stored by Quartz for this trigger.
+
+| `INT_PROP_2`
+| `INT`
+| 
+| Second integer property stored by Quartz for this trigger.
+
+| `LONG_PROP_1`
+| `BIGINT`
+| 
+| First long integer property stored by Quartz for this trigger.
+
+| `LONG_PROP_2`
+| `BIGINT`
+| 
+| Second long integer property stored by Quartz for this trigger.
+
+| `DEC_PROP_1`
+| `NUMERIC (13, 4)`
+| 
+| First decimal property stored by Quartz for this trigger.
+
+| `DEC_PROP_2`
+| `NUMERIC (13, 4)`
+| 
+| Second decimal property stored by Quartz for this trigger.
+
+| `BOOL_PROP_1`
+| `BOOL`
+| 
+| First boolean property stored by Quartz for this trigger.
+
+| `BOOL_PROP_2`
+| `BOOL`
+| 
+| Second boolean property stored by Quartz for this trigger.
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `SCHED_NAME`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.SCHED_NAME`]
+
+| `TRIGGER_NAME`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.TRIGGER_NAME`]
+
+| `TRIGGER_GROUP`
+| xref:#qrtz_triggers[`QRTZ_TRIGGERS.TRIGGER_GROUP`]
+
+|===
+
+[[qrtz_triggers]]
+=== `qrtz_triggers`
+
+Stores Quartz trigger definitions that decide when jobs should run.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `SCHED_NAME`
+| `VARCHAR (120)`
+| primary key, required
+| Scheduler instance name.
+
+| `TRIGGER_NAME`
+| `VARCHAR (200)`
+| primary key, required
+| Trigger name assigned by Quartz.
+
+| `TRIGGER_GROUP`
+| `VARCHAR (200)`
+| primary key, required
+| Trigger group assigned by Quartz.
+
+| `JOB_NAME`
+| `VARCHAR (200)`
+| required
+| Name of the job fired by this trigger.
+
+| `JOB_GROUP`
+| `VARCHAR (200)`
+| required
+| Group of the job fired by this trigger.
+
+| `DESCRIPTION`
+| `VARCHAR (250)`
+| 
+| Optional human-readable trigger description.
+
+| `NEXT_FIRE_TIME`
+| `BIGINT`
+| 
+| Next scheduled fire time stored as a timestamp value used by Quartz.
+
+| `PREV_FIRE_TIME`
+| `BIGINT`
+| 
+| Previous fire time stored as a timestamp value used by Quartz.
+
+| `PRIORITY`
+| `INTEGER`
+| 
+| Trigger priority used by Quartz when multiple triggers are ready.
+
+| `EXECUTION_GROUP`
+| `VARCHAR (200)`
+| 
+| Execution group used by Quartz for grouped trigger execution.
+
+| `TRIGGER_STATE`
+| `VARCHAR (16)`
+| required
+| Current trigger state, for example waiting, paused, or acquired.
+
+| `TRIGGER_TYPE`
+| `VARCHAR (8)`
+| required
+| Trigger type, such as simple, cron, blob, or simulated-property trigger.
+
+| `START_TIME`
+| `BIGINT`
+| required
+| Start time of the trigger.
+
+| `END_TIME`
+| `BIGINT`
+| 
+| Optional end time of the trigger.
+
+| `CALENDAR_NAME`
+| `VARCHAR (200)`
+| 
+| Calendar name associated with this trigger, if any.
+
+| `MISFIRE_INSTR`
+| `SMALLINT`
+| 
+| Misfire instruction used when a scheduled fire time was missed.
+
+| `JOB_DATA`
+| `BYTEA`
+| 
+| Serialized Quartz trigger data.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `idx_qrtz_t_j`
+| `SCHED_NAME, JOB_NAME, JOB_GROUP`
+| Speeds up lookup of triggers by related job. Used for: resolving triggers for a Quartz job
+
+| `idx_qrtz_t_jg`
+| `SCHED_NAME, JOB_GROUP`
+| Speeds up lookup of triggers by related job group. Used for: scheduler trigger lookup by job group
+
+| `idx_qrtz_t_c`
+| `SCHED_NAME, CALENDAR_NAME`
+| Speeds up lookup of triggers by calendar name. Used for: finding triggers attached to a Quartz calendar
+
+| `idx_qrtz_t_g`
+| `SCHED_NAME, TRIGGER_GROUP`
+| Speeds up lookup of triggers by trigger group. Used for: scheduler trigger group lookup
+
+| `idx_qrtz_t_state`
+| `SCHED_NAME, TRIGGER_STATE`
+| Speeds up lookup of triggers by trigger state. Used for: scheduler trigger state lookup
+
+| `idx_qrtz_t_n_state`
+| `SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP, TRIGGER_STATE`
+| Speeds up lookup of one trigger together with its state. Used for: trigger state lookup by trigger identity
+
+| `idx_qrtz_t_n_g_state`
+| `SCHED_NAME, TRIGGER_GROUP, TRIGGER_STATE`
+| Speeds up lookup of triggers by group and state. Used for: trigger group state lookup
+
+| `idx_qrtz_t_next_fire_time`
+| `SCHED_NAME, NEXT_FIRE_TIME`
+| Speeds up lookup of triggers by next fire time. Used for: finding triggers ready to fire
+
+| `idx_qrtz_t_nft_st`
+| `SCHED_NAME, TRIGGER_STATE, NEXT_FIRE_TIME`
+| Speeds up lookup of triggers by state and next fire time. Used for: finding active triggers ready to fire
+
+| `idx_qrtz_t_nft_misfire`
+| `SCHED_NAME, MISFIRE_INSTR, NEXT_FIRE_TIME`
+| Speeds up lookup of misfired triggers by next fire time. Used for: Quartz misfire handling
+
+| `idx_qrtz_t_nft_st_misfire`
+| `SCHED_NAME, MISFIRE_INSTR, NEXT_FIRE_TIME, TRIGGER_STATE`
+| Speeds up lookup of misfired triggers by state and next fire time. Used for: Quartz misfire handling with trigger state filtering
+
+| `idx_qrtz_t_nft_st_misfire_grp`
+| `SCHED_NAME, MISFIRE_INSTR, NEXT_FIRE_TIME, TRIGGER_GROUP, TRIGGER_STATE`
+| Speeds up lookup of misfired triggers by group, state, and next fire time. Used for: Quartz misfire handling with trigger group filtering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `SCHED_NAME`
+| xref:#qrtz_job_details[`QRTZ_JOB_DETAILS.SCHED_NAME`]
+
+| `JOB_NAME`
+| xref:#qrtz_job_details[`QRTZ_JOB_DETAILS.JOB_NAME`]
+
+| `JOB_GROUP`
+| xref:#qrtz_job_details[`QRTZ_JOB_DETAILS.JOB_GROUP`]
+
+|===
+

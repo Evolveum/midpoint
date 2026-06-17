@@ -12,6 +12,10 @@
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
         </encoder>
     </appender>
+
+    <!-- This needs to be set to TRACE, tests (TestMelExpressions) are looking for log messages. -->
+    <logger name="com.evolveum.midpoint.expression" level="TRACE"/>
+
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="com.evolveum.midpoint.schema" level="DEBUG" />
     <logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />

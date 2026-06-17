@@ -174,6 +174,26 @@ public interface CommonInitialObjects {
             MARKS, "741-mark-shadow-correlation-owner-not-certain.xml",
             SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN.value());
 
+    TestObject<MarkType> MARK_ITEM_VALUE_ADDED = TestObject.classPath(
+            MARKS, "742-mark-item-value-added.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_ADDED.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_REMOVED = TestObject.classPath(
+            MARKS, "743-mark-item-value-removed.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_MODIFIED = TestObject.classPath(
+            MARKS, "744-mark-item-value-modified.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_NOT_CHANGED = TestObject.classPath(
+            MARKS, "745-mark-item-value-not-changed.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_CHANGE_NOT_APPLIED = TestObject.classPath(
+            MARKS, "746-mark-item-value-change-not-applied.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value());
+
     TestObject<MarkType> MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED = TestObject.classPath(
             MARKS, "738-mark-projection-resource-object-affected.xml",
             SystemObjectsType.MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED.value());
@@ -375,6 +395,11 @@ public interface CommonInitialObjects {
                     MARK_SHADOW_CORRELATION_OWNER_FOUND,
                     MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND,
                     MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN,
+                    MARK_ITEM_VALUE_ADDED,
+                    MARK_ITEM_VALUE_MODIFIED,
+                    MARK_ITEM_VALUE_REMOVED,
+                    MARK_ITEM_VALUE_NOT_CHANGED,
+                    MARK_ITEM_VALUE_CHANGE_NOT_APPLIED,
                     MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED,
                     MARK_PROTECTED,
                     MARK_DECOMMISSION_LATER,

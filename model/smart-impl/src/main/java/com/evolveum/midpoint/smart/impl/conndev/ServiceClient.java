@@ -24,6 +24,7 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.function.BooleanSupplier;
 
 public class ServiceClient {
 
@@ -53,15 +54,15 @@ public class ServiceClient {
         this.sessionEndpoint = appendSession(this.apiBase + RELATIVE_SESSION_ENDPOINT);
     }
 
-    public Job postJob(String endpoint) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postJob(String endpoint, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         job.startJob(request);
         return job;
     }
 
-    public Job postJob(String endpoint, ObjectNode body) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postJob(String endpoint, ObjectNode body, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         request.setEntity(new StringEntity(body.toPrettyString(), ContentType.APPLICATION_JSON));
         job.startJob(request);
@@ -72,40 +73,40 @@ public class ServiceClient {
         return base.replace(SESSION_PATTERN, sessionId);
     }
 
-    public Job postDocumentationJob(String endpoint, InputStream documentation, ObjectNode body) throws IOException {
+    public Job postDocumentationJob(String endpoint, InputStream documentation, ObjectNode body, boolean skipCache) throws IOException {
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.EXTENDED);
         builder.addBinaryBody("documentation", documentation, ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
 
-        var job = new Job(apiBase+endpoint);
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         request.setEntity(builder.build());
         job.startJob(request);
         return job;
     }
 
-    public Job postDocumentationObjectClassJob(String endpoint, String objectClass, InputStream documentation, ObjectNode body) throws IOException {
+    public Job postDocumentationObjectClassJob(String endpoint, String objectClass, InputStream documentation, ObjectNode body, boolean skipCache) throws IOException {
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.EXTENDED);
         builder.addBinaryBody("documentation", documentation, ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
 
-        var job = new Job(apiBase+endpoint);
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint + "?objectClass=" + objectClass);
         request.setEntity(builder.build());
         job.startJob(request);
         return job;
     }
 
-    public Job postEntityJob(String endpoint, HttpEntity entity) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postEntityJob(String endpoint, HttpEntity entity, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint);
         request.setEntity(entity);
         job.startJob(request);
         return job;
     }
 
-    public Job postEntityJob(String endpoint, String objectClass, HttpEntity entity) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postEntityJob(String endpoint, String objectClass, HttpEntity entity, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint + "?objectClass=" + objectClass);
         request.setEntity(entity);
         job.startJob(request);
@@ -127,13 +128,22 @@ public class ServiceClient {
     public class Job implements AutoCloseable {
 
         private final String uri;
+        private final boolean skipCache;
         private String jobId = null;
 
         private JobStatus status = JobStatus.NEW;
         private ObjectNode latestResult;
 
-        public Job(String uri) {
+        public Job(String uri, boolean skipCache) {
             this.uri = appendSession(uri);
+            this.skipCache =skipCache;
+        }
+
+        private String appendSkipCache(String uri) {
+            if (!skipCache) {
+                return uri;
+            }
+            return uri + ( !uri.contains("?") ? "?" : "&" ) + "skipCache=true";
         }
 
         @Override
@@ -142,7 +152,7 @@ public class ServiceClient {
         }
 
         public HttpPost postBuilder() {
-            return new HttpPost(uri);
+            return new HttpPost(appendSkipCache(uri));
         }
 
         public void startJob(HttpPost request) throws IOException {
@@ -210,13 +220,16 @@ public class ServiceClient {
                     || (status ==  JobStatus.FAILED && getResult() != null && !getResult().isEmpty());
         }
 
-        public <T,E extends Exception> T waitAndProcess(long sleepTime, CheckedFunction<ObjectNode, T, E> transform) throws E {
+        public <T,E extends Exception> T waitAndProcess(long sleepTime, BooleanSupplier canRun, CheckedFunction<ObjectNode, T, E> transform) throws E {
             while(process()) {
                 // FIXME: Here we can provide status message update to task
                 try {
                     Thread.sleep(sleepTime);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
+                }
+                if (!canRun.getAsBoolean()) {
+                    throw new RuntimeException("Task interrupted");
                 }
             }
             if (isFinished()) {
@@ -227,30 +240,28 @@ public class ServiceClient {
     }
 
     private void ensureSessionExists() throws IOException {
-        var request = new HttpHead(sessionEndpoint);
-        var response = client.execute(request);
-        if (HttpStatus.SC_NOT_FOUND == response.getCode()) {
-            createSession();
-        } else if (HttpStatus.SC_OK != response.getCode() && HttpStatus.SC_NO_CONTENT != response.getCode()) {
-            throw new IOException("Could not determine code-generation session at " + apiBase + ". Status code" + response.getCode());
+        int code;
+        try (var response = client.execute(new HttpHead(sessionEndpoint))) {
+            code = response.getCode();
         }
-        if (synchronization != null) {
-            synchronization.restore(new RestorationClient());
+        if (HttpStatus.SC_NOT_FOUND == code) {
+            createSession();
+        } else if (HttpStatus.SC_OK != code && HttpStatus.SC_NO_CONTENT != code) {
+            throw new IOException("Could not determine code-generation session at " + apiBase + ". Status code " + code);
         }
     }
 
     private void createSession() throws IOException {
-        //client.execute()
-        var request = new HttpPost(sessionEndpoint);
-        var response = client.execute(request);
-        if (response.getCode() == HttpStatus.SC_OK || response.getCode() == HttpStatus.SC_CREATED) {
+        int code;
+        try (var response = client.execute(new HttpPost(sessionEndpoint))) {
+            code = response.getCode();
+        }
+        if (code == HttpStatus.SC_OK || code == HttpStatus.SC_CREATED) {
             if (restoration != null) {
                 restoration.restore(new RestorationClient());
             }
-            // Session was successfully created
         } else {
-            // There were some problems with creating session
-            throw new IOException("Could not create code-generation session at " + sessionEndpoint + ". Status code" + response.getCode());
+            throw new IOException("Could not create code-generation session at " + sessionEndpoint + ". Status code " + code);
         }
     }
 
@@ -270,30 +281,28 @@ public class ServiceClient {
 
     public class RestorationClient {
 
-        public void putIfMissing(String apiUri, Supplier<HttpEntity> entitySupplier) throws IOException {
-            var uri = appendSession(apiBase + apiUri);
-            var checkCode = client.execute(new HttpHead(uri)).getCode();
-            if (checkCode == HttpStatus.SC_OK || checkCode == HttpStatus.SC_NO_CONTENT) {
-                // Content exists
-                // In future we should check if content was changed
-                return;
-            }
-            if (checkCode != HttpStatus.SC_NOT_FOUND) {
-                throw new IOException("problem determining content presence at " + uri + ". Status code: " + checkCode);
-            }
-
-            put(apiUri, entitySupplier);
-        }
-
         public void put(String apiUri, Supplier<HttpEntity> entitySupplier) throws IOException {
             var uri = appendSession(apiBase + apiUri);
             var request = new HttpPut(uri);
             request.setEntity(entitySupplier.get());
-            var uploadResponse = client.execute(request);
-            if (uploadResponse.getCode() >= 200 && uploadResponse.getCode() < 300) {
+            try (var uploadResponse = client.execute(request)) {
+                if (uploadResponse.getCode() >= 200 && uploadResponse.getCode() < 300) {
+                    return;
+                }
+                throw new IOException("Problem uploading content to " + uri + ". Status code " + uploadResponse.getCode());
+            }
+        }
+
+        public void putDocumentationIfMissing(String apiUri, Supplier<HttpEntity> entitySupplier) throws IOException {
+            var uri = appendSession(apiBase + apiUri);
+            int checkCode;
+            try (var response = client.execute(new HttpHead(uri))) {
+                checkCode = response.getCode();
+            }
+            if (checkCode == HttpStatus.SC_OK || checkCode == HttpStatus.SC_NO_CONTENT) {
                 return;
             }
-            throw new IOException("Problem uploading content to " + uri + ". Status code" + uploadResponse.getCode());
+            put(apiUri, entitySupplier);
         }
 
     }

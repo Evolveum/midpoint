@@ -121,6 +121,12 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
                 .setMinor()
                 .build();
         try {
+            boolean caseIsClosing = CaseState.of(currentCase).isClosing();
+
+            if (caseIsClosing) {
+                // Run retry-safe pre-close logic before persisting the case as closing.
+                engineExtension.prepareCaseClosing(this, result);
+            }
 
             if (getCaseOid() == null) {
                 addCaseToRepo(result);
@@ -128,7 +134,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
                 modifyCaseInRepo(result); // Throws PreconditionViolationException if there's a race condition
             }
 
-            if (CaseState.of(currentCase).isClosing()) {
+            if (caseIsClosing) {
                 closeTheCase(result);
             }
 
@@ -177,7 +183,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException,
             ConfigurationException, CommunicationException, SecurityViolationException {
 
-        // Invoking specific postprocessing of the case, like submitting a task that executes approved deltas.
+        // Invoking post-commit finalization specific to the case type.
         engineExtension.finishCaseClosing(this, result);
 
         // Note that the case may still be in "closing" state. E.g. an approval case is still closing here,

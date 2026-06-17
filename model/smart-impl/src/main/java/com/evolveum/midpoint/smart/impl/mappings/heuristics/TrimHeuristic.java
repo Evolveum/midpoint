@@ -40,14 +40,14 @@ public class TrimHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input?.trim()",
+                "input.trim()",
                 "Trim whitespace");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + "?.trim()",
+                focusPropertyName + ".trim()",
                 "Trim whitespace");
     }
 }

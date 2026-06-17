@@ -158,7 +158,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             }
         };
         footerContainer.add(tilesPaging);
-        tilesPaging.add(new VisibleBehaviour(() -> getProvider().size() > getTiles().getItemsPerPage()));
+        tilesPaging.add(isNavigatorPanelVisible());
 
         WebMarkupContainer buttonToolbar = createTilesButtonToolbar(ID_BUTTON_TOOLBAR);
         footerContainer.add(buttonToolbar);
@@ -168,6 +168,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         table.setOutputMarkupPlaceholderTag(true);
         table.setOutputMarkupId(true);
         initTable(table);
+    }
+
+    protected @NotNull VisibleBehaviour isNavigatorPanelVisible() {
+        return new VisibleBehaviour(() -> getProvider().size() > getTiles().getItemsPerPage());
     }
 
     protected void initTable(@NotNull WebMarkupContainer table) {
@@ -331,7 +335,6 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return page;
     }
 
-
     @SuppressWarnings("unchecked")
     public List<O> getCurrentPageItems() {
         if (isTileViewVisible()) {
@@ -484,17 +487,21 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         target.add(get(ID_NO_VALUE_PANEL));
 
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
-            target.add(get(ID_TABLE));
+            target.add(getTileTableComponent());
         } else {
-            target.add(get(ID_TILE_VIEW));
+            updateTileView(target);
         }
     }
 
+    public void updateTileView(@NotNull AjaxRequestTarget target) {
+        target.add(get(ID_TILE_VIEW));
+    }
+
     public BoxedTablePanel<?> getBoxedTablePanelComponent() {
-        if (get(ID_TABLE) instanceof ContainerableListPanel<?, ?>) {
-            return ((ContainerableListPanel<?, ?>) get(ID_TABLE)).getTable();
+        if (getTileTableComponent() instanceof ContainerableListPanel<?, ?>) {
+            return ((ContainerableListPanel<?, ?>) getTileTableComponent()).getTable();
         }
-        return (BoxedTablePanel<?>) get(ID_TABLE);
+        return (BoxedTablePanel<?>) getTileTableComponent();
     }
 
     protected NavigatorPanel getTilesNavigation() {
@@ -597,8 +604,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     protected void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
     }
 
-    public WebMarkupContainer getTileTableComponent() {
-        return (WebMarkupContainer) get(ID_TABLE);
+    public Component getTileTableComponent() {
+        return get(ID_TABLE);
     }
 
     /**

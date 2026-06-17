@@ -191,7 +191,7 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
 
                 @Override
                 public boolean isEditButtonVisible() {
-                    return ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel);
+                    return ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper());
                 }
             }.setStatusCssIcon(() -> ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel) ?
                     "fa fa-circle-check" : "fa fa-circle-xmark"));
@@ -255,7 +255,7 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                 values.put(
                         createStringResource("ConnectorDevelopmentWizardSummaryPanel.baseUrl"),
                         defineValueModel((String) ConnectorDevelopmentWizardUtil.getTestingResourcePropertyValue(
-                                detailsModel, null, BaseUrlConnectorStepPanel.PROPERTY_ITEM_NAME)));
+                                detailsModel, null, BaseUrlConnectorStepPanel.BASE_ADDRESS_ITEM_NAME)));
                 values.put(
                         createStringResource("ConnectorDevelopmentWizardSummaryPanel.testEndpoint"),
                         defineValueModel((String) ConnectorDevelopmentWizardUtil.getTestingResourcePropertyValue(

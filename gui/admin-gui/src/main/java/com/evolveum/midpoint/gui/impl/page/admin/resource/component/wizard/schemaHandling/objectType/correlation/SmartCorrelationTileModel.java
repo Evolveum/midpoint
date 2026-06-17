@@ -59,7 +59,7 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         ItemsSubCorrelatorType realValue = valueWrapper.getRealValue();
         this.name = realValue.getName() != null ? realValue.getName() : "-";
         this.description = realValue.getDescription() != null ? realValue.getDescription() : "-";
-        this.enabled = realValue.getEnabled() != null ? realValue.getEnabled() : Boolean.FALSE;
+        this.enabled = realValue.getEnabled() == null || realValue.getEnabled();
 
         CorrelatorCompositionDefinitionType composition = realValue.getComposition();
         this.weight = composition.getWeight();

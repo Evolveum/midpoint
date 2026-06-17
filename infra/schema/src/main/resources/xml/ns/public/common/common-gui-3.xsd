@@ -6,17 +6,17 @@
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="3.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -29,7 +29,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
     <xsd:complexType name="AdminGuiConfigurationType">
         <xsd:annotation>
@@ -354,12 +354,21 @@
                     <xsd:documentation>
                         <p>
                             Sets the maximum limit for multipart data inside submitted form (inputs and file uploads are counted).
+                            The primary purpose is to prevent the Tomcat instance memory exhausting with big requests.
                             Default value is 100.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4.5</a:since>
                         <a:displayName>AdminGuiConfigurationType.formMaxMultiparts</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="imageUploadProcessing" type="tns:ImageUploadProcessingType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AdminGuiConfigurationType.imageUploadProcessing</a:displayName>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -385,7 +394,7 @@
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType">
                 <xsd:annotation>
-                     <xsd:appinfo>
+                    <xsd:appinfo>
                         <a:schemaContext>
                             <a:type>tns:UserType</a:type>
                         </a:schemaContext>
@@ -560,7 +569,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Role collection view defines structure that should be shown in request access UI wizard - in role catalog step.
-                It will represent new menu item with list of roles defined by collectionRef or collection identifier (e.g. allOrgs,  allServices).
+                It will represent new menu item with list of roles defined by collectionRef or collection identifier (e.g. allOrgs, allServices).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -595,7 +604,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0">
+            <xsd:element name="details" type="tns:ContainerPanelConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how details about role should be displayed on popup in role catalog step.
@@ -742,7 +751,7 @@
     <xsd:complexType name="ValidityPredefinedValueType">
         <xsd:annotation>
             <xsd:documentation>
-                Element which allows predefined validity duration for requested rolesin request access UI wizard.
+                Element which allows predefined validity duration for requested roles in request access UI wizard.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -1173,7 +1182,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="formRef" type="tns:ObjectReferenceType"
-                         minOccurs="0" maxOccurs="1">
+                    minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to midPoint form object
@@ -1597,7 +1606,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Defines if the contianer is expanded or collapsed by default. Default behavior depends on
+                                    Defines if the container is expanded or collapsed by default. Default behavior depends on
                                     various aspects. E.g. whether the container is multi-value, or container any values, ...
                                 </p>
                             </xsd:documentation>
@@ -1639,6 +1648,25 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="label" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>VirtualContainersSpecificationType.label</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display properties of the item. It is used to display the header label of the item.
+                        Only label is used now. Other properties are ignored.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>VirtualContainerItemSpecificationType.display</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -1647,6 +1675,16 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false"/>
+            <xsd:element name="validator" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Validator identifier. The validator will be used to validate the value of the item on server side.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -1726,7 +1764,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
-                         minOccurs="0" maxOccurs="1" default="automatic">
+                    minOccurs="0" maxOccurs="1" default="automatic">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1803,7 +1841,7 @@
         <xsd:sequence>
             <!-- later add displayOrder so we are able to sort items according to it -->
             <!-- basic properties -->
-            <xsd:element name="label" type="t:PolyStringType" minOccurs="0" >
+            <xsd:element name="label" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1827,7 +1865,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="singularLabel" type="t:PolyStringType" minOccurs="0" >
+            <xsd:element name="singularLabel" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1847,7 +1885,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="pluralLabel" type="t:PolyStringType" minOccurs="0" >
+            <xsd:element name="pluralLabel" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2272,7 +2310,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-          <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
+            <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -2287,7 +2325,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-          <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
+            <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -2434,7 +2472,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-           <xsd:element name="searchItems" type="tns:SearchItemsType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="searchItems" type="tns:SearchItemsType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         The list of searchable properties which should be displayed on the search panel.
@@ -2882,6 +2920,23 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The content of this property specifies an order in which the SearchItem
+                            should be displayed relative to other SearchItems at the same level.
+                            SearchItems will be displayed by sorting them by the values of displayOrder
+                            property (ascending). These that do not have any displayOrder annotation
+                            will be displayed last. SearchItems with the same displayOrder
+                            are displayed in alphabetic order.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemType.displayOrder</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -3063,7 +3118,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
-                         minOccurs="0" maxOccurs="1" default="automatic">
+                    minOccurs="0" maxOccurs="1" default="automatic">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines, whether this column will be visible or it will be hidden.
@@ -3284,7 +3339,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="dashboard" type="tns:DashboardType" />
+    <xsd:element name="dashboard" type="tns:DashboardType"/>
 
     <xsd:complexType name="DashboardLayoutType">
         <xsd:annotation>
@@ -3724,7 +3779,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="configurableUserDashboard" type="tns:ConfigurableUserDashboardType" />
+    <xsd:element name="configurableUserDashboard" type="tns:ConfigurableUserDashboardType"/>
 
     <xsd:complexType name="FeedbackMessagesHookType">
         <xsd:annotation>
@@ -3880,7 +3935,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="adminGuiApprovalsConfiguration" type="tns:AdminGuiApprovalsConfigurationType" />
+    <xsd:element name="adminGuiApprovalsConfiguration" type="tns:AdminGuiApprovalsConfigurationType"/>
 
     <xsd:complexType name="AdminGuiConfigurationDisplayFormatsType">
         <xsd:annotation>
@@ -3948,7 +4003,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
-                         minOccurs="0" maxOccurs="1" default="automatic">
+                    minOccurs="0" maxOccurs="1" default="automatic">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines, whether this field will be visible or it will be hidden.
@@ -4044,6 +4099,20 @@
         <xsd:complexContent>
             <xsd:extension base="tns:CollectionSpecificationType">
                 <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of objects that belong to this collection. This is used when the collection
+                                is specified by an inline filter and the type cannot be derived from a referenced
+                                collection or from the containing configuration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                                <a:displayName>CollectionSpecificationType.type</a:displayName>
+                                <a:displayOrder>5</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:choice>
                         <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0">
                             <xsd:annotation>
@@ -4407,7 +4476,7 @@
                          it is.
                     -->
                     <xsd:element name="includeRef" type="tns:ObjectReferenceType"
-                                 minOccurs="0" maxOccurs="unbounded">
+                            minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Included form.
@@ -4426,7 +4495,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="form" type="tns:FormType" />
+    <xsd:element name="form" type="tns:FormType"/>
 
     <xsd:complexType name="FormDefinitionType">
         <xsd:annotation>
@@ -4497,9 +4566,9 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="list" type="xsd:boolean" use="optional" />
+        <xsd:attribute name="list" type="xsd:boolean" use="optional"/>
     </xsd:complexType>
-    <xsd:element name="formItems" type="tns:FormItemsType" />
+    <xsd:element name="formItems" type="tns:FormItemsType"/>
 
 
     <xsd:complexType name="FormDisplayType">
@@ -4595,14 +4664,14 @@
             <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="binding" type="tns:VariableBindingDefinitionType" minOccurs="0" />
-            <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
+            <xsd:element name="binding" type="tns:VariableBindingDefinitionType" minOccurs="0"/>
+            <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0"/>
             <!-- Note: available values are defined by the "set" in the binding. -->
             <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0"/>
             <!-- TODO: condition -->
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="formItem" type="tns:AbstractFormItemType" abstract="true" />
+    <xsd:element name="formItem" type="tns:AbstractFormItemType" abstract="true"/>
 
     <xsd:complexType name="FormItemValidationType">
         <xsd:annotation>
@@ -4653,8 +4722,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="event" type="xsd:string" minOccurs="1" maxOccurs="unbounded" />
-            <xsd:element name="script" type="xsd:string" minOccurs="1" />
+            <xsd:element name="event" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="script" type="xsd:string" minOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -5094,39 +5163,74 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:complexType name="ImageUploadProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains options for image upload processing.
+                It is possible to configure various types of sanitization
+                e.g. strip EXIF data or conversion to fixed format.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="processing" minOccurs="0" type="tns:ImageProcessingType" default="preserveOriginal"/>
+            <xsd:element name="format" minOccurs="0" type="tns:ImageFormatType" default="jpg"/>
+            <xsd:element name="stripExifData" minOccurs="0" type="xsd:boolean" default="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="ImageProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of processing for uploaded image.
+                Format can be specified using `format` for `fixed` processing.
 
-    <!--<xsd:simpleType name="GuiParameterTypeType">-->
-    <!--    <xsd:annotation>-->
-    <!--        <xsd:documentation>-->
-    <!--            if the parameter is request from user, or if it is derived from other parameters.-->
-    <!--        </xsd:documentation>-->
-    <!--        <xsd:appinfo>-->
-    <!--            <a:since>4.9</a:since>-->
-    <!--        </xsd:appinfo>-->
-    <!--    </xsd:annotation>-->
-    <!--    <xsd:restriction base="xsd:string">-->
-    <!--        <xsd:enumeration value="manual">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Requires user input-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="MANUAL"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--        <xsd:enumeration value="automatic">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Gives the possibility to select individual items without possibility to select all at once.-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="AUTOMATIC"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--    </xsd:restriction>-->
-    <!--</xsd:simpleType>-->
+                Default value is `preserveOriginal`.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="preserveOriginal">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRESERVE_ORIGINAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fixed">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FIXED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="ImageFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Image format that is used to store uploaded image.
+                It is used only if `processing` is set to `fixed`.
 
-
+                Default value is jpg.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="jpg">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JPG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="png">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PNG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

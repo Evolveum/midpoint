@@ -10,7 +10,6 @@
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>resource-dummy-correlation</name>
@@ -44,24 +43,6 @@
             <focus>
                 <type>UserType</type>
             </focus>
-            <!-- The list of attributes is here just for reference -->
-            <attribute>
-                <ref>icfs:name</ref>
-            </attribute>
-            <attribute>
-                <ref>icfs:uid</ref>
-            </attribute>
-            <attribute>
-                <ref>ri:correlator</ref>
-            </attribute>
-            <attribute>
-                <ref>ri:employeeNumber</ref>
-                <inbound>
-                    <target>
-                        <path>employeeNumber</path>
-                    </target>
-                </inbound>
-            </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <inbound>
@@ -70,51 +51,17 @@
                     </target>
                 </inbound>
             </attribute>
-            <!--
-            Bellow attribute is commented, because in test of the correlation service we want to add it explicitly
-            during test of correlation with additional mapping. I don't want to remove it from here just in case
-            somebody would want to add it here again in the future.
-             -->
-<!--            <attribute>-->
-<!--                <ref>ri:familyName</ref>-->
-<!--                <inbound>-->
-<!--                    <target>-->
-<!--                        <path>familyName</path>-->
-<!--                    </target>-->
-<!--                </inbound>-->
-<!--            </attribute>-->
-            <attribute>
-                <ref>ri:honorificPrefix</ref>
-                <inbound>
-                    <target>
-                        <path>honorificPrefix</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:costCenter</ref>
-                <inbound>
-                    <target>
-                        <path>costCenter</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:dateOfBirth</ref>
-                <inbound>
-                    <target>
-                        <path>extension/dateOfBirth</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:nationalId</ref>
-                <inbound>
-                    <target>
-                        <path>extension/nationalId</path>
-                    </target>
-                </inbound>
-            </attribute>
+            <correlation>
+                <correlators>
+                    <items>
+                        <name>by-name</name>
+                        <description>Match using the givenName</description>
+                        <item>
+                            <ref>givenName</ref>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
         </objectType>
     </schemaHandling>
 </resource>

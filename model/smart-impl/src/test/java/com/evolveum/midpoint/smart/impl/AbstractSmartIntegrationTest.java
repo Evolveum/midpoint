@@ -44,6 +44,9 @@ public abstract class AbstractSmartIntegrationTest extends AbstractModelIntegrat
     @Autowired
     SmartIntegrationServiceImpl smartIntegrationService;
 
+    @Autowired
+    protected com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService connectorDevelopmentService;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);

@@ -757,12 +757,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = null;
-        try {
-            principal = securityContextManager.getPrincipal();
-        } catch (SecurityViolationException e) {
-            LOGGER.warn("Security violation while getting principal to get GUI config: {}", e.getMessage(), e);
-        }
+        // If the security context disappears during request processing (e.g. logout mid-request), the exception should propagate.
+        MidPointPrincipal principal = securityContextManager.getPrincipal();
 
         if (!(principal instanceof GuiProfiledPrincipal guiProfiledPrincipal)) {
             // May be used for unauthenticated user, error pages and so on
@@ -2128,7 +2124,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     @Experimental
     @NotNull
-    public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
+    public Collection<DirectlyEvaluatedClockworkPolicyRule> evaluateCollectionPolicyRules(
             @NotNull PrismObject<ObjectCollectionType> collection, // [EP:APSO] DONE 1/1
             @Nullable CompiledObjectCollectionView preCompiledView,
             @Nullable Class<? extends ObjectType> targetTypeClass,
@@ -2479,9 +2475,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 return true;
             }
 
-            for (ActivityPolicyType policy : policies.getPolicy()) {
+            for (PolicyRuleType policy : policies.getPolicy()) {
                 ItemPath path = policy.asPrismContainerValue().getPath();
-                ItemPath enabledPath = path.append(ActivityPolicyType.F_ENABLED);
+                ItemPath enabledPath = path.append(PolicyRuleType.F_ENABLED);
 
                 S_ItemEntry sie = deltaBuilderHolder.getValue();
 

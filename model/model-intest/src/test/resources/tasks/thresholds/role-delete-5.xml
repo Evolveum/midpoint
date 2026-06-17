@@ -9,6 +9,7 @@
     <name>role-delete-5</name>
     <inducement>
         <policyRule>
+            <name>delete-5</name>
             <policyConstraints>
                 <modification>
                     <operation>delete</operation>

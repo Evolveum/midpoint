@@ -12,7 +12,7 @@ import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -69,11 +69,11 @@ public class ProcessSpecifications implements DebugDumpable {
         }
     }
 
-    static ProcessSpecifications createFromRules(List<AssociatedPolicyRule> rules)
+    static ProcessSpecifications createFromRules(List<EvaluatedClockworkPolicyRule> rules)
             throws ConfigurationException {
         // Step 1: plain list of approval actions -> map: process-spec -> list of related actions/rules ("collected")
         LinkedHashMap<WfProcessSpecificationType, List<ApprovalActionWithRule>> collectedSpecifications = new LinkedHashMap<>();
-        for (AssociatedPolicyRule rule : rules) {
+        for (EvaluatedClockworkPolicyRule rule : rules) {
             for (var approvalAction : rule.getEnabledActions(ApprovalPolicyActionType.class)) {
                 WfProcessSpecificationType spec = approvalAction.value().getProcessSpecification();
                 collectedSpecifications
@@ -184,6 +184,6 @@ public class ProcessSpecifications implements DebugDumpable {
     }
 
     record ApprovalActionWithRule(
-            @NotNull ApprovalPolicyActionType approvalAction, @NotNull AssociatedPolicyRule policyRule) {
+            @NotNull ApprovalPolicyActionType approvalAction, @NotNull EvaluatedClockworkPolicyRule policyRule) {
     }
 }

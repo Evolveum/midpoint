@@ -68,8 +68,10 @@ public class ButtonBar<C extends Containerable, PO extends SelectableRow> extend
 
     private void initLayout(final List<Component> buttonsList) {
         ListView<Component> buttonsView = new ListView<>(ID_BUTTON_REPEATER, Model.ofList(buttonsList)) {
+
             @Override
             protected void populateItem(ListItem<Component> listItem) {
+                listItem.setRenderBodyOnly(true);
                 listItem.add(listItem.getModelObject());
             }
         };

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.evaluator;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -91,8 +91,14 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
                 throw new DisabledException("web.security.flexAuth.invalid.required.assignment");
             }
         } else {
-            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, "password mismatch");
-            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
+            String reason = createInvalidCredentialsMessage(principal, connEnv);
+            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, reason);
+
+            String key = createInvalidCredentialsKey(principal, connEnv);
+            if (StringUtils.isEmpty(key)) {
+                key = AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication());
+            }
+            throw new BadCredentialsException(key);
         }
 
         checkAuthorizations(principal, connEnv, authnCtx);
@@ -110,6 +116,14 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         }
     }
 
+    protected String createInvalidCredentialsMessage(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+        return "password mismatch";
+    }
+
+    protected String createInvalidCredentialsKey(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+        return null;
+    }
+
     private boolean checkCredentials(MidPointPrincipal principal, T authnCtx, ConnectionEnvironment connEnv) {
 
         FocusType focusType = principal.getFocus();
@@ -122,7 +136,11 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
         // Lockout
-        if (isLockedOut(getAuthenticationData(principal, connEnv), credentialsPolicy)) {
+        AuthenticationAttemptDataType authData = getAuthenticationData(principal, connEnv);
+        boolean lockedOut = isLockedOut(authData, credentialsPolicy);
+        LOGGER.debug("Lockout check for user '{}': lockedOut={}, failedAttempts={}",
+                principal.getUsername(), lockedOut, authData != null ? authData.getFailedAttempts() :  null);
+        if (lockedOut) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth instanceof MidpointAuthentication) {
                 ((MidpointAuthentication) auth).setOverLockoutMaxAttempts(true);

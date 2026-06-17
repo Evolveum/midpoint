@@ -368,6 +368,13 @@ Only for mail transport.
 | Recipient(s) that should get the notifications (as Bcc).
 Only for mail transport.
 
+| fromExpression
+| ExpressionType
+| 0..1
+| The sender of the notification e-mail.
+Overrides the `defaultFrom` option set in the `messageTransportConfiguration` object.
+Only for mail transport.
+
 
 | subjectExpression
 | ExpressionType

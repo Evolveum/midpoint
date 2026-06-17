@@ -78,6 +78,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
     protected static final File RESOURCE_DUMMY_CACHING_FILE = new File(COMMON_DIR, "resource-dummy-caching.xml");
+    protected static final File RESOURCE_DUMMY_GROOVY_FILE = new File(COMMON_DIR, "resource-dummy-groovy.xml");
     protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
     protected static final String RESOURCE_DUMMY_NAMESPACE = MidPointConstants.NS_RI;
     protected static final String RESOURCE_DUMMY_DRINK = "rum";

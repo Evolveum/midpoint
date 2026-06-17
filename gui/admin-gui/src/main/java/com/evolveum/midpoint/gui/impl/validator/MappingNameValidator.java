@@ -16,11 +16,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
-public class MappingNameValidator implements IValidator<String> {
+public class MappingNameValidator implements IValidator<String>, INullAcceptingValidator<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingNameValidator.class);
 
@@ -62,7 +63,7 @@ public class MappingNameValidator implements IValidator<String> {
 
         if ((containsSameValue && numberOfSameRef > 1) || (!containsSameValue && numberOfSameRef > 0)) {
             ValidationError error = new ValidationError();
-            error.setMessage(LocalizationUtil.translate("MappingNameValidator.sameValue", new Object[] {value}));
+            error.setMessage(LocalizationUtil.translate("MappingNameValidator.sameValue", new Object[] { value }));
             validatable.error(error);
         }
 

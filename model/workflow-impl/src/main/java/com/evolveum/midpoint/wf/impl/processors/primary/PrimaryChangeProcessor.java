@@ -189,7 +189,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
                 LOGGER.debug("Skipping empty processing instruction (returning deltas to the 'without approval' set): {}",
                         instruction.debugDumpLazily());
                 //noinspection unchecked
-                changesWithoutApproval.merge((ObjectTreeDeltas<O>) instruction.getDeltasToApprove());
+                changesWithoutApproval.mergeUnordered((ObjectTreeDeltas<O>) instruction.getDeltasToApprove());
                 iterator.remove();
             }
         }
@@ -426,6 +426,11 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
 
     @Override
     public void enrichWorkItemDeletedAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation) {
+        addDeltaIfNeeded(auditEventRecord, true, operation.getCurrentCase());
+    }
+
+    @Override
+    public void enrichAutoClosingWorkItemAuditRecord(AuditEventRecord auditEventRecord, CaseEngineOperation operation) {
         addDeltaIfNeeded(auditEventRecord, true, operation.getCurrentCase());
     }
 

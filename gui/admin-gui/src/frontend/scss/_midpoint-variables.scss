@@ -12,6 +12,9 @@ $container-max-widths: map-merge($container-max-widths, (
         '3xl': 1600px
 ));
 
+$blue: $blue;
+$ai: $indigo;
+
 // $theme-colors: map-merge(
 //                 (
 //                         "lightblue": $lightblue,
@@ -20,10 +23,99 @@ $container-max-widths: map-merge($container-max-widths, (
 //                         "lime": $lime,
 //                         "fuchsia": $fuchsia,
 //                         "maroon": $maroon,
+//                         "purple": $purple,
+//                         "blue": $blue,
+//                         "ai": $ai,
 //                 ),
 //                 $theme-colors
 // );
 
+//Bootstrap extension
+// scss-docs-start theme-text-variables
+$primary-text-emphasis:   mix(black, $primary, 60%) !default;
+$secondary-text-emphasis: mix(black, $secondary, 60%) !default;
+$success-text-emphasis:   mix(black, $success, 60%) !default;
+$info-text-emphasis:      mix(black, $info, 60%) !default;
+$warning-text-emphasis:   mix(black, $warning, 60%) !default;
+$danger-text-emphasis:    mix(black, $danger, 60%) !default;
+$light-text-emphasis:     $gray-700 !default;
+$dark-text-emphasis:      $gray-700 !default;
+$blue-text-emphasis:      mix(black, $blue, 60%) !default;
+$ai-text-emphasis:        mix(black, $ai, 60%) !default;
+$purple-text-emphasis:    mix(black, $purple, 60%) !default;
+
+$theme-text-emphasis: (
+  "primary":   $primary-text-emphasis,
+  "secondary": $secondary-text-emphasis,
+  "success":   $success-text-emphasis,
+  "info":      $info-text-emphasis,
+  "warning":   $warning-text-emphasis,
+  "danger":    $danger-text-emphasis,
+  "light":     $light-text-emphasis,
+  "dark":      $dark-text-emphasis,
+  "blue":      $blue-text-emphasis,
+  "ai":        $ai-text-emphasis,
+  "purple":    $purple-text-emphasis,
+);
+// scss-docs-end theme-text-variables
+
+// scss-docs-start theme-bg-subtle-variables
+$primary-bg-subtle:     mix(white, $primary, 80%) !default;
+$secondary-bg-subtle:   mix(white, $secondary, 80%) !default;
+$success-bg-subtle:     mix(white, $success, 80%) !default;
+$info-bg-subtle:        mix(white, $info, 80%) !default;
+$warning-bg-subtle:     mix(white, $warning, 80%) !default;
+$danger-bg-subtle:      mix(white, $danger, 80%) !default;
+$light-bg-subtle:       mix($gray-100, $white) !default;
+$dark-bg-subtle:        $gray-400 !default;
+$blue-bg-subtle:        mix(white, $blue, 80%) !default;
+$ai-bg-subtle:          mix(white, $ai, 80%) !default;
+$purple-bg-subtle:      mix(white, $purple, 80%) !default;
+
+$theme-bg-subtle: (
+  "primary":   $primary-bg-subtle,
+  "secondary": $secondary-bg-subtle,
+  "success":   $success-bg-subtle,
+  "info":      $info-bg-subtle,
+  "warning":   $warning-bg-subtle,
+  "danger":    $danger-bg-subtle,
+  "light":     $light-bg-subtle,
+  "dark":      $dark-bg-subtle,
+  "blue":      $blue-bg-subtle,
+  "ai":        $ai-bg-subtle,
+  "purple":    $purple-bg-subtle,
+);
+// scss-docs-end theme-bg-subtle-variables
+
+// scss-docs-start theme-border-subtle-variables
+$primary-border-subtle:   mix(white, $primary, 60%) !default;
+$secondary-border-subtle: mix(white, $secondary, 60%) !default;
+$success-border-subtle:   mix(white, $success, 60%) !default;
+$info-border-subtle:      mix(white, $info, 60%) !default;
+$warning-border-subtle:   mix(white, $warning, 60%) !default;
+$danger-border-subtle:    mix(white, $danger, 60%) !default;
+$light-border-subtle:     $gray-200 !default;
+$dark-border-subtle:      $gray-500 !default;
+$blue-border-subtle:      mix(white, $blue, 60%) !default;
+$ai-border-subtle:        mix(white, $ai, 60%) !default;
+$purple-border-subtle:    mix(white, $purple, 60%) !default;
+
+$theme-border-subtle: (
+  "primary":   $primary-border-subtle,
+  "secondary": $secondary-border-subtle,
+  "success":   $success-border-subtle,
+  "info":      $info-border-subtle,
+  "warning":   $warning-border-subtle,
+  "danger":    $danger-border-subtle,
+  "light":     $light-border-subtle,
+  "dark":      $dark-border-subtle,
+  "blue":      $blue-border-subtle,
+  "ai":        $ai-border-subtle,
+  "purple":    $purple-border-subtle,
+);
+// scss-docs-end theme-border-subtle-variables
+
+//Custom variables
 $text-label-color: #357DA7; //#3c8dbc
 $text-dimmed-color: #757575; //#808080
 $text-dark-dimmed-color: #595959;

@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="e3012142-124e-11f1-9d99-13cccb5edbb9">
+    <name>safe-auto-bad-mel</name>
+    <documentation>
+        Auto-assigned role that contains MEL script, which is trying to access restricted midpoint.* functions.
+    </documentation>
+    <assignment>
+        <targetRef oid="2a68ff58-b009-11f0-9b5e-236da66bcdb4" type="ArchetypeType"/>
+    </assignment>
+    <autoassign>
+        <enabled>true</enabled>
+        <focus>
+            <mapping id="333">
+                <condition>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>
+                            midpoint.hello('world') == 'Hello world'
+                        </code>
+                    </script>
+                </condition>
+            </mapping>
+            <selector>
+                <type>UserType</type>
+            </selector>
+        </focus>
+    </autoassign>
+</role>

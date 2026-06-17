@@ -1250,7 +1250,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         VirtualContainersSpecificationType vcs =
                 c.beginContainer()
                         .beginDisplay()
-                        .label("RoleCatalogPanel.details")
+                        .label(GuiDisplayTypeUtil.createPolyStringType("RoleCatalogPanel.details"))
                         .end();
         vcs.identifier("sample-container");
         vcs.beginItem().path(new ItemPathType(ItemPath.create(ObjectType.F_DESCRIPTION))).end();

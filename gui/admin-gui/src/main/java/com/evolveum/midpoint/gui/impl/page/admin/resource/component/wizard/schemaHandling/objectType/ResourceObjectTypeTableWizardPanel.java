@@ -6,28 +6,24 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectTypesPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.SchemaHandlingTypesTableWizardPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectTypesPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author lskublik
@@ -65,7 +61,13 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
                     AjaxRequestTarget target,
                     boolean isDuplicate,
                     @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
-                ResourceObjectTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
+                ResourceObjectTypeTableWizardPanel.this.onNewValue(value, containerModel,
+                        getObjectDetailsModels().createWrapperContext(), target, isDuplicate, postSaveHandler);
+            }
+
+            @Override
+            protected void onSuggestValue(IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+                ResourceObjectTypeTableWizardPanel.this.onSuggestValue(newWrapperModel, target);
             }
         };
         panel.setOutputMarkupId(true);
@@ -74,7 +76,9 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
 
-    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target, boolean isDuplicate);
+    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target, boolean isDuplicate, @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler);
+
+    protected abstract void onSuggestValue(IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target);
 
     @Override
     protected IModel<String> getSubTextModel() {
@@ -89,5 +93,15 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
     @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.text");
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-12 col-sm-10";
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
     }
 }

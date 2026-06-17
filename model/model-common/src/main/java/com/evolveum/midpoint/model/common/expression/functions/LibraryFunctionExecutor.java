@@ -62,7 +62,7 @@ public class LibraryFunctionExecutor {
      */
     public <V extends PrismValue, D extends ItemDefinition<?>> Object execute(
             @NotNull String functionName, @Nullable Map<String, Object> rawParams)
-            throws ExpressionEvaluationException {
+            throws ExpressionEvaluationException, SecurityViolationException {
 
         Validate.notNull(functionName, "Function name must be specified");
 
@@ -102,7 +102,7 @@ public class LibraryFunctionExecutor {
                     outputTriple, outputDefinition, functionEvaluationContext.getContextDescription());
 
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+                ConfigurationException e) {
             throw new ExpressionEvaluationException(e.getMessage(), e);
         }
     }

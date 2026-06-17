@@ -7,14 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedInfoPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
@@ -23,9 +17,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
-
-import com.evolveum.midpoint.gui.api.component.wizard.*;
-
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -35,8 +26,17 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardListener;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedInfoPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM extends AssignmentHolderDetailsModel<AH>> extends BasePanel implements WizardListener {
 
@@ -230,12 +230,12 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         }
 
         if (setSelectedItem && listItem.getIndex() == activeIndex) {
-            listItem.add(AttributeAppender.append("class", "border border-info"));
+            listItem.add(AttributeAppender.append("class", "border border-primary text-primary"));
         }
 
         Label badge = new Label(ID_STEP_BADGE, createStringResource("WizardWithNavigationPanel.navigation.step.status." + keySuffix));
         badge.setOutputMarkupId(true);
-        badge.add(AttributeAppender.append("class", "badge " + badgeClass));
+        badge.add(AttributeAppender.append("class", "badge " + badgeClass + " badge-opaque"));
         listItem.add(badge);
     }
 

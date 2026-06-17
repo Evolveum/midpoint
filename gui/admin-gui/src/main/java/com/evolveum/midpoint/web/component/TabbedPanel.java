@@ -162,6 +162,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
         titleLink.add(newIcon(ID_ICON, iconCssClass));
         titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
 
+        customizePopulatedLoopItem(item, index, tab, titleLink);
+
         final IModel<String> count;
         final IModel<String> countCssClass;
         if (tab instanceof CountModelProvider) {
@@ -181,6 +183,9 @@ public class TabbedPanel<T extends ITab> extends Panel {
         titleLink.add(countLabel);
     }
 
+    protected void customizePopulatedLoopItem(LoopItem item, int index, T tab, WebMarkupContainer titleLink) {
+        // nothing by default
+    }
     /**
      * Override of the default initModel behaviour. This component <strong>will not</strong> use any
      * compound model of a parent.

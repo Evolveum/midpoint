@@ -52,7 +52,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element minOccurs="0" name="description" type="t:PolyStringType">
+            <xsd:element minOccurs="0" name="description" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Description of application
@@ -94,6 +94,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element minOccurs="0" name="apiVersion" type="xsd:string"/>
             <xsd:element minOccurs="0" name="baseApiEndpoint" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -112,6 +113,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="suggestedEndpoint" type="c:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -142,7 +144,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element minOccurs="0" name="description" type="t:PolyStringType">
+            <xsd:element minOccurs="0" name="description" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                     </xsd:documentation>
@@ -227,6 +229,7 @@
             <xsd:element name="uuid" type="xsd:string"/>
             <xsd:element name="contentType" type="xsd:string"/>
             <xsd:element name="content" type="xsd:string"/>
+<!--            <xsd:element name="source" type="xsd:string" /> -->
         </xsd:sequence>
     </xsd:complexType>
 
@@ -254,6 +257,18 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="ConnDevRelevantDocumentationsType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="docId" type="xsd:string"/>
+            <xsd:element name="chunkId" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="ConnDevBasicObjectClassInfoType">
         <xsd:annotation>
             <xsd:appinfo>
@@ -264,10 +279,12 @@
             <xsd:extension base="tns:ConnDevNamedInfoType">
                 <xsd:sequence>
                     <xsd:element name="relevant" type="xsd:boolean"/>
+                    <xsd:element name="relevancy" type="tns:ConnDevRelevancyLevelType" />
                     <xsd:element name="superclass" type="xsd:string"/>
                     <xsd:element name="abstract" type="xsd:boolean"/>
                     <xsd:element name="embedded" type="xsd:boolean"/>
                     <xsd:element name="description" type="xsd:string"/>
+                    <xsd:element name="relevantDocumentations" type="tns:ConnDevRelevantDocumentationsType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -279,7 +296,7 @@
                 <xsd:sequence>
                     <xsd:element maxOccurs="unbounded" name="endpoint" type="tns:ConnDevHttpEndpointType"/>
                     <xsd:element maxOccurs="unbounded" name="attribute" type="tns:ConnDevAttributeInfoType"/>
-                    <xsd:element name="getOperation" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="searchIdOperation" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="searchAllOperation" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="searchFilterOperation" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="nativeSchemaScript" type="tns:ConnDevArtifactType"/>
@@ -301,6 +318,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevNamedInfoType">
                 <xsd:sequence>
+                    <xsd:element name="displayName" type="xsd:string"/>
                     <xsd:element name="shortDescription" type="xsd:string"/>
                     <xsd:element name="subject" type="xsd:string"/>
                     <xsd:element name="subjectAttribute" type="xsd:string"/>
@@ -332,6 +350,8 @@
             <xsd:element name="multivalue" type="xsd:boolean"/>
             <xsd:element name="returnedByDefault" type="xsd:boolean"/>
             <xsd:element name="connIdAttribute" type="xsd:string"/>
+            <xsd:element name="scimAttribute" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="relevantDocumentations" type="tns:ConnDevRelevantDocumentationsType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -346,6 +366,7 @@
             <xsd:element name="type" type="tns:ConnDevHttpAuthTypeType"/>
             <xsd:element name="description" type="xsd:string"/>
             <xsd:element name="quirks" type="xsd:string"/>
+            <xsd:element name="recommended" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="connDevAuthInfo" type="tns:ConnDevAuthInfoType"/>
@@ -363,6 +384,7 @@
             <xsd:element name="requestContentType" type="xsd:string"/>
             <xsd:element name="responseContentType" type="xsd:string"/>
             <xsd:element maxOccurs="unbounded" name="suggestedUse" type="tns:ConnDevHttpEndpointIntentType"/>
+            <xsd:element name="relevantDocumentations" type="tns:ConnDevRelevantDocumentationsType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -497,6 +519,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="id">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation returns a single instance of specified object class identified by ID.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ID"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="filter">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -574,6 +606,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <!-- Dummy integration is hidden, will be replaced by multitable
             <xsd:enumeration value="dummy">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -584,6 +617,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            -->
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -645,6 +679,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="jwtBearer">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        JWT Bearer Token Authorization
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JWT_BEARER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="apiKey">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -652,6 +696,75 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="API_KEY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oauth2ClientCredentials">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        OAuth2 Client Credentials Authorization
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OAUTH2_CLIENT_CREDENTIALS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="digest">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DIGEST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oauth2Password">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OAUTH2_PASSWORD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oauth2Jwt">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OAUTH2_JWT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oauth2Saml">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OAUTH2_SAML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="hawk">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HAWK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="awsSignature">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AWS_SIGNATURE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ntlm">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NTLM"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="other">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Other / unknown authorization type
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OTHER"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -686,10 +799,55 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="patch">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PATCH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="head">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HEAD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="delete">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DELETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ConnDevRelevancyLevelType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Relevancy / Confidendce Levels
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="low">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="medium">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MEDIUM"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="high">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HIGH"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -707,6 +865,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="GET_BY_ID"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="list">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LIST"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

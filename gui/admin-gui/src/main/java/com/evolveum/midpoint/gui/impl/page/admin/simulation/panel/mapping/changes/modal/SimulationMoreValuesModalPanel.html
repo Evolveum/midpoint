@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <wicket:extend>
+
+        <div class="container-fluid" style="max-height:150px; overflow-y: scroll;">
+            <div wicket:id="values">
+                <div wicket:id="value" class="mb-2 simulation-value-pill"></div>
+            </div>
+        </div>
+
+        <wicket:fragment wicket:id="countFragment">
+            <div class="text-center text-muted m-0 mx-auto" wicket:id="count"></div>
+        </wicket:fragment>
+
+    </wicket:extend>
+</wicket:panel>
+</body>
+</html>

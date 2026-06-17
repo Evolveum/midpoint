@@ -62,7 +62,10 @@ public abstract class AbstractWizardChoicePanelWithSeparatedCreatePanel<C extend
     protected abstract AbstractWizardPanel<C, ResourceDetailsModel> createNewTypeWizard(
             String id, WizardPanelHelper<C, ResourceDetailsModel> helper);
 
-    protected void showTypePreviewFragment(AjaxRequestTarget target) {
+    public void showTypePreviewFragment(AjaxRequestTarget target) {
+        if(isFromTypePreview){
+            createTypePreview();
+        }
         showChoiceFragment(target, createTypePreview());
     }
 }

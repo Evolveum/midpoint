@@ -22,14 +22,18 @@ import java.net.URL;
 import java.security.Key;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition.PrismPropertyDefinitionMutator;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+
+import com.evolveum.midpoint.task.api.Tracer;
 
 import jakarta.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
@@ -39,6 +43,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.apache.commons.configuration2.Configuration;
 import org.identityconnectors.common.Version;
+import org.identityconnectors.framework.common.objects.SuggestedValues;
+import org.identityconnectors.framework.common.objects.ValueListOpenness;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
 import org.identityconnectors.common.security.GuardedString;
@@ -158,6 +164,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     @Autowired private PrismContext prismContext;
     @Autowired private LocalizationService localizationService;
     private CopyOnWriteArrayList<ConnectorDiscoveryListener> listeners = new CopyOnWriteArrayList<>();
+    @Autowired private Optional<Tracer> tracer;
 
     public ConnectorFactoryConnIdImpl() {
     }
@@ -242,7 +249,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
 
         return new ConnectorInstanceConnIdImpl(
-                cinfo, connectorBean, connectorSchema, instanceName, instanceDescription);
+                cinfo, connectorBean, connectorSchema, instanceName, instanceDescription, tracer.orElse(null));
     }
 
     /**
@@ -447,6 +454,21 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             }
             propertyDefinition.setDisplayOrder(displayOrder);
             displayOrder++;
+
+            SuggestedValues allowedValues = icfProperty.getAllowedValues();
+            if (allowedValues != null && !allowedValues.getValues().isEmpty()) {
+                @SuppressWarnings("rawtypes")
+                Collection displayableValues = allowedValues.getValues().stream()
+                        .map(v -> new DisplayableValueImpl<>(v, v != null ? v.toString() : null, null))
+                        .collect(Collectors.toList());
+                if (ValueListOpenness.OPEN.equals(allowedValues.getOpenness())) {
+                    //noinspection unchecked
+                    propertyDefinition.setSuggestedValues(displayableValues);
+                } else {
+                    //noinspection unchecked
+                    propertyDefinition.setAllowedValues(displayableValues);
+                }
+            }
         }
 
         // Create common ICF configuration property containers as a references to a static schema
@@ -718,9 +740,17 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             return false;
         }
 
-        if (skipTmp && file.getName().endsWith(".tmp")) {
-            LOGGER.debug("This {} is a temporary file", file.getAbsolutePath());
-            return false;
+        if (skipTmp) {
+            // We check the whole path for entries ending with ".tmp", because the scanner iterates over subdirectories as well.
+            // FIXME but we must stop crawling upwards at midPoint home level, because what if it's e.g. in /var/opt.tmp/midpoint?
+            var current = file;
+            do {
+                if (current.getName().endsWith(".tmp")) {
+                    LOGGER.debug("{} is a temporary file", current.getAbsolutePath());
+                    return false;
+                }
+                current = current.getParentFile();
+            } while (current != null);
         }
 
         Properties prop = new Properties();

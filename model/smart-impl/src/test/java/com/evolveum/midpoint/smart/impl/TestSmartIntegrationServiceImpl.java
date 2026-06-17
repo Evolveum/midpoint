@@ -10,11 +10,14 @@ package com.evolveum.midpoint.smart.impl;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,18 +32,22 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
@@ -66,14 +73,16 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     private static final File TEST_100_STATISTICS = new File(TEST_DIR, "test-100-statistics.xml");
     private static final File TEST_1XX_STATISTICS = new File(TEST_DIR, "test-1xx-statistics.xml");
-    private static final File TEST_110_EXPECTED_OBJECT_TYPES = new File(TEST_DIR, "test-110-expected-object-types.xml");
-    private static final File TEST_140_EXPECTED_OBJECT_TYPES = new File(TEST_DIR, "test-140-expected-object-types.xml");
     private static final File TEST_110_EXPECTED_REQUEST = new File(TEST_DIR, "test-110-expected-request.json");
 
-    private static final TestObject<?> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
-    private static final TestObject<?> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
-    private static final TestObject<?> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
-    private static final TestObject<?> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "30cef119-71b6-42b3-9762-5c649b2a2b6a");
+    private static final TestObject<UserType> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
+    private static final TestObject<UserType> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
+    private static final TestObject<UserType> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
+    private static final TestObject<UserType> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "30cef119-71b6-42b3-9762-5c649b2a2b6a");
+
+    private static final TestObject<UserType> USER1 = TestObject.file(TEST_DIR, "user1.xml", "00000000-0000-0000-0000-999000001001");
+    private static final TestObject<UserType> USER2 = TestObject.file(TEST_DIR, "user2.xml", "00000000-0000-0000-0000-999000001002");
+    private static final TestObject<UserType> USER3 = TestObject.file(TEST_DIR, "user3.xml", "00000000-0000-0000-0000-999000001003");
 
     private static final ResourceObjectTypeIdentification GENERIC_ORGANIZATIONAL_UNIT =
             ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, "organizationalUnit");
@@ -97,6 +106,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             TEST_DIR, "resource-dummy-for-suggest-mappings-and-correlation.xml", "a51dac70-6fbb-4c9a-9827-465c844afdc6",
             "for-suggest-mappings-and-correlation",
             c -> dummyForMappingsAndCorrelation = DummyScenario.on(c).initialize());
+    private static final DummyTestResource RESOURCE_DUMMY_FOR_STATS_CALCULATION = new DummyTestResource(
+            TEST_DIR, "resource-dummy-for-stats-calculation.xml", "c54f62c3-689b-4e99-9bde-4165559ed546",
+            "for-stats",
+            c -> DummyScenario.on(c).initialize());
+
+    @Autowired
+    private StatisticsService statisticsService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -108,11 +124,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_COUNTING_WITH_PAGING, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_DUMMY_FOR_STATS_CALCULATION, initTask, initResult);
 
         createDummyAccounts();
 
-        initTestObjects(initTask, initResult,
-                USER_JACK, USER_JIM, USER_ALICE, USER_BOB);
+        initTestObjects(initTask, initResult, USER_JACK, USER_JIM, USER_ALICE, USER_BOB, USER1, USER2, USER3);
         createAndLinkAccounts(initTask, initResult);
     }
 
@@ -579,7 +595,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, null, null, task, result);
 
         then("there is at least one suggested object type");
         assertSuccess(result);
@@ -600,7 +616,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** All features: both filters and base context, plus multiple object types. */
-    @Test(enabled = false) // MID-10872
+    @Test
     public void test110SuggestObjectTypesWithFiltersAndBaseContext() throws CommonException, IOException {
         skipIfRealService();
 
@@ -625,13 +641,37 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, null, null, task, result);
 
         then("there is at least one suggested object type");
         assertSuccess(result);
-        assertThat(objectTypes)
-                .as("suggested object types")
-                .isEqualTo(parseObjectTypesSuggestion(TEST_110_EXPECTED_OBJECT_TYPES));
+        assertThat(objectTypes).isNotNull();
+        assertThat(objectTypes.getObjectType()).as("suggested object types").hasSize(2);
+
+        var employeeType = objectTypes.getObjectType().get(0);
+        assertThat(employeeType.getKind()).isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(employeeType.getIntent()).isEqualTo("employee");
+        var employeeDelineation = employeeType.getDelineation();
+        assertThat(employeeDelineation).isNotNull();
+        assertThat(employeeDelineation.getObjectClass()).isEqualTo(new QName(NS_RI, "account"));
+        assertThat(employeeDelineation.getFilter()).hasSize(1);
+        assertThat(employeeDelineation.getFilter().get(0).getText()).isEqualTo("attributes/type = 'employee'");
+        assertThat(employeeDelineation.getBaseContext()).isNotNull();
+        assertThat(employeeDelineation.getBaseContext().getObjectClass())
+                .isEqualTo(new QName(NS_RI, "organizationalUnit"));
+        assertThat(employeeDelineation.getBaseContext().getFilter()).isNotNull();
+        assertThat(employeeDelineation.getBaseContext().getFilter().getText())
+                .isEqualTo("attributes/cn = 'evolveum'");
+
+        var otherType = objectTypes.getObjectType().get(1);
+        assertThat(otherType.getKind()).isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(otherType.getIntent()).isEqualTo("other");
+        var otherDelineation = otherType.getDelineation();
+        assertThat(otherDelineation).isNotNull();
+        assertThat(otherDelineation.getObjectClass()).isEqualTo(new QName(NS_RI, "account"));
+        assertThat(otherDelineation.getFilter()).hasSize(1);
+        assertThat(otherDelineation.getFilter().get(0).getText()).isEqualTo("attributes/type != 'employee'");
+        assertThat(otherDelineation.getBaseContext()).isNull();
 
         var realRequest = normalizeSiSuggestObjectTypesRequest(mockClient.getLastRequest());
         var expectedRequest = normalizeSiSuggestObjectTypesRequest(
@@ -696,7 +736,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types with invalid filter");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, new ShadowObjectClassStatisticsType(), task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, new ShadowObjectClassStatisticsType(), null, null, task, result);
 
         then("there is at least one suggestion with non-empty filter");
         assertSuccess(result);
@@ -743,7 +783,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
                 RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME,
-                new ShadowObjectClassStatisticsType(), task, result);
+                new ShadowObjectClassStatisticsType(), null, null, task, result);
 
         then("validation error is handled and partial result is returned");
         assertSuccess(result);
@@ -756,7 +796,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** All features: both filters and base context, plus multiple object types. */
-    @Test(enabled = false) // MID-10872
+    @Test
     public void test140ConflictingObjectTypes() throws CommonException, IOException {
         skipIfRealService();
 
@@ -787,15 +827,27 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, null, null, task, result);
 
         then("suggested types are correct");
         assertSuccess(result);
         displayValueAsXml("suggested object types", objectTypes);
-        assertThat(objectTypes.getObjectType())
-                .as("suggested object types")
-                .containsExactlyInAnyOrderElementsOf(
-                        parseObjectTypesSuggestion(TEST_140_EXPECTED_OBJECT_TYPES).getObjectType());
+        assertThat(objectTypes.getObjectType()).as("suggested object types").hasSize(1);
+
+        var employeeType = objectTypes.getObjectType().get(0);
+        assertThat(employeeType.getKind()).isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(employeeType.getIntent()).isEqualTo("employee");
+        var delineation = employeeType.getDelineation();
+        assertThat(delineation).isNotNull();
+        assertThat(delineation.getObjectClass()).isEqualTo(new QName(NS_RI, "account"));
+        assertThat(delineation.getFilter()).hasSize(1);
+        assertThat(delineation.getFilter().get(0).getText()).isEqualTo("attributes/type = 'employee1'");
+        assertThat(delineation.getBaseContext()).isNotNull();
+        assertThat(delineation.getBaseContext().getObjectClass())
+                .isEqualTo(new QName(NS_RI, "organizationalUnit"));
+        assertThat(delineation.getBaseContext().getFilter()).isNotNull();
+        assertThat(delineation.getBaseContext().getFilter().getText())
+                .isEqualTo("attributes/cn = 'evolveum'");
     }
 
     /** Tests the accounts statistics computer. */
@@ -815,51 +867,28 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         Set<String> attributeNames = statistics.getAttribute().stream()
                 .map(attr -> attr.getRef().toString())
                 .collect(Collectors.toSet());
+        // All defined attributes are included, even those with no values
         assertThat(attributeNames).contains(
                 s(ICFS_NAME),
                 s(ICFS_UID),
-                s(Account.AttributeNames.LAST_LOGIN.q()),
+                s(Account.AttributeNames.PERSONAL_NUMBER.q()),
+                s(Account.AttributeNames.TYPE.q()),
+                s(Account.AttributeNames.STATUS.q()),
+                s(Account.AttributeNames.FULLNAME.q()),
+                s(Account.AttributeNames.EMAIL.q()),
                 s(Account.AttributeNames.PHONE.q()),
                 s(Account.AttributeNames.CREATED.q()),
-                s(Account.AttributeNames.DESCRIPTION.q()),
-                s(Account.AttributeNames.PERSONAL_NUMBER.q()),
-                s(Account.AttributeNames.FULLNAME.q()),
-                s(Account.AttributeNames.DEPARTMENT.q()),
-                s(Account.AttributeNames.TYPE.q()),
-                s(Account.AttributeNames.EMAIL.q()),
-                s(Account.AttributeNames.STATUS.q())
+                s(Account.AttributeNames.DEPARTMENT.q())
         );
-
-        for (QName attributeName : List.of(Account.AttributeNames.LAST_LOGIN.q(), Account.AttributeNames.DESCRIPTION.q())) {
-            var emptyAttribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(s(attributeName)))
-                    .findFirst().orElseThrow();
-            assertThat(emptyAttribute.getMissingValueCount()).isEqualTo(5);
-            assertThat(emptyAttribute.getUniqueValueCount()).isEqualTo(0);
-            assertThat(emptyAttribute.getValueCount()).isEmpty();
-        }
-
-        for (QName attributeName : List.of(ICFS_UID, ICFS_NAME, Account.AttributeNames.FULLNAME.q(), Account.AttributeNames.EMAIL.q())) {
-            var distinctAttribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(s(attributeName)))
-                    .findFirst().orElseThrow();
-            assertThat(distinctAttribute.getMissingValueCount()).isEqualTo(0);
-            assertThat(distinctAttribute.getUniqueValueCount()).isEqualTo(5);
-            assertThat(distinctAttribute.getValueCount()).isEmpty();
-        }
 
         var personalNumberAttribute = statistics.getAttribute().stream()
                 .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q())))
                 .findFirst().orElseThrow();
-
         assertThat(personalNumberAttribute.getMissingValueCount()).isEqualTo(0);
         assertThat(personalNumberAttribute.getUniqueValueCount()).isEqualTo(1);
         assertThat(personalNumberAttribute.getValueCount().size()).isEqualTo(1);
 
         testStatusAttributeStatistics();
-        testDepartmentAttributeStatistics();
-        testPhoneAttributeStatistics();
-        testCreatedAttributeStatistics();
         testTypeAttributeStatistics();
     }
 
@@ -888,54 +917,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         assertThat(valueCounts).containsEntry("active", 2);
         assertThat(valueCounts).containsEntry("inactive", 3);
-    }
-
-    /** Tests department attribute statistics. */
-    private void testDepartmentAttributeStatistics() throws CommonException {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        var departmentAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.DEPARTMENT.q())))
-                .findFirst().orElseThrow();
-
-        assertThat(departmentAttribute.getMissingValueCount()).isEqualTo(3);
-        assertThat(departmentAttribute.getUniqueValueCount()).isEqualTo(2);
-        assertThat(departmentAttribute.getValueCount()).isEmpty();
-    }
-
-    /** Tests phone attribute statistics. */
-    private void testPhoneAttributeStatistics() throws CommonException {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        var phoneAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.PHONE.q())))
-                .findFirst().orElseThrow();
-
-        assertThat(phoneAttribute.getMissingValueCount()).isEqualTo(2);
-        assertThat(phoneAttribute.getUniqueValueCount()).isEqualTo(3);
-        assertThat(phoneAttribute.getValueCount()).isEmpty();
-    }
-
-    /** Tests created attribute statistics. */
-    private void testCreatedAttributeStatistics() throws CommonException {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        var createdAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.CREATED.q())))
-                .findFirst().orElseThrow();
-
-        assertThat(createdAttribute.getMissingValueCount()).isEqualTo(4);
-        assertThat(createdAttribute.getUniqueValueCount()).isEqualTo(1);
-        assertThat(createdAttribute.getValueCount()).isEmpty();
     }
 
     /** Tests type attribute statistics. */
@@ -970,75 +951,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         return true;
     }
 
-    /** Tests the accounts statistics computer after adding more accounts, exceeding percentage limit for some attributes. */
     @Test
-    public void test210ComputeAccountStatisticsExceedingTopNLimit() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        when("additional accounts are created, exceeding the percentage limit for unique attribute values");
-        addDummyAccountsExceedingLimit();
-
-        when("computing statistics for accounts");
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        then("the statistics are OK, value stats for particular attributes are eliminated");
-        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
-        assertThat(statistics).isNotNull();
-        assertThat(statistics.getAttribute()).isNotEmpty();
-        assertThat(statistics.getSize()).isEqualTo(105);
-        for (var attribute : statistics.getAttribute()) {
-            if (attribute.getMissingValueCount() < 105) {
-                assertThat(attribute.getUniqueValueCount()).isGreaterThan(0);
-            }
-            assertThat(attribute.getValueCount().size()).isLessThanOrEqualTo(30);
-            if (!attribute.getValueCount().isEmpty()) {
-                assertThat(isSortedDesc(attribute.getValueCount(), ShadowAttributeValueCountType::getCount)).isTrue();
-            }
-        }
-        for (QName attributeName : List.of(ICFS_NAME, ICFS_UID)) {
-            var attribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(s(attributeName)))
-                    .findFirst().orElseThrow();
-            assertThat(attribute.getUniqueValueCount()).isEqualTo(105);
-            assertThat(attribute.getValueCount()).isEmpty();
-        }
-    }
-
-    @Test
-    public void test220ComputeValueCountPairStatistics() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        when("additional accounts are created, exceeding the percentage limit for unique attribute values");
-        addDummyAccountsExceedingLimit();
-
-        when("computing statistics for accounts");
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        then("the statistics are OK, value stats for particular attributes are eliminated");
-        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
-        assertThat(statistics).isNotNull();
-        assertThat(statistics.getAttribute()).isNotEmpty();
-
-        Set<QName> attributes = statistics.getAttributeTuple().stream()
-                .flatMap(attrTuple -> attrTuple.getRef().stream())
-                .map(t -> t.getItemPath().rest().asSingleNameOrFail())
-                .collect(Collectors.toSet());
-        Set<QName> fields = Set.of(Account.AttributeNames.CREATED.q(), Account.AttributeNames.TYPE.q(), Account.AttributeNames.STATUS.q());
-        assertThat(attributes).containsExactlyInAnyOrderElementsOf(fields);
-
-        for (ShadowAttributeTupleStatisticsType tuple : statistics.getAttributeTuple()) {
-            assertThat(tuple.getTupleCount()).isNotEmpty();
-            for (ShadowAttributeTupleCountType tupleCount : tuple.getTupleCount()) {
-                assertThat(tupleCount.getValue()).isNotEmpty();
-                assertThat(tupleCount.getCount()).isGreaterThanOrEqualTo(1);
-            }
-        }
-    }
-
-    @Test
-    public void test230ComputeAffixesStatistics() throws Exception {
+    public void test220ComputeAffixesStatistics() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -1052,21 +966,22 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
         assertThat(statistics).isNotNull();
         assertThat(statistics.getAttribute()).isNotEmpty();
-        for (var attribute : statistics.getAttribute()) {
-            if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
-                assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(17);
-                for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
-                    assertThat(patternCount.getValue()).isNotEmpty();
-                    assertThat(patternCount.getType()).isNotNull();
-                    assertThat(patternCount.getCount()).isGreaterThanOrEqualTo(1);
-                }
-            }
+
+        // PersonalNumber should have patterns detected
+        var personalNumberAttr = statistics.getAttribute().stream()
+                .filter(attribute -> attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q())))
+                .findFirst().orElseThrow();
+        assertThat(personalNumberAttr.getValuePatternCount()).isNotEmpty();
+        assertThat(personalNumberAttr.getValuePatternCount().size()).isEqualTo(20);
+        for (ShadowAttributeValuePatternCountType patternCount : personalNumberAttr.getValuePatternCount()) {
+            assertThat(patternCount.getValue()).isNotEmpty();
+            assertThat(patternCount.getType()).isNotNull();
+            assertThat(patternCount.getCount()).isGreaterThanOrEqualTo(1);
         }
     }
 
     @Test
-    public void test240ComputeDNattributeStatistics() throws Exception {
+    public void test230ComputeDNattributeStatistics() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -1119,10 +1034,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         return parseFile(file, ShadowObjectClassStatisticsType.class);
     }
 
-    private static ObjectTypesSuggestionType parseObjectTypesSuggestion(File file) throws IOException, SchemaException {
-        return parseFile(file, ObjectTypesSuggestionType.class);
-    }
-
     private static <T> T parseFile(File file, Class<T> clazz) throws IOException, SchemaException {
         return PrismContext.get().parserFor(file).parseRealValue(clazz);
     }
@@ -1155,25 +1066,33 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test300SuggestMappings() throws CommonException, ActivityInterruptedException {
         skipIfRealService();
 
-        var mockClient = new MockServiceClientImpl(
-                new SiMatchSchemaResponseType()
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
-                                .midPointAttribute(asStringSimple(UserType.F_NAME)))
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.TYPE.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.PHONE.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
-                        // No mapping for status -> activation, as non-attribute mappings are not supported yet
-                // icfs:name -> name and ri:fullName -> fullName are as-is, LLM microservice should not be called
-                new RuntimeException("LLM went crazy here"),
-                new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")
-        );
+        var schemaMatchResponse = new SiMatchSchemaResponseType()
+                .attributeMatch(new SiAttributeMatchSuggestionType()
+                        .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                        .midPointAttribute(asStringSimple(UserType.F_NAME)))
+                .attributeMatch(new SiAttributeMatchSuggestionType()
+                        .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
+                        .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
+                .attributeMatch(new SiAttributeMatchSuggestionType()
+                        .applicationAttribute(asStringSimple(Account.AttributeNames.TYPE.path()))
+                        .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
+                .attributeMatch(new SiAttributeMatchSuggestionType()
+                        .applicationAttribute(asStringSimple(Account.AttributeNames.PHONE.path()))
+                        .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER)));
+
+        var mockClient = new MockServiceClientImpl(request -> {
+            if (request instanceof SiMatchSchemaRequestType) {
+                return schemaMatchResponse;
+            } else if (request instanceof SiSuggestMappingRequestType mappingRequest) {
+                String attrName = mappingRequest.getApplicationAttribute().getName();
+                if (attrName.contains("type")) {
+                    throw new RuntimeException("LLM went crazy here");
+                } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
+                    return new SiSuggestMappingResponseType().transformationScript("input.replace('-', '')");
+                }
+            }
+            return null;
+        });
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
@@ -1188,7 +1107,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var suggestedMappings = smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                match, true, true, null, null, task, result);
+                match, true, true, null, null, null, task, result);
 
         then("suggestion is correct");
         displayValueAsXml("suggested mappings", suggestedMappings);
@@ -1257,7 +1176,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 GENERIC_ORGANIZATIONAL_UNIT,
-                match, true, true, null, null, task, result);
+                match, true, true, null, null, null, task, result);
 
         then("the number of attributes in the request is appropriate");
         var request = (SiMatchSchemaRequestType) mockClient.getLastRequest();
@@ -1302,7 +1221,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var suggestedCorrelations = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                match, null, task, result);
+                match, null, null, task, result);
 
         then("suggestions are correct");
         displayValueAsXml("suggested correlations", suggestedCorrelations);
@@ -1346,6 +1265,65 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         and("response is marked as generated by AI");
         assertAiProvidedMarkPresentRequired(correlationItem1, CorrelationItemType.F_REF); // selected by AI
         //assertAiProvidedMarkPresentRequired(correlationItem2, CorrelationItemType.F_REF); // selected by AI
+    }
+
+    @Test
+    public void test500FocusObjectStatisticsWithLinkedAndCorrelatedShadows() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("Three accounts exists on the resource");
+        createDummyAccounts(RESOURCE_DUMMY_FOR_STATS_CALCULATION, 1, 3);
+        var shadow1 = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_FOR_STATS_CALCULATION.getObjectable())
+                .withNameValue("account-0001")
+                .build().findRequired(task, result);
+
+        and("One account is linked with a user");
+        executeChanges(
+                PrismContext.get().deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .add(shadow1.getRef())
+                        .asObjectDelta(USER1.oid),
+                null, task, result);
+
+        and("One account is only correlated with another user");
+        var shadow2 = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_FOR_STATS_CALCULATION.getObjectable())
+                .withDefaultAccountType()
+                .withNameValue("account-0002")
+                .build().findRequired(task, result);
+        executeChanges(
+                PrismContext.get().deltaFor(ShadowType.class)
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
+                        .add(USER2.ref())
+                        .asObjectDelta(shadow2.getOid()),
+                null, task, result);
+
+        when("The task for focus objects statistics calculation is triggered");
+        String taskOid = statisticsService.regenerateFocusObjectStatistics(
+                UserType.COMPLEX_TYPE,
+                RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
+                ShadowKindType.ACCOUNT,
+                "default",
+                task,
+                result);
+
+        waitForTaskFinish(taskOid);
+
+        then("The statistics calculation task should contain stats about two users");
+        GenericObjectType statsObject = statisticsService.getLatestFocusObjectStatistics(
+                UserType.COMPLEX_TYPE,
+                RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
+                ShadowKindType.ACCOUNT,
+                "default",
+                result);
+        assertNotNull("Statistics object should exist", statsObject);
+
+        ShadowObjectClassStatisticsType stats = FocusObjectStatisticsTypeUtil.getFocusObjectStatisticsRequired(
+                statsObject.asPrismObject());
+        assertNotNull("Statistics should not be null", stats);
+        assertEquals("Should have 2 processed user (linked and correlated)", 2, stats.getSize());
     }
 
     private void assertCorrAttrSuggestion(

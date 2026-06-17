@@ -1,0 +1,50 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+
+    <div wicket:id="info" class="alert info-light-alert d-flex align-items-center mb-3">
+        <i class="fa fa-info-circle mr-2"></i>
+        <span>
+            <wicket:message key="SimulationMappingHeaderPanel.normalMappingInfo"></wicket:message>
+        </span>
+    </div>
+
+    <div class="mb-3 d-flex flex-wrap align-items-center">
+
+        <span class="mr-2 text-muted">
+            <wicket:message key="SimulationMappingHeaderPanel.simulated.mapping"></wicket:message>
+        </span>
+
+        <span wicket:id="mappingName" class="font-weight-bold h5 mb-0 mr-3"></span>
+
+        <span class="simulation-value-pill mr-2 bg-white">
+            <span class="text-muted">
+                <wicket:message key="SimulationMappingHeaderPanel.source"></wicket:message>
+            </span>
+            <span class="text-muted" wicket:id="source"></span>
+        </span>
+
+        <i class="fa fa-arrow-right mx-1 text-muted"></i>
+
+        <span class="simulation-value-pill mr-3 bg-white">
+            <span class="text-muted">
+                <wicket:message key="SimulationMappingHeaderPanel.target"></wicket:message>
+            </span>
+            <span class="text-muted" wicket:id="target"></span>
+        </span>
+
+        <span class="text-muted mr-2">
+            <wicket:message key="SimulationMappingHeaderPanel.strength"></wicket:message>
+        </span>
+        <span wicket:id="strength" class="simulation-value-pill bg-light"></span>
+    </div>
+
+</wicket:panel>
+</body>
+</html>

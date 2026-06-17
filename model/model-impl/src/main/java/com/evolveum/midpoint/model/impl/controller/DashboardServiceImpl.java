@@ -23,7 +23,7 @@ import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
@@ -351,13 +351,15 @@ public class DashboardServiceImpl implements DashboardService {
 
             CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
                     collectionSpec, null, task, task.getResult());
-            CollectionStats collStats = modelInteractionService.determineCollectionStats(compiledCollection, task, result);
+
+            // For ShadowType collections, use repository-only counting. Provisioning-based counting returns UNKNOWN for dashboard widgets.
+            CollectionStats collStats = modelInteractionService.determineCollectionStats(adjustCollectionForShadowCounting(compiledCollection), task, result);
 
             Integer value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
             Integer domainValue = collStats.getDomainCount();
             IntegerStatType statType = generateIntegerStat(value, domainValue);
 
-            Collection<EvaluatedPolicyRule> evalPolicyRules = new ArrayList<>();
+            Collection<DirectlyEvaluatedClockworkPolicyRule> evalPolicyRules = new ArrayList<>();
             if (collectionSpec.getCollectionRef() != null
                     && QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionSpec.getCollectionRef().getType())) {
                 // [EP:APSO] DONE, collection is fetched from the repository
@@ -366,7 +368,7 @@ public class DashboardServiceImpl implements DashboardService {
                         valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());
             }
             Collection<String> policySituations = new ArrayList<>();
-            for (EvaluatedPolicyRule evalPolicyRule : evalPolicyRules) {
+            for (DirectlyEvaluatedClockworkPolicyRule evalPolicyRule : evalPolicyRules) {
                 if (!evalPolicyRule.getAllTriggers().isEmpty()) {
                     policySituations.add(evalPolicyRule.getPolicySituation());
                 }
@@ -377,6 +379,25 @@ public class DashboardServiceImpl implements DashboardService {
             LOGGER.error("CollectionRefSpecificationType is null in widget " + widget.getIdentifier());
         }
         return null;
+    }
+
+    private CompiledObjectCollectionView adjustCollectionForShadowCounting(CompiledObjectCollectionView compiledCollection) {
+        Class<?> targetClass = compiledCollection.getTargetClass();
+        if (targetClass == null || !ShadowType.class.isAssignableFrom(targetClass)) {
+            return compiledCollection;
+        }
+
+        CompiledObjectCollectionView adjustedCollection = compiledCollection.clone();
+        adjustedCollection.setOptions(withNoFetch(adjustedCollection.getOptions()));
+        adjustedCollection.setDomainOptions(withNoFetch(adjustedCollection.getDomainOptions()));
+        return adjustedCollection;
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> withNoFetch(
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        GetOperationOptionsBuilder builder = schemaService.getOperationOptionsBuilder().setFrom(options);
+        builder.root().noFetch();
+        return builder.build();
     }
 
     private static VariablesMap createVariables(PrismObject<? extends ObjectType> object,
@@ -390,7 +411,7 @@ public class DashboardServiceImpl implements DashboardService {
                 variablesMap.registerAlias(VAR_PROPORTIONAL, ExpressionConstants.VAR_INPUT);
             }
             if (policySituations != null) {
-                variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, EvaluatedPolicyRule.class);
+                variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, String.class);
             }
             variables.addVariableDefinitions(variablesMap);
         }

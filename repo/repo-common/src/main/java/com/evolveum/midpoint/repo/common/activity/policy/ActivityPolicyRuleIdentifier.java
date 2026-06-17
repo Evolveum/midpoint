@@ -6,13 +6,13 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import java.io.Serializable;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
-
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * Identifies a particular policy rule in the activity tree. The class was introduced to clearly distinguish rule IDs
@@ -23,15 +23,20 @@ import java.io.Serializable;
  */
 public record ActivityPolicyRuleIdentifier(
         @NotNull ActivityPath path,
-        long policyId) implements Serializable {
+        long policyId) implements Serializable, PolicyRuleIdentifier {
 
     public static @NotNull ActivityPolicyRuleIdentifier of(
-            @NotNull ActivityPolicyType policy, @NotNull ActivityPath path) {
+            @NotNull PolicyRuleType policy, @NotNull ActivityPath path) {
         return new ActivityPolicyRuleIdentifier(path, policy.getId());
     }
 
     @Override
     public String toString() {
+        return asString();
+    }
+
+    @Override
+    public @NotNull String asString() {
         return path + ":" + policyId;
     }
 }

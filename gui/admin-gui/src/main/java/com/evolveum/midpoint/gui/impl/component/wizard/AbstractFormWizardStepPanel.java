@@ -49,6 +49,7 @@ public abstract class AbstractFormWizardStepPanel<AHDM extends AssignmentHolderD
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(this::checkMandatory)
+                .panelConfiguration(getContainerConfiguration())
                 .build();
         VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override

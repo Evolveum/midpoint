@@ -33,7 +33,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
  * in one place.)
  */
 @Component
-public class ModelSecurityPolicyFinder {
+public class ModelSecurityPolicyFinder implements com.evolveum.midpoint.authentication.api.SecurityPolicyFinder {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelSecurityPolicyFinder.class);
 
@@ -49,13 +49,13 @@ public class ModelSecurityPolicyFinder {
      * The resulting security policy has all the (non-deprecated) properties set. If there is also referenced value policy,
      * it is will be stored as "object" in the value policy reference inside the returned security policy.
      */
+    @Override
     public <F extends FocusType> SecurityPolicyType locateSecurityPolicyForFocus(
             @Nullable PrismObject<F> focus,
             @Nullable PrismObject<SystemConfigurationType> systemConfiguration,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
+            throws SchemaException {
 
         var globalSecurityPolicy = securityPolicyFinder.locateGlobalSecurityPolicy(systemConfiguration, true, result);
         if (focus != null) {

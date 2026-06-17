@@ -595,6 +595,13 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     private class FullObjectItemMapping<IQ extends FlexibleRelationalPathBase<IR>, IR> {
 
+        /**
+         * Large object fetches can collect tens of thousands of owner OIDs for separately serialized
+         * child items. Executing a single {@code ownerOid in (...)} query can exceed database/JDBC
+         * parameter limits, so fetch the children in smaller batches.
+         */
+        private static final int FETCH_CHILDREN_OWNER_BATCH_SIZE = 50_000;
+
         protected final QSeparatelySerializedItem<IQ,IR> mapping;
         protected final boolean includedByDefault;
 
@@ -634,20 +641,24 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         public Multimap<UUID, Tuple> fetchChildren(Collection<UUID> oidList, JdbcSession jdbcSession, Set<UUID> toMigrate) throws SchemaException {
             Multimap<UUID, Tuple> ret = MultimapBuilder.hashKeys().arrayListValues().build();
 
-            var q = mapping.createAlias();
-            var query = jdbcSession.newQuery()
-                    .from(q)
-                    .select(mapping.fullObjectExpressions(q)) // no complications here, we load it whole
-                    .where(mapping.allOwnedBy(q, oidList))
-                    .orderBy(mapping.orderSpecifier(q));
-            for (var row : query.fetch()) {
-                // All assignments should have full object present / legacy assignments should be kept
-                var owner =  mapping.getOwner(row,q);
-                if (mapping.hasFullObject(row,q)) {
-                    ret.put(owner, row);
-                } else {
-                    // Indexed value did not contained full object, we should mark it for reindex
-                    toMigrate.add(owner);
+            List<UUID> ownerOids = (oidList instanceof List<UUID> list) ? list : new ArrayList<>(oidList);
+            for (List<UUID> batch : Lists.partition(ownerOids, FETCH_CHILDREN_OWNER_BATCH_SIZE)) {
+
+                var q = mapping.createAlias();
+                var query = jdbcSession.newQuery()
+                        .from(q)
+                        .select(mapping.fullObjectExpressions(q)) // no complications here, we load it whole
+                        .where(mapping.allOwnedBy(q, batch))
+                        .orderBy(mapping.orderSpecifier(q));
+                for (var row : query.fetch()) {
+                    // All assignments should have full object present / legacy assignments should be kept
+                    var owner = mapping.getOwner(row, q);
+                    if (mapping.hasFullObject(row, q)) {
+                        ret.put(owner, row);
+                    } else {
+                        // Indexed value did not contained full object, we should mark it for reindex
+                        toMigrate.add(owner);
+                    }
                 }
             }
             return ret;

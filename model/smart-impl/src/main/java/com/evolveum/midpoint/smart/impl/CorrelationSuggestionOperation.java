@@ -49,11 +49,16 @@ class CorrelationSuggestionOperation {
      * whether source attribute is unique or not
      *
      */
-    CorrelationSuggestionsType suggestCorrelation(OperationResult result, SchemaMatchResultType schemaMatch)
+    CorrelationSuggestionsType suggestCorrelation(
+            OperationResult result,
+            SchemaMatchResultType schemaMatch,
+            @Nullable List<ItemPath> targetPathsToIgnore)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var correlators = KnownCorrelator.getAllFor(ctx.getFocusTypeDefinition().getCompileTimeClass());
-        var suggestions = suggestCorrelationMappings(schemaMatch, correlators);
+        var existingCorrelationPaths = collectExistingCorrelationPaths();
+        var excludedPaths = mergeExcludedPaths(existingCorrelationPaths, targetPathsToIgnore);
+        var suggestions = suggestCorrelationMappings(schemaMatch, correlators, excludedPaths);
 
         var allScores = new CorrelatorEvaluator(ctx, suggestions)
                 .evaluateSuggestions(result);
@@ -110,9 +115,15 @@ class CorrelationSuggestionOperation {
     /** Returns suggestions for correlators - in the same order as the correlators are provided. */
     private List<CorrelatorSuggestion> suggestCorrelationMappings(
             SchemaMatchResultType schemaMatch,
-            List<? extends ItemPath> correlators) throws ConfigurationException {
+            List<? extends ItemPath> correlators,
+            List<ItemPath> existingCorrelationPaths) throws ConfigurationException {
         var response = new ArrayList<CorrelatorSuggestion>();
         for (ItemPath correlator : correlators) {
+            // Skip if this correlator path already has an existing correlation mapping
+            if (existingCorrelationPaths.stream().anyMatch(existing -> existing.equivalent(correlator))) {
+                continue;
+            }
+
             var existingInboundMapping = findExistingInboundMapping(correlator);
             if (existingInboundMapping != null) {
                 response.add(
@@ -128,10 +139,11 @@ class CorrelationSuggestionOperation {
                         var resourceAttrName = shadowItemPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
                         var inbound = new InboundMappingType()
                                 .name(shadowItemPath.lastName().getLocalPart()
-                                        + "-to-" + focusItemPath) //TODO TBD
+                                        + "-into-" + focusItemPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusItemPath.toBean()))
-                                .use(InboundMappingUseType.CORRELATION);
+                                .use(InboundMappingUseType.CORRELATION)
+                                .strength(MappingStrengthType.STRONG);
                         var attrDefBean = new ResourceAttributeDefinitionType()
                                 .ref(resourceAttrName.toBean())
                                 .inbound(inbound);
@@ -170,6 +182,44 @@ class CorrelationSuggestionOperation {
             }
         }
         return null;
+    }
+
+    /**
+     * Collects target paths of existing correlators configured in the correlation definition on the resource type.
+     */
+    private List<ItemPath> collectExistingCorrelationPaths() {
+        var existingPaths = new ArrayList<ItemPath>();
+        CorrelationDefinitionType correlationDef = ctx.typeDefinition.getCorrelationDefinitionBean();
+        if (correlationDef == null) {
+            return existingPaths;
+        }
+        CompositeCorrelatorType correlators = correlationDef.getCorrelators();
+        if (correlators == null) {
+            return existingPaths;
+        }
+        for (ItemsSubCorrelatorType itemsCorrelator : correlators.getItems()) {
+            if (itemsCorrelator.getItem().size() != 1) {
+                continue; // skip composite correlators (multiple items)
+            }
+            CorrelationItemType item = itemsCorrelator.getItem().get(0);
+            if (item.getRef() != null) {
+                existingPaths.add(item.getRef().getItemPath());
+            }
+        }
+        return existingPaths;
+    }
+
+    private List<ItemPath> mergeExcludedPaths(List<ItemPath> existingPaths, @Nullable List<ItemPath> pathsToIgnore) {
+        if (pathsToIgnore == null || pathsToIgnore.isEmpty()) {
+            return existingPaths;
+        }
+        var merged = new ArrayList<>(existingPaths);
+        for (ItemPath pathToIgnore : pathsToIgnore) {
+            if (merged.stream().noneMatch(existing -> existing.equivalent(pathToIgnore))) {
+                merged.add(pathToIgnore);
+            }
+        }
+        return merged;
     }
 
 }

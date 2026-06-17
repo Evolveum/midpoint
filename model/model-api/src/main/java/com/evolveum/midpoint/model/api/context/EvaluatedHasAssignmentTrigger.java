@@ -7,31 +7,31 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<HasAssignmentPolicyConstraintType> {
+public class EvaluatedHasAssignmentTrigger extends EvaluatedClockworkPolicyRuleTrigger<HasAssignmentPolicyConstraintType> {
 
     @NotNull private final Collection<PrismObject<?>> matchingTargets;
 
     public EvaluatedHasAssignmentTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull HasAssignmentPolicyConstraintType constraint,
+            @NotNull PolicyConstraintKind kind,
+            @NotNull HasAssignmentPolicyConstraintType constraint,
             @NotNull Collection<PrismObject<?>> matchingTargets,
-            LocalizableMessage message, LocalizableMessage shortMessage) {
+            LocalizableMessage message,
+            LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
         this.matchingTargets = matchingTargets;
     }
 
     @Override
-    public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedHasAssignmentTriggerType rv = new EvaluatedHasAssignmentTriggerType();
-        fillCommonContent(rv);
-        return rv;
+    public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerBean(@NotNull PolicyRuleExternalizationOptions options) {
+        return toEvaluatedPolicyRuleTriggerBean(options, EvaluatedHasAssignmentTriggerType::new);
     }
 
     @Override

@@ -342,6 +342,11 @@
             <artifactId>spring-aspects</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>dev.samstevens.totp</groupId>
+            <artifactId>totp</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

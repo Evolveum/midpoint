@@ -21,6 +21,7 @@
                 </source>
                 <expression>
                     <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                         <code>"My name is '$name'"</code>
                     </script>
                 </expression>

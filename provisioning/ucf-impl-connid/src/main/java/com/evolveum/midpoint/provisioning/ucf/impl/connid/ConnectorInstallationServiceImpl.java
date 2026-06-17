@@ -31,11 +31,14 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 @Component
 public class ConnectorInstallationServiceImpl implements ConnectorInstallationService {
 
     private static final String TMP_SUFFIX = ".tmp";
-
+    private static final String PREFERRED_DIRECTORY = "connid-connectors";
     //private final WebClient webClient;
 
     private static final Attributes.Name MANIFEST_CONNECTOR_CLASS = new Attributes.Name("ConnectorBundle-ConnectorClass");
@@ -56,10 +59,16 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
     public void init() {
         Configuration config = configuration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
         List<Object> dirs = config.getList("scanDirectory");
-        if (!dirs.isEmpty()) {
+
+        downloadDirectory = dirs.stream().filter( d -> d.toString().contains(PREFERRED_DIRECTORY))
+                .findFirst()
+                .map(Object::toString)
+                .map(File::new)
+                .orElse(null);
+
+        if (downloadDirectory == null && !dirs.isEmpty()) {
             downloadDirectory = new File(dirs.iterator().next().toString());
         }
-
     }
 
     @Override
@@ -140,7 +149,16 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
             if (connectorFile.getName().endsWith(TMP_SUFFIX)) {
                 var name = connectorFile.getName().substring(0, connectorFile.getName().length() - TMP_SUFFIX.length());
                 targetFile = new File(downloadDirectory, name);
-                connectorFile.renameTo(targetFile);
+                try {
+                    Files.move(
+                            connectorFile.toPath(),
+                            targetFile.toPath(),
+                            ATOMIC_MOVE,
+                            REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new SystemException(
+                            "Cannot move connector file to final location. From: " + connectorFile + " To: " + targetFile, e);
+                }
             }
             var connectors = factoryImpl.addLocalConnector(targetFile.toURI());
             return connectors.stream().map(ConnectorInstallationServiceImpl::toConnectorType).toList();
@@ -202,6 +220,7 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
                     }
                     zipEntry = zis.getNextEntry();
                 }
+                zis.close();
                 return new DownloadedDirectoryConnector(destDir);
             } catch (IOException e) {
                 throw new SystemException(e);
@@ -244,12 +263,12 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
                 var mainAttributes = manifest.getMainAttributes();
                 mainAttributes.put(MANIFEST_CONNECTOR_BUNDLE, bundleName);
                 mainAttributes.put(MANIFEST_CONNECTOR_VERSION, version);
-                manifest.write(new FileOutputStream(manifestFile));
-
+                try (var out = new FileOutputStream(manifestFile)) {
+                    manifest.write(out);
+                }
             } catch (IOException e) {
                 throw new SystemException(e);
             }
-
         }
 
         @Override
@@ -273,10 +292,12 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
         public void updateProperty(String filename, String key, String value) throws IOException {
             var file = newFile(connectorFile, filename);
             var props = new Properties();
-            props.load(new FileInputStream(file));
+            try (var inputStream = new FileInputStream(file)) {
+                props.load(inputStream);
+            }
             props.setProperty(key, value);
-            try (var stream = new FileOutputStream(file)) {
-                props.store(stream, null);
+            try (var outputStream = new FileOutputStream(file)) {
+                props.store(outputStream, null);
             }
         }
     }

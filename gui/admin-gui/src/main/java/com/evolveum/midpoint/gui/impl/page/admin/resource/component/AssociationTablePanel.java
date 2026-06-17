@@ -6,6 +6,32 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestionValue;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createConfirmationTitle;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -28,34 +54,11 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestionValue;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.acceptConfirmationTitle;
 
 public abstract class AssociationTablePanel
         extends MultiSelectContainerActionTileTablePanel<
@@ -78,7 +81,7 @@ public abstract class AssociationTablePanel
 
     @Override
     protected String getTileCssStyle() {
-        return "min-height: 130px;";
+        return "";
     }
 
     @Override
@@ -88,7 +91,7 @@ public abstract class AssociationTablePanel
 
     @Override
     protected String getTileContainerCssClass() {
-        return super.getTileContainerCssClass() + "gap-3";
+        return super.getTileContainerCssClass() + "gap-2";
     }
 
     @Override
@@ -150,7 +153,7 @@ public abstract class AssociationTablePanel
     @Override
     protected MultivalueContainerListDataProvider<ShadowAssociationTypeDefinitionType> createDataProvider() {
         var dto = getSuggestionsModelDto();
-        return new StatusAwareDataProvider<>(this, Model.of(), dto, false);
+        return new StatusAwareDataProvider<>(this, Model.of(), dto, AssociationsSuggestionType.class, false);
     }
 
     @Override
@@ -217,6 +220,22 @@ public abstract class AssociationTablePanel
             }
 
             @Override
+            public @NotNull List<InlineMenuItem> getInlineMenuItems() {
+                List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
+                inlineMenuItems.add(createDeleteItemMenu());
+                return inlineMenuItems;
+            }
+
+            private InlineMenuItem createDeleteItemMenu() {
+                return InlineMenuItemBuilder.create()
+                        .icon("fa fa-trash text-danger")
+                        .additionalCssClass("text-danger")
+                        .label(createStringResource("pageAdminFocus.button.delete"))
+                        .action(createDeleteColumnAction())
+                        .buildInlineMenu();
+            }
+
+            @Override
             public String getAdditionalBoxCssClasses() {
                 return "table-td-middle m-0";
             }
@@ -245,7 +264,6 @@ public abstract class AssociationTablePanel
                             RepeatingView container = new RepeatingView(s);
                             Label nameLabel = new Label(container.newChildId(), valueWrapper.getRealValue().getName() != null
                                     ? valueWrapper.getRealValue().getName() : "-");
-                            nameLabel.add(AttributeModifier.append("class", "fw-semibold"));
 
                             IconWithLabel tag = buildTag(container.newChildId());
                             container.add(nameLabel);
@@ -256,7 +274,6 @@ public abstract class AssociationTablePanel
                             Label nameLabel = new Label(s, valueWrapper.getRealValue().getName() != null
                                     ? valueWrapper.getRealValue().getName()
                                     : "-");
-                            nameLabel.add(AttributeModifier.append("class", "fw-semibold"));
                             item.add(nameLabel);
                         }
                     }
@@ -295,7 +312,7 @@ public abstract class AssociationTablePanel
 
                         statusLabel.setOutputMarkupId(true);
                         statusLabel.add(AttributeModifier.append("class", style.badgeClass));
-
+                        statusLabel.add(new VisibleBehaviour(() -> !style.equals(SmartIntegrationUtils.SuggestionUiStyle.DEFAULT_AI)));
                         cellItem.add(statusLabel);
                     }
                 });
@@ -324,7 +341,7 @@ public abstract class AssociationTablePanel
 
                     @Override
                     public String getCssClass() {
-                        return "col-2 text-end";
+                        return "col-2 text-end text-nowrap";
                     }
                 });
 
@@ -334,7 +351,6 @@ public abstract class AssociationTablePanel
             @Override
             protected Component createHeader(String headerId) {
                 Fragment f = createHeaderFragment(headerId);
-                f.add(AttributeModifier.replace("class", "p-3"));
                 return f;
             }
 
@@ -372,8 +388,9 @@ public abstract class AssociationTablePanel
 
             @Override
             protected void processReviewButtonClick(@NotNull AjaxRequestTarget target) {
+                PageBase pageBase = getPageBase();
                 onReviewValue(() -> value, target, getStatusInfoObject(value),
-                        ajaxRequestTarget -> performOnDeleteSuggestion(getPageBase(), ajaxRequestTarget,
+                        ajaxRequestTarget -> performOnDeleteSuggestion(pageBase, ajaxRequestTarget,
                                 value, getStatusInfoObject(value)));
             }
         };
@@ -382,7 +399,7 @@ public abstract class AssociationTablePanel
         return associationDetailsPanel;
     }
 
-    protected void performOnDeleteSuggestion(
+    protected boolean performOnDeleteSuggestion(
             @NotNull PageBase pageBase,
             AjaxRequestTarget target,
             PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> valueWrapper,
@@ -390,8 +407,32 @@ public abstract class AssociationTablePanel
         Task task = pageBase.createSimpleTask("delete suggestion");
         OperationResult result = task.getResult();
 
-        if (statusInfo != null) {
-            removeSuggestionValue(pageBase, target, valueWrapper, statusInfo, task, result);
+        return statusInfo != null && removeSuggestionValue(pageBase, target, valueWrapper, statusInfo, task, result);
+    }
+
+    @Override
+    public void deleteItemPerformed(
+            AjaxRequestTarget target,
+            List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> toDelete,
+            boolean refresh) {
+        if (toDelete == null || toDelete.isEmpty()) {
+            warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        toDelete.forEach(value -> {
+            var statusInfo = getStatusInfoObject(value);
+            if (performOnDeleteSuggestion(getPageBase(), target, value, statusInfo)) {
+                return;
+            }
+
+            resolveDeletedItem(value);
+            value.setSelected(false);
+        });
+
+        if (refresh) {
+            refreshAndDetach(target);
         }
     }
 
@@ -415,19 +456,18 @@ public abstract class AssociationTablePanel
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
                 performAcceptOperationAction(target, object);
-                refreshAndDetach(target);
             }
         };
 
         accept.setOutputMarkupId(true);
         accept.showTitleAsLabel(true);
-        accept.add(AttributeModifier.append("class", "btn btn-outline-primary me-2 gap-2"));
+        accept.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary mr-2"));
         return accept;
     }
 
     private @NotNull AjaxIconButton buildSuggestionDismissButton(String id,
             PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> object) {
-        AjaxIconButton dismiss = new AjaxIconButton(id, () -> "fa fa-check",
+        AjaxIconButton dismiss = new AjaxIconButton(id, () -> "fa fa-xmark",
                 createStringResource("SmartAssociationTilePanel.dismiss")) {
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
@@ -437,7 +477,7 @@ public abstract class AssociationTablePanel
 
         dismiss.setOutputMarkupId(true);
         dismiss.showTitleAsLabel(true);
-        dismiss.add(AttributeModifier.append("class", "btn btn-link text-danger me-2 gap-2"));
+        dismiss.add(AttributeModifier.append("class", "btn btn-sm btn-link link-danger"));
         return dismiss;
     }
 
@@ -452,7 +492,7 @@ public abstract class AssociationTablePanel
 
         edit.setOutputMarkupId(true);
         edit.showTitleAsLabel(true);
-        edit.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary me-2 gap-2 text-nowrap"));
+        edit.add(AttributeModifier.append("class", "btn btn-sm btn-link gap-2 text-nowrap"));
         return edit;
     }
 
@@ -461,23 +501,30 @@ public abstract class AssociationTablePanel
         IconWithLabel tag = new IconWithLabel(id, () -> "System suggestion") {
             @Override
             protected @NotNull String getIconCssClass() {
-                return "fa fa-gear me-1";
+                return "fa fa-gear align-baseline";
             }
         };
 
         tag.setOutputMarkupId(true);
-        tag.add(AttributeModifier.replace("class", "system-badge"));
+        tag.add(AttributeModifier.replace("class", "badge badge-blue badge-opaque d-inline-flex flex-nowrap")); //system-badge
         return tag;
     }
 
     protected AjaxIconButton createDiscardAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-check"), "SmartMappingTable.dismiss.all",
+        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-xmark"), "SmartMappingTable.dismiss.all",
                 "text-danger", false);
     }
 
     protected AjaxIconButton createAcceptAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id,  Model.of("fa fa-times"), "SmartMappingTable.apply.all",
+        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-check"), "SmartMappingTable.apply.all",
                 "btn-outline-primary", true);
+    }
+
+    private List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> getAllItemsWithStatus() {
+        List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> allItems = getAllItems();
+        return allItems == null ? List.of() : allItems.stream()
+                .filter(v -> getStatusInfoObject(v) != null)
+                .toList();
     }
 
     protected AjaxIconButton createAcceptDiscardBulkActionButton(String id,
@@ -485,11 +532,11 @@ public abstract class AssociationTablePanel
         AjaxIconButton button = new AjaxIconButton(id, iconCss, createStringResource(labelKey)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> allItems = getAllItems();
+                List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> allItems = getAllItemsWithStatus();
                 if (!allItems.isEmpty()) {
 
                     ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                            acceptConfirmationTitle(getPageBase(), allItems.size(), getCurrentPageItems().isEmpty())) {
+                            createConfirmationTitle(getPageBase(), allItems.size(), getCurrentPageItems().isEmpty(), isAccept)) {
 
                         @Override
                         public void yesPerformed(AjaxRequestTarget target) {
@@ -518,7 +565,6 @@ public abstract class AssociationTablePanel
                 && getStatusAwareDataProvider().getPageSuggestionCount() > 1));
         return button;
     }
-
 
     @SuppressWarnings("rawtypes")
     protected StatusAwareDataProvider<?> getStatusAwareDataProvider() {

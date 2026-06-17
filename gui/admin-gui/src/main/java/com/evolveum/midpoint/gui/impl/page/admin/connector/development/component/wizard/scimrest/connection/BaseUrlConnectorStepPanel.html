@@ -8,16 +8,18 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div class="w-100 mb-3 border-bottom">
-        <div class="alert bg-ai-badge-color text-ai border-color-ai d-flex flex-row mb-3 w-100 px-2" wicket:id="aiAlert">
-            <span>
-                <i class="fa fa-wand-magic-sparkles fa-sm p-2"/>
+    <div class="col-12">
+        <div class="d-flex flex-row flex-wrap alert alert-ai alert-opaque px-3" role="alert" wicket:id="aiAlert">
+            <span class="d-flex py-2 pr-2 align-items-start alert-icon">
+                <i class="fa fa-wand-magic-sparkles"></i>
             </span>
-            <div class="fw-bold pe-1">
-                <wicket:message key="BaseUrlConnectorStepPanel.ai.found.title"/>
-            </div>
-            <div>
-                <wicket:message key="BaseUrlConnectorStepPanel.ai.found.description"/>
+            <div class="d-flex flex-column justify-content-center align-items-start">
+                <div class="text-bold">
+                    <wicket:message key="BaseUrlConnectorStepPanel.ai.found.title"/>
+                </div>
+                <div>
+                    <wicket:message key="BaseUrlConnectorStepPanel.ai.found.description"/>.
+                </div>
             </div>
         </div>
     </div>

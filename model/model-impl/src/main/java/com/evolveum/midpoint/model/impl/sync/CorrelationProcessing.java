@@ -6,11 +6,9 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
+
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-
-import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,21 +21,23 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 /**
  * Manages correlation that occurs _during synchronization pre-processing_.
@@ -104,7 +104,7 @@ class CorrelationProcessing<F extends FocusType> {
         CompleteCorrelationResult existing = getDefiniteResultFromExistingCorrelationState(parentResult);
         if (existing != null) {
             LOGGER.debug("Definite result determined from existing correlation state in shadow: {}", existing.getSituation());
-            setShadowCorrelationEndTime(existing.isDone()); // isDone is true here
+            setShadowCorrelationEndTime(existing.isCertain()); // isCertain is true here
             return existing;
         }
 
@@ -112,16 +112,17 @@ class CorrelationProcessing<F extends FocusType> {
                 .build();
         try {
             CompleteCorrelationResult correlationResult = correlateInRootCorrelator(result);
-            applyCorrelationResultToShadow(correlationResult);
+            syncCtx.applyShadowDeltas(correlationResult.toDeltaItems(this.beans.prismContext,
+                    this.syncCtx.getShadowedResourceObjectBefore()));
 
-            if (correlationResult.isDone()) {
+            if (correlationResult.isCertain()) {
                 closeCaseIfNeeded(result);
             }
             result.addArbitraryObjectAsReturn("correlationResult", correlationResult);
             return correlationResult;
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
+        } catch (Exception e) {
+            result.recordFatalError(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -137,7 +138,8 @@ class CorrelationProcessing<F extends FocusType> {
             return null;
         }
         if (correlation.getCorrelationEndTimestamp() != null) {
-            LOGGER.trace("-> Existing correlation state found, but the correlation process is done. Ignoring the state:\n{}",
+            LOGGER.trace("-> Existing correlation state found, but the correlation process is done. Ignoring the "
+                            + "state:\n{}",
                     correlation.debugDumpLazily(1));
             return null;
         }
@@ -147,15 +149,20 @@ class CorrelationProcessing<F extends FocusType> {
             ObjectType owner = resolveExistingOwner(resultingOwnerRef, result);
             if (owner != null) {
                 LOGGER.trace("-> Found resultingOwnerRef, and resolved it into {}", owner);
-                // We are not interested in other candidates here, hence the null value into candidateOwnersMap.
-                return CompleteCorrelationResult.existingOwner(owner, null, null);
+                return CompleteCorrelationResult
+                        .builderForExistingOwner(thisCorrelationStart, XmlTypeConverter.createXMLGregorianCalendar())
+                        .owner(owner)
+                        // We are not interested in other candidates here, so build it with just the owner.
+                        .build();
             } else {
                 LOGGER.trace("-> Owner reference could not be resolved -> retry the correlation.");
                 return null;
             }
         } else if (situation == CorrelationSituationType.NO_OWNER) {
             LOGGER.trace("-> was resolved to 'no owner'");
-            return CompleteCorrelationResult.noOwner();
+            return CompleteCorrelationResult
+                    .builderForNoOwner(thisCorrelationStart, XmlTypeConverter.createXMLGregorianCalendar())
+                    .build();
         } else {
             LOGGER.trace("-> Neither 'existing owner' nor 'no owner' situation -> retry the correlation.");
             return null;
@@ -190,11 +197,15 @@ class CorrelationProcessing<F extends FocusType> {
 
         CompleteCorrelationResult correlationResult;
         try {
-            correlationResult = beans.correlationServiceImpl.correlate(rootCorrelatorContext, correlationContext, result);
+            correlationResult = beans.correlationServiceImpl.correlate(rootCorrelatorContext, correlationContext,
+                    result);
         } catch (Exception e) { // Other kinds of Throwable are intentionally passed upwards
             // The exception will be (probably) rethrown, so the stack trace is not strictly necessary here.
             LoggingUtils.logException(LOGGER, "Correlation ended with an exception", e);
-            correlationResult = CompleteCorrelationResult.error(e);
+            correlationResult = CompleteCorrelationResult
+                    .builderForError(thisCorrelationStart, XmlTypeConverter.createXMLGregorianCalendar())
+                    .error(e)
+                    .build();
         }
 
         LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
@@ -211,81 +222,22 @@ class CorrelationProcessing<F extends FocusType> {
         // TODO record case close if needed
     }
 
-    private void applyCorrelationResultToShadow(CompleteCorrelationResult correlationResult) throws SchemaException {
-        S_ItemEntry builder =
-                PrismContext.get().deltaFor(ShadowType.class)
-                        .oldObject(syncCtx.getShadowedResourceObjectBefore())
-                        .optimizing();
-        XMLGregorianCalendar lastStart = getShadowCorrelationStartTimestamp();
-        XMLGregorianCalendar lastEnd = getShadowCorrelationEndTimestamp();
-        if (lastStart == null || lastEnd != null) {
-            builder = builder
-                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP)
-                    .replace(thisCorrelationStart);
-        }
-        if (correlationResult.isError()) {
-            if (getShadowCorrelationSituation() == null) {
-                // We set ERROR only if there is no previous situation recorded
-                // ...and we set none of the other items.
-                builder = builder
-                        .item(CORRELATION_SITUATION_PATH)
-                        .replace(CorrelationSituationType.ERROR);
-            }
-        } else {
-            // The default delta-optimization does not work here because of PCV IDs, so we must compare on our own.
-            if (ownerOptionsChanged(correlationResult)) {
-                builder = builder
-                        .item(CORRELATION_OWNER_OPTIONS_PATH)
-                        .replace(CloneUtil.clone(correlationResult.getOwnerOptions()));
-            }
-
-            // @formatter:off
-            builder = builder
-                    .item(CORRELATION_SITUATION_PATH)
-                        .replace(correlationResult.getSituation())
-                    .item(CORRELATION_RESULTING_OWNER_PATH)
-                        .replace(ObjectTypeUtil.createObjectRef(correlationResult.getOwner()))
-                    // The following may be already applied by the correlator. But better twice than not at all.
-                    .item(CORRELATION_CORRELATOR_STATE_PATH)
-                        .replace(correlationContext.getCorrelatorState());
-            // @formatter:on
-        }
-
-        syncCtx.applyShadowDeltas(
-                builder.asItemDeltas());
-
-        setShadowCorrelationEndTime(correlationResult.isDone());
-    }
-
-    private boolean ownerOptionsChanged(CompleteCorrelationResult correlationResult) {
-        var oldCorrelation = getShadow().getCorrelation();
-        ResourceObjectOwnerOptionsType oldOptions = oldCorrelation != null ? oldCorrelation.getOwnerOptions() : null;
-        ResourceObjectOwnerOptionsType newOptions = correlationResult.getOwnerOptions();
-
-        if (oldOptions == null) {
-            return newOptions != null;
-        } else {
-            if (newOptions == null) {
-                return true;
-            } else {
-                // We have to ignore auto-generated PCV IDs
-                return !oldOptions.asPrismContainerValue().equals(
-                        newOptions.asPrismContainerValue(), EquivalenceStrategy.REAL_VALUE);
-            }
-        }
-    }
-
-    private void setShadowCorrelationEndTime(boolean done) throws SchemaException {
-        if (!done && getShadowCorrelationEndTimestamp() == null) {
+    private void setShadowCorrelationEndTime(boolean correlationIsCertain) throws SchemaException {
+        if (!correlationIsCertain && getShadowCorrelationEndTimestamp() == null) {
+            // If the current correlation is **not** certain, and the end timestamp is null (means previous
+            // correlation wasn't certain as well), then we will not update the end timestamp (leave it empty).
             return;
         }
+        // If the current correlation is **not** certain about the result, but the end timestamp is set (means
+        // that some previous correlation was certain), we will erase the end timestamp.
+        // If the current correlation **is** certain about the result, then we change the end timestamp to current time.
         syncCtx.applyShadowDeltas(
                 PrismContext.get().deltaFor(ShadowType.class)
                         .oldObject(syncCtx.getShadowedResourceObjectBefore())
                         .optimizing()
                         .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
                         .replace(
-                                done ? XmlTypeConverter.createXMLGregorianCalendar() : null)
+                                correlationIsCertain ? XmlTypeConverter.createXMLGregorianCalendar() : null)
                         .asItemDeltas());
     }
 

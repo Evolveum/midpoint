@@ -129,41 +129,61 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
             IModel<T> model,
             boolean showIcon,
             OnBeforeClickHandler<T> beforeClickHandler) {
+        T itemObject = model.getObject();
 
-        if (showIcon && model.getObject() instanceof ButtonInlineMenuItem) {
-            @SuppressWarnings("unchecked")
-            IModel<ButtonInlineMenuItem> buttonModel = (IModel<ButtonInlineMenuItem>) model;
 
-            return new IconMenuLinkPanel(componentId, buttonModel) {
-                @SuppressWarnings("unchecked")
-                @Override
-                protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<ButtonInlineMenuItem> item) {
-                    beforeClickHandler.handle(target, action, (IModel<T>) item);
-                    super.onClick(target, action, item);
-                }
-
-                @SuppressWarnings("unchecked")
-                @Override
-                protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<ButtonInlineMenuItem> item) {
-                    beforeClickHandler.handle(target, action, (IModel<T>) item);
-                    super.onSubmit(target, action, item);
-                }
-            };
-        } else {
-            return new MenuLinkPanel<>(componentId, model) {
-                @Override
-                protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item) {
-                    beforeClickHandler.handle(target, action, item);
-                    super.onClick(target, action, item);
-                }
-
-                @Override
-                protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item) {
-                    beforeClickHandler.handle(target, action, item);
-                    super.onSubmit(target, action, item);
-                }
-            };
+        if (itemObject != null && itemObject.isDivider()) {
+            return new MenuDividerPanel(componentId);
         }
+
+        boolean useIconPanel = showIcon && itemObject != null
+                && (itemObject instanceof ButtonInlineMenuItem
+                || itemObject.getIconCompositedBuilder() != null);
+
+        return useIconPanel
+                ? createIconMenuLinkPanel(componentId, model, beforeClickHandler)
+                : createPlainMenuLinkPanel(componentId, model, beforeClickHandler);
+    }
+
+
+    private static <T extends InlineMenuItem> @NotNull Component createIconMenuLinkPanel(
+            String componentId,
+            IModel<T> model,
+            OnBeforeClickHandler<T> beforeClickHandler) {
+
+        return new IconMenuLinkPanel<T>(componentId, model) {
+            @Override
+            protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item) {
+                beforeClickHandler.handle(target, action, item);
+                super.onClick(target, action, item);
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item) {
+                beforeClickHandler.handle(target, action, item);
+                super.onSubmit(target, action, item);
+            }
+        };
+    }
+
+    private static <T extends InlineMenuItem> @NotNull Component createPlainMenuLinkPanel(
+            String componentId,
+            IModel<T> model,
+            OnBeforeClickHandler<T> beforeClickHandler) {
+
+        return new MenuLinkPanel<>(componentId, model) {
+            @Override
+            protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item) {
+                beforeClickHandler.handle(target, action, item);
+                super.onClick(target, action, item);
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item) {
+                beforeClickHandler.handle(target, action, item);
+                super.onSubmit(target, action, item);
+            }
+        };
     }
 
     protected boolean showIcon() {

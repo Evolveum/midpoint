@@ -421,7 +421,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         items.add(menu);
 
         menu = new ButtonInlineMenuItem(
-                createStringResource("ResourceObjectsPanel.button.association.inbound")) {
+                createStringResource("ResourceObjectsPanel.button.association")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -447,7 +447,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                             }
 
                             if (associations.size() == 1) {
-                                showAssociationInboundWizard(associations.iterator().next(), target);
+                                showAssociationWizard(associations.iterator().next(), target);
                             } else {
                                 ChoiceAssociationPopupPanel popup = new ChoiceAssociationPopupPanel(
                                         getPageBase().getMainPopupBodyId(),
@@ -455,7 +455,9 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                                         associations) {
                                     @Override
                                     protected void onTileClickPerformed(AssociationDefinitionWrapper value, AjaxRequestTarget target) {
-                                        showAssociationInboundWizard(value.getSourceValue(), target);
+                                        if (value != null && value.getSourceValue() != null) {
+                                            showAssociationWizard(value.getSourceValue(), target);
+                                        }
                                     }
                                 };
                                 getPageBase().showMainPopup(popup, target);
@@ -475,65 +477,9 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         };
         menu.setVisible(createAssociationMenuItemVisibilityModel());
         items.add(menu);
-
-        menu = new ButtonInlineMenuItem(
-                createStringResource("ResourceObjectsPanel.button.association.outbound")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        ResourceObjectTypeDefinition selectedObjectType = getSelectedObjectTypeDefinition();
-                        if (selectedObjectType == null) {
-                            getPageBase().warn(LocalizationUtil.translate("PageResource.objectTypeIsNullForAssociation"));
-                            target.add(getPageBase().getFeedbackPanel());
-                            return;
-                        }
-
-                        try {
-                            List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> associations =
-                                    AssociationChildWrapperUtil.findAssociationDefinitions(getObjectWrapper(), selectedObjectType);
-
-                            if (associations.isEmpty()) {
-                                return;
-                            }
-
-                            if (associations.size() == 1) {
-                                showAssociationOutboundWizard(associations.iterator().next(), target);
-                            } else {
-                                ChoiceAssociationPopupPanel popup = new ChoiceAssociationPopupPanel(
-                                        getPageBase().getMainPopupBodyId(),
-                                        getObjectDetailsModels(),
-                                        associations) {
-                                    @Override
-                                    protected void onTileClickPerformed(AssociationDefinitionWrapper value, AjaxRequestTarget target) {
-                                        showAssociationOutboundWizard(value.getSourceValue(), target);
-                                    }
-                                };
-                                getPageBase().showMainPopup(popup, target);
-                            }
-
-                        } catch (SchemaException e) {
-                            LOGGER.error("Couldn't load association for " + selectedObjectType);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa fa-arrow-right-from-bracket");
-            }
-        };
-        menu.setVisible(createAssociationMenuItemVisibilityModel());
-        items.add(menu);
     }
 
-    private IModel<Boolean> createAssociationMenuItemVisibilityModel() {
+    private @NotNull IModel<Boolean> createAssociationMenuItemVisibilityModel() {
         return () -> {
             ResourceObjectTypeDefinition selectedObjectType = getSelectedObjectTypeDefinition();
             if (selectedObjectType == null) {
@@ -550,56 +496,17 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         };
     }
 
-    private void showAssociationInboundWizard(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper, AjaxRequestTarget target) {
+    private void showAssociationWizard(
+            @NotNull PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper,
+            AjaxRequestTarget target) {
+        PageResource page = getObjectDetailsModels().getPageResource();
         ShadowAssociationTypeDefinitionType association = associationWrapper.getRealValue();
         if (association == null) {
             return;
         }
 
-        if (association.getSubject() == null || association.getSubject().getAssociation() == null) {
-            return;
-        }
-
-        PageResource page = getObjectDetailsModels().getPageResource();
-        if (association.getSubject().getAssociation().getInbound().size() == 1) {
-            ItemPath path = association.getSubject().getAssociation().getInbound().iterator().next().asPrismContainerValue().getPath();
-
-            page.showAssociationInboundWizard(target, path, association, createExitLabelModel());
-        } else {
-            ItemPath path = association.asPrismContainerValue().getPath()
-                    .append(ShadowAssociationTypeDefinitionType.F_SUBJECT)
-                    .append(ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION);
-
-            page.showAssociationInboundsWizard(target, path, association, createExitLabelModel());
-        }
-    }
-
-    private IModel<String> createExitLabelModel() {
-        return new StringResourceModel("ResourceObjectsPanel.associationWizard.exitLabel." + getKind());
-    }
-
-    private void showAssociationOutboundWizard(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper, AjaxRequestTarget target) {
-        ShadowAssociationTypeDefinitionType association = associationWrapper.getRealValue();
-        if (association == null) {
-            return;
-        }
-
-        if (association.getSubject() == null || association.getSubject().getAssociation() == null) {
-            return;
-        }
-
-        PageResource page = getObjectDetailsModels().getPageResource();
-        if (association.getSubject().getAssociation().getOutbound().size() == 1) {
-            ItemPath path = association.getSubject().getAssociation().getOutbound().iterator().next().asPrismContainerValue().getPath();
-
-            page.showAssociationOutboundWizard(target, path, association, createExitLabelModel());
-        } else {
-            ItemPath path = association.asPrismContainerValue().getPath()
-                    .append(ShadowAssociationTypeDefinitionType.F_SUBJECT)
-                    .append(ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION);
-
-            page.showAssociationOutboundsWizard(target, path, association, createExitLabelModel());
-        }
+        ItemPath path = association.asPrismContainerValue().getPath();
+        page.showResourceAssociationTypePreviewWizard(target, path);
     }
 
     private ButtonInlineMenuItem createWizardItemPanel(
@@ -768,7 +675,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private ResourceContentStorage getPageStorage() {
-        return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
+        return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(getKind());
     }
 
     @Override
@@ -842,8 +749,9 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         return new TaskCreationFoCategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
 
             @Override
-            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate, AjaxRequestTarget target) {
-                ResourceObjectsPanel.this.createNewTaskPerformed(flavor, simulate, target);
+            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate,
+                    AjaxRequestTarget target, boolean showConfigurationWizard) {
+                ResourceObjectsPanel.this.createNewTaskPerformed(flavor, simulate, target, showConfigurationWizard);
             }
         };
     }

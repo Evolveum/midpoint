@@ -1,0 +1,9 @@
+= Protected String
+:page-upkeep-status: orange
+:page-upkeep-note: This is a stub page, it needs expanding
+
+== Introduction
+
+_Protected string_ is a form of _protected data type_ which protects data formatted as string.
+Protected string is a data structure that protects the data using encryption, hashing or similar cryptographic mechanism.
+Protected strings are used to protect sensitive data in midPoint repository such as _passwords_ and similar secrets.

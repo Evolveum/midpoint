@@ -98,7 +98,7 @@ public class ResourceAssociationPanel extends ItemRefinedPanel<ResourceObjectAss
         displayType.setIcon(icon);
         detailsPanel.setDisplay(displayType);
 
-        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + parent.getType().getSimpleName(), detailsPanel);
+        getPageBase().getBrowserTabSessionStorage().setObjectDetailsStorage("details" + parent.getType().getSimpleName(), detailsPanel);
 
         ResourceAssociationPanel.this.getConfig().getPanel().add(detailsPanel);
         target.add(parent);

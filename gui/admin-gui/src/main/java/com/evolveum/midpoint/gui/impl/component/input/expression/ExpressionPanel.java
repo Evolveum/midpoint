@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.ExpressionUtil.ExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 public class ExpressionPanel extends BasePanel<ExpressionType> {
@@ -69,6 +70,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private LoadableModel<RecognizedEvaluator> typeModel;
     private LoadableModel<String> helpModel;
     private boolean isEvaluatorPanelExpanded = false;
+    private boolean displayHelp = true;
 
     Model<String> infoLabelModel = Model.of("");
 
@@ -134,10 +136,20 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return findParent(Table.class) != null || findParent(TileTablePanel.class) != null;
     }
 
-    private void initTypeModels() {
-        if (getModelObject() == null) {
-            getModel().setObject(new ExpressionType());
+    private @NotNull ExpressionType getOrCreateExpression() {
+        ExpressionType expression = getModelObject();
+        if (expression == null) {
+            expression = new ExpressionType();
+            getModel().setObject(expression);
         }
+        return expression;
+    }
+
+    private void initTypeModels() {
+        //TODO it cause creating new replace delta if (why it was here?)
+//        if (getModelObject() == null) {
+//            getModel().setObject(new ExpressionType());
+//        }
 
         if (typeModel == null) {
             typeModel = new LoadableModel<>(false) {
@@ -164,8 +176,12 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             helpModel = new LoadableModel<>(false) {
                 @Override
                 protected String load() {
+                    if (getModelObject() == null) {
+                        return "";
+                    }
                     if (StringUtils.isNotEmpty(getModelObject().getDescription())) {
-                        return getPageBase().createStringResource(getModelObject().getDescription()).getString();
+                        StringResourceModel stringResource = getPageBase().createStringResource(getModelObject().getDescription());
+                        return StringEscapeUtils.escapeHtml4(stringResource.getString());
                     }
 
                     Class<? extends EvaluatorExpressionPanel> evaluatorPanel = null;
@@ -176,11 +192,11 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     if (evaluatorPanel != null) {
                         try {
                             Method m = evaluatorPanel.getMethod("getInfoDescription", ExpressionType.class, PageBase.class);
-                            return (String) m.invoke(null, getModelObject(), getPageBase());
+                            String description = (String) m.invoke(null, getModelObject(), getPageBase());
+                            return StringEscapeUtils.escapeHtml4(description);
                         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                             LOGGER.debug("Couldn't find method getInfoDescription in class {}", evaluatorPanel.getSimpleName());
                         }
-
                     }
 
                     return StringEscapeUtils.escapeHtml4(
@@ -200,7 +216,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         setOutputMarkupId(true);
         WebMarkupContainer infoContainer = new WebMarkupContainer(ID_INFO_CONTAINER);
         infoContainer.setOutputMarkupId(true);
-        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && (!isInTable()|| isReadOnly())));
+        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && (!isInTable() || isReadOnly()) && displayHelp));
         add(infoContainer);
 
         Label infoLabel = new Label(ID_INFO_LABEL, infoLabelModel);
@@ -241,8 +257,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private @NotNull AjaxButton buildResetButton() {
         AjaxButton resetButton = new AjaxButton(ID_RESET_BUTTON) {
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                ExpressionPanel.this.getModelObject().getExpressionEvaluator().clear();
+            public void onClick(@NotNull AjaxRequestTarget target) {
+                ExpressionType expression = getOrCreateExpression();
+                expression.getExpressionEvaluator().clear();
                 typeModel.reset();
                 helpModel.reset();
                 infoLabelModel.setObject("");
@@ -408,7 +425,8 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
                 } else {
                     isEvaluatorPanelExpanded = !isEvaluatorPanelExpanded;
-                    if (!ExpressionPanel.this.getModelObject().getExpressionEvaluator().isEmpty()) {
+                    if (ExpressionPanel.this.getModelObject() != null
+                            && !ExpressionPanel.this.getModelObject().getExpressionEvaluator().isEmpty()) {
                         updateLabelForExistingEvaluator();
                     }
 
@@ -486,5 +504,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     protected boolean isReadOnly() {
         return false;
+    }
+
+    public void setDisplayHelp(boolean displayHelp) {
+        this.displayHelp = displayHelp;
     }
 }

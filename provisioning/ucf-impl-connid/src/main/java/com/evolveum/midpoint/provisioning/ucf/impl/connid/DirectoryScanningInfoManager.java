@@ -104,7 +104,7 @@ public class DirectoryScanningInfoManager implements ConnectorInfoManager {
         return uriToManager.containsKey(maybeConnector);
     }
 
-    Optional<ConnectorInfoManager> connectorFromURL(URI bundleUrl) {
+    private Optional<ConnectorInfoManager> connectorFromURL(URI bundleUrl) {
         try {
             /*
              * We can not reuse one instance of ConnectorInfoManager, since it is immutable.

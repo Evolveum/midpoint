@@ -112,7 +112,6 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         try {
             evaluateAndAssertStringScalarExpression(
                     "expression-poison-smell-very-dynamic.xml",
-                    "testSmellPoisonVeryDynamic",
                     createPoisonVariables(poison),
                     RESULT_POISON_OK);
 

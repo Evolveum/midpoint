@@ -11,12 +11,14 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
+import java.io.Serial;
+
 /**
  * Created by honchar.
  */
 public class ObjectListStorage implements PageStorage, DebugDumpable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private Search objectListSearch;
     private ObjectPaging objectListTablePaging;

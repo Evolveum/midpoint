@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.component.menu.cog;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -84,6 +86,11 @@ public class MenuLinkPanel<I extends InlineMenuItem> extends BasePanel<I> {
         a.add(AttributeModifier.append("class",
                 () -> dto.getAdditionalCssClass() != null ? dto.getAdditionalCssClass().getObject() : ""));
 
+        if (dto.getTooltip() != null) {
+            a.add(new TooltipBehavior());
+            a.add(AttributeModifier.append("title", dto.getTooltip()));
+        }
+
         Label span = new Label(ID_MENU_ITEM_LABEL, dto.getLabel());
         span.setRenderBodyOnly(true);
         a.add(span);
@@ -120,7 +127,7 @@ public class MenuLinkPanel<I extends InlineMenuItem> extends BasePanel<I> {
     }
 
     private void showConfirmationPopup(I menuItem, AjaxRequestTarget target) {
-        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
+        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
                 menuItem.getConfirmationMessageModel()) {
             private static final long serialVersionUID = 1L;
 
@@ -134,7 +141,7 @@ public class MenuLinkPanel<I extends InlineMenuItem> extends BasePanel<I> {
                 return "mt-popup-under-header";
             }
         };
-        ((PageBase)getPage()).showMainPopup(dialog, target);
+        ((PageBase) getPage()).showMainPopup(dialog, target);
     }
 
     protected final AbstractLink getLinkContainer() {

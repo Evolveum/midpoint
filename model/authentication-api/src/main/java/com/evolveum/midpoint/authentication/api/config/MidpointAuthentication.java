@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -303,9 +304,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     private boolean allModulesAreSuccessful() {
-        return sequence.getModule()
-                .stream()
-                .allMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
+        return sequence.getModule().stream()
+                .allMatch(m -> isModuleAuthenticationSuccessful(m));
     }
 
     private boolean allProcessedModulesWithNecessityAreSuccessful() {
@@ -338,9 +338,26 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType moduleNecessity) {
         List<AuthenticationSequenceModuleType> modules = sequence.getModule();
         return modules.stream()
-                .anyMatch(m -> moduleNecessity.equals(m.getNecessity())
-                        && (getAuthenticationByIdentifier(m) == null
-                        || !AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState())));
+                .filter(m -> moduleNecessity.equals(m.getNecessity()))
+                .anyMatch(m -> !isModuleAuthenticationSuccessful(m));
+    }
+
+    private boolean isModuleAuthenticationSuccessful(AuthenticationSequenceModuleType m) {
+        ModuleAuthentication ma = getAuthenticationByIdentifier(m);
+        if (ma == null) {
+            return false;
+        }
+
+        if (AuthenticationModuleState.SUCCESSFULLY == ma.getState()) {
+            return true;
+        }
+
+        if (AuthenticationModuleState.CALLED_OFF == ma.getState() && BooleanUtils.isTrue(m.isAcceptEmpty())) {
+            // authentication was called off, but sequence module configuration allows "empty" auth via acceptEmpty = true
+            return true;
+        }
+
+        return false;
     }
 
     private ModuleAuthentication getAuthenticationByIdentifier(AuthenticationSequenceModuleType module) {
@@ -667,8 +684,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public boolean authenticationShouldBeAborted() {
-        return AuthenticationSequenceModuleNecessityType.REQUISITE.equals(getProcessingModuleNecessity())
-                && AuthenticationModuleState.FAILURE.equals(getProcessingModuleState());
+        if (AuthenticationSequenceModuleNecessityType.REQUISITE.equals(getProcessingModuleNecessity())
+                && AuthenticationModuleState.FAILURE.equals(getProcessingModuleState())) {
+            return true;
+        }
+        return getAuthentications().stream()
+                .anyMatch(m -> m.getNecessity() == AuthenticationSequenceModuleNecessityType.REQUISITE
+                        && m.getState() == AuthenticationModuleState.FAILURE);
     }
 
     public AuthenticationSequenceModuleNecessityType getProcessingModuleNecessity() {
@@ -734,6 +756,39 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public void setAlreadyCompiledGui(boolean alreadyCompiledGui) {
         this.alreadyCompiledGui = alreadyCompiledGui;
+    }
+
+    /**
+     * When the last module in the sequence failed but all prior modules succeeded (user is
+     * already identified but the final credential step failed, e.g. wrong TOTP code), reset
+     * the failed module back to LOGIN_PROCESSING so the user can retry that step without
+     * restarting the whole authentication sequence.
+     *
+     * Also resets alreadyAudited so that subsequent success or definitive failure is audited.
+     *
+     * Does nothing and returns false when over lockout max attempts or when the conditions
+     * for a safe in-place retry are not met.
+     */
+    public boolean resetLastFailedModuleForRetry() {
+        if (overLockoutMaxAttempts) {
+            return false;
+        }
+        List<ModuleAuthentication> auths = getAuthentications();
+        if (auths.isEmpty() || auths.size() != getAuthModules().size()) {
+            return false;
+        }
+        ModuleAuthentication last = auths.get(auths.size() - 1);
+        if (AuthenticationModuleState.FAILURE != last.getState()) {
+            return false;
+        }
+        for (int i = 0; i < auths.size() - 1; i++) {
+            if (AuthenticationModuleState.SUCCESSFULLY != auths.get(i).getState()) {
+                return false;
+            }
+        }
+        last.setState(AuthenticationModuleState.LOGIN_PROCESSING);
+        alreadyAudited = false;
+        return true;
     }
 
     /**

@@ -45,7 +45,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
     @Serial private static final long serialVersionUID = 1L;
 
-    protected List<InlineMenuItem> menuItems;
+    public List<InlineMenuItem> menuItems;
 
     private final PageBase pageBase;
 
@@ -150,6 +150,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             }
 
             @Override
+            protected boolean showInlineMenuIcon() {
+                return InlineMenuButtonColumn.this.showInlineMenuIcon();
+            }
+
+            @Override
             protected String getAdditionalMultiButtonPanelCssClass() {
                 return InlineMenuButtonColumn.this.getAdditionalMultiButtonPanelCssClass();
             }
@@ -180,6 +185,9 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         };
     }
 
+    protected boolean showInlineMenuIcon(){
+        return false;
+    }
     protected String getRowObjectName(IModel<T> rowModel) {
         return "";
     }

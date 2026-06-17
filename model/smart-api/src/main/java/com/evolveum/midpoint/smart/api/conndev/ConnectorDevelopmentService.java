@@ -9,11 +9,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public interface ConnectorDevelopmentService {
 
-    //List<ConnectorDevelopmentStepType> getCompletedSteps(ConnectorDevelopmentType project);
-
-    //List<ConnectorDevelopmentStepType> getAvailableNextSteps(ConnectorDevelopmentType project);
-
-
     ConnectorDevelopmentOperation startFromNew(ConnDevApplicationInfoType basicInfo, OperationResult result);
 
     ConnectorDevelopmentOperation continueFrom(ConnectorDevelopmentType type);
@@ -31,6 +26,12 @@ public interface ConnectorDevelopmentService {
 
     StatusInfo<ConnDevDiscoverObjectClassInformationResultType> getDiscoverObjectClassInformationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    StatusInfo<ConnDevDiscoverObjectClassDetailsResultType> getDiscoverObjectClassDetailsStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    StatusInfo<ConnDevDiscoverObjectClassAttributesResultType> getDiscoverObjectClassAttributesStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    StatusInfo<ConnDevDiscoverObjectClassEndpointsResultType> getDiscoverObjectClassEndpointsStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    StatusInfo<ConnDevRefreshScimSchemaResultType> getRefreshScimSchemaStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    StatusInfo<ConnDevDiscoverConnectivityEndpointResultType> getDiscoverConnectivityEndpointStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
 }

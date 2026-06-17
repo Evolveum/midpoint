@@ -217,7 +217,6 @@
   z-index: 1;
 }
 
-
 .border-ai {
   border-color: #6610f2 !important;
 }
@@ -280,6 +279,30 @@
 
 .border-ai.selected-base {
   background-color: #e0cffc !important;
+}
+
+.guide-panel.tile-panel.disabled,
+.guide-panel.tile-panel.disabled:hover,
+.guide-panel.tile-panel.disabled:focus,
+.guide-panel.tile-panel.disabled:active,
+.guide-panel.tile-panel.disabled.active,
+.guide-panel.tile-panel.disabled.selected {
+  border-color: #dee2e6 !important;   /* neutral border */
+  box-shadow: none !important;        /* remove blue glow */
+  outline: none !important;
+}
+
+/* Allow tooltip interaction ONLY when disabled AND tooltip-enabled */
+.guide-panel.tile-panel.disabled.tile-panel-tooltip,
+.guide-panel.tile-panel-tooltip.disabled.tile-panel {
+  pointer-events: auto !important;
+  cursor: default !important;
+}
+
+.guide-panel.tile-panel.disabled i,
+.guide-panel.tile-panel.disabled .tile-title,
+.guide-panel.tile-panel.disabled h5 {
+  color: var(--bs-secondary-color, #adb5bd) !important;
 }
 
 //TODO: revision

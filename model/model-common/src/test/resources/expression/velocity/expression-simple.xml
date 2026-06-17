@@ -7,5 +7,5 @@
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
-    <code>#set($foo = "foo")#set($bar = "bar")${foo}${bar}</code>
+    <code>#set($foo = "foo")#set($bar = "bar")${foo}${bar}1</code>
 </script>

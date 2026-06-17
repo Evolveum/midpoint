@@ -40,10 +40,11 @@ import org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import java.io.Serial;
 import java.util.*;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgTreePanel.class);
 
@@ -495,9 +496,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
     }
 
     public OrgTreeStateStorage getOrgTreeStateStorage(){
-        MidPointAuthWebSession session = OrgTreePanel.this.getSession();
-        SessionStorage storage = session.getSessionStorage();
-        return storage.getOrgStructurePanelStorage();
+        return getBrowserTabSessionStorage().getOrgStructurePanelStorage();
     }
 
     public int getSelectedTabId(OrgTreeStateStorage storage){

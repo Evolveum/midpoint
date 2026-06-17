@@ -9,10 +9,15 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
+import com.evolveum.midpoint.smart.impl.mappings.ConnDevJsonMapper;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import org.apache.hc.client5.http.entity.EntityBuilder;
+import org.apache.hc.core5.http.ContentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,11 +27,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.function.BooleanSupplier;
 
 public abstract class ConnectorDevelopmentBackend {
 
+    private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
     private static final String CONNECTOR_MANIFEST = "connector.manifest.json";
     private static final String CONFIGURATION_OVERRIDE = "configurationOverride.properties";
+    private static final int MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS = 5;
     protected final Task task;
     protected final OperationResult result;
 
@@ -43,6 +51,17 @@ public abstract class ConnectorDevelopmentBackend {
         this.result = result;
     }
 
+    /**
+     * Returns a supplier that operations must poll to implement cooperative cancellation.
+     *
+     * Because operations run in threads that cannot be forcibly killed, each operation is
+     * responsible for periodically checking this supplier and stopping itself when it returns
+     * false — which happens once the task has been suspended or stopped.
+     */
+    protected BooleanSupplier canRun() {
+        return task instanceof RunningTask rt ? rt::canRun : () -> true;
+    }
+
 
     public static ConnectorDevelopmentBackend backendFor(String connectorDevelopmentOid, Task task, OperationResult result) throws CommonException {
         var beans = ConnDevBeans.get();
@@ -55,9 +74,9 @@ public abstract class ConnectorDevelopmentBackend {
 
     private static ConnectorDevelopmentBackend backendFor(ConnDevIntegrationType integrationType, ConnectorDevelopmentType connDev, ConnDevBeans beans, Task task, OperationResult result) {
         return switch (integrationType) {
-            case REST -> new RestTestBackend(beans, connDev, task, result);
-            case SCIM -> new JsonHalBackend(beans, connDev, task, result);
-            case DUMMY -> new OfflineBackend(beans, connDev, task, result);
+            case REST -> new RestBackend(beans, connDev, task, result);
+            case SCIM -> new ScimBackend(beans, connDev, task, result);
+            //case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
 
     }
@@ -80,8 +99,15 @@ public abstract class ConnectorDevelopmentBackend {
             return;
         }
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
-            .item(ConnectorDevelopmentType.F_APPLICATION).replace(type.clone())
-            .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_APPLICATION_NAME)
+                .replace(type.getApplicationName() != null ? type.getApplicationName().toPolyString() : null)
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_VERSION)
+                .replace(type.getVersion())
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE)
+                .replace(type.getIntegrationType())
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_BASE_API_ENDPOINT)
+                .replace(type.getBaseApiEndpoint())
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
     }
@@ -93,7 +119,10 @@ public abstract class ConnectorDevelopmentBackend {
     public void populateApplicationAuthInfo(List<ConnDevAuthInfoType> authInfo) throws CommonException {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH)
-                .addRealValues( authInfo.stream().map(ConnDevAuthInfoType::clone).toList())
+                .addRealValues(authInfo.stream()
+                        .filter(info -> info.getType() != ConnDevHttpAuthTypeType.OTHER)
+                        .map(ConnDevAuthInfoType::clone)
+                        .toList())
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
@@ -224,14 +253,19 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     public void updateApplicationObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) throws CommonException {
-        List<ConnDevObjectClassInfoType> applicationClasses = discovered.stream().map(v -> new ConnDevObjectClassInfoType()
-                .name(v.getName())
-                .description(v.getDescription())
-                .embedded(v.getEmbedded())
-                ._abstract(v.isAbstract())
-                .superclass(v.getSuperclass())
-                .relevant(v.getRelevant())
-        ).toList();
+        List<ConnDevObjectClassInfoType> applicationClasses = discovered.stream().map(v -> {
+            var oc = new ConnDevObjectClassInfoType()
+                    .name(v.getName())
+                    .description(v.getDescription())
+                    .embedded(v.getEmbedded())
+                    ._abstract(v.isAbstract())
+                    .superclass(v.getSuperclass())
+                    .relevant(v.getRelevant())
+                    .relevancy(v.getRelevancy());
+            v.getRelevantDocumentations().forEach(chunk ->
+                    oc.relevantDocumentations(new ConnDevRelevantDocumentationsType().docId(chunk.getDocId()).chunkId(chunk.getChunkId())));
+            return oc;
+        }).toList();
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_DETECTED_SCHEMA, ConnDevSchemaType.F_OBJECT_CLASS).replaceRealValues(applicationClasses)
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
@@ -290,14 +324,24 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
-    public abstract ConnDevApplicationInfoType discoverBasicInformation();
-    public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation();
-    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation();
-    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
-    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
-    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated);
-    public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass);
-    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass);
+    public abstract ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache);
+    public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache);
+    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache);
+    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
+    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
+    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache);
+    public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache);
+    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache);
+    public abstract List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache);
+
+    public void populateConnectivityEndpoints(List<ConnDevHttpEndpointType> endpoints) throws CommonException {
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_SUGGESTED_ENDPOINT)
+                .replaceRealValues(endpoints.stream().limit(MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS).toList())
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+    }
 
     public ConnDevArtifactType getArtifactContent(ConnDevArtifactType type) throws IOException {
         var ret = type.clone();
@@ -344,11 +388,11 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
-    public abstract void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+    public abstract void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
 
     public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         if (development.getProcessedDocumentation().isEmpty()) {
-            processDocumentation();
+            processDocumentation(false);
             reload();
         }
     }
@@ -366,7 +410,7 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
 
-    public abstract List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered);
+    public abstract List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered, boolean skipCache);
 
     public void updateRelations(List<ConnDevRelationInfoType> relations) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
@@ -375,4 +419,195 @@ public abstract class ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
     }
+
+    protected abstract void restoreSession(ServiceClient.RestorationClient client) throws IOException;
+
+    protected void synchronizeSession(ServiceClient.RestorationClient client) throws IOException {
+        // FIXME: Implement session synchronization here
+        // ensureDocumentationIsUploaded(client);
+    }
+
+    protected void restoreObjectClasses(ServiceClient.RestorationClient client) throws IOException {
+        var app = developmentObject().getApplication();
+        if (app == null) return;
+        var schema = app.getDetectedSchema();
+        if (schema == null) return;
+
+        var appClasses = schema.getObjectClass();
+        if (appClasses == null || appClasses.isEmpty()) return;
+        var text = ConnDevJsonMapper.mapObjectClassesToJson(appClasses).toPrettyString();
+
+        client.put("digester/{sessionId}/classes", () ->
+                EntityBuilder.create()
+                        .setContentType(ContentType.APPLICATION_JSON)
+                        .setText(text)
+                        .build());
+    }
+
+    protected void restoreEndpoints(ServiceClient.RestorationClient client) throws IOException {
+        var app = developmentObject().getApplication();
+        if (app == null) return;
+        var schema = app.getDetectedSchema();
+        if (schema == null) return;
+
+        for (var appOc : schema.getObjectClass()) {
+            var name = appOc.getName();
+            var endpoints = appOc.getEndpoint();
+            if (endpoints == null || endpoints.isEmpty()) continue;
+
+            client.put("digester/{sessionId}/classes/" + name + "/endpoints", () ->
+                    EntityBuilder.create()
+                            .setContentType(ContentType.APPLICATION_JSON)
+                            .setText(ConnDevJsonMapper.mapEndpointsToJson(endpoints).toPrettyString())
+                            .build());
+        }
+    }
+
+    protected void restoreAttributes(ServiceClient.RestorationClient client) throws IOException {
+        var connector = developmentObject().getConnector();
+        if (connector == null) return;
+
+        for (var connectorOc : connector.getObjectClass()) {
+            var name = connectorOc.getName();
+            var attributes = connectorOc.getAttribute();
+            if (attributes == null || attributes.isEmpty()) continue;
+
+            client.put("digester/{sessionId}/classes/" + name + "/attributes", () ->
+                    EntityBuilder.create()
+                            .setContentType(ContentType.APPLICATION_JSON)
+                            .setText(ConnDevJsonMapper.mapAttributesToJson(attributes).toPrettyString())
+                            .build());
+        }
+    }
+
+    protected void restoreMetadata(ServiceClient.RestorationClient client) throws IOException {
+        var app = developmentObject().getApplication();
+        if (app == null) return;
+
+        var infoMetadata = JSON_FACTORY.objectNode();
+
+        if (app.getApplicationName() != null) {
+            infoMetadata.set("name", JSON_FACTORY.textNode(app.getApplicationName().getOrig()));
+        }
+        if (app.getVersion() != null) {
+            infoMetadata.set("applicationVersion", JSON_FACTORY.textNode(app.getVersion()));
+        }
+        if (app.getApiVersion() != null) {
+            infoMetadata.set("apiVersion", JSON_FACTORY.textNode(app.getApiVersion()));
+        }
+        if (app.getIntegrationType() != null) {
+            var apiTypeArray = JSON_FACTORY.arrayNode();
+            apiTypeArray.add(app.getIntegrationType().value());
+            infoMetadata.set("apiType", apiTypeArray);
+        }
+        if (app.getBaseApiEndpoint() != null) {
+            var endpointEntry = JSON_FACTORY.objectNode();
+            endpointEntry.set("uri", JSON_FACTORY.textNode(app.getBaseApiEndpoint()));
+            endpointEntry.set("type", JSON_FACTORY.textNode("constant"));
+            var endpointsArray = JSON_FACTORY.arrayNode();
+            endpointsArray.add(endpointEntry);
+            infoMetadata.set("baseApiEndpoint", endpointsArray);
+        }
+
+        var body = JSON_FACTORY.objectNode();
+        body.set("infoMetadata", infoMetadata);
+        var bodyText = body.toPrettyString();
+
+        client.put("digester/{sessionId}/metadata", () ->
+                EntityBuilder.create()
+                        .setContentType(ContentType.APPLICATION_JSON)
+                        .setText(bodyText)
+                        .build());
+    }
+
+    protected void restoreRelations(ServiceClient.RestorationClient client) throws IOException {
+        var app = developmentObject().getApplication();
+        if (app == null) return;
+        var schema = app.getDetectedSchema();
+        if (schema == null) return;
+
+        var relations = schema.getRelation();
+        if (relations == null || relations.isEmpty()) return;
+
+        client.put("digester/{sessionId}/relations", () ->
+                EntityBuilder.create()
+                        .setContentType(ContentType.APPLICATION_JSON)
+                        .setText(ConnDevJsonMapper.mapRelationsToJson(relations).toPrettyString())
+                        .build());
+    }
+
+    protected void restoreCodegenArtifacts(ServiceClient.RestorationClient client) throws IOException {
+        var connector = developmentObject().getConnector();
+        if (connector == null) return;
+
+        for (var oc : connector.getObjectClass()) {
+            var name = oc.getName();
+            putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/native-schema", oc.getNativeSchemaScript());
+            putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/connid", oc.getConnidSchemaScript());
+            putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/create", oc.getCreateScript());
+            putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/update", oc.getUpdateScript());
+            putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/delete", oc.getDeleteScript());
+            var searchAll = oc.getSearchAllOperation();
+            if (searchAll != null && searchAll.getFilename() != null && searchAll.getIntent() != null) {
+                putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/search/" + searchAll.getIntent().value(), searchAll);
+            }
+        }
+
+        for (var relation : connector.getRelation()) {
+            putCodegenArtifact(client, "codegen/{sessionId}/relations/" + relation.getName(), relation.getSchemaScript());
+        }
+
+        putCodegenArtifact(client, "codegen/{sessionId}/authorization", connector.getAuthenticationScript());
+    }
+
+    protected void putCodegenArtifact(ServiceClient.RestorationClient client, String path, ConnDevArtifactType artifact) throws IOException {
+        if (artifact == null || artifact.getFilename() == null) return;
+        var content = getArtifactContent(artifact).getContent();
+        if (content == null) return;
+        var body = JSON_FACTORY.objectNode();
+        body.set("code", JSON_FACTORY.textNode(content));
+        var bodyText = body.toPrettyString();
+        client.put(path, () -> EntityBuilder.create()
+                .setContentType(ContentType.APPLICATION_JSON)
+                .setText(bodyText)
+                .build());
+    }
+
+    protected List<ProcessedDocumentation> getProcessedDocumentation() {
+        return developmentObject().getProcessedDocumentation().stream()
+                .map(ProcessedDocumentation::new).toList();
+    }
+
+    public void ensureDocumentationIsUploaded(ServiceClient.RestorationClient client) {
+        try {
+            for (var documentation : getProcessedDocumentation()) {
+                client.putDocumentationIfMissing(
+                        "session/{sessionId}/documentation/" + documentation.uuid(), () -> {
+                            try {
+                                var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                                return EntityBuilder.create()
+                                        .setText(body)
+                                        .setContentType(ContentType.APPLICATION_JSON)
+                                        .build();
+                            } catch (IOException e) {
+                                throw new SystemException("Couldn't build documentation upload body", e);
+                            }
+                        });
+            }
+        } catch (Exception e) {
+            throw new SystemException("Couldn't upload documentation", e);
+        }
+    }
+
+    private String filenameFrom(ProcessedDocumentation documentation) {
+        /*
+        var suffix = switch (documentation.contentType()) {
+            case "application/yaml" -> "yml";
+            case "application/json" -> "json";
+            default -> "txt";
+        };
+        */
+        return documentation.uri();
+    }
+
 }

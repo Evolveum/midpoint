@@ -20,17 +20,20 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectTypeStatisticsActions;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -43,7 +46,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -52,14 +55,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestions;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
-import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyObjectTypePermissionData;
+import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDividerNoHeader;
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
@@ -71,6 +75,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     private static final String ID_FORM = "form";
 
     private IModel<Boolean> switchSuggestion = Model.of(Boolean.FALSE);
+    protected SerializableConsumer<AjaxRequestTarget> restartTimer;
 
     public SchemaHandlingObjectsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -88,6 +93,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         add(form);
 
         SmartAlertGeneratingPanel smartAlertGeneratingPanel = createSmartAlertGeneratingPanel(ID_AI_PANEL, switchSuggestion);
+        this.restartTimer = smartAlertGeneratingPanel::restartTimeBehavior;
         form.add(smartAlertGeneratingPanel);
 
         Component panel = createMultiValueListPanel(ID_TABLE);
@@ -123,28 +129,67 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
     protected @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(String idAiPanel,
             IModel<Boolean> switchSuggestion) {
-        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(idAiPanel,
-                () -> new SmartGeneratingAlertDto(null, Model.of(), getPageBase())) {
+
+        LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
             @Override
-            protected void performSuggestOperation(AjaxRequestTarget target) {
-                switchSuggestion.setObject(Boolean.TRUE);
-                onSuggestValue(createContainerModel(), target);
+            protected @NotNull SmartGeneratingAlertDto load() {
+                return new SmartGeneratingAlertDto(null, Model.of(), getPageBase());
+            }
+        };
+
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(idAiPanel, suggestionModel) {
+            @Override
+            protected void performSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                // We override the generate button, so this method should not be called at all.
             }
 
             @Override
-            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
-                return () -> new RequestDetailsRecordDto(null, initDummyObjectTypePermissionData());
+            protected void performRegenerateSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                // We override the generate button, so this method should not be called at all.
             }
 
             @Override
-            protected void refreshAssociatedComponents(@NotNull AjaxRequestTarget target) {
-                target.add(SchemaHandlingObjectsPanel.this);
+            protected @NotNull AjaxIconButton createGenerateButton(String buttonId) {
+                // We override this button, because we want to redirect to suggestion page without any confirmation
+                // dialog.
+                final AjaxIconButton generateButton = new AjaxIconButton(buttonId,
+                        Model.of("mr-2 fa fa-wand-magic-sparkles"),
+                        () -> translate("SmartGeneratingPanel.button.ai.suggestions.suggest")) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        switchSuggestion.setObject(Boolean.TRUE);
+                        onSuggestValue(createContainerModel(), target);
+                    }
+                };
+                generateButton.add(new VisibleBehaviour(() -> true));
+                generateButton.add(AttributeModifier.append("class", "bg-purple ml-auto"));
+                generateButton.setOutputMarkupId(true);
+                generateButton.showTitleAsLabel(true);
+                return generateButton;
+            }
+
+            @Override
+            protected IModel<List<ConfirmationOption<DataAccessPermission>>> getConfirmationOptions() {
+                // We override the generate button, so this method should not be called at all.
+                return Collections::emptyList;
+            }
+
+            @Override
+            protected void onRefresh(@NotNull AjaxRequestTarget target) {
+                // We override the generate button, so this method should not be called at all.
             }
         };
 
         aiPanel.setOutputMarkupId(true);
-        aiPanel.add(new VisibleBehaviour(switchSuggestion::getObject)); // Visible only when suggestions are enabled
+        aiPanel.add(new VisibleBehaviour(() -> getSwitchSuggestionModel().getObject() && !getTable().displayNoValuePanel()));
         return aiPanel;
+    }
+
+    protected SmartAlertGeneratingPanel getAiPanel() {
+        return (SmartAlertGeneratingPanel) get(ID_FORM).get(ID_AI_PANEL);
     }
 
     public <P extends Containerable> IModel<PrismContainerWrapper<P>> createContainerModel() {
@@ -152,7 +197,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     }
 
     protected @NotNull Component createMultiValueListPanel(String id) {
-        return new StatusAwareContainerListPanel<C>(id, getSchemaHandlingObjectsType()) {
+        Class<?> statusResultClass = ObjectTypesSuggestionType.class;
+        if (getSchemaHandlingObjectsType().equals(ShadowAssociationTypeDefinitionType.class)) {
+            statusResultClass = AssociationsSuggestionType.class;
+        }
+        return new StatusAwareContainerListPanel<C>(id, getSchemaHandlingObjectsType(), statusResultClass) {
 
             @Override
             protected StatusAwareDataFactory.SuggestionsModelDto<C> getSuggestionsModelDto() {
@@ -220,12 +269,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                             super.populateItem(cellItem, componentId, rowModel);
                             return;
                         }
-                        var style = SuggestionUiStyle.from(status);
-                        Label statusLabel = new Label(componentId, createStringResource(
-                                "ResourceObjectTypesPanel.suggestion." + status.value()));
-                        statusLabel.setOutputMarkupId(true);
-                        statusLabel.add(AttributeModifier.append("class", style.badgeClass));
-                        cellItem.add(statusLabel);
+
+                        cellItem.add(new EmptyPanel(componentId));
                     }
                 });
                 return columns;
@@ -241,7 +286,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             public @NotNull List<InlineMenuItem> getInlineMenuItems() {
                 List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
                 if (isStatisticsAllowed()) {
-                    inlineMenuItems.add(createStatisticsInlineMenu());
+                    inlineMenuItems.add(0, createObjectTypeStatisticsMenu());
+                    inlineMenuItems.add(1, createSectionDividerNoHeader());
                 }
                 return inlineMenuItems;
             }
@@ -257,31 +303,31 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                                 valueWrapper, statusInfo));
             }
 
-            public @NotNull InlineMenuItem createStatisticsInlineMenu() {
-                return new InlineMenuItem(createStringResource("Statistics.button.label")) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public InlineMenuItemAction initAction() {
-                        return new ColumnMenuAction<>() {
-                            @Serial private static final long serialVersionUID = 1L;
-
+            @NotNull InlineMenuItem createObjectTypeStatisticsMenu() {
+                return InlineMenuItemBuilder.create()
+                        .label(createStringResource("SmartMappingTable.objectTypeStatistics.resourceAttribute"))
+                        .icon("fa fa-bar-chart")
+                        .action(new ColumnMenuAction<>() {
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                if (getRowModel() != null) {
-                                    ResourceType resource = getObjectDetailsModels().getObjectType();
-                                    String resourceOid = resource.getOid();
 
-                                    var object = (PrismContainerValueWrapper<?>) getRowModel().getObject();
-                                    if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType objectDef) {
-                                        showStatisticsPanel(target, objectDef, getPageBase(), resourceOid);
-                                    }
-
+                                var object = (PrismContainerValueWrapper<?>) getRowModel().getObject();
+                                if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType objectDef) {
+                                    ResourceObjectTypeIdentification id = ResourceObjectTypeIdentification.of(objectDef);
+                                    ObjectTypeStatisticsActions.handleClick(
+                                            target,
+                                            getPageBase(),
+                                            getPageBase().getSmartIntegrationService(),
+                                            getResourceOid(),
+                                            id,
+                                            null,
+                                            false);
                                 }
+
                             }
-                        };
-                    }
-                };
+                        })
+                        .headerMenuItem(false)
+                        .buildInlineMenu();
             }
 
             @Override
@@ -313,7 +359,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     }
                 };
                 generateButton.add(new VisibleBehaviour(this::displayNoValuePanel));
-                generateButton.add(AttributeModifier.append("class", "btn btn-default btn-sm text-ai"));
+                generateButton.add(AttributeModifier.append("class", "btn bg-purple btn-sm"));
                 generateButton.setOutputMarkupId(true);
                 generateButton.showTitleAsLabel(true);
 

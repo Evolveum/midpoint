@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -614,6 +615,10 @@ public interface ResourceObjectDefinition
 
     default @NotNull S_FilterEntryOrEmpty queryFor() {
         return PrismContext.get().queryFor(ShadowType.class, new Resource.ResourceItemDefinitionResolver(this));
+    }
+
+    default @NotNull S_ItemEntry deltaFor() throws SchemaException {
+        return PrismContext.get().deltaFor(ShadowType.class, new Resource.ResourceItemDefinitionResolver(this));
     }
 
     default Collection<? extends ShadowAssociationDefinition> getAssociationDefinitionsFor(@NotNull ItemName refAttrName) {

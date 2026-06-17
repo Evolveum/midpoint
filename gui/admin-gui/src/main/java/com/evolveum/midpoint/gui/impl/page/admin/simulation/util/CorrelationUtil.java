@@ -6,6 +6,19 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.util;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.CorrelationStatus.UNCERTAIN;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.function.Predicate;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -21,38 +34,26 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.jetbrains.annotations.NotNull;
-
-import org.jetbrains.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.CorrelationStatus.UNCERTAIN;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.*;
 
 public class CorrelationUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationUtil.class);
 
     public enum CorrelationStatus {
-        CORRELATED("info-badge success-light", "Correlation.simulation.state.correlated"),
-        UNCERTAIN("info-badge warning-light", "Correlation.simulation.state.uncertain"),
-        NOT_CORRELATED("info-badge secondary-light", "Correlation.simulation.state.notCorrelated");
+        CORRELATED("badge badge-success badge-opaque", "Correlation.simulation.state.correlated"),
+        UNCERTAIN("badge badge-warning badge-opaque", "Correlation.simulation.state.uncertain"),
+        NOT_CORRELATED("badge badge-secondary badge-opaque", "Correlation.simulation.state.notCorrelated");
         private final String cssClass;
         private final String translationKey;
 
@@ -435,45 +436,46 @@ public class CorrelationUtil {
                 .orElse(null);
     }
 
-    public static @NotNull IModel<List<ResourceObjectOwnerOptionType>> getCorrelationCandidateModel(
-            @NotNull ProcessedObject<?> processedObject) {
+    public static ShadowType getShadowAfterChanges(ProcessedObject<ShadowType> processedObject) {
+        return Optional.ofNullable(processedObject.getAfter())
+                .orElseGet(() -> Optional.ofNullable(processedObject.getDelta())
+                        .filter(delta -> !delta.isEmpty())
+                        .map(delta -> {
+                            try {
+                                final PrismObject<ShadowType> prismShadowAfter = processedObject.getBefore()
+                                        .asPrismObject().mutableCopy();
+                                delta.applyTo(prismShadowAfter);
+                                return prismShadowAfter.asObjectable();
+                            } catch (SchemaException e) {
+                                throw SystemException.unexpected(e, "Unable to apply delta from simulation to \"before\" "
+                                        + "object ");
+                            }
+                        })
+                        .orElseGet(processedObject::getBefore));
+    }
+
+    public static @NotNull IModel<List<ResourceObjectOwnerOptionType>> getCorrelationCandidateModel(ShadowType shadow) {
         return new LoadableDetachableModel<>() {
 
             @Override
             protected List<ResourceObjectOwnerOptionType> load() {
-                @Nullable ObjectDelta<?> delta = processedObject.getDelta();
-                List<ResourceObjectOwnerOptionType> optionList = parseResourceObjectOwnerOptionsFromDelta(delta);
-                if (optionList != null) {return optionList;}
-
-                return Collections.emptyList();
+                return Optional.ofNullable(shadow.getCorrelation().getOwnerOptions())
+                        .map(ResourceObjectOwnerOptionsType::getOption)
+                        .map(options -> options.stream()
+                                // candidates may contain one "extra" candidate with meaning that maybe no owner
+                                // exist. We however do not want to show that on the correlation simulation UI,
+                                // because it is confusing.
+                                .filter(Predicate.not(option -> OwnerOptionIdentifier.fromStringValueForgiving(
+                                        option.getIdentifier()).isNoOwner()))
+                                .toList())
+                        .orElseGet(Collections::emptyList);
             }
         };
     }
 
-    public static @NotNull List<String> findCorrelatedOwners(@Nullable ObjectDelta<?> delta) {
-        List<String> correlatedOwnersOid = new ArrayList<>();
-        try {
-            if (delta != null) {
-                ItemPath path = ShadowType.F_CORRELATION
-                        .append(ShadowCorrelationStateType.F_RESULTING_OWNER);
-
-                ItemDelta<?, ?> itemDelta = delta.findItemDelta(path);
-                if (itemDelta == null) {
-                    return correlatedOwnersOid;
-                }
-                if (itemDelta instanceof ReferenceDelta referenceDelta) {
-                    Collection<PrismReferenceValue> valuesToReplace = referenceDelta.getValuesToReplace();
-                    if (valuesToReplace != null) {
-                        for (PrismReferenceValue value : valuesToReplace) {
-                            correlatedOwnersOid.add(value.getOid());
-                        }
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            LOGGER.error("Error retrieving correlated owners from delta: {}", ex.getMessage(), ex);
-        }
-        return correlatedOwnersOid;
+    public static Optional<String> getCorrelatedOwner(ShadowType shadow) {
+        return Optional.ofNullable(shadow.getCorrelation().getResultingOwner())
+                .map(AbstractReferencable::getOid);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -495,8 +497,12 @@ public class CorrelationUtil {
                         ResourceObjectOwnerOptionsType options =
                                 pcv.asContainerable(ResourceObjectOwnerOptionsType.class);
                         if (options != null) {
-                            List<ResourceObjectOwnerOptionType> option = options.getOption();
-                            optionList.addAll(option);
+                            List<ResourceObjectOwnerOptionType> filteredOptions =
+                                    options.getOption().stream()
+                                            .filter(o -> o.getCandidateOwnerRef() != null)
+                                            .filter(o -> o.getCandidateOwnerRef().getOid() != null)
+                                            .toList();
+                            optionList.addAll(filteredOptions);
                         }
                     }
                 }
@@ -541,7 +547,7 @@ public class CorrelationUtil {
     public static @NotNull CandidateDisplayData createCandidateDisplay(
             @NotNull PageBase pageBase,
             @NotNull List<ResourceObjectOwnerOptionType> candidates,
-            @NotNull List<String> correlatedOwnersOid) {
+            @Nullable String correlatedOwnersOid) {
         int count = candidates.size();
         CorrelationStatus state = CorrelationStatus.fromCount(count);
 
@@ -553,13 +559,13 @@ public class CorrelationUtil {
             return new CandidateDisplayData(name, GuiStyleConstants.CLASS_OBJECT_USER_ICON);
 
         } else if (state.equals(UNCERTAIN)) {
-            if (!correlatedOwnersOid.isEmpty()) {
+            if (correlatedOwnersOid != null) {
                 StringBuilder ownerNames = new StringBuilder();
                 ownerNames.append(pageBase.getString("CandidateDisplayData.matched.owner"));
                 ownerNames.append(" ");
                 for (ResourceObjectOwnerOptionType candidate : candidates) {
                     String candidateOid = candidate.getCandidateOwnerRef().getOid();
-                    if (correlatedOwnersOid.contains(candidateOid)) {
+                    if (correlatedOwnersOid.equals(candidateOid)) {
                         String name = WebModelServiceUtils.resolveReferenceName(
                                 candidate.getCandidateOwnerRef(), pageBase);
                         ownerNames.append(name);

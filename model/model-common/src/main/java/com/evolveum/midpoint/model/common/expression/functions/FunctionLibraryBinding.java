@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.functions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Any function library that can be used in scripts. Includes:
@@ -31,11 +32,22 @@ public class FunctionLibraryBinding {
     /** Implementation of the library - a Java object. */
     private final @NotNull Object implementation;
 
+    /** Parsed form of the library. Applied only to custom libraries (FunctionLibraryType). */
+    private final @Nullable FunctionLibrary parsedLibrary;
+
+    public FunctionLibraryBinding(
+            @NotNull String variableName,
+            @NotNull Object implementation,
+            @Nullable FunctionLibrary parsedLibrary) {
+        this.variableName = variableName;
+        this.implementation = implementation;
+        this.parsedLibrary = parsedLibrary;
+    }
+
     public FunctionLibraryBinding(
             @NotNull String variableName,
             @NotNull Object implementation) {
-        this.variableName = variableName;
-        this.implementation = implementation;
+        this(variableName, implementation, null);
     }
 
     public @NotNull String getVariableName() {
@@ -46,11 +58,16 @@ public class FunctionLibraryBinding {
         return implementation;
     }
 
+    public @Nullable FunctionLibrary getParsedLibrary() {
+        return parsedLibrary;
+    }
+
     @Override
     public String toString() {
         return "FunctionLibraryBinding{" +
                 "variableName='" + variableName + '\'' +
                 ", implementation=" + implementation +
+                ", parsedLibrary=" + parsedLibrary +
                 '}';
     }
 }

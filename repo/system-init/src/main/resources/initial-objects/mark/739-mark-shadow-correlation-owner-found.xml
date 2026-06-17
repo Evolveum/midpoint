@@ -21,7 +21,7 @@
             </translation>
         </label>
         <help>
-            <orig>Number of objects that were successfully correlated to resource owners.</orig>
+            <orig>Number of resource objects that were successfully correlated to their owners.</orig>
             <translation>
                 <key>SimulationCorrelationPanel.correlated.help</key>
             </translation>

@@ -5,13 +5,12 @@ import static org.testng.Assert.assertEquals;
 import java.io.File;
 import java.util.Optional;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.impl.AbstractEmptyInternalModelTest;
-import com.evolveum.midpoint.model.impl.correlator.tasks.CorrelationDefinitionProvider.ResourceWithObjectTypeId;
+import com.evolveum.midpoint.model.impl.correlation.ResourceCorrelationDefinitionProvider;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil;
@@ -44,13 +43,12 @@ public class ResourceCorrelationDefinitionProviderTest extends AbstractEmptyInte
         initDummyResource(CORRELATION_IN_SCHEMA_HANDLING, getTestTask(), getTestOperationResult());
         final ResourceType resource = CORRELATION_IN_SCHEMA_HANDLING.getObjectable();
         final ResourceObjectTypeDefinitionType objectType = extractFirstObjectType(resource);
-        final ResourceWithObjectTypeId resourceWithObjectTypeId = extractResourceAndObjectTypeIds(resource, objectType);
+        final ResourceObjectTypeIdentification resourceWithObjectTypeId = extractResourceAndObjectTypeIds(objectType);
 
         when("Resolver resolves correlation definition from given resource");
         final ResourceCorrelationDefinitionProvider correlationProvider = new ResourceCorrelationDefinitionProvider(
-                this.repositoryService, resourceWithObjectTypeId);
-        final CorrelationDefinitionType resolvedCorrelationDefinition = correlationProvider.get(
-                getTestOperationResult());
+                resource, resourceWithObjectTypeId);
+        final CorrelationDefinitionType resolvedCorrelationDefinition = correlationProvider.get();
 
         then("Resolved definition should match the definition in resource.");
         assertEquals(resolvedCorrelationDefinition, objectType.getCorrelation());
@@ -63,13 +61,12 @@ public class ResourceCorrelationDefinitionProviderTest extends AbstractEmptyInte
         initDummyResource(CORRELATION_IN_ATTRIBUTE, getTestTask(), getTestOperationResult());
         final ResourceType resource = CORRELATION_IN_ATTRIBUTE.getObjectable();
         final ResourceObjectTypeDefinitionType objectType = extractFirstObjectType(resource);
-        final ResourceWithObjectTypeId resourceWithObjectTypeId = extractResourceAndObjectTypeIds(resource, objectType);
+        final ResourceObjectTypeIdentification resourceWithObjectTypeId = extractResourceAndObjectTypeIds(objectType);
 
         when("Resolver resolves correlation definition from given resource");
         final ResourceCorrelationDefinitionProvider correlationProvider = new ResourceCorrelationDefinitionProvider(
-                this.repositoryService, resourceWithObjectTypeId);
-        final CorrelationDefinitionType resolvedCorrelationDefinition = correlationProvider.get(
-                getTestOperationResult());
+                resource, resourceWithObjectTypeId);
+        final CorrelationDefinitionType resolvedCorrelationDefinition = correlationProvider.get();
 
         then("Resolved definition should match the definition in resource.");
         final CorrelationDefinitionType mergedCorrelations = expectedCorrelationDefinition(resource, objectType);
@@ -83,13 +80,12 @@ public class ResourceCorrelationDefinitionProviderTest extends AbstractEmptyInte
         initDummyResource(CORRELATION_IN_SYNCHRONIZATION, getTestTask(), getTestOperationResult());
         final ResourceType resource = CORRELATION_IN_SYNCHRONIZATION.getObjectable();
         final ResourceObjectTypeDefinitionType objectType = extractFirstObjectType(resource);
-        final ResourceWithObjectTypeId resourceWithObjectTypeId = extractResourceAndObjectTypeIds(resource, objectType);
+        final ResourceObjectTypeIdentification resourceWithObjectTypeId = extractResourceAndObjectTypeIds(objectType);
 
         when("Resolver resolves correlation definition from given resource");
         final ResourceCorrelationDefinitionProvider correlationProvider = new ResourceCorrelationDefinitionProvider(
-                this.repositoryService, resourceWithObjectTypeId);
-        final CorrelationDefinitionType resolvedCorrelationDefinition = correlationProvider.get(
-                getTestOperationResult());
+                resource, resourceWithObjectTypeId);
+        final CorrelationDefinitionType resolvedCorrelationDefinition = correlationProvider.get();
 
         then("Resolved definition should match the definition in resource.");
         final CorrelationDefinitionType mergedCorrelations = expectedCorrelationDefinition(resource, objectType);
@@ -120,9 +116,9 @@ public class ResourceCorrelationDefinitionProviderTest extends AbstractEmptyInte
         return resource.getSchemaHandling().getObjectType().get(0);
     }
 
-    private static @NotNull ResourceWithObjectTypeId extractResourceAndObjectTypeIds(ResourceType resource,
+    private static ResourceObjectTypeIdentification extractResourceAndObjectTypeIds(
             ResourceObjectTypeDefinitionType objectType) {
-        return new ResourceWithObjectTypeId(resource.getOid(), objectType.getKind(), objectType.getIntent());
+        return ResourceObjectTypeIdentification.of(objectType.getKind(), objectType.getIntent());
     }
 
 }

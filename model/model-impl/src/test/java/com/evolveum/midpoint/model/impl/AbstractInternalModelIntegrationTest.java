@@ -49,6 +49,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 
     protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
     protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
+    protected static final String USER_BARBOSSA_USERNAME = "barbossa";
 
     protected static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");
     protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
@@ -56,6 +57,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 
     static final File USER_ELAINE_FILE = new File(COMMON_DIR, "user-elaine.xml");
     protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-11111111111e";
+    protected static final String USER_ELAINE_USERNAME = "elaine";
 
     // Largo does not have a full name set, employeeType=PIRATE
     protected static final File USER_LARGO_FILE = new File(COMMON_DIR, "user-largo.xml");

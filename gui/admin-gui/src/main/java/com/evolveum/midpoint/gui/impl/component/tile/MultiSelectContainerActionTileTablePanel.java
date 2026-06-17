@@ -6,24 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
+import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDivider;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
-
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-
-import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
-import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
-
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -31,44 +20,51 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
-import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
+import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable, T extends TemplateTile<PrismContainerValueWrapper<C>>>
         extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, T> {
@@ -121,15 +117,16 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        buttonsList.add(createTableActionToolbar(idButton));
-        buttonsList.add(createSuggestObjectButton(idButton));
+        createTableActionToolbar(buttonsList, idButton);
+
+        buttonsList.addAll(createSuggestObjectButton(idButton));
         ToggleCheckBoxPanel toggleSuggestionButton = createToggleSuggestionButton(idButton, switchToggleModel);
-        toggleSuggestionButton.add(new VisibleBehaviour(() -> !displayNoValuePanel()));
+        toggleSuggestionButton.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
         buttonsList.add(toggleSuggestionButton);
 
         AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(idButton, null);
         newObjectPerformButton.add(AttributeModifier.replace("class",
-                "text-nowrap btn btn-primary rounded text-nowrap mx-3"));
+                "text-nowrap btn btn-primary rounded ml-2"));
         newObjectPerformButton.add(new VisibleBehaviour(this::displayNoValuePanel));
         buttonsList.add(0, newObjectPerformButton);
         return buttonsList;
@@ -142,12 +139,15 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return headerContainer;
     }
 
-    protected RepeatingView createTableActionToolbar(String id) {
-        RepeatingView toolbar = new RepeatingView(id);
-        toolbar.add(createHeaderCheckBoxButton(toolbar.newChildId()));
-        toolbar.add(createDropDownActionButton(toolbar.newChildId()));
-        toolbar.setOutputMarkupId(true);
-        return toolbar;
+    protected void createTableActionToolbar(List<Component> buttonsList, String id) {
+        Fragment group = new Fragment(id, "headerActionToolbarFragment", this);
+        group.add(createHeaderCheckBoxButton("check"));
+        group.add(createDropDownActionButton("dropdown"));
+        group.setOutputMarkupPlaceholderTag(false);
+        group.setOutputMarkupId(true);
+        group.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
+        group.setRenderBodyOnly(true);
+        buttonsList.add(group);
     }
 
     @Override
@@ -179,12 +179,15 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<C> tileModel) {
         List<InlineMenuItem> allItems = new ArrayList<>();
+        allItems.add(createEditInlineMenu(tileModel));
+        allItems.add(createDuplicateInlineMenu(tileModel));
+        allItems.add(createSectionDivider());
+
         List<InlineMenuItem> menuItems = getDefaultMenuActions(tileModel);
         if (menuItems != null) {
             allItems.addAll(menuItems);
         }
-        allItems.add(createEditInlineMenu(tileModel));
-        allItems.add(createDuplicateInlineMenu(tileModel));
+
         return allItems;
     }
 
@@ -201,9 +204,9 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         if (isTile) {
             switch (value.getStatus()) {
                 case DELETED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger border-large-start"));
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger"));
                 case ADDED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success border-large-start"));
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success"));
                 default -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0"));
             }
             return;
@@ -235,9 +238,14 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             protected @NotNull String getSpecialDropdownMenuClass() {
                 return "dropdown-menu-end";
             }
+
+            @Override
+            protected boolean showIcon() {
+                return true;
+            }
         };
 
-        inlineMenu.setOutputMarkupPlaceholderTag(true);
+        inlineMenu.setOutputMarkupPlaceholderTag(false);
         inlineMenu.setOutputMarkupId(true);
         inlineMenu.add(AttributeAppender.append("class", "me-2"));
         inlineMenu.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
@@ -262,7 +270,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(AttributeAppender.replace("class",
-                "text-nowrap btn btn-primary rounded ms-auto text-nowrap me-2"));
+                "text-nowrap btn btn-outline-primary text-nowrap me-2"));
         return newObjectButton;
     }
 
@@ -280,6 +288,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
+            public @Nullable CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("text-danger fa-trash");
+            }
+
+            @Override
             public InlineMenuItemAction initAction() {
                 ColumnMenuAction<PrismContainerValueWrapper<C>> deleteColumnAction = createDeleteColumnAction();
                 if (model != null) {
@@ -294,6 +307,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     protected @NotNull InlineMenuItem createDuplicateInlineMenu(PrismContainerValueWrapper<C> tileModel) {
         return new InlineMenuItem(getPageBase().createStringResource("DuplicationProcessHelper.menu.duplicate")) {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public @Nullable CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-copy");
+            }
 
             @Override
             public InlineMenuItemAction initAction() {
@@ -341,8 +359,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected void setDefaultPagingSize(UserProfileStorage.@NotNull TableId tableId, Integer pageItemSize) {
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        UserProfileStorage userProfile = getBrowserTabSessionStorage().getUserProfile();
         userProfile.setPagingSize(tableId, pageItemSize);
     }
 
@@ -505,9 +522,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             }
         };
 
+        selectCheckbox.setOutputMarkupPlaceholderTag(false);
         selectCheckbox.setOutputMarkupId(true);
-        selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
         selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
+        selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
+        selectCheckbox.setRenderBodyOnly(true);
         return selectCheckbox;
     }
 
@@ -534,35 +553,50 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     @NotNull
-    protected AjaxIconButton createSuggestObjectButton(String idButton) {
-        AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton, Model.of("fa-solid fa-wand-magic-sparkles"),
-                createStringResource("SmartIntegration.suggestNew")) {
+    protected List<AjaxIconButton> createSuggestObjectButton(String idButton) {
+        AjaxIconButton generateButton;
+        if (suggestionConfirmationOptions().isEmpty()) {
+            generateButton = new AjaxIconButton(idButton, Model.of("fa-solid fa-wand-magic-sparkles"),
+                    createStringResource("Suggestion.button.suggest")) {
 
-            @Serial private static final long serialVersionUID = 1L;
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    onSuggestNewPerformed(target, Collections::emptyList);
+                }
+            };
+            generateButton.add(AttributeModifier.append("class", "btn rounded bg-purple"));
+        } else {
+            generateButton = SmartSuggestButtonWithConfirmation.create(idButton,
+                    createStringResource("Suggestion.button.suggest"),
+                    () -> GuiStyleConstants.CLASS_MAGIC_WAND,
+                    suggestionConfirmationOptions(),
+                    () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {},
+                            this::onSuggestNewPerformed),
+                    getPageBase());
+        }
+
+        generateButton.add(new VisibleBehaviour(() -> isSuggestButtonVisible() && displayNoValuePanel() && !isShowSuggestionsButtonVisible()));
+        generateButton.setOutputMarkupId(true);
+        generateButton.showTitleAsLabel(true);
+
+        AjaxIconButton showSuggestionsButton = new AjaxIconButton(idButton,
+                () -> GuiStyleConstants.CLASS_MAGIC_WAND,
+                () -> createStringResource("Suggestion.button.showSuggest").getString()) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                        buildSmartPermissionRecordDto()) {
-
-                    @Override
-                    public void yesPerformed(AjaxRequestTarget target) {
-                        onSuggestNewPerformed(target);
-                    }
-                };
-                getPageBase().showMainPopup(dialog, target);
+                getSwitchToggleModel().setObject(Boolean.TRUE);
+                target.add(MultiSelectContainerActionTileTablePanel.this);
+                refreshAndDetach(target);
             }
         };
+        showSuggestionsButton.add(new VisibleBehaviour(() -> displayNoValuePanel()
+                && isShowSuggestionsButtonVisible()));
+        showSuggestionsButton.add(AttributeModifier.append("class", "btn rounded bg-purple"));
+        showSuggestionsButton.setOutputMarkupId(true);
+        showSuggestionsButton.showTitleAsLabel(true);
 
-        suggestObjectButton.showTitleAsLabel(true);
-        suggestObjectButton.add(AttributeAppender.replace("class", "btn btn-default rounded me-2"));
-        suggestObjectButton.add(new VisibleBehaviour(this::isSuggestButtonVisible));
-        suggestObjectButton.setOutputMarkupId(true);
-        return suggestObjectButton;
-    }
-
-    protected IModel<RequestDetailsRecordDto> buildSmartPermissionRecordDto() {
-        return () -> new RequestDetailsRecordDto(null, null);
+        return List.of(generateButton, showSuggestionsButton);
     }
 
     @NotNull
@@ -625,11 +659,20 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return false;
     }
 
-    protected void onSuggestNewPerformed(AjaxRequestTarget target) {
+    protected boolean isShowSuggestionsButtonVisible() {
+        return false;
+    }
+
+    protected void onSuggestNewPerformed(AjaxRequestTarget target,
+            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+    }
+
+    protected List<ConfirmationOption<DataAccessPermission>> suggestionConfirmationOptions() {
+        return Collections.emptyList();
     }
 
     protected boolean isToggleSuggestionVisible() {
-        return getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel();
+        return !displayNoValuePanel();
     }
 
     protected IModel<Boolean> getSwitchToggleModel() {
@@ -719,7 +762,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     @Override
     protected String getAdditionalHeaderContainerCssClasses() {
-        return isTileViewVisible() ? "border-0 p-0" : "p-3";
+        return isTileViewVisible() ? "border-0 p-0" : "card-header";
     }
 
     @Override

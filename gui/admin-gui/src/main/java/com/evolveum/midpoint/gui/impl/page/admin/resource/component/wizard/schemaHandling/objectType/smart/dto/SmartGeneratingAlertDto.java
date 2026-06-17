@@ -25,14 +25,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.buildStatusRows;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.computeSuggestedObjectsCount;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.formatElapsedTime;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
 
 /**
@@ -113,27 +109,6 @@ public class SmartGeneratingAlertDto implements Serializable {
             }
         };
         return taskModel;
-    }
-
-    public String getTimeElapsed() {
-        if (statusInfo == null || statusInfo.getObject() == null) {
-            return "-";
-        }
-        return formatElapsedTime(statusInfo.getObject());
-    }
-
-    public String getLastUpdatedDate() {
-        if (statusInfo == null || statusInfo.getObject() == null) {
-            return null;
-        }
-        XMLGregorianCalendar realizationEndTimestamp = statusInfo.getObject().getRealizationEndTimestamp();
-        if (realizationEndTimestamp == null) {
-            return null;
-        }
-        ZonedDateTime zonedDateTime = realizationEndTimestamp.toGregorianCalendar().toZonedDateTime();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy, h:mm:ss a")
-                .withZone(ZoneId.systemDefault());
-        return formatter.format(zonedDateTime);
     }
 
     public LoadableModel<StatusInfo<?>> getStatusInfo() {
@@ -223,27 +198,32 @@ public class SmartGeneratingAlertDto implements Serializable {
 
     public IModel<String> getDefaultSubTextModel(PageBase pageBase) {
         SmartGenerationState state = resolveState();
-        Object[] args = null;
+
         if (state == SmartGenerationState.FINISHED) {
-            args = new Object[] { getSuggestedObjectsCount() };
-        }else if (state == SmartGenerationState.IN_PROGRESS && getSafeRow(pageBase) != null) {
-            StatusRowRecord safeRow = getSafeRow(pageBase);
-            args = new Object[] {safeRow.text().getObject()};
-        }else if (state == SmartGenerationState.FAILED && getStatusInfo() != null) {
-            StatusInfo<?> object = getStatusInfo().getObject();
-            String localizedMessage = object.getLocalizedMessage();
-            args = new Object[] {localizedMessage != null ? localizedMessage : ""};
+            return state.createSubTextModel(pageBase, getSuggestedObjectsCount());
         }
 
-        return state.createSubTextModel(pageBase, args);
+        if (state == SmartGenerationState.IN_PROGRESS) {
+            StatusRowRecord safeRow = getSafeRow(pageBase);
+            return safeRow != null
+                    ? state.createSubTextModel(pageBase, safeRow.text().getObject())
+                    : pageBase.createStringResource("SmartGeneratingDto.null");
+        }
+
+        if (state == SmartGenerationState.FAILED && getStatusInfo() != null) {
+            StatusInfo<?> status = getStatusInfo().getObject();
+            String localizedMessage = status != null ? status.getLocalizedMessage() : null;
+            return state.createSubTextModel(pageBase, localizedMessage != null ? localizedMessage : "");
+        }
+
+        return state.createSubTextModel(pageBase);
     }
 
     protected StatusRowRecord getSafeRow(PageBase pageBase) {
-        List<StatusRowRecord> statusRows = getStatusRows(pageBase);
-        if (!statusRows.isEmpty()) {
-            return statusRows.get(statusRows.size() - 1);
-        }
-        return null;
+        return getStatusRows(pageBase).stream()
+                .filter(row -> row.realizationState() != null)
+                .reduce((first, second) -> second) // last element
+                .orElse(null);
     }
 
     private int getSuggestedObjectsCount() {
@@ -283,5 +263,19 @@ public class SmartGeneratingAlertDto implements Serializable {
 
     public boolean isSuggestionDisplayed() {
         return switchToggleModel.getObject();
+    }
+
+    public XMLGregorianCalendar getSuggestedObjectsStartTime() {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return null;
+        }
+        return statusInfo.getObject().getRealizationStartTimestamp();
+    }
+
+    public XMLGregorianCalendar getSuggestedObjectsEndTime() {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return null;
+        }
+        return statusInfo.getObject().getRealizationEndTimestamp();
     }
 }

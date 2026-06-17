@@ -64,8 +64,10 @@ public class PathExpressionPanel extends EvaluatorExpressionPanel {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 String path = pathPanel.getBaseFormComponent().getConvertedInput();
-                updateEvaluatorValue(path);
-                target.add(getFeedback());
+                if (path != null) {
+                    updateEvaluatorValue(path);
+                    target.add(getFeedback());
+                }
             }
         });
 

@@ -22,13 +22,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerOptions;
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
@@ -43,6 +41,8 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
@@ -3010,7 +3010,7 @@ public final class WebComponentUtil {
         return false;
     }
 
-    private static Collection<ObjectDeltaOperation<? extends ObjectType>> saveTask(ObjectDelta<TaskType> delta, OperationResult result, PageBase pageBase) {
+    public static Collection<ObjectDeltaOperation<? extends ObjectType>> saveTask(ObjectDelta<TaskType> delta, OperationResult result, PageBase pageBase) {
         Task opTask = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveTask");
 
         if (LOGGER.isTraceEnabled()) {
@@ -3990,6 +3990,9 @@ public final class WebComponentUtil {
         OperationResult result = task.getResult();
         try {
             return service.getCompiledGuiProfile(task, result);
+        } catch (SecurityViolationException e) {
+            // Authentication was lost during request processing (e.g. logout)
+            throw new RestartResponseException(PageLogin.class);
         } catch (Throwable e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
             if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
@@ -4085,7 +4088,7 @@ public final class WebComponentUtil {
             //couldn't get deltas of items
         }
 
-        if (!deltas.isEmpty()) {
+        if (deltas != null && !deltas.isEmpty()) {
             new Toast()
                     .warning()
                     .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
@@ -4098,7 +4101,7 @@ public final class WebComponentUtil {
     }
 
     public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, PrismPropertyWrapper property) {
-        Collection<ItemDelta> deltas = List.of();
+        Collection<ItemDelta<?,?>> deltas = List.of();
         try {
             deltas = property.getDelta();
         } catch (SchemaException e) {
@@ -4108,8 +4111,8 @@ public final class WebComponentUtil {
         showToastForRecordedButUnsavedChanges(target, deltas);
     }
 
-    private static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta> deltas) {
-        if (!deltas.isEmpty()) {
+    public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta<?,?>> deltas) {
+        if (deltas != null && !deltas.isEmpty()) {
             new Toast()
                     .warning()
                     .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
@@ -4183,6 +4186,7 @@ public final class WebComponentUtil {
         return BooleanUtils.isTrue(profile.isEnableExperimentalFeatures());
     }
 
+    @Deprecated //Use {@link com.evolveum.midpoint.gui.api.page.PageAdminLTE#isDarkMode()}
     public static boolean isDarkModeEnabled() {
         MidPointAuthWebSession session = MidPointAuthWebSession.get();
         return session.getSessionStorage().getMode() == SessionStorage.Mode.DARK;
@@ -4309,6 +4313,19 @@ public final class WebComponentUtil {
         return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(key);
     }
 
+    public static void updateAjaxLinkAttributesForCtrlClickRedirection(AjaxRequestAttributes attributes) {
+        attributes.getDynamicExtraParameters().add(
+                "return { ctrlKey: Wicket.Event.fix(attrs.event).ctrlKey };"
+        );
+
+        attributes.getAjaxCallListeners().add(new AjaxCallListener() {
+            @Override
+            public CharSequence getPrecondition(Component component) {
+                return "return MidPointTheme.handleCtrlClick(attrs.event);";
+            }
+        });
+    }
+
     public static String getLabelForItemValue(PrismValueWrapper valueWrapper, PageBase pageBase){
         if (valueWrapper == null) {
             return "";
@@ -4324,5 +4341,30 @@ public final class WebComponentUtil {
         }
 
         return valueWrapper.toShortString();
+    }
+
+    // Ugly hack to make the backdrop static (clicking outside the popup does not close it).
+    public static void applyStaticPopupBackdrop(@NotNull PageBase pageBase) {
+        WebMarkupContainer overlay = (WebMarkupContainer) pageBase.getMainPopup().get("overlay");
+        if (overlay == null) return;
+
+        // Bootstrap 5
+        overlay.add(AttributeModifier.replace("data-bs-backdrop", "static"));
+        overlay.add(AttributeModifier.replace("data-bs-keyboard", "false"));
+
+        // Bootstrap 4
+        overlay.add(AttributeModifier.replace("data-backdrop", "static"));
+        overlay.add(AttributeModifier.replace("data-keyboard", "false"));
+    }
+
+    // Remove the static backdrop so future popups use their own defaults. TBD (not safe)
+    public static void restoreBackdropPopupDefaults(@NotNull PageBase pageBase) {
+        WebMarkupContainer overlay = (WebMarkupContainer) pageBase.getMainPopup().get("overlay");
+        if (overlay == null) return;
+
+        overlay.add(AttributeModifier.remove("data-bs-backdrop"));
+        overlay.add(AttributeModifier.remove("data-bs-keyboard"));
+        overlay.add(AttributeModifier.remove("data-backdrop"));
+        overlay.add(AttributeModifier.remove("data-keyboard"));
     }
 }

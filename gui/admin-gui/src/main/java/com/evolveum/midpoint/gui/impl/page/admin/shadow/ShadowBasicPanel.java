@@ -6,20 +6,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.shadow;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -30,15 +26,15 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
-import org.apache.wicket.model.LoadableDetachableModel;
+import java.io.Serial;
 
 /**
  * @author skublik
  *
  */
-public class ShadowBasicPanel extends AbstractShadowPanel {
+public class ShadowBasicPanel extends AbstractShadowPanel implements Popupable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowBasicPanel.class);
 
@@ -143,5 +139,35 @@ public class ShadowBasicPanel extends AbstractShadowPanel {
 
     private boolean isPolicyStatementSupported() {
         return getPageBase().getRepositoryService().supportsMarks();
+    }
+
+    @Override
+    public int getWidth() {
+        return 80;
+    }
+
+    @Override
+    public int getHeight() {
+        return 80;
+    }
+
+    @Override
+    public String getWidthUnit() {
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit() {
+        return "%";
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return createStringResource("ShadowBasicPanel.title");
+    }
+
+    @Override
+    public Component getContent() {
+        return this;
     }
 }

@@ -1,0 +1,83 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="simulation-change-values">
+
+        <div wicket:id="empty" class="text-muted font-italic">
+            <span wicket:id="emptyLabel"></span>
+        </div>
+
+        <div wicket:id="simple" class="simulation-change-simple d-flex align-items-center">
+            <span wicket:id="simpleOld" class="text-muted"></span>
+            <i class="mx-2 fa fa-arrow-right text-muted" aria-hidden="true"></i>
+            <span wicket:id="simpleNew"></span>
+        </div>
+
+        <div wicket:id="addOnly" class="simulation-change-simple d-flex align-items-center">
+            <span wicket:id="addOnlyOld" class="text-muted"></span>
+            <i class="mx-2 fa fa-arrow-right text-muted" aria-hidden="true"></i>
+            <span>
+                <div wicket:id="addOnlyValues">
+                    <div wicket:id="value" class="mb-1 simulation-value-pill"></div>
+                </div>
+                <div wicket:id="addOnlyMore" class="text-primary mt-1"></div>
+            </span>
+        </div>
+
+        <div wicket:id="deleteOnly" class="simulation-change-simple d-flex align-items-center">
+            <span>
+                <div wicket:id="deleteOnlyValues">
+                    <div wicket:id="value" class="mb-1"></div>
+                </div>
+                <div wicket:id="deleteOnlyMore" class="text-primary mt-1"></div>
+            </span>
+            <i class="mx-2 fa fa-arrow-right text-muted" aria-hidden="true"></i>
+            <span wicket:id="deleteOnlyNew" class="text-muted"></span>
+        </div>
+
+        <div wicket:id="multi" class="simulation-change-multi">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="text-uppercase small font-weight-semibold mb-2 text-dark">
+                        <wicket:message key="SimulationChangeValuesPanel.deletedValues"/>
+                    </div>
+                    <div wicket:id="multiRemoved">
+                        <div wicket:id="multiRemovedValue" class="mb-1"></div>
+                    </div>
+                    <div wicket:id="multiRemovedMore" class="text-primary mt-1"></div>
+                </div>
+
+                <div class="col-md-3 border-left">
+                    <div class="text-uppercase small font-weight-semibold mb-2 text-dark">
+                        <wicket:message key="SimulationChangeValuesPanel.addedValues"/>
+                    </div>
+                    <div wicket:id="multiAdded">
+                        <div wicket:id="multiAddedValue" class="mb-1 simulation-value-pill"></div>
+                    </div>
+                    <div wicket:id="multiAddedMore" class="text-primary mt-1"></div>
+                </div>
+
+                <div class="col-md-3 border-left">
+                    <div class="text-uppercase small font-weight-semibold mb-2 text-dark">
+                        <wicket:message key="SimulationChangeValuesPanel.unmodifiedValues"/>
+                    </div>
+                    <div class="text-muted" wicket:id="multiUnchangedCount"></div>
+                </div>
+
+                <div class="col-md-3 align-items-center d-flex">
+                    <div wicket:id="seeDetails" class="btn btn-default ">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

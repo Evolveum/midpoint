@@ -59,7 +59,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
 
     @Override
     protected ItemHeaderPanel createHeaderPanel() {
-        VerticalFormContainerHeaderPanel header = new VerticalFormContainerHeaderPanel(ID_HEADER, getModel()) {
+        VerticalFormContainerHeaderPanel header = new VerticalFormContainerHeaderPanel(ID_HEADER, getModel(), getSettings()) {
             @Override
             protected String getIcon() {
                 return VerticalFormPrismContainerPanel.this.getIcon();
@@ -96,7 +96,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
         };
         header.setOutputMarkupId(true);
 
-        if(isExpandedButtonVisible()) {
+        if (isExpandedButtonVisible()) {
             header.add(AttributeAppender.append("class", () -> getModelObject().isExpanded() ? "card-header" : ""));
         }
 
@@ -120,7 +120,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
         ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
 
-        if(getModelObject() != null && getModelObject().isExpanded()){
+        if (getModelObject() != null && getModelObject().isExpanded()) {
             item.getModel().getObject().setExpanded(true);
         }
         VerticalFormDefaultContainerablePanel<C> panel = new VerticalFormDefaultContainerablePanel<C>("value", item.getModel(), settings) {
@@ -182,7 +182,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
         return true;
     }
 
-    public Component getContainer(){
+    public Component getContainer() {
         return get(ID_CONTAINER);
     }
 }

@@ -9,24 +9,17 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createMappingsValueIfRequired;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestionNew;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
-import java.io.Serial;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-
-import com.evolveum.midpoint.web.session.SuggestionsStorage;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,11 +29,13 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
@@ -49,22 +44,27 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
+import com.evolveum.midpoint.web.session.SuggestionsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -88,6 +88,18 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     private static final String ID_TABLE = "table";
 
     IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
+    private SerializableConsumer<AjaxRequestTarget> restartTime;
+
+    LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
+        @Override
+        protected @NotNull SmartGeneratingAlertDto load() {
+            if (!Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
+                return new SmartGeneratingAlertDto(null, switchToggleModel, getPageBase());
+            }
+
+            return new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase());
+        }
+    };
 
     public CorrelationItemsTableWizardPanel(
             String id,
@@ -126,6 +138,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     private void initCorrelationPanel(String resourceOid) {
         SmartAlertGeneratingPanel aiPanel = createSmartAlertGeneratingPanel(resourceOid, switchToggleModel);
+        this.restartTime = aiPanel::restartTimeBehavior;
         add(aiPanel);
 
         SmartCorrelationTable table = createSmartCorrelationTable(switchToggleModel);
@@ -146,7 +159,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 if (resourceObjectTypeIdentification == null) {
                     return null;
                 }
-                return loadCorrelationTypeSuggestion(getPageBase(), resourceOid, resourceObjectTypeIdentification, task, result);
+                return loadLastCorrelationTypeSuggestion(getPageBase(), resourceOid, resourceObjectTypeIdentification, task, result);
             }
         };
     }
@@ -165,6 +178,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
             @Override
             public void refreshAndDetach(AjaxRequestTarget target) {
+                suggestionModel.detach();
                 super.refreshAndDetach(target);
 
                 if (getFeedback().hasErrorMessage()) {
@@ -179,40 +193,40 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             }
 
             @Override
+            protected boolean isToggleSuggestionVisible() {
+                return super.isToggleSuggestionVisible() && !isAssociationView();
+            }
+
+            @Override
+            protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+                CorrelationItemsTableWizardPanel.this.buildSimulationResultPanel(target, simulationResultTypeIModel);
+            }
+
+            @Override
             public boolean displayNoValuePanel() {
                 return super.displayNoValuePanel() && !switchToggleModel.getObject();
             }
 
+            @Override
+            public void onSuggestNewPerformed(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                super.onSuggestNewPerformed(target, confirmedOptions);
+                restartTime.accept(target);
+            }
 
             @Override
-            protected @NotNull List<Component> createToolbarButtonsList(String idButton) {
-                List<Component> toolbarButtonsList = super.createToolbarButtonsList(idButton);
-                AjaxIconButton generateButton = new AjaxIconButton(idButton, new Model<>(GuiStyleConstants.CLASS_MAGIC_WAND),
-                        () -> isSuggestionExists(loadExistingSuggestion().getObject())
-                                ? createStringResource("Suggestion.button.showSuggest").getString()
-                                : createStringResource("Suggestion.button.suggest").getString()) {
+            protected List<ConfirmationOption<DataAccessPermission>> suggestionConfirmationOptions() {
+                return ConfirmationOption.correlationPermissionsOptions();
+            }
 
-                    @Serial private static final long serialVersionUID = 1L;
+            @Override
+            protected boolean isSuggestButtonVisible() {
+                return !isAssociationView() && super.isSuggestButtonVisible();
+            }
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        if (isSuggestionExists(loadExistingSuggestion().getObject())) {
-                            getSwitchToggleModel().setObject(Boolean.TRUE);
-                        } else {
-                            onSuggestNewPerformed(target);
-                        }
-
-                        target.add(CorrelationItemsTableWizardPanel.this);
-                        refreshAndDetach(target);
-                    }
-                };
-                generateButton.add(new VisibleBehaviour(this::displayNoValuePanel));
-                generateButton.add(AttributeModifier.append("class", "btn btn-default text-ai rounded"));
-                generateButton.setOutputMarkupId(true);
-                generateButton.showTitleAsLabel(true);
-
-                toolbarButtonsList.add(generateButton);
-                return toolbarButtonsList;
+            @Override
+            protected boolean isShowSuggestionsButtonVisible() {
+                return isSuggestionExists(loadExistingSuggestion().getObject());
             }
 
             @Override
@@ -224,7 +238,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 if (rowModel == null) {
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(
                             getPageBase(), null, target);
-                    showTableForItemRefs(target, this::findResourceObjectTypeDefinition, () -> newValue, null);
+                    showTableForItemRefs(target, this::findAssociatedParentContainerWrapper, () -> newValue, null);
                     return;
                 }
 
@@ -232,10 +246,10 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> object = rowModel.getObject();
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(
                             getPageBase(), object.getNewValue(), target);
-                    showTableForItemRefs(target, this::findResourceObjectTypeDefinition, () -> newValue, null);
+                    showTableForItemRefs(target, this::findAssociatedParentContainerWrapper, () -> newValue, null);
                 }
 
-                showTableForItemRefs(target, this::findResourceObjectTypeDefinition, rowModel, null);
+                showTableForItemRefs(target, this::findAssociatedParentContainerWrapper, rowModel, null);
             }
 
             @Override
@@ -245,22 +259,41 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 if (rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
                     return;
                 }
-                showTableForItemRefs(target, this::findResourceObjectTypeDefinition, rowModel, statusInfo);
+                showTableForItemRefs(target, this::findAssociatedParentContainerWrapper, rowModel, statusInfo);
             }
 
             @Override
             public void acceptSuggestionItemPerformed(AjaxRequestTarget target,
                     @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
                     StatusInfo<CorrelationSuggestionsType> statusInfo) {
-                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceObjectTypeDefinition =
-                        findResourceObjectTypeDefinition();
-                CorrelationItemsTableWizardPanel.this.acceptSuggestionItemPerformed(
-                        getPageBase(), target, rowModel, () -> resourceObjectTypeDefinition, statusInfo);
+
+                PrismContainerValueWrapper<? extends Containerable> parent = findAssociatedParentContainerWrapper();
+                if (parent == null || parent.getRealValue() == null) {
+                    return;
+                }
+
+                if (parent.getRealValue() instanceof ResourceObjectTypeDefinitionType) {
+                    @SuppressWarnings("unchecked")
+                    PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> rotWrapper =
+                            (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) parent;
+                    CorrelationItemsTableWizardPanel.this.acceptSuggestionItemPerformed(
+                            getPageBase(), target, rowModel, () -> rotWrapper, statusInfo);
+                }
             }
 
             @Override
-            protected ResourceType getResourceType() {
-                return getAssignmentHolderDetailsModel().getObjectType();
+            protected @NotNull ResourceType getResourceType() {
+                ResourceDetailsModel resourceDetailsModel = getAssignmentHolderDetailsModel();
+                PrismObjectWrapper<ResourceType> objectWrapper = resourceDetailsModel.getObjectWrapper();
+                PrismObject<ResourceType> objectApplyDelta;
+                try {
+                    objectApplyDelta = objectWrapper.getObjectApplyDelta();
+                } catch (CommonException e) {
+                    LOGGER.error("Couldn't get resource object with applied delta, returning the original object. Details: {}", e.getMessage(), e);
+                    return objectWrapper.getObject().asObjectable();
+                }
+
+                return objectApplyDelta.asObjectable();
             }
 
             @SuppressWarnings("unchecked")
@@ -271,9 +304,13 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     AssignmentObjectRelation relationSpec,
                     boolean isDuplicate,
                     StatusInfo<?> statusInfo) {
+
                 PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(
                         getPageBase(), value, target);
-                showTableForItemRefs(target, this::findResourceObjectTypeDefinition,
+                if (newValue == null) {
+                    return;
+                }
+                showTableForItemRefs(target, this::findAssociatedParentContainerWrapper,
                         () -> newValue, (StatusInfo<CorrelationSuggestionsType>) statusInfo);
             }
         };
@@ -285,10 +322,27 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
             String resourceOid,
             @NotNull IModel<Boolean> switchToggleModel) {
-        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
-                () -> new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase())) {
+
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL, suggestionModel) {
             @Override
-            protected void performSuggestOperation(AjaxRequestTarget target) {
+            protected void performSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                submitSuggestCorrelation(target, confirmedOptions, false);
+            }
+
+            @Override
+            protected void performRegenerateSuggestOperation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                submitSuggestCorrelation(target, confirmedOptions, true);
+            }
+
+            private void submitSuggestCorrelation(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+                    boolean forceRecomputeSchemaMatch) {
+                final List<DataAccessPermissionType> permissions = confirmedOptions.getObject().stream()
+                        .map(ConfirmationOption::option)
+                        .map(DataAccessPermission::toSchemaType)
+                        .toList();
                 ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
                 SmartIntegrationService service = getPageBase().getSmartIntegrationService();
                 getPageBase().taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
@@ -296,23 +350,25 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                                 .withHideSuccess(true)
                                 .withHideInProgress(true))
                         .runVoid((task, result) -> service
-                                .submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, task, result));
+                                .submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, permissions,
+                                        forceRecomputeSchemaMatch, task, result));
             }
 
             @Override
-            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
-                return () -> new RequestDetailsRecordDto(null,
-                        RequestDetailsRecordDto.initDummyCorrelationPermissionData());
+            protected IModel<List<ConfirmationOption<DataAccessPermission>>> getConfirmationOptions() {
+                final List<ConfirmationOption<DataAccessPermission>> confirmationOptions =
+                        ConfirmationOption.correlationPermissionsOptions();
+                return () -> confirmationOptions;
             }
 
             @Override
-            protected void refreshAssociatedComponents(@NotNull AjaxRequestTarget target) {
+            protected void onRefresh(@NotNull AjaxRequestTarget target) {
                 SmartCorrelationTable smartMappingTable = getTable();
                 smartMappingTable.refreshAndDetach(target);
             }
 
             @Override
-            protected void onFinishActionPerform(AjaxRequestTarget target) {
+            protected void onSuggestionFinish(AjaxRequestTarget target) {
                 getTable().refreshAndDetach(target);
             }
         };
@@ -401,7 +457,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             PrismContainerValue<ItemsSubCorrelatorType> value,
             AjaxRequestTarget target) {
         return SmartIntegrationWrapperUtils.createNewItemsSubCorrelatorValue(
-                pageBase, getValueModel(), value, target);
+                pageBase, getFeedback(), getValueModel(), value, target);
     }
 
     private @NotNull Boolean isNotShownContainerInfo() {
@@ -437,9 +493,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         return false;
     }
 
-    protected abstract void showTableForItemRefs(
+    protected abstract <C extends Containerable> void showTableForItemRefs(
             @NotNull AjaxRequestTarget target,
-            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
+            @NotNull IModel<PrismContainerValueWrapper<C>> parentContainerDefWrapper,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
             @Nullable StatusInfo<CorrelationSuggestionsType> statusInfo);
 
@@ -450,38 +506,15 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        PageBase pageBase = getPageBase();
         super.onSubmitPerformed(target);
-        displaySynchronizationDialog(pageBase, target);
-    }
-
-    protected void displaySynchronizationDialog(@NotNull PageBase pageBase, AjaxRequestTarget target) {
-        ResourceObjectTypeDefinitionType resourceObjectDefinition = getResourceObjectDefinition();
-        if (resourceObjectDefinition == null) {
-            return;
-        }
-        SynchronizationReactionsType synchronization = getResourceObjectDefinition().getSynchronization();
-        if (synchronization == null
-                || synchronization.getReaction() == null
-                || synchronization.getReaction().isEmpty()) {
-
-            ConfirmationPanel confirmPanel = new ConfirmationPanel(
-                    pageBase.getMainPopupBodyId(),
-                    pageBase.createStringResource("CorrelationWizardPanelWizardPanel.noSynchronization.info")) {
-                @Override
-                public void yesPerformed(AjaxRequestTarget target) {
-                    navigateToSynchronizationPanel(target);
-                }
-            };
-            pageBase.showMainPopup(confirmPanel, target);
-        }
-    }
-
-    protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
     }
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
+        if (isAssociationView()) {
+            return;
+        }
+
         SimulationActionTaskButton<?> simulationActionTaskButton = createSimulationMenuButton(buttons);
         buttons.add(simulationActionTaskButton);
     }
@@ -495,6 +528,17 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     @Override
                     protected boolean isSamplingEnabled() {
                         return true;
+                    }
+
+                    @Override
+                    protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+                        ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
+                        if (simulationResultReference == null || simulationResultReference.getOid() == null) {
+                            LOGGER.error("Simulation result reference or OID is null for task {}", task.getName());
+                            return;
+                        }
+                        SimulationResultType simulationResultType = loadSimulationResult(pageBase, simulationResultReference.getOid());
+                        buildSimulationResultPanel(target, Model.of(simulationResultType));
                     }
 
                     @Override
@@ -558,5 +602,27 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     protected String getPanelType() {
         return PANEL_TYPE;
+    }
+
+    protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
+        // override in case of simulation result panel is needed
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-12";
+    }
+
+    protected boolean isAssociationView() {
+        return false;
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "";
+    }
+
+    protected IModel<Boolean> getSwitchToggleModel() {
+        return switchToggleModel;
     }
 }

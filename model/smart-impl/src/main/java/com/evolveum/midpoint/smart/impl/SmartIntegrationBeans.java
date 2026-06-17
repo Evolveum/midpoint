@@ -19,8 +19,6 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelService;
 
-import org.springframework.stereotype.Repository;
-
 /**
  * Commonly-used beans for smart-impl module.
  *
@@ -36,6 +34,8 @@ public class SmartIntegrationBeans {
     @Autowired public ModelService modelService;
     @Autowired public RepositoryService repositoryService;
     @Autowired public SmartIntegrationServiceImpl smartIntegrationService;
+    @Autowired public SchemaMatchService schemaMatchService;
+    @Autowired public StatisticsService statisticsService;
     @Autowired public Clock clock;
     @Autowired public LocalizationService localizationService;
     @Autowired public Protector protector;

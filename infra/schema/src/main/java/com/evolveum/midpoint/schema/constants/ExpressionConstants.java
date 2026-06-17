@@ -112,6 +112,16 @@ public class ExpressionConstants {
 
     public static final String VAR_REFERENCE_TIME = "referenceTime";
 
+    /**
+     * Used to represent current time in expression environments that do not have native method to get current time (e.g. CEL).
+     */
+    public static final String VAR_NOW = "now";
+
+    /**
+     * variable used to mimic nil/null literal in MEL.
+     */
+    public static final String VAR_NIL = "nil";
+
     // Variables used in object merging expressions
     public static final String VAR_SIDE = "side";
     public static final String VAR_OBJECT_LEFT = "objectLeft";
@@ -185,4 +195,10 @@ public class ExpressionConstants {
     public static final String VAR_CORRELATION_CONTEXT = "correlationContext";
     public static final String VAR_CORRELATOR_STATE = "correlatorState";
     public static final String VAR_PROCESSED_OBJECT = "processedObject";
+
+    public static boolean isDeprecated(String variableName) {
+        return VAR_USER.equals(variableName) ||
+                VAR_ACCOUNT.equals(variableName) ||
+                VAR_SHADOW.equals(variableName);
+    }
 }

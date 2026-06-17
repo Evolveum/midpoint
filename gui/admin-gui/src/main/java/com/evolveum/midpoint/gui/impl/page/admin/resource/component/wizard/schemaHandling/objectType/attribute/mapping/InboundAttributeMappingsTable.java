@@ -43,12 +43,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.excludeUnwantedMappings;
 
 /**
  * @author lskublik
  */
-public abstract class InboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P, ResourceAttributeDefinitionType>{
+public abstract class InboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P, ResourceAttributeDefinitionType> {
     public InboundAttributeMappingsTable(
             String id, IModel<PrismContainerValueWrapper<P>> valueModel,
             ContainerPanelConfigurationType config) {
@@ -100,7 +101,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                 for (MappingUsedFor usedFor : Arrays.stream(MappingUsedFor.values()).toList()) {
                     if (usedFor.getType().equals(mappingUsed)) {
                         return new DisplayType()
-                                .tooltip(usedFor.getTooltip())
+                                .tooltip(translate(usedFor.getTooltip()))
                                 .beginIcon()
                                 .cssClass(usedFor.getIcon())
                                 .end();
@@ -193,12 +194,16 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
         return dropdown;
     }
 
+    protected IModel<List<PrismContainerValueWrapper<MappingType>>> getMappingValuesModel() {
+        return new PropertyModel<>(getContainerModel(), "values");
+    }
+
     @Override
     protected ISelectableDataProvider<PrismContainerValueWrapper<MappingType>> createProvider() {
         return new MultivalueContainerListDataProvider<>(
                 InboundAttributeMappingsTable.this,
                 getSearchModel(),
-                new PropertyModel<>(getContainerModel(), "values")) {
+                getMappingValuesModel()) {
 
             @Override
             protected List<PrismContainerValueWrapper<MappingType>> searchThroughList() {

@@ -19,6 +19,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.smart.impl.scoring.FilterValidationException;
 import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -61,11 +63,19 @@ class ObjectTypesSuggestionOperation {
     private final OperationContext ctx;
     private final ObjectTypeFiltersValidator filtersValidator;
     private final QName typeName;
+    @Nullable private final RegenerateMode regenerateMode;
+    @Nullable private final List<ResourceObjectTypeDefinitionType> previousObjectTypes;
 
-    ObjectTypesSuggestionOperation(OperationContext context, ObjectTypeFiltersValidator filtersValidator) {
+    ObjectTypesSuggestionOperation(
+            OperationContext context,
+            ObjectTypeFiltersValidator filtersValidator,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes) {
         this.ctx = context;
         this.filtersValidator = filtersValidator;
         this.typeName = ctx.objectClassDefinition.getTypeName();
+        this.regenerateMode = regenerateMode;
+        this.previousObjectTypes = previousObjectTypes;
     }
 
     /**
@@ -78,7 +88,7 @@ class ObjectTypesSuggestionOperation {
     ObjectTypesSuggestionType suggestObjectTypes(
             ShadowObjectClassStatisticsType shadowObjectClassStatistics,
             OperationResult parentResult)
-            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException {
         Collection<ObjectTypeWithFilters> suggestedObjectTypes = null;
         List<SiValidationErrorFeedbackEntryType> validationFeedback = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
@@ -164,7 +174,7 @@ class ObjectTypesSuggestionOperation {
     private Collection<ObjectTypeWithFilters> parseAndValidateFilters(
             List<SiSuggestedObjectTypeType> objectTypes,
             OperationResult parentResult)
-            throws SuggestObjectTypesValidationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+            throws SuggestObjectTypesValidationException, CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException {
 
         final List<ObjectTypeWithFilters> objectTypesWithFilters = new ArrayList<>();
         boolean hasAnyErrors = false;
@@ -181,7 +191,7 @@ class ObjectTypesSuggestionOperation {
                         clause = parseAndSerializeFilter(filterString, ctx.objectClassDefinition.getPrismObjectDefinition());
                         filtersValidator.testObjectTypeFilter(ctx.resource.getOid(), typeName, clause, ctx.task, parentResult);
                         parsedFilterWithError.add(new FilterClauseWithError(clause, null));
-                    } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException e) {
+                    } catch (SchemaException | FilterValidationException e) {
                         LOGGER.warn("Failed validating filter clause for suggested object type (kind={}, intent={}, displayName={}) for object class {}. Clause: {}",
                                 objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(), typeName, filterString, e);
                         if (clause == null) {
@@ -197,7 +207,7 @@ class ObjectTypesSuggestionOperation {
                 try {
                     baseCtx = parseBaseContext(objectType.getBaseContextObjectClassName(), objectType.getBaseContextFilter());
                     filtersValidator.testBaseContextFilter(ctx.resource.getOid(), baseCtx.classQName(), baseCtx.filter(), ctx.task, parentResult);
-                } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException | IllegalStateException e) {
+                } catch (SchemaException | IllegalStateException | FilterValidationException e) {
                     LOGGER.warn("Failed validating base context for suggested object type (kind={}, intent={}, displayName={}). Base context objectClass={}, filter={}",
                             objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(),
                             typeName, objectType.getBaseContextFilter(), e);
@@ -237,6 +247,14 @@ class ObjectTypesSuggestionOperation {
         if (validationFeedback != null && !validationFeedback.isEmpty()) {
             siRequest.getValidationErrorFeedback().addAll(validationFeedback);
         }
+        if (regenerateMode != null) {
+            siRequest.setRegenerateMode(regenerateMode.name());
+        }
+        if (previousObjectTypes != null && !previousObjectTypes.isEmpty()) {
+            for (var objectType : previousObjectTypes) {
+                siRequest.getPreviousDelineation().add(toSiSuggestedObjectType(objectType));
+            }
+        }
         var siResponse = ctx.serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class);
         stripBlankStrings(siResponse);
         return siResponse;
@@ -249,6 +267,34 @@ class ObjectTypesSuggestionOperation {
             objectType.setBaseContextObjectClassName(nullIfEmpty(objectType.getBaseContextObjectClassName()));
             objectType.setBaseContextFilter(nullIfEmpty(objectType.getBaseContextFilter()));
         }
+    }
+
+    private static SiSuggestedObjectTypeType toSiSuggestedObjectType(
+            ResourceObjectTypeDefinitionType objectType) {
+        var si = new SiSuggestedObjectTypeType()
+                .kind(objectType.getKind() != null ? objectType.getKind().value() : null)
+                .intent(objectType.getIntent())
+                .displayName(objectType.getDisplayName())
+                .description(objectType.getDescription());
+        var delineation = objectType.getDelineation();
+        if (delineation != null) {
+            for (var filter : delineation.getFilter()) {
+                var text = filter.getText();
+                if (text != null) {
+                    si.getFilter().add(text);
+                }
+            }
+            var baseCtx = delineation.getBaseContext();
+            if (baseCtx != null) {
+                if (baseCtx.getFilter() != null) {
+                    si.setBaseContextFilter(baseCtx.getFilter().getText());
+                }
+                if (baseCtx.getObjectClass() != null) {
+                    si.setBaseContextObjectClassName(baseCtx.getObjectClass().getLocalPart());
+                }
+            }
+        }
+        return si;
     }
 
     private static SearchFilterType parseAndSerializeFilter(

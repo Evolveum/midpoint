@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -129,6 +131,14 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
 
     public List<FilterableSearchItemWrapper<?>> getItems() {
         return basicQueryWrapper.getItemsList();
+    }
+
+    public void detachSearchItemWrappersModels() {
+        getItems().forEach(searchItem -> {
+                searchItem.getTitle().detach();
+                searchItem.getName().detach();
+                searchItem.getHelp().detach();
+        });
     }
 
     public SearchBoxModeType getSearchMode() {
@@ -555,29 +565,29 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
     }
 
     /**
-     * todo review
-     *  temporary decision to fix MID-8734, should be discussed later
-     *  saved filters cannot be reloaded from the compiledGuiProfile at the moment, because
-     *  GuiProfileCompiler.compileFocusProfile doesn't get the new filter changes while its saving
+     * Compiled user profile will be reloaded after the changes were saved to user,
+     * therefore we reload the saved filters list from the compiled object collection view
      *
      * @param parentPage
      */
     public void reloadSavedFilters(PageAdminLTE parentPage) {
         CompiledObjectCollectionView view = determineObjectCollectionView(parentPage);
-        if (view == null) {
+        if (view == null || StringUtils.isEmpty(view.getViewIdentifier())) {
+            LOGGER.error("Couldn't reload saved filters (availableFilter) from search box configuration of the current collection view.");
             return;
         }
-        String principalOid = parentPage.getPrincipalFocus().getOid();
-        Task task = parentPage.createSimpleTask(OPERATION_LOAD_PRINCIPAL);
-        OperationResult result = task.getResult();
-        PrismObject<UserType> loggedUser = WebModelServiceUtils.loadObject(UserType.class, principalOid, parentPage, task, result);
-        GuiObjectListViewType userView = WebComponentUtil.getPrincipalUserObjectListView(parentPage, loggedUser.asObjectable(),
-                (Class<? extends Containerable>) getTypeClass(), false, view.getViewIdentifier());
-        if (userView != null) {
-            SearchBoxConfigurationType config = userView.getSearchBoxConfiguration();
-            if (config != null) {
-                availableFilterTypes = config.getAvailableFilter();
-            }
+        CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile();
+        var compiledView = profile.getObjectCollectionViews()
+                .stream()
+                .filter(v -> view.getViewIdentifier().equals(v.getViewIdentifier()))
+                .findFirst()
+                .orElse(null);
+        if (compiledView == null) {
+            return;
+        }
+        SearchBoxConfigurationType config = compiledView.getSearchBoxConfiguration();
+        if (config != null) {
+            availableFilterTypes = config.getAvailableFilter();
         }
     }
 }

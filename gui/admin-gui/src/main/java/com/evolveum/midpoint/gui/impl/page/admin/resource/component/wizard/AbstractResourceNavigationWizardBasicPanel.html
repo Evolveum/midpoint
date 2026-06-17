@@ -22,9 +22,7 @@
         <h2 class="text-center mb-1 fw-bold" wicket:id="text"></h2>
         <h5 class="text-center text-secondary" wicket:id="subText"></h5>
 
-        <div class="d-flex gap-3 justify-content-start" wicket:id="buttonsContainer">
-            <a class="btn" wicket:id="buttons"></a>
-        </div>
+        <div class="d-flex gap-3 justify-content-start" wicket:id="buttonsContainer"></div>
 
         <div class="col-12 p-0 mt-1">
             <div wicket:id="feedbackContainer" class="feedbackContainer mx-auto p-0">
@@ -33,6 +31,20 @@
             <wicket:child/>
         </div>
     </div>
+
+    <wicket:fragment wicket:id="buttonFragment">
+        <div wicket:id="backContainer" class="wizard-actions-container">
+            <a class="btn btn-outline-primary" wicket:id="back"></a>
+        </div>
+
+        <div wicket:id="exitContainer" class="wizard-actions-container">
+            <a class="btn btn-link" wicket:id="exit"></a>
+        </div>
+
+        <div wicket:id="customButtonsContainer" class="wizard-actions-container gap-2">
+            <a class="btn" wicket:id="buttons"></a>
+        </div>
+    </wicket:fragment>
 </wicket:panel>
 </body>
 </html>

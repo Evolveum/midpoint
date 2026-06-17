@@ -7,14 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.CheckPanel;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -22,8 +14,14 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-
 import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.CheckPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
 
 public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismContainerValueWrapper<ConnDevDocumentationSourceType>> {
 
@@ -44,7 +42,7 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
     }
 
     protected void initLayout() {
-        add(AttributeAppender.append("class", () -> "mb-2 tile-panel d-flex flex-row vertical align-items-center rounded justify-content-start selectable"));
+        add(AttributeAppender.append("class", () -> "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-start selectable gen-tile"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         add(AttributeAppender.append("aria-checked", () -> getModelObject().isSelected() ? "true" : "false"));
         setOutputMarkupId(true);
@@ -102,5 +100,6 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
     }
 
     protected void onDelete(DocumentationTile modelObject, AjaxRequestTarget target) {
+        // FIXME: Implement delete operation
     }
 }

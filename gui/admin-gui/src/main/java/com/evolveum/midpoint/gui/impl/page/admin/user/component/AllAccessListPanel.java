@@ -34,6 +34,7 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.WidgetFocusTrimContribution;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.Channel;
@@ -61,6 +62,16 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
 
     public AllAccessListPanel(String id, UserDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
+    }
+
+    /**
+     * Contributes self-dashboard trim behavior for the all-accesses widget.
+     *
+     * <p>The widget is driven by {@code roleMembershipRef}, but it enriches rows from matching assignments.
+     * The trim plan therefore keeps assignments whose targets match the preserved role memberships.</p>
+     */
+    public static void contributeFocusTrimPlan(WidgetFocusTrimContribution contribution, String panelType, int limit) {
+        contribution.setKeepAssignmentsMatchingRoleMembershipRef(true);
     }
 
     @Override

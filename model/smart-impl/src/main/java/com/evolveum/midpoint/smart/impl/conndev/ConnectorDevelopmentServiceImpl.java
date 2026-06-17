@@ -74,7 +74,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         public String submitCreateConnector(Task task, OperationResult result) {
-            return submitTask("Creating editable connector for " + stateObject.getOid(),
+            return submitTask("Creating editable connector for " + connectorNameForTasks(),
                     new WorkDefinitionsType().createConnector(new ConnDevCreateConnectorWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                             .baseTemplateUrl(connectorTemplateFor(stateObject.getConnector().getIntegrationType()))
@@ -82,14 +82,21 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         public String submitDiscoverBasicInformation(Task task, OperationResult result) {
-            return submitTask("Discover Basic Information for " + stateObject.getOid(),
+            return submitTask("Discover Basic Information for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverGlobalInformation(new ConnDevDiscoverGlobalInformationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
         }
 
+        public String submitDiscoverConnectivityEndpoint(Task task, OperationResult result) {
+            return submitTask("Discover Connectivity Endpoint for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().discoverConnectivityEndpoint(new ConnDevDiscoverConnectivityEndpointWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
         public String submitDiscoverDocumentation(Task task, OperationResult result) {
-            return submitTask("Discovering documentation for " + stateObject.getOid(),
+            return submitTask("Discovering documentation for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverDocumentation(new ConnDevDiscoverDocumentationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
@@ -105,19 +112,37 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public String submitDiscoverObjectClasses(Task task, OperationResult result) {
-            return submitTask("Discovering object classes for for " + stateObject.getOid(),
+            return submitTask("Discovering object classes for for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverObjectClassInformation(new ConnDevDiscoverObjectClassInformationDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
         }
 
         @Override
-        public String submitDiscoverObjectClassDetails(String objectClass, Task task, OperationResult result) {
-            return submitTask("Discovering '" + objectClass +"'object classe details for " + stateObject.getOid(),
-                    new WorkDefinitionsType().discoverObjectClassDetails(new ConnDevDiscoverObjectClassDetailsDefinitionType()
+        public String submitDiscoverObjectClassAttributes(String objectClass, Task task, OperationResult result) {
+            return submitTask(
+                    "Discovering attributes for object class '" + objectClass + "'",
+                    new WorkDefinitionsType().discoverObjectClassAttributes(new ConnDevDiscoverObjectClassAttributesDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
-                            .objectClass(objectClass)
-                    ), task, result);
+                            .objectClass(objectClass)),
+                    task, result);
+        }
+
+        @Override
+        public String submitDiscoverObjectClassEndpoints(String objectClass, Task task, OperationResult result) {
+            return submitTask(
+                    "Discovering endpoints for object class '" + objectClass + "'",
+                    new WorkDefinitionsType().discoverObjectClassEndpoints(new ConnDevDiscoverObjectClassEndpointsDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                            .objectClass(objectClass)),
+                    task, result);
+        }
+
+        @Deprecated
+        @Override
+        public String submitDiscoverObjectClassDetails(String objectClass, Task task, OperationResult result) {
+            submitDiscoverObjectClassEndpoints(objectClass, task, result);
+            return submitDiscoverObjectClassAttributes(objectClass, task, result);
         }
 
         @Override
@@ -136,18 +161,19 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public String submitGenerateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
-            return submitGenerateArtifact(artifact, noop -> {},task, result);
+        public String submitGenerateArtifact(ConnDevArtifactType artifact, boolean retry, Task task, OperationResult result) {
+            return submitGenerateArtifact(artifact, noop -> {}, retry, task, result);
         }
 
 
         @Override
-        public String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, Task task, OperationResult result) {
+        public String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, boolean retry, Task task, OperationResult result) {
             var definition =  new ConnDevGenerateArtifactDefinitionType()
                     .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    .skipCache(retry)
                     .artifact(artifact.clone());
             customizer.accept(definition);
-            return submitTask("Generating script " + artifact.getFilename(),
+            return submitTask("Generating script " + artifact.getFilename() + " for " + connectorNameForTasks(),
                     new WorkDefinitionsType().generateConnectorArtifact(definition), task, result);
         }
 
@@ -236,6 +262,18 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .updateConfigurationOverride();
         }
+
+        @Override
+        public String submitRefreshScimSchema(Task task, OperationResult result) {
+            return submitTask("Refreshing SCIM schema for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().refreshScimSchema(new ConnDevRefreshScimSchemaWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
+        private String connectorNameForTasks() {
+            return stateObject.getName().getOrig();
+        }
     }
 
     private String submitTask(String name, WorkDefinitionsType work, Task task, OperationResult result) {
@@ -251,7 +289,6 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         } catch (Exception e) {
             throw new SystemException(e);
         }
-
     }
 
     private String connectorTemplateFor(ConnDevIntegrationType integrationType) {
@@ -326,11 +363,38 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverObjectClassDetailsResultType> getDiscoverObjectClassDetailsStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevDiscoverObjectClassAttributesResultType> getDiscoverObjectClassAttributesStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
-                ConnDevDiscoverObjectClassDetailsResultType.class
+                ConnDevDiscoverObjectClassAttributesResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevDiscoverObjectClassEndpointsResultType> getDiscoverObjectClassEndpointsStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token, result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevDiscoverObjectClassEndpointsResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevRefreshScimSchemaResultType> getRefreshScimSchemaStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token, result),
+                ConnDevRefreshScimSchemaWorkStateType.F_RESULT,
+                ConnDevRefreshScimSchemaResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevDiscoverConnectivityEndpointResultType> getDiscoverConnectivityEndpointStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token, result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevDiscoverConnectivityEndpointResultType.class
         );
     }
 }

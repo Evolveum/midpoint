@@ -3,7 +3,32 @@
  *
  * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.gui.impl.util;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.showSuggestionInfoPanelPopup;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
@@ -25,29 +50,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.time.Duration;
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.handleSuggestionSuspendResumeOperation;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.showSuggestionInfoPanelPopup;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiBadgeModel;
 
 /**
  * Utility methods for handling {@link StatusInfo} in tables.
@@ -177,32 +179,13 @@ public class StatusInfoTableUtil {
      * Creates an inline menu item that allows suspending or resuming the generation of mapping suggestions.
      * The item is only visible when the suggestion generation is in progress or suspended.
      */
-    public static <C extends Containerable, T> @NotNull ButtonInlineMenuItem createSuggestionOperationInlineMenu(
+    public static <C extends Containerable, T> @NotNull ButtonInlineMenuItem createSuggestionStopGeneratingInlineMenu(
             @NotNull PageBase pageBase,
             @NotNull SerializableFunction<PrismContainerValueWrapper<C>, @Nullable StatusInfo<T>> getStatusInfoFn,
             @NotNull SerializableConsumer<AjaxRequestTarget> refreshFn) {
         return new ButtonInlineMenuItem(
-                pageBase.createStringResource("SuggestionOperationInlineMenu.suspend.generating.inlineMenu")) {
+                pageBase.createStringResource("SuggestionOperationInlineMenu.stop.generating.inlineMenu")) {
             @Serial private static final long serialVersionUID = 1L;
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public IModel<String> getLabel() {
-                ColumnMenuAction<?> action = (ColumnMenuAction<?>) getAction();
-                IModel<?> rowModel = action.getRowModel();
-                if (rowModel != null && rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
-                    StatusInfo<T> s = getStatusInfoFn.apply((PrismContainerValueWrapper<C>) wrapper);
-                    if (s != null) {
-                        if (s.isExecuting() && !s.isSuspended()) {
-                            return pageBase.createStringResource("SuggestionOperationInlineMenu.suspend.generating.inlineMenu");
-                        }
-                        if (s.isSuspended()) {
-                            return pageBase.createStringResource("SuggestionOperationInlineMenu.resume.generating.inlineMenu");
-                        }
-                    }
-                }
-                return super.getLabel();
-            }
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -245,7 +228,11 @@ public class StatusInfoTableUtil {
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
                             StatusInfo<T> statusInfo = getStatusInfoFn.apply((PrismContainerValueWrapper<C>) valueWrapper);
                             if (statusInfo != null) {
-                                handleSuggestionSuspendResumeOperation(pageBase, statusInfo, task, result);
+                                String token = statusInfo.getToken();
+                                if (token == null) {
+                                    return;
+                                }
+                                removeWholeTaskObject(pageBase, task, result, token);
                                 refreshFn.accept(target);
                             }
                         }
@@ -370,9 +357,10 @@ public class StatusInfoTableUtil {
             @NotNull String componentId,
             @NotNull StatusInfo<?> suggestionTypeStatusInfo,
             @NotNull IModel<String> displayNameModel,
+            @NotNull IModel<String> suggestionBadgeModel,
             @NotNull OperationResultStatusType status) {
         LabelWithBadgePanel labelWithBadgePanel = new LabelWithBadgePanel(
-                componentId, getAiBadgeModel(), displayNameModel) {
+                componentId, getAiCustomTextBadgeModel(suggestionBadgeModel.getObject()), displayNameModel) {
             @Override
             protected boolean isIconVisible() {
                 return suggestionTypeStatusInfo.isExecuting();
@@ -415,9 +403,16 @@ public class StatusInfoTableUtil {
 
             @Override
             public @NotNull Component getTitleComponent(@NotNull String id) {
-                return new IconWithLabel(id, () -> switchSuggestionModel.getObject()
-                        ? pageBase.getString("ToggleCheckBoxPanel.suggestion.enabled")
-                        : pageBase.getString("ToggleCheckBoxPanel.suggestion.disabled")) {
+                IModel<String> titleModel = new LoadableModel<>() {
+                    @Override
+                    protected String load() {
+                        return Boolean.TRUE.equals(switchSuggestionModel.getObject())
+                                ? pageBase.getString("ToggleCheckBoxPanel.suggestion.enabled")
+                                : pageBase.getString("ToggleCheckBoxPanel.suggestion.disabled");
+                    }
+                };
+
+                return new IconWithLabel(id, titleModel) {
                     @Override
                     protected String getIconCssClass() {
                         return GuiStyleConstants.CLASS_MAGIC_WAND + " text-purple ms-2";
@@ -469,13 +464,18 @@ public class StatusInfoTableUtil {
             }
 
             @Override
+            protected boolean showInlineMenuIcon() {
+                return true;
+            }
+
+            @Override
             protected String getDropDownButtonIcon() {
-                return "fa fa-ellipsis-h";
+                return "fa-ellipsis-h";
             }
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn btn-link btn-sm";
+                return "btn-tool m-0 h-100 align-self-center";
             }
 
             @Override
@@ -495,7 +495,15 @@ public class StatusInfoTableUtil {
         void accept(A a, B b, C c);
     }
 
-    public static StringResourceModel acceptConfirmationTitle(PageBase pageBase, int selectedCount, boolean empty) {
+    public static StringResourceModel createConfirmationTitle(PageBase pageBase, int selectedCount, boolean empty, boolean isAccept) {
+        if (isAccept) {
+            return acceptConfirmationTitle(pageBase, selectedCount, empty);
+        } else {
+            return dismissConfirmationTitle(pageBase, selectedCount, empty);
+        }
+    }
+
+    private static StringResourceModel acceptConfirmationTitle(PageBase pageBase, int selectedCount, boolean empty) {
         if (selectedCount == 0 && empty) {
             return pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.noItems");
         }
@@ -503,6 +511,16 @@ public class StatusInfoTableUtil {
         return selectedCount == 0
                 ? pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.empty")
                 : pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title", selectedCount);
+    }
+
+    private static StringResourceModel dismissConfirmationTitle(PageBase pageBase, int selectedCount, boolean empty) {
+        if (selectedCount == 0 && empty) {
+            return pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.dismissConfirmation.title.noItems");
+        }
+
+        return selectedCount == 0
+                ? pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.dismissConfirmation.title.empty")
+                : pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.dismissConfirmation.title", selectedCount);
     }
 
 }

@@ -15,16 +15,18 @@
             <span wicket:id="deprecatedContainerInfo"/>
         </div>
     </wicket:enclosure>
-    <div class="card col-10 mx-auto p-0">
-        <div class="card-header">
-                <span>
-                    <i class="fa fa-arrows-rotate"/>
-                    <span class="ps-1">
-                    <wicket:message key="SynchronizationReactionTableWizardPanel.headerLabel"/>
-                </span>
-                </span>
+    <div class="col-12 col-sm-10 mx-auto p-0">
+        <div class="card p-0">
+            <div class="card-header">
+                    <span>
+                        <i class="fa fa-arrows-rotate"/>
+                        <span class="ps-1">
+                        <wicket:message key="SynchronizationReactionTableWizardPanel.headerLabel"/>
+                    </span>
+                    </span>
+            </div>
+            <div class="card-body p-0" wicket:id="table"/>
         </div>
-        <div class="card-body p-0" wicket:id="table"/>
     </div>
 </wicket:extend>
 </body>

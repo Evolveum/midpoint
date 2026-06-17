@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.SuggestionsStorage;
@@ -175,12 +175,16 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
             AjaxRequestTarget target,
             StatusInfo<?> statusInfo,
             @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
-        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-        PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject = valueModel.getObject().getOldValue();
-        WebPrismUtil.cleanupEmptyContainerValue(originalObject);
 
-        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(originalObject);
-        onNewValue(suggestionToAdd, containerModel, target, false, postSaveHandler);
+        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
+
+        PrismContainerValue<ResourceObjectTypeDefinitionType> original =
+                valueModel.getObject().getNewValue().clone();
+        WebPrismUtil.cleanupEmptyContainerValue(original);
+
+        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestion = processSuggestedContainerValue(original);
+
+        onNewValue(suggestion, containerModel, target, false, postSaveHandler);
     }
 
     @Override
@@ -195,20 +199,13 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
     }
 
     private @NotNull InlineMenuItem createCompareWithExistingItemMenu() {
-        return new InlineMenuItem(createStringResource("SmartSuggestObjectTypeTilePanel.compare.with.existing")) {
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("SmartSuggestObjectTypeTilePanel.compare.with.existing"))
+                .icon("fa fa-code-compare")
+                .action(new ColumnMenuAction<>() {
 
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
+                    @Serial private static final long serialVersionUID = 1L;
 
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                List<ItemPath> requiredPaths = getDefaultObjectTypeComparePaths();
-
-                return new ColumnMenuAction<>() {
                     @SuppressWarnings("unchecked")
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -217,26 +214,39 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                             return;
                         }
 
-                        var selectedDef = (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) wrapper;
+                        var selectedDef =
+                                (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) wrapper;
+
                         ResourceObjectTypeDefinitionType resourceDef = selectedDef.getRealValue();
+
                         if (resourceDef == null
                                 || resourceDef.getDelineation() == null
                                 || resourceDef.getDelineation().getObjectClass() == null) {
+
                             warn(getString("ResourceObjectTypesPanel.compare.objectClass.no.suitable"));
                             target.add(getPageBase().getFeedbackPanel());
                             return;
                         }
 
                         QName objectClass = resourceDef.getDelineation().getObjectClass();
-                        var existingObjectClassDefs = getExistingObjectTypeDefinitions(objectClass);
-                        var compareObjectDto = createCompareObjectDto(selectedDef, existingObjectClassDefs, requiredPaths);
 
-                        var comparePanel = new CompareContainerPanel<>(getPageBase().getMainPopupBodyId(), () -> compareObjectDto);
+                        var existingObjectClassDefs =
+                                getExistingObjectTypeDefinitions(objectClass);
+
+                        var compareObjectDto = createCompareObjectDto(
+                                selectedDef,
+                                existingObjectClassDefs,
+                                getDefaultObjectTypeComparePaths());
+
+                        var comparePanel = new CompareContainerPanel<>(
+                                getPageBase().getMainPopupBodyId(),
+                                () -> compareObjectDto);
+
                         getPageBase().showMainPopup(comparePanel, target);
                     }
-                };
-            }
-        };
+                })
+                .headerMenuItem(false)
+                .buildInlineMenu();
     }
 
     /**

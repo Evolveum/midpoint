@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public final class ResourceTaskFlavors<T> implements ResourceTaskFlavor<T> {
+
     public static final ResourceTaskFlavor<SimulatedCorrelatorsType> CORRELATION_PREVIEW_ACIVITY =
             new ResourceTaskFlavors<>("Correlation", (resourceObjectSetType, correlators) ->
                     new WorkDefinitionsType()
@@ -25,6 +26,14 @@ public final class ResourceTaskFlavors<T> implements ResourceTaskFlavor<T> {
                                     .resourceObjects(resourceObjectSetType)
                                     .correlators(correlators))
     );
+
+    public static final ResourceTaskFlavors<InlineMappingDefinitionType> MAPPING_PREVIEW_ACTIVITY =
+            new ResourceTaskFlavors<>("Mapping", (resourceObjectSetType, mappings) ->
+                    new WorkDefinitionsType()
+                            .mappings(new MappingWorkDefinitionType()
+                                    .resourceObjects(resourceObjectSetType)
+                                    .inlineMappings(mappings))
+            );
 
     public static final ResourceTaskFlavor<Void> IMPORT = SynchronizationTaskFlavor.IMPORT;
     public static final ResourceTaskFlavor<Void> RECONCILIATION = SynchronizationTaskFlavor.RECONCILIATION;

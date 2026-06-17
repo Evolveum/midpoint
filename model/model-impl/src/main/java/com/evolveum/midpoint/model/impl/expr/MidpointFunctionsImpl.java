@@ -38,10 +38,14 @@ import javax.xml.stream.events.XMLEvent;
 
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.common.AvailableLocale;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.BooleanUtils;
@@ -1222,6 +1226,30 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return MiscSchemaUtil.toObjectableList(
                 modelService.searchObjects(type, query,
                         getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult()));
+    }
+
+    @Override
+    public <T extends ObjectType> List<T> searchObjects(
+            Class<T> type, String filter) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectFilter objectFilter;
+        if (filter == null || filter.isBlank()) {
+            objectFilter = prismContext.queryFactory().createAll();
+        } else {
+            objectFilter = prismContext.getQueryConverter().parseFilter(
+                    new SearchFilterType(filter, getNamespaceContext()), type);
+        }
+        ObjectQuery query = prismContext.queryFactory().createQuery(objectFilter);
+        return MiscSchemaUtil.toObjectableList(
+                modelService.searchObjects(type, query,
+                        getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult()));
+    }
+
+    private PrismNamespaceContext getNamespaceContext() {
+        return Objects.requireNonNullElse(
+                ScriptExpressionEvaluationContext.getThreadLocal().getNamespaceContext(),
+                PrismNamespaceContext.EMPTY);
     }
 
     @Override

@@ -6,38 +6,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-
-import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectClassDataProvider;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaGenerationConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import java.io.Serializable;
+import java.util.*;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -54,13 +25,42 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.*;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectClassDataProvider;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaGenerationConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 /**
+ * On this panel the user selects what object classes should the resource schema contain, i.e., what to put into
+ * the `generationConstraints` property of the resource schema.
+ *
  * @author lskublik
  */
 public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<ResourceDetailsModel> {
@@ -78,6 +78,34 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
     private static final String ID_DESELECT_BUTTON = "deselectButton";
     private static final String ID_TABLE = "table";
 
+    /**
+     * We suggest some classes only if there are too many of them (e.g. for LDAP or AD).
+     *
+     * If there are less classes, it is not so important, because if user selects nothing,
+     * all classes will be available in the resulting schema, which is absolutely OK if they are not many.
+     */
+    private static final int SUGGESTION_THRESHOLD = 20;
+
+    /**
+     * Names that will be initially suggested. TODO consider making it specific for particular connectors (e.g., AD vs LDAP).
+     *
+     * TODO Do we want to suggest these classes also when revisiting the panel?
+     */
+    private static final Collection<String> INITIALLY_SUGGESTED_NAMES = List.of(
+            "inetOrgPerson", // LDAP
+            "groupOfNames", // LDAP
+            "groupOfUniqueNames", // LDAP
+            "organizationalUnit", // LDAP + AD
+            "user", // AD
+            "group" // AD
+    );
+
+    /**
+     * Model for currently selected object classes.
+     *
+     * - The key is QName of the object class.
+     * - The value contains related restrictions: whether it can be added/removed, see {@link SelectedClassWrapper}.
+     */
     private final LoadableModel<Map<QName, SelectedClassWrapper>> selectedItems;
 
     public SelectObjectClassesStepPanel(ResourceDetailsModel model) {
@@ -85,61 +113,79 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
         selectedItems = new LoadableModel<>() {
             @Override
             protected Map<QName, SelectedClassWrapper> load() {
-                Map<QName, SelectedClassWrapper> map = new HashMap<>();
+                List<ObjectClassWrapper> allAvailableClasses = getDetailsModel().getObjectClassesModel().getObject();
+                Map<QName, SelectedClassWrapper> map = new HashMap<>(); // resulting initial map of selected object classes
                 try {
+                    CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
+                    List<ResourceObjectTypeDefinition> objectTypes =
+                            new ArrayList<>(schema != null ? schema.getObjectTypeDefinitions() : List.of());
                     PrismPropertyWrapper<QName> generationConstraints = getDetailsModel().getObjectWrapper().findProperty(
                             ItemPath.create(
                                     ResourceType.F_SCHEMA,
                                     XmlSchemaType.F_GENERATION_CONSTRAINTS,
                                     SchemaGenerationConstraintsType.F_GENERATE_OBJECT_CLASS));
-                    if (generationConstraints != null) {
-                        CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
-                        List<ResourceObjectTypeDefinition> objectTypes = new ArrayList<>();
-                        if (schema != null) {
-                            objectTypes.addAll(schema.getObjectTypeDefinitions());
-                        }
+                    if (generationConstraints != null && !generationConstraints.isEmpty()) {
                         generationConstraints.getValues().forEach(value -> {
-                            if (value.getRealValue() != null) {
+                            QName objectClassName = value.getRealValue();
+                            if (objectClassName != null) {
 
-                                boolean match = false;
+                                boolean classUsedInSchemaHandling = false;
 
                                 Iterator<ResourceObjectTypeDefinition> iterator = objectTypes.iterator();
                                 while (iterator.hasNext()) {
                                     ResourceObjectTypeDefinition objectType = iterator.next();
-                                    if (QNameUtil.match(value.getRealValue(), objectType.getObjectClassName())) {
-                                        match = true;
+                                    if (QNameUtil.match(objectClassName, objectType.getObjectClassName())) {
+                                        classUsedInSchemaHandling = true;
                                         iterator.remove();
                                         break;
                                     }
                                 }
 
-                                boolean enabled = !WebPrismUtil.isValueFromResourceTemplate(
-                                        value.getNewValue(),
-                                        getDetailsModel().getObjectType().asPrismObject())
-                                        && !match;
+                                PrismObject<ResourceType> resource = getDetailsModel().getObjectType().asPrismObject();
+                                // If the "generation constraint" related to this class comes from the template,
+                                // we are not free to remove it. We cannot remove it also if it is used in schema handling.
+                                boolean classComingFromTemplate =
+                                        WebPrismUtil.isValueFromResourceTemplate(value.getNewValue(), resource);
 
-                                boolean canSave = !WebPrismUtil.isValueFromResourceTemplate(
-                                        value.getNewValue(),
-                                        getDetailsModel().getObjectType().asPrismObject());
+                                boolean enabled = !classComingFromTemplate && !classUsedInSchemaHandling;
+                                boolean canSave = !classComingFromTemplate;
 
                                 map.put(
-                                        value.getRealValue(),
+                                        objectClassName,
                                         new SelectedClassWrapper(enabled, canSave)
                                 );
 
                             }
                         });
-
-                        objectTypes.forEach(objectType -> map.put(
-                                objectType.getObjectClassName(),
-                                new SelectedClassWrapper(false, true)));
+                    } else {
+                        // No generation constraints -> we will suggest at least something (but only for large schemas)
+                        if (allAvailableClasses.size() >= SUGGESTION_THRESHOLD) {
+                            allAvailableClasses.stream()
+                                    .filter(classWrapper ->
+                                            INITIALLY_SUGGESTED_NAMES.stream().anyMatch(
+                                                    classWrapper.getObjectClassNameAsString()::equalsIgnoreCase))
+                                    .forEach(classWrapper -> map.put(
+                                            classWrapper.getObjectClassName(),
+                                            new SelectedClassWrapper()));
+                        }
                     }
+
+                    // These object types have classes that were not mentioned in generation constraints, if present.
+                    // They will be eventually saved into generation constraints (at exit).
+                    //
+                    // TODO decide if we want to suggest anything if there are some object types
+                    objectTypes.forEach(objectType -> map.put(
+                            objectType.getObjectClassName(),
+                            new SelectedClassWrapper(false, true)));
+
                 } catch (SchemaException | ConfigurationException e) {
                     LOGGER.error("Couldn't find property for schema generation constraints", e);
                 }
-                if (map.isEmpty() && getDetailsModel().getObjectClassesModel().getObject().size() == 1) {
-                    ObjectClassWrapper value = getDetailsModel().getObjectClassesModel().getObject().iterator().next();
-                    map.put(value.getObjectClassName(), new SelectedClassWrapper());
+
+                // TODO is this necessary? Single class does not need to be selected
+                if (map.isEmpty() && allAvailableClasses.size() == 1) {
+                    ObjectClassWrapper singleClass = allAvailableClasses.iterator().next();
+                    map.put(singleClass.getObjectClassName(), new SelectedClassWrapper());
                 }
                 return map;
             }
@@ -159,6 +205,16 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageResource.wizard.step.selectObjectClasses.subText");
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return true;
+    }
+
+    @Override
+    protected String getButtonsStripCssClass() {
+        return "w-100";
     }
 
     @Override
@@ -195,6 +251,7 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
         selectedItemsContainer.setOutputMarkupId(true);
         add(selectedItemsContainer);
 
+        // Contains the names of classes that were selected, each with "deselect" button (hidden if the class cannot be removed).
         ListView<QName> selectedContainer = new ListView<>(
                 ID_SELECTED_ITEM_CONTAINER,
                 () -> new ArrayList<>(selectedItems.getObject().keySet())) {
@@ -357,6 +414,8 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
+        getPageBase().closeRightSidebar(target);
+
         List<QName> classesForSave = new ArrayList<>();
 
         selectedItems.getObject().forEach((key, wrapper) -> {
@@ -407,9 +466,12 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
         return PANEL_TYPE;
     }
 
-    private class SelectedClassWrapper implements Serializable {
+    private static class SelectedClassWrapper implements Serializable {
 
+        /** Can the object class be removed from the generation constraints? TODO consider renaming */
         private final boolean enabled;
+
+        /** Can the object class be added to or removed from the generation constraints? TODO consider renaming */
         private final boolean canBeSaved;
 
         private SelectedClassWrapper() {

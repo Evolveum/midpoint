@@ -45,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,16 +81,12 @@ public class SimulationActionFlow<T> implements Serializable {
     }
 
     /**
-     * Entry point: show popup (or run directly if config disabled).
+     * Entry point: show popup or run directly for proposed configuration.
      */
     public void start(AjaxRequestTarget target) {
-        ResourceObjectTypeDefinitionType def = context.definition();
         PredefinedConfigurationType defaultCfg = PredefinedConfigurationType.DEVELOPMENT;
 
-        String lifecycleState = def.getLifecycleState();
-        boolean isProposed = ShadowLifecycleStateType.PROPOSED.value().equals(lifecycleState);
-
-        if (isProposed) {
+        if (isProposed()) {
             if (isSamplingEnabled) {
                 runSamplingSimulation(context.pageBase(), target, defaultCfg);
             } else {
@@ -99,6 +96,51 @@ public class SimulationActionFlow<T> implements Serializable {
         }
 
         showPredefinedConfigPopup(target, defaultCfg);
+    }
+
+    private boolean isProposed() {
+        ResourceDetailsModel resourceModel = getResourceDetailsModel(context.pageBase());
+        ResourceObjectTypeDefinitionType objectType = context.definition();
+
+        if (isProposed(objectType.getLifecycleState())) {
+            return true;
+        }
+
+        if (isProposed(resourceModel.getObjectType() != null
+                ? resourceModel.getObjectType().getLifecycleState()
+                : null)) {
+            return true;
+        }
+
+        T config = context.workDefinitionConfiguration();
+        if (config instanceof InlineMappingDefinitionType mappingDefinition) {
+            return hasProposedMapping(mappingDefinition);
+        }
+
+        return false;
+    }
+
+    private boolean hasProposedMapping(@NotNull InlineMappingDefinitionType mappingDefinition) {
+        List<InboundMappingType> inbound =
+                mappingDefinition.getInbound() != null
+                        ? mappingDefinition.getInbound()
+                        : Collections.emptyList();
+
+        List<OutboundMappingType> outbound =
+                mappingDefinition.getOutbound() != null
+                        ? mappingDefinition.getOutbound()
+                        : Collections.emptyList();
+
+        return inbound.stream().anyMatch(this::isProposed)
+                || outbound.stream().anyMatch(this::isProposed);
+    }
+
+    private boolean isProposed(MappingType mapping) {
+        return mapping != null && isProposed(mapping.getLifecycleState());
+    }
+
+    private boolean isProposed(String lifecycleState) {
+        return ShadowLifecycleStateType.PROPOSED.value().equals(lifecycleState);
     }
 
     private void showPredefinedConfigPopup(
@@ -275,6 +317,11 @@ public class SimulationActionFlow<T> implements Serializable {
             ResourceTaskFlavor<T> flavor,
             PredefinedConfigurationType cfg) {
 
+        String displayName = def.getDisplayName();
+        if (displayName == null || displayName.isEmpty()) {
+            displayName = def.getKind() + "/" + def.getIntent();
+        }
+
         try {
             return ResourceTaskCreator.of(flavor, pageBase)
                     .forResource(resource)
@@ -290,7 +337,7 @@ public class SimulationActionFlow<T> implements Serializable {
                     .withSubmissionOptions(ActivitySubmissionOptions.create()
                             .withTaskTemplate(new TaskType()
                                     .name("Preview of " + flavor.flavorName()
-                                            + " on " + resource.getName() + " resource")))
+                                            + ": " + resource.getName() + ": " + displayName)))
                     .withSimulationResultDefinition(
                             new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false))
                     .create(task, result);
@@ -364,11 +411,7 @@ public class SimulationActionFlow<T> implements Serializable {
             AjaxRequestTarget target,
             String taskOid) {
 
-        IModel<String> titleModel = isCorrelationFastSimulation
-                ? pageBase.createStringResource(
-                "SmartTaskProgressPanel.correlation.simulation.title")
-                : pageBase.createStringResource(
-                "SmartTaskProgressPanel.mapping.simulation.title");
+        IModel<String> titleModel = getTitleModel(pageBase);
 
         IModel<String> subTitleModel = isCorrelationFastSimulation
                 ? pageBase.createStringResource(
@@ -385,16 +428,29 @@ public class SimulationActionFlow<T> implements Serializable {
 
             @Override
             protected void onShowResults(AjaxRequestTarget target) {
-                ObjectReferenceType simulationResultReference = getSimulationResultReference(getModelObject());
-                PageParameters params = new PageParameters();
-                if (simulationResultReference != null) {
-                    params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, simulationResultReference.getOid());
-                    getPageBase().navigateToNext(PageSimulationResult.class, params);
-                }
+                getPageBase().hideMainPopup(target);
+                onShowResultProcess(target, getModelObject(), getPageBase());
             }
         };
 
         pageBase.replaceMainPopup(panel, target);
+    }
+
+    protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
+        return isCorrelationFastSimulation
+                ? pageBase.createStringResource(
+                "SmartTaskProgressPanel.correlation.simulation.title")
+                : pageBase.createStringResource(
+                "SmartTaskProgressPanel.mapping.simulation.title");
+    }
+
+    public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+        ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
+        PageParameters params = new PageParameters();
+        if (simulationResultReference != null) {
+            params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, simulationResultReference.getOid());
+            pageBase.navigateToNext(PageSimulationResult.class, params);
+        }
     }
 
     private @Nullable TaskType loadTask(@NotNull PageBase pageBase, String taskOid) {

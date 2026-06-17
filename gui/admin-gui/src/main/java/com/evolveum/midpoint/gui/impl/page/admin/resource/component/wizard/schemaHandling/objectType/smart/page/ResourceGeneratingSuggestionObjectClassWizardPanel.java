@@ -27,7 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +39,7 @@ import javax.xml.namespace.QName;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "SmartGeneratingSuggestionStep.wizard.step.generating.suggestion.action.title", icon = "fa fa-arrows-rotate"))
-public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable>
+public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<P extends Containerable>
         extends AbstractResourceWizardBasicPanel<P> {
 
     private static final String CLASS_DOT = ResourceGeneratingSuggestionObjectClassWizardPanel.class.getName() + ".";
@@ -118,7 +117,7 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
         var task = pageBase.createSimpleTask(OP_DETERMINE_STATUS);
         var resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
 
-        return SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions(
+        return SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion(
                 pageBase,
                 resourceOid,
                 objectClassName,

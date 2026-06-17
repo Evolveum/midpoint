@@ -7,8 +7,11 @@
 
 package com.evolveum.midpoint.smart.impl.wellknownschemas;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -20,7 +23,15 @@ import org.jetbrains.annotations.Nullable;
 public record SystemMappingSuggestion(
         ItemPath shadowAttributePath,
         ItemPath focusPropertyPath,
-        @Nullable ExpressionType expression) {
+        @Nullable ExpressionType expression,
+        MappingStrengthType strength) {
+
+    /**
+     * Returns a single-segment ItemPath for a shadow attribute in the ri: namespace.
+     */
+    public static ItemPath riAttr(String localName) {
+        return ItemPath.create(ItemName.from(SchemaConstants.NS_RI, localName));
+    }
 
     /**
      * Creates a simple as-is mapping suggestion without any script transformation.
@@ -29,27 +40,46 @@ public record SystemMappingSuggestion(
             String shadowAttrName,
             ItemPath focusPropertyPath) {
         return new SystemMappingSuggestion(
-                ItemPath.create(ShadowType.F_ATTRIBUTES, shadowAttrName),
+                ItemPath.create(ShadowType.F_ATTRIBUTES, ItemName.from(SchemaConstants.NS_RI, shadowAttrName)),
                 focusPropertyPath,
-                null);
+                null,
+                MappingStrengthType.STRONG);
     }
 
     /**
-     * Creates mapping suggestion with a transformation script.
+     * Creates a simple as-is mapping suggestion with specified strength.
+     */
+    public static SystemMappingSuggestion createAsIsSuggestion(
+            String shadowAttrName,
+            ItemPath focusPropertyPath,
+            MappingStrengthType strength) {
+        return new SystemMappingSuggestion(
+                ItemPath.create(ShadowType.F_ATTRIBUTES, ItemName.from(SchemaConstants.NS_RI, shadowAttrName)),
+                focusPropertyPath,
+                null,
+                strength);
+    }
+
+    /**
+     * Creates mapping suggestion with a transformation script and specified strength.
      */
     public static SystemMappingSuggestion createScriptSuggestion(
             String shadowAttrName,
             ItemPath focusPropertyPath,
             String script,
-            @Nullable String scriptDescription) {
+            @Nullable String scriptDescription,
+            MappingStrengthType strength) {
         ExpressionType expression = new ExpressionType()
                 .description(scriptDescription)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().code(script)));
+                                new ScriptExpressionEvaluatorType()
+                                        .language("mel")
+                                        .code(script)));
         return new SystemMappingSuggestion(
-                ItemPath.create(ShadowType.F_ATTRIBUTES, shadowAttrName),
+                ItemPath.create(ShadowType.F_ATTRIBUTES, ItemName.from(SchemaConstants.NS_RI, shadowAttrName)),
                 focusPropertyPath,
-                expression);
+                expression,
+                strength);
     }
 }

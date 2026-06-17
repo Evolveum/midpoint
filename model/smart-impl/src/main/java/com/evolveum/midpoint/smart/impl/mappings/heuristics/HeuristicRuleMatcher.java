@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 public class HeuristicRuleMatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(HeuristicRuleMatcher.class);
+    private static final String EXPRESSION_LANGUAGE = "mel";
 
     private final List<HeuristicRule> rules;
     private final MappingsQualityAssessor qualityAssessor;
@@ -39,27 +40,19 @@ public class HeuristicRuleMatcher {
     }
 
     /**
-     * Static factory method for creating script expressions.
-     * Used as a method reference passed to heuristic rules.
-     */
-    private static ExpressionType createScriptExpression(String groovyCode, String description) {
-        return new ExpressionType()
-                .description(description)
-                .expressionEvaluator(
-                        new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().code(groovyCode)));
-    }
-
-    /**
      * Attempts to find the best heuristic rule.
      * All rules are evaluated, and the one with the highest quality (higher than zero) is returned.
      */
     public Optional<HeuristicResult> findBestMatch(ValuesPairSample<?, ?> sample, Task task, OperationResult result) {
+        var sortedRules = rules.stream()
+                .sorted((r1, r2) -> Integer.compare(r1.getOrder(), r2.getOrder()))
+                .toList();
+
         HeuristicRule bestRule = null;
         ExpressionType bestExpression = null;
         float bestQuality = 0f;
 
-        for (HeuristicRule rule : rules) {
+        for (HeuristicRule rule : sortedRules) {
             if (!rule.isApplicable(sample)) {
                 continue;
             }
@@ -103,5 +96,19 @@ public class HeuristicRuleMatcher {
             String focusPropertyName = sample.focusPropertyPath().lastName().getLocalPart();
             return rule.outboundExpression(focusPropertyName, HeuristicRuleMatcher::createScriptExpression);
         }
+    }
+
+    /**
+     * Static factory method for creating script expressions.
+     * Used as a method reference passed to heuristic rules.
+     */
+    private static ExpressionType createScriptExpression(String code, String description) {
+        return new ExpressionType()
+                .description(description)
+                .expressionEvaluator(
+                        new ObjectFactory().createScript(
+                                new ScriptExpressionEvaluatorType()
+                                        .language(EXPRESSION_LANGUAGE)
+                                        .code(code)));
     }
 }

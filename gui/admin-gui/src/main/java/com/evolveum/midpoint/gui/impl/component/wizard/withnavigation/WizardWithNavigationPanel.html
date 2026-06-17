@@ -22,25 +22,25 @@
                         </a>
                     </div>
                     <div class="d-flex flex-column px-3">
-                        <div wicket:id="card" class="d-flex flex-column card p-2">
-                            <div class="pb-2" wicket:id="stepLabel"></div>
+                        <div wicket:id="card" class="d-flex flex-column card gen-menu-card">
+                            <div class="pb-1" wicket:id="stepLabel"></div>
                             <div>
                                 <span wicket:id="stepBadge"></span>
                             </div>
                         </div>
                     </div>
-                    <div wicket:id="stepInProgress" class="d-flex flex-column px-3">
-                        <div class="d-flex flex-row">
+                    <div wicket:id="stepInProgress" class="d-flex flex-column px-3 pt-3 gen-menu-group">
+                        <div class="d-flex flex-row align-items-center">
                             <div>
-                        <span class="rounded-circle bg-info text-center me-1 d-block" style="width: 24px;">
-                            <i class="fa-sm fa fa-spinner"></i>
+                        <span class="rounded-circle bg-info text-center mr-2 d-block align-items-center gen-menu-icon">
+                            <i class="fa-xs fa fa-spinner"></i>
                         </span>
                             </div>
                             <div wicket:id="parentStepLabel"></div>
                         </div>
-                        <div class="d-flex flex-column ps-3 border-start" style="margin-left: 12px;">
-                            <div wicket:id="card" class="d-flex flex-column card m-0 mt-2 p-2">
-                                <div class="pb-2" wicket:id="stepLabel"></div>
+                        <div class="d-flex flex-column ps-3 border-start" style="margin-left: 10px;">
+                            <div wicket:id="card" class="d-flex flex-column card gen-menu-card">
+                                <div class="pb-1" wicket:id="stepLabel"></div>
                                 <div>
                                     <span wicket:id="stepBadge"></span>
                                 </div>
@@ -48,7 +48,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-gray-200 p-4 w-100">
+                <div class="border-left p-4 w-100">
                     <div wicket:id="contentBody"></div>
                 </div>
                 <div wicket:id="collapsedInfoPanel"></div>
@@ -64,9 +64,11 @@
     <!--        </wicket:container>-->
     <!--    </div>-->
     <wicket:fragment wicket:id="saveFragment">
-        <i class="fa fa-plus-circle text-success"></i>
-        <div class="text-success">
-            <wicket:message key="PageConnectorDevelopment.header.save"/>
+        <div class="d-flex gap-2 align-items-center">
+        <i class="fa fa-check-circle text-success"></i>
+            <div class="text-success">
+                <wicket:message key="PageConnectorDevelopment.header.save"/>
+            </div>
         </div>
     </wicket:fragment>
 </wicket:panel>

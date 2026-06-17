@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -54,6 +52,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
@@ -312,7 +311,10 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         items.add(createResumeRootOnlyMenuAction());
         items.add(createDeleteWorkStateAndWorkersMenuAction());
         items.add(createDeleteWorkStateMenuAction());
-        items.add(createDeleteAllClosedTasksMenuAction());
+        if (!isSubtasksPanel()) {
+            items.add(createDividerMenuItem());
+            items.add(createDeleteAllClosedTasksMenuAction());
+        }
         return items;
     }
 
@@ -452,6 +454,13 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 "pageTasks.message.deleteWorkState",
                 (task) -> WebComponentUtil.canSuspendTask(task, TaskTablePanel.this.getPageBase()),
                 true);
+    }
+
+    private InlineMenuItem createDividerMenuItem() {
+        return InlineMenuItemBuilder
+                .create()
+                .divider(true)
+                .buildInlineMenu();
     }
 
     private InlineMenuItem createDeleteAllClosedTasksMenuAction() {
@@ -780,5 +789,9 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     @NotNull
     protected TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
         return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, null);
+    }
+
+    protected boolean isSubtasksPanel() {
+        return false;
     }
 }

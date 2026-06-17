@@ -11,7 +11,6 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -679,10 +678,11 @@ public class WebModelServiceUtils {
             adminGuiConfig = mInteractionService.getCompiledGuiProfile(task, result);
             result.recomputeStatus();
             result.recordSuccessIfUnknown();
+        } catch (SecurityViolationException e) {
+            throw new RestartResponseException(PageLogin.class);
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Cannot load admin gui config", e);
             result.recordPartialError("Cannot load admin gui config. Reason: " + e.getLocalizedMessage());
-
         }
 
         if (adminGuiConfig == null) {
@@ -699,10 +699,11 @@ public class WebModelServiceUtils {
             adminGuiConfig = modelInteractionService.getCompiledGuiProfile(task, result);
             result.recomputeStatus();
             result.recordSuccessIfUnknown();
+        } catch (SecurityViolationException e) {
+            throw new RestartResponseException(PageLogin.class);
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Cannot load admin gui config", e);
             result.recordPartialError("Cannot load admin gui config. Reason: " + e.getLocalizedMessage());
-
         }
 
         if (adminGuiConfig == null) {

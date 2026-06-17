@@ -70,8 +70,12 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getCorrelationSuggestion());
         addTypedParameters(values, definitions.getMappingsSuggestion());
         addTypedParameters(values, definitions.getAssociationsSuggestion());
+        addTypedParameters(values, definitions.getSchemaMatchPreload());
         addTypedParameters(values, definitions.getCorrelation());
+        addTypedParameters(values, definitions.getMappings());
         addTypedParameters(values, definitions.getObjectClassStatisticsComputation());
+        addTypedParameters(values, definitions.getObjectTypeStatisticsComputation());
+        addTypedParameters(values, definitions.getFocusObjectStatisticsComputation());
 
         addTypedParameters(values, definitions.getCreateConnector());
         addTypedParameters(values, definitions.getInstallConnector());
@@ -79,8 +83,11 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getProcessDocumentation());
         addTypedParameters(values, definitions.getDiscoverGlobalInformation());
         addTypedParameters(values, definitions.getDiscoverObjectClassInformation());
-        addTypedParameters(values, definitions.getDiscoverObjectClassDetails());
+        addTypedParameters(values, definitions.getDiscoverObjectClassAttributes());
+        addTypedParameters(values, definitions.getDiscoverObjectClassEndpoints());
+        addTypedParameters(values, definitions.getDiscoverConnectivityEndpoint());
         addTypedParameters(values, definitions.getGenerateConnectorArtifact());
+        addTypedParameters(values, definitions.getRefreshScimSchema());
 
         addUntypedParameters(values, definitions.getExtension());
         return values;

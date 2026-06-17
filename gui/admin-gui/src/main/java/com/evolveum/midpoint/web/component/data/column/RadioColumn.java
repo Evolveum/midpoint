@@ -47,7 +47,12 @@ public class RadioColumn<T extends Serializable> extends AbstractColumn<T, Strin
             final @NotNull IModel<T> rowModel) {
         // The Radio must be a descendant of a RadioGroup<T> in the component hierarchy.
         // The group should own the same selectionModel passed to this column.
-        IsolatedRadioPanel<T> radio = new IsolatedRadioPanel<>(componentId, rowModel, getEnabled());
+        IsolatedRadioPanel<T> radio = new IsolatedRadioPanel<>(componentId, rowModel, getEnabled()){
+            @Override
+            protected @NotNull String getRadioCssStyle() {
+                return "transform: scale(1.5);";
+            }
+        };
         radio.setOutputMarkupId(true);
         cellItem.add(radio);
     }

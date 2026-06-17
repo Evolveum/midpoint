@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.wicket.Session;
@@ -27,6 +28,7 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.protocol.http.ClientProperties;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.Request;
+import org.apache.wicket.request.cycle.RequestCycle;
 
 import java.util.Locale;
 
@@ -84,6 +86,10 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
         return sessionStorage;
     }
 
+    public BrowserTabSessionStorage getBrowserTabSessionStorage(String windowName) {
+        return getSessionStorage().getBrowserTabSessionStorage(windowName);
+    }
+
     public void setClientCustomization() {
         MidPointPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
@@ -93,7 +99,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
         if (principal instanceof GuiProfiledPrincipal guiProfiledPrincipal) {
             CompiledGuiProfile profile = guiProfiledPrincipal.getCompiledGuiProfile();
             if (profile.isInvalid()) {
-                sessionStorage.clearPageStorage();
+                getSessionStorage().clearAllBrowserTabsStorages();
             }
         }
 

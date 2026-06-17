@@ -23,4 +23,9 @@ public abstract class AbstractResourceNavigationWizardBasicPanel<C extends Conta
     protected String getExitButtonCssClass() {
         return "btn-link";
     }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-12";
+    }
 }

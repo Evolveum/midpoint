@@ -1,4 +1,4 @@
-uid  | givenName | familyName | employeeNumber | _note
+id   | givenName | familyName | employeeNumber | _note
 1    | John      | Smith      | 1234           | Owner is not certain
 2    | John      | McClane    |                | Owner found
 3    | John      | Lennon     |                | Owner found

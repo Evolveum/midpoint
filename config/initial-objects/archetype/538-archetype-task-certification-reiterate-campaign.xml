@@ -10,7 +10,12 @@
     <name>Certification-campaign-reiterate task</name>
     <archetypePolicy>
         <display>
-            <label>Certification campaign reiterate related task</label>
+            <label>
+                <orig>Certification campaign reiterate related task</orig>
+                <translation>
+                    <key>CertificationCampaignReiterateRelatedTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Certification-campaign-reiterate-related tasks</orig>
                 <translation>

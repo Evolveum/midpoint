@@ -6,28 +6,26 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType;
 
+import java.io.Serializable;
+import java.util.function.Consumer;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.function.Consumer;
 
 /**
  * @author lskublik
@@ -75,8 +73,20 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
             }
 
             @Override
-            protected boolean isShadowDetailsEnabled() {
+            protected boolean isObjectClassFieldVisible() {
                 return false;
+            }
+
+            @Override
+            protected ResourceObjectTypeIdentification getResourceObjectTypeIdentification() {
+                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = resourceObjectType.getObject();
+                ResourceObjectTypeDefinitionType realValue = object.getRealValue();
+                return ResourceObjectTypeIdentification.of(realValue.getKind(), realValue.getIntent());
+            }
+
+            @Override
+            protected boolean showPopupShadowDetailsOnClick() {
+                return true;
             }
 
             @Override
@@ -112,12 +122,11 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         form.add(table);
     }
 
-    private ContainerPanelConfigurationType getConfiguration(){
+    private ContainerPanelConfigurationType getConfiguration() {
         return WebComponentUtil.getContainerConfiguration(
                 getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
                 PANEL_TYPE);
     }
-
 
     protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectType() {
         return resourceObjectType;
@@ -128,7 +137,7 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         return getPageBase().createStringResource("PreviewResourceObjectTypeDataWizardPanel.title");
     }
 
-        @Override
+    @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("PreviewResourceObjectTypeDataWizardPanel.subText");
     }
@@ -164,5 +173,10 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
 
     protected IModel<String> getExitLabel() {
         return getPageBase().createStringResource("PageBase.button.back");
+    }
+
+    @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
     }
 }

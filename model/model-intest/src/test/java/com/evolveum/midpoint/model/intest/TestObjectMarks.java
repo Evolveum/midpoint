@@ -44,6 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Test both shadow marks and marks on focus objects.
  * (Note that object marks that are strictly related to policy rules should be covered by test classes dealing with policy rules.)
+ *
+ * Here we test the basic functionality of marks, like the application of "no synchronization" policy or "read-only" policy.
+ * Plus some ad-hoc tests related to managed/unmanaged shadows.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -80,8 +83,10 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
     private static final String PRIVILEGED_ACCESS_MARK_NAME = "Privileged access";
     private static final String PRIVILEGED_ACCESS_POLICY_NAME = "Privileged access policy";
 
+    /** Mark containing policy that prevents [inbound] synchronization. */
     private String markNoSyncOid;
 
+    /** Mark preventing any changes on the account, making it read-only. */
     private String markReadOnlyOid;
 
     private Object markPolicyNoOutbound;
@@ -143,11 +148,13 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
                 initTask, initResult);
     }
 
+    /** Checks that "no synchronization" mark really blocks inbound processing. */
     @Test
     public void test100ImportUserAndMarkNoSync() throws Exception {
         var result = createOperationResult();
         var task = createTask();
 
+        given("an account with its corresponding user");
         DummyAccount account1 = RESOURCE_SHADOW_MARKS.controller.addAccount("brown");
         account1.addAttributeValue(ATTR_GIVEN_NAME, "Karl");
         account1.addAttributeValue(ATTR_FAMILY_NAME, "Brown");
@@ -158,10 +165,10 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
                 .withNameValue("brown")
                 .execute(result);
 
-        // Find user brown
         PrismObject<UserType> userOrig = searchObjectByName(UserType.class, "brown");
         ObjectReferenceType shadow1Ref = userOrig.asObjectable().getLinkRef().get(0);
 
+        when("the account is changed on the resource and imported again");
         account1.replaceAttributeValue(ATTR_FAMILY_NAME, "Brownie");
 
         importAccountsRequest()
@@ -169,12 +176,14 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
                 .withNameValue("brown")
                 .execute(result);
 
+        then("the change should be propagated to the user, because the 'no sync' mark is not applied yet");
         PrismObject<UserType> userAfter = searchObjectByName(UserType.class, "brown");
         assertEquals(userAfter.asObjectable().getFamilyName().getOrig(), "Brownie");
 
-        // Mark shadow do not synchronize
+        when("shadow is marked with 'no synchronization'");
         markShadow(shadow1Ref.getOid(), markNoSyncOid, task, result);
 
+        and("the account is changed on the resource and imported again");
         account1.replaceAttributeValue(ATTR_PERSONAL_NUMBER, "555555");
 
         importAccountsRequest()
@@ -182,24 +191,32 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
                 .withNameValue("brown")
                 .execute(result);
 
+        then("the change is NOT be propagated to the user, because the 'no sync' mark is applied");
         userAfter = searchObjectByName(UserType.class, "brown");
         assertEquals(userOrig.asObjectable().getPersonalNumber(), userAfter.asObjectable().getPersonalNumber());
 
+        when("user is recomputed");
         recomputeUser(userAfter.getOid());
+
+        then("the change is still not propagated");
         userAfter = searchObjectByName(UserType.class, "brown");
         assertEquals(userOrig.asObjectable().getPersonalNumber(), userAfter.asObjectable().getPersonalNumber());
 
+        when("user is recomputed/reconciled");
         reconcileUser(userAfter.getOid(), getTestTask(), result);
+
+        then("the change is still not propagated");
         userAfter = searchObjectByName(UserType.class, "brown");
         assertEquals(userOrig.asObjectable().getPersonalNumber(), userAfter.asObjectable().getPersonalNumber());
-
     }
 
+    /** Checks that "read only" mark really blocks the provisioning. */
     @Test
     public void test200ImportUserAndMarkReadOnly() throws Exception {
         var result = createOperationResult();
         var task = createTask();
 
+        given("an account with its corresponding user 'reddy'");
         DummyAccount account1 = RESOURCE_SHADOW_MARKS.controller.addAccount("reddy");
         account1.addAttributeValue(ATTR_GIVEN_NAME, "Karl");
         account1.addAttributeValue(ATTR_FAMILY_NAME, "Reddy");
@@ -216,21 +233,31 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
         PrismObject<UserType> userOrig = searchObjectByName(UserType.class, "reddy");
         ObjectReferenceType shadow1Ref = userOrig.asObjectable().getLinkRef().get(0);
 
-        var renamed = PolyString.fromOrig("Browny");
+        when("user is renamed");
+        var newName = PolyString.fromOrig("Browny");
         var modifyResult = createOperationResult();
-        modifyObjectReplaceProperty(UserType.class, userOrig.getOid(), UserType.F_GIVEN_NAME, task, modifyResult, renamed);
+        modifyObjectReplaceProperty(UserType.class, userOrig.getOid(), UserType.F_GIVEN_NAME, task, modifyResult, newName);
         assertSuccess(modifyResult);
 
+        then("account is renamed as well (mark was not applied yet)");
         assertEquals(account1.getAttributeValue(ATTR_GIVEN_NAME), "Browny");
 
-        // when(description);
-        // Mark shadow do read-only
+        when("shadow is marked as 'read only'");
         markShadow(shadow1Ref.getOid(), markReadOnlyOid, task, result);
 
-        renamed = new PolyString("Karly");
-        modifyObjectReplaceProperty(UserType.class, userOrig.getOid(), UserType.F_GIVEN_NAME, task, modifyResult, renamed);
-        assertEquals(account1.getAttributeValue(ATTR_GIVEN_NAME), "Browny");
+        when("user is renamed again");
+        var newName2 = new PolyString("Karly");
+        var modifyResult2 = createOperationResult();
+        modifyObjectReplaceProperty(UserType.class, userOrig.getOid(), UserType.F_GIVEN_NAME, task, modifyResult2, newName2);
 
+        then("the change should NOT be propagated to the account, because the 'read only' mark is applied");
+        assertEquals(account1.getAttributeValue(ATTR_GIVEN_NAME), "Browny");
+        // Actually, we skip the change gracefully even without outbound synchronization disabled.
+        // It is sufficient if the object is marked as read-only.
+        // See the checks in Projector#projectProjection
+        assertSuccess(modifyResult2);
+
+        when("change is made on the resource and imported again");
         // Changes from resource should be imported (inbound enabled)
         account1.replaceAttributeValue(ATTR_GIVEN_NAME, "Renamed");
         importAccountsRequest()
@@ -239,13 +266,14 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
                 .withTracing()
                 .execute(result);
 
+        then("the change is propagated to the user");
         PrismObject<UserType> userAfterImport = searchObjectByName(UserType.class, "reddy");
         assertEquals(userAfterImport.asObjectable().getGivenName().getOrig(), "Renamed");
 
         // We should be able to remove shadow mark
-
     }
 
+    // Looks like unfinished test
     @Test
     public void test300ImportUserWithBrokenMapping() throws Exception {
         var result = createOperationResult();
@@ -466,11 +494,11 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
         var userName = getTestNameShort();
 
         when("a user with account/developer is created (default policy is 'unmanaged')");
-        var userOid = traced(() -> addObject(
+        var userOid = addObject(
                 new UserType()
                         .name(userName)
                         .assignment(RESOURCE_SHADOW_MARKS.assignmentWithConstructionOf(ACCOUNT, INTENT_DEVELOPER)),
-                task, result));
+                task, result);
 
         then("everything is OK, no account is created");
         assertSuccess(result);
@@ -511,6 +539,54 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
                 .isEmpty();
     }
 
+    /**
+     * We should not attempt disabling unmanaged shadows, not even touching their activation operational data.
+     * (Originally, the processing failed here because the shadow attempted to be updated, but "unmanaged" flag
+     * caused this attempt to fail with a fatal error status.)
+     *
+     * MID-11029
+     */
+    @Test
+    public void test430UnmanagedShadowDisable() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a new tester account is created on the resource");
+        RESOURCE_SHADOW_MARKS.controller.addAccount(userName)
+                .addAttributeValue(ATTR_GIVEN_NAME, "Phoenix")
+                .addAttributeValue(ATTR_FAMILY_NAME, "Tester")
+                .addAttributeValue(ATTR_TYPE, TYPE_TESTER)
+                .setEnabled(false);
+
+        when("the account is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue(userName)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .executeOnForeground(result);
+
+        then("the user is there, account is Unmanaged");
+        var userOid = assertUserByUsername(userName, "after initial import")
+                .display()
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assertGivenName("Phoenix")
+                .assertFamilyName("Tester")
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertEffectiveMarks(MARK_HAS_UNMANAGED_PROJECTION.oid)
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .assertIntent(INTENT_TESTER)
+                .assertEffectiveMarks(MARK_UNMANAGED.oid)
+                .end()
+                .end()
+                .getOid();
+
+        when("user is reconciled");
+        reconcileUser(userOid, task, result);
+        assertSuccess(result);
+    }
     /**
      * Tests lifecycle-aware default operation policy for `account/developer` (MID-9972):
      * for production, it is `unmanaged`, while we are experimenting with `managed` for the development mode.
