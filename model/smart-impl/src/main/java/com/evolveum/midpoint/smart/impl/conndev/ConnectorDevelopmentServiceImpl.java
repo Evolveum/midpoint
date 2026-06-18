@@ -238,13 +238,17 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public List<ConnDevHttpEndpointType> suggestedEndpointsFor(String user, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType) {
-            var obj = stateObject.getApplication().getDetectedSchema().getObjectClass().stream()
-                    .filter(o -> o.getName().equals(user)).findFirst().orElse(null);
-
             var use = switch (knownArtifactType.scriptIntent) {
                 case ALL -> ConnDevHttpEndpointIntentType.GET_ALL;
-                default -> throw new IllegalArgumentException();
+                default -> throw new IllegalArgumentException(
+                        "Unsupported artifact type for endpoint suggestion: " + knownArtifactType);
             };
+
+            var obj = stateObject.getApplication().getDetectedSchema().getObjectClass().stream()
+                    .filter(o -> o.getName().equals(user)).findFirst().orElse(null);
+            if (obj == null) {
+                return List.of();
+            }
 
             return obj.getEndpoint().stream().filter(e -> e.getSuggestedUse().contains(use)).toList();
         }
@@ -287,7 +291,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     task, result);
             return oid;
         } catch (Exception e) {
-            throw new SystemException(e);
+            throw new SystemException("Couldn't submit task '" + name + "'", e);
         }
     }
 
