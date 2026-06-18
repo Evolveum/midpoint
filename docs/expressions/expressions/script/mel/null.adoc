@@ -27,7 +27,7 @@ Use following constructs when dealing with `null` values:
 | `isPresent(foo)`
 
 | `foo.contains('#')`
-| `contains(input, '#')` or +
+| `contains(input, '\#')` or +
 `stringify(foo).contains('#')`
 
 |===
