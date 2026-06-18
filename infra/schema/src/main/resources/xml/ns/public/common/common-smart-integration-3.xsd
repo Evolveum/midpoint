@@ -1610,4 +1610,49 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="SmartIntegrationOperationStatusInfoType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about the status and result of a Smart Integration operation.
+
+                This type is a schema representation of com.evolveum.midpoint.smart.api.info.StatusInfo
+                intended for REST and other XML-based interfaces.
+
+                It provides information about the current execution state,
+                operation result status, explanatory message, and operation-specific
+                result data returned by Smart Integration operations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Result status of the operation represented using OperationResultStatusType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message describing the operation status.
+                        Typically present for failed, suspended, or partially successful operations.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="result" type="xsd:anyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation-specific result data.
+                        The structure of this value depends on the particular Smart Integration operation.
+                        The value may be absent if the operation has not completed yet or does not produce any result.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

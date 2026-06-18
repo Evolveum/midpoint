@@ -285,16 +285,21 @@ If the position is negative, or greater than the length of the string, the funct
 
 === contains
 
-`string.contains(substring)` -> bool
+`string.contains(substring)` -> bool +
+`contains(string, substring)` -> bool
 
 Function that tests whether the string contains the substring.
 Works on strings as well as polystrings.
+Global version of this function is `null` resistant, returning `null` in case that the input string is `null`.
 
 .Example
 [source,mel]
 ----
 // Checks whether the full name contains substring 'Mr.'
 focus.fullName.contains('Mr.')
+
+// Checks whether the full name contains substring 'Mr.' (null resistant)
+contains(focus.?fullName, 'Mr.')
 ----
 
 
@@ -869,7 +874,10 @@ stringify(null, '?')      // Returns '*'
 === substring
 
 `string.substring(beginIndex)` -> string +
-`string.substring(beginIndex, endIndex)` -> string
+`string.substring(beginIndex, endIndex)` -> string +
+`substring(string, beginIndex)` -> string +
+`substring(string, beginIndex, endIndex)` -> string
+
 
 Returns a string that is a substring of this string.
 The substring begins at the specified `beginIndex` and extends to the character at index `endIndex - 1`.
@@ -878,10 +886,13 @@ If `endIndex` is not specified, the substring extends to the end of original str
 
 Empty string is returned in case that the indexes extend beyond the original string.
 
+Global version of this function is `null` resistant, returning `null` in case that the input string is `null`.
+
 .Example
 [source,mel]
 ----
 'midpoint'.substring(0,3)   // Returns 'mid'
+substring('midpoint',0,3)   // Returns 'mid' (null resistant)
 ----
 
 NOTE: The `substring` function does not fail in case the indexes extend beyond the original string.
@@ -890,15 +901,19 @@ This behavior change is very intentional, enabling creation of simpler expressio
 
 === trim
 
-`string.trim()` -> string
+`string.trim()` -> string +
+`trim(string)` -> string
 
 Returns a new string which removes the leading and trailing whitespace in the target string.
 The trim function uses the Unicode definition of whitespace which does not include the zero-width spaces.
+
+Global version of this function is `null` resistant, returning `null` in case that the input string is `null`.
 
 .Example
 [source,mel]
 ----
 ' midpoint  '.trim()   // Returns 'midpoint'
+trim(' midpoint  ')    // Returns 'midpoint' (null resistant)
 ----
 
 === upperAscii
