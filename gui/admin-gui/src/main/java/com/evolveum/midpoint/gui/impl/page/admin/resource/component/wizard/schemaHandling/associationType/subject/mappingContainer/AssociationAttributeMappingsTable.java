@@ -366,7 +366,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col header-border-right";
+                return "col header-border-end";
             }
 
             @Override
@@ -388,7 +388,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
 
         });
@@ -400,7 +400,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
         });
 
@@ -507,7 +507,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
                 @Override
                 public String getCssClass() {
-                    return "col-2 header-border-right";
+                    return "col-2 header-border-end";
                 }
             });
         } else {
@@ -518,7 +518,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                     getPageBase()) {
                 @Override
                 public String getCssClass() {
-                    return "col-2 header-border-right";
+                    return "col-2 header-border-end";
                 }
             });
         }

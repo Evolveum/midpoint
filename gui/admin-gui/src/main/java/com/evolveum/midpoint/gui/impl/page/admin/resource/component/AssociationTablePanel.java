@@ -506,7 +506,7 @@ public abstract class AssociationTablePanel
         };
 
         tag.setOutputMarkupId(true);
-        tag.add(AttributeModifier.replace("class", "badge badge-blue badge-opaque d-inline-flex flex-nowrap")); //system-badge
+        tag.add(AttributeModifier.replace("class", "badge badge-blue bg-opaque d-inline-flex flex-nowrap")); //system-badge
         return tag;
     }
 

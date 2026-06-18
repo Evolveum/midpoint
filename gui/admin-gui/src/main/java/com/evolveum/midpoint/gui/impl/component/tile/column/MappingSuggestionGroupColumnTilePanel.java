@@ -502,7 +502,7 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected @NotNull String getPanelCss() {
-        String baseCss = "card col-12 m-0 border border-ai-gradient left-border-2px p-0";
+        String baseCss = "card col-12 m-0 border border-ai-gradient border-start-2 p-0";
         boolean selected = isObjectSelected(getModelObject().getValue());
         return selected ? baseCss + " selected-base" : baseCss;
     }
@@ -516,7 +516,7 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected String getTileContainerCssClass() {
-        return "d-flex flex-wrap justify-content-left pt-2";
+        return "d-flex flex-wrap justify-content-start pt-2";
     }
 
     public String getAdditionalDefaultTilePanelCss(PV rowValue) {

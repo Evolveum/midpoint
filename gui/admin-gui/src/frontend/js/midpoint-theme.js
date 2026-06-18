@@ -340,7 +340,7 @@ export default class MidPointTheme {
                 });
             });
 
-            $(document).on("focusout mouseleave", "[data-toggle='tooltip']", function () {
+            $(document).on("focusout mouseleave", "[data-bs-toggle='tooltip']", function () {
                 clearTimeout($(this).data("tooltipShowDelayTimer"));
             });
 
@@ -1389,7 +1389,7 @@ export default class MidPointTheme {
 
         if (!show) {
             if (popup.is(':visible')) {
-                popup.find("[data-toggle='tooltip']").each(function () {
+                popup.find("[data-bs-toggle='tooltip']").each(function () {
                     $(this).tooltip('hide').tooltip('dispose').removeAttr('data-tooltip-id aria-describedby');
                 });
                 popup.fadeOut(200);

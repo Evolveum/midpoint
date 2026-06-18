@@ -88,7 +88,7 @@ public class PreviewExpressionPanel extends BasePanel<ExpressionType> {
                 : createStringResource("PreviewExpressionPanel.expression").getString()));
 
         add(new Label(ID_TYPE_BADGE, Model.of(getBadgeLabel(evaluator)))
-                .add(AttributeModifier.append("class", "badge badge-primary px-2 py-1")));
+                .add(AttributeModifier.append("class", "badge bg-primary px-2 py-1")));
 
         add(new Label(ID_DESCRIPTION, Model.of(getDescription())).setEscapeModelStrings(false));
 

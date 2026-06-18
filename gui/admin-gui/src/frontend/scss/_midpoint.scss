@@ -150,12 +150,6 @@ div.btn-group.bootstrap-select.select-picker-sm {
   margin-top: 10px;
 }
 
-// for just to use fake form.form-inline (as div) in form.form-horizontal. Used in button bars.
-div.form-inline > div.form-group {
-  margin-left: 0;
-  margin-right: 0;
-}
-
 li.dropdown.user.user-menu {
   & > ul.dropdown-menu {
     border-color: #367fa9;
@@ -2629,7 +2623,7 @@ footer.app-footer a {
       justify-content: center;
     }
   }
-  &.only-child-left .wizard-actions-container {
+  &.only-child-start .wizard-actions-container {
       &:only-child {
         display: flex;
         justify-content: left;

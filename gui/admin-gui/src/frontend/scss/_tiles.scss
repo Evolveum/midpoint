@@ -305,6 +305,10 @@
   color: var(--bs-secondary-color, #adb5bd) !important;
 }
 
+.border-start-2 {
+  border-left-width: 2px !important;
+}
+
 //TODO: revision
 // [data-bs-theme="dark"] {
 //   .tile-panel {
