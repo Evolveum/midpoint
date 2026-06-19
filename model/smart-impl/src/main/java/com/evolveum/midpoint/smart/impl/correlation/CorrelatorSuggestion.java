@@ -18,5 +18,6 @@ import org.jetbrains.annotations.Nullable;
 public record CorrelatorSuggestion(
         ItemPath focusItemPath,
         @Nullable ItemPath resourceAttrPath,
-        @Nullable ResourceAttributeDefinitionType attributeDefinitionBean) {
+        @Nullable ResourceAttributeDefinitionType attributeDefinitionBean,
+        boolean isAIProvided) {
 }

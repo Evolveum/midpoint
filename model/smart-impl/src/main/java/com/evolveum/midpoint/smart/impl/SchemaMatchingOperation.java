@@ -12,12 +12,10 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.MATCH_SCHEMA;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -55,8 +53,7 @@ class SchemaMatchingOperation {
     SiMatchSchemaResponseType matchSchema(
             ResourceObjectClassDefinition objectClassDef,
             PrismObjectDefinition<?> focusDef,
-            ResourceType resource)
-            throws SchemaException {
+            ResourceType resource) {
 
         MiscUtil.stateCheck(resourceSideSerializer == null, "matchSchema method was already called");
 
@@ -77,14 +74,20 @@ class SchemaMatchingOperation {
         return removeHallucinations(schemaMatch);
     }
 
-    private SiMatchSchemaResponseType invokeAiService(ResourceType resource) throws SchemaException {
+    private SiMatchSchemaResponseType invokeAiService(ResourceType resource) {
         LOGGER.debug("Calling AI service for schema matching on resource {}", resource.getOid());
         var siRequest = new SiMatchSchemaRequestType()
                 .applicationSchema(resourceSideSerializer.serialize())
                 .midPointSchema(midPointSideSerializer.serialize());
-        SiMatchSchemaResponseType response = serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
-        response.getAttributeMatch().forEach(match -> match.setIsSystemProvided(false));
-        return response;
+        try {
+            SiMatchSchemaResponseType response = serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
+            response.getAttributeMatch().forEach(match -> match.setIsSystemProvided(false));
+            return response;
+        } catch (Exception e) {
+            LOGGER.warn("AI service call failed for schema matching on resource {}; not available: {}",
+                    resource.getOid(), e.getMessage(), e);
+            return null;
+        }
     }
 
     private SiMatchSchemaResponseType mergeSchemaMatches(
