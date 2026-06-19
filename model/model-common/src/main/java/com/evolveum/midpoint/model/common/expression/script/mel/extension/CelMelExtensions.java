@@ -1211,11 +1211,11 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT, SimpleType.INT))),
                     CelFunctionBinding.from(
                             "polystring_substring_int",
-                            ImmutableList.of(Object.class, Long.class),
+                            ImmutableList.of(PolyStringCelValue.class, Long.class),
                             CelMelExtensions::substringPolystring),
                     CelFunctionBinding.from(
                             "polystring_substring_int_int",
-                            ImmutableList.of(Object.class, Long.class, Long.class),
+                            ImmutableList.of(PolyStringCelValue.class, Long.class, Long.class),
                             CelMelExtensions::substringPolystring)),
 
             // timestamp.atStartOfDay
