@@ -163,6 +163,12 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
                 return PageResource.this.hasUnsavedChanges(target);
             }
+
+            @Override
+            protected void refreshLifecycleViews(AjaxRequestTarget target) {
+                super.refreshLifecycleViews(target);
+                target.add(PageResource.this.get(ID_DETAILS_VIEW));
+            }
         };
     }
 

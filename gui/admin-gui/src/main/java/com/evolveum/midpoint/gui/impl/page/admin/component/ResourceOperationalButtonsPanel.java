@@ -91,6 +91,9 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                PrismPropertyWrapperModel<ResourceType, String> lifecycleModel =
+                        PrismPropertyWrapperModel.fromContainerWrapper(
+                                ResourceOperationalButtonsPanel.this.getModel(), ResourceType.F_LIFECYCLE_STATE);
                 OnePanelPopupPanel popupPanel = new OnePanelPopupPanel(
                         getPageBase().getMainPopupBodyId(),
                         1100,
@@ -102,11 +105,17 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
                                 id,
                                 PrismContainerValueWrapperModel.fromContainerWrapper(
                                         ResourceOperationalButtonsPanel.this.getModel(),
-                                        ItemPath.EMPTY_PATH));
+                                        ItemPath.EMPTY_PATH),
+                                lifecycleModel);
                     }
 
                     @Override
                     protected void processHide(AjaxRequestTarget target) {
+                        if (isLifecycleChanged(lifecycleModel)) {
+                            getPageBase().hideMainPopup(target);
+                            showLifecycleConfirmation(target, lifecycleModel, true);
+                            return;
+                        }
                         super.processHide(target);
                         WebComponentUtil.showToastForRecordedButUnsavedChanges(
                                 target,
@@ -120,6 +129,17 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
         detailedLifecycle.showTitleAsLabel(true);
         add(detailedLifecycle);
 
+    }
+
+    private boolean isLifecycleChanged(PrismPropertyWrapperModel<ResourceType, String> lifecycleModel) {
+        try {
+            return lifecycleModel.getObject() != null
+                    && lifecycleModel.getObject().getValue() != null
+                    && ValueStatus.NOT_CHANGED != lifecycleModel.getObject().getValue().getStatus();
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get value of " + lifecycleModel.getObject(), e);
+            return false;
+        }
     }
 
     private void initResourceButtons(RepeatingView resourceButtons) {
@@ -182,32 +202,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
                 getBaseFormComponent().add(new OnChangeAjaxBehavior() {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-
-                        ConfirmationPanel confirm = new ConfirmationPanel(
-                                getPageBase().getMainPopupBodyId(),
-                                getPageBase().createStringResource("ResourceOperationalButtonsPanel.confirm.lifecycleState")) {
-                            @Override
-                            public void yesPerformed(AjaxRequestTarget target) {
-                                WebComponentUtil.saveObjectLifeCycle(
-                                        getPrismObject(), OPERATION_SET_LIFECYCLE_STATE, target, getPageBase());
-                                refreshStatus(target);
-                            }
-
-                            @Override
-                            public void noPerformed(AjaxRequestTarget target) {
-                                super.noPerformed(target);
-                                try {
-                                    String realValue = model.getObject().getValue().getOldValue().getRealValue();
-                                    model.getObject().getValue().setStatus(ValueStatus.NOT_CHANGED);
-                                    model.getObject().getValue().getNewValue().setValue(realValue);
-                                    target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL));
-                                    target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL).getParent());
-                                } catch (SchemaException e) {
-                                    LOGGER.error("Couldn't get value of " + model.getObject());
-                                }
-                            }
-                        };
-                        getPageBase().showMainPopup(confirm, target);
+                        showLifecycleConfirmation(target, model, false);
                     }
                 });
             }
@@ -215,6 +210,87 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
         add(lifecycleStatePanel);
 
         lifecycleStatePanel.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
+    }
+
+    private void showLifecycleConfirmation(
+            AjaxRequestTarget target,
+            PrismPropertyWrapperModel<ResourceType, String> lifecycleModel,
+            boolean finishDetailedLifecycleAfterwards) {
+
+        ConfirmationPanel confirm = new ConfirmationPanel(
+                getPageBase().getMainPopupBodyId(),
+                getPageBase().createStringResource("ResourceOperationalButtonsPanel.confirm.lifecycleState")) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.saveObjectLifeCycle(
+                        getPrismObject(), OPERATION_SET_LIFECYCLE_STATE, target, getPageBase());
+
+                if (finishDetailedLifecycleAfterwards) {
+                    markLifecycleChangeSaved(lifecycleModel);
+                    finishDetailedLifecycleChanges(target);
+                } else {
+                    refreshStatus(target);
+                }
+            }
+
+            @Override
+            public void noPerformed(AjaxRequestTarget target) {
+                super.noPerformed(target);
+                try {
+                    String realValue = lifecycleModel.getObject().getValue().getOldValue().getRealValue();
+                    lifecycleModel.getObject().getValue().setStatus(ValueStatus.NOT_CHANGED);
+                    lifecycleModel.getObject().getValue().getNewValue().setValue(realValue);
+                    target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL));
+                    target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL).getParent());
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't get value of " + lifecycleModel.getObject());
+                }
+
+                if (finishDetailedLifecycleAfterwards) {
+                    finishDetailedLifecycleChanges(target);
+                }
+            }
+        };
+        getPageBase().showMainPopup(confirm, target);
+    }
+
+    /**
+     * Clears the changed state of the root lifecycle wrapper after the value was
+     * saved immediately by the lifecycle operation.
+     */
+    private void markLifecycleChangeSaved(PrismPropertyWrapperModel<ResourceType, String> lifecycleModel) {
+        try {
+            String realValue = lifecycleModel.getObject().getValue().getRealValue();
+            lifecycleModel.getObject().getValue().getOldValue().setValue(realValue);
+            lifecycleModel.getObject().getValue().setStatus(ValueStatus.NOT_CHANGED);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get value of " + lifecycleModel.getObject(), e);
+        }
+    }
+
+    /**
+     * Shows the unsaved-changes toast for detailed lifecycle changes that still
+     * have to be saved with the resource object.
+     */
+    private void finishDetailedLifecycleChanges(AjaxRequestTarget target) {
+        try {
+            var deltas = ResourceOperationalButtonsPanel.this.getModelObject().getValue().getDeltas()
+                    .stream()
+                    .filter(delta -> !ResourceType.F_LIFECYCLE_STATE.equivalent(delta.getPath().namedSegmentsOnly()))
+                    .toList();
+
+            if (!deltas.isEmpty()) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, deltas);
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get detailed lifecycle deltas", e);
+        }
+        refreshLifecycleViews(target);
+    }
+
+    protected void refreshLifecycleViews(AjaxRequestTarget target) {
+        target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL));
+        target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL).getParent());
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {
