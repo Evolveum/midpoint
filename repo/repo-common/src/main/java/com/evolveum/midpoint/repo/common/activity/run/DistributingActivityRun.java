@@ -81,6 +81,7 @@ public final class DistributingActivityRun<
                 distribute(result);
                 return ActivityRunResult.waiting();
             case DISTRIBUTED:
+                reconcileAndStartDistributedWorkers(result);
                 return ActivityRunResult.waiting();
             case COMPLETE:
                 ActivityRunResult runResult = ActivityRunResult.finished(computeFinalStatus(result));
@@ -158,21 +159,41 @@ public final class DistributingActivityRun<
 
     private List<Task> createSuspendedChildren(OperationResult result) throws ActivityRunException {
         try {
-            WorkersReconciliationOptions options = new WorkersReconciliationOptions();
-            options.setCreateSuspended(true);
-            options.setDontCloseWorkersWhenWorkDone(true);
-            WorkersReconciliation workersReconciliation = new WorkersReconciliation(
-                    getRunningTask().getRootTask(),
-                    getRunningTask(),
-                    getActivityPath(),
-                    options,
-                    getBeans());
-            workersReconciliation.execute(result);
-            return workersReconciliation.getCurrentWorkers(result);
+            return reconcileWorkers(result).getCurrentWorkers(result);
         } catch (CommonException e) {
             throw new ActivityRunException("Couldn't create/update activity children (workers)",
                     FATAL_ERROR, PERMANENT_ERROR, e);
         }
+    }
+
+    /**
+     * Reconciles distributed worker tasks and resumes them as activity children.
+     *
+     * Existing workers may already be suspended from a previous root task suspension,
+     * so they have to be reconciled and switched back to execution state together
+     * with the root task.
+     */
+    private void reconcileAndStartDistributedWorkers(OperationResult result) throws ActivityRunException {
+        try {
+            helper.switchExecutionToChildren(reconcileWorkers(result).getCurrentWorkers(result), result);
+        } catch (CommonException e) {
+            throw new ActivityRunException("Couldn't resume activity children (workers)",
+                    FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+    }
+
+    private WorkersReconciliation reconcileWorkers(OperationResult result) throws CommonException {
+        WorkersReconciliationOptions options = new WorkersReconciliationOptions();
+        options.setCreateSuspended(true);
+        options.setDontCloseWorkersWhenWorkDone(true);
+        WorkersReconciliation workersReconciliation = new WorkersReconciliation(
+                getRunningTask().getRootTask(),
+                getRunningTask(),
+                getActivityPath(),
+                options,
+                getBeans());
+        workersReconciliation.execute(result);
+        return workersReconciliation;
     }
 
     @Override

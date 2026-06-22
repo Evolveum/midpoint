@@ -62,12 +62,35 @@ public class ActivityStateUtil {
     }
 
     /**
-     * This is to determine if this task should be managed as a tree root (and not as a plain task).
-     * We would like to see that without looking for subtasks, though. So we have to look at the activity
-     * state and see if there are any delegations or distributions.
+     * Determines if this task should be managed as a tree root, not as a plain task.
+     * We want to know that without looking up actual subtask objects. Therefore, we inspect
+     * both the activity state (see if there are any delegations or distributions) and the activity
+     * definition. The state may be absent, incomplete, or nested during suspend/resume,
+     * while the definition still tells us that workers or subtasks can be created.
      */
     public static boolean isManageableTreeRoot(@NotNull TaskType task) {
-        return hasDelegatedActivity(task) || hasLocalDistributedActivity(task);
+        return hasDelegatedActivity(task)
+                || hasLocalDistributedActivity(task)
+                || hasDelegatedOrDistributedActivityDefinition(task.getActivity());
+    }
+
+    private static boolean hasDelegatedOrDistributedActivityDefinition(@Nullable ActivityDefinitionType activity) {
+        if (activity == null) {
+            return false;
+        }
+
+        ActivityDistributionDefinitionType distribution = activity.getDistribution();
+        if (distribution != null &&
+                (distribution.getWorkers() != null ||
+                        distribution.getSubtask() != null ||
+                        distribution.getSubtasks() != null)) {
+            return true;
+        }
+
+        ActivityCompositionType composition = activity.getComposition();
+        return composition != null &&
+                composition.getActivity().stream()
+                        .anyMatch(ActivityStateUtil::hasDelegatedOrDistributedActivityDefinition);
     }
 
     /**

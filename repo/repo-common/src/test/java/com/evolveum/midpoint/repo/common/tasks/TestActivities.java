@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.tasks;
 import static com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper.EXECUTION_COUNT_NAME;
 
 import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.*;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTaskExecutionStateType.NOT_RUNNING;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
@@ -106,6 +108,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestObject<TaskType> TASK_220_MOCK_COMPOSITE_WITH_SUBTASKS = TestObject.file(TEST_DIR, "task-220-mock-composite-with-subtasks.xml", "");
     private static final TestObject<TaskType> TASK_300_WORKERS_SIMPLE = TestObject.file(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
     private static final TestObject<TaskType> TASK_310_WORKERS_SCAVENGING = TestObject.file(TEST_DIR, "task-310-workers-scavenging.xml", "1e956013-5997-47bd-8885-4da2340dddfc");
+    private static final TestObject<TaskType> TASK_320_WORKER_ROOT_SUSPEND = TestObject.file(TEST_DIR, "task-320-worker-root-suspend.xml", "159d3598-849d-47d3-9848-64eacb4eed1f");
     private static final TestObject<TaskType> TASK_400_LONG_RUNNING = TestObject.file(TEST_DIR, "task-400-long-running.xml", "f179b67d-a4b2-4bd0-af8a-7f814d9f069c");
 
     @Autowired private MockRecorder recorder;
@@ -2521,6 +2524,69 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertRealizationInProgress()
                     .assertStatusInProgress()
                 .end();
+    }
+
+    /**
+     * Verifies that bucketed workers stop after root tree suspension
+     * and continue processing remaining buckets after resume.
+     */
+    @Test
+    public void test320WorkerStopsTakingBucketsAfterRootSuspend() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task root = taskAdd(TASK_320_WORKER_ROOT_SUSPEND, result);
+
+        try {
+            waitFor("Waiting for the worker to process the first item", () -> !recorder.getExecutions().isEmpty(),
+                    10000, 100);
+
+            when("Root task tree is suspended");
+
+            taskManager.suspendTaskTree(root.getOid(), 10000, result);
+            int processedAfterSuspend = recorder.getExecutions().size();
+
+            // Waiting long enough verifies that workers do not continue processing while the tree is suspended.
+            MiscUtil.sleepCatchingInterruptedException(3000);
+
+            then();
+
+            displayDumpable("recorder", recorder);
+
+            assertThat(recorder.getExecutions())
+                    .as("items processed after root suspension")
+                    .hasSize(processedAfterSuspend);
+            assertThat(processedAfterSuspend)
+                    .as("items processed before suspension completed")
+                    .isLessThan(20);
+
+            when("Root task is resumed");
+
+            taskManager.resumeTaskTree(root.getOid(), result);
+            waitFor("Waiting for resumed workers to process more items",
+                    () -> recorder.getExecutions().size() > processedAfterSuspend,
+                    10000, 100);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 30000);
+
+            then("All buckets are eventually processed");
+
+            displayDumpable("recorder", recorder);
+
+            assertThat(recorder.getExecutions())
+                    .as("all items processed after root resume")
+                    .hasSizeGreaterThanOrEqualTo(20);
+
+            assertProgress(root.getOid(), "after resume")
+                    .display()
+                    .assertBuckets(4, 4);
+        } finally {
+            taskManager.suspendTaskTree(root.getOid(), TaskManager.WAIT_INDEFINITELY, result);
+            taskManager.deleteTaskTree(root.getOid(), result);
+        }
     }
 
     /**

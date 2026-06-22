@@ -39,7 +39,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 * Updated Spring Boot to 4.0 and Hibernate to 7.1.8. See bug:MID-11002[]
 * Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
-
+* Fixed bucketed task workers continuing after root task suspension. See bug:MID-11217[].
 == Changes with Respect To Version 4.9.6
 
 * Fixed GUI error occurring when opening the Subtasks panel in some reconciliation tasks. See bug:MID-11107[].
