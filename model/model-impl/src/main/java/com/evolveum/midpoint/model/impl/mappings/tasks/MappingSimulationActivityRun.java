@@ -146,8 +146,22 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
             } else {
                 objectDelta = null;
             }
-        } finally {
+        } catch (CommonException e) {
+            // Result must be closed before writing simulation data because close() calls computeStatus() which propagates error message from subresults to root result
             evaluationResult.close();
+            final SimulationTransaction failSimulationTransaction = Objects.requireNonNull(getSimulationTransaction(),
+                    "Required simulation transaction does not exist.");
+            try {
+                failSimulationTransaction.writeSimulationData(
+                        new MappingSimulationData(targetFocus, null, evaluationResult), task, result);
+            } catch (Exception writeException) {
+                e.addSuppressed(writeException);
+            }
+            throw e;
+        } finally {
+            if (!evaluationResult.isClosed()) {
+                evaluationResult.close();
+            }
         }
 
         final SimulationTransaction simulationTransaction = Objects.requireNonNull(getSimulationTransaction(),

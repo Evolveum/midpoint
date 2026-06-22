@@ -370,6 +370,14 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
             return;
         }
 
+        if (identifier == BuiltInSimulationMetricType.ERRORS) {
+            ObjectReferenceType markRef = new ObjectReferenceType()
+                    .oid(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())
+                    .type(MarkType.COMPLEX_TYPE);
+            navigateToSimulationResultObjects(resultOid, markRef, null, target);
+            return;
+        }
+
         ObjectProcessingStateType state = SimulationsGuiUtil.builtInMetricToProcessingState(identifier);
         redirectToProcessedObjects(resultOid, state, target);
     }
