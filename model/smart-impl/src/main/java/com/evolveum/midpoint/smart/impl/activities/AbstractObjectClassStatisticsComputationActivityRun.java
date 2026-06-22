@@ -81,7 +81,7 @@ public abstract class AbstractObjectClassStatisticsComputationActivityRun<
         }
 
         ensureNoDryRun();
-        ensureNoParallelism();
+        ensureNotInWorkerTask(null);
 
         // Resolve resource
         resource = getActivityHandler().getModelBeans().modelService

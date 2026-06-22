@@ -15,12 +15,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -48,7 +50,9 @@ public final class ObjectClassStatisticsActions {
             if (!forceRegeneration) {
                 GenericObjectType latestStatistics =
                         smartIntegrationService.getLatestObjectClassStatistics(
-                                resourceOid, objectClassName, task.getResult());
+                                resourceOid,
+                                objectClassName,
+                                task.getResult());
 
                 if (latestStatistics != null) {
                     showStatisticsPopup(target, pageBase, latestStatistics, resourceOid, objectClassName);
@@ -56,10 +60,7 @@ public final class ObjectClassStatisticsActions {
                 }
             }
 
-            String taskOid = smartIntegrationService.regenerateObjectClassStatistics(
-                    resourceOid, objectClassName, task, task.getResult());
-
-            showProgressPopup(target, pageBase, smartIntegrationService, resourceOid, objectClassName, taskOid);
+            showProgressPopup(target, pageBase, smartIntegrationService, resourceOid, objectClassName);
 
         } catch (CommonException e) {
             pageBase.error("Couldn't get object class statistics for " + objectClassName + ": " + e.getMessage());
@@ -93,14 +94,21 @@ public final class ObjectClassStatisticsActions {
             @NotNull PageBase pageBase,
             @NotNull SmartIntegrationService smartIntegrationService,
             @NotNull String resourceOid,
-            @NotNull QName objectClassName,
-            @NotNull String taskOid) {
+            @NotNull QName objectClassName) {
 
         SmartTaskProgressPanel panel = new SmartTaskProgressPanel(
                 pageBase.getMainPopupBodyId(),
                 pageBase.createStringResource("ObjectClassStatisticsButton.regeneratingStatistics"),
-                pageBase.createStringResource("ObjectClassStatisticsButton.regeneratingStatistics.subText", objectClassName.getLocalPart()),
-                () -> loadTask(pageBase, taskOid)) {
+                pageBase.createStringResource(
+                        "ObjectClassStatisticsButton.regeneratingStatistics.subText",
+                        objectClassName.getLocalPart()),
+                (ajaxTarget, threads) -> regenerateObjectClassStatistics(
+                        ajaxTarget,
+                        pageBase,
+                        smartIntegrationService,
+                        resourceOid,
+                        objectClassName,
+                        threads)) {
 
             @Override
             protected boolean showResultAfterCompletion() {
@@ -121,6 +129,43 @@ public final class ObjectClassStatisticsActions {
         pageBase.replaceMainPopup(panel, target);
     }
 
+    private static @Nullable IModel<TaskType> regenerateObjectClassStatistics(
+            @NotNull AjaxRequestTarget target,
+            @NotNull PageBase pageBase,
+            @NotNull SmartIntegrationService smartIntegrationService,
+            @NotNull String resourceOid,
+            @NotNull QName objectClassName,
+            @NotNull Integer threads) {
+
+        Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_STATISTICS);
+
+        try {
+            String taskOid = smartIntegrationService.regenerateObjectClassStatistics(
+                    resourceOid,
+                    objectClassName,
+                    threads,
+                    task,
+                    task.getResult());
+
+            return new LoadableDetachableModel<>() {
+
+                @Override
+                protected TaskType load() {
+                    return loadTask(pageBase, taskOid);
+                }
+            };
+
+        } catch (CommonException e) {
+            pageBase.error("Couldn't regenerate object class statistics for "
+                    + objectClassName + ": " + e.getMessage());
+            target.add(pageBase.getFeedbackPanel());
+            return null;
+
+        } finally {
+            task.getResult().computeStatusIfUnknown();
+        }
+    }
+
     private static void onProgressFinished(
             @NotNull AjaxRequestTarget target,
             @NotNull PageBase pageBase,
@@ -133,7 +178,9 @@ public final class ObjectClassStatisticsActions {
         try {
             GenericObjectType latestStatistics =
                     smartIntegrationService.getLatestObjectClassStatistics(
-                            resourceOid, objectClassName, task.getResult());
+                            resourceOid,
+                            objectClassName,
+                            task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");

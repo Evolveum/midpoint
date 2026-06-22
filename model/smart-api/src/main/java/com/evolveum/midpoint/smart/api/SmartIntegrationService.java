@@ -71,11 +71,11 @@ public interface SmartIntegrationService {
             throws SchemaException;
 
     /** Regenerates statistics for the given resource and object class. */
-    String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult result)
+    String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, int threads, Task task, OperationResult result)
             throws CommonException;
 
     /** Regenerates statistics for the given resource object type. */
-    String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Task task, OperationResult result)
+    String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, int threads, Task task, OperationResult result)
             throws CommonException;
 
     /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
@@ -117,6 +117,7 @@ public interface SmartIntegrationService {
             String resourceOid,
             ShadowKindType kind,
             String intent,
+            int threads,
             Task task,
             OperationResult result)
             throws CommonException;

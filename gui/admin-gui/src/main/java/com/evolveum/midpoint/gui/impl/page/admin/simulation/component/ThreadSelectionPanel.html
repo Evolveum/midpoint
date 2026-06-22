@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <div class="card p-3 m-0">
+        <div class="d-flex align-items-center gap-4">
+
+            <div class="d-flex align-items-center flex-grow-1">
+                <i class="fa fa-gear me-2"></i>
+                <h5 class="ml-1 m-0" wicket:id="executionThreadsLabel"></h5>
+            </div>
+
+            <div style="min-width: 100px;">
+                <input type="number"
+                        min="1"
+                        class="form-control"
+                        wicket:id="executionThreads"/>
+            </div>
+
+        </div>
+    </div>
+
+</wicket:panel>

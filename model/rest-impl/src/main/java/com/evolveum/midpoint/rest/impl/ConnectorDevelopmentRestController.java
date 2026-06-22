@@ -18,14 +18,12 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationOperationStatusInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration2.Configuration;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -78,7 +76,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         }
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_CREATE_CONNECTOR_SUBMIT_OPERATION)
+    @PostMapping(ConnectorGeneratorConstants.RPC_CREATE_CONNECTOR_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationCreateConnector(
             @RequestParam("oid") @NotNull String oid
     ) {
@@ -107,7 +105,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_BASIC_INFORMATION_SUBMIT_OPERATION)
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_BASIC_INFORMATION_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationDiscoverBasicInformation(
             @RequestParam("oid") @NotNull String oid
     ) {
@@ -136,7 +134,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_SUBMIT_OPERATION)
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationDiscoverDocumentation(
             @RequestParam("oid") @NotNull String oid
     ) {
@@ -165,7 +163,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_PROCESS_DOCUMENTATION_SUBMIT_OPERATION)
+    @PostMapping(ConnectorGeneratorConstants.RPC_PROCESS_DOCUMENTATION_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationProcessDocumentation(
             @RequestParam("oid") @NotNull String oid
     ) {
@@ -194,7 +192,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_NATIVE_SCHEMA_SUBMIT_OPERATION)
+    @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_NATIVE_SCHEMA_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationGenerateArtifact(
             @RequestParam("oid") @NotNull String oid,
             @RequestParam("objectClass") @NotNull String objectClass,
@@ -212,7 +210,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_CONN_ID_SCHEMA_SUBMIT_OPERATION)
+    @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_CONN_ID_SCHEMA_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationGenerateConnIdSchema(
             @RequestParam("oid") @NotNull String oid,
             @RequestParam("objectClass") @NotNull String objectClass,
@@ -230,7 +228,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_AUTHENTICATION_SCRIPT_SUBMIT_OPERATION)
+    @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_AUTHENTICATION_SCRIPT_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationGenerateAuthenticationScript(
             @RequestParam("oid") @NotNull String oid,
             @RequestParam("retry") boolean retry
@@ -247,7 +245,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         );
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_ARTIFACT_SUBMIT_OPERATION)
+    @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_ARTIFACT_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationGenerateArtifact(
             @RequestParam("oid") @NotNull String oid,
             @RequestParam("artifactType") @NotNull ConnDevArtifactType artifactType,
@@ -406,7 +404,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             var smartIntegrationOperationStatusInfoType = new SmartIntegrationOperationStatusInfoType();
             smartIntegrationOperationStatusInfoType.setStatus(statusInfo.getStatus());
             smartIntegrationOperationStatusInfoType.setMessage(statusInfo.getLocalizedMessage());
-            smartIntegrationOperationStatusInfoType.setResult(statusInfo.getResult());
+            smartIntegrationOperationStatusInfoType.setResult(getOperationResult(statusInfo));
 
             return createResponse(HttpStatus.OK, smartIntegrationOperationStatusInfoType, result);
         } catch (Exception e) {
@@ -414,5 +412,33 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         } finally {
             finishRequest(task, result);
         }
+    }
+
+    private @NonNull AbstractSmartIntegrationOperationResultType getOperationResult(StatusInfo<?> statusInfo) {
+        var abstractSmartIntegrationOperationResultType = new AbstractSmartIntegrationOperationResultType();
+
+        if (statusInfo.getResult() instanceof ConnDevCreateConnectorResultType connDevCreateConnectorResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevCreateConnectorResult(connDevCreateConnectorResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverGlobalInformationResultType connDevDiscoverGlobalInformationResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverGlobalInformationResult(connDevDiscoverGlobalInformationResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverDocumentationResultType connDevDiscoverDocumentationResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverDocumentationResult(connDevDiscoverDocumentationResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevProcessDocumentationResultType connDevProcessDocumentationResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevProcessDocumentationResult(connDevProcessDocumentationResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevGenerateArtifactResultType connDevGenerateArtifactResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevGenerateArtifactResult(connDevGenerateArtifactResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverObjectClassInformationResultType connDevDiscoverObjectClassInformationResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassInformationResult(connDevDiscoverObjectClassInformationResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverObjectClassAttributesResultType connDevDiscoverObjectClassAttributesResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassAttributesResult(connDevDiscoverObjectClassAttributesResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverObjectClassEndpointsResultType connDevDiscoverObjectClassEndpointsResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassEndpointsResult(connDevDiscoverObjectClassEndpointsResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevRefreshScimSchemaResultType connDevRefreshScimSchemaResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevRefreshScimSchemaResult(connDevRefreshScimSchemaResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverConnectivityEndpointResultType connDevDiscoverConnectivityEndpointResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverConnectivityEndpointResult(connDevDiscoverConnectivityEndpointResultType);
+        }
+
+        return abstractSmartIntegrationOperationResultType;
     }
 }
