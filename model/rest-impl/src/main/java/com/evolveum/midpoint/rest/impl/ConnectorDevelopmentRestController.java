@@ -23,7 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration2.Configuration;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -414,7 +413,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         }
     }
 
-    private @NonNull AbstractSmartIntegrationOperationResultType getOperationResult(StatusInfo<?> statusInfo) {
+    private @NotNull AbstractSmartIntegrationOperationResultType getOperationResult(StatusInfo<?> statusInfo) {
         var abstractSmartIntegrationOperationResultType = new AbstractSmartIntegrationOperationResultType();
 
         if (statusInfo.getResult() instanceof ConnDevCreateConnectorResultType connDevCreateConnectorResultType) {

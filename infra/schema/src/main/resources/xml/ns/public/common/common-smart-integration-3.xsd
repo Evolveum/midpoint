@@ -1614,7 +1614,7 @@
     <xsd:complexType name="AbstractSmartIntegrationOperationResultType">
         <xsd:annotation>
             <xsd:documentation>
-                Container for operation-specific Smart Integration results.
+                Abstract supertype for result of StatusInfo.
 
                 This type represents a union of all result payloads that can be returned
                 by Smart Integration operations. Individual operations populate only the

@@ -18,7 +18,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -285,7 +284,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         }
     }
 
-    private @NonNull AbstractSmartIntegrationOperationResultType getOperationResult(StatusInfo<?> statusInfo) {
+    private @NotNull AbstractSmartIntegrationOperationResultType getOperationResult(StatusInfo<?> statusInfo) {
         var abstractSmartIntegrationOperationResultType = new AbstractSmartIntegrationOperationResultType();
 
         if (statusInfo.getResult() instanceof ObjectTypesSuggestionType objectTypesSuggestionType) {
