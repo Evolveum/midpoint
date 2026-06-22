@@ -1,21 +1,22 @@
 = Run SQL
 
-`run-sql` command executes SQL scripts on database.
+The `run-sql` command executes SQL scripts on the midPoint database.
 
-Database schema changes are implemented in SQL scripts that are bundled with the distribution in a folder `doc/config/sql/native/*.sql`.
-User selects the scripts to run using following switches.
+// TODO: It would be more suitable to structure this page as classic manpage - command; description; options and flags with their descriptions; examples
+// TODO: I am missing info where this `doc` directory is located.
+Database schema changes are performed using SQL scripts that are bundled with the distribution and stored in `doc/config/sql/native/*.sql` folder.
+User selects the scripts to run using the following options:
 
 * `--create` executes scripts that create the database schema from scratch.
 * `--upgrade` upgrades an existing database schema.
-It can be combined with the `--mode` switch using either `REPOSITORY` or `AUDIT` to upgrade repository or audit schema.
+    ** You can combine this with `--mode` set to either `REPOSITORY` or `AUDIT` to upgrade repository or audit schema selectively.
 
-The `run-sql` command can be also used to execute custom scripts via the switch `--scripts`.
-The `--scripts` option accepts a path to a SQL script file.
+The `run-sql` command can be also used to execute custom scripts using the `--scripts` option, which accepts a path to an SQL script file.
 
 [NOTE]
 ====
-The specified script does not need to be located in doc/config/sql/native/*.sql.
-Any SQL script accessible from the midPoint deployment can be executed.
+The script set specified using the `--scripts` option does not need to be located in `doc/config/sql/native/`.
+Any SQL script accessible by the midPoint deployment can be executed.
 ====
 
 The `--result` option prints the results of executed SQL statements (including query output) to the standard output (SYSOUT).
