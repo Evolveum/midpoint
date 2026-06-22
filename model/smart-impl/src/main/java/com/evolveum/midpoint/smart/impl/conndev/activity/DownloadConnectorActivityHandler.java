@@ -91,6 +91,11 @@ public class DownloadConnectorActivityHandler
             // Install template
             var lookups = template.install(result);
 
+            if (lookups.isEmpty()) {
+                throw new SystemException(
+                        "Connector installation produced no connector definition for '" + connectorUrl
+                                + "'; the downloaded connector is either already installed or is not a valid ConnId bundle");
+            }
             var lookup = lookups.get(0);
 
             var query = PrismContext.get().queryFor(ConnectorType.class)
@@ -101,6 +106,11 @@ public class DownloadConnectorActivityHandler
 
 
             var connectors = beans.modelService.searchObjects(ConnectorType.class, query, null, task, result);
+            if (connectors.isEmpty()) {
+                throw new SystemException(
+                        "Installed connector was not found in the repository for bundle '" + lookup.getConnectorBundle()
+                                + "', type '" + lookup.getConnectorType() + "', version '" + lookup.getConnectorVersion() + "'");
+            }
             var connector = connectors.get(0);
 
             var state = getActivityState();

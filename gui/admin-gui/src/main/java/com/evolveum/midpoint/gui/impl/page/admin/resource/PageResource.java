@@ -84,6 +84,9 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     private static final String DOT_CLASS = PageResource.class.getName() + ".";
     private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
 
+    /**
+     * Connector configuration properties whose changes require schema refresh.
+     */
     private static final Set<ItemPath> SCHEMA_REFRESH_PATHS = Set.of(
             ItemPath.create(
                     ResourceType.F_CONNECTOR_CONFIGURATION,
@@ -356,6 +359,10 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         breadcrumbs.add(0, new Breadcrumb(breadcrumbLabel));
     }
 
+    /**
+     * Refreshes the resource schema after saving connector configuration
+     * properties that affect schema interpretation.
+     */
     @Override
     protected void postProcessResult(
             @NotNull OperationResult result,
@@ -370,6 +377,10 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         super.postProcessResult(result, executedDeltas, target);
     }
 
+    /**
+     * Returns true when saved deltas contain connector configuration changes
+     * that require resource schema refresh.
+     */
     private boolean shouldRefreshSchema(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
 
         if (executedDeltas == null || executedDeltas.isEmpty()) {
@@ -384,6 +395,10 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                 .anyMatch(this::isSchemaRefreshPath);
     }
 
+    /**
+     * Checks whether the changed item path belongs to connector configuration
+     * properties that influence generated resource schema.
+     */
     private boolean isSchemaRefreshPath(ItemPath path) {
         return path != null && SCHEMA_REFRESH_PATHS.stream()
                 .anyMatch(refreshPath -> refreshPath.equivalent(path));

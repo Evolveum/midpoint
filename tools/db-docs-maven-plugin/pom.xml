@@ -50,5 +50,15 @@
             <groupId>org.apache.velocity</groupId>
             <artifactId>velocity-engine-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.commons</groupId>
+            <artifactId>test-ng</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

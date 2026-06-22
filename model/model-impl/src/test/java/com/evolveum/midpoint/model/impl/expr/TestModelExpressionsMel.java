@@ -146,6 +146,13 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
     }
 
     @Test
+    public void testShadowNameSubstring() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(),
+                ACCOUNT_GUYBRUSH_DUMMY_USERNAME.substring(1));
+    }
+
+    @Test
     public void testGetObjectTypeString() throws Exception {
         assertExecuteScriptExpressionString(
                 createVariables(

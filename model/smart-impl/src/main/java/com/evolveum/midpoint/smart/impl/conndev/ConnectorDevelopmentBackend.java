@@ -362,7 +362,7 @@ public abstract class ConnectorDevelopmentBackend {
             var propString = stream.toString(StandardCharsets.UTF_8);
             editableConnector().saveFile(CONFIGURATION_OVERRIDE, propString);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't write connector configuration override (" + CONFIGURATION_OVERRIDE + ")", e);
         }
         var connRef = development.getConnector().getConnectorRef();
         if (connRef != null && deleteConnectorSchema) {
