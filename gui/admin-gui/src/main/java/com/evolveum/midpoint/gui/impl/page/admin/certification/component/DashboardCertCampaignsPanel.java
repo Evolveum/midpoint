@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscU
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -96,20 +97,15 @@ public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertifica
                 for (PrismObject<AccessCertificationCampaignType> campaignObj : campaigns) {
                     AccessCertificationCampaignType campaign = campaignObj.asObjectable();
 
-                    ObjectQuery workItems = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid());
+                    // Use method that respects collectDecisionsFromAllReviewers setting
+                    MidPointPrincipal principal = page.getPrincipal();
+                    long openNotDecided = CertMiscUtil.countOpenCertItems(
+                            campaign.getOid(), principal, true, page);
+                    long allOpen = CertMiscUtil.countOpenCertItems(
+                            campaign.getOid(), principal, false, page);
+                    long openDecided = allOpen - openNotDecided;
 
-                    try {
-                        int openNotDecided = page.getCertificationService().countOpenWorkItems(workItems, true,
-                                false, null, task, task.getResult());
-                        int allOpen = page.getCertificationService().countOpenWorkItems(workItems, false,
-                                false, null, task, task.getResult());
-                        int openDecided = allOpen - openNotDecided;
-
-                        summary.add(new CampaignSummary(campaign, openDecided, openNotDecided));
-                    } catch (CommonException ex) {
-                        LOGGER.error("Couldn't load certification campaign work items count for campaign {}: {}",
-                                campaign.getName(), ex.getMessage(), ex);
-                    }
+                    summary.add(new CampaignSummary(campaign, openDecided, openNotDecided));
                 }
 
                 LOGGER.debug("Loaded {} active campaigns summary", summary.size());
