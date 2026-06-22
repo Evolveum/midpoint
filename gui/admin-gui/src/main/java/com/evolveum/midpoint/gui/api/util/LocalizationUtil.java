@@ -85,7 +85,14 @@ public class LocalizationUtil {
 
     public static String translateLookupTableRowLabel(@NotNull LookupTableRowType row) {
         if (row.getLabel() != null) {
-            return translatePolyString(row.getLabel());
+            // Label orig value can be defined with a translation key.
+            // In this case it should be translated.
+            // See #7576, #10996
+            String translatedLabel = translatePolyString(row.getLabel());
+            if (translatedLabel != null && translatedLabel.equals(row.getLabel().getOrig())) {
+                return LocalizationUtil.translate(translatedLabel);
+            }
+            return translatedLabel;
         }
         return row.getKey();
     }
