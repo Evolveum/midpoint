@@ -85,7 +85,7 @@ public abstract class SmartTaskProgressPanel extends BasePanel<String> implement
     @FunctionalInterface
     public interface SerializableTaskRunner extends Serializable {
 
-        IModel<TaskType> run(AjaxRequestTarget target, Integer threads);
+        IModel<TaskType> run(AjaxRequestTarget target, @NotNull Integer threads);
     }
 
     //Direct progress

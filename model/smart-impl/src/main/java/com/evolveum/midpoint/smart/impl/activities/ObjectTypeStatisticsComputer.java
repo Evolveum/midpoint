@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -21,28 +22,41 @@ import java.util.List;
 /**
  * Computes statistics for shadow objects of a resource object type.
  */
-public class ObjectTypeStatisticsComputer extends AbstractStatisticsComputer<QName> {
+public class ObjectTypeStatisticsComputer {
+
+    private final StatisticsAggregator<QName> aggregator =
+            new StatisticsAggregator<>(ObjectTypeStatisticsComputer::fromAttributeRef);
 
     public ObjectTypeStatisticsComputer(@NotNull ResourceObjectTypeDefinition typeDefinition) {
-        getStatisticsObject().setSize(0);
-
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : typeDefinition.getAttributeDefinitions()) {
             ItemName attrName = attrDef.getItemName();
-            registerItem(attrName, toAttributeRef(attrName), isDnAttribute(attrName));
+            aggregator.registerItem(attrName, toAttributeRef(attrName), aggregator.isDnAttribute(attrName));
         }
     }
 
-    public void process(ShadowType shadow) {
-        incrementSize();
+    public void process(@NotNull ShadowType shadow) {
+        aggregator.incrementSize();
 
-        for (QName attrName : getItemOrder()) {
+        for (QName attrName : aggregator.getItemOrder()) {
             List<?> values = ShadowUtil.getAttributeValues(shadow, attrName);
-            aggregateItem(attrName, values);
+            aggregator.aggregateValues(attrName, values);
         }
     }
 
-    @Override
-    protected QName fromRef(@NotNull ItemPathType ref) {
+    public void postProcessStatistics() {
+        aggregator.postProcessStatistics();
+    }
+
+    public ShadowObjectClassStatisticsType getStatistics() {
+        return aggregator.getStatistics();
+    }
+
+    /** Converts plain attribute name to an {@link ItemPathType} used in statistics beans. */
+    private static ItemPathType toAttributeRef(@NotNull QName attrName) {
+        return ShadowType.F_ATTRIBUTES.append(attrName).toBean();
+    }
+
+    private static QName fromAttributeRef(@NotNull ItemPathType ref) {
         return ref.getItemPath().rest().asSingleNameOrFail();
     }
 }

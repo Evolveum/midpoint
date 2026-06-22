@@ -149,7 +149,7 @@ public class StatisticsService {
     public @NotNull String regenerateObjectClassStatistics(
             String resourceOid,
             QName objectClassName,
-            Integer threads,
+            int threads,
             Task task,
             OperationResult parentResult) throws CommonException {
 
@@ -166,6 +166,7 @@ public class StatisticsService {
         var result = parentResult.subresult(OP_SUBMIT_OBJECT_CLASS_STATISTICS_COMPUTATION)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
+                .addParam("threads", threads)
                 .build();
 
         try {
@@ -177,10 +178,7 @@ public class StatisticsService {
                                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                                     .objectClassName(objectClassName)));
 
-            if (threads != null && threads > 0) {
-                ActivityDefinitionUtil.findOrCreateDistribution(activity)
-                        .setWorkerThreads(threads);
-            }
+            applyWorkerThreads(activity, threads);
 
             var oid = modelInteractionService.submit(
                     activity,
@@ -215,7 +213,7 @@ public class StatisticsService {
     public @NotNull String regenerateObjectTypeStatistics(
             String resourceOid,
             ResourceObjectTypeIdentification resourceObjectTypeIdentification,
-            Integer threads,
+            int threads,
             Task task,
             OperationResult parentResult) throws CommonException {
 
@@ -236,6 +234,7 @@ public class StatisticsService {
                 .addParam("resourceOid", resourceOid)
                 .addParam("kind", kind.value())
                 .addParam("intent", intent)
+                .addParam("threads", threads)
                 .build();
 
         try {
@@ -248,10 +247,7 @@ public class StatisticsService {
                                     .kind(kind)
                                     .intent(intent)));
 
-            if (threads != null && threads > 0) {
-                ActivityDefinitionUtil.findOrCreateDistribution(activity)
-                        .setWorkerThreads(threads);
-            }
+            applyWorkerThreads(activity, threads);
 
             var oid = modelInteractionService.submit(
                     activity,
@@ -677,7 +673,7 @@ public class StatisticsService {
             @NotNull String resourceOid,
             @NotNull ShadowKindType kind,
             @NotNull String intent,
-            Integer threads,
+            int threads,
             Task task,
             OperationResult parentResult) throws CommonException {
         String runningTaskOid = findRunningFocusObjectStatisticsComputationTaskOid(
@@ -694,6 +690,7 @@ public class StatisticsService {
                 .addParam("resourceOid", resourceOid)
                 .addParam("kind", kind.value())
                 .addParam("intent", intent)
+                .addParam("threads", threads)
                 .build();
 
         try {
@@ -707,10 +704,7 @@ public class StatisticsService {
                                     .kind(kind)
                                     .intent(intent)));
 
-            if (threads != null && threads > 0) {
-                ActivityDefinitionUtil.findOrCreateDistribution(activity)
-                        .setWorkerThreads(threads);
-            }
+            applyWorkerThreads(activity, threads);
 
             var oid = modelInteractionService.submit(
                     activity,
@@ -819,5 +813,17 @@ public class StatisticsService {
         } catch (Exception e) {
             LOGGER.warn("Failed to delete statistics object {}: {}", statisticsOid, e.getMessage(), e);
         }
+    }
+
+    private static void validateWorkerThreads(int threads) {
+        if (threads <= 0) {
+            throw new IllegalArgumentException("Worker threads count must be positive: " + threads);
+        }
+    }
+
+    private static void applyWorkerThreads(ActivityDefinitionType activity, int threads) {
+        validateWorkerThreads(threads);
+        ActivityDefinitionUtil.findOrCreateDistribution(activity)
+                .setWorkerThreads(threads);
     }
 }

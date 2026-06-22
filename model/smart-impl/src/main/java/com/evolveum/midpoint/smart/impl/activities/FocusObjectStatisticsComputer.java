@@ -13,28 +13,29 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Computes statistics for midpoint focus objects, e.g. {@link UserType} and {@link RoleType}.
  */
-public class FocusObjectStatisticsComputer extends AbstractStatisticsComputer<ItemName> {
+public class FocusObjectStatisticsComputer {
 
     private final QName objectTypeName;
 
-    public FocusObjectStatisticsComputer(QName objectTypeName, @NotNull PrismObjectDefinition<?> objectDefinition) {
+    private final StatisticsAggregator<ItemName> aggregator =
+            new StatisticsAggregator<>(FocusObjectStatisticsComputer::fromPropertyRef);
+
+    public FocusObjectStatisticsComputer(
+            @NotNull QName objectTypeName,
+            @NotNull PrismObjectDefinition<?> objectDefinition) {
+
         this.objectTypeName = objectTypeName;
-        getStatisticsObject().setSize(0);
 
         for (ItemDefinition<?> itemDef : objectDefinition.getDefinitions()) {
             if (!(itemDef instanceof PrismPropertyDefinition<?> propDef)) {
@@ -46,30 +47,42 @@ public class FocusObjectStatisticsComputer extends AbstractStatisticsComputer<It
             }
 
             ItemName propName = propDef.getItemName();
-            registerItem(propName, toPropertyRef(propName), false);
+            aggregator.registerItem(propName, toPropertyRef(propName), false);
         }
     }
 
     public <O extends ObjectType> void process(@NotNull O object) {
-        incrementSize();
+        aggregator.incrementSize();
 
         PrismObject<? extends ObjectType> prismObject = object.asPrismObject();
 
-        for (ItemName propName : getItemOrder()) {
+        for (ItemName propName : aggregator.getItemOrder()) {
             PrismProperty<?> property = prismObject.findProperty(propName);
             aggregateProperty(propName, property);
         }
     }
 
+    public void postProcessStatistics() {
+        aggregator.postProcessStatistics(this::shouldRemoveAttribute);
+    }
+
+    public ShadowObjectClassStatisticsType getStatistics() {
+        return aggregator.getStatistics();
+    }
+
+    public QName getObjectTypeName() {
+        return objectTypeName;
+    }
+
     private void aggregateProperty(ItemName propName, PrismProperty<?> property) {
         if (property == null || property.isEmpty()) {
-            markMissing(propName);
+            aggregator.markMissing(propName);
             return;
         }
 
         Collection<?> realValues = property.getRealValues();
         if (realValues.isEmpty()) {
-            markMissing(propName);
+            aggregator.markMissing(propName);
             return;
         }
 
@@ -79,26 +92,20 @@ public class FocusObjectStatisticsComputer extends AbstractStatisticsComputer<It
 
         Object rawValue = realValues.iterator().next();
         if (rawValue == null) {
-            markMissing(propName);
+            aggregator.markMissing(propName);
             return;
         }
 
-        aggregateStringValue(propName, toStringValue(rawValue));
+        aggregator.aggregateStringValue(propName, toStringValue(rawValue));
     }
 
-    @Override
-    protected void afterPostProcessAttribute(
-            @NotNull ShadowAttributeStatisticsType stats,
-            Iterator<ShadowAttributeStatisticsType> iterator) {
+    private boolean shouldRemoveAttribute(
+            ShadowAttributeStatisticsType stats,
+            ShadowObjectClassStatisticsType statistics) {
 
-        if (stats.getMissingValueCount() == getStatisticsObject().getSize()
-                || (stats.getValueCount().isEmpty() && stats.getValuePatternCount().isEmpty())) {
-            iterator.remove();
-        }
-    }
-
-    public QName getObjectTypeName() {
-        return objectTypeName;
+        return stats.getMissingValueCount() == statistics.getSize()
+                || (stats.getValueCount().isEmpty()
+                && stats.getValuePatternCount().isEmpty());
     }
 
     private boolean isAggregatable(@NotNull QName typeName) {
@@ -119,12 +126,11 @@ public class FocusObjectStatisticsComputer extends AbstractStatisticsComputer<It
         return String.valueOf(rawValue).trim();
     }
 
-    private ItemPathType toPropertyRef(@NotNull ItemName propName) {
+    private static ItemPathType toPropertyRef(@NotNull ItemName propName) {
         return propName.toBean();
     }
 
-    @Override
-    protected ItemName fromRef(@NotNull ItemPathType ref) {
+    private static ItemName fromPropertyRef(@NotNull ItemPathType ref) {
         return ItemName.fromQName(ref.getItemPath().asSingleNameOrFail());
     }
 }
