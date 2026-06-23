@@ -13,7 +13,8 @@
   "license": "EUPL-1.2 or later.",
   "devDependencies": {
     "@babel/traverse": "^7.27.0",
-    "@cyclonedx/cyclonedx-npm": "^4.1.2",
+    "@cyclonedx/cyclonedx-npm": "^5.0.0",
+    "libxmljs2": "^0.37.0",
     "@eonasdan/tempus-dominus": "^6.10.2",
     "@fontsource/source-sans-pro": "^5.1.0",
     "@fortawesome/fontawesome-free": "^6.7.2",
@@ -27,7 +28,7 @@
     "bs-stepper": "^1.7.0",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^8.0.0",
-    "custompatch": "^1.1.8",
+    "@smushytaco/custompatch": "^1.0.19",
     "daterangepicker": "^3.1.0",
     "expose-loader": "^5.0.1",
     "file-loader": "^6.2.0",
