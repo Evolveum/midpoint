@@ -12,7 +12,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
 
 /**
  * @author lazyman

@@ -8,7 +8,8 @@ package com.evolveum.midpoint.testing.story;
 
 import java.io.File;
 
-import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.test.DummyTestResource;

@@ -24,7 +24,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.ConnectorOperationHook;
 import com.evolveum.icf.dummy.resource.DummyObject;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;

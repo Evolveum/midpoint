@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.gui;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertSame;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;

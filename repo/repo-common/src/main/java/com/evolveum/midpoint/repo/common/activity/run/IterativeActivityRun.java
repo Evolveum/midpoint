@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.*;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.PARTIAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil.*;
@@ -24,7 +24,10 @@ import com.evolveum.midpoint.repo.common.activity.run.reports.ItemsReport;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

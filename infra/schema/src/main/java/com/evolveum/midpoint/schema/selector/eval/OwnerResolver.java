@@ -16,7 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Resolves the owner referenced to by {@link OwnerClause}.

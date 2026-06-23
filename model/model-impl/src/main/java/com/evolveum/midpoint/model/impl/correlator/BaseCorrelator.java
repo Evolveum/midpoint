@@ -26,7 +26,10 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationConfidenceDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.jetbrains.annotations.NotNull;
 

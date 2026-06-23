@@ -6,22 +6,14 @@
 
 package com.evolveum.midpoint.gui.impl.component.custom;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-
-import java.util.List;
 
 public class CustomContainerPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
 

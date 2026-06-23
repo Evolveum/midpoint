@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.common.activity.run.reports.formatters;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 
 import org.jetbrains.annotations.NotNull;
 

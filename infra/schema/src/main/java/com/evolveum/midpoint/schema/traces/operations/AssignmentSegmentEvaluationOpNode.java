@@ -9,7 +9,9 @@ package com.evolveum.midpoint.schema.traces.operations;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.traces.*;
 import com.evolveum.midpoint.schema.util.AssignmentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSegmentEvaluationTraceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.PlusMinusZeroType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 

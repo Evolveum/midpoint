@@ -9,7 +9,8 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.sql.SQLException;
 import java.util.*;

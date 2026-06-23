@@ -37,7 +37,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.factory.wrapper.ShadowWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ShadowAssociationWrapperImpl;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;

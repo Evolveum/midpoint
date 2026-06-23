@@ -33,7 +33,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUnca
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.task.api.Task;

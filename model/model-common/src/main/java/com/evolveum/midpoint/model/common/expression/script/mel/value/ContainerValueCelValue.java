@@ -6,7 +6,8 @@
 package com.evolveum.midpoint.model.common.expression.script.mel.value;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.DynType;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import dev.cel.common.types.CelType;
 

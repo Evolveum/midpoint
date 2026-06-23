@@ -10,7 +10,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
 

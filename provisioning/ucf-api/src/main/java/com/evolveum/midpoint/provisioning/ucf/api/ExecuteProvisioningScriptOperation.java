@@ -11,7 +11,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 
 /**

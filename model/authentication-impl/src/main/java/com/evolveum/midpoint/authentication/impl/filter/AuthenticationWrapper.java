@@ -28,10 +28,12 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;

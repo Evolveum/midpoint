@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.stereotype.Component;
 

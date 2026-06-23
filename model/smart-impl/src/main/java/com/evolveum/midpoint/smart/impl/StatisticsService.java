@@ -51,8 +51,6 @@ import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Service for managing statistics objects lifecycle including retrieval, validation, and deletion.

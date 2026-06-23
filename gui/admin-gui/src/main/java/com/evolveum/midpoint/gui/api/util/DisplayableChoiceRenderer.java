@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**

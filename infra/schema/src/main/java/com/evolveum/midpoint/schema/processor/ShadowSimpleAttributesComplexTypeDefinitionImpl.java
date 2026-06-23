@@ -6,16 +6,12 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.util.Collection;
 import java.util.List;
-import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 
 /**
  * Implementation of a CTD for a {@link ShadowAttributesContainer} providing simple attributes only.

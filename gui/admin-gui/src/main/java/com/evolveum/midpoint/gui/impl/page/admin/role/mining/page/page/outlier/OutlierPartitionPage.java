@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.List;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMenuItem;
@@ -15,7 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.panel.*;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.*;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,7 +38,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;

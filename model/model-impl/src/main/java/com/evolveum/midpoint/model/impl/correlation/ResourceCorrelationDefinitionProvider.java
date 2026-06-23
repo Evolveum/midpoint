@@ -19,7 +19,9 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Provides correlation definition for a specific resource object type.

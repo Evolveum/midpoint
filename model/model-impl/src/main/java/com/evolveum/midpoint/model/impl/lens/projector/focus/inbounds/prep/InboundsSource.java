@@ -10,7 +10,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

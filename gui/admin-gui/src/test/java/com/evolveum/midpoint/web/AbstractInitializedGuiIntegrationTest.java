@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.web;
 
-import static org.testng.AssertJUnit.assertNotNull;
-
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -15,16 +13,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.springframework.test.context.event.annotation.BeforeTestMethod;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;

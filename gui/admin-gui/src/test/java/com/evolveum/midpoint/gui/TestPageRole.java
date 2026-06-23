@@ -14,8 +14,6 @@ import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_USERNAME
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.protocol.http.mock.MockHttpServletRequest;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,8 +28,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Hiroyuki Wada

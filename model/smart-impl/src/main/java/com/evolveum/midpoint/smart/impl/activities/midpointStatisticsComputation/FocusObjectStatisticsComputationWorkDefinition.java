@@ -9,7 +9,10 @@ package com.evolveum.midpoint.smart.impl.activities.midpointStatisticsComputatio
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusObjectStatisticsComputationWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

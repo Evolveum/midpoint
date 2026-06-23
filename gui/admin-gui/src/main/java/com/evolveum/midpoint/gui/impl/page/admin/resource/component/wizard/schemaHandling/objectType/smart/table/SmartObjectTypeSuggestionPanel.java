@@ -29,7 +29,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 

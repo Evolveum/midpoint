@@ -12,7 +12,9 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 @SuppressWarnings("unused")
 public class SearchItemDisplayNameProcessor implements UpgradeObjectProcessor<ObjectType> {

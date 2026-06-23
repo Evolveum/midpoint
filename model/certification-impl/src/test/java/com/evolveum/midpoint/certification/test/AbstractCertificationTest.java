@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 

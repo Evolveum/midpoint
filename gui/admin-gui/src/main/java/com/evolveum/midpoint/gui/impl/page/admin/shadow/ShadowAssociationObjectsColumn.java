@@ -20,7 +20,9 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;

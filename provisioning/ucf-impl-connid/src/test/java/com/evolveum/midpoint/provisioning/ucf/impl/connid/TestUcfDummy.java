@@ -24,7 +24,7 @@ import java.util.*;
 import com.evolveum.midpoint.test.AttrName;
 import com.evolveum.midpoint.test.DummyHrScenario.*;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.context.ContextConfiguration;

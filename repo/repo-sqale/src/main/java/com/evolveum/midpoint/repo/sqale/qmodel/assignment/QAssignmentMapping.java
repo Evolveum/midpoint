@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.util.exception.SystemException;

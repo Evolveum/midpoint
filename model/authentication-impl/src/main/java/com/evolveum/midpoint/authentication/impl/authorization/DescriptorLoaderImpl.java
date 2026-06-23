@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.authorization;
 
 import com.evolveum.midpoint.authentication.api.authorization.*;
-import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;

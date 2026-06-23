@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.*;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObjects;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion.SimulationCorrelationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
@@ -28,7 +27,9 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;

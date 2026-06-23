@@ -7,12 +7,14 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel;
 
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainPartition;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 import static com.evolveum.midpoint.web.component.data.table.CollapsableDataTable.CollapsableRowItem.COLLAPSIBLE_CONTENT_ID;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 

@@ -14,7 +14,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
  * @author lskublik

@@ -14,7 +14,8 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
-import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.FailableLensFunction;
+import com.evolveum.midpoint.model.impl.lens.PersonaKey;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;

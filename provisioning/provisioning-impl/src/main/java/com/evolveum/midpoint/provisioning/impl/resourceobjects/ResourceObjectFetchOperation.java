@@ -8,7 +8,10 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.PrettyPrinter;

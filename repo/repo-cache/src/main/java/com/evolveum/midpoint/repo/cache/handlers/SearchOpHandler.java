@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
-import static com.evolveum.midpoint.repo.api.RepositoryService.*;
+import static com.evolveum.midpoint.repo.api.RepositoryService.OP_SEARCH_OBJECTS;
+import static com.evolveum.midpoint.repo.api.RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE;
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.OP_SEARCH_OBJECTS_IMPL;
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.OP_SEARCH_OBJECTS_ITERATIVE_IMPL;
 import static com.evolveum.midpoint.repo.cache.handlers.CacheUpdater.toImmutableOidList;
@@ -32,7 +33,10 @@ import com.evolveum.midpoint.repo.cache.other.MonitoringUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositorySearchObjectsTraceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
 
 /**
  * Handler for `searchObjects` and `searchObjectsIterative` operations.
