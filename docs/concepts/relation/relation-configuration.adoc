@@ -198,6 +198,18 @@ Since midPoint 3.9 this can be extended and even changed.
 Just please note that currently relation configuration is supposed to be used only to add completely new relations.
 Changing existing (hardcoded) relations is *xref:/midpoint/versioning/experimental/[experimental functionality]*.
 
+
+[NOTE]
+====
+Please note that a relation name (the `ref` attribute within a relation configuration) identifies a specific relationship and its meaning within the deployment (for example org:manager, org:owner, or custom:applicationOwner), while a relation kind classifies that relation into a processing category that determines, for example, how midPoint evaluates assignments and inducements.
+
+For example, configuring a custom relation with `<kind>member</kind>` or `<kind>manager</kind>` creates a completely new relation.
+Such a relation does not extend the behavior from the built-in org:default or org:manager relations.
+The relation kind influences assignment-processing semantics; it does not establish any inheritance or equivalence between relations.
+
+Therefore, multiple relations can share the same kind while remaining completely independent relations with different business meanings.
+====
+
 ==  See Also
 
 * xref:index.adoc[Relation]
