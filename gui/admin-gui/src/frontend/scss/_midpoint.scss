@@ -164,16 +164,6 @@ li.dropdown.user.user-menu {
   }
 }
 
-// sidebar styles extension
-// TODO we need it? we not use it in code and adminlte changed .nav-sidebar to .sidebar-menu
-// .sidebar-menu .treeview-menu > li > span > .fe {
-//   width: 20px;
-// }
-//
-// .sidebar-menu > li > a > .fe {
-//   width: 20px;
-// }
-
 .sidebar-menu {
   & li.nav-header {
     cursor: pointer;
@@ -2246,14 +2236,6 @@ select:focus-visible {
     -webkit-transition: all ease 0.08s !important;
   }
 }
-
-// TODO revise for btn-light
-// //:focus pseudo attribute fix for accessibility intentions
-// .btn-default:focus {
-//   background-color: #e9ecef;
-//   color: #2b2b2b;
-// }
-
 //End of accessibility classes and overrides
 
 div.show > a > div > i.fas {

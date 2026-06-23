@@ -78,14 +78,14 @@
 
   .details-menu {
     padding-top: 0px;
-    background-color: $lte-sidebar-submenu-bg; // TODO:revision
+    background-color: --#{$lte-prefix}-sidebar-submenu-bg;
   }
 }
 
 .details-menu a {
   text-decoration: none;
   font-size: 15px;
-  color: var(--#{$lte-prefix}-sidebar-color); // TODO:revision
+  color: var(--#{$lte-prefix}-sidebar-color);
   display: block;
   cursor: pointer;
   padding: 8px 8px 8px 10px;
@@ -109,8 +109,8 @@
 }
 
 .details-menu a:hover {
-  color: var(--#{$lte-prefix}-sidebar-hover-color); // TODO:revision
-  background-color: var(--#{$lte-prefix}-sidebar-hover-bg); // TODO:revision
+  color: var(--#{$lte-prefix}-sidebar-hover-color);
+  background-color: var(--#{$lte-prefix}-sidebar-hover-bg);
 }
 
 ul.details-menu {
@@ -130,7 +130,7 @@ ul.details-menu {
     }
 
   .menu-item:hover {
-    color: var(--#{$lte-prefix}-sidebar-hover-color); // TODO:revision
-    background-color: var(--#{$lte-prefix}-sidebar-hover-bg); // TODO:revision
+    color: var(--#{$lte-prefix}-sidebar-hover-color);
+    background-color: var(--#{$lte-prefix}-sidebar-hover-bg);
   }
 }

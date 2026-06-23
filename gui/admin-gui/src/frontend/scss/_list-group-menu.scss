@@ -33,8 +33,8 @@ $max-levels: 10;
 @mixin list-group-menu-item() {
   display: flex;
   flex-direction: column;
-  color: var(--bs-list-group-color); // TODO:revision
-  background-color: var(--bs-list-group-bg); // TODO:revision
+  color: var(--bs-list-group-color);
+  background-color: var(--bs-list-group-bg);
 
   & > .item {
     display: flex;
@@ -72,31 +72,31 @@ $max-levels: 10;
       &:hover,
       &:focus {
         z-index: 1; // Place hover/focus items above their siblings for proper border styling
-        color: var(--bs-list-group-action-hover-color); // TODO:revision
+        color: var(--bs-list-group-action-hover-color);
         text-decoration: none;
-        background-color: var(--bs-list-group-action-hover-bg); // TODO:revision
+        background-color: var(--bs-list-group-action-hover-bg);
       }
 
       &:active {
-        color: var(--bs-list-group-action-active-color); // TODO:revision
-        background-color: var(--bs-list-group-action-active-bg); // TODO:revision
+        color: var(--bs-list-group-action-active-color);
+        background-color: var(--bs-list-group-action-active-bg);
       }
     }
   }
 
     &.disabled,
     &:disabled {
-      color: var(--bs-list-group-disabled-color); // TODO:revision
+      color: var(--bs-list-group-disabled-color);
       pointer-events: none;
-      background-color: var(--bs-list-group-disabled-bg); // TODO:revision
+      background-color: var(--bs-list-group-disabled-bg);
     }
 
     // Include both here for `<a>`s and `<button>`s
     &.active {
       z-index: 2; // Place active items above their siblings for proper border styling
-      color: var(--bs-list-group-active-color); // TODO:revision
-      background-color: var(--bs-list-group-active-bg); // TODO:revision
-      border-color: var(--bs-list-group-active-border-color); // TODO:revision
+      color: var(--bs-list-group-active-color);
+      background-color: var(--bs-list-group-active-bg);
+      border-color: var(--bs-list-group-active-border-color);
     }
 
   & > .form-control {

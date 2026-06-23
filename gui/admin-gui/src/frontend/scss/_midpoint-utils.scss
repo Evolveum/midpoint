@@ -145,35 +145,35 @@ div[role="button"].btn,
 }
 
 //Button pill - neutralized
-// div[role="button"].btn, .btn { TODO:revision
-//   //Custom links styles (tertiary style)
-//   &.btn-pill {
-//     border: 1px solid $button-default-border-color;
-//     border-radius: 50rem !important;
-//     color: $text-toned-color;
-//     background-color: $white;
-//
-//     & > .pill-label {
-//       color:$text-color;
-//     }
-//
-//     &:hover {
-//       background-color: shade-color($button-default-background-color, 5%);
-//
-//       & > * {
-//         color:$text-color;
-//       }
-//     }
-//     &.active {
-//       border: 1px solid $primary;
-//       background-color: mix($primary, $white, 10%);
-//
-//       & > * {
-//         color:$primary;
-//       }
-//     }
-//   }
-// }
+div[role="button"].btn, .btn {
+  //Custom links styles (tertiary style)
+  &.btn-pill {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 50rem !important;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+
+    & > .pill-label {
+      color: var(--bs-body-color);
+    }
+
+    &:hover {
+      background-color: var(--bs-secondary-bg);
+
+      & > * {
+        color: var(--bs-body-color);
+      }
+    }
+    &.active {
+      border-color: var(--bs-primary);
+      background-color: rgba(var(--bs-primary-rgb), .10);
+
+      & > * {
+        color: var(--bs-primary);
+      }
+    }
+  }
+}
 
 .txt-toned {
   color:$text-toned-color;
