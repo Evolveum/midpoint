@@ -465,7 +465,7 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
                         () -> getObjectTypeDefinition(),
                         () -> getObjectTypeDefinition().getKind(),
                         false,
-                        "btn btn-default btn-sm me-2"));
+                        "btn btn-light border btn-sm me-2"));
                 return buttonsList;
             }
 

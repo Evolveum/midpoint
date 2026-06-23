@@ -561,7 +561,7 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
             }
         };
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
-        createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        createNewObjectButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         return createNewObjectButton;
     }
 

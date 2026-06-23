@@ -97,7 +97,7 @@ public class CompareContainerPanel<C extends Containerable> extends BasePanel<Co
 
             @Override
             protected @NotNull String getSpecialButtonClass() {
-                return "btn btn-default";
+                return "btn btn-light border";
             }
 
             @Override
@@ -150,7 +150,7 @@ public class CompareContainerPanel<C extends Containerable> extends BasePanel<Co
     private @NotNull Map<String, String> createDefaultOptions() {
         Map<String, String> map = new HashMap<>();
         map.put("buttonContainer", "<div class=\"dropdown\">");
-        map.put("buttonClass", "btn btn-default");
+        map.put("buttonClass", "btn btn-light border");
         map.put("buttonTextAlignment", "left");
         map.put("nonSelectedText", getString("CompareContainerPanel.nonSelectedText"));
         map.put("allSelectedText", getString("CompareContainerPanel.allSelectedText"));

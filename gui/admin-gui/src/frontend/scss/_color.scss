@@ -18,7 +18,7 @@
  }
 
  .bg-pink-100 {
-   background-color: #f7d6e6 !important;
+   background-color: $pink-100 !important;
  }
 
  .text-pink {
@@ -26,41 +26,85 @@
  }
 
 .bg-orange-100 {
-   background-color: #ffe5d0 !important;
+   background-color: $orange-100 !important;
  }
 
 .bg-cyan-100 {
-   background-color: #cff4fc !important;
+   background-color: $cyan-100 !important;
  }
 
 .bg-teal-100 {
-   background-color: #d2f4ea !important;
+   background-color: $teal-100 !important;
  }
 
-.bg-ai-badge-color {
-   background-color: #e0cffc !important;
+.bg-ai-light {
+   background-color: $indigo-100 !important;
  }
 
 .text-ai {
-  color: #6610f2 !important;
+  color: $indigo !important;
 }
 
 .border-color-ai {
-  border-color: #6610f2 !important;
+  border-color: $indigo !important;
 }
 
 .bg-primary-200 {
-  background-color: #a6c5d8 !important;
+  background-color: #a6c5d8  !important;
 }
 
 .bg-primary-100 {
-  background-color: #a6c5d8 !important;
+  background-color: #d2e2eb !important;
 }
 
 .bg-green-100 {
-  background-color: #d1e7dd !important;
+  background-color: $green-100 !important;
 }
 
 .bg-red-100 {
-  background-color: #f8d7da !important;
+  background-color: $red-100 !important;
+}
+
+.bg-blue {
+  background-color: $blue !important;
+}
+
+.text-blue {
+  color: $blue;
+}
+
+.bg-teal {
+  background-color: $teal !important;
+}
+
+.text-teal {
+  color: $teal;
+}
+
+.bg-purple {
+  background-color: $purple !important;
+}
+
+.text-purple {
+  color: $purple;
+}
+
+.bg-dark {
+  background-color: $gray-800 !important;
+}
+
+.text-dark {
+  color: $gray-800;
+}
+
+.bg-orange {
+  background-color: $orange !important;
+}
+
+.text-orange {
+  color: $orange;
+}
+
+.bg-pink {
+  background-color: $pink !important;
 }

@@ -138,7 +138,7 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
                 }
             };
             export.showTitleAsLabel(true);
-            export.add(AttributeAppender.append("class", "btn btn-default ms-auto"));
+            export.add(AttributeAppender.append("class", "btn btn-light border ms-auto"));
             export.setOutputMarkupId(true);
             buttons.add(export);
             return;

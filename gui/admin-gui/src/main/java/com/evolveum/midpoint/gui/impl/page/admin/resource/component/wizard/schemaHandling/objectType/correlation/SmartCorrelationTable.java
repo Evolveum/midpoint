@@ -351,7 +351,7 @@ public abstract class SmartCorrelationTable
 
     @Override
     protected String getDiscardButtonCssClass() {
-        return "col p-2 btn btn-default rounded";
+        return "col p-2 btn btn-light border rounded";
     }
 
     @Override

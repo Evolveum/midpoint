@@ -461,7 +461,7 @@ public abstract class AssociationTablePanel
 
         accept.setOutputMarkupId(true);
         accept.showTitleAsLabel(true);
-        accept.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary mr-2"));
+        accept.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary me-2"));
         return accept;
     }
 
@@ -506,7 +506,7 @@ public abstract class AssociationTablePanel
         };
 
         tag.setOutputMarkupId(true);
-        tag.add(AttributeModifier.replace("class", "badge badge-blue bg-opaque d-inline-flex flex-nowrap")); //system-badge
+        tag.add(AttributeModifier.replace("class", "badge bg-blue bg-opaque d-inline-flex flex-nowrap")); //system-badge
         return tag;
     }
 

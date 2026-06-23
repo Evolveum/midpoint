@@ -438,7 +438,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         };
         examineButton.titleAsLabel(true);
         examineButton.setOutputMarkupId(true);
-        examineButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm p-2"));
+        examineButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border btn-sm p-2"));
 
         examineButton.setOutputMarkupId(true);
         add(examineButton);

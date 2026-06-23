@@ -177,7 +177,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeAppender.append("class", "btn btn-default"));
+        button.add(AttributeAppender.append("class", "btn btn-light border"));
         return button;
     }
 

@@ -315,7 +315,7 @@ public class MappingSuggestionGroupColumnTilePanel<
         };
 
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", "ml-auto btn btn-link p-0"));
+        button.add(AttributeAppender.append("class", "ms-auto btn btn-link p-0"));
         button.showTitleAsLabel(true);
 
         fragment.add(button);
@@ -342,7 +342,7 @@ public class MappingSuggestionGroupColumnTilePanel<
         };
 
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", "ml-auto btn btn-outline-primary"));
+        button.add(AttributeAppender.append("class", "ms-auto btn btn-outline-primary"));
         button.showTitleAsLabel(true);
 
         fragment.add(button);
@@ -447,8 +447,8 @@ public class MappingSuggestionGroupColumnTilePanel<
 
     private @NotNull AjaxIconButton buildExpandableHeaderTitle(String text) {
         AjaxIconButton button = new AjaxIconButton(text, () -> getModelValue().isExpanded()
-                ? "mr-3 fa-solid fa-chevron-up"
-                : "mr-3 fa-solid fa-chevron-down", createStringResource("MappingSuggestionGroupColumnTilePanel.headerTitle")) {
+                ? "me-3 fa-solid fa-chevron-up"
+                : "me-3 fa-solid fa-chevron-down", createStringResource("MappingSuggestionGroupColumnTilePanel.headerTitle")) {
 
             @Override
             public void onClick(@NotNull AjaxRequestTarget ajaxRequestTarget) {

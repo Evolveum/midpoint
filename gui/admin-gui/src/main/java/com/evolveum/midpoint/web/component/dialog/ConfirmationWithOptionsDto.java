@@ -114,7 +114,7 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         private String confirmationButtonClass = "btn btn-primary";
         private StringResourceModel cancelButtonLabel =
                 new StringResourceModel("SmartSuggestConfirmationPanel.cancel");
-        private String cancelButtonClass = "btn btn-default";
+        private String cancelButtonClass = "btn btn-light border";
         private StringResourceModel confirmationOptionsTitle;
         private List<ConfirmationOption<T>> confirmationOptions;
 

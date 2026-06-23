@@ -549,24 +549,24 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             OpResult result = getModelObject();
 
             if (result == null || result.getStatus() == null) {
-                return "card-warning";
+                return "bg-warning";
             }
 
             switch (result.getStatus()) {
                 case IN_PROGRESS:
                 case NOT_APPLICABLE:
-                    return "card-info";
+                    return "bg-info";
                 case SUCCESS:
-                    return "card-success";
+                    return "bg-success";
                 case HANDLED_ERROR:
-                    return "card-secondary";
+                    return "bg-secondary";
                 case FATAL_ERROR:
-                    return "card-danger";
+                    return "bg-danger";
                 case UNKNOWN:
                 case PARTIAL_ERROR:
                 case WARNING:
                 default:
-                    return "card-warning";
+                    return "bg-warning";
             }
         };
     }

@@ -152,11 +152,11 @@ public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> impleme
             protected @NotNull String getIconCssClass() {
                 OperationResultStatus taskStatus = getTaskExecutionProgress().getTaskStatus();
                 if (taskStatus == OperationResultStatus.SUCCESS) {
-                    return "fa-solid fa-check-circle text-success me-2 mr-1";
+                    return "fa-solid fa-check-circle text-success me-2 me-1";
                 } else if (taskStatus == OperationResultStatus.FATAL_ERROR) {
-                    return "fa-solid fa-xmark-circle text-danger me-2 mr-1";
+                    return "fa-solid fa-xmark-circle text-danger me-2 me-1";
                 } else if (taskStatus == OperationResultStatus.WARNING || taskStatus == OperationResultStatus.PARTIAL_ERROR) {
-                    return "fa-solid fa-triangle-exclamation text-warning me-2 mr-1";
+                    return "fa-solid fa-triangle-exclamation text-warning me-2 me-1";
                 } else {
                     return "";
                 }

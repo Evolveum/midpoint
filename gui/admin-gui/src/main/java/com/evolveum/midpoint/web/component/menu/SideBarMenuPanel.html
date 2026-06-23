@@ -8,18 +8,16 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="user-panel pb-2 pt-3 d-flex align-items-center">
-        <div class="image">
-            <div wicket:id="menuPhoto" class="user-image rounded-circle shadow-sm" wicket:message="alt:SideBarMenuPanel.loginUserPhoto"/>
-        </div>
-        <div class="info" role="region">
+        <div wicket:id="menuPhoto" class="user-image rounded-circle shadow-sm" wicket:message="alt:SideBarMenuPanel.loginUserPhoto"/>
+        <div class="info d-inline-block p-1 ps-2" role="region">
             <div class="visually-hidden"><wicket:message key="SideBarMenuPanel.loginUser"/></div>
             <div class="visually-hidden"><wicket:message key="SideBarMenuPanel.loginUserUsername"/></div>
-            <div class="text-lightblue text-capitalize ps-1 w-100" wicket:id="username" style="overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: 1;"/>
+            <div class="text-info text-capitalize ps-1 w-100" wicket:id="username" style="overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: 1;"/>
             <wicket:enclosure child="usernameDescription">
                 <div class="visually-hidden">
                     <wicket:message key="SideBarMenuPanel.loginUserDescription"/>
                 </div>
-                <div class="text-sm text-gray text-truncate ps-1" wicket:id="usernameDescription"/>
+                <div class="fs-7 text-secondary text-truncate ps-1" wicket:id="usernameDescription"/>
             </wicket:enclosure>
         </div>
     </div>

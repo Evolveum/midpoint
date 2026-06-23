@@ -93,7 +93,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
                 newItemPerformed(target, null);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
         bar.add(newObjectButton);
         return bar;

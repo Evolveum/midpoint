@@ -558,7 +558,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
         };
         assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)));
-        assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        assignButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         return assignButton;
     }
 
@@ -627,7 +627,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
         };
         assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)));
-        assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        assignButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         return assignButton;
     }
 

@@ -133,7 +133,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
             @Contract(pure = true)
             @Override
             protected @NotNull String getLabelComponentCssClass() {
-                return "ps-1 text-sm " + TEXT_TRUNCATE;
+                return "ps-1 fs-7 " + TEXT_TRUNCATE;
             }
 
         };
@@ -153,7 +153,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
             @Contract(pure = true)
             @Override
             protected @NotNull String getLabelComponentCssClass() {
-                return "ps-1 text-sm " + TEXT_TRUNCATE;
+                return "ps-1 fs-7 " + TEXT_TRUNCATE;
             }
 
         };
@@ -177,7 +177,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
             @Contract(pure = true)
             @Override
             protected @NotNull String getLabelComponentCssClass() {
-                return "ps-1 text-sm text-truncate";
+                return "ps-1 fs-7 text-truncate";
             }
 
         };

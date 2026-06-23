@@ -60,30 +60,30 @@
   }
 }
 
-// TODO: revision
-// @mixin tile-dark-mode {
-//   border-color: $secondary-alt;
-//   background-color: tint-color($dark, 7.5%) !important;
-//   color: $white !important;
-//   @include smooth-transition(0.1s);
-//
-//   &.selectable {
-//     @include selectable-tile-dark-mode();
-//   }
-// }
-//
-// @mixin selectable-tile-dark-mode {
-//   &:hover {
-//     border-color: $gray-400;
-//     @include smooth-transition(0.1s);
-//   }
-//
-//   &.active {
-//     border-color: $primary-alt;
-//     background-color: rgba($primary-alt, 15%);
-//     @include smooth-transition(0.1s);
-//   }
-// }
+
+@mixin tile-dark-mode {
+  border-color: var(--bs-secondary-bg-subtle);
+  background-color: tint-color($dark, 7.5%) !important;
+  color: $white !important;
+  @include smooth-transition(0.1s);
+
+  &.selectable {
+    @include selectable-tile-dark-mode();
+  }
+}
+
+@mixin selectable-tile-dark-mode {
+  &:hover {
+    border-color: $gray-400;
+    @include smooth-transition(0.1s);
+  }
+
+  &.active {
+    border-color: var(--bs-primary-bg-subtle);
+    background-color: rgba(var(--bs-primary-rgb), .15);
+    @include smooth-transition(0.1s);
+  }
+}
 
 .tile-panel {
   @include tile();
@@ -309,14 +309,13 @@
   border-left-width: 2px !important;
 }
 
-//TODO: revision
-// [data-bs-theme="dark"] {
-//   .tile-panel {
-//     @include tile-dark-mode();
-//   }
-//
-//   .catalog-tile-panel.selectable {
-//     @include tile-dark-mode();
-//   }
-// }
+[data-bs-theme="dark"] {
+  .tile-panel {
+    @include tile-dark-mode();
+  }
+
+  .catalog-tile-panel.selectable {
+    @include tile-dark-mode();
+  }
+}
 

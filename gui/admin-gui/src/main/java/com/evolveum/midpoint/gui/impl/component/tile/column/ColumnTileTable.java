@@ -154,7 +154,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
 
         selectCheckbox.setOutputMarkupId(true);
         selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
-        selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
+        selectCheckbox.add(AttributeAppender.replace("class", "btn btn-light border"));
         return selectCheckbox;
     }
 

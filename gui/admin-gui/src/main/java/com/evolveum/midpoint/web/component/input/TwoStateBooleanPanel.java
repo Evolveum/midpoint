@@ -26,7 +26,7 @@ public class TwoStateBooleanPanel extends BasePanel<Boolean>{
     private static final String ID_BUTTON_ONE = "optionOne";
     private static final String ID_BUTTON_TWO = "optionTwo";
 
-    private static final String DEFAULT_BUTTON_CLASS = "btn-default";
+    private static final String DEFAULT_BUTTON_CLASS = "btn-light border";
 
     public TwoStateBooleanPanel(String id, IModel<Boolean> model){
         this(id, model, null, null, null);

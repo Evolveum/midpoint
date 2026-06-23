@@ -366,8 +366,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     private void initLayout() {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
-        body.add(AttributeAppender.append("class", () -> isDarkMode() ? "dark-mode" : null));
-        // body.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getAccentCss()));
+        body.add(AttributeAppender.replace("data-bs-theme", () -> isDarkMode() ? "dark" : "light"));
 
         addDefaultBodyStyle(body);
         add(body);

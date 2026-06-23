@@ -328,7 +328,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
             String v = valueModel.getObject();
             return v != null ? v : LocalizationUtil.translate("MetricWidgetPanel.noValue");
         });
-        value.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "text-bold"));
+        value.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "fw-bold"));
         add(value);
 
         IModel<String> descriptionModel = () -> {

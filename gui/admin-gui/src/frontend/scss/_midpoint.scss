@@ -44,7 +44,7 @@ body.custom-hold-transition {
 }
 
 //Fix when hovering collapsed sidemenu to use bigger default logo
-.sidebar-mini-xs.sidebar-collapse .app-sidebar:not(.sidebar-no-expand):hover {
+.sidebar-mini-xs.sidebar-collapse .app-sidebar:hover {
   & .sidebar-brand > a.logo > span {
     &:before {
       opacity: 1;
@@ -405,7 +405,7 @@ li.dropdown.user.user-menu {
 
 // Colored boxes for each object type
 
-@mixin box-object($color) {
+@mixin card-object($color) {
   &.card.card-outline {
     border-top: 3px solid $color !important;
   }
@@ -422,76 +422,76 @@ li.dropdown.user.user-menu {
   }
 }
 
-.object-user-box {
-  @include box-object($object-user-color);
+.card-user {
+  @include card-object($object-user-color);
 }
 
-.object-role-box {
-  @include box-object($object-role-color);
+.card-role {
+  @include card-object($object-role-color);
 }
 
-.object-org-box {
-  @include box-object($object-org-color);
+.card-org {
+  @include card-object($object-org-color);
 }
 
-.object-service-box {
-  @include box-object($object-service-color);
+.card-service {
+  @include card-object($object-service-color);
 }
 
-.object-policy-box {
-  @include box-object($object-policy-color);
+.card-policy {
+  @include card-object($object-policy-color);
 }
 
-.object-task-box {
-  @include box-object($object-task-color);
+.card-task {
+  @include card-object($object-task-color);
 }
 
-.object-resource-box {
-  @include box-object($object-resource-color);
+.card-resource {
+  @include card-object($object-resource-color);
 }
 
-.object-shadow-box {
-  @include box-object($object-shadow-color);
+.card-object-shadow {
+  @include card-object($object-shadow-color);
 }
 
-@mixin box-thin-object($color) {
+@mixin card-thin-object($color) {
   border: 1px solid $color;
 
-  .box-header {
+  .card-header {
     border-bottom: 1px solid $color;
   }
 }
 
-.object-user-box-thin {
-  @include box-thin-object($object-user-color);
+.card-user-thin {
+  @include card-thin-object($object-user-color);
 }
 
-.object-role-box-thin {
-  @include box-thin-object($object-role-color);
+.card-role-thin {
+  @include card-thin-object($object-role-color);
 }
 
-.object-org-box-thin {
-  @include box-thin-object($object-org-color);
+.card-org-thin {
+  @include card-thin-object($object-org-color);
 }
 
-.object-service-box-thin {
-  @include box-thin-object($object-service-color);
+.card-service-thin {
+  @include card-thin-object($object-service-color);
 }
 
-.object-policy-box-thin {
-  @include box-thin-object($object-policy-color);
+.card-policy-thin {
+  @include card-thin-object($object-policy-color);
 }
 
-.object-resource-box-thin {
-  @include box-thin-object($object-resource-color);
+.card-resource-thin {
+  @include card-thin-object($object-resource-color);
 }
 
-.object-shadow-box-thin {
-  @include box-thin-object($object-shadow-color);
+.card-object-shadow-thin {
+  @include card-thin-object($object-shadow-color);
 }
 
-.object-task-box-thin {
-  @include box-thin-object($object-task-color);
+.card-task-thin {
+  @include card-thin-object($object-task-color);
 }
 
 // Summary panel (panel above the edit user/role/org forms)
@@ -787,7 +787,7 @@ li.dropdown.user.user-menu {
       text-decoration: none;
       display: inline-block;
 
-      > .fa, > .fas, > .far, > .glyphicon, > .ion, > .fe {
+      > .fa, > .fas, > .far, > .glyphicon, > .fe {
         margin-right: 3px;
       }
     }
@@ -868,11 +868,11 @@ li.dropdown.user.user-menu {
   }
 }
 
-.box-header.add {
+.card-header.add {
   background-color: #caffca;
 }
 
-.box-header.delete {
+.card-header.delete {
   background-color: #ffcaca;
 }
 
@@ -923,11 +923,11 @@ li.dropdown.user.user-menu {
 
 .projection {
   margin-bottom: 10px;
-  @include box-thin-object($object-shadow-color);
+  @include card-thin-object($object-shadow-color);
 
-  .box-header {
+  .card-header {
 
-    .box-tools {
+    .card-tools {
       margin-top: 5px;
     }
   }
@@ -946,9 +946,9 @@ li.dropdown.user.user-menu {
 .assignment {
   margin-bottom: 10px;
 
-  .box-header {
+  .card-header {
 
-    .box-tools {
+    .card-tools {
       margin-top: 5px;
     }
   }
@@ -1024,13 +1024,7 @@ span.tree-content > table tr td:first-child {
   text-align: center;
 }
 
-.box-solid > .box-header > .box-tools > .cog > ul > li > a > i {
-  color: #fff;
-}
-
-
 // Request role page
-
 .request-role-col-available {
   padding-right: 0px;
 }
@@ -1044,7 +1038,7 @@ span.tree-content > table tr td:first-child {
 }
 
 .request-role-box {
-  .box-body {
+  .card-body {
     padding-bottom: 0px;
   }
 }
@@ -1070,7 +1064,7 @@ span.tree-content > table tr td:first-child {
 }
 
 .multiple-assignment-selector-section-table {
-  .box {
+  .card {
     border-width: 0px;
   }
 }
@@ -1325,7 +1319,7 @@ span.tree-content > table tr td:first-child {
   margin-left: -10px !important;
 }
 
-.role-catalog > .object-org-box > .org-tree-container {
+.role-catalog > .card-org > .org-tree-container {
   max-height: 50vh;
 }
 
@@ -1433,7 +1427,7 @@ td .prism-property-value {
 
 // handling dark mode, would be automatically fixed when we get rid of .search-item and .search-item-label and
 // replace them with vendor css utility classes
-.dark-mode .search-item {
+[data-bs-theme=dark] .search-item {
   background-color: $gray-800 !important;
   color: $white !important;
 }
@@ -1624,8 +1618,7 @@ td .prism-property-value {
 
 .btn-archetyped-new-object > div > .fa,
 .btn-archetyped-new-object > div > .glyphicon,
-.btn-archetyped-new-object > div > .fe,
-.btn-archetyped-new-object > div > .ion {
+.btn-archetyped-new-object > div > .fe {
   font-size: 30px;
   display: block;
 }
@@ -2254,11 +2247,12 @@ select:focus-visible {
   }
 }
 
-//:focus pseudo attribute fix for accessibility intentions
-.btn-default:focus {
-  background-color: #e9ecef;
-  color: #2b2b2b;
-}
+// TODO revise for btn-light
+// //:focus pseudo attribute fix for accessibility intentions
+// .btn-default:focus {
+//   background-color: #e9ecef;
+//   color: #2b2b2b;
+// }
 
 //End of accessibility classes and overrides
 

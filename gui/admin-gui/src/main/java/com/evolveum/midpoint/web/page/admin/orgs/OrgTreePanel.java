@@ -132,7 +132,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn-default";
+                return "btn-light border";
             }
 
             @Override

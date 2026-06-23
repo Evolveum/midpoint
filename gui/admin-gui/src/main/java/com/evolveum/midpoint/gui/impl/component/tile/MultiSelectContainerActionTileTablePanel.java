@@ -126,7 +126,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(idButton, null);
         newObjectPerformButton.add(AttributeModifier.replace("class",
-                "text-nowrap btn btn-primary rounded ml-2"));
+                "text-nowrap btn btn-primary rounded ms-2"));
         newObjectPerformButton.add(new VisibleBehaviour(this::displayNoValuePanel));
         buttonsList.add(0, newObjectPerformButton);
         return buttonsList;
@@ -231,7 +231,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             @Contract(pure = true)
             @Override
             protected @NotNull String getSpecialButtonClass() {
-                return "btn btn-default me-2";
+                return "btn btn-light border me-2";
             }
 
             @Override
@@ -524,7 +524,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         selectCheckbox.setOutputMarkupPlaceholderTag(false);
         selectCheckbox.setOutputMarkupId(true);
-        selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
+        selectCheckbox.add(AttributeAppender.replace("class", "btn btn-light border"));
         selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
         selectCheckbox.setRenderBodyOnly(true);
         return selectCheckbox;
@@ -625,7 +625,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected String getDiscardButtonCssClass() {
-        return "col-auto px-4 btn btn-default btn-sm rounded ms-auto";
+        return "col-auto px-4 btn btn-light border btn-sm rounded ms-auto";
     }
 
     protected AjaxIconButton createAcceptButton(String id, IModel<PrismContainerValueWrapper<C>> rowModel) {

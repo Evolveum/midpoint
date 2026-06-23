@@ -611,7 +611,7 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
                 createMappingPerformed(target);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
         buttons.add(newObjectButton);

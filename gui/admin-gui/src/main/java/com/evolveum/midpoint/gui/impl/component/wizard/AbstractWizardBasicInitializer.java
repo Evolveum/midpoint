@@ -254,7 +254,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel<String> {
     }
 
     protected String getExitButtonCssClass() {
-        return "btn-default";
+        return "btn-light border";
     }
 
     protected String getSubmitIcon() {

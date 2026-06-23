@@ -17,11 +17,11 @@
 
         <div wicket:id="notificationsStatisticsLines"></div>
 
-        <div class="box" style="width: auto; display: table;">
-            <div class="box-header with-border">
-                <h3 class="box-title"><wicket:message key="Title.CurrentStatus"/></h3>
+        <div class="card" style="width: auto; display: table;">
+            <div class="card-header border-bottom">
+                <h3 class="card-title"><wicket:message key="Title.CurrentStatus"/></h3>
             </div>
-            <div class="box-body">
+            <div class="card-body">
                 <span wicket:id="lastMessage" style="font-size: smaller"/>
             </div>
         </div>
@@ -29,20 +29,20 @@
 
 
     <wicket:fragment wicket:id="provisioningTitle">
-        <h3 class="box-title">
+        <h3 class="card-title">
             <wicket:message key="Title.ProvisioningStatistics"></wicket:message>:
             <span wicket:id="Provisioning.Resource"></span> - <span wicket:id="Provisioning.ObjectClass"></span>
         </h3>
     </wicket:fragment>
 
     <wicket:fragment wicket:id="mappingsTitle">
-        <h3 class="box-title">
+        <h3 class="card-title">
             <div wicket:id="headerLabel"></div>
         </h3>
     </wicket:fragment>
 
     <wicket:fragment wicket:id="notificationsTitle">
-        <h3 class="box-title">
+        <h3 class="card-title">
             <div wicket:id="headerLabel"></div>
         </h3>
     </wicket:fragment>

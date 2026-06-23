@@ -83,7 +83,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         item.add(AttributeModifier.append("class", () -> {
             MainMenuItem mmi = getModelObject();
 
-            return mmi.hasActiveSubmenu(getPageBase()) ? "menu-is-opening menu-open" : null;
+            return mmi.hasActiveSubmenu(getPageBase()) ? "menu-open" : null;
         }));
         add(item);
 

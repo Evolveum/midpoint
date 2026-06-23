@@ -220,7 +220,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
                 onSubmit(target, null, null);
             }
         };
-        removeArchetypeButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
+        removeArchetypeButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border btn-sm"));
         removeArchetypeButton.setOutputMarkupId(true);
         removeArchetypeButton.showTitleAsLabel(false);
 
@@ -385,7 +385,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
             }
         };
         changeArchetype.showTitleAsLabel(true);
-        changeArchetype.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
+        changeArchetype.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border btn-sm"));
         changeArchetype.setOutputMarkupId(true);
         return changeArchetype;
     }

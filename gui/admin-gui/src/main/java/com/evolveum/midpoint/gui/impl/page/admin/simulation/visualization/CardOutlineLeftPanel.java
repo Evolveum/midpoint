@@ -64,7 +64,7 @@ public class CardOutlineLeftPanel<T extends Serializable> extends BasePanel<T> {
 
     protected Component createBodyHeader(String id) {
         Fragment fragment = new Fragment(id, FRAGMENT_ID_BODY_HEADER, this);
-        fragment.add(AttributeAppender.append("class", "d-flex gap-2 align-items-center border-bottom border-gray pb-3 mb-3"));
+        fragment.add(AttributeAppender.append("class", "d-flex gap-2 align-items-center border-bottom border-secondary pb-3 mb-3"));
 
         IModel<String> iconModel = createIconModel();
         IconComponent icon = new IconComponent(ID_ICON, iconModel);

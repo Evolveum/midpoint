@@ -343,7 +343,7 @@ public class ExportMiningPanel extends BasePanel<String> implements Popupable {
                     setBusinessSuffix(businessSuffixField.getModelObject());
                     this.add(AttributeAppender.replace("value",
                             createStringResource("roleMiningExportPanel.edit.options")));
-                    this.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
+                    this.add(AttributeAppender.replace("class", "btn btn-light border btn-sm"));
                 } else {
                     setEditOptions(true);
                     this.add(AttributeAppender.replace("value",
@@ -452,7 +452,7 @@ public class ExportMiningPanel extends BasePanel<String> implements Popupable {
                         }
                     } else {
                         filterForm.setVisible(false);
-                        this.add(AttributeAppender.replace("class", "ms-4 btn btn-default btn-sm"));
+                        this.add(AttributeAppender.replace("class", "ms-4 btn btn-light border btn-sm"));
                     }
                 } else {
                     operationResultPanel.setVisible(false);

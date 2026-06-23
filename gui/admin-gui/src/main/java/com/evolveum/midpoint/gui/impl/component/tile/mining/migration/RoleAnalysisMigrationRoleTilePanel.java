@@ -320,7 +320,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
         };
         migrationButton.titleAsLabel(true);
         migrationButton.setOutputMarkupId(true);
-        migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
+        migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border btn-sm"));
         migrationButton.setOutputMarkupId(true);
         add(migrationButton);
     }

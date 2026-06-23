@@ -155,7 +155,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 // We override this button, because we want to redirect to suggestion page without any confirmation
                 // dialog.
                 final AjaxIconButton generateButton = new AjaxIconButton(buttonId,
-                        Model.of("mr-2 fa fa-wand-magic-sparkles"),
+                        Model.of("me-2 fa fa-wand-magic-sparkles"),
                         () -> translate("SmartGeneratingPanel.button.ai.suggestions.suggest")) {
 
                     @Override
@@ -165,7 +165,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     }
                 };
                 generateButton.add(new VisibleBehaviour(() -> true));
-                generateButton.add(AttributeModifier.append("class", "bg-purple ml-auto"));
+                generateButton.add(AttributeModifier.append("class", "bg-purple ms-auto"));
                 generateButton.setOutputMarkupId(true);
                 generateButton.showTitleAsLabel(true);
                 return generateButton;

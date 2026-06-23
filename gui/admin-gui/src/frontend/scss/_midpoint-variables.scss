@@ -15,20 +15,20 @@ $container-max-widths: map-merge($container-max-widths, (
 $blue: $blue;
 $ai: $indigo;
 
-// $theme-colors: map-merge(
-//                 (
-//                         "lightblue": $lightblue,
+$theme-colors: map-merge(
+                (
+                        "lightblue": $lightblue,
 //                         "navy": $navy,
 //                         "olive": $olive,
 //                         "lime": $lime,
 //                         "fuchsia": $fuchsia,
 //                         "maroon": $maroon,
-//                         "purple": $purple,
-//                         "blue": $blue,
-//                         "ai": $ai,
-//                 ),
-//                 $theme-colors
-// );
+                        "purple": $purple,
+                        "blue": $blue,
+                        "ai": $ai,
+                ),
+                $theme-colors
+);
 
 //Bootstrap extension
 // scss-docs-start theme-text-variables

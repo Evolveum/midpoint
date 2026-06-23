@@ -99,7 +99,7 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
         DropdownButtonPanel createTask = new DropdownButtonPanel(id, model) {
             @Override
             protected String getSpecialButtonClass() {
-                return "btn-sm btn-default";
+                return "btn-sm btn-light border";
             }
 
             protected String getSpecialDropdownMenuClass() {

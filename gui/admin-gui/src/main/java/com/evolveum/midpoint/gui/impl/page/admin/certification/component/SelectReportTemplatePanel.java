@@ -123,7 +123,7 @@ public class SelectReportTemplatePanel extends BasePanel implements Popupable {
 
                             @Override
                             protected IModel<String> getIconClassModel() {
-                                return () -> GuiStyleConstants.CLASS_REPORT_ICON + " text-gray";
+                                return () -> GuiStyleConstants.CLASS_REPORT_ICON + " text-secondary";
                             }
 
                             @Override

@@ -177,7 +177,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalRolesInSystem);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -216,7 +216,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalUsersInSystem);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -343,7 +343,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, resolved);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -382,7 +382,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, inProgress);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -494,7 +494,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalOutliersInSystem);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -533,7 +533,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalUsersInSystem);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -608,7 +608,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
             @Override
             public Component createScoreComponent(String id) {
                 Component valueComponent = super.createScoreComponent(id);
-                valueComponent.add(AttributeModifier.replace(CLASS_CSS, "txt-default text-lg m-0 pe-2 text-end"));
+                valueComponent.add(AttributeModifier.replace(CLASS_CSS, "txt-default fs-5 m-0 pe-2 text-end"));
                 valueComponent.add(AttributeModifier.replace(STYLE_CSS, "flex-basis:100%;"));
                 return valueComponent;
             }
@@ -648,7 +648,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
             @Override
             public Component createScoreComponent(String id) {
                 Component valueComponent = super.createScoreComponent(id);
-                valueComponent.add(AttributeModifier.replace(   CLASS_CSS, "txt-default text-lg m-0 pe-2 text-end"));
+                valueComponent.add(AttributeModifier.replace(   CLASS_CSS, "txt-default fs-5 m-0 pe-2 text-end"));
                 valueComponent.add(AttributeModifier.replace(STYLE_CSS, "flex-basis:100%;"));
                 return valueComponent;
             }
@@ -689,7 +689,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
             @Override
             public Component createScoreComponent(String id) {
                 Component valueComponent = super.createScoreComponent(id);
-                valueComponent.add(AttributeModifier.replace(CLASS_CSS, "txt-default text-lg m-0 pe-2 text-end"));
+                valueComponent.add(AttributeModifier.replace(CLASS_CSS, "txt-default fs-5 m-0 pe-2 text-end"));
                 valueComponent.add(AttributeModifier.replace(STYLE_CSS, "flex-basis:100%;"));
                 return valueComponent;
             }

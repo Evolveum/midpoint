@@ -26,7 +26,7 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
     private DoubleButtonPanel panel;
 
     public enum ButtonColorClass {
-        DEFAULT("btn-default"), PRIMARY("btn-primary"), SUCCESS("btn-success"),
+        DEFAULT("btn-light border"), PRIMARY("btn-primary"), SUCCESS("btn-success"),
         INFO("btn-info"), WARNING("btn-warning"), DANGER("btn-danger");
 
         private final String stringValue;
@@ -36,7 +36,7 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
     }
 
     public enum ButtonSizeClass {
-        LARGE("btn-lg"), DEFAULT(""), SMALL("btn-sm"), EXTRA_SMALL("btn-xs");
+        LARGE("btn-lg"), DEFAULT(""), SMALL("btn-sm"), EXTRA_SMALL("btn-sm");
 
         private final String stringValue;
 

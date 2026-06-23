@@ -514,7 +514,7 @@ export default class MidPointTheme {
 
     restrictMorePopoverFocusArea() {
         const popup = $(".search-popover.popover-body");
-        const closeButton = popup.find(".btn.btn-sm.btn-default");
+        const closeButton = popup.find(".btn.btn-sm.btn-light border");
         const focusableElements = popup.find('a, input');
         const firstFocusableElement = focusableElements.first();
         const lastFocusableElement = focusableElements.last();
@@ -1218,8 +1218,8 @@ export default class MidPointTheme {
 
         var documentHeight = $(document).innerHeight();
         var elementHeight = $('#' + elementId).outerHeight(true);
-        var mainContainerHeight = $('section.content-header').outerHeight(true)
-            + $('section.content').outerHeight(true) + $('footer.app-footer').outerHeight(true)
+        var mainContainerHeight = $('nav.app-header').outerHeight(true)
+            + $('div.app-content').outerHeight(true) + $('footer.app-footer').outerHeight(true)
             + $('header.app-header').outerHeight(true);
 
         console.log("Document height: " + documentHeight + ", mainContainer: " + mainContainerHeight);

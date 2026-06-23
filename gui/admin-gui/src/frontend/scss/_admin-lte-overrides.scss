@@ -39,6 +39,7 @@
   }
 }
 
+// TODO revise for btn-light
 // .btn-default {
 //
 //   &.active {
@@ -92,9 +93,9 @@
   color: #737373;
 }
 
-.layout-navbar-fixed.sidebar-mini.sidebar-collapse .app-wrapper .brand-link,
-.layout-navbar-fixed.sidebar-mini-md.sidebar-collapse .app-wrapper .brand-link,
-.layout-navbar-fixed.sidebar-mini-xs.sidebar-collapse .app-wrapper .brand-link {
+.fixed-header.sidebar-mini.sidebar-collapse .app-wrapper .brand-link,
+.fixed-header.sidebar-mini-md.sidebar-collapse .app-wrapper .brand-link,
+.fixed-header.sidebar-mini-xs.sidebar-collapse .app-wrapper .brand-link {
   height: 3.5rem;
 }
 

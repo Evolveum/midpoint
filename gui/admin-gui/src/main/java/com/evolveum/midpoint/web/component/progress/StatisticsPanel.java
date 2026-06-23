@@ -93,7 +93,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
                     protected Item<ProvisioningStatisticsOperationDto> customizeNewRowItem(Item<ProvisioningStatisticsOperationDto> item, IModel<ProvisioningStatisticsOperationDto> model) {
                         item.add(AttributeModifier.append("class", new ReadOnlyModel<>(() -> {
                             if (model.getObject() != null && OperationResultStatusType.FATAL_ERROR == model.getObject().getStatus()) {
-                                return "bg-red disabled color-palette";
+                                return "bg-danger disabled color-palette";
                             }
 
                             return null;

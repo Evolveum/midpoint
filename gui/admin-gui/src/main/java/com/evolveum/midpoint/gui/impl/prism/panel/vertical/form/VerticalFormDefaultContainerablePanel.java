@@ -235,7 +235,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     protected Component createShowEmptyButton(String id) {
         AjaxIconButton button = new AjaxIconButton(
                 ID_SHOW_EMPTY_BUTTON,
-                () -> "fas fa-eye mr-2 mt-1",
+                () -> "fas fa-eye me-2 mt-1",
                 () -> createShowEmptyButtonLabel().getObject()) {
 
             @Override

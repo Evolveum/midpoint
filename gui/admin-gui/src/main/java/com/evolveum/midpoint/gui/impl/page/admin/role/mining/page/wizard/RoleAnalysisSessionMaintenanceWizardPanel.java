@@ -46,7 +46,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     private static final String ID_REBUILD_PROCESSING = "rebuild-processing";
     private static final String ID_DELETE_PROCESSING = "delete-processing";
 
-    private static final String DEFAULT_BUTTON_CSS = "text-start btn btn-default ";
+    private static final String DEFAULT_BUTTON_CSS = "text-start btn btn-light border ";
     private static final String COLORED_BUTTON_CSS = "colored-form-primary ";
 
     boolean isRebuild = true;
@@ -86,7 +86,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
             @Contract(pure = true)
             @Override
             public @NotNull String getDescriptionCssClass() {
-                return "text-gray";
+                return "text-secondary";
             }
 
             @Override
@@ -157,7 +157,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
         Label description = new Label(ID_DESCRIPTION_PROCESSING,
                 createStringResource("RoleAnalysisSessionMaintenanceWizardPanel.data.processing.help"));
         description.setOutputMarkupId(true);
-        description.add(AttributeModifier.append(CLASS_CSS, "text-gray"));
+        description.add(AttributeModifier.append(CLASS_CSS, "text-secondary"));
         processingContainer.add(description);
 
         initDeleteButton(processingContainer);

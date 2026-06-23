@@ -70,6 +70,6 @@ public class VerticalFormAnalysisAttributesPanel extends VerticalFormPrismContai
 
     @Override
     protected String getCssForHeader() {
-        return "pb-0 pt-2 ps-3 pe-3 text-gray fw-bold text-center w-100";
+        return "pb-0 pt-2 ps-3 pe-3 text-secondary fw-bold text-center w-100";
     }
 }

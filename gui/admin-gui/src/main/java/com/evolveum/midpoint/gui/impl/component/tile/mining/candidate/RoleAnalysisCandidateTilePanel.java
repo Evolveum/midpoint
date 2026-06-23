@@ -544,7 +544,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         };
         taskPanel.titleAsLabel(true);
         taskPanel.setOutputMarkupId(true);
-        taskPanel.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
+        taskPanel.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border btn-sm"));
         taskPanel.setOutputMarkupId(true);
         add(taskPanel);
 

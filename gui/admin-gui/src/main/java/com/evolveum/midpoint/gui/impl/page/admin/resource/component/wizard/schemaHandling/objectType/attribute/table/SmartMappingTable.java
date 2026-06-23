@@ -234,7 +234,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         };
                         refreshTableButton.setOutputMarkupId(true);
                         refreshTableButton.showTitleAsLabel(false);
-                        refreshTableButton.add(AttributeAppender.append("class", "btn btn-default"));
+                        refreshTableButton.add(AttributeAppender.append("class", "btn btn-light border"));
                         return refreshTableButton;
                     }
 
@@ -507,7 +507,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected String getNewObjectButtonCssClass() {
-        return "btn btn-outline-primary ml-auto";
+        return "btn btn-outline-primary ms-auto";
     }
 
     protected void initPanelToolbarButtons(@NotNull RepeatingView toolbar) {

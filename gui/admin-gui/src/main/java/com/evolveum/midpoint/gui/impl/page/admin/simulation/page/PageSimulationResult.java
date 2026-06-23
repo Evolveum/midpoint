@@ -105,7 +105,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                         }
                     };
                     export.showTitleAsLabel(true);
-                    export.add(AttributeAppender.append("class", "btn btn-default"));
+                    export.add(AttributeAppender.append("class", "btn btn-light border"));
                     return export;
                 }
 

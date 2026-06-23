@@ -308,7 +308,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
 
-        repoSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-default" + (isRepoSearch ? " active" : "")));
+        repoSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-light border" + (isRepoSearch ? " active" : "")));
         resourceChoiceContainer.add(repoSearch);
 
         AjaxLink<Boolean> resourceSearch = new AjaxLink<Boolean>(ID_RESOURCE_SEARCH,
@@ -322,7 +322,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
 
         };
-        resourceSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-default" + (isRepoSearch ? "" : " active")));
+        resourceSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-light border" + (isRepoSearch ? "" : " active")));
         resourceChoiceContainer.add(resourceSearch);
 
     }

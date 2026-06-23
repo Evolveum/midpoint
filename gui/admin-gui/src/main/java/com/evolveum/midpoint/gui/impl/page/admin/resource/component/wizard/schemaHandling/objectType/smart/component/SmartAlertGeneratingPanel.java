@@ -282,7 +282,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     private AjaxIconButton buttonWithoutDialog(String buttonId) {
         return new AjaxIconButton(buttonId,
                 () -> getModelObject().isSuggestionButtonVisible()
-                        ? "mr-2 fa fa-wand-magic-sparkles"
+                        ? "me-2 fa fa-wand-magic-sparkles"
                         : "fa fa-arrows-rotate",
                 () -> getModelObject().isSuggestionButtonVisible()
                         ? translate("SmartGeneratingPanel.button.ai.suggestions.suggest")

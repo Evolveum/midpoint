@@ -126,7 +126,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
             }
         };
         summaryButton.setOutputMarkupId(true);
-        summaryButton.add(AttributeAppender.append("class", () -> getController().isShowedSummary() ? "btn-primary" : "btn-default"));
+        summaryButton.add(AttributeAppender.append("class", () -> getController().isShowedSummary() ? "btn-primary" : "btn-light border"));
         navigation.add(summaryButton);
 
         IModel<List<WizardParentStep>> modelParentsView = () -> {

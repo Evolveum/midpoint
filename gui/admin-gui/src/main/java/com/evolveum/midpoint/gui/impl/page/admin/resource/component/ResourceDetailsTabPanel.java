@@ -303,14 +303,14 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 if (lastAvailabilityStatus != null) {
                     if (lastAvailabilityStatus == AvailabilityStatusType.UP) {
                         messageKey = "PageResource.resource.up";
-                        backgroundColor = "bg-green";
+                        backgroundColor = "bg-success";
                         icon = "fa fa-power-off";
                     } else if (lastAvailabilityStatus == AvailabilityStatusType.DOWN) {
-                        backgroundColor = "bg-red";
+                        backgroundColor = "bg-danger";
                         messageKey = "PageResource.resource.down";
                         icon = "fa fa-ban";
                     } else if (lastAvailabilityStatus == AvailabilityStatusType.BROKEN) {
-                        backgroundColor = "bg-yellow";
+                        backgroundColor = "bg-warning";
                         messageKey = "PageResource.resource.broken";
                         icon = "fa fa-warning";
                     }

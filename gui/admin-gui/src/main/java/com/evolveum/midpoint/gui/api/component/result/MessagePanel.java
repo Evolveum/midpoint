@@ -76,14 +76,14 @@ public class MessagePanel<T extends Serializable> extends BasePanel<T> {
         return () -> {
             switch (type.getObject()) {
                 case INFO:
-                    return "card-info";
+                    return "bg-info";
                 case SUCCESS:
-                    return "card-success";
+                    return "bg-success";
                 case ERROR:
-                    return "card-danger";
+                    return "bg-danger";
                 case WARN:
                 default:
-                    return "card-warning";
+                    return "bg-warning";
             }
         };
     }
