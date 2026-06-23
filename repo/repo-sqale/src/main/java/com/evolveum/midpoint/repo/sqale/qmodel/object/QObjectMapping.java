@@ -40,7 +40,6 @@ import com.google.common.collect.*;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 

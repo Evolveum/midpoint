@@ -11,7 +11,8 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.*;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_PNG;
 
 /**
  * Constants related to file validation and sanitization

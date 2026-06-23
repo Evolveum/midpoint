@@ -10,7 +10,10 @@ import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationCont
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.schema.selector.eval.*;
+import com.evolveum.midpoint.schema.selector.eval.ClauseProcessingContextDescription;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.schema.selector.eval.SelectorTraceEvent;
 
 import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 

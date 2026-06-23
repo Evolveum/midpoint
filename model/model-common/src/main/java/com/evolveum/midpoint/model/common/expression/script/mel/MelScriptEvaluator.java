@@ -29,13 +29,19 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 import dev.cel.common.*;
-import dev.cel.common.types.*;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
-import dev.cel.runtime.*;
+import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeBuilder;
+import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.runtime.CelUnknownSet;
 
 import org.jetbrains.annotations.NotNull;
 

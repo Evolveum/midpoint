@@ -13,7 +13,10 @@ import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderI
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.security.api.*;
 
 import jakarta.servlet.http.HttpServletRequest;

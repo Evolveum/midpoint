@@ -9,9 +9,7 @@ package com.evolveum.midpoint.web.boot;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import java.util.Collections;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Manager;

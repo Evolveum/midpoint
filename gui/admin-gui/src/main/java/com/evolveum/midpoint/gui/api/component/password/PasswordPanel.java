@@ -8,7 +8,9 @@ package com.evolveum.midpoint.gui.api.component.password;
 
 import java.io.Serial;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 

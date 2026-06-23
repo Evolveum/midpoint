@@ -22,7 +22,9 @@ import javax.naming.NamingException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import jakarta.jms.JMSException;
 import org.jetbrains.annotations.Contract;

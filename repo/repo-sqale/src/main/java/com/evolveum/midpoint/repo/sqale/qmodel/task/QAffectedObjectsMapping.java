@@ -11,12 +11,9 @@ import com.evolveum.midpoint.repo.sqale.delta.item.SinglePathItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.TypeQNameItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObjectEventMarkReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAffectedObjectsType;
@@ -25,18 +22,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicResourceObjectSetType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import com.querydsl.core.types.dsl.EnumPath;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.BasicResourceObjectSetType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType.F_TYPE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAffectedObjectsType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType.F_ARCHETYPE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType.F_OBJECT_REF;
 
 public class QAffectedObjectsMapping extends QContainerMapping<ActivityAffectedObjectsType, QAffectedObjects, MAffectedObjects, MTask> {
 

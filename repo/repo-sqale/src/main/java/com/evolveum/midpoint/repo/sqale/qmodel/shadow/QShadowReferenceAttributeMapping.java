@@ -20,7 +20,6 @@ import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.UUID;
 import java.util.function.BiFunction;
 
 public class QShadowReferenceAttributeMapping extends QReferenceMapping<QShadowReferenceAttribute,MShadowReferenceAttribute,QShadow, MShadow> {

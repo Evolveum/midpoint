@@ -10,13 +10,13 @@ import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
 import static com.evolveum.midpoint.common.MimeTypeUtil.getExtension;
 import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.MIME_TO_MAGIC_NUMBER_BYTE;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.imageio.ImageIO;
 

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.data.provider;
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.web.component.data.TypedCacheKey;

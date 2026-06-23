@@ -8,7 +8,8 @@ package com.evolveum.midpoint.web.session;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;

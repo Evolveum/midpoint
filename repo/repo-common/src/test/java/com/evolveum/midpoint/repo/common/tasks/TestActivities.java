@@ -28,7 +28,10 @@ import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil
 import com.evolveum.midpoint.repo.common.activity.run.reports.SimpleReportReader;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
-import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;

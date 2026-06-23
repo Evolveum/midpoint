@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.springframework.beans.factory.annotation.Autowired;

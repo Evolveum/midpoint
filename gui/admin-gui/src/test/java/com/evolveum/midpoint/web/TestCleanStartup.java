@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
-import com.evolveum.midpoint.test.util.TestUtil;
 
 /**
  * @author semancik

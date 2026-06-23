@@ -6,15 +6,10 @@
 
 package com.evolveum.midpoint.certification.impl.task.reiterateCampaign;
 
-import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.certification.impl.task.AccessCertificationCampaignActivityHandler;
-import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CertificationOpenNextStageWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CertificationReiterateCampaignWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
@@ -22,8 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component

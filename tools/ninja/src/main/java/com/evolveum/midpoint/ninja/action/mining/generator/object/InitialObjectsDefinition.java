@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.ninja.action.mining.generator.object;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;

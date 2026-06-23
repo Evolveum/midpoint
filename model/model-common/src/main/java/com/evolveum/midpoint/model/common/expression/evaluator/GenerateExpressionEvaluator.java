@@ -10,7 +10,10 @@ import java.util.UUID;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.stringpolicy.*;
+import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ObjectBasedValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;

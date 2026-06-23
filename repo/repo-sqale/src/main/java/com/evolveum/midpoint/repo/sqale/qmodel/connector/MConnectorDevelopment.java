@@ -7,9 +7,6 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-
-import java.util.UUID;
 
 /**
  * Querydsl "row bean" type related to {@link QConnectorDevelopment}.

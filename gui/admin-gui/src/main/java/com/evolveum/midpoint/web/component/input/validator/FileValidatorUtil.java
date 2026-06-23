@@ -11,7 +11,9 @@ import jakarta.activation.MimeTypeParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.CONTENT_TYPES_TO_MAGIC_NUMBERS;
 

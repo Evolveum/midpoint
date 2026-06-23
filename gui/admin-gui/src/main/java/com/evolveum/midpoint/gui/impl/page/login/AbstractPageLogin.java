@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.page.error.PageError;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;

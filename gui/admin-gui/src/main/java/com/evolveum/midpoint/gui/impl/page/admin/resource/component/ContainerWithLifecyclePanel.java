@@ -41,7 +41,10 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ContainerWithLifecyclePanel<C extends Containerable> extends BasePanel<PrismContainerValueWrapper<C>> {

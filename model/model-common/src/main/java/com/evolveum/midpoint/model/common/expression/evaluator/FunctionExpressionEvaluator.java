@@ -14,7 +14,10 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryMa
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryManager.FunctionInLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.LibraryFunctionExecutor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationUtil;
-import com.evolveum.midpoint.schema.config.*;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+import com.evolveum.midpoint.schema.config.FunctionCallArgumentConfigItem;
+import com.evolveum.midpoint.schema.config.FunctionExpressionEvaluatorConfigItem;
 
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 
@@ -32,7 +35,7 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionExpressionEvaluatorType;
 
 import org.jetbrains.annotations.Nullable;
 

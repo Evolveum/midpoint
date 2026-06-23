@@ -12,7 +12,10 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWO
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD_VALUE;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
