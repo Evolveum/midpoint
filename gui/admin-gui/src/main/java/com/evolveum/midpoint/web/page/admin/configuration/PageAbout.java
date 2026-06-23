@@ -12,7 +12,6 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 

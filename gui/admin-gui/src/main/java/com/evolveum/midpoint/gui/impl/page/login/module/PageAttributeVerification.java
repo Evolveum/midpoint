@@ -9,9 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;

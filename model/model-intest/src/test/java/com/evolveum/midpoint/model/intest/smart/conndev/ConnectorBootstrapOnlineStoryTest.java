@@ -1,26 +1,11 @@
 package com.evolveum.midpoint.model.intest.smart.conndev;
 
-import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
-import com.evolveum.midpoint.smart.api.conndev.ScimRestConfigurationProperties;
-import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevIntegrationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevProcessDocumentationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import java.util.List;

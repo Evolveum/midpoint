@@ -40,7 +40,9 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 public class MappingScriptValidatorTest extends AbstractUnitTest implements InfraTestMixin {
     private static final String GROOVY = "Groovy";

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ExportFocusStatisticsWorker extends AbstractWriterConsumerWorker<ExportOptions, ObjectType> {
     private static final ItemName C_FOCUS_STATS = new ItemName(SchemaConstants.NS_C, "focusStats");

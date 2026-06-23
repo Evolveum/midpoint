@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CREATE_TIMESTAMP;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -20,8 +19,6 @@ import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.apache.wicket.util.string.StringValue;
 
 /**
  * Created by Viliam Repan (lazyman).

@@ -13,11 +13,9 @@ import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
-import com.evolveum.axiom.api.AxiomPath;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.path.InfraItemName;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.testng.annotations.Test;
 

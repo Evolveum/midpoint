@@ -18,7 +18,9 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

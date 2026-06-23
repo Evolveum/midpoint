@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.ninja;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;

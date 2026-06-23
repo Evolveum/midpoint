@@ -13,7 +13,6 @@ import com.evolveum.midpoint.authentication.impl.filter.CorrelationAuthenticatio
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointAttributeConfigurer;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.impl.handler.CorrelationAuthenticationSuccessHandler;
-import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 

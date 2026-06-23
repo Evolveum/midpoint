@@ -32,8 +32,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.AssignedResourceObjectConstruction;

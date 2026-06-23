@@ -13,7 +13,6 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationPartType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;

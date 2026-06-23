@@ -10,7 +10,8 @@ import static com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil.addNewC
 import static com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil.addNewContainerDefinition;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICF_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME;
-import static com.evolveum.midpoint.schema.processor.ConnectorSchema.*;
+import static com.evolveum.midpoint.schema.processor.ConnectorSchema.CONNECTOR_CONFIGURATION_LOCAL_NAME;
+import static com.evolveum.midpoint.schema.processor.ConnectorSchema.CONNECTOR_CONFIGURATION_TYPE_LOCAL_NAME;
 
 import java.io.File;
 import java.io.IOException;

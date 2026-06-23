@@ -6,14 +6,11 @@
 
 package com.evolveum.midpoint.repo.sqlbase.mapping;
 
-import java.util.Collection;
 import java.util.List;
 
 import com.querydsl.core.Tuple;
 
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**

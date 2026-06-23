@@ -13,8 +13,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import javax.sql.DataSource;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -25,10 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;

@@ -11,11 +11,8 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ContainerWithLifecyclePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectsPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -27,8 +24,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;

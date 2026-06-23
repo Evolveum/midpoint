@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 
-import java.io.*;
+import java.io.PrintWriter;
+import java.io.Serial;
+import java.io.Serializable;
+import java.io.StringWriter;
 import java.net.URI;
 import java.text.Collator;
 import java.text.DateFormat;

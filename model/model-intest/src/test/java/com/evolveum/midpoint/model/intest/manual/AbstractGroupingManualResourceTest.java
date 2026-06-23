@@ -31,7 +31,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author Radovan Semancik

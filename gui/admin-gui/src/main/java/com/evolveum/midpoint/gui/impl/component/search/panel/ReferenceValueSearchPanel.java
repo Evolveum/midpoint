@@ -11,13 +11,10 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;

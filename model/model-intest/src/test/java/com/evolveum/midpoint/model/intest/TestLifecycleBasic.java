@@ -13,7 +13,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.RunFlagsCollector;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.Strings;

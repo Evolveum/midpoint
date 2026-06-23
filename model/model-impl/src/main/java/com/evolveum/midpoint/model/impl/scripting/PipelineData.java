@@ -29,7 +29,9 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;

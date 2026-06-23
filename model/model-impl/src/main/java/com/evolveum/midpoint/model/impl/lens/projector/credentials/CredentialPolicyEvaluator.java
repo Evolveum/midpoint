@@ -13,7 +13,9 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.stringpolicy.*;
+import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -21,7 +23,10 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PartiallyResolvedDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -52,10 +57,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 

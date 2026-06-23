@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.expr;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.mergeCorrelationDefinition;
 import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isMembershipSyncInboundDisabled;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;

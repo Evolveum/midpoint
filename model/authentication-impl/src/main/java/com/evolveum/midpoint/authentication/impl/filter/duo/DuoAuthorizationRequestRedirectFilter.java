@@ -14,11 +14,8 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.filter.RemoteAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.RemoteModuleAuthorizationFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.DuoModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.util.RequestState;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,17 +27,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.DefaultRedirectStrategy;
-import org.springframework.security.web.RedirectStrategy;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.util.Assert;
 
 import java.io.IOException;
 

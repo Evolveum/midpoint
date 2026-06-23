@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.intest.smart;
 
-import static com.evolveum.midpoint.test.ObjectClassName.*;
+import static com.evolveum.midpoint.test.ObjectClassName.custom;
 
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 

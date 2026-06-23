@@ -7,7 +7,6 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;

@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

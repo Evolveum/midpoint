@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.web.component.dialog;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 

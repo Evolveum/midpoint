@@ -17,7 +17,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 

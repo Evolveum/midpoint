@@ -24,7 +24,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;

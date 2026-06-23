@@ -12,16 +12,10 @@ import com.evolveum.midpoint.authentication.impl.module.configurer.OidcClientMod
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
-import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.*;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.security.web.util.matcher.*;
-import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.Map;

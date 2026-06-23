@@ -15,7 +15,6 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteMod
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.DuoRequestToken;
 import com.evolveum.midpoint.authentication.impl.module.configuration.DuoModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.provider.DuoProvider;
-import com.evolveum.midpoint.authentication.impl.provider.OidcClientProvider;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

@@ -19,8 +19,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
-import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
-
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;

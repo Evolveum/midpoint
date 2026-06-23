@@ -17,7 +17,9 @@ import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;

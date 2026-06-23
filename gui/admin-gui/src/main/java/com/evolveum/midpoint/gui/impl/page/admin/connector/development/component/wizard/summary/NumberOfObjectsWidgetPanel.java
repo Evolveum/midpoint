@@ -12,10 +12,8 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 public class NumberOfObjectsWidgetPanel extends BasePanel<NumberOfObjectsWidgetDto>{
 

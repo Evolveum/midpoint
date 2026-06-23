@@ -18,7 +18,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.wf.impl.util.ChangesSorter;
 import com.evolveum.midpoint.wf.api.ChangesByState;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

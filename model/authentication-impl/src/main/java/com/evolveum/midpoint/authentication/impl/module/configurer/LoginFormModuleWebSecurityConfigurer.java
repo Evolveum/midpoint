@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
@@ -22,13 +21,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticati
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.authentication.preauth.RequestAttributeAuthenticationFilter;
 
 /**
  * @author skublik

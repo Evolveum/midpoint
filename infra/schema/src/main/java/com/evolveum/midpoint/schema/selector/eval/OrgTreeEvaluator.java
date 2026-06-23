@@ -9,7 +9,7 @@ package com.evolveum.midpoint.schema.selector.eval;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**

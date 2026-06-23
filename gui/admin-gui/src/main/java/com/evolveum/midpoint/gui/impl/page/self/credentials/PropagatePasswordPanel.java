@@ -40,7 +40,6 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;

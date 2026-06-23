@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.schema.component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.EnumerationValueTypeDefinitionType;
 
 import org.apache.wicket.model.IModel;

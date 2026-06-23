@@ -36,8 +36,10 @@ import java.util.List;
 import static com.evolveum.midpoint.common.outlier.OutlierExplanationResolver.OutlierDetectionExplanationCategory.IRREGULAR_ATTRIBUTES;
 import static com.evolveum.midpoint.common.outlier.OutlierExplanationResolver.OutlierDetectionExplanationCategory.UNUSUAL_ACCESS;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.testng.AssertJUnit.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIterable;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 public class OutlierExplanationResolverTest extends AbstractUnitTest {
 

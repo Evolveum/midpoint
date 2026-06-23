@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.component.search.SearchableItemsDefinitions;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.search.Property;
 
@@ -20,7 +20,10 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAttributeSelectionProvider<T> extends ChoiceProvider<T> {

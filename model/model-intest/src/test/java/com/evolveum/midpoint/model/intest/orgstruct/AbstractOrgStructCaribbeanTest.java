@@ -14,7 +14,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 

@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.common;
 
-import org.jetbrains.annotations.NotNull;
-
 import static java.util.Map.entry;
 
 import java.util.Map;

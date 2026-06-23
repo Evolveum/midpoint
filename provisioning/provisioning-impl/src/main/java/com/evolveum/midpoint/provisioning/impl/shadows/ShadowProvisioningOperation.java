@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.*;
+import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
 

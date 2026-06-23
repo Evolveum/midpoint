@@ -39,7 +39,6 @@ import javax.xml.stream.events.XMLEvent;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;

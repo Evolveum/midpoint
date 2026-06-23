@@ -16,7 +16,10 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import org.jetbrains.annotations.NotNull;
 
 /**

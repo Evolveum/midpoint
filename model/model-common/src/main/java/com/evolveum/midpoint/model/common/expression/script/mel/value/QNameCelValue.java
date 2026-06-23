@@ -7,19 +7,11 @@ package com.evolveum.midpoint.model.common.expression.script.mel.value;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-
 import com.google.common.collect.ImmutableSet;
-import dev.cel.common.CelFunctionDecl;
-import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
 import dev.cel.common.values.CelValue;
-import dev.cel.compiler.CelCompilerBuilder;
-import dev.cel.common.Operator;
-import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.CelRuntimeBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
