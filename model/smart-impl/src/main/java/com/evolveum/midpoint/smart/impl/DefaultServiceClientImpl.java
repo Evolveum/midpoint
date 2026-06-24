@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.info.AiInfo;
+import com.evolveum.midpoint.smart.api.info.HealthStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -115,7 +116,8 @@ public class DefaultServiceClientImpl implements ServiceClient {
             var responseText = response.readEntity(String.class);
             try {
                 var root = new ObjectMapper().readTree(responseText);
-                var status = root.path("status").asText(null);
+                var statusString = root.path("status").asText(null);
+                var status = HealthStatus.fromString(statusString);
                 var ai = root.path("ai");
                 if (ai.isMissingNode()) {
                     return Optional.empty();

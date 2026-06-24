@@ -16,9 +16,7 @@ package com.evolveum.midpoint.smart.api.info;
  *
  * provider: The name of the AI provider.
  * model: The specific AI model being used.
- * status: The operational status of the AI provider. Expected values are:
- *     - "OK" - The AI provider is available and functioning normally
- *     - "ERROR" - The AI provider is unavailable or experiencing issues
+ * status: The operational status of the AI provider.
  */
-public record AiInfo(String provider, String model, String status) {
+public record AiInfo(String provider, String model, HealthStatus status) {
 }
