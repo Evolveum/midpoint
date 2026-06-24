@@ -132,13 +132,13 @@ ninja.sh verify
 For more detail see xref:/midpoint/reference/deployment/ninja/command/verify/[`verify` command documentation].
 
 [NOTE]
-----
+====
 The `verify` command only checks repository and configuration objects stored in the repository.
 However, deployment-specific customizations should be reviewed separately before the upgrade.
 This may include custom connectors, schema extensions, overlays, custom libraries, or other custom code.
 Verify that these customizations are compatible with the target midPoint version.
 Make sure to re-apply them after the upgrade.
-----
+====
 
 The best practice is to avoid use of any deprecated functionality as soon as possible.
 Therefore we strongly recommend to re-configure the system not to use any deprecated functionality before the upgrade.
