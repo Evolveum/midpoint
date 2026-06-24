@@ -21,8 +21,6 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 
 import com.evolveum.midpoint.schema.*;
 
-import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -115,7 +113,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
-    private static final int DEFAULT_WORKER_THREADS = 1;
 
     private final ModelService modelService;
     private final TaskService taskService;
@@ -309,21 +306,19 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public String regenerateObjectClassStatistics(
             String resourceOid,
             QName objectClassName,
-            int threads,
             Task task,
             OperationResult parentResult)
             throws CommonException {
-        return statisticsService.regenerateObjectClassStatistics(resourceOid, objectClassName, threads, task, parentResult);
+        return statisticsService.regenerateObjectClassStatistics(resourceOid, objectClassName, task, parentResult);
     }
 
     @Override
     public String regenerateObjectTypeStatistics(
             String resourceOid,
             ResourceObjectTypeIdentification resourceObjectTypeIdentification,
-            int threads,
             Task task,
             OperationResult result) throws CommonException {
-        return statisticsService.regenerateObjectTypeStatistics(resourceOid, resourceObjectTypeIdentification, threads, task, result);
+        return statisticsService.regenerateObjectTypeStatistics(resourceOid, resourceObjectTypeIdentification, task, result);
     }
 
     @Override
@@ -360,11 +355,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid,
             ShadowKindType kind,
             String intent,
-            int threads,
             Task task,
             OperationResult result)
             throws CommonException {
-        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, threads, task, result);
+        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, task, result);
     }
 
     @Override
@@ -380,19 +374,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             List<DataAccessPermissionType> permissions,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
-            int workerThreads,
             Task task,
             OperationResult parentResult)
             throws CommonException {
 
-        if (workerThreads <= 0) {
-            throw new IllegalArgumentException("Worker threads must be greater than zero");
-        }
-
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
-                .addParam("workerThreads", workerThreads)
                 .build();
 
         try {
@@ -419,9 +407,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .work(new WorkDefinitionsType()
                             .objectTypesSuggestion(workDef));
 
-            ActivityDefinitionUtil.findOrCreateDistribution(activity)
-                    .setWorkerThreads(workerThreads);
-
             var oid = modelInteractionService.submit(
                     activity,
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
@@ -431,8 +416,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     result);
 
             LOGGER.debug("Submitted suggest object types operation for resourceOid {}, objectClassName {}, "
-                            + "permissions {}, regenerateMode {}, workerThreads {}: {}",
-                    resourceOid, objectClassName, permissions, regenerateMode, workerThreads, oid);
+                            + "permissions {}, regenerateMode {}: {}",
+                    resourceOid, objectClassName, permissions, regenerateMode, oid);
 
             return oid;
         } catch (Throwable t) {
@@ -441,28 +426,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         } finally {
             result.close();
         }
-    }
-
-    @Override
-    public String submitSuggestObjectTypesOperation(
-            String resourceOid,
-            QName objectClassName,
-            List<DataAccessPermissionType> permissions,
-            @Nullable RegenerateMode regenerateMode,
-            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
-            Task task,
-            OperationResult parentResult)
-            throws CommonException {
-
-        return submitSuggestObjectTypesOperation(
-                resourceOid,
-                objectClassName,
-                permissions,
-                regenerateMode,
-                previousObjectTypes,
-                DEFAULT_WORKER_THREADS,
-                task,
-                parentResult);
     }
 
     public void submitSchemaMatchPreload(

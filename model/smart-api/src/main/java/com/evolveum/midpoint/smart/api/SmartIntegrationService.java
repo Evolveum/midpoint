@@ -71,11 +71,11 @@ public interface SmartIntegrationService {
             throws SchemaException;
 
     /** Regenerates statistics for the given resource and object class. */
-    String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, int threads, Task task, OperationResult result)
+    String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws CommonException;
 
     /** Regenerates statistics for the given resource object type. */
-    String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, int threads, Task task, OperationResult result)
+    String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Task task, OperationResult result)
             throws CommonException;
 
     /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
@@ -117,7 +117,6 @@ public interface SmartIntegrationService {
             String resourceOid,
             ShadowKindType kind,
             String intent,
-            int threads,
             Task task,
             OperationResult result)
             throws CommonException;
@@ -136,17 +135,6 @@ public interface SmartIntegrationService {
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
-
-    /** Submits "suggest object types" request. Returns a token used to query the status. */
-    String submitSuggestObjectTypesOperation(
-            String resourceOid,
-            QName objectClassName,
-            List<DataAccessPermissionType> permissions,
-            @Nullable RegenerateMode regenerateMode,
-            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
-            int workerThreads, Task task,
-            OperationResult result)
-            throws CommonException;
 
     /** Submits "suggest object types" request. Returns a token used to query the status. */
     String submitSuggestObjectTypesOperation(

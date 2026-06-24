@@ -8,29 +8,21 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperModel;
-import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperPanel;
-import com.evolveum.midpoint.web.component.dialog.steper.step.SmartTaskProgressStepPanel;
-import com.evolveum.midpoint.web.component.dialog.steper.step.ThreadSetupPopupStepPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-
-import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadTask;
 
@@ -56,9 +48,7 @@ public final class ObjectClassStatisticsActions {
             if (!forceRegeneration) {
                 GenericObjectType latestStatistics =
                         smartIntegrationService.getLatestObjectClassStatistics(
-                                resourceOid,
-                                objectClassName,
-                                task.getResult());
+                                resourceOid, objectClassName, task.getResult());
 
                 if (latestStatistics != null) {
                     showStatisticsPopup(target, pageBase, latestStatistics, resourceOid, objectClassName);
@@ -66,7 +56,10 @@ public final class ObjectClassStatisticsActions {
                 }
             }
 
-            showProgressExecutorPopup(target, pageBase, smartIntegrationService, resourceOid, objectClassName);
+            String taskOid = smartIntegrationService.regenerateObjectClassStatistics(
+                    resourceOid, objectClassName, task, task.getResult());
+
+            showProgressPopup(target, pageBase, smartIntegrationService, resourceOid, objectClassName, taskOid);
 
         } catch (CommonException e) {
             pageBase.error("Couldn't get object class statistics for " + objectClassName + ": " + e.getMessage());
@@ -95,125 +88,37 @@ public final class ObjectClassStatisticsActions {
         pageBase.replaceMainPopup(statisticsPanel, target);
     }
 
-    private static void showProgressExecutorPopup(
-            @NotNull AjaxRequestTarget target,
-            @NotNull PageBase pageBase,
-            @NotNull SmartIntegrationService smartIntegrationService,
-            @NotNull String resourceOid,
-            @NotNull QName objectClassName) {
-
-        IModel<Integer> threadsModel = Model.of(4);
-        IModel<String> taskOidModel = Model.of();
-
-        ThreadSetupPopupStepPanel threadStep =
-                new ThreadSetupPopupStepPanel(threadsModel) {
-
-                    @Override
-                    public boolean onNextPerformed(AjaxRequestTarget target) {
-                        IModel<TaskType> taskModel = regenerateObjectClassStatistics(
-                                target,
-                                pageBase,
-                                smartIntegrationService,
-                                resourceOid,
-                                objectClassName,
-                                threadsModel.getObject());
-
-                        if (taskModel == null || taskModel.getObject() == null) {
-                            return false;
-                        }
-
-                        taskOidModel.setObject(taskModel.getObject().getOid());
-                        return true;
-                    }
-                };
-
-        IModel<TaskType> taskModel = new LoadableDetachableModel<>() {
-            @Override
-            protected TaskType load() {
-                String oid = taskOidModel.getObject();
-                return oid != null ? loadTask(pageBase, oid) : null;
-            }
-        };
-
-        SmartTaskProgressStepPanel progressStep =
-                new SmartTaskProgressStepPanel(
-                        pageBase.createStringResource("ObjectClassStatisticsButton.regeneratingStatistics"),
-                        pageBase.createStringResource(
-                                "ObjectClassStatisticsButton.regeneratingStatistics.subText",
-                                objectClassName.getLocalPart()),
-                        taskModel) {
-
-                    @Override
-                    protected boolean showResultAfterCompletion() {
-                        return true;
-                    }
-
-                    @Override
-                    protected void onShowResults(AjaxRequestTarget target) {
-                        onProgressFinished(
-                                target,
-                                pageBase,
-                                smartIntegrationService,
-                                resourceOid,
-                                objectClassName);
-                    }
-                };
-
-        PopupStepperModel model = new PopupStepperModel(List.of(threadStep, progressStep));
-
-        PopupStepperPanel popup = new PopupStepperPanel(
-                pageBase.getMainPopupBodyId(),
-                Model.of(model)) {
-            @Override
-            public IModel<String> getTitle() {
-                return pageBase.createStringResource(
-                        "ObjectClassStatisticsButton.generatingStatistics.title", objectClassName.getLocalPart());
-            }
-
-            @Override
-            public @NotNull IModel<String> getTitleIconClass() {
-                return Model.of("fa fa-chart-bar");
-            }
-        };
-
-        pageBase.replaceMainPopup(popup, target);
-    }
-
-    private static @Nullable IModel<TaskType> regenerateObjectClassStatistics(
+    private static void showProgressPopup(
             @NotNull AjaxRequestTarget target,
             @NotNull PageBase pageBase,
             @NotNull SmartIntegrationService smartIntegrationService,
             @NotNull String resourceOid,
             @NotNull QName objectClassName,
-            @NotNull Integer threads) {
+            @NotNull String taskOid) {
 
-        Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_STATISTICS);
+        SmartTaskProgressPanel panel = new SmartTaskProgressPanel(
+                pageBase.getMainPopupBodyId(),
+                pageBase.createStringResource("ObjectClassStatisticsButton.regeneratingStatistics"),
+                pageBase.createStringResource("ObjectClassStatisticsButton.regeneratingStatistics.subText", objectClassName.getLocalPart()),
+                () -> loadTask(pageBase, taskOid)) {
 
-        try {
-            String taskOid = smartIntegrationService.regenerateObjectClassStatistics(
-                    resourceOid,
-                    objectClassName,
-                    threads,
-                    task,
-                    task.getResult());
+            @Override
+            protected boolean showResultAfterCompletion() {
+                return true;
+            }
 
-            return new LoadableDetachableModel<>() {
+            @Override
+            protected void onShowResults(AjaxRequestTarget target) {
+                onProgressFinished(target, pageBase, smartIntegrationService, resourceOid, objectClassName);
+            }
 
-                @Override
-                protected TaskType load() {
-                    return loadTask(pageBase, taskOid);
-                }
-            };
+            @Override
+            protected IModel<String> getStopButtonLabel() {
+                return pageBase.createStringResource("ObjectClassStatisticsButton.stopRegeneration");
+            }
+        };
 
-        } catch (CommonException e) {
-            pageBase.error("Couldn't regenerate object class statistics for "
-                    + objectClassName + ": " + e.getMessage());
-            target.add(pageBase.getFeedbackPanel());
-            return null;
-
-        } finally {
-            task.getResult().computeStatusIfUnknown();
-        }
+        pageBase.replaceMainPopup(panel, target);
     }
 
     private static void onProgressFinished(
@@ -228,9 +133,7 @@ public final class ObjectClassStatisticsActions {
         try {
             GenericObjectType latestStatistics =
                     smartIntegrationService.getLatestObjectClassStatistics(
-                            resourceOid,
-                            objectClassName,
-                            task.getResult());
+                            resourceOid, objectClassName, task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");

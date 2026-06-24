@@ -32,9 +32,9 @@ import com.evolveum.midpoint.web.component.util.Describable;
 public class SmartSuggestButtonWithConfirmation<T extends Describable>
         extends ButtonWithConfirmationOptionsDialog<T> {
 
-    public SmartSuggestButtonWithConfirmation(String id, IModel<ButtonConfig<T>> buttonConfig, boolean threadConfEnabled,
+    public SmartSuggestButtonWithConfirmation(String id, IModel<ButtonConfig<T>> buttonConfig,
             IModel<ButtonHandlers<T>> clickHandlers) {
-        super(id, buttonConfig, threadConfEnabled, clickHandlers);
+        super(id, buttonConfig, clickHandlers);
     }
 
     private static ButtonConfig<DataAccessPermission> buildButtonConfig(
@@ -52,48 +52,21 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
         return new ButtonConfig<>(icon, title, () -> confirmationDialogConfig, () -> pageBase);
     }
 
-    public static SmartSuggestButtonWithConfirmation<DataAccessPermission> create(
-            String id,
-            IModel<String> title,
-            IModel<String> icon,
-            List<ConfirmationOption<DataAccessPermission>> options,
-            IModel<ButtonHandlers<DataAccessPermission>> clickHandlers,
-            PageBase pageBase) {
-
-        return create(id, title, icon, options, clickHandlers, pageBase, false);
-    }
-
-    public static SmartSuggestButtonWithConfirmation<DataAccessPermission> createThreaded(
-            String id,
-            IModel<String> title,
-            IModel<String> icon,
-            List<ConfirmationOption<DataAccessPermission>> options,
-            IModel<ButtonHandlers<DataAccessPermission>> clickHandlers,
-            PageBase pageBase) {
-
-        return create(id, title, icon, options, clickHandlers, pageBase, true);
-    }
-
     /**
      * Creates a Smart Suggest button for an *non-blocking* confirm action.
      * <p>
      * The {@link ButtonHandlers#confirmHandler()} is called immediately inside the dialog's Ajax callback.
      */
-    private static SmartSuggestButtonWithConfirmation<DataAccessPermission> create(
-            String id,
-            IModel<String> title,
-            IModel<String> icon,
+    public static SmartSuggestButtonWithConfirmation<DataAccessPermission> create(String id,
+            IModel<String> title, IModel<String> icon,
             List<ConfirmationOption<DataAccessPermission>> options,
-            IModel<ButtonHandlers<DataAccessPermission>> clickHandlers,
-            PageBase pageBase,
-            boolean threaded) {
+            IModel<ButtonHandlers<DataAccessPermission>> clickHandlers, PageBase pageBase) {
 
-        ButtonConfig<DataAccessPermission> buttonConfig =
+        final ButtonConfig<DataAccessPermission> buttonConfig =
                 buildButtonConfig(icon, title, options, pageBase);
 
-        SmartSuggestButtonWithConfirmation<DataAccessPermission> button =
-                new SmartSuggestButtonWithConfirmation<>(id, () -> buttonConfig, threaded, clickHandlers);
-
+        final SmartSuggestButtonWithConfirmation<DataAccessPermission> button =
+                new SmartSuggestButtonWithConfirmation<>(id, () -> buttonConfig, clickHandlers);
         button.add(AttributeModifier.append("class", "btn btn-purple"));
         return button;
     }
@@ -101,7 +74,7 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
     /**
      * Creates a Smart Suggest button for a *blocking* confirm action, wrapped with an activity indication (spinner)
      * while the action runs.
-     *
+     * <p>
      * Internally this creates a {@link BlockingActionButtonWithConfirmationOptionsDialog}.
      */
     public static BlockingActionButtonWithConfirmationOptionsDialog<DataAccessPermission>

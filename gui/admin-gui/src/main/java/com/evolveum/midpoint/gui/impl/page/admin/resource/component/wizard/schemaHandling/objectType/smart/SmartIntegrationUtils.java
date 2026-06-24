@@ -127,7 +127,6 @@ public class SmartIntegrationUtils {
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull QName objectClassName,
-            int workerThreads,
             @NotNull AjaxRequestTarget target,
             @NotNull String operationName,
             @NotNull Task task,
@@ -159,7 +158,6 @@ public class SmartIntegrationUtils {
                         var oid = pageBase.getSmartIntegrationService().submitSuggestObjectTypesOperation(
                                 resourceOid, objectClassName, permissions,
                                 regenerateMode, previousObjectTypes,
-                                workerThreads,
                                 activityTask, activityResult);
                         activityResult.setBackgroundTaskOid(oid);
                     });

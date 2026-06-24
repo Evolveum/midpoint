@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.component.input;
 
 import java.util.List;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -40,7 +39,7 @@ public class BlockingActionButtonWithConfirmationOptionsDialog<T extends Describ
 
     public BlockingActionButtonWithConfirmationOptionsDialog(String id, IModel<ButtonConfig<T>> buttonConfig,
             IModel<ButtonHandlers<T>> clickHandlers, ComponentInteractionsPair<AjaxIconButton> interactionPairs) {
-        super(id, buttonConfig, false, clickHandlers);
+        super(id, buttonConfig, clickHandlers);
         this.interactionPairs = interactionPairs.reactionAndThen((component, request) -> {
             clickHandlers.getObject().confirmHandler().accept(request, pendingConfirmedOptions);
             pendingConfirmedOptions = null;
@@ -51,12 +50,5 @@ public class BlockingActionButtonWithConfirmationOptionsDialog<T extends Describ
     public void onInitialize() {
         super.onInitialize();
         this.interactionsLinker = AjaxEventBasedInteractionsLinker.linkInteractions(this, interactionPairs);
-    }
-
-    @Override
-    void onDialogConfirmed(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<T>>> confirmedOptions, int workerThreads) {
-        this.pendingConfirmedOptions = confirmedOptions;
-        this.interactionsLinker.callAction(target);
     }
 }

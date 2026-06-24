@@ -1304,7 +1304,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
                 ShadowKindType.ACCOUNT,
                 "default",
-                1,
                 task,
                 result);
 
