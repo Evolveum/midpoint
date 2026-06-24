@@ -7,14 +7,19 @@
 @import "../../../node_modules/flag-icons/css/flag-icons.css";
 
 @import "../../../node_modules/bootstrap/scss/functions";
+
+@import "bootstrap-variables-overrides";
+
 @import "../../../node_modules/bootstrap/scss/variables";
 @import "../../../node_modules/bootstrap/scss/variables-dark";
 
-@import "bootstrap-variables-overrides";
+@import "bootstrap-variables-merges";
 
 @import "../../../node_modules/bootstrap/scss/mixins";
 @import "../../../node_modules/bootstrap/scss/bootstrap";
 @import "../../../node_modules/admin-lte/src/scss/adminlte";
+
+@import "../../../node_modules/bootstrap5-toggle/dist/bootstrap5-toggle.css";
 
 @import "../../../node_modules/bootstrap-select/dist/css/bootstrap-select.css";
 @import "../../../node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css";

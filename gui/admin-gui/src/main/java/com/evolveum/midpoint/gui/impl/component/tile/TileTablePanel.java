@@ -647,6 +647,6 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     protected String getNoValuePanelAdditionalCssClass() {
-        return "card";
+        return "card shadow-sm mb-3";
     }
 }

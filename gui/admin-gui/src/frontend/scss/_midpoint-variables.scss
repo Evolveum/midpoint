@@ -4,31 +4,13 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-$grid-breakpoints: map-merge($grid-breakpoints, (
-        '3xl': 1650px
-));
+:root {
+    --app-content-bg: #f4f6f9;
+}
 
-$container-max-widths: map-merge($container-max-widths, (
-        '3xl': 1600px
-));
-
-$blue: $blue;
-$ai: $indigo;
-
-$theme-colors: map-merge(
-                (
-                        "lightblue": $lightblue,
-//                         "navy": $navy,
-//                         "olive": $olive,
-//                         "lime": $lime,
-//                         "fuchsia": $fuchsia,
-//                         "maroon": $maroon,
-                        "purple": $purple,
-                        "blue": $blue,
-                        "ai": $ai,
-                ),
-                $theme-colors
-);
+[data-bs-theme="dark"] {
+    --app-content-bg: #212529;
+}
 
 //Bootstrap extension
 // scss-docs-start theme-text-variables

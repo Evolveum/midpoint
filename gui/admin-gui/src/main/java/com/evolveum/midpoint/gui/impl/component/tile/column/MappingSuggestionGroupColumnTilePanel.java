@@ -502,7 +502,7 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected @NotNull String getPanelCss() {
-        String baseCss = "card col-12 m-0 border border-ai-gradient border-start-2 p-0";
+        String baseCss = "card shadow-sm col-12 m-0 border border-ai-gradient border-start-2 p-0";
         boolean selected = isObjectSelected(getModelObject().getValue());
         return selected ? baseCss + " selected-base" : baseCss;
     }

@@ -9,6 +9,10 @@
  * Contains all styles for all kinds of tile panels
  */
 
+ .app-main, .login-page, .register-page {
+  background-color: var(--app-content-bg);
+}
+
  .bg-gray-100 {
    background-color: $gray-100;
  }

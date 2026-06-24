@@ -23,7 +23,7 @@ public class CreateActivationMappingTilePanel extends TemplateTilePanel<PrismCon
         super.initLayout();
         add(AttributeAppender.replace(
                 "class",
-                "card col-12 catalog-tile-panel d-flex flex-column align-items-center p-2 h-100 mb-0 btn"));
+                "card shadow-sm col-12 catalog-tile-panel d-flex flex-column align-items-center p-2 h-100 mb-0 btn"));
         if (!getModelObject().canCreateNewValue()) {
             add(AttributeAppender.append(
                     "class",

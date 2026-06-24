@@ -358,7 +358,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
                         @Override
                         protected void customizeTilePanel(TilePanel tp) {
-                            tp.add(AttributeAppender.append("class", "card"));
+                            tp.add(AttributeAppender.append("class", "card shadow-sm mb-3"));
                             tp.add(AttributeAppender.append("style", "min-width:200px"));
                         }
                     };

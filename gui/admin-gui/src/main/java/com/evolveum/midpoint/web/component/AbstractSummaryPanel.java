@@ -80,7 +80,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     protected static final String ID_PHOTO = "summaryPhoto";                  // perhaps useful only for focal objects but it was simpler to include it here
     protected static final String ID_ORGANIZATION = "summaryOrganization";    // similar (requires ObjectWrapper to get parent organizations so hard to use in ObjectSummaryPanel)
 
-    protected static final String BOX_CSS_CLASS = "col-xs-12 info-box";
+    protected static final String BOX_CSS_CLASS = "col-xs-12 info-box shadow-sm border";
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
     protected static final String ID_SR_MESSAGE_FOR_DISPLAY_NAME = "srMessageForSummaryDisplayName";

@@ -79,7 +79,7 @@ public class ChangesPanel extends BasePanel<List<VisualizationDto>> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "card"));
+        add(AttributeAppender.append("class", "card shadow-sm mb-3"));
 
         Label title = new Label(ID_TITLE, createTitle());
         add(title);

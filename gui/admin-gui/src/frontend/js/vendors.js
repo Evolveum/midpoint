@@ -23,7 +23,7 @@ import 'select2/dist/js/select2';
 
 import 'sparklines';
 
-//import '../../../node_modules/admin-lte/plugins/bootstrap-switch/js/bootstrap-switch';
+import 'bootstrap5-toggle';
 
 import 'ace-builds/src-noconflict/ace';
 

@@ -135,7 +135,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        add(AttributeAppender.append("class", "card card-outline-start"));
+        add(AttributeAppender.append("class", "card shadow-sm mb-3 card-outline-start"));
         add(AttributeModifier.append("class", () -> {
             VisualizationDto dto = getModelObject();
 

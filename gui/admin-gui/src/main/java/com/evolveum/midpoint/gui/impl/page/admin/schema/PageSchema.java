@@ -167,6 +167,6 @@ public class PageSchema extends PageAssignmentHolderDetails<SchemaType, Assignme
 
     @Override
     protected String getMainPanelCssClass() {
-        return "col p-0 card";
+        return "col p-0 card shadow-sm mb-3";
     }
 }

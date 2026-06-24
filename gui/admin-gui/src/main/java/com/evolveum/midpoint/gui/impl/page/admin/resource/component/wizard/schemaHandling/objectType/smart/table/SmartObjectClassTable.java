@@ -146,7 +146,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         }
         ViewToggle value = item.getObject().getValue();
         if (value.equals(ViewToggle.TABLE)) {
-            add(AttributeModifier.replace("class", "card"));
+            add(AttributeModifier.replace("class", "card shadow-sm mb-3"));
         } else {
             add(AttributeModifier.replace("class", ""));
         }

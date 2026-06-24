@@ -415,7 +415,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
 
     @Override
     public String getAdditionalBoxCssClasses() {
-        return "card table-td-middle";
+        return "card shadow-sm mb-3 table-td-middle";
     }
 
     @Override

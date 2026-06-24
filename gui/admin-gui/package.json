@@ -16,14 +16,14 @@
     "@cyclonedx/cyclonedx-npm": "^4.1.2",
     "@eonasdan/tempus-dominus": "^6.10.2",
     "@fontsource/source-sans-pro": "^5.1.0",
-    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@fortawesome/fontawesome-free": "^7.2.0",
     "@ttskch/select2-bootstrap4-theme": "^1.5.2",
     "ace-builds": "^1.38.0",
     "admin-lte": "^4.0.2",
     "babel-loader": "^9.2.1",
     "bootstrap-multiselect": "^2.0.0",
     "bootstrap-select": "^1.13.18",
-    "bootstrap4-toggle": "^3.6.1",
+    "bootstrap5-toggle": "^5.4.0",
     "bs-stepper": "^1.7.0",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^8.0.0",
@@ -47,7 +47,6 @@
     "webpack-merge": "^6.0.1"
   },
   "overrides": {
-    "summernote": "0.9.1",
-    "bootstrap-switch": "3.4.0"
+    "summernote": "0.9.1"
   }
 }

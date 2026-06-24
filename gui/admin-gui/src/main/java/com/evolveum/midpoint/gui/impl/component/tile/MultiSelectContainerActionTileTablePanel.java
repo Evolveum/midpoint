@@ -109,7 +109,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     protected void togglePanelItemSelectPerformed(
             AjaxRequestTarget target, @NotNull IModel<Toggle<ViewToggle>> item) {
         ViewToggle value = item.getObject().getValue();
-        add(AttributeModifier.replace("class", Objects.equals(value, ViewToggle.TABLE) ? "card" : ""));
+        add(AttributeModifier.replace("class", Objects.equals(value, ViewToggle.TABLE) ? "card shadow-sm mb-3" : ""));
         super.togglePanelItemSelectPerformed(target, item);
         refresh(target);
     }
@@ -204,10 +204,10 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         if (isTile) {
             switch (value.getStatus()) {
                 case DELETED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger"));
+                        component.add(AttributeModifier.replace("class", "card shadow-sm rounded h-100 m-0 border border-danger"));
                 case ADDED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success"));
-                default -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0"));
+                        component.add(AttributeModifier.replace("class", "card shadow-sm rounded h-100 m-0 border border-success"));
+                default -> component.add(AttributeModifier.replace("class", "card shadow-sm rounded h-100 m-0"));
             }
             return;
         }

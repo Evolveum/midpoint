@@ -80,7 +80,7 @@ public class MappingTilePanel<C extends Containerable> extends TemplateTilePanel
 
         add(AttributeAppender.replace(
                 "class",
-                "card selectable col-12 catalog-tile-panel d-flex flex-column align-items-center px-3 pb-3 pt-3 h-100 mb-0 btn"));
+                "card shadow-sm selectable col-12 catalog-tile-panel d-flex flex-column align-items-center px-3 pb-3 pt-3 h-100 mb-0 btn"));
 
         boolean isConfigurable = true;
         if (getModelObject().getValue().getItems().size() == 1) {

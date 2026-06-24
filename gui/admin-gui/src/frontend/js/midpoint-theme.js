@@ -7,6 +7,7 @@
 import Sparkline from "sparklines";
 import { TempusDominus } from '@eonasdan/tempus-dominus';
 import { DateTime } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
+import { Modal } from 'bootstrap';
 
 export default class MidPointTheme {
 
@@ -1826,9 +1827,9 @@ export default class MidPointTheme {
 
     showModalWithRestoreFocus(modalId) {
         const dialog = document.getElementById(modalId);
-        let modal = bootstrap.Modal.getInstance(dialog);
+        let modal = Modal.getInstance(dialog);
         if (!modal) {
-            modal = new bootstrap.Modal(dialog);
+            modal = new Modal(dialog);
             dialog.addEventListener('hidden.bs.modal', () => {
                 this.restoreFocus();
             });

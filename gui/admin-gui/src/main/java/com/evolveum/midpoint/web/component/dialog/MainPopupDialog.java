@@ -92,7 +92,7 @@ public class MainPopupDialog extends ModalDialog {
 
     private void appendJS(AjaxRequestTarget target, String operation) {
         target.appendJavaScript("$(document).ready(function () {"
-                + "bootstrap.Modal.getInstance(document.getElementById('" + get("overlay").getMarkupId() + "'))." + operation + "(); });");
+                + "bootstrap.Modal.getOrCreateInstance(document.getElementById('" + get("overlay").getMarkupId() + "'))." + operation + "(); });");
     }
 
     public WebMarkupContainer getDialogComponent() {

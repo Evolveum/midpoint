@@ -19,7 +19,7 @@ public class OperationsPanel extends Border {
     public OperationsPanel(String id) {
         super(id);
 
-        add(AttributeAppender.prepend("class", "card"));
+        add(AttributeAppender.prepend("class", "card shadow-sm mb-3"));
     }
 
     @Override
