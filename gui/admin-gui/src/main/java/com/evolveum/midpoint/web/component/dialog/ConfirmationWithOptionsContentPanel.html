@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <p class="text-muted mb-3" style="white-space: pre-line;" wicket:id="subtitle"></p>
+
+    <span wicket:id="infoMessage"></span>
+
+    <form wicket:id="form">
+        <div wicket:id="requestContainer" class="p-2">
+            <div class="fw-semibold mb-2" wicket:id="requestLabel"></div>
+
+            <div class="border rounded">
+                <div wicket:id="listView" style="max-height: 300px; overflow-y: auto;">
+                    <div class="d-flex align-items-center gap-2 py-2 px-2">
+                        <input type="checkbox" class="m-1" wicket:id="check"/>
+
+                        <div class="d-flex flex-column">
+                            <div class="fw-semibold" wicket:id="title"></div>
+                            <div class="text-muted small" wicket:id="description"></div>
+                        </div>
+
+                        <a class="btn btn-link btn-sm ml-auto" wicket:id="action"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</wicket:panel>
+
+

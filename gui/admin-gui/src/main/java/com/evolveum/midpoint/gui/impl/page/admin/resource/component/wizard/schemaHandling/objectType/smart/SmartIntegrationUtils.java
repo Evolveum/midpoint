@@ -121,28 +121,12 @@ public class SmartIntegrationUtils {
     /**
      * Executes an object type suggestion operation if no suggestion is currently available.
      * If suggestions exist, no background task is started.
-     * Returns {@code true} if the task was executed, {@code false} otherwise.
      */
     public static boolean runSuggestionAction(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull QName objectClassName,
-            @NotNull AjaxRequestTarget target,
-            @NotNull String operationName,
-            @NotNull Task task,
-            @NotNull List<DataAccessPermissionType> permissions) {
-        return runSuggestionAction(pageBase, resourceOid, objectClassName, target, operationName, task, permissions,
-                null, null);
-    }
-
-    /**
-     * Executes an object type suggestion operation if no suggestion is currently available.
-     * If suggestions exist, no background task is started.
-     */
-    public static boolean runSuggestionAction(
-            @NotNull PageBase pageBase,
-            @NotNull String resourceOid,
-            @NotNull QName objectClassName,
+            int workerThreads,
             @NotNull AjaxRequestTarget target,
             @NotNull String operationName,
             @NotNull Task task,
@@ -174,6 +158,7 @@ public class SmartIntegrationUtils {
                         var oid = pageBase.getSmartIntegrationService().submitSuggestObjectTypesOperation(
                                 resourceOid, objectClassName, permissions,
                                 regenerateMode, previousObjectTypes,
+                                workerThreads,
                                 activityTask, activityResult);
                         activityResult.setBackgroundTaskOid(oid);
                     });
@@ -665,43 +650,6 @@ public class SmartIntegrationUtils {
             }
         }
         return strategy;
-    }
-
-    public static void showStatisticsPanel(
-            @NotNull AjaxRequestTarget target,
-            @NotNull ResourceObjectTypeDefinitionType objectTypeDefinition,
-            @NotNull PageBase pageBase,
-            @NotNull String resourceOid) {
-        ResourceObjectTypeDelineationType delineation = objectTypeDefinition.getDelineation();
-        if (delineation == null || delineation.getObjectClass() == null) {
-            return;
-        }
-
-        QName objectClass = delineation.getObjectClass();
-
-        SmartIntegrationService smartIntegrationService = pageBase.getSmartIntegrationService();
-        Task pageTask = pageBase.getPageTask();
-
-        ShadowObjectClassStatisticsType statisticsRequired;
-        try {
-            GenericObjectType latestStatistics = smartIntegrationService
-                    .getLatestObjectClassStatistics(resourceOid, objectClass, pageTask.getResult());
-            if (latestStatistics == null) {
-                pageBase.warn(pageBase.getString("SmartIntegrationUtils.noStatistics.available.for.on",
-                        objectClass, resourceOid));
-                target.add(pageBase.getFeedbackPanel());
-                return;
-            }
-            statisticsRequired = ShadowObjectClassUtil.getStatisticsRequired(latestStatistics);
-        } catch (SchemaException e) {
-            throw new RuntimeException("Couldn't get statistics for "
-                    + objectClass + " on resource " + resourceOid, e);
-        }
-
-        SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
-                pageBase.getMainPopupBodyId(), () -> statisticsRequired, resourceOid, objectClass);
-
-        pageBase.showMainPopup(statisticsPanel, target);
     }
 
     /**

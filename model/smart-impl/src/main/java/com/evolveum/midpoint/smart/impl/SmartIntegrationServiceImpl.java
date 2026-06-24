@@ -21,6 +21,8 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 
 import com.evolveum.midpoint.schema.*;
 
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -113,6 +115,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
+    private static final int DEFAULT_WORKER_THREADS = 1;
 
     private final ModelService modelService;
     private final TaskService taskService;
@@ -362,40 +365,65 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public String submitSuggestObjectTypesOperation(
-            String resourceOid, QName objectClassName, List<DataAccessPermissionType> permissions,
+            String resourceOid,
+            QName objectClassName,
+            List<DataAccessPermissionType> permissions,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
-            Task task, OperationResult parentResult)
+            int workerThreads,
+            Task task,
+            OperationResult parentResult)
             throws CommonException {
+
+        if (workerThreads <= 0) {
+            throw new IllegalArgumentException("Worker threads must be greater than zero");
+        }
+
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
+                .addParam("workerThreads", workerThreads)
                 .build();
+
         try {
             var workDef = new ObjectTypesSuggestionWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectclass(objectClassName);
+
             workDef.getPermissions().addAll(permissions);
+
             if (regenerateMode != null) {
                 workDef.setRegenerateMode(regenerateMode.name());
             }
+
             if (previousObjectTypes != null && !previousObjectTypes.isEmpty()) {
                 for (var objectType : previousObjectTypes) {
                     workDef.getPreviousDelineation().add(
-                            (ResourceObjectTypeDefinitionType) objectType.asPrismContainerValue().clone().asContainerable());
+                            (ResourceObjectTypeDefinitionType) objectType.asPrismContainerValue()
+                                    .clone()
+                                    .asContainerable());
                 }
             }
+
+            ActivityDefinitionType activity = new ActivityDefinitionType()
+                    .work(new WorkDefinitionsType()
+                            .objectTypesSuggestion(workDef));
+
+            ActivityDefinitionUtil.findOrCreateDistribution(activity)
+                    .setWorkerThreads(workerThreads);
+
             var oid = modelInteractionService.submit(
-                    new ActivityDefinitionType()
-                            .work(new WorkDefinitionsType()
-                                    .objectTypesSuggestion(workDef)),
+                    activity,
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
                             .name("Suggest object types for " + objectClassName.getLocalPart() + " on " + resourceOid)
                             .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
-                    task, result);
+                    task,
+                    result);
+
             LOGGER.debug("Submitted suggest object types operation for resourceOid {}, objectClassName {}, "
-                            + "permissions {}, regenerateMode {}: {}",
-                    resourceOid, objectClassName, permissions, regenerateMode, oid);
+                            + "permissions {}, regenerateMode {}, workerThreads {}: {}",
+                    resourceOid, objectClassName, permissions, regenerateMode, workerThreads, oid);
+
             return oid;
         } catch (Throwable t) {
             result.recordException(t);
@@ -403,6 +431,28 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         } finally {
             result.close();
         }
+    }
+
+    @Override
+    public String submitSuggestObjectTypesOperation(
+            String resourceOid,
+            QName objectClassName,
+            List<DataAccessPermissionType> permissions,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
+            Task task,
+            OperationResult parentResult)
+            throws CommonException {
+
+        return submitSuggestObjectTypesOperation(
+                resourceOid,
+                objectClassName,
+                permissions,
+                regenerateMode,
+                previousObjectTypes,
+                DEFAULT_WORKER_THREADS,
+                task,
+                parentResult);
     }
 
     public void submitSchemaMatchPreload(

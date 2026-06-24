@@ -8,13 +8,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperModel;
+import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperPanel;
+import com.evolveum.midpoint.web.component.dialog.steper.step.SmartTaskProgressStepPanel;
+import com.evolveum.midpoint.web.component.dialog.steper.step.ThreadSetupPopupStepPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
@@ -25,10 +28,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+
+import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadTask;
 
@@ -81,7 +87,7 @@ public final class FocusStatisticsActions {
                 }
             }
 
-            showProgressPopup(
+            showProgressExecutorPopup(
                     target,
                     pageBase,
                     smartIntegrationService,
@@ -128,7 +134,7 @@ public final class FocusStatisticsActions {
         pageBase.replaceMainPopup(panel, target);
     }
 
-    private static void showProgressPopup(
+    private static void showProgressExecutorPopup(
             @NotNull AjaxRequestTarget target,
             @NotNull PageBase pageBase,
             @NotNull SmartIntegrationService smartIntegrationService,
@@ -138,47 +144,83 @@ public final class FocusStatisticsActions {
             @NotNull String intent,
             @Nullable ItemPathType preSelectedAttribute) {
 
+        IModel<Integer> threadsModel = Model.of(4);
+        IModel<String> taskOidModel = Model.of();
+
         String displayName = focusObjectTypeName.getLocalPart();
-
-        SmartTaskProgressPanel panel = new SmartTaskProgressPanel(
-                pageBase.getMainPopupBodyId(),
-                pageBase.createStringResource("FocusStatisticsButton.regeneratingStatistics"),
-                pageBase.createStringResource("FocusStatisticsButton.regeneratingStatistics.subText", displayName),
-                (ajaxTarget, threads) -> regenerateFocusObjectStatistics(
-                        ajaxTarget,
-                        pageBase,
-                        smartIntegrationService,
-                        threads,
-                        focusObjectTypeName,
-                        resourceOid,
-                        kind,
-                        intent)) {
+        ThreadSetupPopupStepPanel threadStep = new ThreadSetupPopupStepPanel(threadsModel) {
 
             @Override
-            protected boolean showResultAfterCompletion() {
-                return true;
-            }
-
-            @Override
-            protected void onShowResults(AjaxRequestTarget target) {
-                onProgressFinished(
+            public boolean onNextPerformed(AjaxRequestTarget target) {
+                IModel<TaskType> taskModel = regenerateFocusObjectStatistics(
                         target,
                         pageBase,
                         smartIntegrationService,
+                        threadsModel.getObject(),
                         focusObjectTypeName,
                         resourceOid,
                         kind,
-                        intent,
-                        preSelectedAttribute);
-            }
+                        intent);
 
-            @Override
-            protected IModel<String> getStopButtonLabel() {
-                return pageBase.createStringResource("FocusStatisticsButton.stopRegeneration");
+                if (taskModel == null || taskModel.getObject() == null) {
+                    return false;
+                }
+
+                taskOidModel.setObject(taskModel.getObject().getOid());
+                return true;
             }
         };
 
-        pageBase.replaceMainPopup(panel, target);
+        IModel<TaskType> taskModel = new LoadableDetachableModel<>() {
+            @Override
+            protected TaskType load() {
+                String oid = taskOidModel.getObject();
+                return oid != null ? loadTask(pageBase, oid) : null;
+            }
+        };
+
+        SmartTaskProgressStepPanel progressStep =
+                new SmartTaskProgressStepPanel(
+                        pageBase.createStringResource("FocusStatisticsButton.regeneratingStatistics"),
+                        pageBase.createStringResource("FocusStatisticsButton.regeneratingStatistics.subText", displayName),
+                        taskModel) {
+
+                    @Override
+                    protected boolean showResultAfterCompletion() {
+                        return true;
+                    }
+
+                    @Override
+                    protected void onShowResults(AjaxRequestTarget target) {
+                        onProgressFinished(
+                                target,
+                                pageBase,
+                                smartIntegrationService,
+                                focusObjectTypeName,
+                                resourceOid,
+                                kind,
+                                intent,
+                                preSelectedAttribute);
+                    }
+                };
+
+        PopupStepperModel model = new PopupStepperModel(List.of(threadStep, progressStep));
+
+        PopupStepperPanel popup = new PopupStepperPanel(
+                pageBase.getMainPopupBodyId(),
+                Model.of(model)) {
+            @Override
+            public IModel<String> getTitle() {
+                return pageBase.createStringResource("FocusStatisticsButton.generatingStatistics.title", displayName);
+            }
+
+            @Override
+            public @NotNull IModel<String> getTitleIconClass() {
+                return Model.of("fa fa-chart-bar");
+            }
+        };
+
+        pageBase.replaceMainPopup(popup, target);
     }
 
     private static @Nullable IModel<TaskType> regenerateFocusObjectStatistics(

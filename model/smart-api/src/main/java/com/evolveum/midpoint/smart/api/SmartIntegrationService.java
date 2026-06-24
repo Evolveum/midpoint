@@ -144,6 +144,17 @@ public interface SmartIntegrationService {
             List<DataAccessPermissionType> permissions,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
+            int workerThreads, Task task,
+            OperationResult result)
+            throws CommonException;
+
+    /** Submits "suggest object types" request. Returns a token used to query the status. */
+    String submitSuggestObjectTypesOperation(
+            String resourceOid,
+            QName objectClassName,
+            List<DataAccessPermissionType> permissions,
+            @Nullable RegenerateMode regenerateMode,
+            @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task,
             OperationResult result)
             throws CommonException;

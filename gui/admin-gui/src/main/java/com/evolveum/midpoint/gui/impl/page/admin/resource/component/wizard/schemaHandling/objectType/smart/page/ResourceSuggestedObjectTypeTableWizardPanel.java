@@ -254,6 +254,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         buttons.add(refreshButton);
     }
 
+    //TODO fix me (do not use ConfirmationOption::delineationPermissionsOptions) it's override real selection...
     private SplitButtonWithDropdownMenu createRefreshSplitButton(String id) {
         List<InlineMenuItem> dropdownItems = List.of(
                 createRefreshMenuItem(

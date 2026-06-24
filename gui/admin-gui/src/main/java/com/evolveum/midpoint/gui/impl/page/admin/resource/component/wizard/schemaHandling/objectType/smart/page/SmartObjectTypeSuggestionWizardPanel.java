@@ -99,15 +99,15 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
             }
 
             private @NotNull AjaxIconButton buildGenerateSuggestionButton(@NotNull RepeatingView buttons) {
-                AjaxIconButton generateButton = SmartSuggestButtonWithConfirmation.create(buttons.newChildId(),
+                AjaxIconButton generateButton = SmartSuggestButtonWithConfirmation.createThreaded(buttons.newChildId(),
                         createStringResource("ResourceObjectClassTableWizardPanel.saveButton"),
                         () -> GuiStyleConstants.CLASS_MAGIC_WAND,
                         ConfirmationOption.delineationPermissionsOptions(),
                         () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
                         },
-                                (target, confirmedOptions) -> {
+                                (target, confirmedOptions, workerThreads) -> {
                                     final QName objectClassName = selectedModel.getObject().getRealValue().getName();
-                                    processSuggestionActivity(target, objectClassName, false, null, confirmedOptions);
+                                    processSuggestionActivity(target, objectClassName, workerThreads, false, null, confirmedOptions);
                                 }),
                         getPageBase());
 
@@ -154,7 +154,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
      * Processes the suggestion activity for the given object class name.
      */
     private void processSuggestionActivity(AjaxRequestTarget target, QName objectClassName,
-            boolean isRegenerate,
+            int workerThreads, boolean isRegenerate,
             @Nullable RegenerateMode regenerateMode,
             IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
         String resourceOid = getAssignmentHolderModel().getObjectType().getOid();
@@ -202,7 +202,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         }
 
         boolean executed = runSuggestionAction(
-                getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task, permissions,
+                getPageBase(), resourceOid, objectClassName, workerThreads, target, OP_DEFINE_TYPES, task, permissions,
                 regenerateMode, previousObjectTypes);
 
         result.computeStatusIfUnknown();
@@ -292,12 +292,13 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                 });
             }
 
+            //TODO support dialog
             @Override
             public void refreshSuggestionPerform(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
                     RegenerateMode regenerateMode) {
                 removeLastBreadcrumb();
-                processSuggestionActivity(target, objectClassName, true, regenerateMode, confirmedOptions);
+                processSuggestionActivity(target, objectClassName, 1, true, regenerateMode, confirmedOptions);
             }
 
             @Override

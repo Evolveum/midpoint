@@ -10,6 +10,8 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.NumberTextField;
 import org.apache.wicket.model.IModel;
 
@@ -22,7 +24,6 @@ public class ThreadSelectionPanel extends BasePanel<Integer> {
     private static final String ID_EXECUTION_THREADS = "executionThreads";
     private static final String ID_EXECUTION_THREADS_LABEL = "executionThreadsLabel";
 
-
     public ThreadSelectionPanel(String id, IModel<Integer> threadsModel) {
         super(id, threadsModel);
     }
@@ -33,14 +34,13 @@ public class ThreadSelectionPanel extends BasePanel<Integer> {
 
         LabelWithHelpPanel labelWithHelpPanel = new LabelWithHelpPanel(
                 ID_EXECUTION_THREADS_LABEL,
-                createStringResource("ThreadSelectionPanel.threadConfiguration.title")){
+                createStringResource("ThreadSelectionPanel.worker.threads")) {
             @Override
             protected IModel<String> getHelpModel() {
-               return createStringResource("ThreadSelectionPanel.threadConfiguration.description");
+                return createStringResource("ThreadSelectionPanel.threadConfiguration.description");
             }
         };
         add(labelWithHelpPanel);
-
 
         NumberTextField<Integer> executionThreads = new NumberTextField<>(
                 ID_EXECUTION_THREADS,
@@ -48,6 +48,13 @@ public class ThreadSelectionPanel extends BasePanel<Integer> {
                 Integer.class);
 
         executionThreads.setMinimum(1);
+
+        executionThreads.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+            }
+        });
+
         add(executionThreads);
     }
 }

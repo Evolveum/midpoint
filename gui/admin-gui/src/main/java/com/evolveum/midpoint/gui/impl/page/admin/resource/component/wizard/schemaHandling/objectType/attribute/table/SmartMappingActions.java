@@ -29,6 +29,8 @@ import com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -67,7 +69,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -683,8 +684,8 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 .confirmationOptions(options)
                 .build();
 
-        ConfirmationWithOptionsPanel<Describable> dialog =
-                new ConfirmationWithOptionsPanel<>(table.getPageBase().getMainPopupBodyId(), () -> dto) {
+        ConfirmationWithOptionsPopupPanel<Describable> dialog =
+                new ConfirmationWithOptionsPopupPanel<>(table.getPageBase().getMainPopupBodyId(), () -> dto) {
                     @Override
                     public void confirmationPerformed(
                             AjaxRequestTarget target,

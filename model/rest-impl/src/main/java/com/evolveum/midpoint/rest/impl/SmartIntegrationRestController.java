@@ -8,7 +8,6 @@ package com.evolveum.midpoint.rest.impl;
 
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;

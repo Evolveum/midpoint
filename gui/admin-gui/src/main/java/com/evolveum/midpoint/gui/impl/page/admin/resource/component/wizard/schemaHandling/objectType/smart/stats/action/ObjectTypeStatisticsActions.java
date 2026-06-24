@@ -8,13 +8,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperModel;
+import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperPanel;
+import com.evolveum.midpoint.web.component.dialog.steper.step.SmartTaskProgressStepPanel;
+import com.evolveum.midpoint.web.component.dialog.steper.step.ThreadSetupPopupStepPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
@@ -25,8 +28,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadTask;
 
@@ -70,7 +76,7 @@ public final class ObjectTypeStatisticsActions {
                 }
             }
 
-            showProgressPopup(
+            showProgressExecutorPopup(
                     target,
                     pageBase,
                     smartIntegrationService,
@@ -113,7 +119,7 @@ public final class ObjectTypeStatisticsActions {
         pageBase.replaceMainPopup(statisticsPanel, target);
     }
 
-    private static void showProgressPopup(
+    private static void showProgressExecutorPopup(
             @NotNull AjaxRequestTarget target,
             @NotNull PageBase pageBase,
             @NotNull SmartIntegrationService smartIntegrationService,
@@ -125,43 +131,84 @@ public final class ObjectTypeStatisticsActions {
         String intent = objectTypeIdentification.getIntent();
         String displayName = "kind=" + kind.value() + ", intent=" + intent;
 
-        SmartTaskProgressPanel panel = new SmartTaskProgressPanel(
-                pageBase.getMainPopupBodyId(),
-                pageBase.createStringResource("ObjectTypeStatisticsButton.regeneratingStatistics"),
-                pageBase.createStringResource(
-                        "ObjectTypeStatisticsButton.regeneratingStatistics.subText",
-                        displayName),
-                (ajaxTarget, threads) -> regenerateObjectTypeStatistics(
-                        ajaxTarget,
-                        pageBase,
-                        smartIntegrationService,
-                        resourceOid,
-                        objectTypeIdentification,
-                        threads)) {
+        IModel<Integer> threadsModel = Model.of(4);
+        IModel<String> taskOidModel = Model.of();
 
-            @Override
-            protected boolean showResultAfterCompletion() {
-                return true;
-            }
+        ThreadSetupPopupStepPanel threadStep =
+                new ThreadSetupPopupStepPanel(threadsModel) {
 
-            @Override
-            protected void onShowResults(AjaxRequestTarget target) {
-                onProgressFinished(
-                        target,
-                        pageBase,
-                        smartIntegrationService,
-                        resourceOid,
-                        objectTypeIdentification,
-                        preSelectedRefAttribute);
-            }
+                    @Override
+                    public boolean onNextPerformed(AjaxRequestTarget target) {
 
+                        IModel<TaskType> taskModel = regenerateObjectTypeStatistics(
+                                target,
+                                pageBase,
+                                smartIntegrationService,
+                                resourceOid,
+                                objectTypeIdentification,
+                                threadsModel.getObject());
+
+                        if (taskModel == null || taskModel.getObject() == null) {
+                            return false;
+                        }
+
+                        taskOidModel.setObject(taskModel.getObject().getOid());
+                        return true;
+                    }
+                };
+
+        IModel<TaskType> taskModel = new LoadableDetachableModel<>() {
             @Override
-            protected IModel<String> getStopButtonLabel() {
-                return pageBase.createStringResource("ObjectTypeStatisticsButton.stopRegeneration");
+            protected TaskType load() {
+                String oid = taskOidModel.getObject();
+                return oid != null ? loadTask(pageBase, oid) : null;
             }
         };
 
-        pageBase.replaceMainPopup(panel, target);
+        SmartTaskProgressStepPanel progressStep =
+                new SmartTaskProgressStepPanel(
+                        pageBase.createStringResource("ObjectTypeStatisticsButton.regeneratingStatistics"),
+                        pageBase.createStringResource(
+                                "ObjectTypeStatisticsButton.regeneratingStatistics.subText",
+                                displayName),
+                        taskModel) {
+
+                    @Override
+                    protected boolean showResultAfterCompletion() {
+                        return true;
+                    }
+
+                    @Override
+                    protected void onShowResults(AjaxRequestTarget target) {
+                        onProgressFinished(
+                                target,
+                                pageBase,
+                                smartIntegrationService,
+                                resourceOid,
+                                objectTypeIdentification,
+                                preSelectedRefAttribute);
+                    }
+                };
+
+        PopupStepperModel model = new PopupStepperModel(
+                List.of(threadStep, progressStep));
+
+        PopupStepperPanel popup = new PopupStepperPanel(
+                pageBase.getMainPopupBodyId(),
+                Model.of(model)) {
+            @Override
+            public IModel<String> getTitle() {
+                return pageBase.createStringResource(
+                        "ObjectTypeStatisticsButton.generatingStatistics.title", displayName);
+            }
+
+            @Override
+            public @NotNull IModel<String> getTitleIconClass() {
+                return Model.of("fa fa-chart-bar");
+            }
+        };
+
+        pageBase.replaceMainPopup(popup, target);
     }
 
     private static @Nullable IModel<TaskType> regenerateObjectTypeStatistics(

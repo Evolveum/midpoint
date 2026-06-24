@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTask
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoicePopup;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -36,6 +35,10 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperModel;
+import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperPanel;
+import com.evolveum.midpoint.web.component.dialog.steper.step.SmartTaskProgressStepPanel;
+import com.evolveum.midpoint.web.component.dialog.steper.step.ThreadSetupPopupStepPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -90,7 +93,7 @@ public class SimulationActionFlow<T> implements Serializable {
             if (isSamplingEnabled) {
                 runSamplingSimulation(context.pageBase(), target, defaultCfg);
             } else {
-                showTwoStepSimulationProgressPopup(context.pageBase(), target, defaultCfg, null);
+                showThreadStepSimulationProgressPopup(context.pageBase(), target, defaultCfg, null);
             }
             return;
         }
@@ -190,7 +193,7 @@ public class SimulationActionFlow<T> implements Serializable {
                 pageBase.hideMainPopup(target);
 
                 if (!isSamplingEnabled) {
-                    showTwoStepSimulationProgressPopup(pageBase, target, value, null);
+                    showThreadStepSimulationProgressPopup(pageBase, target, value, null);
                     return;
                 }
 
@@ -237,7 +240,7 @@ public class SimulationActionFlow<T> implements Serializable {
 
                 if (objectQuery == null && effectiveSampleSize == null) {
                     pageBase.hideMainPopup(target);
-                    showTwoStepSimulationProgressPopup(pageBase, target, value, null);
+                    showThreadStepSimulationProgressPopup(pageBase, target, value, null);
                     return;
                 }
 
@@ -264,7 +267,7 @@ public class SimulationActionFlow<T> implements Serializable {
                 }
 
                 pageBase.hideMainPopup(target);
-                showTwoStepSimulationProgressPopup(pageBase, target, value, query);
+                showThreadStepSimulationProgressPopup(pageBase, target, value, query);
             }
         };
 
@@ -295,37 +298,81 @@ public class SimulationActionFlow<T> implements Serializable {
         return new ResourceDetailsModel(resourceModelModel, pageBase);
     }
 
-    private void showTwoStepSimulationProgressPopup(
+    private void showThreadStepSimulationProgressPopup(
             @NotNull PageBase pageBase,
             AjaxRequestTarget target,
             PredefinedConfigurationType cfg,
             QueryType query) {
 
-        SmartTaskProgressPanel panel = new SmartTaskProgressPanel(
-                pageBase.getMainPopupBodyId(),
-                getTitleModel(pageBase),
-                getSimulationSubTitleModel(pageBase),
-                (ajaxTarget, threads) -> runSimulationAndReturnTaskModel(ajaxTarget, cfg, threads, query)) {
+        IModel<Integer> threadsModel = Model.of(4);
+        IModel<String> taskOidModel = Model.of();
 
+        ThreadSetupPopupStepPanel threadStep =
+                new ThreadSetupPopupStepPanel(threadsModel) {
+
+                    @Override
+                    public boolean onNextPerformed(AjaxRequestTarget target) {
+                        IModel<TaskType> taskModel =
+                                runSimulationAndReturnTaskModel(target, cfg, threadsModel.getObject(), query);
+
+                        if (taskModel == null || taskModel.getObject() == null) {
+                            return false;
+                        }
+
+                        taskOidModel.setObject(taskModel.getObject().getOid());
+                        return true;
+                    }
+                };
+
+        IModel<TaskType> taskModel = new LoadableDetachableModel<>() {
             @Override
-            protected IModel<String> getStopButtonLabel() {
-                return createStringResource("SmartTaskProgressPanel.button.stopSimulation");
-            }
-
-            @Override
-            protected void onShowResults(AjaxRequestTarget target) {
-                TaskType task = getTaskObject();
-
-                if (task == null) {
-                    return;
-                }
-
-                getPageBase().hideMainPopup(target);
-                onShowResultProcess(target, task, getPageBase());
+            protected TaskType load() {
+                String oid = taskOidModel.getObject();
+                return oid != null ? loadTask(pageBase, oid) : null;
             }
         };
 
-        pageBase.replaceMainPopup(panel, target);
+        SmartTaskProgressStepPanel progressStep =
+                new SmartTaskProgressStepPanel(
+                        getTitleModel(pageBase),
+                        getSimulationSubTitleModel(pageBase),
+                        taskModel) {
+
+                    @Override
+                    public IModel<String> getFinishLabel() {
+                        return createStringResource("SmartTaskProgressPanel.button.showResults");
+                    }
+
+                    @Override
+                    protected void onShowResults(AjaxRequestTarget target) {
+                        TaskType task = getModelObject();
+
+                        if (task == null) {
+                            return;
+                        }
+
+                        getPageBase().hideMainPopup(target);
+                        onShowResultProcess(target, task, getPageBase());
+                    }
+                };
+
+        PopupStepperModel model = new PopupStepperModel(List.of(threadStep, progressStep));
+
+        PopupStepperPanel popup = new PopupStepperPanel(
+                pageBase.getMainPopupBodyId(),
+                Model.of(model)){
+            @Override
+            public IModel<String> getTitle() {
+                return pageBase.createStringResource("SimulationActionButton.simulate.title");
+            }
+
+            @Override
+            public @NotNull IModel<String> getTitleIconClass() {
+                return Model.of("fa fa-chart-bar");
+            }
+        };
+
+        pageBase.replaceMainPopup(popup, target);
     }
 
     private @Nullable IModel<TaskType> runSimulationAndReturnTaskModel(

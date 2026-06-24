@@ -19,17 +19,17 @@ import com.evolveum.midpoint.web.component.util.Describable;
 /**
  * A {@link ButtonWithConfirmationOptionsDialog} variant for *blocking* confirm actions that need an activity
  * indication while they run.
- *
+ * <p>
  * === How it works
  * Because the action is blocking the browser cannot display an intermediate UI update (e.g. a spinner) before the
  * Ajax response is returned — the request is blocked until the action finishes. This class works around that by
  * splitting the work across two Ajax round-trips via {@link AjaxEventBasedInteractionsLinker}:
- *
- *   . *Confirmation phase*: the confirmed options are saved temporarily, {@link ComponentInteractionsPair#action} is
- *     called (e.g. shows a spinner on the button) and a JavaScript event is fired. The response is returned to the
- *     browser immediately so the spinner is visible.
- *   . *Activity phase*: The {@link ButtonHandlers#confirmHandler()} is invoked with the saved options, and
- *     {@link ComponentInteractionsPair#reaction} is called to restore the button's original appearance.</li>
+ * <p>
+ * . *Confirmation phase*: the confirmed options are saved temporarily, {@link ComponentInteractionsPair#action} is
+ * called (e.g. shows a spinner on the button) and a JavaScript event is fired. The response is returned to the
+ * browser immediately so the spinner is visible.
+ * . *Activity phase*: The {@link ButtonHandlers#confirmHandler()} is invoked with the saved options, and
+ * {@link ComponentInteractionsPair#reaction} is called to restore the button's original appearance.</li>
  */
 public class BlockingActionButtonWithConfirmationOptionsDialog<T extends Describable>
         extends ButtonWithConfirmationOptionsDialog<T> {
@@ -38,10 +38,9 @@ public class BlockingActionButtonWithConfirmationOptionsDialog<T extends Describ
     private IModel<List<ConfirmationOption<T>>> pendingConfirmedOptions;
     private AjaxEventBasedInteractionsLinker<AjaxIconButton> interactionsLinker;
 
-
     public BlockingActionButtonWithConfirmationOptionsDialog(String id, IModel<ButtonConfig<T>> buttonConfig,
             IModel<ButtonHandlers<T>> clickHandlers, ComponentInteractionsPair<AjaxIconButton> interactionPairs) {
-        super(id, buttonConfig, clickHandlers);
+        super(id, buttonConfig, false, clickHandlers);
         this.interactionPairs = interactionPairs.reactionAndThen((component, request) -> {
             clickHandlers.getObject().confirmHandler().accept(request, pendingConfirmedOptions);
             pendingConfirmedOptions = null;
@@ -56,7 +55,7 @@ public class BlockingActionButtonWithConfirmationOptionsDialog<T extends Describ
 
     @Override
     void onDialogConfirmed(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<T>>> confirmedOptions) {
+            IModel<List<ConfirmationOption<T>>> confirmedOptions, int workerThreads) {
         this.pendingConfirmedOptions = confirmedOptions;
         this.interactionsLinker.callAction(target);
     }
