@@ -35,6 +35,12 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
 
     private static final String ID_SUBTITLE = "subtitle";
     private static final String ID_INFO_MESSAGE = "infoMessage";
+    private static final String ID_ERROR_MESSAGE = "errorMessage";
+    private static final String ID_ERROR_TEXT = "errorText";
+    private static final String ID_INFO_DETAILS = "infoDetails";
+    private static final String ID_INFO_ENTRY = "infoEntry";
+    private static final String ID_ENTRY_LABEL = "entryLabel";
+    private static final String ID_ENTRY_VALUE = "entryValue";
     private static final String ID_OPTIONS_CONTAINER = "requestContainer";
     private static final String ID_OPTION_LABEL = "requestLabel";
     private static final String ID_LIST_VIEW = "listView";
@@ -58,6 +64,8 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
         add(subtitle);
 
         initInfoMessage();
+        initErrorMessage();
+        initInfoDetails();
         initOptions();
     }
 
@@ -90,6 +98,38 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
         infoMessage.setOutputMarkupId(true);
         infoMessage.add(new VisibleBehaviour(() -> config.getConfirmationInfoMessage() != null));
         add(infoMessage);
+    }
+
+    private void initErrorMessage() {
+        final IModel<String> errorMessage = getModelObject().getErrorMessage();
+        WebMarkupContainer errorContainer = new WebMarkupContainer(ID_ERROR_MESSAGE);
+        errorContainer.setOutputMarkupId(true);
+        errorContainer.add(new VisibleBehaviour(() -> errorMessage != null && errorMessage.getObject() != null));
+        errorContainer.add(new Label(ID_ERROR_TEXT, errorMessage));
+        add(errorContainer);
+    }
+
+    private void initInfoDetails() {
+        final IModel<List<ConfirmationWithOptionsDto.InfoEntry>> entriesModel = getModelObject().getInfoEntries();
+        WebMarkupContainer infoDetails = new WebMarkupContainer(ID_INFO_DETAILS);
+        infoDetails.setOutputMarkupId(true);
+        infoDetails.add(new VisibleBehaviour(() -> {
+            if (entriesModel == null) {
+                return false;
+            }
+            List<ConfirmationWithOptionsDto.InfoEntry> entries = entriesModel.getObject();
+            return entries != null && !entries.isEmpty();
+        }));
+        ListView<ConfirmationWithOptionsDto.InfoEntry> listView = new ListView<>(ID_INFO_ENTRY,
+                entriesModel != null ? entriesModel : () -> List.of()) {
+            @Override
+            protected void populateItem(@NotNull ListItem<ConfirmationWithOptionsDto.InfoEntry> item) {
+                item.add(new Label(ID_ENTRY_LABEL, item.getModelObject().label()));
+                item.add(new Label(ID_ENTRY_VALUE, item.getModelObject().value()));
+            }
+        };
+        infoDetails.add(listView);
+        add(infoDetails);
     }
 
     private void initOptions() {
