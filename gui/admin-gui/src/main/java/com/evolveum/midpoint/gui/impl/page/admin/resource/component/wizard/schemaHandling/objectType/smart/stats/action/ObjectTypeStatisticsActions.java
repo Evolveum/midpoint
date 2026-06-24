@@ -217,7 +217,7 @@ public final class ObjectTypeStatisticsActions {
             @NotNull SmartIntegrationService smartIntegrationService,
             @NotNull String resourceOid,
             @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
-            Integer threads) {
+            @NotNull Integer threads) {
 
         Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_STATISTICS);
 

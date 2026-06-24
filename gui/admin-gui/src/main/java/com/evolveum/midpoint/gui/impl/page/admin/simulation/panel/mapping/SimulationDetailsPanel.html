@@ -9,12 +9,10 @@
 <wicket:panel>
     <div wicket:id="box">
         <i wicket:id="icon"></i>
-        <div class="flex-grow-1">
-            <span wicket:id="message"></span>
-            <a wicket:id="link" href="#" class="font-weight-bold ml-1 text-dark">
-                <wicket:message key="SimulationDetailsPanel.seeDetails"></wicket:message>
-            </a>
-        </div>
+        <span wicket:id="message" class="d-inline-block text-truncate"></span>
+        <a wicket:id="link" href="#" class="font-weight-bold ml-1 text-dark text-nowrap flex-shrink-0">
+            <wicket:message key="SimulationDetailsPanel.seeDetails"></wicket:message>
+        </a>
     </div>
 </wicket:panel>
 </body>

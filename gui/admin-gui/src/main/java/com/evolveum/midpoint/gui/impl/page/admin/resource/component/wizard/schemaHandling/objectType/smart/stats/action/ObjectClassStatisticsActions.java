@@ -185,7 +185,7 @@ public final class ObjectClassStatisticsActions {
             @NotNull SmartIntegrationService smartIntegrationService,
             @NotNull String resourceOid,
             @NotNull QName objectClassName,
-            Integer threads) {
+            @NotNull Integer threads) {
 
         Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_STATISTICS);
 

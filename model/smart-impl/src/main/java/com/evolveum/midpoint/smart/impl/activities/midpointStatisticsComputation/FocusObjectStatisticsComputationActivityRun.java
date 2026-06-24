@@ -88,6 +88,7 @@ public class FocusObjectStatisticsComputationActivityRun extends PlainIterativeA
         }
 
         ensureNoDryRun();
+        ensureNotInWorkerTask(null);
 
         QName objectTypeName = getWorkDefinition().getObjectType();
 

@@ -340,7 +340,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
             @Override
             public void renderHead(final Component component, final IHeaderResponse response) {
                 super.renderHead(component, response);
-                String js = "MidPointTheme.initWindowId();";
+                boolean shouldReloadOnFirstLoad = reloadIfWindowParameterIsAdded();
+                String js = "MidPointTheme.initWindowId(" + shouldReloadOnFirstLoad + ");";
                 response.render(OnDomReadyHeaderItem.forScript(js));
             }
 
@@ -1297,5 +1298,19 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public ConnectorDevelopmentService getConnectorService() {
         return connectorService;
+    }
+
+    /**
+     * After window id parameter was introduced for multi-tab support, the first load of the page in a new
+     * tab leads to the page reloading (see {@code initWindowId(shouldReloadOnFirstLoad)} defined in midpoint-theme.js)
+     * in order to apply the new window id.
+     * But there are cases when we don't want to reload the page because it contains important information
+     * and reloading of the page will lead to the data losing (e.g. error feedback message).
+     * One of the use cases is redirecting to login page from another auth. module with an error message. In this case
+     * it is important to show the error message to the user.
+     * @return true if the page should be reloaded on the first load in a new browser tab/window
+     */
+    protected boolean reloadIfWindowParameterIsAdded() {
+       return true;
     }
 }

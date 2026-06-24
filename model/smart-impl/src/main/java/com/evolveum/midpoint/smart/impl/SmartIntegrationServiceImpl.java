@@ -306,13 +306,23 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Integer threads, Task task, OperationResult parentResult)
+    public String regenerateObjectClassStatistics(
+            String resourceOid,
+            QName objectClassName,
+            int threads,
+            Task task,
+            OperationResult parentResult)
             throws CommonException {
         return statisticsService.regenerateObjectClassStatistics(resourceOid, objectClassName, threads, task, parentResult);
     }
 
     @Override
-    public String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Integer threads, Task task, OperationResult result) throws CommonException {
+    public String regenerateObjectTypeStatistics(
+            String resourceOid,
+            ResourceObjectTypeIdentification resourceObjectTypeIdentification,
+            int threads,
+            Task task,
+            OperationResult result) throws CommonException {
         return statisticsService.regenerateObjectTypeStatistics(resourceOid, resourceObjectTypeIdentification, threads, task, result);
     }
 
@@ -350,7 +360,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid,
             ShadowKindType kind,
             String intent,
-            Integer threads,
+            int threads,
             Task task,
             OperationResult result)
             throws CommonException {

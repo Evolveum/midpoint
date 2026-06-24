@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -226,16 +227,49 @@ public class ServiceClient {
                 try {
                     Thread.sleep(sleepTime);
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    Thread.currentThread().interrupt();
+                    throw new SystemException("Interrupted while waiting for the connector generation service", e);
                 }
                 if (!canRun.getAsBoolean()) {
-                    throw new RuntimeException("Task interrupted");
+                    throw new SystemException("Operation was cancelled while waiting for the connector generation service");
                 }
             }
-            if (isFinished()) {
+            if (status == JobStatus.FAILED) {
+                var errors = extractErrors();
+                throw new SystemException("The connector generation service reported a failure"
+                        + (errors != null ? ": " + errors : ""));
+            }
+            if (status == JobStatus.COMPLETED) {
                 return transform.apply(getResult());
             }
-            throw new IllegalStateException("Job has been finished");
+            throw new SystemException("The connector generation service job did not finish successfully");
+        }
+
+        /**
+         * Extracts the {@code errors} array (if present) from the latest job response, so that
+         * service-side failures are surfaced in the exception message shown in the GUI instead of
+         * a generic, contextless error.
+         */
+        private String extractErrors() {
+            if (latestResult == null) {
+                return null;
+            }
+            var errorsNode = latestResult.get("errors");
+            if (errorsNode == null || errorsNode.isNull()) {
+                var resultNode = latestResult.get("result");
+                errorsNode = resultNode != null ? resultNode.get("errors") : null;
+            }
+            if (errorsNode == null || !errorsNode.isArray() || errorsNode.isEmpty()) {
+                return null;
+            }
+            var sb = new StringBuilder();
+            for (var error : errorsNode) {
+                if (sb.length() > 0) {
+                    sb.append("\n");
+                }
+                sb.append(error.asText());
+            }
+            return sb.length() == 0 ? null : sb.toString();
         }
     }
 

@@ -115,8 +115,7 @@ public class CreateConnectorActivityHandler
                 editable.asEditable().updateProperty(
                         "Messages.properties", "manifest.connector.display", backend.connectorDisplayName());
             } catch (IOException e) {
-                // FIXME: Add proper exception
-                throw new SystemException(e);
+                throw new SystemException("Couldn't set the connector display name in Messages.properties", e);
             }
 
             editable.asEditable().renameBundle(connDef.getGroupId(), connDef.getArtifactId(), connDef.getVersion());
@@ -124,6 +123,11 @@ public class CreateConnectorActivityHandler
             // Install template
             var lookups = editable.install(result);
 
+            if (lookups.isEmpty()) {
+                throw new SystemException(
+                        "Connector installation produced no connector definition for '" + targetDir
+                                + "'; the generated connector is either already installed or is not a valid ConnId bundle");
+            }
             var lookup = lookups.get(0);
 
             var query = PrismContext.get().queryFor(ConnectorType.class)
@@ -134,6 +138,11 @@ public class CreateConnectorActivityHandler
 
 
             var connectors = beans.modelService.searchObjects(ConnectorType.class, query, null, task, result);
+            if (connectors.isEmpty()) {
+                throw new SystemException(
+                        "Installed connector was not found in the repository for bundle '" + lookup.getConnectorBundle()
+                                + "', type '" + lookup.getConnectorType() + "', version '" + lookup.getConnectorVersion() + "'");
+            }
             var connector = connectors.get(0);
 
             var state = getActivityState();

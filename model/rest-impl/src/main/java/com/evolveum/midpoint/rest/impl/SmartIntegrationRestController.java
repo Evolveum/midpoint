@@ -8,11 +8,20 @@ package com.evolveum.midpoint.rest.impl;
 
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.util.ConnectorGeneratorConstants;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
+import com.evolveum.midpoint.model.api.util.SmartIntegrationOperationExecutor;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,8 +45,6 @@ public class SmartIntegrationRestController extends AbstractRestController {
     private static final String OPERATION_SUGGEST_FOCUS_TYPE = CLASS_DOT + "SuggestFocusType";
     private static final String OPERATION_SUGGEST_ASSOCIATION_TYPE = CLASS_DOT + "SuggestAssociations";
 
-    private static final int TIMEOUT = 1000;
-
     @Autowired private SmartIntegrationService smartIntegrationService;
 
     /**
@@ -45,35 +52,41 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link ObjectTypesSuggestionType}.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES)
-    public ResponseEntity<?> suggestObjectTypes(
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationSuggestObjectTypes(
             @RequestParam("resourceOid") String resourceOid,
-            @RequestParam("objectClass") String objectClass) {
+            @RequestParam("objectClass") String objectClass
+    ) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_OBJECT_TYPES);
 
-        try {
-            QName objectClassQName = QName.valueOf(objectClass);
-            var oid = smartIntegrationService.submitSuggestObjectTypesOperation(resourceOid, objectClassQName, List.of(), null, null, task, result);
-            result.setBackgroundTaskOid(oid);
+        return submitOperation(
+                task,
+                result,
+                (service) -> service.submitSuggestObjectTypesOperation(
+                        resourceOid,
+                        QName.valueOf(objectClass),
+                        List.of(),
+                        null,
+                        null,
+                        task,
+                        result
+                )
+        );
+    }
 
-            var suggestionOperationStatus = smartIntegrationService.getSuggestObjectTypesOperationStatus(oid, task, result);
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES_STATUS_INFO)
+    public ResponseEntity<?> getSuggestObjectTypesStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_SUGGEST_OBJECT_TYPES);
 
-            do {
-                Thread.sleep(TIMEOUT);
-                suggestionOperationStatus = smartIntegrationService.getSuggestObjectTypesOperationStatus(oid, task, result);
-            } while (suggestionOperationStatus.isExecuting());
-
-            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
-                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
-            } else {
-                throw new IllegalStateException();
-            }
-        } catch (Throwable t) {
-            return handleException(result, t);
-        } finally {
-            finishRequest(task, result);
-        }
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getSuggestObjectTypesOperationStatus(token, task, result)
+        );
     }
 
     /**
@@ -81,39 +94,44 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link CorrelationSuggestionsType}.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_CORRELATIONS)
-    public ResponseEntity<?> suggestCorrelations(
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_CORRELATIONS_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationSuggestCorrelations(
             @RequestParam("resourceOid") String resourceOid,
             @RequestParam("kind") String kind,
-            @RequestParam("intent") String intent) {
+            @RequestParam("intent") String intent
+    ) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_CORRELATIONS);
 
-        try {
-            ResourceObjectTypeIdentification resourceObjectTypeIdentification = ResourceObjectTypeIdentification.of(
-                    ShadowKindType.fromValue(kind),
-                    intent
-            );
-            var oid = smartIntegrationService.submitSuggestCorrelationOperation(resourceOid, resourceObjectTypeIdentification, List.of(), false, task, result);
-            result.setBackgroundTaskOid(oid);
+        return submitOperation(
+                task,
+                result,
+                (service) -> service.submitSuggestCorrelationOperation(
+                        resourceOid,
+                        ResourceObjectTypeIdentification.of(
+                                ShadowKindType.fromValue(kind),
+                                intent
+                        ),
+                        List.of(),
+                        false,
+                        task,
+                        result
+                )
+        );
+    }
 
-            var suggestionOperationStatus = smartIntegrationService.getSuggestCorrelationOperationStatus(oid, task, result);
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_CORRELATIONS_STATUS_INFO)
+    public ResponseEntity<?> getSuggestCorrelationsStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_SUGGEST_CORRELATIONS);
 
-            do {
-                Thread.sleep(TIMEOUT);
-                suggestionOperationStatus = smartIntegrationService.getSuggestCorrelationOperationStatus(oid, task, result);
-            } while (suggestionOperationStatus.isExecuting());
-
-            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
-                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
-            } else {
-                throw new IllegalStateException();
-            }
-        } catch (Throwable t) {
-            return handleException(result, t);
-        } finally {
-            finishRequest(task, result);
-        }
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getSuggestCorrelationOperationStatus(token, task, result)
+        );
     }
 
     /**
@@ -121,42 +139,50 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link MappingsSuggestionType}.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_MAPPINGS)
-    public ResponseEntity<?> suggestMappings(
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_MAPPINGS_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationSuggestMappings(
             @RequestParam("resourceOid") String resourceOid,
             @RequestParam("kind") String kind,
             @RequestParam("intent") String intent,
-            @RequestParam("isInbound") Boolean isInbound) {
+            @RequestParam("isInbound") Boolean isInbound
+    ) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_MAPPINGS);
 
-        try {
-            ResourceObjectTypeIdentification resourceObjectTypeIdentification = ResourceObjectTypeIdentification.of(
-                    ShadowKindType.fromValue(kind),
-                    intent
-            );
-            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid,
-                    resourceObjectTypeIdentification, isInbound, null, List.of(DataAccessPermissionType.SCHEMA_ACCESS,
-                            DataAccessPermissionType.RAW_DATA_ACCESS), false, task, result);
-            result.setBackgroundTaskOid(oid);
+        return submitOperation(
+                task,
+                result,
+                (service) -> service.submitSuggestMappingsOperation(
+                        resourceOid,
+                        ResourceObjectTypeIdentification.of(
+                                ShadowKindType.fromValue(kind),
+                                intent
+                        ),
+                        isInbound,
+                        null,
+                        List.of(
+                                DataAccessPermissionType.SCHEMA_ACCESS,
+                                DataAccessPermissionType.RAW_DATA_ACCESS
+                        ),
+                        false,
+                        task,
+                        result
+                )
+        );
+    }
 
-            var suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_MAPPINGS_STATUS_INFO)
+    public ResponseEntity<?> getSuggestMappingsStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_SUGGEST_MAPPINGS);
 
-            do {
-                Thread.sleep(TIMEOUT);
-                suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);
-            } while (suggestionOperationStatus.isExecuting());
-
-            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
-                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
-            } else {
-                throw new IllegalStateException();
-            }
-        } catch (Throwable t) {
-            return handleException(result, t);
-        } finally {
-            finishRequest(task, result);
-        }
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getSuggestMappingsOperationStatus(token, task, result)
+        );
     }
 
     /**
@@ -164,33 +190,36 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link AssociationSuggestionType}.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_ASSOCIATION_TYPE)
-    public ResponseEntity<?> suggestAssociations(
-            @RequestParam("resourceOid") String resourceOid) {
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_ASSOCIATION_TYPE_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationSuggestAssociations(
+            @RequestParam("resourceOid") String resourceOid
+    ) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_ASSOCIATION_TYPE);
 
-        try {
-            var oid = smartIntegrationService.submitSuggestAssociationsOperation(resourceOid, task, result);
-            result.setBackgroundTaskOid(oid);
+        return submitOperation(
+                task,
+                result,
+                (service) -> service.submitSuggestAssociationsOperation(
+                        resourceOid,
+                        task,
+                        result
+                )
+        );
+    }
 
-            var suggestionOperationStatus = smartIntegrationService.getSuggestAssociationsOperationStatus(oid, task, result);
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_ASSOCIATION_TYPE_STATUS_INFO)
+    public ResponseEntity<?> getSuggestAssociationStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_SUGGEST_ASSOCIATION_TYPE);
 
-            do {
-                Thread.sleep(TIMEOUT);
-                suggestionOperationStatus = smartIntegrationService.getSuggestAssociationsOperationStatus(oid, task, result);
-            } while (suggestionOperationStatus.isExecuting());
-
-            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
-                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
-            } else {
-                throw new IllegalStateException();
-            }
-        } catch (Throwable t) {
-            return handleException(result, t);
-        } finally {
-            finishRequest(task, result);
-        }
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getSuggestAssociationsOperationStatus(token, task, result)
+        );
     }
 
     /**
@@ -200,11 +229,12 @@ public class SmartIntegrationRestController extends AbstractRestController {
      * In the future, we may return a full QName, but for now we keep it simple. We spare the client from
      * having to parse the string representing the QName.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_FOCUS_TYPE)
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_FOCUS_TYPE_SUBMIT_OPERATION)
     public ResponseEntity<?> suggestFocusType(
             @RequestParam("resourceOid") String resourceOid,
             @RequestParam("kind") String kind,
-            @RequestParam("intent") String intent) {
+            @RequestParam("intent") String intent
+    ) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_FOCUS_TYPE);
 
@@ -215,6 +245,44 @@ public class SmartIntegrationRestController extends AbstractRestController {
             return createResponse(HttpStatus.OK, focusTypeName.getFocusType().getLocalPart(), result);
         } catch (Throwable t) {
             return handleException(result, t);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    private ResponseEntity<?> submitOperation(
+            Task task,
+            OperationResult result,
+            SmartIntegrationOperationExecutor<SmartIntegrationService, String> operationExecutor
+    ) {
+        try {
+            return createResponse(
+                    HttpStatus.OK,
+                    operationExecutor.execute(smartIntegrationService),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    private ResponseEntity<?> handleStatusInfo(
+            Task task,
+            OperationResult result,
+            SmartIntegrationOperationExecutor<SmartIntegrationService, StatusInfo<?>> serviceExecutor
+    ) {
+        try {
+            var statusInfo = serviceExecutor.execute(smartIntegrationService);
+            var smartIntegrationOperationStatusInfoType = new SmartIntegrationOperationStatusInfoType();
+            smartIntegrationOperationStatusInfoType.setStatus(statusInfo.getStatus());
+            smartIntegrationOperationStatusInfoType.setMessage(statusInfo.getLocalizedMessage());
+            smartIntegrationOperationStatusInfoType.setResult(statusInfo.getResult());
+
+            return createResponse(HttpStatus.OK, smartIntegrationOperationStatusInfoType, result);
+        } catch (Exception e) {
+            return handleException(result, e);
         } finally {
             finishRequest(task, result);
         }

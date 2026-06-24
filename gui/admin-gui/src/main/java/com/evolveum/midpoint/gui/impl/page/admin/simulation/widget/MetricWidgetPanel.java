@@ -223,7 +223,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
         SearchFilterType search;
         if (collection.getCollectionRef() != null) {
-            com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType collectionRef = collection.getCollectionRef();
+            ObjectReferenceType collectionRef = collection.getCollectionRef();
             PrismObject<ObjectCollectionType> obj = WebModelServiceUtils.loadObject(collectionRef, page);
             if (obj == null) {
                 return null;
@@ -432,6 +432,12 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
         PageParameters params = new PageParameters();
         params.add(SimulationPage.PAGE_PARAMETER_RESULT_OID, ref.getOid());
+
+        if ((metricRef != null ? metricRef.getBuiltIn() : null) == BuiltInSimulationMetricType.ERRORS) {
+            params.set(SimulationPage.PAGE_PARAMETER_MARK_OID, SystemObjectsType.MARK_ITEM_VALUE_FAILED.value());
+            getPageBase().navigateToNext(PageSimulationResultObjects.class, params);
+            return;
+        }
 
         ObjectProcessingStateType state = SimulationsGuiUtil.builtInMetricToProcessingState(metricRef.getBuiltIn());
         if (state != null) {

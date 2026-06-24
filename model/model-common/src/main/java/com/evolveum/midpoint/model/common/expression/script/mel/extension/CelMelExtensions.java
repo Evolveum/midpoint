@@ -298,13 +298,26 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             // string.contains(substring) is a CEL built-in function
 
+            // contains(any, string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "contains",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel_contains_any",
+                                    "Returns true if string contains specified substring.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.ANY), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "mel_contains_any", Object.class, String.class,
+                            CelMelExtensions::containsAny)),
+
             // polystring.contains(string)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "contains",
                             CelOverloadDecl.newMemberOverload(
                                     "polystring_contains",
-                                    "Returns true if orig part of polystring contains specified string.",
+                                    "Returns true if orig part of polystring contains specified substring.",
                                     SimpleType.BOOL,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
@@ -1134,13 +1147,13 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "substring",
                             CelOverloadDecl.newMemberOverload(
                                     "mel_string_substring_int",
-                                    "returns a string that is a substring of this string. The substring begins with the"
+                                    "Returns a string that is a substring of this string. The substring begins with the"
                                             + " character at the specified index and extends to the end of this string.",
                                     SimpleType.STRING,
                                     ImmutableList.of(NullableType.create(SimpleType.STRING), SimpleType.INT)),
                             CelOverloadDecl.newMemberOverload(
                                     "mel_string_substring_int_int",
-                                    "returns a string that is a substring of this string. The substring begins at the"
+                                    "Returns a string that is a substring of this string. The substring begins at the"
                                             + " specified beginIndex and extends to the character at index endIndex - 1."
                                             + " Thus the length of the substring is {@code endIndex-beginIndex}.",
                                     SimpleType.STRING,
@@ -1152,6 +1165,32 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "mel_string_substring_int_int",
                             ImmutableList.of(String.class, Long.class, Long.class),
                             CelMelExtensions::substringString)),
+
+            // substring(any,begin,end)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "substring",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel_substring_any_int",
+                                    "Returns a string that is a substring of this string. The substring begins with the"
+                                            + " character at the specified index and extends to the end of this string.",
+                                    NullableType.create(SimpleType.STRING),
+                                    ImmutableList.of(NullableType.create(SimpleType.ANY), SimpleType.INT)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel_substring_any_int_int",
+                                    "Returns a string that is a substring of this string. The substring begins at the"
+                                            + " specified beginIndex and extends to the character at index endIndex - 1."
+                                            + " Thus the length of the substring is {@code endIndex-beginIndex}.",
+                                    NullableType.create(SimpleType.STRING),
+                                    ImmutableList.of(NullableType.create(SimpleType.ANY), SimpleType.INT, SimpleType.INT))),
+                    CelFunctionBinding.from(
+                            "mel_substring_any_int",
+                            ImmutableList.of(Object.class, Long.class),
+                            CelMelExtensions::substringAny),
+                    CelFunctionBinding.from(
+                            "mel_substring_any_int_int",
+                            ImmutableList.of(Object.class, Long.class, Long.class),
+                            CelMelExtensions::substringAny)),
 
             // polystring.substring(begin,end)
             new Function(
@@ -1171,13 +1210,13 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT, SimpleType.INT))),
                     CelFunctionBinding.from(
-                            "polystring_substring_int", PolyStringCelValue.class, Long.class,
-                            CelMelExtensions::substring),
+                            "polystring_substring_int",
+                            ImmutableList.of(PolyStringCelValue.class, Long.class),
+                            CelMelExtensions::substringPolystring),
                     CelFunctionBinding.from(
                             "polystring_substring_int_int",
                             ImmutableList.of(PolyStringCelValue.class, Long.class, Long.class),
                             CelMelExtensions::substringPolystring)),
-
 
             // timestamp.atStartOfDay
             new Function(
@@ -1271,6 +1310,20 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("polystring_trim", PolyStringCelValue.class,
                             CelMelExtensions::trim)),
 
+            // trim(any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "trim",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel_trim_any",
+                                    "Returns a new string which removes the leading and trailing whitespace in the"
+                                            + " target string. The trim function uses the Unicode definition of whitespace"
+                                            + " which does not include the zero-width spaces. ",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from("mel_trim_any", Object.class,
+                            CelMelExtensions::trimAny)),
+
             // string.uc()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -1326,6 +1379,19 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             polystring -> Ascii.toUpperCase(polystring.getOrig())))
 
         );
+    }
+
+    private static boolean containsAny(Object o, String substring) {
+        if (isCelNull(o)) {
+            return false;
+        }
+        if (o instanceof String s) {
+            return s.contains(substring);
+        }
+        if (o instanceof PolyStringCelValue ps) {
+            return ps.getOrig().contains(substring);
+        }
+        return o.toString().contains(substring);
     }
 
     private Object nilProducer(Object[] objects) {
@@ -2124,11 +2190,16 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         return exploded;
     }
 
-    private static String substring(PolyStringCelValue ps, long i) throws CelEvaluationException {
+    @NotNull
+    private static String substring(@NotNull PolyStringCelValue ps, long i) throws CelEvaluationException {
         return substring(ps.getOrig(), i);
     }
 
-    private static String substring(String s, long i) throws CelEvaluationException {
+    @NotNull
+    private static String substring(@NotNull String s, long i) throws CelEvaluationException {
+        if (isCelNull(s)) {
+            return null;
+        }
         int beginIndex;
         try {
             beginIndex = Math.toIntExact(i);
@@ -2160,18 +2231,56 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     /**
      * @param args Object array with indices of [0: string], [1: beginIndex], [2: endIndex]
      */
-    private static String substringPolystring(Object[] args) throws CelEvaluationException {
-        return substring(((PolyStringCelValue) args[0]).getOrig(), (Long) args[1], (Long) args[2]);
+    @Nullable
+    private static Object substringPolystring(Object[] args) throws CelEvaluationException {
+        if (isCelNull(args[0])) {
+            return NullValue.NULL_VALUE;
+        }
+        if (args.length == 2) {
+            return substring(((PolyStringCelValue) args[0]).getOrig(), (Long) args[1]);
+        } else if (args.length == 3) {
+            return substring(((PolyStringCelValue) args[0]).getOrig(), (Long) args[1], (Long) args[2]);
+        } else {
+            throw new IllegalArgumentException("Unexpected number of arguments to substringPolystring");
+        }
     }
 
     /**
      * @param args Object array with indices of [0: string], [1: beginIndex], [2: endIndex]
      */
-    private static String substringString(Object[] args) throws CelEvaluationException {
-        return substring((String) args[0], (Long) args[1], (Long) args[2]);
+    @Nullable
+    private static Object substringString(Object[] args) throws CelEvaluationException {
+        if (isCelNull(args[0])) {
+            return NullValue.NULL_VALUE;
+        }
+        if (args.length == 2) {
+            return substring((String) args[0], (Long) args[1]);
+        } else if (args.length == 3) {
+            return substring((String) args[0], (Long) args[1], (Long) args[2]);
+        } else {
+            throw new IllegalArgumentException("Unexpected number of arguments to substringString");
+        }
     }
 
-    private static String substring(String s, Long beginIndexLong, Long endIndexLong) throws CelEvaluationException {
+    /**
+     * @param args Object array with indices of [0: string], [1: beginIndex], [2: endIndex]
+     */
+    @Nullable
+    private static Object substringAny(Object[] args) throws CelEvaluationException {
+        if (isCelNull(args[0])) {
+            return NullValue.NULL_VALUE;
+        }
+        if (args[0] instanceof String) {
+            return substringString(args);
+        }
+        if (args[0] instanceof PolyStringCelValue) {
+            return substringPolystring(args);
+        }
+        throw new IllegalArgumentException("Unexpected argument type "+args[0].getClass().getSimpleName()+" in call of substringAny");
+    }
+
+    @NotNull
+    private static String substring(@NotNull String s, Long beginIndexLong, Long endIndexLong) throws CelEvaluationException {
         int beginIndex;
         int endIndex;
         try {
@@ -2224,6 +2333,19 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         return textCpa.slice(left, right + 1).toString();
     }
 
+    @Nullable
+    private static Object trimAny(@Nullable Object o) {
+        if (isCelNull(o)) {
+            return NullValue.NULL_VALUE;
+        }
+        if (o instanceof String s) {
+            return trim(s);
+        }
+        if (o instanceof PolyStringCelValue ps) {
+            return trim(ps);
+        }
+        throw new IllegalArgumentException("Unexpected argument type "+o.getClass().getSimpleName()+" in call of trimAny");
+    }
 
     /**
      * Finds the first index of the non-whitespace character found in the string. See {@link

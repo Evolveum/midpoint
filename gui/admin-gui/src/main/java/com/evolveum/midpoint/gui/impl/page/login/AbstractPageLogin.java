@@ -315,4 +315,9 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
     protected void reloadDescriptionPanel(@NotNull AjaxRequestTarget target) {
         target.add(get(ID_PANEL_DESCRIPTION));
     }
+
+    @Override
+    protected boolean reloadIfWindowParameterIsAdded() {
+        return getSession().getFeedbackMessages() == null || getSession().getFeedbackMessages().isEmpty();
+    }
 }

@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObject;
@@ -25,12 +27,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.Strings;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -200,26 +202,17 @@ public abstract class SimulationResultObjectPanel extends BasePanel<SimulationRe
 
                     @Override
                     public Component createValueComponent(String id) {
-                        IModel<String> model = new LoadableDetachableModel<>() {
+                        IModel<List<Badge>> badgesModel = new LoadableDetachableModel<>() {
 
                             @Override
-                            protected String load() {
+                            protected List<Badge> load() {
                                 SimulationResultProcessedObjectType object = objectModel.getObject();
-
-                                Object[] names = object.getEventMarkRef().stream()
-                                        .map(ref -> WebModelServiceUtils.resolveReferenceName(ref, getPageBase()))
-                                        .filter(Objects::nonNull)
-                                        .sorted()
-                                        .toArray();
-
-                                return StringUtils.joinWith("\n", names);
+                                return SimulationsGuiUtil.createEventMarkBadges(
+                                        object.getEventMarkRef(), getPageBase());
                             }
                         };
 
-                        MultiLineLabel label = new MultiLineLabel(id, model);
-                        label.setRenderBodyOnly(true);
-
-                        return label;
+                        return new BadgeListPanel(id, badgesModel);
                     }
                 });
 

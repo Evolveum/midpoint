@@ -227,7 +227,7 @@ public final class FocusStatisticsActions {
             @NotNull AjaxRequestTarget target,
             @NotNull PageBase pageBase,
             @NotNull SmartIntegrationService smartIntegrationService,
-            Integer threads,
+            @NotNull Integer threads,
             @NotNull QName focusObjectTypeName,
             @NotNull String resourceOid,
             @NotNull ShadowKindType kind,

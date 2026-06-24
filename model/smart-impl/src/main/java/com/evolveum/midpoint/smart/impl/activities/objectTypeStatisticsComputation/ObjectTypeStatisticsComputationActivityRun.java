@@ -84,7 +84,7 @@ public class ObjectTypeStatisticsComputationActivityRun
         }
 
         ensureNoDryRun();
-
+        ensureNotInWorkerTask(null);
         // Resolve resource
         resource = getActivityHandler().getModelBeans().modelService
                 .getObject(ResourceType.class, getResourceOid(), null, getRunningTask(), result)
