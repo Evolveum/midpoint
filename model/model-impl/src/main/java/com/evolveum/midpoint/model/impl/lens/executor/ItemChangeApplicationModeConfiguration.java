@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.evolveum.midpoint.schema.util.ItemRefinedDefinitionTypeUtil.*;
+import static com.evolveum.midpoint.schema.util.ItemRefinedDefinitionTypeUtil.getRef;
 
 public class ItemChangeApplicationModeConfiguration {
 

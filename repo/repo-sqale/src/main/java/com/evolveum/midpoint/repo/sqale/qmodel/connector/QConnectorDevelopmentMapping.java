@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
@@ -16,8 +15,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
 /**
  * Mapping between {@link QConnector} and {@link ConnectorType}.

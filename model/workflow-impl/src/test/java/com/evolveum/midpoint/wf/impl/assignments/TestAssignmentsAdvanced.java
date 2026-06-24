@@ -36,7 +36,10 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.ChangesByState;
-import com.evolveum.midpoint.wf.impl.*;
+import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
+import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
+import com.evolveum.midpoint.wf.impl.ExpectedTask;
+import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;

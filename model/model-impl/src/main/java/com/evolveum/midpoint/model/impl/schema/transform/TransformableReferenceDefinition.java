@@ -19,8 +19,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import org.jetbrains.annotations.Nullable;
-
 public class TransformableReferenceDefinition extends TransformableItemDefinition<PrismReference, PrismReferenceDefinition>
         implements ReferenceDefinitionDelegator, PartiallyMutableItemDefinition.Reference {
 

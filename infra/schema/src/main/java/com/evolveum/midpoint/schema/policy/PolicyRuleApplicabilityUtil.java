@@ -8,11 +8,12 @@ package com.evolveum.midpoint.schema.policy;
 
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ApplicabilityHint;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEvaluationTargetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 import javax.xml.namespace.QName;
 
-import java.util.*;
+import java.util.Collection;
 
 import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ApplicabilityHint.*;
 import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.getConstraintNamesForApplicabilityRequirement;

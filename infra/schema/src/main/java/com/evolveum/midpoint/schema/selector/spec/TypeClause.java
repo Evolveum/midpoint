@@ -12,7 +12,8 @@ import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;

@@ -61,7 +61,6 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestionValue;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createSuggestionReviewInlineMenu;
 import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDividerNoHeader;
 
 /**

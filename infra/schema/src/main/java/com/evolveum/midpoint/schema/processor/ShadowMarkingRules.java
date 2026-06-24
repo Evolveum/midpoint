@@ -10,7 +10,7 @@ import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.config.ConfigurationItem.DESC;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.MARK_PROTECTED_OID;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNullElse;
 
 import java.io.Serializable;
 import java.util.*;
@@ -27,7 +27,10 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.config.ResourceObjectDefinitionConfigItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectPatternType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowMarkApplicationTimeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowMarkingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.Nullable;

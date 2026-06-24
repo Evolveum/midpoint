@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<ExportFocusStatisticsOptions, Void> {
     private static final List<ItemName> INCLUDE_ITEMS = List.of(

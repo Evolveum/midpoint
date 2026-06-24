@@ -14,7 +14,8 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.impl.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
-import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

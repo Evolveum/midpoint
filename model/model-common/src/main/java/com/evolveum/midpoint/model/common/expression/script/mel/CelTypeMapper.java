@@ -453,7 +453,14 @@ public class CelTypeMapper implements CelTypeProvider  {
         }
         if (def instanceof PrismPropertyDefinition<?> propDef) {
             if (value == null) {
-                return NullValue.NULL_VALUE;
+                if (isRepresentedAsStructured(propDef)) {
+                    // This applies to property types that are presented as structures in CEL (polystring, qname, etc.)
+                    // For these types we need to return optional instead of plain null, otherwise field resolution will fail.
+                    // E.g. givenName.?norm won't work for NullValue.NULL_VALUE, but it will work for Optional.empty()
+                    return Optional.empty();
+                } else {
+                    return NullValue.NULL_VALUE;
+                }
             }
             if (propDef.isEnum()) {
                 if (value instanceof TypeSafeEnum tse) {
@@ -503,6 +510,11 @@ public class CelTypeMapper implements CelTypeProvider  {
             }
         }
         return CelTypeMapper.toCelValue(value);
+    }
+
+    private static boolean isRepresentedAsStructured(PrismPropertyDefinition<?> def) {
+        return QNameUtil.match(def.getTypeName(), PrismConstants.POLYSTRING_TYPE_QNAME) ||
+                QNameUtil.match(def.getTypeName(), DOMUtil.XSD_QNAME);
     }
 
     public static long toMillis(@NotNull Instant instant) {

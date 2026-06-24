@@ -24,7 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
 
 import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState.SUSPENDED;
 import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState.isStable;

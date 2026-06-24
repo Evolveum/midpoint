@@ -13,7 +13,10 @@ import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class CustomEventImpl extends BaseEventImpl implements CustomEvent {
 

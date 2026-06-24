@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationTransitionType;
 
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;

@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWi
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController.ConnectorDevelopmentStatusType;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassesConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationshipsConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;

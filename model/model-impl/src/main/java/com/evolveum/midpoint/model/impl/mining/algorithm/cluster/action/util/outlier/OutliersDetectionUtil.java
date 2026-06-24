@@ -14,7 +14,6 @@ import java.util.*;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAttributeResolver.UnusualAttributeValueResult;
 
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.ExplanationUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import com.google.common.collect.ListMultimap;

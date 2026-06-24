@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.Nullable;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -1385,11 +1386,49 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "");
     }
 
+    @Test
+    public void testUsernameGeneratorJSparrow() throws Exception {
+        usernameGenerator("Jack", "Sparrow", "", "jsparrow");
+    }
+
+    @Test
+    public void testUsernameGeneratorSparrow() throws Exception {
+        usernameGenerator(null, "Sparrow", "", "sparrow");
+    }
+
+    @Test
+    public void testUsernameGeneratorNullNull() throws Exception {
+        usernameGenerator(null, null, "", "");
+    }
+
+    public void usernameGenerator(@Nullable String givenName, @Nullable String familyName, @Nullable String iterationToken, @Nullable String expectedOutput) throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertStringScalarExpression(
+                "expression-username-generator.xml",
+                createUsernameGeneratorVariables(givenName, familyName, iterationToken),
+                expectedOutput);
+    }
+
+    private VariablesMap createUsernameGeneratorVariables(@Nullable String givenName, @Nullable String familyName, @Nullable String iterationToken) {
+        return createVariables(
+                "givenName", createPolyStringTypeNullable(givenName), PolyStringType.COMPLEX_TYPE,
+                "familyName", createPolyStringTypeNullable(familyName), PolyStringType.COMPLEX_TYPE,
+                "iterationToken", iterationToken, PrimitiveType.STRING
+        );
+    }
+
     private VariablesMap createJackVariables(PrismObject<UserType> userJack, String iterationToken) {
         return createVariables(
                 ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition(),
                 ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, PrimitiveType.STRING
         );
+    }
+
+    public static PolyStringType createPolyStringTypeNullable(@Nullable  String string) {
+        if (string == null) {
+            return null;
+        }
+        return createPolyStringType(string);
     }
 
     @Test

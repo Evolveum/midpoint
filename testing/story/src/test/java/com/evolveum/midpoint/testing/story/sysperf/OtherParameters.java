@@ -13,7 +13,10 @@ import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.*;

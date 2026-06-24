@@ -10,7 +10,6 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
-import com.evolveum.midpoint.authentication.impl.filter.FinishAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.HttpBasicAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;

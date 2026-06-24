@@ -9,19 +9,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType.F_DETECTED_PATTERN;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlierMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.session.QSessionObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 

@@ -8,17 +8,13 @@ package com.evolveum.midpoint.rest.impl;
 
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.util.ConnectorGeneratorConstants;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationOperationExecutor;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +48,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link ObjectTypesSuggestionType}.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES_SUBMIT_OPERATION)
+    @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestObjectTypes(
             @RequestParam("resourceOid") String resourceOid,
             @RequestParam("objectClass") String objectClass
@@ -94,7 +90,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link CorrelationSuggestionsType}.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_CORRELATIONS_SUBMIT_OPERATION)
+    @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_CORRELATIONS_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestCorrelations(
             @RequestParam("resourceOid") String resourceOid,
             @RequestParam("kind") String kind,
@@ -139,7 +135,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link MappingsSuggestionType}.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_MAPPINGS_SUBMIT_OPERATION)
+    @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_MAPPINGS_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestMappings(
             @RequestParam("resourceOid") String resourceOid,
             @RequestParam("kind") String kind,
@@ -190,7 +186,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link AssociationSuggestionType}.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_ASSOCIATION_TYPE_SUBMIT_OPERATION)
+    @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_ASSOCIATION_TYPE_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestAssociations(
             @RequestParam("resourceOid") String resourceOid
     ) {
@@ -229,7 +225,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      * In the future, we may return a full QName, but for now we keep it simple. We spare the client from
      * having to parse the string representing the QName.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_FOCUS_TYPE_SUBMIT_OPERATION)
+    @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_FOCUS_TYPE_SUBMIT_OPERATION)
     public ResponseEntity<?> suggestFocusType(
             @RequestParam("resourceOid") String resourceOid,
             @RequestParam("kind") String kind,
@@ -278,7 +274,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
             var smartIntegrationOperationStatusInfoType = new SmartIntegrationOperationStatusInfoType();
             smartIntegrationOperationStatusInfoType.setStatus(statusInfo.getStatus());
             smartIntegrationOperationStatusInfoType.setMessage(statusInfo.getLocalizedMessage());
-            smartIntegrationOperationStatusInfoType.setResult(statusInfo.getResult());
+            smartIntegrationOperationStatusInfoType.setResult(getOperationResult(statusInfo));
 
             return createResponse(HttpStatus.OK, smartIntegrationOperationStatusInfoType, result);
         } catch (Exception e) {
@@ -286,5 +282,21 @@ public class SmartIntegrationRestController extends AbstractRestController {
         } finally {
             finishRequest(task, result);
         }
+    }
+
+    private @NotNull AbstractSmartIntegrationOperationResultType getOperationResult(StatusInfo<?> statusInfo) {
+        var abstractSmartIntegrationOperationResultType = new AbstractSmartIntegrationOperationResultType();
+
+        if (statusInfo.getResult() instanceof ObjectTypesSuggestionType objectTypesSuggestionType) {
+            abstractSmartIntegrationOperationResultType.setObjectTypesSuggestion(objectTypesSuggestionType);
+        } else if (statusInfo.getResult() instanceof MappingsSuggestionType objectTypesSuggestionType) {
+            abstractSmartIntegrationOperationResultType.setMappingsSuggestion(objectTypesSuggestionType);
+        } else if (statusInfo.getResult() instanceof CorrelationSuggestionsType correlationSuggestionsType) {
+            abstractSmartIntegrationOperationResultType.setCorrelationSuggestions(correlationSuggestionsType);
+        } else if (statusInfo.getResult() instanceof AssociationsSuggestionType associationSuggestionType) {
+            abstractSmartIntegrationOperationResultType.setAssociationsSuggestionType(associationSuggestionType);
+        }
+
+        return abstractSmartIntegrationOperationResultType;
     }
 }

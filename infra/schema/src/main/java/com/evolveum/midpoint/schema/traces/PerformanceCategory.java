@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.schema.traces;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -14,8 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 import org.jetbrains.annotations.NotNull;
 
-import static java.util.Collections.*;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 @Experimental
 public enum PerformanceCategory {

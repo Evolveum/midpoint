@@ -11,7 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BuiltInSimulationMetricType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 import org.jetbrains.annotations.NotNull;
 

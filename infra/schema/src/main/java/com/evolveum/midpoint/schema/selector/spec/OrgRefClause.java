@@ -18,7 +18,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
+import static com.evolveum.midpoint.util.MiscUtil.getDiagInfo;
 
 public class OrgRefClause extends SelectorClause {
 

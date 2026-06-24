@@ -6,7 +6,9 @@
 
 package com.evolveum.midpoint.task.quartzimpl.run;
 
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.TaskException;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;

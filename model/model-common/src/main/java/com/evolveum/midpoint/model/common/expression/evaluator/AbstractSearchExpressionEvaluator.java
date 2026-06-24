@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getObjectTypeName;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.util.caching.CacheConfiguration.getStatisticsLevel;

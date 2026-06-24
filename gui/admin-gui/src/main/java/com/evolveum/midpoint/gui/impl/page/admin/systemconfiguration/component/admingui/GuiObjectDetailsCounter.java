@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**

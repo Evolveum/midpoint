@@ -6,10 +6,6 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityActionsExecutedType;
-
-import java.util.Collection;
-
 public class TempUtil {
 
 //    private ActivityActionsExecutedType getAggregateActionsExecutedInformation(Collection<Statistics> children) {

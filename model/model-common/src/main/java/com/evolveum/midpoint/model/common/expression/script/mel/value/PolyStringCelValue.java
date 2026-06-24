@@ -12,7 +12,6 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
 import dev.cel.common.values.CelValue;

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,12 +18,8 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
-import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
-import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.util.MiscUtil;
