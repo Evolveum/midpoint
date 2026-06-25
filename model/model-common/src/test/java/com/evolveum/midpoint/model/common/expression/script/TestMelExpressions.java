@@ -1388,25 +1388,71 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     @Test
     public void testUsernameGeneratorJSparrow() throws Exception {
-        usernameGenerator("Jack", "Sparrow", "", "jsparrow");
+        usernameGenerator("expression-username-generator.xml",
+                "Jack", "Sparrow", "",
+                "jsparrow");
     }
 
     @Test
     public void testUsernameGeneratorSparrow() throws Exception {
-        usernameGenerator(null, "Sparrow", "", "sparrow");
+        usernameGenerator("expression-username-generator.xml",
+                null, "Sparrow", "",
+                "sparrow");
     }
 
     @Test
     public void testUsernameGeneratorNullNull() throws Exception {
-        usernameGenerator(null, null, "", "");
+        usernameGenerator("expression-username-generator.xml",
+                null, null, "",
+                "");
     }
 
-    public void usernameGenerator(@Nullable String givenName, @Nullable String familyName, @Nullable String iterationToken, @Nullable String expectedOutput) throws Exception {
-        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+    @Test
+    public void testUsernameGeneratorFormatJSparrow() throws Exception {
+        usernameGenerator("expression-username-generator-format.xml",
+                "Jack", "Sparrow", "",
+                "jsparrow");
+    }
+
+    @Test
+    public void testUsernameGeneratorFormatNull() throws Exception {
+        usernameGenerator("expression-username-generator-format.xml",
+        null, null, "",
+                // This is not very good generator
+                // TODO: improve
+                "nullnull");
+    }
+
+    @Test
+    public void testUsernameGeneratorFormatPolystringJSparrow() throws Exception {
+        usernameGenerator("expression-username-generator-format-polystring.xml",
+                "Jack", "Sparrow", "",
+                "JSparrow");
+    }
+
+    @Test
+    public void testUsernameGeneratorFormatPolystringNull() throws Exception {
+        usernameGenerator("expression-username-generator-format-polystring.xml",
+                null, null, "",
+                // This is not very good generator
+                // TODO: improve
+                "nullnull");
+    }
+
+    public void usernameGenerator(String scriptName, @Nullable String givenName, @Nullable String familyName, @Nullable String iterationToken, @Nullable String expectedOutput) throws Exception {
         evaluateAndAssertStringScalarExpression(
-                "expression-username-generator.xml",
+                scriptName,
                 createUsernameGeneratorVariables(givenName, familyName, iterationToken),
                 expectedOutput);
+    }
+
+    @Test
+    public void testGivenNameNormSubstring() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertStringScalarExpression(
+                "expression-givenname-norm-substring.xml",
+                createUsernameGeneratorVariables("Jack", "Sparrow", ""),
+                "j");
     }
 
     private VariablesMap createUsernameGeneratorVariables(@Nullable String givenName, @Nullable String familyName, @Nullable String iterationToken) {
