@@ -842,7 +842,7 @@
                 <configuration>
                     <nodeDownloadRoot>https://nexus.evolveum.com/nexus/repository/nodejs-dist/</nodeDownloadRoot>
                     <npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npmjs-dist/</npmDownloadRoot>
-                    <nodeVersion>v22.14.0</nodeVersion>
+                    <nodeVersion>v24.17.0</nodeVersion>
                     <npmVersion>11.1.0</npmVersion>
                     <installDirectory>target</installDirectory>
                 </configuration>
@@ -886,7 +886,7 @@
                                 <configuration>
                                     <environmentVariables>
                                         <!-- this variable will be used by package.json -->
-                                        <OUTPUT_FORMAT>xml</OUTPUT_FORMAT>
+                                        <OUTPUT_FORMAT>json</OUTPUT_FORMAT>
                                         <OUTPUT_BOM_NAME>bom-frontend</OUTPUT_BOM_NAME>
                                         <OUTPUT_BOM_DIRECTORY>${project.build.directory}</OUTPUT_BOM_DIRECTORY>
                                     </environmentVariables>
@@ -909,7 +909,7 @@
                         </executions>
                         <configuration>
                             <projectName>admin-gui-frontend</projectName>
-                            <bomLocation>./gui/admin-gui/target/bom-frontend.xml</bomLocation>
+                            <bomLocation>./gui/admin-gui/target/bom-frontend.json</bomLocation>
                             <pollingConfig>
                                 <enabled>true</enabled>
                                 <pause>500</pause>
