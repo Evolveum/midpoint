@@ -105,7 +105,7 @@ No primary key is defined for this table.
 | `fullObject`
 | `BYTEA`
 | 
-| Serialized full object representation, however some items are stored separately. See https://docs.evolveum.com/midpoint/reference/master/repository/native-postgresql/splitted-fullobject/[splitted-fullobject] for more information.
+| Serialized full object representation, however some items are stored separately. See xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Splitted full object] for more information.
 
 | `tenantRefTargetOid`
 | `UUID`
