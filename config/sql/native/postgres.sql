@@ -376,7 +376,7 @@ CREATE TABLE m_object (
     nameOrig TEXT NOT NULL,
     -- @description: Normalized object name used for exact case-insensitive lookup and uniqueness.
     nameNorm TEXT NOT NULL,
-    -- @description: Serialized full object representation.
+    -- @description: Serialized full object representation, however some items are stored separately. See https://docs.evolveum.com/midpoint/reference/master/repository/native-postgresql/splitted-fullobject/[splitted-fullobject] for more information.
     fullObject BYTEA,
     -- @description: OID of the tenant reference target object.
     tenantRefTargetOid UUID,
