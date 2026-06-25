@@ -145,6 +145,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed NPE when selecting deprecated action in resource object type editor. See bug:MID-10957[]
 * Fixed tooltip lifecycle in search popovers to prevent blinking, stuck, and duplicate tooltips. See bug:MID-10908[]
 * Fixed detailed resource lifecycle changes to use the proper confirmation and save flow. See bug:MID-10700[]
+* Fixed multithreaded Ninja export race causing rare ArrayIndexOutOfBoundsException. See bug:MID-10910[]
 
 === Releases Of Other Components
 
