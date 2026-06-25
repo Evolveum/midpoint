@@ -28,7 +28,6 @@ import 'bootstrap5-toggle';
 import 'ace-builds/src-noconflict/ace';
 
 import '@eonasdan/tempus-dominus';
-//import '../../../node_modules/@popperjs/core';
 
 ace.config.setModuleUrl('ace/theme/eclipse',
     require('../../../node_modules/ace-builds/src-noconflict/theme-eclipse.js'));

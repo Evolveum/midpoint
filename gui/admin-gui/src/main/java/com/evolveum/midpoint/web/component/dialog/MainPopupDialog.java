@@ -84,15 +84,11 @@ public class MainPopupDialog extends ModalDialog {
 
     @Override
     public ModalDialog close(AjaxRequestTarget target) {
-        appendJS(target, "hide");
+        String overlayId = get("overlay").getMarkupId();
+        target.appendJavaScript(String.format("window.MidPointTheme.hideModal('%s')", overlayId));
 
         // overlay is handled (hidden) via javascript
         return this;
-    }
-
-    private void appendJS(AjaxRequestTarget target, String operation) {
-        target.appendJavaScript("$(document).ready(function () {"
-                + "bootstrap.Modal.getOrCreateInstance(document.getElementById('" + get("overlay").getMarkupId() + "'))." + operation + "(); });");
     }
 
     public WebMarkupContainer getDialogComponent() {
@@ -124,6 +120,10 @@ public class MainPopupDialog extends ModalDialog {
     public void setFooter(@NotNull Component footer) {
         if (!ID_FOOTER.equals(footer.getId())) {
             throw new IllegalArgumentException("Footer component id has to be " + ID_FOOTER + ", but real value is " + footer.getId());
+        }
+
+        if (footer instanceof WebMarkupContainer footerContainer && footerContainer.streamChildren().findAny().isEmpty()) {
+            footer.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         }
 
         getDialogComponent().addOrReplace(footer);

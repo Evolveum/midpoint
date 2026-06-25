@@ -8,6 +8,7 @@ import Sparkline from "sparklines";
 import { TempusDominus } from '@eonasdan/tempus-dominus';
 import { DateTime } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
 import { Modal } from 'bootstrap';
+import { createPopper } from '@popperjs/core';
 
 export default class MidPointTheme {
 
@@ -1377,6 +1378,12 @@ export default class MidPointTheme {
         $('#' + compId).multiselect(options);
     }
 
+    /**
+     * used in Popover.java
+     *
+     * @param refId
+     * @param popupId
+     */
     togglePopover(refId, popupId) {
         var popup = $(popupId);
 
@@ -1400,23 +1407,25 @@ export default class MidPointTheme {
         } else {
             if (!popup.is(':visible')) {
                 ref.attr('aria-expanded', 'true');
-                var position = ref.position();
 
-                var left = position.left + (ref.outerWidth() - popup.outerWidth() - 9) / 2;// - paddingRight;
-                var top = position.top + ref.outerHeight();
+                createPopper(ref[0], popup[0], {
+                    placement: 'bottom',
+                    modifiers: [
+                        {
+                            name: 'offset',
+                            options: {
+                                offset: [0, 8]
+                            }
+                        },
+                        {
+                            name: 'arrow',
+                            options: {
+                                element: arrow[0]
+                            }
+                        }
+                    ]
+                });
 
-                var offsetLeft = ref.offset().left - position.left;
-
-                if ((left + popup.outerWidth() + offsetLeft) > window.innerWidth) {
-                    left = window.innerWidth - popup.outerWidth() - offsetLeft - 15;
-                } else if (left < 0) {
-                    left = 0;
-                }
-
-                popup.css('top', top);
-                popup.css('left', left);
-
-                arrow.css('left', (popup.innerWidth() - arrow.width()) / 2);
                 popup.fadeIn(200);
             }
         }
@@ -1837,6 +1846,11 @@ export default class MidPointTheme {
         if (modal) {
             modal.show();
         }
+    }
+
+    hideModal(modalId) {
+        const dialog = document.getElementById(modalId);
+        Modal.getOrCreateInstance(dialog).hide();
     }
 
     updateStatusMessageForMenu(menuId, menuTimeout, messageId, messageTimeout) {
