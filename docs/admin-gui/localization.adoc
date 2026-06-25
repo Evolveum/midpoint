@@ -21,7 +21,7 @@ However, please note that this method xref:/midpoint/features/planned/polystring
 * Expressions can indicate error conditions by using localizable messages.
 There is also a special expression in the user interface that can take care of some localization properties of error handling.
 
-For translation rules, there is xref:/midpoint/devel/translations/[Translations] page.
+For translation rules, there is xref:/midpoint/localization/translations/[Translations] page.
 
 
 == Community Effort
