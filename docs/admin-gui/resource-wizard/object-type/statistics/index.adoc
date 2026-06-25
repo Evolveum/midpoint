@@ -10,11 +10,11 @@ This conceptual overview describes attribute statistics in midPoint and explains
 
 Attribute statistics in midPoint help you make more qualified and confident decisions when working with AI-driven suggestions during resource onboarding and configuration.
 
-When connecting a new resource to midPoint, midPoint allows you to use AI to generate recommendations in areas such as object type delineation and inbound and outbound attribute mappings.
-MidPoint bases these recommendations on the data it has about the resource (such as the schema, documentation, and data samples), and the current schema of midPoint.
+When connecting a new resource to midPoint, midPoint allows you to use AI to generate suggestions in areas such as object class delineation and inbound and outbound attribute mappings.
+In order to generate suggestions, midPoint utilizes the information it has about the resource (such as the schema, documentation, and data samples), and the current schema of midPoint.
 
-However, these suggestions are only as reliable as the underlying data.
-As midPoint only uses a sample of data when making suggestions, attribute statistics provide transparency into that data, and allow you to evaluate the validity of the provided suggestions.
+As AI suggestions may not always be perfect, they should be reviewed before they are accepted.
+Attribute statistics provide transparency into the underlying data, and allow you to asses the validity of the provided suggestions.
 
 In short, attribute statistics help you answer a critical question: "Can I trust this AI suggestion based on how the data actually looks?"
 
@@ -22,7 +22,8 @@ In short, attribute statistics help you answer a critical question: "Can I trust
 
 Attribute statistics are available for:
 
-* xref:/midpoint/reference/admin-gui/resource-wizard/object-type/[Object types] - You can view them by going to [.nowrap]#icon:database[] btn:[Resources]# > [.nowrap]#icon:database[] btn:[All resources]# > _resource_ > [.nowrap]#icon:gears[] btn:[Schema handling]# > [.nowrap]#icon:exchange-alt[] btn:[Object types]#, and selecting [.nowrap]#icon:chart-bar[] btn:[Resource statistics]# in the icon:ellipsis-h[] actions menu for a particular object type. 
+* xref:/midpoint/reference/admin-gui/resource-wizard/object-type/[Object types] - Where they help you delineate resource objects into midPont object types. +
+You can view these statistics by going to [.nowrap]#icon:database[] btn:[Resources]# > [.nowrap]#icon:database[] btn:[All resources]# > _resource_ > [.nowrap]#icon:gears[] btn:[Schema handling]# > [.nowrap]#icon:exchange-alt[] btn:[Object types]#, and selecting [.nowrap]#icon:chart-bar[] btn:[Resource statistics]# in the icon:ellipsis-h[] actions menu for a particular object type.
 
 +
 image::statistics-object-type-listing.webp["Resource attribute statistics accessed from object type listing"]
@@ -33,7 +34,8 @@ You can access the same statistics by clicking _object type_ > [.nowrap]#icon:ma
 +
 image::statistics-data-preview-view-statistics.webp["Resource attribute statistics accessed from data preview"]
 
-* xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[Object type mappings] - Attribute statistics are available separately for resources, [.nowrap]#icon:chart-bar[] btn:[Resource statistics]#, and for the midPoint side, [.nowrap]#icon:line-chart[] btn:[MidPoint statistics]#, allowing you to check both sides of mappings.
+* xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[Object type mappings] - Here, statistics help you to asses the validity of mappings within an object type. +
+Statistics are available separately for resources, [.nowrap]#icon:chart-bar[] btn:[Resource statistics]#, and for the midPoint side, [.nowrap]#icon:line-chart[] btn:[MidPoint statistics]#, allowing you to check both sides of mappings.
 
 +
 image::statistics-mappings.webp["attribute statistics in mappings]
@@ -42,7 +44,7 @@ image::statistics-mappings.webp["attribute statistics in mappings]
 
 image::statistics-basic-view.webp[title="Attribute statistics"]
 
-Attribute statistics are computed from objects, indicated as *Sample size*, and attributes of those objects, indicated by *Attribute count*.
+Attribute statistics are computed from objects, indicated as [.nowrap]#icon:cube[] *Sample size*#, and attributes of those objects, indicated by [.nowrap]#icon:adjust[] *Attribute count*#.
 
 Statistics expose the following key data characteristics:
 
@@ -50,11 +52,12 @@ Statistics expose the following key data characteristics:
 For example, for account status, you can see how many accounts are enabled/disabled.
 * *Cardinality* - By comparing the *Total values* and *Unique values* tiles, you can check how many values are unique within a dataset.
 This is a good indicator that an attribute may be suitable for identification or correlation.
-You can check the *Value Counts* tab for specific details.
+You can check the [.nowrap]#icon:chart-bar[] *Value Counts*# tab for specific details.
 * *Data quality* - Statistics highlight potential issues such as missing or null values, or irregular and inconsistent formats.
-See the *Empty values* tile for their count, or check the [.nowrap]#icon:chart-bar[] btn:[Value Counts]# and [.nowrap]#icon:project-diagram[] btn:[Value Patterns]# tabs for specific details.
-* *Value Patterns* - Shows common structural patterns found in the data, such as various prefixes.
-This may provide insight into your data for future normalization in mappings.
+See the *Empty values* tile for their count, or check the [.nowrap]#icon:chart-bar[] *Value Counts*# and [.nowrap]#icon:project-diagram[] *Value Patterns*# tabs for specific details.
+* *Value Patterns* - Shows common structural patterns found in the data, such as various prefixes and suffixes.
+This is typically used to identify specific object types during delineation.
+For example, value patterns make it easier for you to identify administrator accounts that are often prefixed using "adm-".
 
 To help you work with attribute statistics, you can use the following functionality:
 
@@ -69,6 +72,7 @@ Note that depending on the resource, computation may take a few moments.
 
 Attribute statistics help you with the following:
 
-* *Validating AI suggestions* - By viewing sample data from individual attributes, you can validate that the suggestions are representative of the entire data set.
+* *Validating AI suggestions* - By viewing individual attributes data, you can validate that the suggestions are representative of the entire data set.
+For example, you may explore the underlying data to understand why AI has generated a particular script for a mapping.
 * *Determine strong identifier candidates* - By identifying attributes with near-total, or total uniqueness, and stable and consistent formatting, you can determine quality candidates for correlation.
-* *Detecting weak suggestions* - If you see skewed distributions, high null ratios, or unexpected value patters, you may need to reject or adjust an AI suggestion.
+* *Detecting weak suggestions* - If you see skewed distributions, high null ratios, or unexpected value patters, you may need to review and adjust an AI suggestion.
