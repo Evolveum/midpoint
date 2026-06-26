@@ -13,90 +13,124 @@ Since midPoint 4.8. Also in 4.4.6, 4.7.2 and later.
 ** `-O, --overwrite` for all commands
 ====
 
-Ninja is a command line tool bundled with midPoint.
-Implemented features are based on "repo-ninja", but code was rewritten from the ground up.
-This tool comes in handy when one needs to export or import objects from/to midPoint.
-Operations can be done on top of repository (DB) layer or through REST API.
-Access through DB layer can be very powerful, especially in cases when UI fails.
-For example when midPoint fails to start because of configuration issue or objects data corruption.
-Another great example is "administrator" user lockout.
+Ninja is a command-line tool bundled with midPoint that can communicate directly with the repository database.
+This makes it particularly useful for administrative and recovery tasks.
+Because it works directly with the repository, it can be used even when the web UI or REST API is unavailable.
+Typical use cases include recovering from configuration issues or object data corruption that prevent midPoint from starting, as well as restoring access when the built-in administrator account is locked out.
 
-Users of this tool need to be aware that using repository layer, access is not validated using
-authorisations, model component is not used during processing and changes are not audited.
-It allows you to obtain or modify data in an otherwise unusable midPoint.
-Ninja also supports some other operations like listing keys from keystore, enforcing objects
-reencryption with new key, DB schema validation, password reset or user unlock.
+Since ninja operates directly on the repository layer, it bypasses the model component.
+As a result, authorizations are not enforced, changes are not audited, and model-level processing is skipped.
+While this makes ninja a powerful recovery tool, it also means that it should be used with caution.
 
-Ninja can be started using standard `java -jar` or via bundled shell/bat script.
-Bundled shell and bat scripts are located in the midPoint installation directory, e.g. `<midpoint>/bin/ninja.sh`.
-Bundled scripts will automatically fill in path to for xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home]
-option `-m` using `MIDPOINT_HOME` environment variable, defaulting to the `<midpoint>/var`.
+In addition to object import and export, ninja provides several administrative and maintenance commands.
+These include listing keys stored in the keystore, re-encrypting objects with a new encryption key,
+validating the database schema, resetting user passwords, and unlocking user accounts.
 
-== Connecting to midPoint
+== Running ninja
 
-Connection options:
+Ninja can be started either by using the bundled shell/batch scripts or as a standalone Java application.
 
-* using `$MIDPOINT_HOME`
+Both methods provide the same functionality.
+The bundled scripts simplify the startup process by automatically locating the xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home]
+directory and preparing the runtime environment.
 
-=== Using `$MIDPOINT_HOME>/config.xml` connection
+=== Bundled scripts
 
-This type of connection initialises repository layer of midPoint and operates on top of the database.
-For all commands that communicate with DB layer `$MIDPOINT_HOME` must be specified using `-m <midpoint_home_path>` option.
-Ninja will try to read database connection information from `config.xml`.
-This will not work when there's only datasource definition in `config.xml` (no JDBC url/username/password).
-In such chase one have to specify URL (`-U`), username (`-u`) and password (`-p` or `-P`).
-These options can also be used to override JDBC URL, username and password specified in `config.xml`.
+The bundled `ninja.sh` (Linux/macOS) and `ninja.bat` (Windows) scripts provide the simplest way to run ninja.
+They automatically configure ninja and start the `ninja.jar` application.
 
-With bash, you can provide environment variable `MIDPOINT_HOME` for the `ninja.sh` command.
+The scripts are located in the `<midpoint>/bin` directory.
+In the following examples, `<midpoint>` denotes the root directory of the midPoint installation.
 
-.Example of command with `$MIDPOINT_HOME` environment variable
+For commands that communicate directly with the repository, ninja needs access to the midPoint home directory.
+It uses the `config.xml` file located in the midPoint home directory to obtain the repository configuration.
+
+By default, the bundled scripts determine the midPoint home directory automatically:
+
+* If the `MIDPOINT_HOME` environment variable is defined, its value is used.
+* Otherwise, the scripts use the default `<midpoint>/var` directory.
+
+.Example of command with `$MIDPOINT_HOME` environment variable directly defined in the command line:
+
 [source,bash]
 ----
-MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [JDBC connection overrides] [command] [command options]
+MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [command] [command options]
 ----
 
-.Example of command using `MIDPOINT_HOME` via `-m` option
+Alternatively, the location of the midPoint home directory can be specified explicitly using the `-m` option.
+
+.Example using the `-m` option
 [source,bash]
 ----
-<midpoint>/bin/ninja.sh -m /var/other-mp-home [general options] [JDBC connection overrides] [command] [command options]
+<midpoint>/bin/ninja.sh -m /var/other-mp-home [general options] [command] [command options]
 ----
 
-==== Using custom JDBC Driver
+[NOTE]
+====
+When using a standalone ninja container, initialize the midPoint home directory before running repository commands:
 
-Only JDBC driver that is bundled is for PostgreSQL database.
-This means that for other databases, you must provide JDBC driver yourself.
-Most of the time JDBC driver is already present in `<midpoint>/lib` directory.
-However, it will not be picked up automatically, and you must point ninja to it explicitly.
-You can specify the path to the JDBC driver with `-j` option.
-
-.Full command syntax with custom JDBC driver option
 [source,bash]
 ----
-<midpoint>/bin/ninja.sh -j <jdbc_driver_jar_path> [general/connection options] [command] [command options]
+midpoint.sh init-native
 ----
 
-== Standalone usage
+This command initializes the MidPoint Home directory, allowing ninja to locate the required configuration files (such as `config.xml`) and initialize the repository layer.
 
-Ninja can be used as a standalone jar file without ninja shell/bat scripts.
-Following example shows how to use custom JDBC driver using `-Dloader.path`.
-`-m` option is also needed to specify midPoint home directory.
+This step is not required when running ninja from an existing midPoint container, because the MidPoint home directory has already been initialized.
+====
 
-.Generic example displaying different parts of command and it's parameters
+
+Once the midPoint home directory is located, ninja reads the repository configuration from `config.xml`.
+If the file contains the JDBC URL, username, and password, these values are used automatically.
+
+If `config.xml` contains only a datasource definition, the connection details must be provided explicitly using:
+
+* `-U` - JDBC URL
+* `-u` - JDBC username
+* `-p` or `-P` - JDBC password
+
+These options can also be used to override the values specified in `config.xml`.
+
+=== Using ninja as a standalone JAR application
+
+Ninja can also be executed directly as a standalone JAR application without using the bundled shell or batch scripts.
+
+When running ninja this way, the location of the midPoint home directory must be specified explicitly using the `-m` option.
+
+.General command syntax
 [source,bash]
 ----
-java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [general/connection options] [command] [specific command options]
+java -jar ninja.jar -m <midpoint_home> [general options] [connection options] [command] [command options]
 ----
 
-.Example of standalone usage for PostgreSQL database, in case JDBC url, username and password are specified in `$MIDPOINT_HOME/config.xml`
+.Example overriding JDBC connection details specified in `config.xml`
 [source,bash]
 ----
-java -jar ninja.jar -m /opt/midpoint-home export -t UserType -o /tmp/user-types.xml
+java -jar ninja.jar -m /opt/midpoint-home -U jdbc:postgresql://localhost:5432/testdb -u testuser -p testpassword export -t UserType -o /tmp/user-types.xml
 ----
 
-.Example of standalone usage for SQL Server database, in case we want to override JDBC url, username and password
+=== Using ninja with databases other than PostgreSQL
+
+If you are using a different database (for example Oracle or Microsoft SQL Server), you must obtain the appropriate JDBC driver and provide it to ninja.
+
+When running ninja using the bundled scripts, specify the path to the JDBC driver JAR file using the `-j` option.
+
+.Example using a custom JDBC driver with bundled scripts
 [source,bash]
 ----
-java -Dloader.path=PATH_TO_SQL_SERVER_JDBC_DRIVER_JAR_FILE -jar ninja.jar -m /opt/midpoint-home -U jdbc:sqlserver://localhost:1433;databaseName=midpoint -u MY_JDBC_USERNAME -p MY_JDBC_PASSWORD export -t UserType -o /tmp/user-types.xml
+<midpoint>/bin/ninja.sh \
+  -j /path/to/jdbc-driver.jar \
+  [general options] [connection options] [command] [command options]
+----
+
+When running ninja as a standalone JAR application, specify the JDBC driver using the `-Dloader.path` JVM option.
+
+.Example using a custom JDBC driver with standalone ninja
+[source,bash]
+----
+java -Dloader.path=/path/to/jdbc-driver.jar \
+  -jar ninja.jar \
+  [general options] [connection options] [command] [command options]
 ----
 
 == FAQ
