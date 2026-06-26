@@ -148,6 +148,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed multithreaded Ninja export race causing rare ArrayIndexOutOfBoundsException. See bug:MID-10910[]
 * Fixed reference matches queries failing when the target filter is wrapped in parentheses. See bug:MID-10903[]
 * Updated spring boot to 4.0. See bug:MID-11002[]
+* Fixed serialization of focus preview changes page by avoiding retained live model context. See bug:MID-11082[]
 
 === Releases Of Other Components
 
