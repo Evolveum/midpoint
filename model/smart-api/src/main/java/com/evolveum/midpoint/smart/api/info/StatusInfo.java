@@ -56,7 +56,8 @@ public interface StatusInfo<T> extends Serializable, DebugDumpable {
     /**
      * Status of the operation, typically one of the following:
      *
-     * - {@link OperationResultStatus#UNKNOWN} if the operation was not started yet or if the status is unknown
+     * - {@link OperationResultStatus#UNKNOWN} if the operation was not started yet or if the status is unknown (typically because
+     * the task was already deleted or is not readable)
      * - {@link OperationResultStatus#IN_PROGRESS} if the operation is still running and there is a chance that it will complete
      * - {@link OperationResultStatus#SUCCESS} (or warning or handled error) if the operation completed more-or-less successfully
      * - {@link OperationResultStatus#FATAL_ERROR} if the operation failed and it is not expected to complete successfully
