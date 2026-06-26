@@ -12,7 +12,6 @@ import '@popperjs/core'
 import 'bootstrap'
 import 'admin-lte'
 
-import 'bootstrap-select';
 import 'bootstrap-multiselect';
 
 import 'moment/dist/moment'

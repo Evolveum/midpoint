@@ -112,3 +112,9 @@
 .bg-pink {
   background-color: $pink !important;
 }
+
+//.select2 color overrides
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option.select2-results__option--selected {
+  background-color: var(--bs-primary) !important;
+}
+
