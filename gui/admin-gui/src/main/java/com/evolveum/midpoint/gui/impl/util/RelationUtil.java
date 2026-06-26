@@ -88,10 +88,7 @@ public class RelationUtil {
             return null;
         }
 
-        String relationDisplayName = getRelationHeaderLabelKeyIfKnown(relation);
-        return StringUtils.isNotEmpty(relationDisplayName) ?
-                pageBase.createStringResource(relationDisplayName).getString() :
-                pageBase.createStringResource(relation.getLocalPart()).getString();
+        return getTranslatedRelationLabelOrLocalPart(relation);
     }
 
     public static String getRelationLabelValue(AssignmentType assignment, PageBase pageBase) {
@@ -101,10 +98,7 @@ public class RelationUtil {
             return null;
         }
         relation = assignment.getTargetRef().getRelation();
-        relationDisplayName = getRelationHeaderLabelKeyIfKnown(relation);
-        return StringUtils.isNotEmpty(relationDisplayName) ?
-                pageBase.createStringResource(relationDisplayName).getString() :
-                pageBase.createStringResource(relation.getLocalPart()).getString();
+        return getTranslatedRelationLabelOrLocalPart(relation);
     }
 
     public static String getRelationLabelValue(PrismReferenceValue referenceValue, PageBase pageBase) {
@@ -112,10 +106,7 @@ public class RelationUtil {
             return "";
         }
         QName relation = referenceValue.getRelation();
-        String relationDisplayName = getRelationHeaderLabelKeyIfKnown(relation);
-        return StringUtils.isNotEmpty(relationDisplayName) ?
-                pageBase.createStringResource(relationDisplayName).getString() :
-                pageBase.createStringResource(relation.getLocalPart()).getString();
+        return getTranslatedRelationLabelOrLocalPart(relation);
     }
 
     private static QName getRelation(PrismContainerValueWrapper<AssignmentType> assignmentWrapper) throws SchemaException {
@@ -173,7 +164,7 @@ public class RelationUtil {
 
     @NotNull
     public static String getRelationHeaderLabelKey(QName relation) {
-        String label = getRelationHeaderLabelKeyIfKnown(relation);
+        String label = getTranslatedRelationLabelOrLocalPart(relation);
         if (label != null) {
             return label;
         } else {
@@ -181,6 +172,10 @@ public class RelationUtil {
         }
     }
 
+    /**
+     * @deprecated Use {@link #getTranslatedRelationLabelOrLocalPart(QName)} instead.
+     */
+    @Deprecated
     @Nullable
     public static String getRelationHeaderLabelKeyIfKnown(QName relation) {
         RelationDefinitionType definition = getRelationRegistry().getRelationDefinition(relation);
@@ -200,6 +195,19 @@ public class RelationUtil {
     }
 
     @Nullable
+    public static String getTranslatedRelationLabelOrLocalPart(QName relation) {
+        if (relation == null) {
+             return null;
+        }
+        RelationDefinitionType definition = getRelationRegistry().getRelationDefinition(relation);
+        if (definition == null) {
+            return null;
+        }
+        String translated = GuiDisplayTypeUtil.getTranslatedLabel(definition.getDisplay());
+        return translated != null ? translated : relation.getLocalPart();
+    }
+
+        @Nullable
     private static PolyStringType getRelationLabel(RelationDefinitionType definition) {
         if (definition == null) {
             return null;

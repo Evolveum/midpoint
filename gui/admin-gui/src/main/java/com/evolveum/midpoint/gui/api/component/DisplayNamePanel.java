@@ -221,12 +221,8 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
     }
 
     private String getRelationLabel() {
-        QName relation = getRelation();
-        if (relation == null) {
-            return "";
-        }
-        // TODO: localization?
-        return relation.getLocalPart();
+        String relationTranslated = RelationUtil.getTranslatedRelationLabelOrLocalPart(getRelation());
+        return relationTranslated != null ? relationTranslated : "";
     }
 
     protected IModel<String> getKindIntentLabelModel() {

@@ -264,9 +264,7 @@ public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements 
         if (relation == null) {
             return Model.of("");
         }
-        String relationDisplayName = RelationUtil.getRelationHeaderLabelKeyIfKnown(relation);
-        return StringUtils.isNotEmpty(relationDisplayName) ?
-                PageBase.createStringResourceStatic(relationDisplayName) :
-                PageBase.createStringResourceStatic(relation.getLocalPart());
+        String relationDisplayName = RelationUtil.getTranslatedRelationLabelOrLocalPart(relation);
+        return () -> relationDisplayName != null ? relationDisplayName : "";
     }
 }
