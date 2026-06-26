@@ -134,7 +134,10 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
         if (principalObj instanceof MidPointPrincipal principal) {
             if (principal.getFocus() != null) {
-                return WebComponentUtil.getOrigStringFromPoly(ObjectTypeUtil.getDisplayName(principal.getFocus()));
+                String displayName = WebComponentUtil.getOrigStringFromPoly(ObjectTypeUtil.getDisplayName(principal.getFocus()));
+                if (StringUtils.isNotBlank(displayName)) {
+                    return displayName;
+                }
             }
             return WebComponentUtil.getOrigStringFromPoly(principal.getName());
         }

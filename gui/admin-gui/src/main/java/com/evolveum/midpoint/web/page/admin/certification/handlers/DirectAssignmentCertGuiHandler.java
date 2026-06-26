@@ -23,8 +23,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItem
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,11 +77,7 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
                 PrismObject<UserType> object = page.getModelService().getObject(UserType.class, acase.getObjectRef().getOid(), null, page.getPageTask(), page.getPageTask().getResult());
 
                 if (object != null) {
-                    UserType userObj = object.asObjectable();
-                    PolyStringType displayName = userObj.getDisplayName();
-                    if (displayName != null && !StringUtils.isEmpty(displayName.getOrig())) {
-                        objectName = displayName.getOrig() + " (" + objectName + ")";
-                    }
+                    objectName = WebComponentUtil.getDisplayNameAndName(object);
                 }
             } catch (Exception e) {
                 //probably autz exception, mute it and return object name

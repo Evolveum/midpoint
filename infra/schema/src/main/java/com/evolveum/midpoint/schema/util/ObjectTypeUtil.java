@@ -689,6 +689,7 @@ public class ObjectTypeUtil {
         return object != null ? getDisplayName((ObjectType) object.asObjectable()) : null;
     }
 
+    /** Returns the normal presentation name without falling back to OID. */
     public static PolyStringType getDisplayName(ObjectType object) {
         if (object == null) {
             return null;
@@ -701,6 +702,10 @@ public class ObjectTypeUtil {
         }
     }
 
+    public static PolyStringType getDisplayNameOrFullName(UserType user) {
+        return user != null ? firstNonEmpty(user.getDisplayName(), user.getFullName()) : null;
+    }
+
     private static PolyStringType firstNonEmpty(PolyStringType... values) {
         for (PolyStringType value : values) {
             if (StringUtils.isNotBlank(getOrig(value))) {
@@ -708,6 +713,15 @@ public class ObjectTypeUtil {
             }
         }
         return null;
+    }
+
+    /** Returns a stable non-blank identifier for notification/debug-like text where OID fallback is acceptable. */
+    public static String getDisplayNameOrOid(ObjectType object) {
+        if (object == null) {
+            return null;
+        }
+        String displayName = getOrig(getDisplayName(object));
+        return StringUtils.isNotBlank(displayName) ? displayName : object.getOid();
     }
 
     public static PolyStringType getDisplayName(Referencable ref) {
@@ -900,7 +914,7 @@ public class ObjectTypeUtil {
      */
     private static Object getDescriptiveName(Objectable object) {
         if (object instanceof UserType) {
-            PolyStringType displayName = ((UserType) object).getDisplayName();
+            PolyStringType displayName = getDisplayName((ObjectType) object);
             if (displayName != null) {
                 return new LocalizableMessageBuilder()
                         .key(SchemaConstants.USER_DESCRIPTIVE_NAME)
@@ -1133,7 +1147,7 @@ public class ObjectTypeUtil {
 
     public static String getDetailedDisplayName(Objectable objectable) {
         if (objectable instanceof UserType) {
-            return getOrig(((UserType) objectable).getDisplayName());
+            return getOrig(getDisplayName((ObjectType) objectable));
         } else if (objectable instanceof AbstractRoleType) {
             return getOrig(((AbstractRoleType) objectable).getDisplayName());
         } else if (objectable instanceof ShadowType) {

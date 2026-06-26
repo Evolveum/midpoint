@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -86,8 +87,9 @@ public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, Simpl
         if (taskOwner != null) {
             FocusType owner = taskOwner.asObjectable();
             body.append("Task owner: ");
-            if (owner instanceof UserType) {
-                body.append(PolyString.getOrig(((UserType) owner).getDisplayName())).append(" (").append(owner.getName()).append(")");
+            if (owner instanceof UserType user) {
+                body.append(PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(user)))
+                        .append(" (").append(owner.getName()).append(")");
             } else {
                 body.append(owner.getName());
             }

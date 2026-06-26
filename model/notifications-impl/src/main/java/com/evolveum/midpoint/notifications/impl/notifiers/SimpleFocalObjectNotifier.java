@@ -28,8 +28,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleFocalObjectNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * This is the "main" notifier that deals with modifications of focal objects i.e. AssignmentHolderType and below.
@@ -162,7 +164,13 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
     }
 
     private String getDisplayName(AssignmentHolderType focus) {
-        return PolyString.getOrig(ObjectTypeUtil.getDisplayName(focus));
+        if (focus instanceof UserType user) {
+            return PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(user));
+        } else if (focus instanceof AbstractRoleType role) {
+            return PolyString.getOrig(role.getDisplayName());
+        } else {
+            return "";
+        }
     }
 
     @Override

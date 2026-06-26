@@ -100,6 +100,7 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(UserType.F_GIVEN_NAME),
                 ItemPath.create(UserType.F_FAMILY_NAME),
                 ItemPath.create(UserType.F_FULL_NAME),
+                ItemPath.create(UserType.F_PREFERRED_NAME),
                 ItemPath.create(UserType.F_DISPLAY_NAME),
                 ItemPath.create(UserType.F_ADDITIONAL_NAME),
                 ItemPath.create(UserType.F_EMPLOYEE_NUMBER),

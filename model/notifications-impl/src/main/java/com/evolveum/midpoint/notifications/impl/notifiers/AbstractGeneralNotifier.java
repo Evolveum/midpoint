@@ -678,8 +678,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
         ObjectType requester = requesterRef.resolveObjectType(result, false);
         String name = PolyString.getOrig(requester.getName());
-        if (requester instanceof UserType) {
-            return name + " (" + PolyString.getOrig(((UserType) requester).getDisplayName()) + ")";
+        if (requester instanceof UserType requesterUser) {
+            return name + " (" + PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(requesterUser)) + ")";
         } else {
             return name;
         }
@@ -690,9 +690,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             body.append("Requester: ");
             try {
                 ObjectType requester = event.getRequester().resolveObjectType(result, false);
-                if (requester instanceof UserType) {
-                    UserType requesterUser = (UserType) requester;
-                    body.append(requesterUser.getDisplayName()).append(" (").append(requester.getName()).append(")");
+                if (requester instanceof UserType requesterUser) {
+                    String displayName = PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(requesterUser));
+                    body.append(displayName).append(" (").append(requester.getName()).append(")");
                 } else {
                     body.append(ObjectTypeUtil.toShortString(requester));
                 }

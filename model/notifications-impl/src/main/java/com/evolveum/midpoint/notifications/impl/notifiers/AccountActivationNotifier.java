@@ -19,9 +19,11 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -149,10 +151,8 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
         if (requester.asPrismObject().getDisplayName() != null) {
             name = requester.asPrismObject().getDisplayName();
         }
-        if (requester instanceof UserType) {
-            if (((UserType) requester).getDisplayName() != null) {
-                name = ((UserType) requester).getDisplayName().getOrig();
-            }
+        if (requester instanceof UserType requesterUser) {
+            name = PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(requesterUser));
         }
         return name;
     }

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -140,8 +141,8 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
         if (object == null) {
             return null;
         }
-        if (object instanceof UserType) {
-            return ((UserType) object).getDisplayName();
+        if (object instanceof UserType user) {
+            return ObjectTypeUtil.getDisplayNameOrFullName(user);
         } else if (object instanceof AbstractRoleType) {
             return ((AbstractRoleType) object).getDisplayName();
         } else {

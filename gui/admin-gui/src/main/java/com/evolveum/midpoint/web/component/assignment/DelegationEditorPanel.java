@@ -31,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemSelectorType;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -625,11 +624,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         } else {
             UserType delegationUser = getModelObject().getDelegationOwner();
             if (getModelObject().getDelegationOwner() != null) {
-                if (delegationUser.getDisplayName() != null && StringUtils.isNotEmpty(delegationUser.getDisplayName().getOrig())) {
-                    displayName = delegationUser.getDisplayName().getOrig() + " (" + delegationUser.getName().getOrig() + ")";
-                } else {
-                    displayName = delegationUser.getName() != null ? delegationUser.getName().getOrig() : "";
-                }
+                displayName = WebComponentUtil.getDisplayNameAndName(delegationUser.asPrismObject());
             }
         }
         return displayName;

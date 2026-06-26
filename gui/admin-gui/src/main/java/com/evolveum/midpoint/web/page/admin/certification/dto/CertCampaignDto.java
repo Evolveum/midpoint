@@ -21,8 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.apache.commons.lang3.StringUtils;
-
 import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
@@ -66,8 +64,7 @@ public class CertCampaignDto extends Selectable {
         }
         ObjectType owner = ownerObject.asObjectable();
         if (owner instanceof UserType) {
-            UserType user = (UserType) owner;
-            return WebComponentUtil.getName(user) + " (" + WebComponentUtil.getOrigStringFromPoly(user.getDisplayName()) + ")";
+            return WebComponentUtil.getDisplayNameAndName(owner.asPrismObject());
         } else {
             return WebComponentUtil.getName(owner);
         }
