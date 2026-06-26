@@ -107,7 +107,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean alreadyCompiledGui;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
-        super(null);
+        super(Collections.emptyList());
         this.sequence = sequence;
     }
 
@@ -684,8 +684,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public boolean authenticationShouldBeAborted() {
-        return AuthenticationSequenceModuleNecessityType.REQUISITE.equals(getProcessingModuleNecessity())
-                && AuthenticationModuleState.FAILURE.equals(getProcessingModuleState());
+        if (AuthenticationSequenceModuleNecessityType.REQUISITE.equals(getProcessingModuleNecessity())
+                && AuthenticationModuleState.FAILURE.equals(getProcessingModuleState())) {
+            return true;
+        }
+        return getAuthentications().stream()
+                .anyMatch(m -> m.getNecessity() == AuthenticationSequenceModuleNecessityType.REQUISITE
+                        && m.getState() == AuthenticationModuleState.FAILURE);
     }
 
     public AuthenticationSequenceModuleNecessityType getProcessingModuleNecessity() {
@@ -751,6 +756,39 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public void setAlreadyCompiledGui(boolean alreadyCompiledGui) {
         this.alreadyCompiledGui = alreadyCompiledGui;
+    }
+
+    /**
+     * When the last module in the sequence failed but all prior modules succeeded (user is
+     * already identified but the final credential step failed, e.g. wrong TOTP code), reset
+     * the failed module back to LOGIN_PROCESSING so the user can retry that step without
+     * restarting the whole authentication sequence.
+     *
+     * Also resets alreadyAudited so that subsequent success or definitive failure is audited.
+     *
+     * Does nothing and returns false when over lockout max attempts or when the conditions
+     * for a safe in-place retry are not met.
+     */
+    public boolean resetLastFailedModuleForRetry() {
+        if (overLockoutMaxAttempts) {
+            return false;
+        }
+        List<ModuleAuthentication> auths = getAuthentications();
+        if (auths.isEmpty() || auths.size() != getAuthModules().size()) {
+            return false;
+        }
+        ModuleAuthentication last = auths.get(auths.size() - 1);
+        if (AuthenticationModuleState.FAILURE != last.getState()) {
+            return false;
+        }
+        for (int i = 0; i < auths.size() - 1; i++) {
+            if (AuthenticationModuleState.SUCCESSFULLY != auths.get(i).getState()) {
+                return false;
+            }
+        }
+        last.setState(AuthenticationModuleState.LOGIN_PROCESSING);
+        alreadyAudited = false;
+        return true;
     }
 
     /**

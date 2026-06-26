@@ -8,7 +8,10 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.*;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.AbstractTypeDefinition;
+import com.evolveum.midpoint.prism.DefinitionFragmentBuilder;
+import com.evolveum.midpoint.prism.DisplayHint;
 import com.evolveum.midpoint.prism.ItemDefinition.ItemDefinitionLikeBuilder;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.DefinitionFeature;

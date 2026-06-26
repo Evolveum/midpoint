@@ -88,6 +88,13 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     ), task, result);
         }
 
+        public String submitDiscoverConnectivityEndpoint(Task task, OperationResult result) {
+            return submitTask("Discover Connectivity Endpoint for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().discoverConnectivityEndpoint(new ConnDevDiscoverConnectivityEndpointWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
         public String submitDiscoverDocumentation(Task task, OperationResult result) {
             return submitTask("Discovering documentation for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverDocumentation(new ConnDevDiscoverDocumentationWorkDefinitionType()
@@ -134,8 +141,8 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         @Deprecated
         @Override
         public String submitDiscoverObjectClassDetails(String objectClass, Task task, OperationResult result) {
-            submitDiscoverObjectClassAttributes(objectClass, task, result);
-            return submitDiscoverObjectClassEndpoints(objectClass, task, result);
+            submitDiscoverObjectClassEndpoints(objectClass, task, result);
+            return submitDiscoverObjectClassAttributes(objectClass, task, result);
         }
 
         @Override
@@ -231,13 +238,17 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public List<ConnDevHttpEndpointType> suggestedEndpointsFor(String user, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType) {
-            var obj = stateObject.getApplication().getDetectedSchema().getObjectClass().stream()
-                    .filter(o -> o.getName().equals(user)).findFirst().orElse(null);
-
             var use = switch (knownArtifactType.scriptIntent) {
                 case ALL -> ConnDevHttpEndpointIntentType.GET_ALL;
-                default -> throw new IllegalArgumentException();
+                default -> throw new IllegalArgumentException(
+                        "Unsupported artifact type for endpoint suggestion: " + knownArtifactType);
             };
+
+            var obj = stateObject.getApplication().getDetectedSchema().getObjectClass().stream()
+                    .filter(o -> o.getName().equals(user)).findFirst().orElse(null);
+            if (obj == null) {
+                return List.of();
+            }
 
             return obj.getEndpoint().stream().filter(e -> e.getSuggestedUse().contains(use)).toList();
         }
@@ -256,6 +267,14 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     .updateConfigurationOverride();
         }
 
+        @Override
+        public String submitRefreshScimSchema(Task task, OperationResult result) {
+            return submitTask("Refreshing SCIM schema for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().refreshScimSchema(new ConnDevRefreshScimSchemaWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
         private String connectorNameForTasks() {
             return stateObject.getName().getOrig();
         }
@@ -272,7 +291,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     task, result);
             return oid;
         } catch (Exception e) {
-            throw new SystemException(e);
+            throw new SystemException("Couldn't submit task '" + name + "'", e);
         }
     }
 
@@ -362,6 +381,24 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverObjectClassEndpointsResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevRefreshScimSchemaResultType> getRefreshScimSchemaStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token, result),
+                ConnDevRefreshScimSchemaWorkStateType.F_RESULT,
+                ConnDevRefreshScimSchemaResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevDiscoverConnectivityEndpointResultType> getDiscoverConnectivityEndpointStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token, result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevDiscoverConnectivityEndpointResultType.class
         );
     }
 }

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.*;
+import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 
 /**
  * Context for matching a value against a selector or clause.

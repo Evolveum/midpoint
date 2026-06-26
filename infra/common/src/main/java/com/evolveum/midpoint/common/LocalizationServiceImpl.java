@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.support.ResourceBundleMessageSource;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -88,14 +87,11 @@ public class LocalizationServiceImpl implements LocalizationService {
         Object[] translated = translateParams(params, locale);
 
         for (MessageSource source : sources) {
-            try {
-                String value = source.getMessage(key, translated, locale);
-                if (StringUtils.isNotEmpty(value)) {
-                    LOG.trace("Resolved key {} to value {} using message source {}", key, value, source);
-                    return value;
-                }
-            } catch (NoSuchMessageException ex) {
-                // nothing to do
+            // Use getMessage with defaultMessage=null to avoid NoSuchMessageException
+            String value = source.getMessage(key, translated, null, locale);
+            if (StringUtils.isNotEmpty(value)) {
+                LOG.trace("Resolved key {} to value {} using message source {}", key, value, source);
+                return value;
             }
         }
 

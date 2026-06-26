@@ -1,0 +1,45 @@
+= $r.fileName($sourceFile.path()) - midPoint $versionChanges.midpointVersion()
+
+== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+#foreach ($change in $versionChanges.changes())
+#set ($changeAnchor = $r.upgradeChangeAnchor($change))
+#set ($changeLabel = $r.upgradeChangeLabel($change))
+| <<${changeAnchor},${changeLabel}>>
+| $r.changeText($change)
+
+#end
+|===
+
+#foreach ($change in $versionChanges.changes())
+#set ($changeAnchor = $r.upgradeChangeAnchor($change))
+#set ($changeLabel = $r.upgradeChangeLabel($change))
+[[${changeAnchor}]]
+== $changeLabel
+
+Since version: $r.metadataValue($change.metadata().since())
+
+$r.changeText($change)
+
+#if (!$change.affectedObjects().isEmpty())
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+#foreach ($affectedObject in $change.affectedObjects())
+| `$affectedObject.objectName()`
+| $affectedObject.changeType()
+| $affectedObject.description()
+
+#end
+|===
+
+#end
+#end

@@ -67,7 +67,7 @@ podTemplate(
                                 mvn --version
                             fi
 
-                            mvn clean install -DskipTests -P sbom,dependencytrack
+                            mvn -B -ntp -U clean install  -DskipTests -P dist,sbom,dependencytrack
                         """
                     }
                 }

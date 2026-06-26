@@ -10,7 +10,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedHasAssignmentTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HasAssignmentPolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;

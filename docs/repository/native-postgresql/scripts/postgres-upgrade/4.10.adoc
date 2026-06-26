@@ -1,0 +1,33 @@
+= postgres-upgrade.sql - midPoint 4.10
+
+== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| <<change-51,Change 51>>
+| Updates shadow partition creation function to disable and re-enable only user triggers.
+
+|===
+
+[[change-51]]
+== Change 51
+
+Since version: 4.10
+
+Updates shadow partition creation function to disable and re-enable only user triggers.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_shadow_create_partition`
+| Modified function
+| Disables and re-enables only user triggers while moving shadow data.
+
+|===
+

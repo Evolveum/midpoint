@@ -5,24 +5,13 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.mel.value;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import java.util.*;
 
 import com.google.common.collect.ImmutableSet;
-import dev.cel.common.CelFunctionDecl;
-import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
 import dev.cel.common.values.CelValue;
-import dev.cel.compiler.CelCompilerBuilder;
-import dev.cel.common.Operator;
-import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.CelRuntimeBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -163,61 +152,17 @@ public class QNameCelValue extends CelValue implements Map<String,String>, MidPo
         return StructType.create(QNAME_PACKAGE_NAME, fieldNames, fieldResolver);
     }
 
-    public static void addCompilerDeclarations(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) {
-        builder.addFunctionDeclarations(
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.EQUALS.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                FUNCTION_STRING_EQUALS_QNAME_ID,
-                                SimpleType.BOOL,
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE
-                        )
-                ),
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.EQUALS.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                FUNCTION_QNAME_EQUALS_STRING_ID,
-                                SimpleType.BOOL,
-                                PolyStringCelValue.CEL_TYPE,
-                                SimpleType.STRING
-                        )
-                )
-        );
-    }
-
-    public static void addRuntimeDeclarations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) {
-        builder.addFunctionBindings(
-                CelFunctionBinding.from(
-                        FUNCTION_STRING_EQUALS_QNAME_ID,
-                        String.class, QNameCelValue.class,
-                        QNameCelValue::stringEqualsQName
-                ),
-                CelFunctionBinding.from(
-                        FUNCTION_QNAME_EQUALS_STRING_ID,
-                        QNameCelValue.class, String.class,
-                        QNameCelValue::qNameEqualsString
-                )
-        );
-    }
-
-    // TODO: test!!!
-
-    public static boolean stringEqualsQName(String s, QNameCelValue qnameCelValue) {
-        if (s == null && qnameCelValue == null) {
-            return true;
-        }
-        if (s == null || qnameCelValue == null) {
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
             return false;
-        }
-        return s.equals(qnameCelValue.getLocalPart());
+        QNameCelValue that = (QNameCelValue) o;
+        return Objects.equals(qname, that.qname);
     }
 
-    public static boolean qNameEqualsString(QNameCelValue qnameCelValue, String s) {
-        return stringEqualsQName(s,qnameCelValue);
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(qname);
     }
-
-    // TODO: QName to QName equality
-
 }
 

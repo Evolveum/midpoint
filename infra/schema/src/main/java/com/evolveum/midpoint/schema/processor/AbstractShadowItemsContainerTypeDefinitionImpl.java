@@ -9,11 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.delta.ItemMerger;
-import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * Abstract implementation of a CTD for `attributes` and `associations` containers.

@@ -12,7 +12,10 @@ import static com.google.common.collect.ImmutableSetMultimap.flatteningToImmutab
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -27,7 +30,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;

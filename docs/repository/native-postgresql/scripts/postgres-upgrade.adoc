@@ -1,0 +1,298 @@
+= Native PostgreSQL Upgrade Script: postgres-upgrade.sql
+
+xref:../schema.adoc[Back to native PostgreSQL schema overview]
+
+This page documents schema changes applied to existing databases by `config/sql/native/postgres-upgrade.sql`.
+
+== Version summary
+
+[cols="1,1", options="header"]
+|===
+| MidPoint version
+| Changes range
+
+| xref:postgres-upgrade/4.11.adoc[midPoint 4.11]
+| 52-57
+
+| xref:postgres-upgrade/4.10.adoc[midPoint 4.10]
+| 51
+
+| xref:postgres-upgrade/4.9.adoc[midPoint 4.9]
+| 26-50
+
+| xref:postgres-upgrade/4.8.adoc[midPoint 4.8]
+| 16-25
+
+| xref:postgres-upgrade/4.7.adoc[midPoint 4.7]
+| 12-15
+
+| xref:postgres-upgrade/4.6.adoc[midPoint 4.6]
+| 6-11
+
+| xref:postgres-upgrade/4.5.adoc[midPoint 4.5]
+| 2-5
+
+| xref:postgres-upgrade/4.4.1.adoc[midPoint 4.4.1]
+| 1
+
+|===
+
+== postgres-upgrade.sql - midPoint 4.11
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-upgrade/4.11.adoc#change-57[Change 57]
+| Recreates connector type/version uniqueness indexes with connector-host specific predicates.
+
+| xref:postgres-upgrade/4.11.adoc#change-56[Change 56]
+| Drops old connector type/version uniqueness indexes before recreating them.
+
+| xref:postgres-upgrade/4.11.adoc#change-55[Change 55]
+| Adds connector development object table and triggers.
+
+| xref:postgres-upgrade/4.11.adoc#change-54[Change 54]
+| Adds `CONNECTOR_DEVELOPMENT` object type value.
+
+| xref:postgres-upgrade/4.11.adoc#change-53[Change 53]
+| Adds application object table, triggers, and indexes.
+
+| xref:postgres-upgrade/4.11.adoc#change-52[Change 52]
+| Adds `APPLICATION` object type value.
+
+|===
+
+== postgres-upgrade.sql - midPoint 4.10
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-upgrade/4.10.adoc#change-51[Change 51]
+| Updates shadow partition creation function to disable and re-enable only user triggers.
+
+|===
+
+== postgres-upgrade.sql - midPoint 4.9
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-upgrade/4.9.adoc#change-50[Change 50]
+| Adds overall confidence column and index to role analysis outlier partitions.
+
+| xref:postgres-upgrade/4.9.adoc#change-49[Change 49]
+| Adds role analysis detected pattern and outlier partition tables, columns, and indexes.
+
+| xref:postgres-upgrade/4.9.adoc#change-48[Change 48]
+| Adds role analysis cluster detected pattern and outlier partition container type values.
+
+| xref:postgres-upgrade/4.9.adoc#change-47[Change 47]
+| Adds last login timestamp column and index to shadows.
+
+| xref:postgres-upgrade/4.9.adoc#change-46[Change 46]
+| Adds target object reference columns and indexes to role analysis outliers.
+
+| xref:postgres-upgrade/4.9.adoc#change-45[Change 45]
+| Adds shadow enable/disable timestamp and disable reason columns.
+
+| xref:postgres-upgrade/4.9.adoc#change-44[Change 44]
+| Renames shadow kind value from `ASSOCIATED` to `ASSOCIATION`.
+
+| xref:postgres-upgrade/4.9.adoc#change-43[Change 43]
+| Adds shadow partition management functions, partition definition table, and triggers.
+
+| xref:postgres-upgrade/4.9.adoc#change-42[Change 42]
+| Converts shadow storage to resource-partitioned shadow tables and recreates object view.
+
+| xref:postgres-upgrade/4.9.adoc#change-41[Change 41]
+| Adds assignment effective mark reference table and target lookup index.
+
+| xref:postgres-upgrade/4.9.adoc#change-40[Change 40]
+| Adds `ASSIGNMENT_EFFECTIVE_MARK` reference type value.
+
+| xref:postgres-upgrade/4.9.adoc#change-39[Change 39]
+| Adds task affected object reference table, foreign key, and target lookup index.
+
+| xref:postgres-upgrade/4.9.adoc#change-38[Change 38]
+| Adds `TASK_AFFECTED_OBJECT` reference type value.
+
+| xref:postgres-upgrade/4.9.adoc#change-37[Change 37]
+| Adds shadow reference attribute table and owner OID index.
+
+| xref:postgres-upgrade/4.9.adoc#change-36[Change 36]
+| Adds role analysis outlier table and triggers.
+
+| xref:postgres-upgrade/4.9.adoc#change-35[Change 35]
+| Adds `ROLE_ANALYSIS_OUTLIER` object type value.
+
+| xref:postgres-upgrade/4.9.adoc#change-34[Change 34]
+| Updates assignment metadata primary key and adds foreign key to assignments.
+
+| xref:postgres-upgrade/4.9.adoc#change-33[Change 33]
+| Adds assignment metadata table and updates assignment approval reference keys.
+
+| xref:postgres-upgrade/4.9.adoc#change-32[Change 32]
+| Adds `ASSIGNMENT_METADATA` container type value.
+
+| xref:postgres-upgrade/4.9.adoc#change-31[Change 31]
+| Adds `ASSOCIATED` shadow kind value.
+
+| xref:postgres-upgrade/4.9.adoc#change-30[Change 30]
+| Adds schema object table and triggers.
+
+| xref:postgres-upgrade/4.9.adoc#change-29[Change 29]
+| Adds `SCHEMA` object type value.
+
+| xref:postgres-upgrade/4.9.adoc#change-28[Change 28]
+| Adds policy object table, triggers, and indexes.
+
+| xref:postgres-upgrade/4.9.adoc#change-27[Change 27]
+| Adds `POLICY` object type value.
+
+| xref:postgres-upgrade/4.9.adoc#change-26[Change 26]
+| Adds separate full object storage to assignments, operation executions, and selected reference tables.
+
+|===
+
+== postgres-upgrade.sql - midPoint 4.8
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-upgrade/4.8.adoc#change-25[Change 25]
+| Updates organization closure refresh procedure to use advisory locking.
+
+| xref:postgres-upgrade/4.8.adoc#change-24[Change 24]
+| Adds connector display name columns.
+
+| xref:postgres-upgrade/4.8.adoc#change-23[Change 23]
+| Adds role analysis cluster and role analysis session tables, triggers, and indexes.
+
+| xref:postgres-upgrade/4.8.adoc#change-22[Change 22]
+| Adds `ROLE_ANALYSIS_CLUSTER` and `ROLE_ANALYSIS_SESSION` object type values.
+
+| xref:postgres-upgrade/4.8.adoc#change-21[Change 21]
+| Adds personal number column to users.
+
+| xref:postgres-upgrade/4.8.adoc#change-20[Change 20]
+| Adds execution mode and predefined configuration enum types and task affected object columns.
+
+| xref:postgres-upgrade/4.8.adoc#change-19[Change 19]
+| Recreates task affected object indexing table.
+
+| xref:postgres-upgrade/4.8.adoc#change-18[Change 18]
+| Adds resource super-reference columns.
+
+| xref:postgres-upgrade/4.8.adoc#change-17[Change 17]
+| Keeps change number reserved for replaced task affected object indexing change.
+
+| xref:postgres-upgrade/4.8.adoc#change-16[Change 16]
+| Adds `AFFECTED_OBJECTS` container type value for task affected object indexing.
+
+|===
+
+== postgres-upgrade.sql - midPoint 4.7
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-upgrade/4.7.adoc#change-15[Change 15]
+| Adds queryable `abstract` flag to resources.
+
+| xref:postgres-upgrade/4.7.adoc#change-14[Change 14]
+| Renames approval reference indexes to use consistent naming.
+
+| xref:postgres-upgrade/4.7.adoc#change-13[Change 13]
+| Adds simulation result, processed object, mark, and effective mark tables, triggers, functions, and indexes.
+
+| xref:postgres-upgrade/4.7.adoc#change-12[Change 12]
+| Adds simulation, mark, and related reference/container enum values.
+
+|===
+
+== postgres-upgrade.sql - midPoint 4.6
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-upgrade/4.6.adoc#change-11[Change 11]
+| Adds connector availability flag.
+
+| xref:postgres-upgrade/4.6.adoc#change-10[Change 10]
+| Adds resource template flag.
+
+| xref:postgres-upgrade/4.6.adoc#change-9[Change 9]
+| Adds focus identity container table and normalized focus data indexing.
+
+| xref:postgres-upgrade/4.6.adoc#change-8[Change 8]
+| Adds fuzzy string matching extension and `FOCUS_IDENTITY` container type value for smart correlation.
+
+| xref:postgres-upgrade/4.6.adoc#change-7[Change 7]
+| Adds administrative availability status column to resources.
+
+| xref:postgres-upgrade/4.6.adoc#change-6[Change 6]
+| Adds `AdministrativeAvailabilityStatusType` enum type.
+
+|===
+
+== postgres-upgrade.sql - midPoint 4.5
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-upgrade/4.5.adoc#change-5[Change 5]
+| Adds correlation timestamps and situation columns to shadows, including supporting indexes.
+
+| xref:postgres-upgrade/4.5.adoc#change-4[Change 4]
+| Adds `CorrelationSituationType` enum type for identity matching.
+
+| xref:postgres-upgrade/4.5.adoc#change-3[Change 3]
+| Adds `m_message_template` table, triggers, and indexes.
+
+| xref:postgres-upgrade/4.5.adoc#change-2[Change 2]
+| Adds `MESSAGE_TEMPLATE` object type value.
+
+|===
+
+== postgres-upgrade.sql - midPoint 4.4.1
+
+=== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| xref:postgres-upgrade/4.4.1.adoc#change-1[Change 1]
+| Adds triggers that mark organization closure data for refresh after organization insert, delete, or truncate.
+
+|===
+

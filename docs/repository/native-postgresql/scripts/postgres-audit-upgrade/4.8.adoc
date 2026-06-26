@@ -1,0 +1,133 @@
+= postgres-audit-upgrade.sql - midPoint 4.8
+
+== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| <<change-8,Change 8>>
+| Adds information disclosure audit event type value.
+
+| <<change-7,Change 7>>
+| Adds role analysis cluster and role analysis session object type values.
+
+| <<change-6,Change 6>>
+| Adds shadow kind and intent audit delta columns.
+
+| <<change-5,Change 5>>
+| Adds effective-principal audit columns and privilege modification type.
+
+| <<change-4,Change 4>>
+| Adds `RESOURCE` audit stage and `DISCOVER_OBJECT` audit event type value.
+
+|===
+
+[[change-8]]
+== Change 8
+
+Since version: 4.8
+
+Adds information disclosure audit event type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `AuditEventTypeType`
+| Modified enum type
+| Adds `INFORMATION_DISCLOSURE` audit event type.
+
+|===
+
+[[change-7]]
+== Change 7
+
+Since version: 4.8
+
+Adds role analysis cluster and role analysis session object type values.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ObjectType`
+| Modified enum type
+| Adds `ROLE_ANALYSIS_CLUSTER` and `ROLE_ANALYSIS_SESSION`.
+
+|===
+
+[[change-6]]
+== Change 6
+
+Since version: 4.8
+
+Adds shadow kind and intent audit delta columns.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ShadowKindType`
+| New enum type
+| Adds shadow kind values when audit is installed separately.
+
+| `ma_audit_delta`
+| Modified table
+| Adds shadowKind and shadowIntent columns.
+
+|===
+
+[[change-5]]
+== Change 5
+
+Since version: 4.8
+
+Adds effective-principal audit columns and privilege modification type.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `EffectivePrivilegesModificationType`
+| New enum type
+| Stores effective-principal privilege modification values.
+
+| `ma_audit_event`
+| Modified table
+| Adds effective-principal columns and privilege modification column.
+
+|===
+
+[[change-4]]
+== Change 4
+
+Since version: 4.8
+
+Adds `RESOURCE` audit stage and `DISCOVER_OBJECT` audit event type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `AuditEventStageType`
+| Modified enum type
+| Adds `RESOURCE` audit stage.
+
+| `AuditEventTypeType`
+| Modified enum type
+| Adds `DISCOVER_OBJECT` audit event type.
+
+|===
+

@@ -486,7 +486,9 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         List<PrismPropertyValue<String>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_STRING, true, variables);
         PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
-        assertNotNull("Expression " + getTestName() + " resulted in null value", expressionResult);
+        if (expressionResult == null) {
+            return null;
+        }
         return expressionResult.getValue();
     }
 

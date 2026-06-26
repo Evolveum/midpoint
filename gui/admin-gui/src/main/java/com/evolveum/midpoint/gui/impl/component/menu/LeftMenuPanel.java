@@ -14,7 +14,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.services.*;
+import com.evolveum.midpoint.web.page.admin.services.PageDefaultApplicationService;
+import com.evolveum.midpoint.web.page.admin.services.PageDefaultApplicationServices;
+import com.evolveum.midpoint.web.page.admin.services.PageIntegrationApplicationService;
+import com.evolveum.midpoint.web.page.admin.services.PageIntegrationApplicationServices;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;

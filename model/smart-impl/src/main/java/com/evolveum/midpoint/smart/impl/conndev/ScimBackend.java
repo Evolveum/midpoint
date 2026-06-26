@@ -11,7 +11,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessedDocumentationType;
@@ -33,19 +32,7 @@ public class ScimBackend extends RestBackend {
         super(beans, connDev, task, result);
     }
 
-    @Override
-    public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) {
-        return super.discoverDocumentation(skipCache);
-    }
-
-    @Override
-    public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
-        super.ensureDocumentationIsProcessed();
-
-        refreshScimDocumentation();
-    }
-
-    private void refreshScimDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void refreshScimDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         var testingResourceOid = getTestingResourceOid();
 
         if (!isScimDiscoveryConfigured(testingResourceOid)) {

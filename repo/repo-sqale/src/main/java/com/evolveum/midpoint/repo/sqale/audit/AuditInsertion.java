@@ -10,8 +10,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
@@ -146,7 +147,7 @@ public class AuditInsertion {
 
                 // serializedDelta is transient, needed for changed items later
                 deltaRow.serializedDelta = serializedDelta;
-                deltaRow.delta = serializedDelta.getBytes(StandardCharsets.UTF_8);
+                deltaRow.delta = MiscUtil.stringToBytes(serializedDelta);
                 deltaRow.deltaOid = SqaleUtils.oidToUuid(delta.getOid());
                 deltaRow.deltaType = delta.getChangeType();
             }

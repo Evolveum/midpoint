@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 
 /**
  * Information about the status of a smart integration operation executing in the background.
+ * External representation: {@link com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationOperationStatusInfoType}.
  */
 public interface StatusInfo<T> extends Serializable, DebugDumpable {
 

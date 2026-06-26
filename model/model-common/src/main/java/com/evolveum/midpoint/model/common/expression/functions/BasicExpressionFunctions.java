@@ -49,11 +49,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.time.DateUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -64,7 +64,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -144,7 +143,7 @@ public class BasicExpressionFunctions {
         return objectStr.contains(searchStr);
     }
 
-    public boolean containsIgnoreCase(Object object, Object search) {
+    public boolean containsIgnoreCase(@Nullable Object object, @Nullable Object search) {
         String objectStr = stringify(object);
         if (StringUtils.isEmpty(objectStr)) {
             return false;
@@ -153,7 +152,11 @@ public class BasicExpressionFunctions {
         if (StringUtils.isEmpty(searchStr)) {
             return false;
         }
-        return StringUtils.containsIgnoreCase(objectStr, searchStr);
+        return Strings.CI.contains(objectStr, searchStr);
+    }
+
+    public boolean equalsIgnoreCase(@Nullable Object o1, @Nullable Object o2) {
+        return Strings.CI.equals(stringify(o1), stringify(o2));
     }
 
     /**
@@ -322,6 +325,18 @@ public class BasicExpressionFunctions {
         String inputString = stringify(input);
         String decomposed = Normalizer.normalize(inputString, Normalizer.Form.NFKD);
         return decomposed.replaceAll("\\p{M}", "");
+    }
+
+    /**
+     * Capitalizes a String changing the first character to title case as per Character.toTitleCase(int).
+     * No other characters are changed.
+     */
+    public String capitalize(Object input) {
+        if (input == null) {
+            return null;
+        }
+        String inputString = stringify(input);
+        return StringUtils.capitalize(inputString);
     }
 
     /**

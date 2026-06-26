@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 
-import java.io.*;
+import java.io.PrintWriter;
+import java.io.Serial;
+import java.io.Serializable;
+import java.io.StringWriter;
 import java.net.URI;
 import java.text.Collator;
 import java.text.DateFormat;
@@ -4088,7 +4091,7 @@ public final class WebComponentUtil {
             //couldn't get deltas of items
         }
 
-        if (!deltas.isEmpty()) {
+        if (deltas != null && !deltas.isEmpty()) {
             new Toast()
                     .warning()
                     .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
@@ -4101,7 +4104,7 @@ public final class WebComponentUtil {
     }
 
     public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, PrismPropertyWrapper property) {
-        Collection<ItemDelta> deltas = List.of();
+        Collection<ItemDelta<?,?>> deltas = List.of();
         try {
             deltas = property.getDelta();
         } catch (SchemaException e) {
@@ -4111,8 +4114,8 @@ public final class WebComponentUtil {
         showToastForRecordedButUnsavedChanges(target, deltas);
     }
 
-    private static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta> deltas) {
-        if (!deltas.isEmpty()) {
+    public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta<?,?>> deltas) {
+        if (deltas != null && !deltas.isEmpty()) {
             new Toast()
                     .warning()
                     .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())

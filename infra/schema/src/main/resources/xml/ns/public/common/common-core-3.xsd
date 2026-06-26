@@ -10657,6 +10657,12 @@
                         Column that contains a user-friendly label for corresponding to the key.
                         This label will be displayed in user interface as a representation of the key.
                         The label has no meaning when the lookup table is used to map values.
+                        Due to the specialized repository representation used for lookup tables, only a subset
+                        of the PolyStringType functionality is supported for row labels. While labels are modeled
+                        as PolyStringType in the Prism schema, only the original value (orig) and its normalized
+                        form (norm) are persisted in the repository. Language-specific values stored in the lang map,
+                        as well as translation data, are not preserved. Therefore, lookup table labels are
+                        always resolved from the stored original value and cannot provide locale-dependent translations.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -15108,7 +15114,8 @@
                     <xsd:documentation>
                         Operation should be end with an error.
                         This is a recoverable error (precondition failed).
-                        TODO: align with "fail"
+
+                        (Currently, this option is not implemented.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ERROR"/>
@@ -15118,7 +15125,7 @@
             <xsd:enumeration value="restart">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Operation should be restarted.
+                        Concurrent execution is prevented. After the failure, the operation is restarted.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RESTART"/>
@@ -15128,7 +15135,8 @@
             <xsd:enumeration value="recompute">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The focus object should be recomputed.
+                        Concurrent execution is not prevented: the original operation is executed in full.
+                        However, if there was a conflict present, the focus object is recomputed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RECOMPUTE"/>
@@ -15138,7 +15146,9 @@
             <xsd:enumeration value="reconcile">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The focus object should be recomputed and all projections reconciled.
+                        Concurrent execution is not prevented: the original operation is executed in full.
+                        However, if there was a conflict present, the focus object is recomputed, with all projections
+                        reconciled.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RECONCILE"/>
@@ -15151,7 +15161,6 @@
                         The whole operation should fail. This is to be used mainly for testing purposes,
                         to check if conflict detection algorithm does not yield false positive results.
                         This fails with a system error. This is a definitive, non-recoverable failure.
-                        TODO: align with "error"
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FAIL"/>
@@ -17741,6 +17750,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_ADDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="3a7de4b1-8c5f-4e9a-b2d6-0f1e8c3d7a5b">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_FAILED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -15,7 +15,6 @@ import jakarta.xml.bind.JAXBElement;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.*;
-import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.AND;
 
 /**
  * Utilities to dump policy rules, constraints, actions; typically for diagnostic purposes.

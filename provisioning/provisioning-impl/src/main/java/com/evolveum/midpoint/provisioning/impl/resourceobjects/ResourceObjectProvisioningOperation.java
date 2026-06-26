@@ -26,7 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter.OPERATION_MODIFY_ENTITLEMENT;
 

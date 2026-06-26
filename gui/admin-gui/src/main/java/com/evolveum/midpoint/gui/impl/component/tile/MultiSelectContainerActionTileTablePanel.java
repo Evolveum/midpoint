@@ -203,10 +203,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             boolean isTile) {
         if (isTile) {
             switch (value.getStatus()) {
-                case DELETED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger"));
-                case ADDED ->
-                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success"));
+                case DELETED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger"));
+                case ADDED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success"));
                 default -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0"));
             }
             return;

@@ -29,12 +29,19 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 import dev.cel.common.*;
-import dev.cel.common.types.*;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
-import dev.cel.runtime.*;
+import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeBuilder;
+import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.runtime.CelUnknownSet;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -58,7 +65,6 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     public static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
     private final BasicExpressionFunctions basicExpressionFunctions;
-    private final MidpointFunctions midpointExpressionFunctions;
     private final CelOptions celOptions = CelOptions.current()
             .enableRegexPartialMatch(true)
             .enableOptionalSyntax(true)
@@ -78,7 +84,6 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
             MidpointFunctions midpointExpressionFunctions) {
         super(prismContext, protector, localizationService);
         this.basicExpressionFunctions = basicExpressionFunctions;
-        this.midpointExpressionFunctions = midpointExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(protector,
                 basicExpressionFunctions, midpointExpressionFunctions, celOptions);
         functionLibraryProcessor = new FunctionLibraryProcessor();
@@ -141,9 +146,6 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         for (var varEntry : variables.entrySet()) {
             celTypeMap.put(varEntry.getKey(), CelTypeMapper.toCelNullableType(varEntry.getValue()));
         }
-        if (!variables.containsKey(ExpressionConstants.VAR_NOW)) {
-            celTypeMap.put(ExpressionConstants.VAR_NOW, SimpleType.TIMESTAMP);
-        }
 
         CelType resultType = determineResultType(context);
 
@@ -168,6 +170,11 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         for (var varEntry : variables.entrySet()) {
             builder.addVar(varEntry.getKey(), CelTypeMapper.toCelNullableType(varEntry.getValue()));
         }
+        // Variable nil mimics nil/null literal.
+        // Stock null in CEL does not work well, as it has a special static type (SimpleType.NULL_TYPE).
+        // This means that conditionals (e.g. cond ? 's' : null) fail to compile, due to type mismatch in the branches.
+        // Defining nil as nullable dynamic type works around the problem.
+        builder.addVar(ExpressionConstants.VAR_NIL, CelTypeMapper.NIL_TYPE);
         if (!variables.containsKey(ExpressionConstants.VAR_NOW)) {
             builder.addVar(ExpressionConstants.VAR_NOW, SimpleType.TIMESTAMP);
         }
@@ -264,6 +271,8 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         final Map<String, Object> scriptVariableMap = new HashMap<>();
         prepareScriptVariablesMap(context, scriptVariableMap, CelTypeMapper::convertVariableValue);
+        // Variable nil mimics nil/null literal.
+        scriptVariableMap.put(ExpressionConstants.VAR_NIL, NullValue.NULL_VALUE);
         if (!scriptVariableMap.containsKey(ExpressionConstants.VAR_NOW)) {
             scriptVariableMap.put(ExpressionConstants.VAR_NOW, CelTypeMapper.toInstant(basicExpressionFunctions.currentDateTime()));
         }

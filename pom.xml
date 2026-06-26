@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.14</version>
+        <version>4.0.7</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
         -->
@@ -209,9 +209,10 @@
         -->
         <oracle-database.version>21.9.0.0</oracle-database.version>
 
-        <commons.io.version>2.18.0</commons.io.version>
+        <commons.io.version>2.22.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
-        <cxf.version>4.0.9</cxf.version>
+        <commons.configuration.version>2.15.1</commons.configuration.version>
+        <cxf.version>4.0.11</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
@@ -229,14 +230,11 @@
         <!-- Groovy 4.0.x supports Java 25 class files (major version 69). -->
         <groovy.version>4.0.31</groovy.version>
 
-        <cel.version>0.12.0</cel.version>
+        <cel.version>0.13.0</cel.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
-        <tomcat.version>10.1.55</tomcat.version>
-        <netty.version>4.1.133.Final</netty.version>
-        <postgresql.version>42.7.11</postgresql.version>
-        <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+        <log4j2.version>2.26.0</log4j2.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
@@ -294,6 +292,10 @@
                     <exclusion>
                         <groupId>javax.xml.bind</groupId>
                         <artifactId>jaxb-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -632,7 +634,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
-                <version>2.10.1</version>
+                <version>${commons.configuration.version}</version>
                 <exclusions>
                     <!-- replaced by org.slf4j:jcl-over-slf4j -->
                     <exclusion>
@@ -1112,6 +1114,10 @@
                         <groupId>org.springframework</groupId>
                         <artifactId>spring-jcl</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1262,6 +1268,11 @@
             </dependency>
 
             <!-- Version convergence setup; RECONSIDER after major upgrades of Boot, Maven... -->
+            <dependency>
+                <groupId>org.eclipse.angus</groupId>
+                <artifactId>angus-activation</artifactId>
+                <version>2.0.3</version>
+            </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
@@ -1499,6 +1510,10 @@
                         <groupId>org.jboss.logmanager</groupId>
                         <artifactId>jboss-logmanager</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1550,7 +1565,7 @@
             <dependency>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-runtime</artifactId>
-                <version>4.10.1</version>
+                <version>4.13.2</version>
             </dependency>
             <dependency>
                 <groupId>net.ttddyy</groupId>
@@ -1623,6 +1638,16 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-loader-tools</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.retry</groupId>
+                <artifactId>spring-retry</artifactId>
+                <version>2.0.12</version>
             </dependency>
             <!--<dependency>-->
             <!--    <groupId>org.springframework.boot</groupId>-->
@@ -1851,6 +1876,7 @@
 
                                 <!--dependency contains bug when dependency is used only in annotation, we use it in authentication-impl -->
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-security</ignoredUnusedDeclaredDependency>
 
                                 <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/compile
                                       but report can not detect this uses (and if you change scope, it can not compile target project -->
@@ -2238,6 +2264,32 @@
                 <surefire.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
                 <failsafe.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
+        </profile>
+        <profile>
+            <id>db-docs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.evolveum.midpoint.tools</groupId>
+                        <artifactId>db-docs-maven-plugin</artifactId>
+                        <version>${project.version}</version>
+                        <configuration>
+                            <nativeSqlDirectory>${maven.multiModuleProjectDirectory}/config/sql/native</nativeSqlDirectory>
+                            <outputDirectory>${maven.multiModuleProjectDirectory}/docs/repository/native-postgresql</outputDirectory>
+                            <releaseNotesFile>${maven.multiModuleProjectDirectory}/release-notes.adoc</releaseNotesFile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>native-postgresql-schema-docs</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>generate-db-docs</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>coverage</id>

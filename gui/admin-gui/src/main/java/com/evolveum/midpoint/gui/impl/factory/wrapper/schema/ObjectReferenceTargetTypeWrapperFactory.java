@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.*;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismReferenceDefinitionType;
 
 import org.springframework.stereotype.Component;
 

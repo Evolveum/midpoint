@@ -8,7 +8,10 @@ package com.evolveum.midpoint.model.impl.perf;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -19,7 +22,8 @@ import com.evolveum.midpoint.schema.DefinitionUpdateOption;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;

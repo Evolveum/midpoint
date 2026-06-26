@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.excludeUnwantedMappings;
 
 /**
@@ -100,7 +101,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                 for (MappingUsedFor usedFor : Arrays.stream(MappingUsedFor.values()).toList()) {
                     if (usedFor.getType().equals(mappingUsed)) {
                         return new DisplayType()
-                                .tooltip(usedFor.getTooltip())
+                                .tooltip(translate(usedFor.getTooltip()))
                                 .beginIcon()
                                 .cssClass(usedFor.getIcon())
                                 .end();

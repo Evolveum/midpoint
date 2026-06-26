@@ -53,7 +53,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 @PanelType(name = "rw-suggested-object-type")
@@ -146,7 +146,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
 
                 ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
 
-                statusInfo = loadObjectClassObjectTypeSuggestions(getPageBase(),
+                statusInfo = loadLatestObjectClassObjectTypeSuggestion(getPageBase(),
                         resource.getOid(),
                         selectedObjectClassName,
                         task,
@@ -254,6 +254,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         buttons.add(refreshButton);
     }
 
+    //TODO fix me (do not use ConfirmationOption::delineationPermissionsOptions) it's override real selection...
     private SplitButtonWithDropdownMenu createRefreshSplitButton(String id) {
         List<InlineMenuItem> dropdownItems = List.of(
                 createRefreshMenuItem(

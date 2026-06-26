@@ -1,0 +1,25 @@
+= Native PostgreSQL Schema Script: postgres.sql - Schema versioning
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Schema versioning
+
+Procedures and metadata used to track and apply native repository schema changes.
+
+
+== Functions and procedures
+
+Functions and procedures implement repository-side database behavior.
+
+[[routine_apply_change]]
+=== `apply_change`
+
+Applies numbered main repository schema changes exactly once per database instance.
+
+Kind: procedure
+

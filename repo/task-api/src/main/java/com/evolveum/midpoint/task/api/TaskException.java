@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
 

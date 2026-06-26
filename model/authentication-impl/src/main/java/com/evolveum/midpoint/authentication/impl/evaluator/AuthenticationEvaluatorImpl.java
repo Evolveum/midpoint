@@ -34,6 +34,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.util.Objects;
+
 public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticationContext, A extends Authentication>
         implements AuthenticationEvaluator<T, A> {
 
@@ -46,10 +48,15 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
         this.focusProfileService = focusProfileService;
     }
 
-
     @NotNull
     protected <C extends AbstractAuthenticationContext> MidPointPrincipal getAndCheckPrincipal(
             ConnectionEnvironment connEnv, C authCtx, boolean supportActivationCheck) {
+        Object existing = AuthUtil.getMidpointAuthentication().getPrincipal();
+        if (existing instanceof MidPointPrincipal mp && Objects.equals(mp.getUsername(), authCtx.getUsername())) {
+            // reuse, skip DB load, otherwise we'll end up with multiple principal instances around authentication code
+            return mp;
+        }
+
         ObjectQuery query = authCtx.createFocusQuery();
         String username = authCtx.getUsername();
         if (query == null) {
@@ -114,7 +121,6 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
         authenticationRecorder.recordModuleAuthenticationAttemptSuccess(principal, connEnv);
     }
 
-
     protected void recordModuleAuthenticationFailure(String username, MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
             CredentialPolicyType credentialsPolicy, String reason) {
         if (principal != null) {
@@ -135,6 +141,4 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
     protected void auditAuthenticationSuccess(ObjectType object, ConnectionEnvironment connEnv) {
         auditRecorder.auditLoginSuccess(object, connEnv);
     }
-
-
 }

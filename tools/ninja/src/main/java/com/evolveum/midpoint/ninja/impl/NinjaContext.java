@@ -14,9 +14,6 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 
 import com.evolveum.midpoint.schema.result.OperationResult;

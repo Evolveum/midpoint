@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
-import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection.IterableAssociationValue;
 import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;

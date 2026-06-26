@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.*;

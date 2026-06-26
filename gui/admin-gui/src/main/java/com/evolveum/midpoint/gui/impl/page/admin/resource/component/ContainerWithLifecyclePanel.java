@@ -41,7 +41,10 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ContainerWithLifecyclePanel<C extends Containerable> extends BasePanel<PrismContainerValueWrapper<C>> {
@@ -60,14 +63,31 @@ public class ContainerWithLifecyclePanel<C extends Containerable> extends BasePa
 
     private IModel<LifecycleContainerValueWrapper> wrapperModel;
     private final String parentContainerName;
+    private final IModel<PrismPropertyWrapper<String>> rootLifecycleModel;
 
     public ContainerWithLifecyclePanel(String id, IModel<PrismContainerValueWrapper<C>> model) {
-        this(id, model, null);
+        this(id, model, null, null);
+    }
+
+    public ContainerWithLifecyclePanel(
+            String id,
+            IModel<PrismContainerValueWrapper<C>> model,
+            IModel<PrismPropertyWrapper<String>> rootLifecycleModel) {
+        this(id, model, null, rootLifecycleModel);
     }
 
     ContainerWithLifecyclePanel(String id, IModel<PrismContainerValueWrapper<C>> model, String parentContainerName) {
+        this(id, model, parentContainerName, null);
+    }
+
+    private ContainerWithLifecyclePanel(
+            String id,
+            IModel<PrismContainerValueWrapper<C>> model,
+            String parentContainerName,
+            IModel<PrismPropertyWrapper<String>> rootLifecycleModel) {
         super(id, model);
         this.parentContainerName = parentContainerName;
+        this.rootLifecycleModel = rootLifecycleModel;
     }
 
     @Override
@@ -129,7 +149,11 @@ public class ContainerWithLifecyclePanel<C extends Containerable> extends BasePa
         valueName.add(new TooltipBehavior());
         add(valueName);
 
-        PrismPropertyWrapperModel<C, String> lifecycleModel = PrismPropertyWrapperModel.fromContainerValueWrapper(getModel(), ObjectType.F_LIFECYCLE_STATE);
+        // Use the page-level root lifecycle model only for the root row.
+        // Nested rows must keep their own lifecycle model derived from their container value.
+        IModel<PrismPropertyWrapper<String>> lifecycleModel = rootLifecycleModel != null && parentContainerName == null
+                ? rootLifecycleModel
+                : PrismPropertyWrapperModel.fromContainerValueWrapper(getModel(), ObjectType.F_LIFECYCLE_STATE);
         LifecycleStatePanel lifecycleInput = new LifecycleStatePanel(ID_LIFECYCLE_INPUT, lifecycleModel);
         lifecycleInput.setOutputMarkupId(true);
         lifecycleInput.add(new VisibleBehaviour(() -> lifecycleModel.getObject() != null));

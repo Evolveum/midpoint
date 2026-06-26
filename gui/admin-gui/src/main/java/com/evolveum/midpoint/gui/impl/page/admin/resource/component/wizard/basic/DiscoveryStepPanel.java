@@ -6,21 +6,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
-import java.util.Collection;
-
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -55,41 +48,10 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
         OperationResult result = new OperationResult(OPERATION_DISCOVER_CONFIGURATION);
 
         try {
-            DiscoveredConfiguration discoverProperties = pageBase.getModelService().discoverResourceConnectorConfiguration(
-                    getDetailsModel().getObjectWrapper().getObjectApplyDelta(), result);
-
-            for (PrismProperty<?> suggestion : discoverProperties.getDiscoveredProperties()) {
-                PrismPropertyDefinition<?> suggestionDef = suggestion.getDefinition();
-
-                PrismPropertyWrapper<Object> item = getDetailsModel().getObjectWrapper().findProperty(
-                        ItemPath.create(
-                                "connectorConfiguration",
-                                "configurationProperties",
-                                suggestionDef.getItemName()));
-
-                if (item != null) {
-                    if (suggestionDef.getAllowedValues() != null && !suggestionDef.getAllowedValues().isEmpty()) {
-                        item.mutator().setAllowedValues(
-                                (Collection<? extends DisplayableValue<Object>>) suggestionDef.getAllowedValues());
-                        if (suggestionDef.getAllowedValues().size() == 1
-                                && item.isEmpty()) {
-                            item.getValues().iterator().next().setRealValue(
-                                    suggestionDef.getAllowedValues().iterator().next().getValue());
-                        }
-                    }
-                    if (suggestionDef.getSuggestedValues() != null && !suggestionDef.getSuggestedValues().isEmpty()) {
-                        item.mutator().setSuggestedValues(
-                                (Collection<? extends DisplayableValue<Object>>) suggestionDef.getSuggestedValues());
-                        if (suggestionDef.getSuggestedValues().size() == 1
-                                && item.isEmpty()) {
-                            item.getValues().iterator().next().setRealValue(
-                                    suggestionDef.getSuggestedValues().iterator().next().getValue());
-                        }
-                    }
-                    item.mutator().setDisplayOrder(100);
-                    item.mutator().setEmphasized(true);
-                }
-            }
+            ResourceConfigurationDiscoveryUtil.discoverAndApply(
+                    pageBase,
+                    getDetailsModel().getObjectWrapper(),
+                    result);
         } catch (CommonException e) {
             result.recordFatalError("Couldn't get discovered configuration.", e);
         }

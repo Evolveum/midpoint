@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.wf.impl.assignments;
 
-import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;

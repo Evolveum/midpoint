@@ -11,8 +11,6 @@ import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.security.api.RestAuthorizationAction;
 
-import java.util.Arrays;
-
 /**
  * @author lazyman
  */

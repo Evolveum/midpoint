@@ -302,11 +302,11 @@ export default class MidPointTheme {
                     if (parentMorePopup && parentMorePopup.length !== 0) {
                         setTimeout(function() {
                             isHovered = false;
-                            checkHide($(this));
+                            checkHide($el);
                         }, 300);
                     } else {
                         isHovered = false;
-                        checkHide($(this));
+                        checkHide($el);
                     }
                 });
 
@@ -379,13 +379,13 @@ export default class MidPointTheme {
                     $el.data("tooltipShowDelayTimer", setTimeout(() => {
                         $el.tooltip("show");
                         $el.removeAttr("aria-describedby");
-                    }, 1000));
-
-                    setTimeout(() => {
-                        const $tooltip = $('.tooltip:visible').last();
-                        $tooltip.removeAttr('role');
+                        const $tooltip = $('.tooltip:visible').last()
+                            .attr('id', tooltipId)
+                            .removeAttr('role');
+                        if (!setFocus) {
+                            $tooltip.css('pointer-events', 'none');
+                        }
                         const $tooltipInner = $tooltip.find('.tooltip-inner');
-                        $tooltip.attr('id', tooltipId);
 
                         $tooltipInner
                             .attr('tabindex', '0')
@@ -428,7 +428,7 @@ export default class MidPointTheme {
                             $tooltipInner.focus();
                             lastTooltipTrigger = $el;
                         }
-                    }, 100);
+                    }, 1000));
                 }
             };
 
@@ -535,7 +535,7 @@ export default class MidPointTheme {
         });
     }
 
-    initWindowId() {
+    initWindowId(shouldReloadOnFirstLoad) {
         let isFirstLoad = false;
         if (!sessionStorage.getItem('w')) {
             const windowId = encodeURIComponent(crypto.randomUUID().substring(0, 8));
@@ -552,8 +552,11 @@ export default class MidPointTheme {
 
         if (isFirstLoad) {
            url.searchParams.set('w', windowId);
-           window.history.replaceState({}, '', url);
-           // window.location.replace(url);
+           if (shouldReloadOnFirstLoad) {
+               window.location.replace(url);
+           } else {
+               window.history.replaceState({}, '', url);
+           }
            return;
         }
 
@@ -1389,6 +1392,9 @@ export default class MidPointTheme {
 
         if (!show) {
             if (popup.is(':visible')) {
+                popup.find("[data-toggle='tooltip']").each(function () {
+                    $(this).tooltip('hide').tooltip('dispose').removeAttr('data-tooltip-id aria-describedby');
+                });
                 popup.fadeOut(200);
                 ref.attr('aria-expanded', 'false');
                 ref.focus();

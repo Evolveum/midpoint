@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -587,5 +588,37 @@ public class ConnectorDevelopmentWizardUtil {
             }
         }
         result.addContext("logs", logs.toString());
+    }
+
+    public static boolean isScim(ConnectorDevelopmentDetailsModel detailsModel) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integrationType = detailsModel.getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            return ConnDevIntegrationType.SCIM.equals(integrationType.getValue().getRealValue());
+        } catch (SchemaException e) {
+            return false;
+        }
+    }
+
+    public static List<ItemName> getVisibleAuthorizationAttributes(
+            ConnectorDevelopmentDetailsModel detailsModel, ConnDevAuthInfoType authType) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integration = detailsModel.getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            return new ArrayList<>(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> void setTestingResourcePropertyValue(
+            ConnectorDevelopmentDetailsModel detailsModel, String panelType, ItemName propertyName, T value)
+            throws SchemaException {
+        ObjectDetailsModels<ResourceType> resourceModel = getTestingResourceModel(detailsModel, panelType);
+        ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME, propertyName);
+        PrismPropertyWrapper<T> prop = resourceModel.getObjectWrapper().findProperty(path);
+        if (prop != null && !prop.getValues().isEmpty()) {
+            prop.getValue().setRealValue(value);
+        }
     }
 }

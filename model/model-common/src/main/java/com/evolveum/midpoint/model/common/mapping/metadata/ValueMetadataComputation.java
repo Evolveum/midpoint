@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.model.common.mapping.metadata;
 
-import java.util.*;
+import java.util.Collection;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 

@@ -7,27 +7,33 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ActivityIndicationInteractionsPair;
 import com.evolveum.midpoint.web.component.input.BlockingActionButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.web.component.util.Describable;
 
 /**
  * A styled variant of {@link ButtonWithConfirmationOptionsDialog} pre-configured with the Smart Suggest confirmation
  * dialog content.
- *
+ * <p>
  * Use {@link #create} for the default asynchronous path, or {@link #forBlockingActionWithIndication} when the
- * confirm action is synchronous and an activity indication (spinner) should be shown while it runs.
+ * confirmation action is synchronous and an activity indication (spinner) should be shown while it runs.
  */
 public class SmartSuggestButtonWithConfirmation<T extends Describable>
         extends ButtonWithConfirmationOptionsDialog<T> {
@@ -41,20 +47,63 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
             IModel<String> icon, IModel<String> title,
             List<ConfirmationOption<DataAccessPermission>> options, PageBase pageBase) {
 
-        final ConfirmationWithOptionsDto<DataAccessPermission> confirmationDialogConfig =
-                ConfirmationWithOptionsDto.<DataAccessPermission>builder()
-                        .confirmationTitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.title"))
-                        .confirmationSubtitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.subtitle"))
-                        .confirmationOptionsTitle(pageBase.createStringResource(
-                                "SmartSuggestConfirmationPanel.request.component.title"))
-                        .confirmationOptions(options)
-                        .build();
-        return new ButtonConfig<>(icon, title, () -> confirmationDialogConfig, () -> pageBase);
+        IModel<List<ConfirmationWithOptionsDto.InfoEntry>> infoEntriesModel = new LoadableDetachableModel<>() {
+            @Override
+            protected List<ConfirmationWithOptionsDto.InfoEntry> load() {
+                var service = pageBase.getSmartIntegrationService();
+                if (service == null) {
+                    return List.of();
+                }
+                try {
+                    return service.getAiInfo()
+                            .map(aiInfo -> buildAiInfoEntries(aiInfo, pageBase))
+                            .orElse(List.of());
+                } catch (SystemException e) {
+                    return List.of();
+                }
+            }
+        };
+
+        IModel<ConfirmationWithOptionsDto<DataAccessPermission>> confirmationDialogConfig = () -> {
+            var service = pageBase.getSmartIntegrationService();
+            List<ConfirmationWithOptionsDto.InfoEntry> entries = infoEntriesModel.getObject();
+            boolean serviceInfoUnavailable = service != null && (entries == null || entries.isEmpty());
+
+            return ConfirmationWithOptionsDto.<DataAccessPermission>builder()
+                    .confirmationTitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.title"))
+                    .confirmationSubtitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.subtitle"))
+                    .confirmationOptionsTitle(pageBase.createStringResource(
+                            "SmartSuggestConfirmationPanel.request.component.title"))
+                    .infoEntries(infoEntriesModel)
+                    .errorMessage(serviceInfoUnavailable
+                            ? pageBase.createStringResource("SmartSuggestConfirmationPanel.serviceUnreachable")
+                            : null)
+                    .confirmationOptions(options)
+                    .build();
+        };
+
+        return new ButtonConfig<>(icon, title, confirmationDialogConfig, () -> pageBase);
+    }
+
+    private static @NotNull List<ConfirmationWithOptionsDto.InfoEntry> buildAiInfoEntries(
+            @NotNull AiInfo aiInfo, PageBase pageBase) {
+        var entries = new ArrayList<ConfirmationWithOptionsDto.InfoEntry>();
+        if (aiInfo.provider() != null && !aiInfo.provider().isBlank()) {
+            entries.add(new ConfirmationWithOptionsDto.InfoEntry(
+                    pageBase.createStringResource("SmartSuggestConfirmationPanel.aiProvider"),
+                    Model.of(aiInfo.provider())));
+        }
+        if (aiInfo.model() != null && !aiInfo.model().isBlank()) {
+            entries.add(new ConfirmationWithOptionsDto.InfoEntry(
+                    pageBase.createStringResource("SmartSuggestConfirmationPanel.aiModel"),
+                    Model.of(aiInfo.model())));
+        }
+        return entries;
     }
 
     /**
      * Creates a Smart Suggest button for an *non-blocking* confirm action.
-     *
+     * <p>
      * The {@link ButtonHandlers#confirmHandler()} is called immediately inside the dialog's Ajax callback.
      */
     public static SmartSuggestButtonWithConfirmation<DataAccessPermission> create(String id,
@@ -74,11 +123,11 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
     /**
      * Creates a Smart Suggest button for a *blocking* confirm action, wrapped with an activity indication (spinner)
      * while the action runs.
-     *
+     * <p>
      * Internally this creates a {@link BlockingActionButtonWithConfirmationOptionsDialog}.
      */
     public static BlockingActionButtonWithConfirmationOptionsDialog<DataAccessPermission>
-            forBlockingActionWithIndication(String id, IModel<String> title, IModel<String> icon,
+    forBlockingActionWithIndication(String id, IModel<String> title, IModel<String> icon,
             IModel<String> activityIndicationIcon, IModel<String> activityIndicationTitle,
             List<ConfirmationOption<DataAccessPermission>> options,
             IModel<ButtonHandlers<DataAccessPermission>> clickHandlers, PageBase pageBase) {
@@ -92,7 +141,7 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
         final BlockingActionButtonWithConfirmationOptionsDialog<DataAccessPermission> button =
                 new BlockingActionButtonWithConfirmationOptionsDialog<>(id, () -> buttonConfig, clickHandlers,
                         new ActivityIndicationInteractionsPair(activityIndicationIcon, activityIndicationTitle, true));
-        button.add(AttributeModifier.append("class",  "btn rounded bg-purple"));
+        button.add(AttributeModifier.append("class", "btn rounded bg-purple"));
         return button;
     }
 }

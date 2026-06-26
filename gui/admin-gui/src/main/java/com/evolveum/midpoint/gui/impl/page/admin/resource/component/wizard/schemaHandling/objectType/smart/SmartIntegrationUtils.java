@@ -26,7 +26,8 @@ import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.session.SuggestionsStorage;
@@ -46,7 +47,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
 
@@ -121,23 +122,6 @@ public class SmartIntegrationUtils {
     /**
      * Executes an object type suggestion operation if no suggestion is currently available.
      * If suggestions exist, no background task is started.
-     * Returns {@code true} if the task was executed, {@code false} otherwise.
-     */
-    public static boolean runSuggestionAction(
-            @NotNull PageBase pageBase,
-            @NotNull String resourceOid,
-            @NotNull QName objectClassName,
-            @NotNull AjaxRequestTarget target,
-            @NotNull String operationName,
-            @NotNull Task task,
-            @NotNull List<DataAccessPermissionType> permissions) {
-        return runSuggestionAction(pageBase, resourceOid, objectClassName, target, operationName, task, permissions,
-                null, null);
-    }
-
-    /**
-     * Executes an object type suggestion operation if no suggestion is currently available.
-     * If suggestions exist, no background task is started.
      */
     public static boolean runSuggestionAction(
             @NotNull PageBase pageBase,
@@ -150,7 +134,7 @@ public class SmartIntegrationUtils {
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes) {
         OperationResult opResult = task.getResult();
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 pageBase, resourceOid, objectClassName, task, opResult);
 
         if (opResult.isError() || opResult.isFatalError()) {
@@ -223,10 +207,6 @@ public class SmartIntegrationUtils {
                     });
         }
 
-    }
-
-    public static @NotNull IModel<Badge> getAiBadgeModel() {
-        return getAiCustomTextBadgeModel("AI");
     }
 
     public static @NotNull IModel<Badge> getAiCustomTextBadgeModel(String text) {
@@ -652,7 +632,7 @@ public class SmartIntegrationUtils {
      */
     //TODO look at getCorrelationStrategyLabel
     public static @NotNull String computeCorrelationStrategyMethod(@NotNull CorrelationItemType correlationItemType) {
-        String strategy = "(Exact)";
+        String strategy = "EXACT";
 
         ItemSearchDefinitionType search = correlationItemType.getSearch();
         if (search != null) {
@@ -662,50 +642,13 @@ public class SmartIntegrationUtils {
                 TrigramSimilaritySearchDefinitionType sim = fuzzy.getSimilarity();
 
                 if (lev != null && lev.getThreshold() != null) {
-                    strategy = "(Levenshtein)";
+                    strategy = "LEVENSHTEIN";
                 } else if (sim != null && sim.getThreshold() != null) {
-                    strategy = "(Trigram)";
+                    strategy = "TRIGRAM";
                 }
             }
         }
         return strategy;
-    }
-
-    public static void showStatisticsPanel(
-            @NotNull AjaxRequestTarget target,
-            @NotNull ResourceObjectTypeDefinitionType objectTypeDefinition,
-            @NotNull PageBase pageBase,
-            @NotNull String resourceOid) {
-        ResourceObjectTypeDelineationType delineation = objectTypeDefinition.getDelineation();
-        if (delineation == null || delineation.getObjectClass() == null) {
-            return;
-        }
-
-        QName objectClass = delineation.getObjectClass();
-
-        SmartIntegrationService smartIntegrationService = pageBase.getSmartIntegrationService();
-        Task pageTask = pageBase.getPageTask();
-
-        ShadowObjectClassStatisticsType statisticsRequired;
-        try {
-            GenericObjectType latestStatistics = smartIntegrationService
-                    .getLatestObjectClassStatistics(resourceOid, objectClass, pageTask.getResult());
-            if (latestStatistics == null) {
-                pageBase.warn(pageBase.getString("SmartIntegrationUtils.noStatistics.available.for.on",
-                        objectClass, resourceOid));
-                target.add(pageBase.getFeedbackPanel());
-                return;
-            }
-            statisticsRequired = ShadowObjectClassUtil.getStatisticsRequired(latestStatistics);
-        } catch (SchemaException e) {
-            throw new RuntimeException("Couldn't get statistics for "
-                    + objectClass + " on resource " + resourceOid, e);
-        }
-
-        SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
-                pageBase.getMainPopupBodyId(), () -> statisticsRequired, resourceOid, objectClass);
-
-        pageBase.showMainPopup(statisticsPanel, target);
     }
 
     /**

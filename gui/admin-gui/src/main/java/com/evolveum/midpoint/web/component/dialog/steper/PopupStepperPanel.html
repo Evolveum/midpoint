@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <div wicket:id="step"></div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div wicket:id="backContainer" class="wizard-actions-container">
+            <a class="btn btn-outline-primary" wicket:id="back"></a>
+        </div>
+
+        <div wicket:id="exitContainer" class="wizard-actions-container">
+            <a class="btn btn-link" wicket:id="exit"></a>
+        </div>
+
+        <div wicket:id="customButtonsContainer" class="wizard-actions-container gap-2">
+            <a class="btn" wicket:id="buttons"></a>
+        </div>
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="title">
+        <div class="d-flex align-items-center w-100">
+            <div>
+                <span wicket:id="titleText"></span>
+            </div>
+            <h5 wicket:id="stepIndicator" class="text-secondary m-0 ml-auto"></h5>
+            <button wicket:id="close"
+                    type="button"
+                    class="close m-0 py-0"
+                    aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </wicket:fragment>
+
+</wicket:panel>
+</body>
+</html>
+

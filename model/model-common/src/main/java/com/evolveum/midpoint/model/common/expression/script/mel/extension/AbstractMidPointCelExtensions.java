@@ -32,6 +32,7 @@ public abstract class AbstractMidPointCelExtensions
         implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
     public static final String FUNC_CONTAINS_IGNORE_CASE_NAME = "containsIgnoreCase";
+    public static final String FUNC_EQUALS_IGNORE_CASE_NAME = "equalsIgnoreCase";
     public static final String FUNC_IS_EMPTY_NAME = "isEmpty";
     public static final String FUNC_IS_BLANK_NAME = "isBlank";
     public static final String FUNC_ENCRYPT_NAME = "encrypt";
@@ -87,8 +88,8 @@ public abstract class AbstractMidPointCelExtensions
         return CelTypeMapper.toJavaValue(o);
     }
 
-    protected static boolean isCellNull(@Nullable Object object) {
-        return CelTypeMapper.isCellNull(object);
+    protected static boolean isCelNull(@Nullable Object object) {
+        return CelTypeMapper.isCelNull(object);
     }
 
     @NotNull

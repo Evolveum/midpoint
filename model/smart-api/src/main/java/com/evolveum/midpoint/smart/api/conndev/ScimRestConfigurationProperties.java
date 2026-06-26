@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.smart.api.conndev;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 public class ScimRestConfigurationProperties {
 

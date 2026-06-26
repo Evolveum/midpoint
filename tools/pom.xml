@@ -24,5 +24,6 @@
     <modules>
         <module>ninja</module>
         <module>midpoint-boot-layout</module>
+        <module>db-docs-maven-plugin</module>
     </modules>
 </project>

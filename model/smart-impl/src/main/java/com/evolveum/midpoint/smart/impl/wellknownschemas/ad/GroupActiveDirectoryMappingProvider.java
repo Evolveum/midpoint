@@ -13,7 +13,10 @@ import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -67,7 +70,7 @@ public class GroupActiveDirectoryMappingProvider implements WellKnownSchemaProvi
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "distinguishedName",
                     AbstractRoleType.F_IDENTIFIER,
-                    "basic.composeDnWithSuffix('cn', identifier, '%s')".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', identifier, '%s'])".formatted(ouSuffix),
                     "Compose DN: cn=<identifier>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
         }

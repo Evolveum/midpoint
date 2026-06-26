@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.web.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;

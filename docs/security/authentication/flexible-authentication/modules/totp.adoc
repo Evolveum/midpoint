@@ -1,12 +1,63 @@
-= TOTP
+= Module TOTP
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+:experimental:
+:page-description: This page describes how to use the TOTP module in midPoint.
+:page-keywords: TOTP, OTP, module, TOTP module, MFA, authentification
 
-WARNING:  `totp` module can't be the first module in the sequence.
-Before `totp` module, we need to use authentication module for identification of the user, for example `focusIdentification`.
+This page describes how to use the TOTP module in midPoint.
 
-Definition of "totp" module.
-The module is used for MFA authentication of a user by using Time-based One-Time Password (TOTP) algorithm.
+The TOTP module is used for multi-factor authentication (MFA) of users based on the Time-based One-Time Password (TOTP) algorithm.
+Configuration consists of two parts: module definition and authentication sequence configuration.
+Both have to be defined in a security policy.
 
-.Example of totp module configuration
+== Security policy configuration
+
+WARNING: The `totp` module cannot be the first module in the sequence.
+Before the `totp` module, midPoint needs to use an authentication module that identifies users, for example, `loginForm` or `focusIdentification`.
+
+.Module configuration parameters
+[cols="3",options="header"]
+|===
+| Parameter
+| Description
+| Default value
+
+| `identifier`
+| Mandatory. Unique identifier of the module, used in authentication sequence configuration.
+|
+
+| `issuer`
+| Mandatory. Issuer name used in Key URI and displayed in the authenticator app (e.g., "Demo midPoint").
+|
+
+| `label`
+| Item path or property that should be used in the Key URI as a label (e.g., "fullName").
+This helps identify the account in the authenticator app, especially when a user has multiple accounts.
+| `name`
+
+| `algorithm`
+| Hashing algorithm used for TOTP code generation.
+Supported values are `sha1`, `sha256`, and `sha512`.
+Some authenticator apps support only `sha1` (e.g., Google Authenticator).
+| `sha1`
+
+| `digits`
+| Number of digits in the generated TOTP code.
+Supported values are `6` and `8`.
+Some authenticator apps support only 6 digits (e.g., Google Authenticator).
+| `6`
+
+| `period`
+| Time period in seconds for which the generated TOTP code is valid.
+The default value is 30 seconds, which is also the most commonly used value.
+Some authenticator apps ignore this parameter and support only 30 seconds (e.g., Google Authenticator).
+| `30s`
+
+|===
+
+.Example TOTP module configuration
 [source,xml]
 ----
 <totp>
@@ -21,12 +72,12 @@ The module is used for MFA authentication of a user by using Time-based One-Time
     <period>30</period>
     <!--
         Number of digits in generated OTP, default is 6, supported values are 6 and 8.
-        Most of the authenticator apps support only 6 digits.
+        Most authenticator apps support only 6 digits.
     -->
     <digits>6</digits>
     <!-- Supported algorithms are: sha1, sha256, sha512 -->
     <algorithm>sha1</algorithm>
-    <!-- Secret length in bytes, defaults are specified for all supported algorithms -->
+    <!-- Secret length in bytes, defaults are specified for all supported algorithms. -->
     <secretLength>20</secretLength>
     <!--
         The number of time steps that are allowed for the TOTP code to be valid.
@@ -36,5 +87,170 @@ The module is used for MFA authentication of a user by using Time-based One-Time
 </totp>
 ----
 
+The authentication sequence has to contain at least one module before the `totp` module that selects the correct focus (user) for TOTP authentication.
+This can be:
+
+* `loginForm` module - Selects the user based on username (if the user's password is correct).
+* `focusIdentification` module - Selects the user based on an identifier (e.g., email) without password verification.
+
+Typical sequences using the TOTP module:
+
+. Password authentication followed by TOTP authentication, both mandatory.
+.. `formLogin`
+*** `necessity`: `requisite`
+.. `totp`
+*** `necessity`: `requisite`
+. Mandatory password authentication followed by an optional TOTP authentication.
++
+For users that have TOTP configured, TOTP authentication will be required.
+For others, TOTP authentication will be skipped.
++
+.. `formLogin`
+*** `necessity`: `requisite`
+.. `totp`
+*** `necessity`: `requisite`
+*** `acceptEmpty`: `true`
+
+
+.Example of a complete TOTP authentication configuration
+[source, xml]
+----
+<authentication>
+    <modules>
+        <totp>
+            <identifier>my totp</identifier>
+            <issuer>Demo midPoint</issuer>
+            <label>fullName</label>
+        </totp>
+    </modules>
+    <sequence>
+        <identifier>admin-gui-default</identifier>
+        <displayName>Default gui sequence</displayName>
+        <channel>
+            <default>true</default>
+            <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+            <urlSuffix>gui-default</urlSuffix>
+        </channel>
+        <module>
+            <identifier>loginForm</identifier>
+            <order>1</order>
+            <necessity>requisite</necessity>
+        </module>
+        <module>
+            <identifier>my totp</identifier>
+            <order>2</order>
+            <necessity>requisite</necessity>
+        </module>
+    </sequence>
+</authentication>
+----
+
+== Use cases
+
+=== TOTP authentication setup (enrolling users)
+
+The TOTP authentication setup process is initiated by the user from GUI.
+It can be initiated from the user self profile or the user details page.
+
+The list of user TOTP credentials is displayed in:
+
+* Self-service > [.nowrap]#icon:shield-alt[] btn:[Credentials]#
+
++
+.TOTP credentials list in user profile
+image::totp/list.png[TOTP credentials list]
+
+* _User_ > [.nowrap]#icon:key[] btn:[Credentials]#
+
++
+.TOTP credentials list on user details page
+image::totp/list-user-details.png[TOTP credentials list]
+
+
+The secret used for TOTP code generation is generated by midPoint.
+It is stored in the focus (user) credentials in encrypted form.
+
+.Dialog for creating a new TOTP credential
+image::totp/create.png[Dialog for creating a new TOTP credential]
+
+.Example of a stored TOTP secret
+[source,xml]
+----
+<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:type="CredentialsType">
+
+    <password>
+        <!-- password data here, omitted for brevity -->
+    </password>
+
+    <otps>
+        <totp>
+            <!-- multiple OTPs can be stored -->
+            <secret>
+                <encryptedData>
+                    <!-- otp secret data here, omitted for brevity -->
+                </encryptedData>
+            </secret>
+            <createTimestamp>2025-11-11T13:54:51.673+01:00</createTimestamp>
+            <verified>true</verified>
+        </totp>
+    </otps>
+</credentials>
+----
+
+=== Changing TOTP credentials
+
+A TOTP credential cannot be modified after it has been stored and verified.
+To reset TOTP authentication for a user, create a new TOTP credential and delete the unused one.
+
+Users can only modify the TOTP credential name which is used as a description.
+
+.Edit the name of an existing TOTP credential
+image::totp/edit.png[Edit TOTP credential]
+
+=== TOTP credentials reset
+
+A TOTP secret cannot be modified after it has been stored and verified.
+To reset TOTP authentication for a user, create a new TOTP credential and delete the existing one.
+
+=== Authentication using TOTP
+
+Authentication using TOTP is initiated by user from login screen.
+
+.TOTP login page, user has to insert TOTP code generated by authenticator app
+image::totp/login.png[Login using TOTP]
+
+=== Hide OTP panel
+
+The OTP panel is displayed in the self-service [.nowrap]#icon:shield-alt[] btn:[Credentials]# page and in the user detail [.nowrap]#icon:key[] btn:[Credentials]# page.
+
+.OTP panel in the user details page
+image::totp/list-user-details.png[OTP panel in the user details page]
+
+If you do not want to display the panel, hide it by setting its `visibility` to `hidden`.
+
+.Example hiding the OTP panel
+[source,xml]
+----
+<panel xsi:type="ContainerPanelConfigurationType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<identifier>otp</identifier>
+<visibility>hidden</visibility>
+</panel>
+----
+
+// ToDo: where is this configured?
+
+== Limitations
+
+* Only one TOTP module can be configured in a security policy.
+* TOTP will be available only for GUI authentication, specifically for the `http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user` channel.
+* TOTP cannot be configured for the self-registration process.
+** In the future, we may add a new option for "force-setup".
+This would force users to set up their TOTP credentials after login (if they do not have TOTP credentials configured yet).
+
 == See also
+
 * xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]
+* https://github.com/google/google-authenticator/wiki/Key-Uri-Format[Key URI format]

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.component;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.util.TargetAndFormAcceptor;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 public class DefaultAjaxSubmitButton extends AjaxSubmitButton {

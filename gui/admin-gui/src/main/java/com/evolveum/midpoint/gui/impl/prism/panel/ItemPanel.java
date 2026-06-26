@@ -49,7 +49,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends ItemWrapper> extends BasePanel<IW> implements RefreshableTabPanel {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemPanel.class);
 
@@ -119,10 +119,27 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
     }
 
     protected String getCssClassForValueContainer() {
-        if (getSettings() != null && getSettings().isDisplayedInColumn()) {
-            return "col-12";
+        StringBuilder css = new StringBuilder();
+
+        if (isDisplayedInColumn()) {
+            css.append("col-12");
+        } else {
+            css.append("col-xl-10 col-md-8 col-xs-12");
         }
-        return "col-xl-10 col-md-8 col-xs-12";
+
+        if (isMultiValueLayout()) {
+            css.append(" d-flex flex-column gap-1");
+        }
+
+        return css.toString();
+    }
+
+    protected boolean isDisplayedInColumn() {
+        return getSettings() != null && getSettings().isDisplayedInColumn();
+    }
+
+    protected boolean isMultiValueLayout() {
+        return getModelObject() != null && getModelObject().isMultiValue();
     }
 
     protected IModel<List<VW>> createValuesModel() {

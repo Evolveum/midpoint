@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
 package com.evolveum.midpoint.gui.impl.component.data.provider.suggestion;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -21,7 +27,10 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Data provider that augments {@link MultivalueContainerListDataProvider}
@@ -102,12 +111,10 @@ public class StatusAwareDataProvider<C extends Containerable>
         }
 
         StatusInfo<?> statusInfo = statusByToken.get(token);
-        if (statusInfo == null) {
-            return fetchStatus(token);
-        }
 
-        // guard (probably skipped but in some case there is chance that status is unknown)
-        if (OperationResultStatusType.UNKNOWN.equals(statusInfo.getStatus())) {
+        if (statusInfo == null
+                || statusInfo.isExecuting()
+                || OperationResultStatusType.UNKNOWN.equals(statusInfo.getStatus())) {
             return fetchStatus(token);
         }
 
@@ -217,5 +224,20 @@ public class StatusAwareDataProvider<C extends Containerable>
 
     public int getPageSuggestionCount() {
         return pageSuggestionCount;
+    }
+
+    public boolean isSuggestion(@NotNull PrismContainerValueWrapper<C> wrapper) {
+        if (tokenByWrapper.containsKey(wrapper)) {
+            return true;
+        }
+
+        StatusInfo<?> info = suggestionResolver.apply(wrapper);
+        if (info == null) {
+            return false;
+        }
+
+        tokenByWrapper.put(wrapper, info.getToken());
+        statusByToken.putIfAbsent(info.getToken(), info);
+        return true;
     }
 }
