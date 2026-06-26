@@ -31,10 +31,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.metamodel.MappingMetamodel;
+import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.persister.entity.Joinable;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Objectable;
@@ -302,8 +301,8 @@ public final class RUtil {
         EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         MappingMetamodel model = (MappingMetamodel) factory.getMetamodel();
         EntityPersister ep = model.getEntityDescriptor(hqlType); // model.entityPersister(hqlType);
-        if (ep instanceof Joinable joinable) {
-            return joinable.getTableName();
+        if (ep instanceof AbstractEntityPersister persister) {
+            return persister.getTableName();
         }
 
         throw new SystemException("Couldn't get table name for class " + hqlType.getName());

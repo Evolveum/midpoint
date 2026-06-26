@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2026 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,19 +11,24 @@ import org.hibernate.HibernateException;
 import org.hibernate.cache.spi.access.EntityDataAccess;
 import org.hibernate.cache.spi.access.NaturalIdDataAccess;
 import org.hibernate.mapping.PersistentClass;
+import org.hibernate.metamodel.spi.RuntimeModelCreationContext;
 import org.hibernate.persister.entity.JoinedSubclassEntityPersister;
-import org.hibernate.persister.spi.PersisterCreationContext;
-
 
 /**
- * See MidPointPersisterUtil comments.
+ * See MidpointPersisterUtil comments.
  */
 public class MidPointJoinedPersister extends JoinedSubclassEntityPersister {
 
     public MidPointJoinedPersister(PersistentClass persistentClass, EntityDataAccess cacheAccessStrategy,
             NaturalIdDataAccess naturalIdRegionAccessStrategy,
-            PersisterCreationContext creationContext) throws HibernateException {
+            RuntimeModelCreationContext creationContext) throws HibernateException {
         super(persistentClass, cacheAccessStrategy, naturalIdRegionAccessStrategy, creationContext);
+    }
+
+    @Override
+    public void setPropertyValues(Object object, Object[] values) {
+        MidpointPersisterUtil.killUnwantedAssociationValues(getPropertyNames(), getPropertyTypes(), values);
+        super.setPropertyValues(object, values);
     }
 
     // FIXME: Find replacement for hydrate contract
@@ -38,5 +43,4 @@ public class MidPointJoinedPersister extends JoinedSubclassEntityPersister {
         return values;
     }
     */
-
 }

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeSelectionMo
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -53,11 +53,11 @@ public class ArchetypeSelectionModuleWebSecurityConfigurer extends ModuleWebSecu
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/archetypeSelection"));
 
-        http.logout().clearAuthentication(true)
+        http.logout(configurer -> configurer.clearAuthentication(true)
                 .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(createLogoutHandler());
+                .logoutSuccessHandler(createLogoutHandler()));
 
         http.addFilterAfter(archetypeSelectionFilter, UsernamePasswordAuthenticationFilter.class);
     }

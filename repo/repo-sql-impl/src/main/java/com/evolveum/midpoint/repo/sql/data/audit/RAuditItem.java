@@ -12,7 +12,6 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RAuditItem.COLUMN_RECORD
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
@@ -44,13 +43,11 @@ public class RAuditItem implements EntityState {
     public void setTransient(Boolean trans) {
         this.trans = trans;
     }
-
-    @ForeignKey(name = "none")
     @MapsId("record")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
+    @JoinColumns(value = {
             @JoinColumn(name = COLUMN_RECORD_ID, referencedColumnName = "id")
-    })
+    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     public RAuditEventRecord getRecord() {
         return record;
     }

@@ -10,8 +10,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -20,17 +18,15 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 @Entity
-@ForeignKey(name = "fk_org")
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_org_name", columnNames = { "name_norm" }),
         indexes = {
                 @jakarta.persistence.Index(name = "iOrgNameOrig", columnList = "name_orig"),
+                @jakarta.persistence.Index(name = "iDisplayOrder", columnList = "displayOrder"),
         }
 )
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public class ROrg extends RAbstractRole {
 
@@ -53,7 +49,6 @@ public class ROrg extends RAbstractRole {
         this.nameCopy = nameCopy;
     }
 
-    @Index(name = "iDisplayOrder")
     public Integer getDisplayOrder() {
         return displayOrder;
     }

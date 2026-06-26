@@ -30,7 +30,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
@@ -44,7 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionTy
         @Index(name = "iOpExecStatus", columnList = "status"),
         @Index(name = "iOpExecStatus", columnList = "status"),
         @Index(name = "iOpExecOwnerOid", columnList = "owner_oid") })
-@Persister(impl = MidPointSingleTablePersister.class)
 @DynamicUpdate
 public class ROperationExecution implements Container<RObject> {
 
@@ -68,8 +66,8 @@ public class ROperationExecution implements Container<RObject> {
         this.setOwner(owner);
     }
 
-    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
-    @MapsId("ownerOid")
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     @Override
@@ -85,6 +83,7 @@ public class ROperationExecution implements Container<RObject> {
         }
     }
 
+    @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     @Override

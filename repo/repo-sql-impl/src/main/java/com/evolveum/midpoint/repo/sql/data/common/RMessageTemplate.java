@@ -9,8 +9,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import jakarta.persistence.*;
 
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -18,17 +16,14 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageTemplateType;
 
 @Entity
-@ForeignKey(name = "fk_message_template")
 @Table(uniqueConstraints = @UniqueConstraint(name = "u_message_template_name", columnNames = { "name_norm" }),
         indexes = {
                 @Index(name = "iMessageTemplateNameOrig", columnList = "name_orig"),
         }
 )
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public class RMessageTemplate extends RObject {
 

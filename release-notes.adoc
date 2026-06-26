@@ -37,6 +37,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9.8
 
+* Updated spring boot to 4.0. See bug:MID-11002[]
 * Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
 
 == Changes with Respect To Version 4.9.6

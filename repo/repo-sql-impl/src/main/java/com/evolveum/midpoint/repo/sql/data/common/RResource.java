@@ -13,7 +13,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -34,13 +32,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 @Entity
-@ForeignKey(name = "fk_resource")
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_resource_name", columnNames = { "name_norm" }),
         indexes = {
                 @Index(name = "iResourceNameOrig", columnList = "name_orig"),
         }
 )
-@Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
 public class RResource extends RObject {
 
@@ -61,9 +57,8 @@ public class RResource extends RObject {
         return administrativeState;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 2")
+    @SQLRestriction(RObjectReference.REFERENCE_TYPE + "= 2")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RFocus>> getApproverRef() {
         if (approverRef == null) {

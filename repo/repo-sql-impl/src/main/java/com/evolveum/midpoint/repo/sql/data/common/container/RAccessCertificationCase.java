@@ -33,7 +33,6 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -51,7 +50,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
         @Index(name = "iCaseTenantRefTargetOid", columnList = "tenantRef_targetOid"),
         @Index(name = "iCaseOrgRefTargetOid", columnList = "orgRef_targetOid")
 })
-@Persister(impl = MidPointSingleTablePersister.class)
 @DynamicUpdate
 public class RAccessCertificationCase implements Container<RAccessCertificationCampaign> {
 
@@ -85,8 +83,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     @Override
-    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
-    @MapsId
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RAccessCertificationCampaign.class)
     public RAccessCertificationCampaign getOwner() {

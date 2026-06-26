@@ -18,7 +18,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 
@@ -71,7 +71,7 @@ public class RemoteModuleConfigurer<B extends HttpSecurityBuilder<B>, T extends 
     }
 
     @Override
-    public void init(B http) throws Exception {
+    public void init(B http) {
         if (this.authenticationManager != null) {
             getAuthenticationFilter().setAuthenticationManager(this.authenticationManager);
         }
@@ -80,7 +80,7 @@ public class RemoteModuleConfigurer<B extends HttpSecurityBuilder<B>, T extends 
     }
 
     @Override
-    public void configure(B http) throws Exception {
+    public void configure(B http) {
         if (authorizationFilter != null) {
             authorizationFilter.setAuthenticationFailureHandler(failureHandler);
             RequestCache requestCache = http.getSharedObject(RequestCache.class);
@@ -95,7 +95,7 @@ public class RemoteModuleConfigurer<B extends HttpSecurityBuilder<B>, T extends 
 
     @Override
     protected RequestMatcher createLoginProcessingUrlMatcher(String loginProcessingUrl) {
-        return new AntPathRequestMatcher(loginProcessingUrl);
+        return pathMatcher(loginProcessingUrl);
     }
 
     public T midpointFailureHandler(AuthenticationFailureHandler authenticationFailureHandler) {

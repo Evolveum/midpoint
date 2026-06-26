@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtLongId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
@@ -36,8 +35,6 @@ public class RAExtLong extends RAExtBase<Long> implements RAExtValue<Long> {
     public RAExtLong(Long value) {
         this.value = value;
     }
-
-    @ForeignKey(name = "fk_a_ext_long_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({

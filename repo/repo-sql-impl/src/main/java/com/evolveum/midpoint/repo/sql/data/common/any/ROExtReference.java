@@ -48,10 +48,10 @@ public class ROExtReference extends ROExtBase<String> {
     public ROExtReference() {
     }
 
-    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
-    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_o_ext_reference_owner"))
+    @JoinColumn(name = "owner_oid", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "fk_o_ext_reference_owner"))
     public RObject getOwner() {
         return super.getOwner();
     }

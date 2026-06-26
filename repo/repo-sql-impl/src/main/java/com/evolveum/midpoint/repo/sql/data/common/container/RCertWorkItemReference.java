@@ -15,14 +15,12 @@ import java.util.Set;
 import jakarta.persistence.*;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -40,7 +38,6 @@ import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 @Table(name = RCertWorkItemReference.TABLE, indexes = {
         @jakarta.persistence.Index(name = "iCertWorkItemRefTargetOid", columnList = "targetOid")
 })
-@Persister(impl = MidPointSingleTablePersister.class)
 public class RCertWorkItemReference extends RReference {
 
     public static final String TABLE = "m_acc_cert_wi_reference";
@@ -50,14 +47,16 @@ public class RCertWorkItemReference extends RReference {
     private Integer ownerOwnerId;                        // case ID
     private Integer ownerId;                            // work item ID
 
-    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     @JoinColumns(
             value = {
-                    @JoinColumn(name = "owner_owner_owner_oid", referencedColumnName = "owner_owner_oid"),
-                    @JoinColumn(name = "owner_owner_id", referencedColumnName = "owner_id"),
-                    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+                    @JoinColumn(name = "owner_owner_owner_oid", referencedColumnName = "owner_owner_oid",
+                            insertable = false, updatable = false),
+                    @JoinColumn(name = "owner_owner_id", referencedColumnName = "owner_id",
+                            insertable = false, updatable = false),
+                    @JoinColumn(name = "owner_id", referencedColumnName = "id",
+                            insertable = false, updatable = false)
             },
             foreignKey = @ForeignKey(name = "fk_acc_cert_wi_ref_owner")
     )
@@ -106,8 +105,6 @@ public class RCertWorkItemReference extends RReference {
     public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
-
-    @org.hibernate.annotations.ForeignKey(name = "none")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
     // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)

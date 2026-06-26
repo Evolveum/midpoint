@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtReferenceId;
@@ -42,8 +41,6 @@ public class RAExtReference extends RAExtBase<String> implements RAExtValue<Stri
 
     public RAExtReference() {
     }
-
-    @ForeignKey(name = "fk_a_ext_reference_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({

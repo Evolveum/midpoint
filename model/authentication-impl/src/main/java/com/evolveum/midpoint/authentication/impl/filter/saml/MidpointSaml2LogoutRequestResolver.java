@@ -42,7 +42,7 @@ import org.springframework.security.saml2.provider.service.registration.InMemory
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
-import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutRequestResolver;
+import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml5LogoutRequestResolver;
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
@@ -65,26 +65,26 @@ public class MidpointSaml2LogoutRequestResolver implements Saml2LogoutRequestRes
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointSaml2LogoutRequestResolver.class);
 
-    private final OpenSaml4LogoutRequestResolver resolver;
+    private final OpenSaml5LogoutRequestResolver resolver;
     private final RelyingPartyRegistrationRepository relyingPartyRegistrations;
 
     public MidpointSaml2LogoutRequestResolver(InMemoryRelyingPartyRegistrationRepository inMemoryRelyingPartyRegistrations) {
         this.relyingPartyRegistrations = new InMemoryRelyingPartyRegistrationRepository(
                 createRegistrationsWithFakeKeys(inMemoryRelyingPartyRegistrations));
-        this.resolver = new OpenSaml4LogoutRequestResolver(new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrations));
+        this.resolver = new OpenSaml5LogoutRequestResolver(new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrations));
         this.resolver.setParametersConsumer(this::resolveParameters);
     }
 
     private List<RelyingPartyRegistration> createRegistrationsWithFakeKeys(InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrations) {
         List<RelyingPartyRegistration> registrations = new ArrayList<>();
         relyingPartyRegistrations.forEach(registration -> {
-            if (registration.getAssertingPartyDetails() != null
-                    && !registration.getAssertingPartyDetails().getWantAuthnRequestsSigned()
+            if (registration.getAssertingPartyMetadata() != null
+                    && !registration.getAssertingPartyMetadata().getWantAuthnRequestsSigned()
                     && registration.getSigningX509Credentials().isEmpty()) {
                 LOGGER.debug("Relying party registration with id: " + registration.getRegistrationId()
                         + " doesn't contain any singing key. Logout request need sign key for signing of logout request, "
                         + "so we try creating fake key and certificate.");
-                RelyingPartyRegistration.Builder builder = RelyingPartyRegistration.withRelyingPartyRegistration(registration);
+                RelyingPartyRegistration.Builder builder = registration.mutate();
                 try {
                     createFakeKeyForSign(builder);
                     registrations.add(builder.build());
@@ -103,7 +103,7 @@ public class MidpointSaml2LogoutRequestResolver implements Saml2LogoutRequestRes
         return registrations;
     }
 
-    private void resolveParameters(OpenSaml4LogoutRequestResolver.LogoutRequestParameters logoutRequestParameters) {
+    private void resolveParameters(OpenSaml5LogoutRequestResolver.LogoutRequestParameters logoutRequestParameters) {
         if (logoutRequestParameters.getLogoutRequest() == null) {
             return;
         }
