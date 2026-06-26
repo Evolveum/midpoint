@@ -1162,14 +1162,39 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     ImmutableList.of(NullableType.create(SimpleType.STRING), SimpleType.INT, SimpleType.INT))),
                     CelFunctionBinding.from(
-                            "mel_string_substring_int", String.class, Long.class,
-                            CelMelExtensions::substring),
+                            "mel_string_substring_int", Object.class, Long.class,
+                            CelMelExtensions::substringObject),
                     CelFunctionBinding.from(
                             "mel_string_substring_int_int",
-                            ImmutableList.of(String.class, Long.class, Long.class),
-                            CelMelExtensions::substringString)),
+                            ImmutableList.of(Object.class, Long.class, Long.class),
+                            CelMelExtensions::substringAny)),
 
-            // substring(any,begin,end)
+            // polystring.substring(begin,end)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "substring",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_substring_int",
+                                    "returns a string that is a substring of orig part of this polystring. The substring begins with the"
+                                            + " character at the specified index and extends to the end of this string.",
+                                    SimpleType.STRING,
+                                    ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT)),
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_substring_int_int",
+                                    "returns a string that is a substring of orig part of this polystring. The substring begins at the"
+                                            + " specified beginIndex and extends to the character at index endIndex - 1."
+                                            + " Thus the length of the substring is {@code endIndex-beginIndex}.",
+                                    SimpleType.STRING,
+                                    ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT, SimpleType.INT))),
+                    CelFunctionBinding.from(
+                            "polystring_substring_int", Object.class, Long.class,
+                            CelMelExtensions::substringObject),
+                    CelFunctionBinding.from(
+                            "polystring_substring_int_int",
+                            ImmutableList.of(Object.class, Long.class, Long.class),
+                            CelMelExtensions::substringAny)),
+
+                // substring(any,begin,end)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "substring",
@@ -1194,32 +1219,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "mel_substring_any_int_int",
                             ImmutableList.of(Object.class, Long.class, Long.class),
                             CelMelExtensions::substringAny)),
-
-            // polystring.substring(begin,end)
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            "substring",
-                            CelOverloadDecl.newMemberOverload(
-                                    "polystring_substring_int",
-                                    "returns a string that is a substring of orig part of this polystring. The substring begins with the"
-                                            + " character at the specified index and extends to the end of this string.",
-                                    SimpleType.STRING,
-                                    ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT)),
-                            CelOverloadDecl.newMemberOverload(
-                                    "polystring_substring_int_int",
-                                    "returns a string that is a substring of orig part of this polystring. The substring begins at the"
-                                            + " specified beginIndex and extends to the character at index endIndex - 1."
-                                            + " Thus the length of the substring is {@code endIndex-beginIndex}.",
-                                    SimpleType.STRING,
-                                    ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT, SimpleType.INT))),
-                    CelFunctionBinding.from(
-                            "polystring_substring_int",
-                            ImmutableList.of(PolyStringCelValue.class, Long.class),
-                            CelMelExtensions::substringPolystring),
-                    CelFunctionBinding.from(
-                            "polystring_substring_int_int",
-                            ImmutableList.of(PolyStringCelValue.class, Long.class, Long.class),
-                            CelMelExtensions::substringPolystring)),
 
             // timestamp.atStartOfDay
             new Function(
@@ -2191,6 +2190,19 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
             exploded.add(codePointArray.slice(limit, codePointArray.length()).toString());
         }
         return exploded;
+    }
+
+    private static Object substringObject(@Nullable Object o, long i) throws CelEvaluationException {
+        if (isCelNull(o)) {
+            return NullValue.NULL_VALUE;
+        }
+        if (o instanceof String s) {
+            return substring(s, i);
+        }
+        if (o instanceof PolyStringCelValue ps) {
+            return substring(ps, i);
+        }
+        throw new IllegalArgumentException("Unexpected argument "+o.getClass().getSimpleName()+" in substringObject");
     }
 
     @NotNull
