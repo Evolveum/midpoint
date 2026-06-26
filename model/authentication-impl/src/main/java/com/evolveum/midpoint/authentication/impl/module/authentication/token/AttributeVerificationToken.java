@@ -11,6 +11,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class AttributeVerificationToken extends AbstractAuthenticationToken {
@@ -20,7 +21,7 @@ public class AttributeVerificationToken extends AbstractAuthenticationToken {
 
 
     public AttributeVerificationToken(MidPointPrincipal principal, Map<ItemPath, String> attributeValues) {
-        super(null);
+        super(Collections.emptyList());
         this.principal = principal;
         this.attributeValues = attributeValues;
     }

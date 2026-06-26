@@ -19,14 +19,14 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormM
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationAuthenticationModuleType;
 
 import jakarta.servlet.ServletRequest;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
+@Order(SecurityFilterProperties.BASIC_AUTH_ORDER - 10)
 public class CorrelationModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, CorrelationAuthenticationModuleType> {
 
     public CorrelationModuleWebSecurityConfigurer(CorrelationAuthenticationModuleType moduleType,
@@ -52,11 +52,11 @@ public class CorrelationModuleWebSecurityConfigurer extends ModuleWebSecurityCon
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/correlation"));
 
-        http.logout().clearAuthentication(true)
+        http.logout(configurer -> configurer.clearAuthentication(true)
                 .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(createLogoutHandler());
+                .logoutSuccessHandler(createLogoutHandler()));
 
         http.addFilterAfter(correlationFilter, UsernamePasswordAuthenticationFilter.class);
     }

@@ -107,7 +107,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean alreadyCompiledGui;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
-        super(null);
+        super(Collections.emptyList());
         this.sequence = sequence;
     }
 

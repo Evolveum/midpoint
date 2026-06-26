@@ -27,7 +27,7 @@ public final class DuoFilterConfigurer<B extends HttpSecurityBuilder<B>>
     }
 
     @Override
-    public void init(B http) throws Exception {
+    public void init(B http) {
         DuoAuthenticationFilter authenticationFilter = new DuoAuthenticationFilter(getRemoteModuleLoginProcessingUrl(), getAuditProvider());
         this.setAuthenticationFilter(authenticationFilter);
 
@@ -37,7 +37,7 @@ public final class DuoFilterConfigurer<B extends HttpSecurityBuilder<B>>
     }
 
     @Override
-    public void configure(B http) throws Exception {
+    public void configure(B http) {
 
         DuoAuthorizationRequestRedirectFilter authorizationRequestFilter = new DuoAuthorizationRequestRedirectFilter(
                 this.duoClient,

@@ -133,7 +133,7 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
                 .entityId(serviceProviderType.getEntityId())
                 .assertionConsumerServiceLocation(ssoBuilder.build().toUriString())
                 .singleLogoutServiceLocation(logoutBuilder.build().toUriString())
-                .assertingPartyDetails(party -> {
+                .assertingPartyMetadata(party -> {
                     party.entityId(providerType.getEntityId());
 
                     if (serviceProviderType.isSignRequests() != null) {
