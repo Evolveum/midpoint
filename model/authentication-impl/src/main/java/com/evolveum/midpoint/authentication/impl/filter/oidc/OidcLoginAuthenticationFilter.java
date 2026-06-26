@@ -105,7 +105,7 @@ public class OidcLoginAuthenticationFilter extends OAuth2LoginAuthenticationFilt
                             "Client Registration not found with Id: " + registrationId, null);
                     throw new OAuth2AuthenticationException(oauth2Error, "web.security.provider.invalid");
                 } else {
-                    String redirectUri = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+                    String redirectUri = UriComponentsBuilder.fromUriString(UrlUtils.buildFullRequestUrl(request))
                             .replaceQuery(null).build().toUriString();
                     OAuth2AuthorizationResponse authorizationResponse = convert(params, redirectUri);
                     OAuth2LoginAuthenticationToken authenticationRequest = new OAuth2LoginAuthenticationToken(clientRegistration,

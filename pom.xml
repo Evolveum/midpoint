@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.15</version>
+        <version>4.0.7</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
         -->
@@ -233,7 +233,6 @@
         <cel.version>0.13.0</cel.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
-        <commons-lang3.version>3.18.0</commons-lang3.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.0</log4j2.version>
         <!-- END of Spring Boot dependencies overrides -->
@@ -293,6 +292,10 @@
                     <exclusion>
                         <groupId>javax.xml.bind</groupId>
                         <artifactId>jaxb-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1111,6 +1114,10 @@
                         <groupId>org.springframework</groupId>
                         <artifactId>spring-jcl</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1261,6 +1268,11 @@
             </dependency>
 
             <!-- Version convergence setup; RECONSIDER after major upgrades of Boot, Maven... -->
+            <dependency>
+                <groupId>org.eclipse.angus</groupId>
+                <artifactId>angus-activation</artifactId>
+                <version>2.0.3</version>
+            </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
@@ -1498,6 +1510,10 @@
                         <groupId>org.jboss.logmanager</groupId>
                         <artifactId>jboss-logmanager</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1622,6 +1638,16 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-loader-tools</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.retry</groupId>
+                <artifactId>spring-retry</artifactId>
+                <version>2.0.12</version>
             </dependency>
             <!--<dependency>-->
             <!--    <groupId>org.springframework.boot</groupId>-->
@@ -1850,6 +1876,7 @@
 
                                 <!--dependency contains bug when dependency is used only in annotation, we use it in authentication-impl -->
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-security</ignoredUnusedDeclaredDependency>
 
                                 <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/compile
                                       but report can not detect this uses (and if you change scope, it can not compile target project -->

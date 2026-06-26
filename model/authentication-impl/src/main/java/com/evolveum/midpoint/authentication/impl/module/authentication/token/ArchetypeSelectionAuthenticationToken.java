@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 
+import java.util.Collections;
+
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+
 
 public class ArchetypeSelectionAuthenticationToken extends AbstractAuthenticationToken {
 
@@ -14,7 +17,7 @@ public class ArchetypeSelectionAuthenticationToken extends AbstractAuthenticatio
     private boolean allowUndefinedArchetype;
 
     public ArchetypeSelectionAuthenticationToken(String archetypeOid, boolean allowUndefinedArchetype) {
-        super(null);
+        super(Collections.emptyList());
         this.archetypeOid = archetypeOid;
         this.allowUndefinedArchetype = allowUndefinedArchetype;
     }
