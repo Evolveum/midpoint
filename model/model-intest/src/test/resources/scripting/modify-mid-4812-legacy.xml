@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:search>
+        <s:type>c:UserType</s:type>
+        <s:searchFilter>
+            <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+                <path>c:name</path>
+                <value>mid-4812</value>
+            </equal>
+        </s:searchFilter>
+    </s:search>
+    <s:action>
+        <s:type>modify</s:type>
+        <s:parameter>
+            <s:name>delta</s:name>
+            <c:value xsi:type="t:ObjectDeltaType">
+                <t:itemDelta>
+                    <t:modificationType>add</t:modificationType>
+                    <t:path>c:givenName</t:path>
+                    <t:value>Jack</t:value>
+                </t:itemDelta>
+                <t:itemDelta>
+                    <t:modificationType>add</t:modificationType>
+                    <t:path>c:familyName</t:path>
+                    <t:value>April</t:value>
+                </t:itemDelta>
+            </c:value>
+        </s:parameter>
+    </s:action>
+</s:pipeline>

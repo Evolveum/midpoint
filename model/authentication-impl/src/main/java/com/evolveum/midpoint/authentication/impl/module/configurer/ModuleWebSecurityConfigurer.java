@@ -17,17 +17,20 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -140,26 +143,32 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     protected void configure(HttpSecurity http) throws Exception {
 
         http.setSharedObject(AuthenticationTrustResolver.class, new MidpointAuthenticationTrustResolverImpl());
-        http.authorizeRequests()
-                .accessDecisionManager(accessDecisionManager)
-                .anyRequest().fullyAuthenticated();
+        if (useDefaultAuthorization()) {
+            http.authorizeHttpRequests(registry ->
+                    registry.anyRequest().access(authorizationManager(accessDecisionManager)));
+        }
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .accessDeniedHandler(accessDeniedHandler)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
-        http.headers().and()
-                .requestCache().and()
-                .anonymous().authenticationFilter(createAnonymousFilter(http.getSharedObjects())).and()
-                .servletApi();
+        http.headers(configurer -> {})
+                .requestCache(configurer -> {})
+                .anonymous(configurer -> configurer.authenticationFilter(createAnonymousFilter(http.getSharedObjects())))
+                .servletApi(configurer -> {});
 
         http.addFilterAfter(new RedirectForLoginPagesWithAuthenticationFilter(), CsrfFilter.class);
 
-        http.csrf();
-        if (!csrfEnabled) {
-            http.csrf().disable();
-        }
+        http.csrf(configurer -> {
+            if (!csrfEnabled) {
+                configurer.disable();
+            }
+        });
 
-        http.headers().disable();
-        http.headers().frameOptions().deny();
+        http.headers(configurer -> configurer.defaultsDisabled()
+                .frameOptions(frameOptions -> frameOptions.deny()));
+    }
+
+    protected boolean useDefaultAuthorization() {
+        return true;
     }
 
     protected AnonymousAuthenticationFilter createAnonymousFilter(Map<Class<?>, Object> sharedObjects) {
@@ -188,13 +197,13 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
             }
             RequestMatcher logoutRequestMatcher;
             if (http.getConfigurer(CsrfConfigurer.class) != null) {
-                logoutRequestMatcher = new AntPathRequestMatcher(logoutUrl, "POST");
+                logoutRequestMatcher = pathMatcher(logoutUrl, "POST");
             } else {
                 logoutRequestMatcher = new OrRequestMatcher(
-                        new AntPathRequestMatcher(logoutUrl, "GET"),
-                        new AntPathRequestMatcher(logoutUrl, "POST"),
-                        new AntPathRequestMatcher(logoutUrl, "PUT"),
-                        new AntPathRequestMatcher(logoutUrl, "DELETE"));
+                        pathMatcher(logoutUrl, "GET"),
+                        pathMatcher(logoutUrl, "POST"),
+                        pathMatcher(logoutUrl, "PUT"),
+                        pathMatcher(logoutUrl, "DELETE"));
             }
             return logoutRequestMatcher.matches(httpServletRequest);
         };
@@ -213,6 +222,13 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
             handler.setDefaultTargetUrl(defaultSuccessLogoutURL);
         }
         return handler;
+    }
+
+    protected AuthorizationManager<RequestAuthorizationContext> authorizationManager(MidPointGuiAuthorizationEvaluator evaluator) {
+        return (authentication, context) -> {
+            evaluator.decide(authentication.get(), context, java.util.List.of());
+            return new AuthorizationDecision(true);
+        };
     }
 
     protected <CA extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>> CA getOrApply(HttpSecurity http, CA configurer) throws Exception {

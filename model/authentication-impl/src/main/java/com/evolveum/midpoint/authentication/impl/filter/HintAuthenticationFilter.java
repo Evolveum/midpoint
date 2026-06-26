@@ -18,22 +18,23 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 public class HintAuthenticationFilter extends MidpointFocusVerificationFilter {
 
-    private static final AntPathRequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/hint", "POST");
+    private static final RequestMatcher DEFAULT_REQUEST_MATCHER = pathMatcher("/hint", "POST");
 
 
     public HintAuthenticationFilter() {
-        super(DEFAULT_ANT_PATH_REQUEST_MATCHER);
+        super(DEFAULT_REQUEST_MATCHER);
     }
 
     public HintAuthenticationFilter(AuthenticationManager authenticationManager) {
-        super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
+        super(DEFAULT_REQUEST_MATCHER, authenticationManager);
     }
 
     @Override
