@@ -34,6 +34,10 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes With Respect To Version 4.10.4
+
+* Updated spring boot to 4.0. See bug:MID-11002[]
+
 == Changes With Respect To Version 4.10.3
 
 // TODO

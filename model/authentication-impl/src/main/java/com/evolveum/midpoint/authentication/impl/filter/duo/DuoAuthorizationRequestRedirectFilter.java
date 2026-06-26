@@ -39,7 +39,8 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -50,7 +51,7 @@ public class DuoAuthorizationRequestRedirectFilter extends RemoteModuleAuthoriza
 
     private final Client duoClient;
 
-    private final AntPathRequestMatcher authorizationRequestMatcher;
+    private final RequestMatcher authorizationRequestMatcher;
 
     public DuoAuthorizationRequestRedirectFilter(
             Client duoClient,
@@ -59,7 +60,7 @@ public class DuoAuthorizationRequestRedirectFilter extends RemoteModuleAuthoriza
             SecurityContextRepository securityContextRepository) {
         super(auditProvider, securityContextRepository);
         this.duoClient = duoClient;
-        this.authorizationRequestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri);
+        this.authorizationRequestMatcher = pathMatcher(authorizationRequestBaseUri);
     }
 
     @Override

@@ -29,8 +29,7 @@ public class MidpointMetadataRelyingPartyRegistrationResolver implements Relying
     public RelyingPartyRegistration resolve(HttpServletRequest request, String relyingPartyRegistrationId) {
         RelyingPartyRegistration relyingPartyRegistration = defaultResolver.resolve(request, relyingPartyRegistrationId);
 
-        return RelyingPartyRegistration
-                .withRelyingPartyRegistration(relyingPartyRegistration)
+        return relyingPartyRegistration.mutate()
                 .entityId(relyingPartyRegistration.getEntityId())
                 .assertionConsumerServiceLocation(relyingPartyRegistration.getAssertionConsumerServiceLocation())
                 .singleLogoutServiceLocation(relyingPartyRegistration.getSingleLogoutServiceLocation())
