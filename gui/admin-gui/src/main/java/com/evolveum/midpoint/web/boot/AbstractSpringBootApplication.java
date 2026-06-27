@@ -17,6 +17,7 @@ import org.springframework.boot.webmvc.autoconfigure.actuate.web.WebMvcEndpointM
 import org.springframework.boot.actuate.autoconfigure.env.EnvironmentEndpointAutoConfiguration;
 import org.springframework.boot.health.autoconfigure.actuate.endpoint.HealthEndpointAutoConfiguration;
 import org.springframework.boot.health.autoconfigure.contributor.HealthContributorAutoConfiguration;
+import org.springframework.boot.health.autoconfigure.registry.HealthContributorRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.management.HeapDumpWebEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.management.ThreadDumpEndpointAutoConfiguration;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
         WebMvcEndpointManagementContextConfiguration.class,
         ServletManagementContextAutoConfiguration.class,
         HealthEndpointAutoConfiguration.class,
+        HealthContributorRegistryAutoConfiguration.class,
         HealthContributorAutoConfiguration.class,
         ThreadDumpEndpointAutoConfiguration.class,
         HeapDumpWebEndpointAutoConfiguration.class,
