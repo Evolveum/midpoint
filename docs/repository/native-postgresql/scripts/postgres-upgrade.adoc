@@ -12,7 +12,7 @@ This page documents schema changes applied to existing databases by `config/sql/
 | Changes range
 
 | xref:postgres-upgrade/4.11.adoc[midPoint 4.11]
-| 52-57
+| 52-58
 
 | xref:postgres-upgrade/4.10.adoc[midPoint 4.10]
 | 51
@@ -45,6 +45,9 @@ This page documents schema changes applied to existing databases by `config/sql/
 |===
 | Change
 | Description
+
+| xref:postgres-upgrade/4.11.adoc#change-58[Change 58]
+| Adds display and preferred name columns and indexes to users.
 
 | xref:postgres-upgrade/4.11.adoc#change-57[Change 57]
 | Recreates connector type/version uniqueness indexes with connector-host specific predicates.

@@ -16,6 +16,7 @@ import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
@@ -325,14 +326,18 @@ public class ValueFormatter {
     }
 
     public String formatUserName(UserType user, String oid) {
-        if (user == null || (user.getName() == null && user.getFullName() == null)) {
+        if (user == null) {
             return oid;
         }
-        if (user.getFullName() != null) {
-            return getOrig(user.getFullName()) + " (" + getOrig(user.getName()) + ")";
-        } else {
-            return getOrig(user.getName());
+        String displayName = ObjectTypeUtil.getDisplayNameOrOid(user);
+        String name = getOrig(user.getName());
+        if (displayName == null) {
+            return oid;
         }
+        if (name != null && !displayName.equals(name)) {
+            return displayName + " (" + name + ")";
+        }
+        return displayName;
     }
 
     // TODO implement seriously

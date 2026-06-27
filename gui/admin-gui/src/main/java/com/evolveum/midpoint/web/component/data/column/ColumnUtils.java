@@ -320,6 +320,8 @@ public class ColumnUtils {
                         SelectableBeanImpl.F_VALUE + ".familyName", false, true),
                 new ColumnTypeDto<>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".fullName", false, true),
+                new ColumnTypeDto<>("UserType.displayName", UserType.F_DISPLAY_NAME.getLocalPart(),
+                        SelectableBeanImpl.F_VALUE + ".displayName", false, true),
                 new ColumnTypeDto<>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".emailAddress", false)
 
