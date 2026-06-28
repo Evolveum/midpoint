@@ -139,7 +139,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         ItemPath focusPath = ItemPath.create(UserType.F_EMAIL);
         ItemPath shadowPath = EMAIL.path();
-        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null);
+        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null, false);
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
@@ -162,7 +162,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         ItemPath focusPath = null;
         ItemPath shadowPath = EMAIL.path();
-        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null);
+        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null, false);
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
@@ -190,7 +190,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         ItemPath focusPath = ItemPath.create(UserType.F_PERSONAL_NUMBER);
         ItemPath shadowPath = null;
-        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null);
+        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null, false);
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
@@ -232,7 +232,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
-                Arrays.asList(new CorrelatorSuggestion(null, null, null))
+                Arrays.asList(new CorrelatorSuggestion(null, null, null, false))
         );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
