@@ -242,8 +242,7 @@ public abstract class SmartCorrelationTable
                 StatusInfo<CorrelationSuggestionsType> suggestionTypeStatusInfo = getStatusInfo(wrapper);
 
                 if (suggestionTypeStatusInfo != null) {
-                    ItemsSubCorrelatorType realValue = wrapper.getRealValue();
-                    buildSuggestionNameColumnComponent(cellItem, componentId, suggestionTypeStatusInfo, realValue);
+                    buildSuggestionNameColumnComponent(cellItem, componentId, suggestionTypeStatusInfo, wrapper);
                     return;
                 }
 
@@ -329,9 +328,10 @@ public abstract class SmartCorrelationTable
             @NotNull Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> cellItem,
             String componentId,
             @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo,
-            ItemsSubCorrelatorType realValue) {
+            PrismContainerValueWrapper<ItemsSubCorrelatorType> wrapper) {
 
         OperationResultStatusType status = statusInfo.getStatus();
+        ItemsSubCorrelatorType realValue = wrapper.getRealValue();
         LoadableModel<String> displayNameModel = new LoadableModel<>() {
             @Override
             protected String load() {
@@ -339,7 +339,7 @@ public abstract class SmartCorrelationTable
                     return realValue != null ? realValue.getName() : " - ";
                 }
 
-                String textKey = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).textKey;
+                String textKey = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, wrapper).textKey;
                 return createStringResource(textKey).getString();
             }
         };

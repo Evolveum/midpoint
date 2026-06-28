@@ -113,7 +113,7 @@ public class StatusInfoTableUtil {
 
         StatusInfo<T> statusInfo = getStatusInfoFn.apply(value);
         if (statusInfo != null && statusInfo.getStatus() != null) {
-            String styleClass = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).tileClass;
+            String styleClass = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, value).tileClass;
             tile.add(AttributeModifier.replace("class", baseCss + " " + styleClass));
         }
     }
