@@ -106,7 +106,11 @@ public class RCertWorkItemReference extends RReference {
         this.ownerId = ownerId;
     }
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
+    @JoinColumn(
+            referencedColumnName = "oid",
+            updatable = false,
+            insertable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
 //    @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable

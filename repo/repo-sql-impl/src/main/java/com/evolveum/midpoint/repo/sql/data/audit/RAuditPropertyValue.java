@@ -56,9 +56,9 @@ public class RAuditPropertyValue implements EntityState {
     }
     @MapsId("record")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
+    @JoinColumns(value = {
             @JoinColumn(name = COLUMN_RECORD_ID, referencedColumnName = "id")
-    })
+    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     public RAuditEventRecord getRecord() {
         return record;
     }
