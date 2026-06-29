@@ -90,8 +90,7 @@ module.exports = {
     plugins: [
         new webpack.ProvidePlugin({
             $: 'jquery',
-            jQuery: 'jquery',
-            moment: 'moment',
+            jQuery: 'jquery'
         }),
         new CopyPlugin({
             patterns: [

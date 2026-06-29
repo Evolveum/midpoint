@@ -10,8 +10,6 @@ import 'admin-lte'
 
 import 'bootstrap-multiselect';
 
-import 'moment/dist/moment'
-
 import 'select2/dist/js/select2';
 
 import 'sparklines';
