@@ -65,6 +65,7 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_GUI_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "all");
     public static final String AUTZ_GUI_ALL_URL = QNameUtil.qNameToUri(AUTZ_GUI_ALL_QNAME);
+    public static final String AUTZ_GUI_ALL_URI = NS_AUTHORIZATION_UI + "#all";
     public static final String AUTZ_GUI_ALL_LABEL = "Authorization.constants.guiAll.label";
     public static final String AUTZ_GUI_ALL_DESCRIPTION = "Authorization.constants.guiAll.description";
 

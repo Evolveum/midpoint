@@ -22,7 +22,6 @@ import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -203,7 +202,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
             if (message != null) {
                 getSession().info(message);
             }
-            setResponsePage(PageSelfDashboard.class);
+            setResponsePage(page.getMidpointApplication().getHomePage());
         } else {
             if (message != null) {
                 page.info(message);
