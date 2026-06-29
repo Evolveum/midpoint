@@ -6,6 +6,7 @@
 
 const webpack = require('./node_modules/webpack');
 const MiniCssExtractPlugin = require('./node_modules/mini-css-extract-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const path = require('path');
 
@@ -58,6 +59,13 @@ module.exports = {
                 ],
             },
             {
+                test: /worker-xml\.js$/,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'worker-xml.js'
+                }
+            },
+            {
                 test: /\.js$/,
                 exclude: /node_modules/,
                 use: {
@@ -85,6 +93,14 @@ module.exports = {
             jQuery: 'jquery',
             moment: 'moment',
         }),
+        new CopyPlugin({
+            patterns: [
+                {
+                    from: 'node_modules/ace-builds/src-noconflict/worker-xml.js',
+                    to: 'worker-xml.js'
+                }
+            ]
+        })
     ],
     externals: {
         // external (from webjar) not to collide with wicket headers.

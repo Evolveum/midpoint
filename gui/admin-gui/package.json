@@ -15,20 +15,20 @@
     "@babel/traverse": "^7.27.0",
     "@cyclonedx/cyclonedx-npm": "^4.1.2",
     "@eonasdan/tempus-dominus": "^6.10.2",
-    "@fontsource/source-sans-pro": "^5.1.0",
-    "@fortawesome/fontawesome-free": "^7.2.0",
+    "@fontsource/source-sans-pro": "^5.2.5",
+    "@fortawesome/fontawesome-free": "^7.3.0",
     "ace-builds": "^1.38.0",
     "admin-lte": "^4.0.2",
     "babel-loader": "^9.2.1",
     "bootstrap-multiselect": "^2.0.0",
     "bootstrap5-toggle": "^5.4.0",
     "bs-stepper": "^1.7.0",
+    "copy-webpack-plugin": "^14.0.0",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^8.0.0",
     "custompatch": "^1.1.8",
     "daterangepicker": "^3.1.0",
     "expose-loader": "^5.0.1",
-    "file-loader": "^6.2.0",
     "flag-icons": "^7.3.2",
     "jquery-validation": "^1.21.0",
     "knockout": "^3.5.2",
@@ -44,8 +44,5 @@
     "webpack": "^5.105.4",
     "webpack-cli": "^6.0.1",
     "webpack-merge": "^6.0.1"
-  },
-  "overrides": {
-    "summernote": "0.9.1"
   }
 }
