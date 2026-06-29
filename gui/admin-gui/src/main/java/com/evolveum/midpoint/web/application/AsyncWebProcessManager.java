@@ -23,7 +23,7 @@ public interface AsyncWebProcessManager {
      *
      * @param data Optional input data.
      */
-    <T> AsyncWebProcess<T> createProcess(@Nullable String processId, T data);
+    <T> AsyncWebProcess<T> createProcess(T data);
 
     <T> AsyncWebProcess<T> getProcess(@NotNull String processId);
 

@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.gui.api.component.button;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcess;
 import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -111,7 +113,7 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
-                        startExportProcess();
+                        startExportProcess(target);
                         component.getPageBase().startDownloadTimerBehavior(target);
                     }
 
@@ -173,10 +175,18 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
         return model;
     }
 
-    private void startExportProcess() {
+    private void startExportProcess(AjaxRequestTarget target) {
         var pageBase = component.getPageBase();
-        pageBase.getAsyncWebProcessManager().createProcess(PageBase.EXPORT_PROCESS_ID, getVerifiedFileNameWithExtension());
-        pageBase.getAsyncWebProcessManager().submit(PageBase.EXPORT_PROCESS_ID, createFileLoader());
+        AsyncWebProcess<String> exportProcess = pageBase.getAsyncWebProcessManager()
+                .createProcess(getVerifiedFileNameWithExtension());
+        var processId = exportProcess.getId();
+        pageBase.getSessionStorage().addExportProcessId(processId);
+        pageBase.getAsyncWebProcessManager().submit(processId, createFileLoader());
+        new Toast()
+                .info()
+                .title(pageBase.createStringResource("ExportDownloadInlineMenuItem.export.title").getString())
+                .body(pageBase.createStringResource("ExportDownloadInlineMenuItem.export.message").getString())
+                .show(target);
     }
 
     private Callable<File> createFileLoader() {
@@ -199,7 +209,9 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
                     ThreadContext.setApplication(application);
                     ThreadContext.setSession(session);
 
-                    File file = File.createTempFile(fileName, fileExtension);
+                    String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+                    String tmpFilePath = StringUtils.isNotEmpty(midpointHome) ? midpointHome + "/tmp" : ".";
+                    File file = File.createTempFile(fileName, fileExtension, new File(tmpFilePath));
 
                     try (OutputStream os = new FileOutputStream(file)) {
                         getDataExporter().exportData(provider, getExportableColumns(), os);

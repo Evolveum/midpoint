@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.page;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.*;
 import javax.xml.namespace.QName;
@@ -62,7 +63,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.RightSidebarHelpPanel;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
@@ -152,8 +152,6 @@ public abstract class PageBase extends PageAdminLTE {
     // is too big and requires more time for creation. Timer behavior will let the user
     // work with the system further in the meanwhile the file for downloading is being prepared
     private AbstractAjaxTimerBehavior timerBehavior;
-    private AbstractAjaxDownloadBehavior ajaxDownloadBehavior;
-    public static final String EXPORT_PROCESS_ID = "EXPORT-ASYNC-PROCESS-ID";
 
     private boolean initialized = false;
 
@@ -513,7 +511,6 @@ public abstract class PageBase extends PageAdminLTE {
         add(new RightSidebarHelpPanel(ID_RIGHT_SIDEBAR));
 
         initTimerBehavior();
-        initDownloadBehavior();
     }
 
     private RightSidebarHelpPanel getRightSidebarPanel() {
@@ -1188,69 +1185,118 @@ public abstract class PageBase extends PageAdminLTE {
 
             @Override
             protected void onTimer(AjaxRequestTarget target) {
-                if (!exportProcessExists()) {
-                    stop(null);
-                }
-                if (isReadyForDownload()) {
+                stopTimerBehaviorIfNeeded();
+                if (readyForDownloadExist()) {
                     initiateExportFileDownload(target);
                 }
             }
         };
-        if (!exportProcessExists()) {
-            timerBehavior.stop(null);
-        }
+        stopTimerBehaviorIfNeeded();
         add(timerBehavior);
     }
 
-    private void initDownloadBehavior() {
-        ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
+    private void stopTimerBehaviorIfNeeded() {
+        if (noActiveExportProcessExists()) {
+            timerBehavior.stop(null);
+        }
+    }
+
+    private boolean readyForDownloadExist() {
+        var exportProcessList = getExportProcessList();
+        return CollectionUtils.isNotEmpty(exportProcessList) &&
+                exportProcessList
+                        .stream()
+                        .anyMatch(AsyncWebProcess::isDone);
+    }
+
+    private boolean noActiveExportProcessExists() {
+        return CollectionUtils.isEmpty(getExportProcessList());
+    }
+
+    private List<AsyncWebProcess<?>> getExportProcessList() {
+        Set<String> processIdSet = getSessionStorage().getExportProcessIdSet();
+        List<AsyncWebProcess<?>> exportProcessList = new ArrayList<>();
+        processIdSet
+                .forEach(id -> {
+                    if (getAsyncWebProcessManager().getProcess(id) != null) {
+                        exportProcessList.add(getAsyncWebProcessManager().getProcess(id));
+                    }
+                });
+        return exportProcessList;
+    }
+
+    private AsyncWebProcess<?> getFinishedExportProcess() {
+        var exportProcessList = getExportProcessList();
+        return exportProcessList
+                .stream()
+                .filter(AsyncWebProcess::isDone)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void initiateExportFileDownload(AjaxRequestTarget target) {
+        var finishedProcess = getFinishedExportProcess();
+        if (finishedProcess == null) {
+            LOGGER.trace("No export process is found.");
+            return;
+        }
+        var downloadBehavior = createDownloadBehavior(finishedProcess.getId());
+        PageBase.this.add(downloadBehavior);
+        downloadBehavior.initiate(target);
+    }
+
+    private AbstractAjaxDownloadBehavior createDownloadBehavior(String processId) {
+        return new AbstractAjaxDownloadBehavior() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public IResourceStream getResourceStream() {
                 try {
-                    timerBehavior.stop(null);
-                    var exportProcess = getExportProcess();
-                    File exportFile = (File) exportProcess.getFuture().get();
-                    return new FileResourceStream(exportFile);
+                    var exportProcess = getAsyncWebProcessManager().getProcess(processId);
+                    if (exportProcess == null || exportProcess.getFuture() == null) {
+                        LOGGER.warn("Unable to find export process or its results, process id: {}", processId);
+                        return null;
+                    }
+                    final File exportFile = (File) exportProcess.getFuture().get();
+                    return new FileResourceStream(exportFile) {
+                        @Serial private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void close() throws IOException {
+                            super.close();
+
+                            getAsyncWebProcessManager().removeProcess(processId);
+                            cleanProcessIdFromSessionStorage(processId);
+                            try {
+                                Files.deleteIfExists(exportFile.toPath());
+                            } catch (Exception ex) {
+                                //nothing to do here
+                            }
+                        }
+                    };
                 } catch (Exception e) {
-                    LOGGER.error("Failed to load the file.");
-                } finally {
-                    getAsyncWebProcessManager().removeProcess(EXPORT_PROCESS_ID);
+                    LOGGER.error("Failed to load the file, {}", e.getLocalizedMessage(), e);
                 }
                 return null;
             }
 
             public String getFileName() {
-                var exportProcess = getExportProcess();
-                if (exportProcess.getData() != null) {
+                var exportProcess = getAsyncWebProcessManager().getProcess(processId);
+                if (exportProcess != null && exportProcess.getData() != null) {
                     return exportProcess.getData().toString();
                 }
                 return super.getFileName();
             }
         };
-        add(ajaxDownloadBehavior);
     }
 
-    private boolean isReadyForDownload() {
-        var exportProcess = getExportProcess();
-        return exportProcessExists() && exportProcess.isDone();
-    }
-
-    private boolean exportProcessExists() {
-        var exportProcess = getExportProcess();
-        return exportProcess != null;
-    }
-
-    private AsyncWebProcess<?> getExportProcess() {
-        return getAsyncWebProcessManager().getProcess(EXPORT_PROCESS_ID);
-    }
-
-    private void initiateExportFileDownload(AjaxRequestTarget target) {
-        ajaxDownloadBehavior.initiate(target);
+    private void cleanProcessIdFromSessionStorage(String processId) {
+        getSessionStorage().removeExportProcessId(processId);
     }
 
     public void startDownloadTimerBehavior(AjaxRequestTarget target) {
-        timerBehavior.restart(target);
+        if (timerBehavior.isStopped()) {
+            timerBehavior.restart(target);
+        }
     }
 }
