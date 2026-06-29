@@ -65,12 +65,7 @@ public class FocusCredentialsPanel<F extends FocusType, FDM extends FocusDetails
     protected void initLayout() {
         List<ITab> tabs = createTabs();
 
-        if (tabs.size() == 1) {
-            WebMarkupContainer panel = tabs.get(0).getPanel(ID_CONTENT);
-            add(panel);
-        } else {
-            add(new TabbedPanel<>(ID_CONTENT, tabs));
-        }
+        add(new TabbedPanel<>(ID_CONTENT, tabs));
     }
 
     private boolean isCredentialsTabAuthorized(String uri) {
