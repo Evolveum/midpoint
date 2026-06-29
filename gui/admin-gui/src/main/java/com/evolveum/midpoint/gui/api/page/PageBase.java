@@ -1237,15 +1237,17 @@ public abstract class PageBase extends PageAdminLTE {
     private void initiateExportFileDownload(AjaxRequestTarget target) {
         var finishedProcess = getFinishedExportProcess();
         if (finishedProcess == null) {
+            getSession().warn("No export process is found.");
             LOGGER.trace("No export process is found.");
+            target.add(getFeedbackPanel());
             return;
         }
-        var downloadBehavior = createDownloadBehavior(finishedProcess.getId());
+        var downloadBehavior = createDownloadBehavior(finishedProcess.getId(), target);
         PageBase.this.add(downloadBehavior);
         downloadBehavior.initiate(target);
     }
 
-    private AbstractAjaxDownloadBehavior createDownloadBehavior(String processId) {
+    private AbstractAjaxDownloadBehavior createDownloadBehavior(String processId, AjaxRequestTarget target) {
         return new AbstractAjaxDownloadBehavior() {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -1254,7 +1256,9 @@ public abstract class PageBase extends PageAdminLTE {
                 try {
                     var exportProcess = getAsyncWebProcessManager().getProcess(processId);
                     if (exportProcess == null || exportProcess.getFuture() == null) {
+                        getSession().error("Unable to find export process or its results, process id: {}");
                         LOGGER.warn("Unable to find export process or its results, process id: {}", processId);
+                        target.add(getFeedbackPanel());
                         return null;
                     }
                     final File exportFile = (File) exportProcess.getFuture().get();

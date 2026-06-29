@@ -9,9 +9,12 @@ package com.evolveum.midpoint.web.session;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import java.util.Map.Entry;
+import java.util.Set;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RequestAccess;
@@ -73,7 +76,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private final Map<String, BrowserTabSessionStorage> storageByWindowId = new HashMap<>();
     private SuggestionsStorage suggestions;
     private ResourceWizardStorage resourceWizardStorage;
-    private Set<String> exportProcessIdSet = new HashSet<>();
+    private final Set<String> exportProcessIdSet = new HashSet<>();
 
     public enum Mode {
 
