@@ -12,8 +12,6 @@ import 'bootstrap-multiselect';
 
 import 'moment/dist/moment'
 
-import 'daterangepicker/daterangepicker';
-
 import 'select2/dist/js/select2';
 
 import 'sparklines';
