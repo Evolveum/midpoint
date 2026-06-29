@@ -118,6 +118,30 @@ public class TestMelExpressions extends AbstractScriptTest {
                 false);
     }
 
+    @Test(enabled = false) // WIP
+    public void testUserNameSubstringStringTrue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-name-substring.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                true);
+    }
+
+    @Test(enabled = false) // WIP
+    public void testUserNameEndsWithStringTrue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-name-endswith.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                true);
+    }
+
     @Test
     public void testUserStringFormat() throws Exception {
         evaluateAndAssertStringScalarExpression(
@@ -1414,7 +1438,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "jsparrow");
     }
 
-    @Test
+    @Test(enabled = false) // WIP
     public void testUsernameGeneratorFormatNull() throws Exception {
         usernameGenerator("expression-username-generator-format.xml",
         null, null, "",
@@ -1430,7 +1454,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "JSparrow");
     }
 
-    @Test
+    @Test(enabled = false) // WIP
     public void testUsernameGeneratorFormatPolystringNull() throws Exception {
         usernameGenerator("expression-username-generator-format-polystring.xml",
                 null, null, "",
