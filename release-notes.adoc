@@ -150,6 +150,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Updated spring boot to 4.0. See bug:MID-11002[]
 * Fixed serialization of focus preview changes page by avoiding retained live model context. See bug:MID-11082[]
 * Fixed bucketed task workers continuing after root task suspension. See bug:MID-11217[].
+* Improved debug logging for OIDC opaque-token issuer discovery failures. See bug:MID-11292[].
 
 === Releases Of Other Components
 
