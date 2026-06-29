@@ -233,7 +233,11 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
 
     protected <CA extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>> CA getOrApply(HttpSecurity http, CA configurer) throws Exception {
         CA existingConfigurer = (CA) http.getConfigurer(configurer.getClass());
-        return existingConfigurer != null ? existingConfigurer : http.apply(configurer);
+        if (existingConfigurer != null) {
+            return existingConfigurer;
+        }
+        http.with(configurer, customizer -> {});
+        return configurer;
     }
 
     protected void configureDefaultLogout(HttpSecurity http) throws Exception {
