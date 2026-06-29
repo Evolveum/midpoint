@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.application;
 import java.util.concurrent.Callable;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface that helps with management of asynchrlnous processes in GUI.

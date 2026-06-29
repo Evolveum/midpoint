@@ -143,9 +143,9 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
     private String getFilename() {
         if (StringUtils.isNotEmpty(name.getObject())) {
             return name.getObject();
-        } else {
-            return getDefaultFilename();
         }
+
+        return getDefaultFilename();
     }
 
     private String getDefaultFilename() {
