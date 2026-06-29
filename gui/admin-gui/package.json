@@ -38,7 +38,6 @@
     "select2": "^4.1.0",
     "select2-bootstrap-5-theme": "^1.3.0",
     "sparklines": "^1.3.0",
-    "style-loader": "^4.0.0",
     "webpack": "^5.105.4",
     "webpack-cli": "^6.0.1",
     "webpack-merge": "^6.0.1"
