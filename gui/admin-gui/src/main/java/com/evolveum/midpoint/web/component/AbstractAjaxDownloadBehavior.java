@@ -48,7 +48,7 @@ public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior 
     }
 
     public void onRequest() {
-
+        String fileName = getFileName();
         IResourceStream resourceStream = getResourceStream();
         if (resourceStream == null) {
             return;        // We hope the error was already processed and will be shown.
@@ -61,8 +61,8 @@ public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior 
             }
         }.setContentDisposition(ContentDisposition.ATTACHMENT)
                 .setCacheDuration(Duration.ofSeconds(1));
-        if (StringUtils.isNotEmpty(getFileName())){
-            reqHandler.setFileName(getFileName());
+        if (StringUtils.isNotEmpty(fileName)){
+            reqHandler.setFileName(fileName);
         }
         getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(reqHandler);
     }

@@ -6,42 +6,55 @@
 
 package com.evolveum.midpoint.gui.api.component.button;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Session;
+import org.apache.wicket.ThreadContext;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
+import com.evolveum.midpoint.web.application.AsyncWebProcess;
+import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
-import org.apache.wicket.markup.repeater.data.IDataProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.util.resource.IResourceStream;
-
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 
 public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExportDownloadInlineMenuItem.class);
+
     protected final ContainerableListPanel component;
+
     private final String fileNamePrefix;
-    private AbstractAjaxDownloadBehavior ajaxDownloadBehavior;
+
     private IModel<String> name;
+
     protected List<Integer> exportableColumnsIndex = new ArrayList<>();
 
     @Serial
@@ -56,27 +69,11 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
     private void initLayout() {
         name = Model.of("");
-        ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public IResourceStream getResourceStream() {
-                return new ExportToolbar.DataExportResourceStreamWriter(getDataExporter(), getDataTable());
-            }
-
-            public String getFileName() {
-                if (StringUtils.isEmpty(name.getObject())) {
-                    return ExportDownloadInlineMenuItem.this.getFilename();
-                }
-                return getVerifiedFileNameWithExtension();
-            }
-        };
-        component.add(ajaxDownloadBehavior);
     }
 
     private String getVerifiedFileNameWithExtension() {
-        return name.getObject().endsWith(getFileExtension()) ?
-                name.getObject() : name.getObject() + getFileExtension();
+        String fileName = getFilename();
+        return fileName.toLowerCase().endsWith(getFileExtension()) ? fileName : fileName + getFileExtension();
     }
 
     @Override
@@ -108,11 +105,12 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
                 exportableColumnsIndex.clear();
                 ExportingPanel exportingPanel = new ExportingPanel(WebComponentUtil.getPageBase(component).getMainPopupBodyId(),
                         getDataTable(), exportableColumnsIndex, useExportSizeLimit, name) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
-                        ajaxDownloadBehavior.initiate(target);
+                        startExportProcess(target);
+                        component.getPageBase().startDownloadTimerBehavior(target);
                     }
 
                     @Override
@@ -138,13 +136,17 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
         return component.getTable().getDataTable();
     }
 
-    protected String getFilename() {
-        return fileNamePrefix +
-                "_" +
-                ColumnUtils
-                        .createStringResource("MainObjectListPanel.exportFileName")
-                        .getString() +
-                getFileExtension();
+    private String getFilename() {
+        if (StringUtils.isNotEmpty(name.getObject())) {
+            return name.getObject();
+        }
+
+        return getDefaultFilename();
+    }
+
+    private String getDefaultFilename() {
+        return fileNamePrefix + "_" +
+                ColumnUtils.createStringResource("MainObjectListPanel.exportFileName").getString();
     }
 
     protected abstract String getFileExtension();
@@ -167,5 +169,55 @@ public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
             };
         }
         return model;
+    }
+
+    private void startExportProcess(AjaxRequestTarget target) {
+        var pageBase = component.getPageBase();
+        AsyncWebProcess<String> exportProcess = pageBase.getAsyncWebProcessManager()
+                .createProcess(getVerifiedFileNameWithExtension());
+        var processId = exportProcess.getId();
+        pageBase.getSessionStorage().addExportProcessId(processId);
+        pageBase.getAsyncWebProcessManager().submit(processId, createFileLoader());
+        new Toast()
+                .info()
+                .title(pageBase.createStringResource("ExportDownloadInlineMenuItem.export.title").getString())
+                .body(pageBase.createStringResource("ExportDownloadInlineMenuItem.export.message").getString())
+                .show(target);
+    }
+
+    private Callable<File> createFileLoader() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        final HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
+        MidPointApplication application = MidPointApplication.get();
+        final SecurityContextManager secManager = application.getSecurityContextManager();
+
+        String fileName = getDefaultFilename();
+        String fileExtension = getFileExtension();
+
+        IDataProvider<?> provider = getDataTable().getDataProvider();
+        Session session = Session.get();
+
+        return new SecurityContextAwareCallable<>(secManager, auth, connInfo) {
+
+            @Override
+            public File callWithContextPrepared() {
+                try {
+                    ThreadContext.setApplication(application);
+                    ThreadContext.setSession(session);
+
+                    String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+                    String tmpFilePath = StringUtils.isNotEmpty(midpointHome) ? midpointHome + "/tmp" : ".";
+                    File file = File.createTempFile(fileName, fileExtension, new File(tmpFilePath));
+
+                    try (OutputStream os = new FileOutputStream(file)) {
+                        getDataExporter().exportData(provider, getExportableColumns(), os);
+                    }
+                    return file;
+                } catch (IOException e) {
+                    LOGGER.error("Failed to generate the file for export.");
+                }
+                return null;
+            }
+        };
     }
 }
