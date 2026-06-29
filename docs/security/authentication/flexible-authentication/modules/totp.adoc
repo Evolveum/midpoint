@@ -160,7 +160,7 @@ The list of user TOTP credentials is displayed in:
 .TOTP credentials list in user profile
 image::totp/list.png[TOTP credentials list]
 
-* _User_ > [.nowrap]#icon:key[] btn:[Credentials]#
+* _User_ > [.nowrap]#icon:key[] btn:[OTP]#
 
 +
 .TOTP credentials list on user details page
@@ -223,7 +223,7 @@ image::totp/login.png[Login using TOTP]
 
 === Hide OTP panel
 
-The OTP panel is displayed in the self-service [.nowrap]#icon:shield-alt[] btn:[Credentials]# page and in the user detail [.nowrap]#icon:key[] btn:[Credentials]# page.
+The OTP panel is displayed in the self-service [.nowrap]#icon:shield-alt[] btn:[Credentials]# page and in the user detail [.nowrap]#icon:key[] btn:[OTP]# page.
 
 .OTP panel in the user details page
 image::totp/list-user-details.png[OTP panel in the user details page]
@@ -233,14 +233,16 @@ If you do not want to display the panel, hide it by setting its `visibility` to 
 .Example hiding the OTP panel
 [source,xml]
 ----
-<panel xsi:type="ContainerPanelConfigurationType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-<identifier>otp</identifier>
-<visibility>hidden</visibility>
+<panel xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:type="ContainerPanelConfigurationType">
+
+    <identifier>otp</identifier>
+    <visibility>hidden</visibility>
 </panel>
 ----
 
-// ToDo: where is this configured?
+This configuration can be added for example to system configuration object in `adminGuiConfiguration/objectDetails/objectDetailsPage` for `c:UserType`.
 
 == Limitations
 
