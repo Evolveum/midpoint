@@ -17,6 +17,7 @@
     "@eonasdan/tempus-dominus": "^6.10.2",
     "@fontsource/source-sans-pro": "^5.2.5",
     "@fortawesome/fontawesome-free": "^7.3.0",
+    "@popperjs/core": "^2.11.8",
     "ace-builds": "^1.38.0",
     "admin-lte": "^4.0.2",
     "babel-loader": "^9.2.1",
