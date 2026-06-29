@@ -12,7 +12,6 @@
   "author": "Evolveum",
   "license": "EUPL-1.2 or later.",
   "devDependencies": {
-    "@babel/traverse": "^7.27.0",
     "@cyclonedx/cyclonedx-npm": "^4.1.2",
     "@eonasdan/tempus-dominus": "^6.10.2",
     "@fontsource/source-sans-pro": "^5.2.5",
