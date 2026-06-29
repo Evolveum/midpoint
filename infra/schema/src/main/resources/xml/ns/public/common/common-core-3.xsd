@@ -10657,6 +10657,12 @@
                         Column that contains a user-friendly label for corresponding to the key.
                         This label will be displayed in user interface as a representation of the key.
                         The label has no meaning when the lookup table is used to map values.
+                        Due to the specialized repository representation used for lookup tables, only a subset
+                        of the PolyStringType functionality is supported for row labels. While labels are modeled
+                        as PolyStringType in the Prism schema, only the original value (orig) and its normalized
+                        form (norm) are persisted in the repository. Language-specific values stored in the lang map,
+                        as well as translation data, are not preserved. Therefore, lookup table labels are
+                        always resolved from the stored original value and cannot provide locale-dependent translations.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -17744,6 +17750,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_ADDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="3a7de4b1-8c5f-4e9a-b2d6-0f1e8c3d7a5b">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_FAILED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

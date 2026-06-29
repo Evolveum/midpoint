@@ -1,0 +1,71 @@
+= Native PostgreSQL Schema Script: postgres.sql - Extension items
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Extension items
+
+Extension item catalog and indexed extension value storage support.
+
+
+== Tables
+
+[[m_ext_item]]
+=== `m_ext_item`
+
+Catalog of extension and attribute items indexed in JSON extension storage.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `id`
+| `SERIAL`
+| primary key, required
+| Numeric extension item identifier used as key in JSON extension storage.
+
+| `itemName`
+| `TEXT`
+| required
+| Extension or attribute item QName.
+
+| `valueType`
+| `TEXT`
+| required
+| Value type QName.
+
+| `holderType`
+| `ExtItemHolderType`
+| required
+| Holder category for the indexed item.
+
+| `cardinality`
+| `ExtItemCardinality`
+| required
+| Cardinality of indexed item values.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ext_item_key`
+| `itemName, holderType, valueType, cardinality`
+| Enforces unique extension item definitions and speeds up lookup during raw extension processing. Used for: extension item catalog lookup and uniqueness checks. unique
+
+|===
+

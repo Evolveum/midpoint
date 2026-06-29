@@ -6,9 +6,7 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.prism;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.InfraItemName;
-import com.evolveum.midpoint.security.enforcer.api.PrismEntityOpConstraints;
 
 import org.jetbrains.annotations.NotNull;
 

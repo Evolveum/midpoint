@@ -8,10 +8,18 @@ package com.evolveum.midpoint.security.enforcer.impl.prism;
 
 import static com.evolveum.midpoint.security.enforcer.impl.prism.PrismEntityCoverage.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameKeyedMap;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.security.enforcer.impl.TieredSelectorWithItems;
 

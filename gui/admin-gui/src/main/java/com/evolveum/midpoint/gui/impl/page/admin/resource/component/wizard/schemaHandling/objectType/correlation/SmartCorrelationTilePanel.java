@@ -26,7 +26,10 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -260,7 +263,8 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
     }
 
     private void initBadgePanel(@NotNull Fragment fragment) {
-        BadgePanel badge = new BadgePanel(ID_BADGE_PANEL, getAiCustomTextBadgeModel("Suggestion"));
+        BadgePanel badge = new BadgePanel(ID_BADGE_PANEL,
+                getAiCustomTextBadgeModel(createStringResource("SmartIntegration.suggestion.text").getObject()));
         badge.setOutputMarkupId(true);
         badge.add(new VisibleBehaviour(() -> statusModel.getObject() != null));
         fragment.add(badge);

@@ -12,7 +12,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 

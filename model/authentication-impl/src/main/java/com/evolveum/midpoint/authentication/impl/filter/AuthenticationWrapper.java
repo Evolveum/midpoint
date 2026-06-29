@@ -28,15 +28,18 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 import java.util.HashMap;
 import java.util.List;
@@ -185,7 +188,7 @@ class AuthenticationWrapper {
         }
         List<String> ignoredPaths = authenticationsPolicy.getIgnoredLocalPath();
         for (String ignoredPath : ignoredPaths) {
-            AntPathRequestMatcher matcher = new AntPathRequestMatcher(ignoredPath);
+            RequestMatcher matcher = pathMatcher(ignoredPath);
             if (matcher.matches(httpRequest)) {
                 return true;
             }

@@ -507,10 +507,7 @@ public class AssignmentsUtil {
         if (targetRefObj != null) {
             sb.append(pageBase.createStringResource("AbstractRoleAssignmentPanel.relationLabel").getString());
             sb.append(": ");
-            String relationDisplayName = RelationUtil.getRelationHeaderLabelKeyIfKnown(targetRefObj.getRelation());
-            sb.append(StringUtils.isNotEmpty(relationDisplayName) ?
-                    pageBase.createStringResource(relationDisplayName).getString() :
-                    pageBase.createStringResource(targetRefObj.getRelation().getLocalPart()).getString());
+            sb.append(RelationUtil.getTranslatedRelationLabelOrLocalPart(targetRefObj.getRelation()));
         }
         ObjectReferenceType tenantRef = assignmentType.getTenantRef();
         if (tenantRef != null && tenantRef.getOid() != null) {

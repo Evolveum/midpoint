@@ -26,8 +26,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.prism.Containerable;
 
-import org.apache.wicket.model.LoadableDetachableModel;
-
 import java.io.Serial;
 
 /**

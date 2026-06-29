@@ -1,0 +1,521 @@
+= Native PostgreSQL Schema Script: postgres.sql - Reports and dashboards
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Reports and dashboards
+
+Reports, report data, dashboards, object collections, forms, function libraries, and related UI/reporting objects.
+
+
+== Tables
+
+[[m_dashboard]]
+=== `m_dashboard`
+
+Stores dashboard objects used by the administrative user interface.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#DashboardType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Dashboard object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_dashboard_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_dashboard_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_dashboard_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_dashboard_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_dashboard_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_dashboard_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+|===
+
+[[m_object_collection]]
+=== `m_object_collection`
+
+Stores object collection definitions used by views, dashboards, and searches.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ObjectCollectionType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Object collection identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_object_collection_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_object_collection_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_object_collection_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_object_collection_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_object_collection_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_object_collection_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_object_collection_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+|===
+
+[[m_report]]
+=== `m_report`
+
+Stores report definitions.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ReportType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Report object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_report_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_report_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_report_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_report_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_report_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_report_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+|===
+
+[[m_report_data]]
+=== `m_report_data`
+
+Stores report output data objects and their relation to report definitions.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ReportDataType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Report data object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `reportRefTargetOid`
+| `UUID`
+| 
+| OID of the report definition that produced this report data.
+
+| `reportRefTargetType`
+| `ObjectType`
+| 
+| Object type of the referenced report definition.
+
+| `reportRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the report reference.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_report_data_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_report_data_nameNorm_idx`
+| `nameNorm`
+| Speeds up lookup by normalized object name. Used for: normalized name lookup
+
+| `m_report_data_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_report_data_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_report_data_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_report_data_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+| `reportRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+|===
+
+[[m_value_policy]]
+=== `m_value_policy`
+
+Stores value policy objects, such as password and value generation policies.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Value policy object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_value_policy_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_value_policy_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_value_policy_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_value_policy_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_value_policy_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_value_policy_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+|===
+
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+[cols="2,3,2,2", options="header"]
+|===
+| Trigger
+| Description
+| Table
+| Executes
+
+[[trigger_m_dashboard_oid_delete_tr]]
+| `m_dashboard_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_dashboard`.
+| xref:#m_dashboard[`m_dashboard`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_dashboard_oid_insert_tr]]
+| `m_dashboard_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_dashboard`.
+| xref:#m_dashboard[`m_dashboard`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_dashboard_update_tr]]
+| `m_dashboard_update_tr`
+| Maintains object update metadata before rows are updated in `m_dashboard`.
+| xref:#m_dashboard[`m_dashboard`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_object_collection_oid_delete_tr]]
+| `m_object_collection_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_object_collection`.
+| xref:#m_object_collection[`m_object_collection`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_object_collection_oid_insert_tr]]
+| `m_object_collection_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_object_collection`.
+| xref:#m_object_collection[`m_object_collection`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_object_collection_update_tr]]
+| `m_object_collection_update_tr`
+| Maintains object update metadata before rows are updated in `m_object_collection`.
+| xref:#m_object_collection[`m_object_collection`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_report_data_oid_delete_tr]]
+| `m_report_data_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_report_data`.
+| xref:#m_report_data[`m_report_data`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_report_data_oid_insert_tr]]
+| `m_report_data_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_report_data`.
+| xref:#m_report_data[`m_report_data`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_report_data_update_tr]]
+| `m_report_data_update_tr`
+| Maintains object update metadata before rows are updated in `m_report_data`.
+| xref:#m_report_data[`m_report_data`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_report_oid_delete_tr]]
+| `m_report_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_report`.
+| xref:#m_report[`m_report`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_report_oid_insert_tr]]
+| `m_report_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_report`.
+| xref:#m_report[`m_report`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_report_update_tr]]
+| `m_report_update_tr`
+| Maintains object update metadata before rows are updated in `m_report`.
+| xref:#m_report[`m_report`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_value_policy_oid_delete_tr]]
+| `m_value_policy_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_value_policy`.
+| xref:#m_value_policy[`m_value_policy`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_value_policy_oid_insert_tr]]
+| `m_value_policy_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_value_policy`.
+| xref:#m_value_policy[`m_value_policy`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_value_policy_update_tr]]
+| `m_value_policy_update_tr`
+| Maintains object update metadata before rows are updated in `m_value_policy`.
+| xref:#m_value_policy[`m_value_policy`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+|===
+

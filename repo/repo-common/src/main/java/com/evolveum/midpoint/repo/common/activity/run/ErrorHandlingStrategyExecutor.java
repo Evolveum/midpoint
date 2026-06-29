@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import static com.evolveum.midpoint.repo.common.activity.run.ErrorHandlingStrategyExecutor.FollowUpAction.*;
+import static com.evolveum.midpoint.repo.common.activity.run.ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
+import static com.evolveum.midpoint.repo.common.activity.run.ErrorHandlingStrategyExecutor.FollowUpAction.STOP;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;

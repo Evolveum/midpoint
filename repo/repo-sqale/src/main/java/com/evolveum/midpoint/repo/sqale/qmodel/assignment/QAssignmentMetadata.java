@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.metadata.QValueMetadata;
-import com.evolveum.midpoint.repo.sqale.qmodel.metadata.QValueMetadataMapping;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberPath;

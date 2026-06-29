@@ -11,7 +11,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
-import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 
 import org.apache.wicket.markup.html.WebPage;

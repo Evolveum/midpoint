@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.page.error.PageError;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -314,5 +313,10 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
 
     protected void reloadDescriptionPanel(@NotNull AjaxRequestTarget target) {
         target.add(get(ID_PANEL_DESCRIPTION));
+    }
+
+    @Override
+    protected boolean reloadIfWindowParameterIsAdded() {
+        return getSession().getFeedbackMessages() == null || getSession().getFeedbackMessages().isEmpty();
     }
 }

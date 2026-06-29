@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import static java.util.Objects.requireNonNull;
-
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import javax.xml.datatype.XMLGregorianCalendar;

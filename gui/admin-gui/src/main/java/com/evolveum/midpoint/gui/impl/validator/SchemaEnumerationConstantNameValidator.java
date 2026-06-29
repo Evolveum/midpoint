@@ -9,14 +9,12 @@ package com.evolveum.midpoint.gui.impl.validator;
 import com.evolveum.midpoint.util.DOMUtil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.WordUtils;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 import java.io.ByteArrayInputStream;

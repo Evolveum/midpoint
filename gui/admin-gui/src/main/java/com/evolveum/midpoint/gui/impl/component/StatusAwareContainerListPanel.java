@@ -61,7 +61,6 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestionValue;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createSuggestionReviewInlineMenu;
 import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDividerNoHeader;
 
 /**
@@ -193,7 +192,9 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
                     C realValue = wrapper.getRealValue();
 
                     IModel<String> displayNameModel = () -> getDisplayNameFor(realValue, status);
-                    LabelWithBadgePanel label = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel, status);
+                    LabelWithBadgePanel label = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel,
+                            createStringResource("SmartIntegration.suggestion.text"),
+                            status);
                     cellItem.add(label);
                     return;
                 }
@@ -265,8 +266,13 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
      * Helper that extracts a display name depending on the value type and status.
      */
     private String getDisplayNameFor(C realValue, OperationResultStatusType status) {
-        if (status == OperationResultStatusType.IN_PROGRESS || status == OperationResultStatusType.UNKNOWN) {
+        if (status == OperationResultStatusType.IN_PROGRESS
+                || status == OperationResultStatusType.UNKNOWN) {
             return createStringResource("Generating.suggestion").getString();
+        }
+
+        if (status == OperationResultStatusType.FATAL_ERROR) {
+            return createStringResource("Generation.failed").getString();
         }
 
         if (realValue instanceof ResourceObjectTypeDefinitionType typeDef) {

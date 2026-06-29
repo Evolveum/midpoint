@@ -107,7 +107,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean alreadyCompiledGui;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
-        super(null);
+        super(Collections.emptyList());
         this.sequence = sequence;
     }
 
@@ -684,8 +684,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public boolean authenticationShouldBeAborted() {
-        return AuthenticationSequenceModuleNecessityType.REQUISITE.equals(getProcessingModuleNecessity())
-                && AuthenticationModuleState.FAILURE.equals(getProcessingModuleState());
+        if (AuthenticationSequenceModuleNecessityType.REQUISITE.equals(getProcessingModuleNecessity())
+                && AuthenticationModuleState.FAILURE.equals(getProcessingModuleState())) {
+            return true;
+        }
+        return getAuthentications().stream()
+                .anyMatch(m -> m.getNecessity() == AuthenticationSequenceModuleNecessityType.REQUISITE
+                        && m.getState() == AuthenticationModuleState.FAILURE);
     }
 
     public AuthenticationSequenceModuleNecessityType getProcessingModuleNecessity() {

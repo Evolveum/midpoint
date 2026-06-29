@@ -1,0 +1,219 @@
+---
+midpoint-feature: expression-mel
+doc-type: intro
+---
+= Null Values in MidPoint Expression Language
+:page-nav-title: Null Values
+:page-upkeep-status: green
+:page-toc: top
+
+== Synopsis
+
+Use following constructs when dealing with `null` values:
+
+|===
+| Instead of (wrong) | Use this (correct)
+
+| `focus.activation.administrativeStatus`
+| `focus.?activation.?administrativeStatus`
+
+| `null`
+| `nil`
+
+| `foo == null`
+| `isNil(foo)`
+
+| `foo != null`
+| `isPresent(foo)`
+
+| `foo.contains('#')`
+| `contains(input, '\#')` or +
+`stringify(foo).contains('#')`
+
+|===
+
+As a rule of thumb, never use `null` literal.
+Use `nil` instead.
+Use functions `isNil()` and `isPresent()` whenever possible.
+
+== Unpleasant Nature of Null
+
+This may look odd, but we have good reasons for this.
+MEL is based on Common Expression Language (CEL).
+CEL runtime is used to compile and execute all MEL expressions.
+However, when it comes to handling of `null` values, CEL runtime leaves a lot to be desired.
+
+MEL expressions often need to deal with `null` and optional values, values which may or may not be present.
+This applies to script variables, which may have value in some cases, and may not have value (`null`) in others.
+Then there are structured data (midPoint/prism objects), which have many optional items.
+
+CEL language provides some mechanisms to deal with such optional values.
+Unfortunately, there are two mechanisms to represent value which is not present: _null values_ and _optionals_.
+Moreover, `null` has its own data type in CEL, which complicates the matter even further.
+These mechanisms are not perfectly aligned, which causes a lot of confusion.
+
+Therefore, this section provides guidance and best practice for handling of `null` and optional values in MEL.
+
+== Safe Navigation
+
+When it comes to structured types, CEL assumes that all the items in a structured data referenced by an expression exist, and are present in the data.
+E.g. following expression fails in case that the object in the `focus` variable does not have `activation` container, that container does not have `administrativeStatus` property, or even if `focus` variable has `null` value.
+
+.Fragile processing of structured data, not recommended
+[source,mel]
+----
+focus.activation.administrativeStatus
+----
+
+The method used in expression above is not recommended in MEL expressions.
+Such expressions are reliable only if you are absolutely sure that all the referenced items are present in the data, which usually means that the expressions have explicitly checked their existence before.
+In general case, the use of `.?` operator is recommended instead:
+
+.Robust processing of structured data, recommended
+[source,mel]
+----
+focus.?activation.?administrativeStatus
+----
+
+== Checking for Null
+
+The `.?` operator is using _optionals_, which means it does not fail even if there is no `activation` container, that container does not have `administrativeStatus` property, or even if `focus` variable is `null`.
+In all such cases the expression evaluates to _empty optional_, which is supposed to have the same meaning as `null` value.
+However, it is not _completely_ equivalent to `null`, as _empty optional_ is formally a non-null value.
+This means that CEL/MEL has two mechanisms for representing values that may or may not be present.
+Therefore, simple equality check for `null` is not reliable:
+
+.Not recommended, not reliable
+[source,mel]
+----
+foo == null
+----
+
+This equality operator checks whether the value is `null`.
+As optional are always non-null, the expression above returns non-intuitive result (`false`) for empty optionals.
+The expression above is likely to work correctly when used with variables which contain primitive values, but it will not work with optionals.
+This can be counter-intuitive when dealing with structured data:
+
+.Incorrect, counter-intuitive expression
+[source,mel]
+----
+focus.?activation.?administrativeStatus == null
+----
+
+The expression above never evaluates to `false`, as optionals are always non-null values, even if the item that they reference does not exist.
+As a rule of thumb, it is recommended to *always avoid use of null equality check (`foo == null`)*.
+
+MEL provides a special purpose functions `isNil()` and `isPresent()` which can be reliably used in all the cases.
+All the expressions below will be evaluated correctly, providing results that the user would intuitively expect.
+
+.Recommended check for optional/null values
+[source,mel]
+----
+isNil(foo)
+isNil(focus.?activation.?validFrom)
+isPresent(focus.?activation.?administrativeStatus)
+----
+
+NOTE: There is a `has()` macro in CEL, which can be used to check for presence of a particular element in structured data.
+However, the `has()` macro has limitations, which makes it difficult to use in some cases.
+The use of `isNill()` and `isPresent()` functions is recommended instead of use of `has()` macro, especially for new users.
+
+Moreover, there is a `default()` function which is very handy, and it reliably detects present or missing value in all the cases:
+
+.Recommended check for optional/null values
+[source,mel]
+----
+default(focus.?lifecycleState, 'active')
+----
+
+The expression above will always return a valid string value, even in case that `focus` variable is `null`, or that the object present in `focus` variable does not have `lifecycleState` property.
+
+== Null Literal
+
+CEL has a very special data type for `null` value.
+This rather unorthodox approach immensely complicates dealing with `null` literal.
+For example, the following expression fails to compile:
+
+.Compilation failure
+[source,mel]
+----
+isPresent(foo) ? foo.uc() : null
+----
+
+Although this error is very counter-intuitive, it makes perfect sense given the twisted logic of CEL.
+As `null` has its own type, the conditional (`?:`) operator is applied to mis-matched types in this case.
+The left-hand side (the `true` branch) evaluates to _string_, while the right-hand side (the `false` branch) evaluates to _null type_.
+As the conditional operator requires the same data type in both branches (which is a fair requirement), the expression above fails to compile.
+
+Unfortunately, the toxic nature of `null` literal is a fixed behavior of CEL runtime.
+It cannot be changed.
+Therefore, the only practical approach is to avoid use of `null` literal altogether.
+
+MEL provides `nil` as a replacement to `null`.
+Unlike `null`, `nil` does not specify the toxic _null datatype_.
+Data type of `nil` is _dynamic_, which means that the resulting data type is determined at runtime.
+While CEL compiler is very strict regarding data types, CEL interpreter is rather liberal.
+Therefore, following expression work like a charm:
+
+.Correct expression
+[source,mel]
+----
+isPresent(foo) ? foo.uc() : nil
+----
+
+Replacing `null` literals with `nil` should solve this class of issues.
+However, still keep in mind to use `isNil()` and `isPresent()` functions when checking for _null_ and _optional_ values.
+
+.Implementation detail
+TIP: Curious readers are certainly wondering how is the `nil` thing implemented.
+In fact, `nil` is a _variable_.
+The `nil` variable is defined as a _nullable dynamic_ type, which means that the CEL compiler postpones evaluation to runtime.
+Value of `nil` variable is always set to `null`, which, fortunately, works correctly in CEL interpreter.
+
+== Function Invocation
+
+While MEL provides functions that work reliably (`isNil()`, `isPresent()`) and even some convenience functions (`default()`) which make it easy to work with `null` and optional values, there is still one drawback given by the nature of CEL.
+
+While the `.?` operator works reliably with structured data, it cannot be used for function invocation.
+E.g. the following expression is invalid:
+
+.Invalid expression
+[source,mel]
+----
+foo.?contains('#')
+----
+
+Assuming that `foo` is a string variable, which may either contain a string or `null`, the expression above is specifying execution of `contains()` function on that variable.
+However, the use of `.?` operator in this way is illegal in CEL, and currently there is no practical way for MEL extensions to implement this behavior.
+Therefore, the only practical option in this case is to explicitly check for `null` value using a conditional operator (`?:`):
+
+.Correct expression
+[source,mel]
+----
+isPresent(foo) ? foo.contains('#') : false
+----
+
+In some cases, this can be elegantly addressed by using global version of the function instead of using member function:
+
+.Correct use of global function
+[source,mel]
+----
+contains(input, '#')
+----
+
+When working with strings, `stringify()` function can be very handy.
+As `stringify()` never returns null, any string function can be safely invoked on stringified value:
+
+.Simpler correct expression
+[source,mel]
+----
+stringify(foo).contains('#')
+----
+
+Such use of `stringify()` can be very handy in case of string formatting as well.
+If your intent is to return empty string instead of `null`.
+
+== See Also
+
+* xref:../specification/[MidPoint Expression Language Specification]
+* xref:../troubleshooting/[Troubleshooting MidPoint Expression Language]

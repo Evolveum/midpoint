@@ -15,7 +15,9 @@ import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;

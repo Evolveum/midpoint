@@ -10,7 +10,6 @@ import com.evolveum.midpoint.schema.OriginMarkerMixin;
 import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
 import com.evolveum.midpoint.prism.impl.GenericItemMerger;
 import com.evolveum.midpoint.schema.merger.IgnoreSourceItemMerger;
-import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 

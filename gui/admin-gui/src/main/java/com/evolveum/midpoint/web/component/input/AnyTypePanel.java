@@ -120,7 +120,7 @@ public class AnyTypePanel extends InputPanel {
 
                         String mimetype = getDownloadContentType();
                         if (StringUtils.isNotEmpty(mimetype)) {
-                            String extension = MimeTypeUtil.getExtension(mimetype);
+                            String extension = MimeTypeUtil.getDotExtension(mimetype);
                             if (extension != null) {
                                 fileName += extension;
                             }

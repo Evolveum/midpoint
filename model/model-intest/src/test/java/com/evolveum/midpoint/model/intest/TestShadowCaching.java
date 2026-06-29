@@ -24,7 +24,8 @@ import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.DummyDefaultScenario.Account.AttributeNames;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;

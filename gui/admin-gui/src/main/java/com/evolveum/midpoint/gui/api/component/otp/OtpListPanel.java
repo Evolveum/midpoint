@@ -10,6 +10,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.OtpManager;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -26,6 +28,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -38,6 +42,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.Counter;
@@ -68,6 +73,10 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
     @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(OtpListPanel.class);
+
+    private static final String DOT_CLASS = OtpListPanel.class.getName() + ".";
+
+    private static final String OPERATION_IS_OTP_AVAILABLE = DOT_CLASS + "isOtpAvailable";
 
     private final IModel<F> focusModel;
 
@@ -140,7 +149,13 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
 
     @Override
     protected boolean isCreateNewObjectVisible() {
-        return true;
+        PrismObject<FocusType> focus = getFocusObject();
+
+        Task task = getPageBase().createSimpleTask(OPERATION_IS_OTP_AVAILABLE);
+        OperationResult result = task.getResult();
+
+        OtpManager manager = MidPointApplication.get().getOtpManager();
+        return manager.isOtpAvailable(focus, task, result);
     }
 
     @Override
@@ -246,8 +261,18 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
             newValue = credentialType.asPrismContainerValue();
         }
 
-        PrismContainerValueWrapper<OtpCredentialType> credential =
-                createNewItemContainerValueWrapper(newValue, getContainerModel().getObject(), target);
+        PrismContainerValueWrapper<OtpCredentialType> credential;
+        try {
+            Task wrapperTask = getPageBase().createSimpleTask("addOtpCredential");
+            WrapperContext wrapperContext = new WrapperContext(wrapperTask, wrapperTask.getResult());
+            wrapperContext.setObjectStatus(getContainerModel().getObject().findObjectStatus());
+            wrapperContext.setShowEmpty(true);
+            wrapperContext.setCreateIfEmpty(true);
+            credential = WebPrismUtil.addNewValueToContainer(getContainerModel().getObject(), newValue, getPageBase(), wrapperContext);
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot create new OTP credential wrapper: {}", e.getMessage(), e);
+            return;
+        }
 
         OtpPopupPanel<F> panel = new OtpPopupPanel<>(getPageBase().getMainPopupBodyId(), focusModel, Model.of(credential)) {
 

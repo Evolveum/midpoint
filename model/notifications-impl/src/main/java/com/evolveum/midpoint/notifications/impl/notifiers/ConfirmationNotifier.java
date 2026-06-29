@@ -9,7 +9,9 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfirmationNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationConfirmationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

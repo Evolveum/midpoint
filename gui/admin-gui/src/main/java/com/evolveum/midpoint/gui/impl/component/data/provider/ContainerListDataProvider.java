@@ -13,7 +13,6 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,12 +33,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.page.error.PageError;
 
 /**
  * Created by honchar

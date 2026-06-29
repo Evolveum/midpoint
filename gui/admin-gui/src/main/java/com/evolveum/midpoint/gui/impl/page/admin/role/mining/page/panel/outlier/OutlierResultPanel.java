@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;

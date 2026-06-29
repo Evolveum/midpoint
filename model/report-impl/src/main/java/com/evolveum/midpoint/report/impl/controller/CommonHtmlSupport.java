@@ -9,7 +9,7 @@ package com.evolveum.midpoint.report.impl.controller;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.IOUtils;

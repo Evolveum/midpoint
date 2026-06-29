@@ -13,7 +13,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismProperty;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 

@@ -40,7 +40,10 @@ import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -152,6 +155,13 @@ public class RequestAccess implements Serializable, DebugDumpable {
     private boolean conflictsDirty;
 
     private List<Conflict> conflicts = new ArrayList<>();
+
+    public static final Set<QName> ASSIGNABLE_OBJECT_TYPE_SET = Set.of(
+            RoleType.COMPLEX_TYPE,
+            OrgType.COMPLEX_TYPE,
+            ServiceType.COMPLEX_TYPE,
+            ApplicationType.COMPLEX_TYPE
+    );
 
     public Map<ObjectReferenceType, List<ObjectReferenceType>> getExistingPoiRoleMemberships() {
         return Collections.unmodifiableMap(existingPoiRoleMemberships);
@@ -623,12 +633,21 @@ public class RequestAccess implements Serializable, DebugDumpable {
                     continue;
                 }
 
+                if (containsOnlyPruneAction(policyRule)) {
+                    continue;
+                }
+
                 // everything other than 'enforce' is a warning
                 boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
 
                 createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
             }
         }
+    }
+
+   private boolean containsOnlyPruneAction(DirectlyEvaluatedClockworkPolicyRule policyRule) {
+        int pruneActionCount = policyRule.getEnabledActions(PrunePolicyActionType.class).size();
+        return policyRule.getEnabledActions().size() == pruneActionCount;
     }
 
     private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,

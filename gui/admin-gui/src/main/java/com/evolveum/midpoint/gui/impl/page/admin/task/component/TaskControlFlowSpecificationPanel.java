@@ -17,7 +17,10 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityControlFlowDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @PanelType(name = "controlFlow", defaultContainerPath = "activity/controlFlow", defaultType = ActivityControlFlowDefinitionType.class)
 @PanelInstance(identifier = "controlFlow", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,

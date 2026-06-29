@@ -1,0 +1,1318 @@
+= Native PostgreSQL Schema Script: postgres.sql - Cases and certification
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Cases and certification
+
+Case management, access certification campaigns, certification cases, work items, and reviewer references.
+
+
+== Tables
+
+[[m_access_cert_campaign]]
+=== `m_access_cert_campaign`
+
+Stores access certification campaign objects.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationCampaignType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Access certification campaign object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `definitionRefTargetOid`
+| `UUID`
+| 
+| OID of the certification definition reference target.
+
+| `definitionRefTargetType`
+| `ObjectType`
+| 
+| Object type of the certification definition reference target.
+
+| `definitionRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the certification definition reference.
+
+| `endTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the certification campaign ended.
+
+| `handlerUriId`
+| `INTEGER`
+| 
+| URI identifier of the certification campaign handler.
+
+| `campaignIteration`
+| `INTEGER`
+| required
+| Campaign iteration number.
+
+| `ownerRefTargetOid`
+| `UUID`
+| 
+| OID of the campaign owner reference target.
+
+| `ownerRefTargetType`
+| `ObjectType`
+| 
+| Object type of the campaign owner reference target.
+
+| `ownerRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the campaign owner reference.
+
+| `stageNumber`
+| `INTEGER`
+| 
+| Current campaign stage number.
+
+| `startTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the certification campaign started.
+
+| `state`
+| `AccessCertificationCampaignStateType`
+| 
+| Current certification campaign state.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_access_cert_campaign_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_access_cert_campaign_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_access_cert_campaign_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_access_cert_campaign_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_access_cert_campaign_ext_idx`
+| `USING gin (ext)`
+| Speeds up filtering by indexed extension values. Used for: extension item filters
+
+| `m_access_cert_campaign_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_access_cert_campaign_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_access_cert_campaign_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+| `definitionRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `handlerUriId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `ownerRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+|===
+
+[[m_access_cert_case]]
+=== `m_access_cert_case`
+
+Stores access certification cases inside certification campaigns.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationCaseType`
+
+Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the access certification campaign that owns the case.
+
+| `containerType`
+| `ContainerType`
+| 
+| 
+
+| `administrativeStatus`
+| `ActivationStatusType`
+| 
+| Administrative activation status of the certified object.
+
+| `archiveTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Archive timestamp of the certified object.
+
+| `disableReason`
+| `TEXT`
+| 
+| Disable reason of the certified object.
+
+| `disableTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Disable timestamp of the certified object.
+
+| `effectiveStatus`
+| `ActivationStatusType`
+| 
+| Effective activation status of the certified object.
+
+| `enableTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Enable timestamp of the certified object.
+
+| `validFrom`
+| `TIMESTAMPTZ`
+| 
+| Validity interval start of the certified object.
+
+| `validTo`
+| `TIMESTAMPTZ`
+| 
+| Validity interval end of the certified object.
+
+| `validityChangeTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when validity state last changed.
+
+| `validityStatus`
+| `TimeIntervalStatusType`
+| 
+| Validity interval status.
+
+| `currentStageOutcome`
+| `TEXT`
+| 
+| Outcome of the current certification stage.
+
+| `fullObject`
+| `BYTEA`
+| 
+| Serialized full certification case value.
+
+| `campaignIteration`
+| `INTEGER`
+| required
+| Campaign iteration number for this case.
+
+| `objectRefTargetOid`
+| `UUID`
+| 
+| OID of the certified object reference target.
+
+| `objectRefTargetType`
+| `ObjectType`
+| 
+| Object type of the certified object reference target.
+
+| `objectRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the certified object reference.
+
+| `orgRefTargetOid`
+| `UUID`
+| 
+| OID of the organization reference target.
+
+| `orgRefTargetType`
+| `ObjectType`
+| 
+| Object type of the organization reference target.
+
+| `orgRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the organization reference.
+
+| `outcome`
+| `TEXT`
+| 
+| Overall certification case outcome.
+
+| `remediedTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the certification case was remediated.
+
+| `currentStageDeadline`
+| `TIMESTAMPTZ`
+| 
+| Deadline of the current certification stage.
+
+| `currentStageCreateTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Creation time of the current certification stage.
+
+| `stageNumber`
+| `INTEGER`
+| 
+| Current certification stage number.
+
+| `targetRefTargetOid`
+| `UUID`
+| 
+| OID of the certification target reference target.
+
+| `targetRefTargetType`
+| `ObjectType`
+| 
+| Object type of the certification target reference target.
+
+| `targetRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the certification target reference.
+
+| `tenantRefTargetOid`
+| `UUID`
+| 
+| OID of the tenant reference target.
+
+| `tenantRefTargetType`
+| `ObjectType`
+| 
+| Object type of the tenant reference target.
+
+| `tenantRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the tenant reference.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_access_cert_case_objectRefTargetOid_idx`
+| `objectRefTargetOid`
+| Speeds up lookup of certification cases by certified object. Used for: certification case object searches
+
+| `m_access_cert_case_targetRefTargetOid_idx`
+| `targetRefTargetOid`
+| Speeds up lookup of certification cases by target object. Used for: certification case target searches
+
+| `m_access_cert_case_tenantRefTargetOid_idx`
+| `tenantRefTargetOid`
+| Speeds up lookup of certification cases by tenant. Used for: certification case tenant filters
+
+| `m_access_cert_case_orgRefTargetOid_idx`
+| `orgRefTargetOid`
+| Speeds up lookup of certification cases by organization. Used for: certification case organization filters
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `objectRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+| `orgRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+| `targetRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+| `tenantRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+|===
+
+[[m_access_cert_definition]]
+=== `m_access_cert_definition`
+
+Stores access certification definition objects.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationDefinitionType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Access certification definition object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `handlerUriId`
+| `INTEGER`
+| 
+| URI identifier of the certification handler.
+
+| `lastCampaignStartedTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the last campaign from this definition started.
+
+| `lastCampaignClosedTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the last campaign from this definition closed.
+
+| `ownerRefTargetOid`
+| `UUID`
+| 
+| OID of the definition owner reference target.
+
+| `ownerRefTargetType`
+| `ObjectType`
+| 
+| Object type of the definition owner reference target.
+
+| `ownerRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the definition owner reference.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_access_cert_definition_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_access_cert_definition_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_access_cert_definition_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_access_cert_definition_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_access_cert_definition_ext_idx`
+| `USING gin (ext)`
+| Speeds up filtering by indexed extension values. Used for: extension item filters
+
+| `m_access_cert_definition_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_access_cert_definition_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_access_cert_definition_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+| `handlerUriId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `ownerRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+|===
+
+[[m_access_cert_wi]]
+=== `m_access_cert_wi`
+
+Stores work items for access certification cases.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationWorkItemType`
+
+Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the certification campaign that owns the work item.
+
+| `accessCertCaseCid`
+| `INTEGER`
+| primary key, required
+| Container ID of the certification case that owns the work item.
+
+| `containerType`
+| `ContainerType`
+| 
+| 
+
+| `closeTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the certification work item was closed.
+
+| `campaignIteration`
+| `INTEGER`
+| required
+| Campaign iteration number for this work item.
+
+| `outcome`
+| `TEXT`
+| 
+| 
+
+| `outputChangeTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the work item output changed.
+
+| `performerRefTargetOid`
+| `UUID`
+| 
+| OID of the performer reference target.
+
+| `performerRefTargetType`
+| `ObjectType`
+| 
+| Object type of the performer reference target.
+
+| `performerRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the performer reference.
+
+| `stageNumber`
+| `INTEGER`
+| 
+| Certification stage number for this work item.
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `performerRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+| `ownerOid`
+| xref:#m_access_cert_case[`m_access_cert_case.ownerOid`]
+| ON DELETE CASCADE
+
+| `accessCertCaseCid`
+| xref:#m_access_cert_case[`m_access_cert_case.cid`]
+| ON DELETE CASCADE
+
+|===
+
+[[m_access_cert_wi_assignee]]
+=== `m_access_cert_wi_assignee`
+
+Stores assignee references for access certification work items.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the certification campaign that owns the work item.
+
+| `accessCertCaseCid`
+| `INTEGER`
+| primary key, required
+| Container ID of the certification case.
+
+| `accessCertWorkItemCid`
+| `INTEGER`
+| primary key, required
+| Container ID of the certification work item.
+
+| `referenceType`
+| `ReferenceType`
+| primary key, required
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_access_cert_wi_assignee_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of certification work item assignees by target object and relation. Used for: certification work item assignee searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `ownerOid`
+| xref:#m_access_cert_case[`m_access_cert_case.ownerOid`]
+| ON DELETE CASCADE
+
+| `accessCertCaseCid`
+| xref:#m_access_cert_case[`m_access_cert_case.cid`]
+| ON DELETE CASCADE
+
+| `ownerOid`
+| xref:#m_access_cert_wi[`m_access_cert_wi.ownerOid`]
+| ON DELETE CASCADE
+
+| `accessCertCaseCid`
+| xref:#m_access_cert_wi[`m_access_cert_wi.accessCertCaseCid`]
+| ON DELETE CASCADE
+
+| `accessCertWorkItemCid`
+| xref:#m_access_cert_wi[`m_access_cert_wi.cid`]
+| ON DELETE CASCADE
+
+|===
+
+[[m_access_cert_wi_candidate]]
+=== `m_access_cert_wi_candidate`
+
+Stores candidate references for access certification work items.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the certification campaign that owns the work item.
+
+| `accessCertCaseCid`
+| `INTEGER`
+| primary key, required
+| Container ID of the certification case.
+
+| `accessCertWorkItemCid`
+| `INTEGER`
+| primary key, required
+| Container ID of the certification work item.
+
+| `referenceType`
+| `ReferenceType`
+| primary key, required
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_access_cert_wi_candidate_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of certification work item candidates by target object and relation. Used for: certification work item candidate searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `ownerOid`
+| xref:#m_access_cert_case[`m_access_cert_case.ownerOid`]
+| ON DELETE CASCADE
+
+| `accessCertCaseCid`
+| xref:#m_access_cert_case[`m_access_cert_case.cid`]
+| ON DELETE CASCADE
+
+| `ownerOid`
+| xref:#m_access_cert_wi[`m_access_cert_wi.ownerOid`]
+| ON DELETE CASCADE
+
+| `accessCertCaseCid`
+| xref:#m_access_cert_wi[`m_access_cert_wi.accessCertCaseCid`]
+| ON DELETE CASCADE
+
+| `accessCertWorkItemCid`
+| xref:#m_access_cert_wi[`m_access_cert_wi.cid`]
+| ON DELETE CASCADE
+
+|===
+
+[[m_case]]
+=== `m_case`
+
+Stores case objects used for approvals, manual actions, and other case-management workflows.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#CaseType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Case object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `state`
+| `TEXT`
+| 
+| Case state.
+
+| `closeTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the case was closed.
+
+| `objectRefTargetOid`
+| `UUID`
+| 
+| OID of the object reference target.
+
+| `objectRefTargetType`
+| `ObjectType`
+| 
+| Object type of the object reference target.
+
+| `objectRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the object reference.
+
+| `parentRefTargetOid`
+| `UUID`
+| 
+| OID of the parent case reference target.
+
+| `parentRefTargetType`
+| `ObjectType`
+| 
+| Object type of the parent case reference target.
+
+| `parentRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the parent case reference.
+
+| `requestorRefTargetOid`
+| `UUID`
+| 
+| OID of the requestor reference target.
+
+| `requestorRefTargetType`
+| `ObjectType`
+| 
+| Object type of the requestor reference target.
+
+| `requestorRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the requestor reference.
+
+| `targetRefTargetOid`
+| `UUID`
+| 
+| OID of the case target reference target.
+
+| `targetRefTargetType`
+| `ObjectType`
+| 
+| Object type of the case target reference target.
+
+| `targetRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the case target reference.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_case_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_case_nameNorm_idx`
+| `nameNorm`
+| Speeds up lookup by normalized object name. Used for: normalized name lookup
+
+| `m_case_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_case_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_case_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_case_objectRefTargetOid_idx`
+| `objectRefTargetOid`
+| Speeds up lookup of cases by object reference target. Used for: case object reference searches
+
+| `m_case_targetRefTargetOid_idx`
+| `targetRefTargetOid`
+| Speeds up lookup of cases by target reference target. Used for: case target reference searches
+
+| `m_case_parentRefTargetOid_idx`
+| `parentRefTargetOid`
+| Speeds up lookup of child cases by parent reference target. Used for: case parent reference searches
+
+| `m_case_requestorRefTargetOid_idx`
+| `requestorRefTargetOid`
+| Speeds up lookup of cases by requestor reference target. Used for: case requestor reference searches
+
+| `m_case_closeTimestamp_idx`
+| `closeTimestamp`
+| Speeds up filtering or ordering cases by close time. Used for: case close time filters and ordering
+
+| `m_case_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_case_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+| `objectRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `parentRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `requestorRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `targetRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+|===
+
+[[m_case_wi]]
+=== `m_case_wi`
+
+Stores case work items assigned to users or groups.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#CaseWorkItemType`
+
+Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the case that owns the work item.
+
+| `containerType`
+| `ContainerType`
+| 
+| 
+
+| `closeTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the work item was closed.
+
+| `createTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the work item was created.
+
+| `deadline`
+| `TIMESTAMPTZ`
+| 
+| Work item deadline.
+
+| `originalAssigneeRefTargetOid`
+| `UUID`
+| 
+| OID of the original assignee reference target.
+
+| `originalAssigneeRefTargetType`
+| `ObjectType`
+| 
+| Object type of the original assignee reference target.
+
+| `originalAssigneeRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the original assignee reference.
+
+| `outcome`
+| `TEXT`
+| 
+| 
+
+| `performerRefTargetOid`
+| `UUID`
+| 
+| OID of the performer reference target.
+
+| `performerRefTargetType`
+| `ObjectType`
+| 
+| Object type of the performer reference target.
+
+| `performerRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the performer reference.
+
+| `stageNumber`
+| `INTEGER`
+| 
+| Certification or approval stage number associated with the work item.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_case_wi_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering case work items by creation time. Used for: case work item creation time filters and ordering
+
+| `m_case_wi_closeTimestamp_idx`
+| `closeTimestamp`
+| Speeds up filtering or ordering case work items by close time. Used for: case work item close time filters and ordering
+
+| `m_case_wi_deadline_idx`
+| `deadline`
+| Speeds up filtering or ordering case work items by deadline. Used for: case work item deadline filters and ordering
+
+| `m_case_wi_originalAssigneeRefTargetOid_idx`
+| `originalAssigneeRefTargetOid`
+| Speeds up lookup by original assignee reference target. Used for: case work item original assignee searches
+
+| `m_case_wi_performerRefTargetOid_idx`
+| `performerRefTargetOid`
+| Speeds up lookup by performer reference target. Used for: case work item performer searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `originalAssigneeRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+| `performerRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+|===
+
+[[m_case_wi_assignee]]
+=== `m_case_wi_assignee`
+
+Stores assignee references for case work items.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the case that owns the work item.
+
+| `workItemCid`
+| `INTEGER`
+| primary key, required
+| Container ID of the work item.
+
+| `referenceType`
+| `ReferenceType`
+| primary key, required
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_case_wi_assignee_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of case work item assignees by target object and relation. Used for: case work item assignee searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `ownerOid`
+| xref:#m_case_wi[`m_case_wi.ownerOid`]
+| ON DELETE CASCADE
+
+| `workItemCid`
+| xref:#m_case_wi[`m_case_wi.cid`]
+| ON DELETE CASCADE
+
+|===
+
+[[m_case_wi_candidate]]
+=== `m_case_wi_candidate`
+
+Stores candidate references for case work items.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the case that owns the work item.
+
+| `workItemCid`
+| `INTEGER`
+| primary key, required
+| Container ID of the work item.
+
+| `referenceType`
+| `ReferenceType`
+| primary key, required
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_case_wi_candidate_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of case work item candidates by target object and relation. Used for: case work item candidate searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `ownerOid`
+| xref:#m_case_wi[`m_case_wi.ownerOid`]
+| ON DELETE CASCADE
+
+| `workItemCid`
+| xref:#m_case_wi[`m_case_wi.cid`]
+| ON DELETE CASCADE
+
+|===
+
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+[cols="2,3,2,2", options="header"]
+|===
+| Trigger
+| Description
+| Table
+| Executes
+
+[[trigger_m_access_cert_campaign_oid_delete_tr]]
+| `m_access_cert_campaign_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_access_cert_campaign`.
+| xref:#m_access_cert_campaign[`m_access_cert_campaign`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_access_cert_campaign_oid_insert_tr]]
+| `m_access_cert_campaign_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_access_cert_campaign`.
+| xref:#m_access_cert_campaign[`m_access_cert_campaign`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_access_cert_campaign_update_tr]]
+| `m_access_cert_campaign_update_tr`
+| Maintains object update metadata before rows are updated in `m_access_cert_campaign`.
+| xref:#m_access_cert_campaign[`m_access_cert_campaign`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_access_cert_definition_oid_delete_tr]]
+| `m_access_cert_definition_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_access_cert_definition`.
+| xref:#m_access_cert_definition[`m_access_cert_definition`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_access_cert_definition_oid_insert_tr]]
+| `m_access_cert_definition_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_access_cert_definition`.
+| xref:#m_access_cert_definition[`m_access_cert_definition`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_access_cert_definition_update_tr]]
+| `m_access_cert_definition_update_tr`
+| Maintains object update metadata before rows are updated in `m_access_cert_definition`.
+| xref:#m_access_cert_definition[`m_access_cert_definition`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_case_oid_delete_tr]]
+| `m_case_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_case`.
+| xref:#m_case[`m_case`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_case_oid_insert_tr]]
+| `m_case_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_case`.
+| xref:#m_case[`m_case`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_case_update_tr]]
+| `m_case_update_tr`
+| Maintains object update metadata before rows are updated in `m_case`.
+| xref:#m_case[`m_case`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+|===
+

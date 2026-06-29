@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.getAdditionalOperationDesc;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 

@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.delta.ObjectDeltaImpl;

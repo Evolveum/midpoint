@@ -14,14 +14,12 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoicePopup;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -31,11 +29,16 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperModel;
+import com.evolveum.midpoint.web.component.dialog.steper.PopupStepperPanel;
+import com.evolveum.midpoint.web.component.dialog.steper.step.SmartTaskProgressStepPanel;
+import com.evolveum.midpoint.web.component.dialog.steper.step.ThreadSetupPopupStepPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -58,6 +61,8 @@ import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 
+import static java.util.Objects.requireNonNull;
+
 public class SimulationActionFlow<T> implements Serializable {
 
     private static final String DOT_CLASS = SimulationActionFlow.class.getName() + ".";
@@ -67,6 +72,7 @@ public class SimulationActionFlow<T> implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(SimulationActionFlow.class);
 
     private final SimulationParams<T> context;
+
     boolean isSamplingEnabled = false;
     boolean showProgressPopup = true;
     boolean isCorrelationFastSimulation = false;
@@ -80,26 +86,62 @@ public class SimulationActionFlow<T> implements Serializable {
         }
     }
 
-    /**
-     * Entry point: show popup (or run directly if config disabled).
-     */
     public void start(AjaxRequestTarget target) {
-        ResourceObjectTypeDefinitionType def = context.definition();
         PredefinedConfigurationType defaultCfg = PredefinedConfigurationType.DEVELOPMENT;
 
-        String lifecycleState = def.getLifecycleState();
-        boolean isProposed = ShadowLifecycleStateType.PROPOSED.value().equals(lifecycleState);
-
-        if (isProposed) {
+        if (isProposed()) {
             if (isSamplingEnabled) {
                 runSamplingSimulation(context.pageBase(), target, defaultCfg);
             } else {
-                runSimulation(target, defaultCfg, null);
+                showThreadStepSimulationProgressPopup(context.pageBase(), target, defaultCfg, null);
             }
             return;
         }
 
         showPredefinedConfigPopup(target, defaultCfg);
+    }
+
+    private boolean isProposed() {
+        ResourceDetailsModel resourceModel = getResourceDetailsModel(context.pageBase());
+        ResourceObjectTypeDefinitionType objectType = context.definition();
+
+        if (isProposed(objectType.getLifecycleState())) {
+            return true;
+        }
+
+        if (isProposed(resourceModel.getObjectType() != null
+                ? resourceModel.getObjectType().getLifecycleState()
+                : null)) {
+            return true;
+        }
+
+        T config = context.workDefinitionConfiguration();
+        if (config instanceof InlineMappingDefinitionType mappingDefinition) {
+            return hasProposedMapping(mappingDefinition);
+        }
+
+        return false;
+    }
+
+    private boolean hasProposedMapping(@NotNull InlineMappingDefinitionType mappingDefinition) {
+        List<InboundMappingType> inbound = mappingDefinition.getInbound() != null
+                ? mappingDefinition.getInbound()
+                : Collections.emptyList();
+
+        List<OutboundMappingType> outbound = mappingDefinition.getOutbound() != null
+                ? mappingDefinition.getOutbound()
+                : Collections.emptyList();
+
+        return inbound.stream().anyMatch(this::isProposed)
+                || outbound.stream().anyMatch(this::isProposed);
+    }
+
+    private boolean isProposed(MappingType mapping) {
+        return mapping != null && isProposed(mapping.getLifecycleState());
+    }
+
+    private boolean isProposed(String lifecycleState) {
+        return ShadowLifecycleStateType.PROPOSED.value().equals(lifecycleState);
     }
 
     private void showPredefinedConfigPopup(
@@ -151,7 +193,7 @@ public class SimulationActionFlow<T> implements Serializable {
                 pageBase.hideMainPopup(target);
 
                 if (!isSamplingEnabled) {
-                    runSimulation(target, value, null);
+                    showThreadStepSimulationProgressPopup(pageBase, target, value, null);
                     return;
                 }
 
@@ -161,9 +203,14 @@ public class SimulationActionFlow<T> implements Serializable {
         pageBase.showMainPopup(popup, target);
     }
 
-    private void runSamplingSimulation(PageBase pageBase, AjaxRequestTarget target, PredefinedConfigurationType value) {
+    private void runSamplingSimulation(
+            PageBase pageBase,
+            AjaxRequestTarget target,
+            PredefinedConfigurationType value) {
+
         ResourceDetailsModel resourceModel = getResourceDetailsModel(pageBase);
         ResourceObjectTypeDefinitionType def = context.definition();
+
         SimulationDataSamplingPanel panel = new SimulationDataSamplingPanel(
                 pageBase.getMainPopupBodyId(),
                 Model.of(resourceModel)) {
@@ -178,20 +225,22 @@ public class SimulationActionFlow<T> implements Serializable {
                 if (!isCorrelationFastSimulation) {
                     return List.of(
                             createStringResource("SimulationDataSamplingPanel.simulation.mode.mapping.info"),
-                            createStringResource("SimulationDataSamplingPanel.approximateCount.mapping.info")
-                    );
+                            createStringResource("SimulationDataSamplingPanel.approximateCount.mapping.info"));
                 }
                 return super.getInfoMessagesModels();
             }
 
-            public void yesPerformed(AjaxRequestTarget target,
+            @Override
+            public void yesPerformed(
+                    AjaxRequestTarget target,
                     @Nullable Integer sampleSize,
                     @Nullable ObjectQuery objectQuery) {
+
                 Integer effectiveSampleSize = sanitizeSampleSize(sampleSize);
 
                 if (objectQuery == null && effectiveSampleSize == null) {
                     pageBase.hideMainPopup(target);
-                    runSimulation(target, value, null);
+                    showThreadStepSimulationProgressPopup(pageBase, target, value, null);
                     return;
                 }
 
@@ -210,7 +259,7 @@ public class SimulationActionFlow<T> implements Serializable {
                 try {
                     query = PrismContext.get().getQueryConverter().createQueryType(localQuery);
                 } catch (SchemaException e) {
-                    var result = new OperationResult("createQueryType");
+                    OperationResult result = new OperationResult("createQueryType");
                     result.recordFatalError("Couldn't prepare simulation query: " + e.getMessage(), e);
                     getPageBase().showResult(result);
                     target.add(getPageBase().getFeedbackPanel());
@@ -218,21 +267,15 @@ public class SimulationActionFlow<T> implements Serializable {
                 }
 
                 pageBase.hideMainPopup(target);
-                runSimulation(target, value, query);
+                showThreadStepSimulationProgressPopup(pageBase, target, value, query);
             }
         };
+
         pageBase.showMainPopup(panel, target);
     }
 
-    /**
-     * Returns null if sample size is missing/invalid => "run full".
-     * Otherwise, returns a clamped positive sample size.
-     */
     private @Nullable Integer sanitizeSampleSize(@Nullable Integer sampleSize) {
-        if (sampleSize == null) {
-            return null;
-        }
-        if (sampleSize <= 0) {
+        if (sampleSize == null || sampleSize <= 0) {
             return null;
         }
 
@@ -242,28 +285,134 @@ public class SimulationActionFlow<T> implements Serializable {
     private @NotNull ResourceDetailsModel getResourceDetailsModel(PageBase pageBase) {
         ResourceType resource = context.resource();
         PrismObject<ResourceType> prismObject = resource.asPrismObject();
+
         LoadableDetachableModel<PrismObject<ResourceType>> resourceModelModel =
                 new LoadableDetachableModel<>() {
+
                     @Override
                     protected PrismObject<ResourceType> load() {
                         return prismObject;
                     }
                 };
 
-        return new ResourceDetailsModel(resourceModelModel,
-                pageBase);
+        return new ResourceDetailsModel(resourceModelModel, pageBase);
     }
 
-    protected void runSimulation(AjaxRequestTarget target, PredefinedConfigurationType cfg, QueryType query) {
+    private void showThreadStepSimulationProgressPopup(
+            @NotNull PageBase pageBase,
+            AjaxRequestTarget target,
+            PredefinedConfigurationType cfg,
+            QueryType query) {
+
+        IModel<Integer> threadsModel = Model.of(4);
+        IModel<String> taskOidModel = Model.of();
+
+        ThreadSetupPopupStepPanel threadStep =
+                new ThreadSetupPopupStepPanel(threadsModel) {
+
+                    @Override
+                    public boolean onNextPerformed(AjaxRequestTarget target) {
+                        IModel<TaskType> taskModel =
+                                runSimulationAndReturnTaskModel(target, cfg, threadsModel.getObject(), query);
+
+                        if (taskModel == null || taskModel.getObject() == null) {
+                            return false;
+                        }
+
+                        taskOidModel.setObject(taskModel.getObject().getOid());
+                        return true;
+                    }
+                };
+
+        IModel<TaskType> taskModel = new LoadableDetachableModel<>() {
+            @Override
+            protected TaskType load() {
+                String oid = taskOidModel.getObject();
+                return oid != null ? loadTask(pageBase, oid) : null;
+            }
+        };
+
+        SmartTaskProgressStepPanel progressStep =
+                new SmartTaskProgressStepPanel(
+                        getTitleModel(pageBase),
+                        getSimulationSubTitleModel(pageBase),
+                        taskModel) {
+
+                    @Override
+                    public IModel<String> getFinishLabel() {
+                        return createStringResource("SmartTaskProgressPanel.button.showResults");
+                    }
+
+                    @Override
+                    protected void onShowResults(AjaxRequestTarget target) {
+                        TaskType task = getModelObject();
+
+                        if (task == null) {
+                            return;
+                        }
+
+                        getPageBase().hideMainPopup(target);
+                        onShowResultProcess(target, task, getPageBase());
+                    }
+                };
+
+        PopupStepperModel model = new PopupStepperModel(List.of(threadStep, progressStep));
+
+        PopupStepperPanel popup = new PopupStepperPanel(
+                pageBase.getMainPopupBodyId(),
+                Model.of(model)){
+            @Override
+            public IModel<String> getTitle() {
+                return pageBase.createStringResource("SimulationActionButton.simulate.title");
+            }
+
+            @Override
+            public @NotNull IModel<String> getTitleIconClass() {
+                return Model.of("fa fa-chart-bar");
+            }
+        };
+
+        pageBase.replaceMainPopup(popup, target);
+    }
+
+    private @Nullable IModel<TaskType> runSimulationAndReturnTaskModel(
+            AjaxRequestTarget target,
+            PredefinedConfigurationType cfg,
+            Integer threads,
+            QueryType query) {
+
         PageBase pageBase = context.pageBase();
+
         ResourceType resource = context.resource();
         ResourceObjectTypeDefinitionType def = context.definition();
         ResourceTaskFlavor<T> flavor = context.flavor();
+
         TaskType newTask = pageBase.taskAwareExecutor(target, OP_CREATE_TASK)
                 .hideSuccessfulStatus()
-                .run((task, result) -> createTask(task, result, pageBase, query, resource, def, flavor, cfg));
+                .run((task, result) -> createTask(
+                        task,
+                        result,
+                        pageBase,
+                        query,
+                        resource,
+                        def,
+                        flavor,
+                        cfg,
+                        threads));
 
-        saveAndPerformSimulation(target, pageBase, newTask);
+        String taskOid = saveSimulationTask(target, pageBase, newTask);
+
+        if (taskOid == null) {
+            return null;
+        }
+
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected TaskType load() {
+                return loadTask(pageBase, taskOid);
+            }
+        };
     }
 
     private @Nullable TaskType createTask(
@@ -274,7 +423,8 @@ public class SimulationActionFlow<T> implements Serializable {
             ResourceType resource,
             @NotNull ResourceObjectTypeDefinitionType def,
             ResourceTaskFlavor<T> flavor,
-            PredefinedConfigurationType cfg) {
+            PredefinedConfigurationType cfg,
+            Integer threads) {
 
         String displayName = def.getDisplayName();
         if (displayName == null || displayName.isEmpty()) {
@@ -282,7 +432,7 @@ public class SimulationActionFlow<T> implements Serializable {
         }
 
         try {
-            return ResourceTaskCreator.of(flavor, pageBase)
+            TaskType taskObject = ResourceTaskCreator.of(flavor, pageBase)
                     .forResource(resource)
                     .withConfiguration(context.workDefinitionConfiguration())
                     .ownedByCurrentUser()
@@ -296,10 +446,19 @@ public class SimulationActionFlow<T> implements Serializable {
                     .withSubmissionOptions(ActivitySubmissionOptions.create()
                             .withTaskTemplate(new TaskType()
                                     .name("Preview of " + flavor.flavorName()
-                                            + ": " + resource.getName() + ": " + displayName)))
+                                            + ": " + resource.getName()
+                                            + ": " + displayName)))
                     .withSimulationResultDefinition(
-                            new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false))
+                            new SimulationDefinitionType()
+                                    .useOwnPartitionForProcessedObjects(false))
                     .create(task, result);
+
+            ActivityDefinitionUtil.findOrCreateDistribution(
+                            requireNonNull(taskObject.getActivity(), "no activity definition"))
+                    .setWorkerThreads(threads);
+
+            return taskObject;
+
         } catch (CommonException e) {
             LOGGER.error("Couldn't create simulation task", e);
             result.recordFatalError(e.getMessage(), e);
@@ -307,46 +466,50 @@ public class SimulationActionFlow<T> implements Serializable {
         }
     }
 
-    /**
-     * Persists the newly created task immediately and optionally
-     * shows the simulation progress popup.
-     */
-    private void saveAndPerformSimulation(
+    private @Nullable String saveSimulationTask(
             AjaxRequestTarget target,
             PageBase pageBase,
             TaskType newTask) {
 
         if (newTask == null) {
-            return;
+            return null;
         }
 
         Task task = pageBase.createSimpleTask(OP_CREATE_TASK);
         OperationResult result = task.getResult();
 
-        PrismObject<TaskType> prismTask = newTask.asPrismObject();
-        PrismObjectWrapperFactory<TaskType> wrapperFactory = pageBase.findObjectWrapperFactory(prismTask.getDefinition());
-
-        WrapperContext context = new WrapperContext(task, result);
-        context.setCreateIfEmpty(true);
-
         String taskOid = null;
 
         try {
-            PrismObjectWrapper<TaskType> wrapper = wrapperFactory.createObjectWrapper(prismTask, ItemStatus.ADDED, context);
+            PrismObject<TaskType> prismTask = newTask.asPrismObject();
+
+            PrismObjectWrapperFactory<TaskType> wrapperFactory =
+                    pageBase.findObjectWrapperFactory(prismTask.getDefinition());
+
+            WrapperContext wrapperContext = new WrapperContext(task, result);
+            wrapperContext.setCreateIfEmpty(true);
+
+            PrismObjectWrapper<TaskType> wrapper =
+                    wrapperFactory.createObjectWrapper(
+                            prismTask,
+                            ItemStatus.ADDED,
+                            wrapperContext);
 
             WebComponentUtil.setTaskStateBeforeSave(wrapper, true, pageBase, target);
 
             ObjectDelta<TaskType> delta = wrapper.getObjectDelta();
-            ObjectChangeExecutor executor = new ObjectChangesExecutorImpl();
 
-            Collection<ObjectDeltaOperation<? extends ObjectType>> operations = executor.executeChanges(
-                    Collections.singleton(delta),
-                    false,
-                    task,
-                    result,
-                    target);
+            Collection<ObjectDeltaOperation<? extends ObjectType>> operations =
+                    new ObjectChangesExecutorImpl().executeChanges(
+                            Collections.singleton(delta),
+                            false,
+                            task,
+                            result,
+                            target);
 
-            taskOid = ObjectDeltaOperation.findAddDeltaOidRequired(operations, TaskType.class);
+            taskOid = ObjectDeltaOperation.findAddDeltaOidRequired(
+                    operations,
+                    TaskType.class);
 
         } catch (CommonException e) {
             LOGGER.error("Couldn't create task wrapper", e);
@@ -356,43 +519,14 @@ public class SimulationActionFlow<T> implements Serializable {
         } finally {
             result.computeStatusIfUnknown();
 
-            if (!result.isError() && showProgressPopup) {
-                showSimulationProgressPopup(pageBase, target, taskOid);
-            } else {
+            if (result.isError()) {
                 pageBase.showResult(result);
                 target.add(pageBase.getFeedbackPanel().getParent());
+                return null;
             }
         }
-    }
 
-    private void showSimulationProgressPopup(
-            @NotNull PageBase pageBase,
-            AjaxRequestTarget target,
-            String taskOid) {
-
-        IModel<String> titleModel = getTitleModel(pageBase);
-
-        IModel<String> subTitleModel = isCorrelationFastSimulation
-                ? pageBase.createStringResource(
-                "SmartTaskProgressPanel.correlation.simulation.subTitle")
-                : pageBase.createStringResource(
-                "SmartTaskProgressPanel.mapping.simulation.subTitle");
-
-        SmartTaskProgressPanel panel = new SmartTaskProgressPanel(pageBase.getMainPopupBodyId(), titleModel, subTitleModel,
-                () -> loadTask(pageBase, taskOid)) {
-            @Override
-            protected IModel<String> getStopButtonLabel() {
-                return createStringResource("SmartTaskProgressPanel.button.stopSimulation");
-            }
-
-            @Override
-            protected void onShowResults(AjaxRequestTarget target) {
-                getPageBase().hideMainPopup(target);
-                onShowResultProcess(target, getModelObject(), getPageBase());
-            }
-        };
-
-        pageBase.replaceMainPopup(panel, target);
+        return taskOid;
     }
 
     protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
@@ -403,11 +537,26 @@ public class SimulationActionFlow<T> implements Serializable {
                 "SmartTaskProgressPanel.mapping.simulation.title");
     }
 
-    public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
+    protected StringResourceModel getSimulationSubTitleModel(@NotNull PageBase pageBase) {
+        return isCorrelationFastSimulation
+                ? pageBase.createStringResource(
+                "SmartTaskProgressPanel.correlation.simulation.subTitle")
+                : pageBase.createStringResource(
+                "SmartTaskProgressPanel.mapping.simulation.subTitle");
+    }
+
+    public void onShowResultProcess(
+            AjaxRequestTarget target,
+            TaskType task,
+            PageBase pageBase) {
+
         ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
         PageParameters params = new PageParameters();
+
         if (simulationResultReference != null) {
-            params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, simulationResultReference.getOid());
+            params.set(
+                    SimulationPage.PAGE_PARAMETER_RESULT_OID,
+                    simulationResultReference.getOid());
             pageBase.navigateToNext(PageSimulationResult.class, params);
         }
     }
@@ -416,7 +565,13 @@ public class SimulationActionFlow<T> implements Serializable {
         Task task = pageBase.createSimpleTask(OP_LOAD_TASK);
 
         PrismObject<TaskType> taskObject = WebModelServiceUtils.loadObject(
-                TaskType.class, taskOid, null, true, pageBase, task, task.getResult());
+                TaskType.class,
+                taskOid,
+                null,
+                true,
+                pageBase,
+                task,
+                task.getResult());
 
         return taskObject != null ? taskObject.asObjectable() : null;
     }

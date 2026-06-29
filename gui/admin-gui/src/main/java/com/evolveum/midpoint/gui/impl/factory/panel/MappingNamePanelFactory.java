@@ -7,14 +7,10 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.validator.IntentValidator;
 import com.evolveum.midpoint.gui.impl.validator.MappingNameValidator;
-import com.evolveum.midpoint.gui.impl.validator.ObjectTypeMappingNameValidator;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
 
 import org.springframework.stereotype.Component;
 

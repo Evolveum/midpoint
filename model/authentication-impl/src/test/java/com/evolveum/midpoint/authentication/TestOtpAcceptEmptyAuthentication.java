@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.authentication;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
@@ -14,7 +15,6 @@ import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.otp.OtpModuleAuthentication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
@@ -26,10 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
  * In that case the TOTP module should be called off and the overall
  * authentication should still be considered successful.
  */
-public class TestOtpAcceptEmptyAuthentication {
-
-    private static final String MODULE_PASSWORD = "password";
-    private static final String MODULE_OTP = "otp";
+public class TestOtpAcceptEmptyAuthentication extends AuthenticationModulesTest {
 
     /**
      * Baseline: with the OTP module still in LOGIN_PROCESSING the overall
@@ -81,23 +78,6 @@ public class TestOtpAcceptEmptyAuthentication {
 
         assertFalse(auth.isAuthenticated(),
                 "Authentication must NOT be complete when OTP was called off but acceptEmpty=false");
-    }
-
-    private AuthenticationSequenceType buildTwoModuleSequence(boolean otpAcceptEmpty) {
-        AuthenticationSequenceModuleType passwordSeqModule = new AuthenticationSequenceModuleType();
-        passwordSeqModule.setIdentifier(MODULE_PASSWORD);
-        passwordSeqModule.setNecessity(AuthenticationSequenceModuleNecessityType.REQUIRED);
-        passwordSeqModule.setAcceptEmpty(false);
-
-        AuthenticationSequenceModuleType otpSeqModule = new AuthenticationSequenceModuleType();
-        otpSeqModule.setIdentifier(MODULE_OTP);
-        otpSeqModule.setNecessity(AuthenticationSequenceModuleNecessityType.REQUIRED);
-        otpSeqModule.setAcceptEmpty(otpAcceptEmpty);
-
-        AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-        sequence.getModule().add(passwordSeqModule);
-        sequence.getModule().add(otpSeqModule);
-        return sequence;
     }
 
     private ModuleAuthenticationImpl passwordModule(

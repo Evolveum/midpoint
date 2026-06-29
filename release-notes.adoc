@@ -40,7 +40,19 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 * xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language]: secure expression language for use in mappings and customization.
 
-* bug:MID-10965[] Fast correlators simulation.
+* New Smart Integration features:
+** Suggestions of object types (delineation).
+** Suggestions of focus type.
+** Suggestions of correlators.
+** Suggestions of mappings.
+** Suggestions of simple associations.
+** Object Type / Object Class statistics.
+** Correlators simulation.
+** Inbound mappings simulation.
+* UI/UX improvements:
+** Improved Object Type wizard.
+** Improved Mappings page.
+** Improved Correlation page.
 
 * Multi-tab Browser Support. See bug:MID-11050[].
 
@@ -59,6 +71,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * bug:MID-10875[] Added Order constraints tab for Assignments panel.
 * Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
 * Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
+* Implemented new configuration options for processing uploaded images.
 
 === Major Bugfixes
 
@@ -124,6 +137,18 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
 * Fixed loss of unsaved resource detail changes after running Test connection. See bug:MID-10966[]
 * Fixed dashboard widget collections with inline filters by allowing explicit object type specification. See bug:MID-9879[]
+* Fixed missing .zip extension when downloading tracing report files. See bug:MID-11096[]
+* Fixed resource wizard mapping property autocomplete to find partial matches regardless of letter case. See bug:MID-10415[]
+* Fixed missing input variable in resource activation existence mappings. See bug:MID-10905[]
+* Fixed stale page recovery after viewing page source causing internal server error. See bug:MID-9998[]
+* Hided conflict warning on Shopping cart panel of the Request Access wizard in case of prune action. See bug:MID-11250[] and xref:#_behavior_changes_since_4_10[behavior changes since 4.10].
+* Fixed NPE when selecting deprecated action in resource object type editor. See bug:MID-10957[]
+* Fixed tooltip lifecycle in search popovers to prevent blinking, stuck, and duplicate tooltips. See bug:MID-10908[]
+* Fixed detailed resource lifecycle changes to use the proper confirmation and save flow. See bug:MID-10700[]
+* Fixed multithreaded Ninja export race causing rare ArrayIndexOutOfBoundsException. See bug:MID-10910[]
+* Fixed reference matches queries failing when the target filter is wrapped in parentheses. See bug:MID-10903[]
+* Updated spring boot to 4.0. See bug:MID-11002[]
+* Fixed serialization of focus preview changes page by avoiding retained live model context. See bug:MID-11082[]
 
 === Releases Of Other Components
 
@@ -187,6 +212,9 @@ Generally speaking, those non-bundled items are supported only for platform subs
 This part of midPoint user interface is not finished.
 The only supported parts of this user interface are those that are used to process requests, approvals, and manual correlation.
 Other parts of case management user interface are considered to be experimental, especially the parts dealing with manual provisioning cases.
+
+* Smart Integration features which leverages LLMs, requires an external "Smart Integration" microservice to work properly (publicly available at our https://github.com/Evolveum/midpilot-smart-integration/tree/main[GitHub]).
+For all such features there is also the requirement of either hosting your own LLM inference service, or use some third party LLM inference provider.
 
 This list is just an overview, it may not be complete.
 Please see the documentation regarding detailed limitations of individual features.
@@ -434,7 +462,11 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 [#_behavior_changes_since_4_10]
 === Behavior Changes Since 4.10
 
-// TODO
+* Request access wizard behaves differently in case when conflicting situation occurs and prune action will be used for resolving the conflict.
+
+Previously, the wizard showed warning on the Shopping cart panel about conflicting roles or other shopping cart items even in case when prune action resolves the situation automatically.
+In order to correspond to the definition of the prune action, which says that "The removal of the conflicting assignments is automatic and silent", it was decided to hide the warning from Shopping cart panel.
+See also bug:MID-11250[].
 
 ++++
 {% include release-issues.html %}

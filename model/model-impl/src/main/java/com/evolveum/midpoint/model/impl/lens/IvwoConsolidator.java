@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asPrismContainerValues;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
 import java.util.function.Function;

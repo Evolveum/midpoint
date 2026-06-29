@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentific
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -37,11 +38,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
@@ -218,7 +217,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     private String pickWeightedRandom(String[] values, int[] weights, Random rand) {
         int totalWeight = 0;
-        for (int w : weights) totalWeight += w;
+        for (int w : weights) {totalWeight += w;}
         int r = rand.nextInt(totalWeight);
         int cumulative = 0;
         for (int i = 0; i < values.length; i++) {
@@ -232,14 +231,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     private void addDummyAccountsExceedingLimit() throws Exception {
         var c = dummyForObjectTypes.getController();
-        String[] departments = {"HR", "Engineering", "Sales", "Marketing", "IT", "Finance", "Support"};
-        int[] departmentWeights = {1, 5, 3, 2, 4, 2, 1};
+        String[] departments = { "HR", "Engineering", "Sales", "Marketing", "IT", "Finance", "Support" };
+        int[] departmentWeights = { 1, 5, 3, 2, 4, 2, 1 };
 
-        String[] types = {"employee", "manager", "contractor", "intern"};
-        int[] typeWeights = {7, 1, 3, 1};
+        String[] types = { "employee", "manager", "contractor", "intern" };
+        int[] typeWeights = { 7, 1, 3, 1 };
 
-        String[] statuses = {"active", "inactive"};
-        int[] statusWeights = {8, 2};
+        String[] statuses = { "active", "inactive" };
+        int[] statusWeights = { 8, 2 };
 
         Random rand = new Random();
 
@@ -254,7 +253,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             String description = "Test user number " + i;
             String email = username + "@example.com";
 
-            if (c.getDummyResource().getAccountByName(username)==null) {
+            if (c.getDummyResource().getAccountByName(username) == null) {
                 c.addAccount(username)
                         .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), personalNumber)
                         .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), department)
@@ -691,7 +690,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                     assertAiProvidedMarkPresentRequired(o,
                             ResourceObjectTypeDefinitionType.F_KIND,
                             ResourceObjectTypeDefinitionType.F_INTENT);
-                            ResourceObjectTypeDefinitionType.F_DELINEATION.append(ResourceObjectTypeDelineationType.F_FILTER);
+                    ResourceObjectTypeDefinitionType.F_DELINEATION.append(ResourceObjectTypeDelineationType.F_FILTER);
                     assertAiProvidedMarkPresent(o,
                             ItemPath.create(
                                     ResourceObjectTypeDefinitionType.F_DELINEATION,
@@ -1010,7 +1009,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         }
     }
 
-
     @SuppressWarnings("SameParameterValue")
     private ShadowObjectClassStatisticsType computeStatistics(QName objectClassName, Task task, OperationResult result)
             throws CommonException {
@@ -1084,14 +1082,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             if (request instanceof SiMatchSchemaRequestType) {
                 return schemaMatchResponse;
             } else if (request instanceof SiSuggestMappingRequestType mappingRequest) {
-                var appAttr = mappingRequest.getApplicationAttribute();
-                if (!appAttr.isEmpty()) {
-                    String attrName = appAttr.get(0).getName();
-                    if (attrName.contains("type")) {
-                        throw new RuntimeException("LLM went crazy here");
-                    } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
-                        return new SiSuggestMappingResponseType().transformationScript("input.replace('-', '')");
-                    }
+                String attrName = mappingRequest.getApplicationAttribute().getName();
+                if (attrName.contains("type")) {
+                    throw new RuntimeException("LLM went crazy here");
+                } else if (attrName.contains("phone") || attrName.contains("telephoneNumber")) {
+                    return new SiSuggestMappingResponseType().transformationScript("input.replace('-', '')");
                 }
             }
             return null;

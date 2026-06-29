@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision.*;
 import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDependencyTypeUtil.*;
-import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDependencyTypeUtil.getDependencyStrictness;
-import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDependencyTypeUtil.isForceLoadDependentShadow;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.util.PrettyPrinter.prettyPrint;

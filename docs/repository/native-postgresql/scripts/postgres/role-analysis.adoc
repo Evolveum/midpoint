@@ -1,0 +1,447 @@
+= Native PostgreSQL Schema Script: postgres.sql - Role analysis
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Role analysis
+
+Role analysis sessions, clusters, outliers, detected patterns, and related containers.
+
+
+== Tables
+
+[[m_role_analysis_cluster]]
+=== `m_role_analysis_cluster`
+
+Stores role analysis cluster objects and their parent cluster references.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisClusterType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Role analysis cluster object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `parentRefTargetOid`
+| `UUID`
+| 
+| OID of the parent cluster reference target.
+
+| `parentRefTargetType`
+| `ObjectType`
+| 
+| Object type of the parent cluster reference target.
+
+| `parentRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the parent cluster reference.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_role_analysis_cluster_parentRefTargetOid_idx`
+| `parentRefTargetOid`
+| Speeds up lookup of role analysis clusters by parent reference target OID. Used for: role analysis cluster parent searches
+
+| `m_role_analysis_cluster_parentRefTargetType_idx`
+| `parentRefTargetType`
+| Speeds up filtering role analysis clusters by parent reference target type. Used for: role analysis cluster parent searches
+
+| `m_role_analysis_cluster_parentRefRelationId_idx`
+| `parentRefRelationId`
+| Speeds up filtering role analysis clusters by parent reference relation. Used for: role analysis cluster parent searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+| `parentRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+|===
+
+[[m_role_analysis_cluster_detected_pattern]]
+=== `m_role_analysis_cluster_detected_pattern`
+
+Stores detected role analysis patterns inside a role analysis cluster.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#DetectedPatternType`
+
+Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the role analysis cluster that owns the detected pattern.
+
+| `containerType`
+| `ContainerType`
+| 
+| 
+
+| `reductionCount`
+| `double precision`
+| 
+| Reduction count calculated for the detected pattern.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_role_analysis_cluster_detected_pattern_reductionCount_idx`
+| `reductionCount`
+| Speeds up filtering detected patterns by reduction count. Used for: role analysis detected pattern ranking and filters
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+|===
+
+[[m_role_analysis_outlier]]
+=== `m_role_analysis_outlier`
+
+Stores role analysis outlier objects and references to analyzed target objects.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisOutlierType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Role analysis outlier object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `targetObjectRefTargetOid`
+| `UUID`
+| 
+| OID of the object identified as an outlier target.
+
+| `targetObjectRefTargetType`
+| `ObjectType`
+| 
+| Object type of the outlier target object.
+
+| `targetObjectRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the outlier target reference.
+
+| `overallConfidence`
+| `double precision`
+| 
+| Overall confidence score calculated for the outlier.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_role_analysis_outlier_targetObjectRefTargetOid_idx`
+| `targetObjectRefTargetOid`
+| Speeds up lookup of role analysis outliers by target object OID. Used for: role analysis outlier target searches
+
+| `m_role_analysis_outlier_targetObjectRefTargetType_idx`
+| `targetObjectRefTargetType`
+| Speeds up filtering role analysis outliers by target object type. Used for: role analysis outlier target searches
+
+| `m_role_analysis_outlier_targetObjectRefRelationId_idx`
+| `targetObjectRefRelationId`
+| Speeds up filtering role analysis outliers by target reference relation. Used for: role analysis outlier target searches
+
+| `m_role_analysis_outlier_overallConfidence_idx`
+| `overallConfidence`
+| Speeds up filtering or ordering role analysis outliers by confidence score. Used for: role analysis outlier confidence filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+| `targetObjectRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+|===
+
+[[m_role_analysis_outlier_partition]]
+=== `m_role_analysis_outlier_partition`
+
+Stores partition data for role analysis outliers.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisOutlierPartitionType`
+
+Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the role analysis outlier that owns this partition row.
+
+| `containerType`
+| `ContainerType`
+| 
+| 
+
+| `clusterRefOid`
+| `UUID`
+| 
+| OID of the related role analysis cluster.
+
+| `clusterRefTargetType`
+| `ObjectType`
+| 
+| Object type of the related role analysis cluster.
+
+| `clusterRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the cluster reference.
+
+| `overallConfidence`
+| `double precision`
+| 
+| Confidence score calculated for this outlier partition.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_role_analysis_outlier_partition_clusterRefOid_idx`
+| `clusterRefOid`
+| Speeds up lookup of outlier partitions by cluster OID. Used for: role analysis outlier partition cluster searches
+
+| `m_role_analysis_outlier_partition_overallConfidence_idx`
+| `overallConfidence`
+| Speeds up filtering or ordering outlier partitions by confidence score. Used for: role analysis outlier confidence filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+| `clusterRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+| -
+
+|===
+
+[[m_role_analysis_session]]
+=== `m_role_analysis_session`
+
+Stores role analysis session objects.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisSessionType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Role analysis session object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+|===
+
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+[cols="2,3,2,2", options="header"]
+|===
+| Trigger
+| Description
+| Table
+| Executes
+
+[[trigger_m_role_analysis_cluster_oid_delete_tr]]
+| `m_role_analysis_cluster_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_role_analysis_cluster`.
+| xref:#m_role_analysis_cluster[`m_role_analysis_cluster`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_role_analysis_cluster_oid_insert_tr]]
+| `m_role_analysis_cluster_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_role_analysis_cluster`.
+| xref:#m_role_analysis_cluster[`m_role_analysis_cluster`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_role_analysis_cluster_update_tr]]
+| `m_role_analysis_cluster_update_tr`
+| Maintains object update metadata before rows are updated in `m_role_analysis_cluster`.
+| xref:#m_role_analysis_cluster[`m_role_analysis_cluster`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_role_analysis_outlier_oid_delete_tr]]
+| `m_role_analysis_outlier_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_role_analysis_outlier`.
+| xref:#m_role_analysis_outlier[`m_role_analysis_outlier`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_role_analysis_outlier_oid_insert_tr]]
+| `m_role_analysis_outlier_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_role_analysis_outlier`.
+| xref:#m_role_analysis_outlier[`m_role_analysis_outlier`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_role_analysis_outlier_update_tr]]
+| `m_role_analysis_outlier_update_tr`
+| Maintains object update metadata before rows are updated in `m_role_analysis_outlier`.
+| xref:#m_role_analysis_outlier[`m_role_analysis_outlier`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_role_analysis_session_oid_delete_tr]]
+| `m_role_analysis_session_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_role_analysis_session`.
+| xref:#m_role_analysis_session[`m_role_analysis_session`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_role_analysis_session_oid_insert_tr]]
+| `m_role_analysis_session_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_role_analysis_session`.
+| xref:#m_role_analysis_session[`m_role_analysis_session`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_role_analysis_session_update_tr]]
+| `m_role_analysis_session_update_tr`
+| Maintains object update metadata before rows are updated in `m_role_analysis_session`.
+| xref:#m_role_analysis_session[`m_role_analysis_session`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+|===
+

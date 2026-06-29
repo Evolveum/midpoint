@@ -10,8 +10,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.deleg.ObjectDefinitionDelegator;

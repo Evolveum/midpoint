@@ -11,22 +11,27 @@ import jakarta.activation.MimeTypeParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Objects;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_PNG;
+import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.CONTENT_TYPES_TO_MAGIC_NUMBERS;
 
 /**
+ * Contains methods for file validation.
+ * E.g. compares file contentType with list of allowed ones or checks if given file starts with magic number of expected contentType.
+ *
  * @author matisovaa
  *
  */
 public final class FileValidatorUtil {
-    public static final List<String> ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES = Arrays.asList(MIME_IMAGE_JPEG, MIME_IMAGE_PNG);
-    public static final Map<String, String> CONTENT_TYPES_TO_MAGIC_NUMBERS = Map.of(
-            MIME_IMAGE_JPEG, "ffd8ff",
-            MIME_IMAGE_PNG, "89504e470d0a1a0a"
-    );
 
+    /**
+     * Converts list of String mime type names (e.g. "image/jpeg") to list of MimeType objects.
+     *
+     * @param stringMimeTypes list of String mime type names (e.g. "image/jpeg")
+     * @return list of MimeType objects creates from input list of String mime type names (e.g. "image/jpeg")
+     */
     public static List<MimeType> getMimeTypes(final List<String> stringMimeTypes) {
         return stringMimeTypes.stream()
                 .map(s -> {
@@ -40,6 +45,14 @@ public final class FileValidatorUtil {
                 .toList();
     }
 
+    /**
+     * Validates if given content type name is in the list of allowed MimeTypes.
+     *
+     * @param contentType to check if it is allowed
+     * @param allowedTypes the list of allowed MimeTypes
+     * @return true if given contentType is in the list of allowed MimeTypes, false otherwise
+     * @throws MimeTypeParseException if it is not possible to convert given contentType to MimeType
+     */
     public static boolean isValidContentType(final String contentType, final List<MimeType> allowedTypes) throws MimeTypeParseException {
         final MimeType fileMime = new MimeType(contentType);
 
@@ -51,8 +64,16 @@ public final class FileValidatorUtil {
         return false;
     }
 
+    /**
+     * Validates if given inputStream begins with magic number of given contentType.
+     *
+     * @param contentType expected contentType of data in given inputStream
+     * @param inputStream stream of data to check contentType based on its magic number
+     * @return true if given inputStream begins with magic number of given contentType, false otherwise
+     * @throws IOException if there is problem to read bytes from given inputStream
+     */
     public static boolean isValidMagicNumber(final String contentType, final InputStream inputStream) throws IOException {
-        final String magicNumberForContentType = FileValidatorUtil.CONTENT_TYPES_TO_MAGIC_NUMBERS.get(contentType);
+        final String magicNumberForContentType = CONTENT_TYPES_TO_MAGIC_NUMBERS.get(contentType);
         final String magicNumberOfFile = HexFormat.of().formatHex(inputStream.readNBytes(magicNumberForContentType.length() / 2));
         return Objects.equals(magicNumberForContentType, magicNumberOfFile);
     }

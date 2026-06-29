@@ -1,0 +1,692 @@
+= Native PostgreSQL Schema Script: postgres.sql - Focus and users
+
+xref:../../schema.adoc[Back to native PostgreSQL schema overview]
+
+xref:../postgres.adoc[Back to postgres.sql documentation]
+
+
+This page documents schema objects parsed from `config/sql/native/postgres.sql`.
+
+Region: Focus and users
+
+Focus base data, users, generic objects, focus identities, and focus-related references.
+
+
+== Tables
+
+[[m_focus]]
+=== `m_focus`
+
+Abstract base table for focus objects such as users, roles, services, and organizations.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+No primary key is defined directly on this table. The table inherits from xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`].
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `objectType`
+| `ObjectType`
+| required
+| 
+
+| `costCenter`
+| `TEXT`
+| 
+| Cost center value used by focus objects.
+
+| `emailAddress`
+| `TEXT`
+| 
+| Primary email address of the focus object.
+
+| `photo`
+| `BYTEA`
+| 
+| Binary photo data for the focus object.
+
+| `locale`
+| `TEXT`
+| 
+| Locale preference of the focus object.
+
+| `localityOrig`
+| `TEXT`
+| 
+| Original locality value.
+
+| `localityNorm`
+| `TEXT`
+| 
+| Normalized locality value used for searches.
+
+| `preferredLanguage`
+| `TEXT`
+| 
+| Preferred language of the focus object.
+
+| `telephoneNumber`
+| `TEXT`
+| 
+| Telephone number of the focus object.
+
+| `timezone`
+| `TEXT`
+| 
+| Timezone preference of the focus object.
+
+| `passwordCreateTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when password credentials were created.
+
+| `passwordModifyTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when password credentials were last modified.
+
+| `administrativeStatus`
+| `ActivationStatusType`
+| 
+| Administrative activation status.
+
+| `effectiveStatus`
+| `ActivationStatusType`
+| 
+| Effective activation status.
+
+| `enableTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the focus becomes enabled.
+
+| `disableTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the focus becomes disabled.
+
+| `disableReason`
+| `TEXT`
+| 
+| Reason for disabling the focus.
+
+| `validityStatus`
+| `TimeIntervalStatusType`
+| 
+| Validity interval status.
+
+| `validFrom`
+| `TIMESTAMPTZ`
+| 
+| Start of the focus validity interval.
+
+| `validTo`
+| `TIMESTAMPTZ`
+| 
+| End of the focus validity interval.
+
+| `validityChangeTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when validity state last changed.
+
+| `archiveTimestamp`
+| `TIMESTAMPTZ`
+| 
+| Time when the focus was archived.
+
+| `lockoutStatus`
+| `LockoutStatusType`
+| 
+| Lockout status for focus credentials.
+
+| `normalizedData`
+| `JSONB`
+| 
+| Normalized focus data used by repository search and correlation features.
+
+|===
+
+[[m_focus_identity]]
+=== `m_focus_identity`
+
+Stores focus identity values used by correlation and identity matching.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusIdentityType`
+
+Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the focus object that owns the identity value.
+
+| `containerType`
+| `ContainerType`
+| 
+| 
+
+| `fullObject`
+| `BYTEA`
+| 
+| Serialized focus identity value.
+
+| `sourceResourceRefTargetOid`
+| `UUID`
+| 
+| OID of the source resource reference for this identity value.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_focus_identity_sourceResourceRefTargetOid_idx`
+| `sourceResourceRefTargetOid`
+| Speeds up lookup of focus identities by source resource. Used for: focus identity source-resource searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+|===
+
+[[m_generic_object]]
+=== `m_generic_object`
+
+Stores generic objects that do not have a dedicated concrete repository table.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#GenericObjectType`
+
+Inherits from: xref:#m_focus[`m_focus`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Generic object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_generic_object_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_generic_object_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_generic_object_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_generic_object_validFrom_idx`
+| `validFrom`
+| Speeds up filtering by activation validity start time. Used for: validity interval filters
+
+| `m_generic_object_validTo_idx`
+| `validTo`
+| Speeds up filtering by activation validity end time. Used for: validity interval filters
+
+| `m_generic_object_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_generic_object_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_generic_object_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+|===
+
+[[m_ref_persona]]
+=== `m_ref_persona`
+
+Stores persona references for focus objects.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the focus object that owns the persona reference.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_persona_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of persona references by target object and relation. Used for: persona reference target searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+|===
+
+[[m_ref_projection]]
+=== `m_ref_projection`
+
+Stores projection references from focus objects to resource object shadows.
+
+Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `ownerOid`
+| `UUID`
+| primary key, required
+| OID of the focus object that owns the projection reference.
+
+| `referenceType`
+| `ReferenceType`
+| 
+| 
+
+| `fullObject`
+| `BYTEA`
+| 
+| Serialized reference value when full projection reference data is needed.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_ref_projection_targetOidRelationId_idx`
+| `targetOid, relationId`
+| Speeds up reverse lookup of projection references by target object and relation. Used for: projection reference target searches
+
+|===
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `ownerOid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+| ON DELETE CASCADE
+
+|===
+
+[[m_user]]
+=== `m_user`
+
+Stores user objects and user-specific searchable attributes.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType`
+
+Inherits from: xref:#m_focus[`m_focus`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| User object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `additionalNameOrig`
+| `TEXT`
+| 
+| Additional name in original form.
+
+| `additionalNameNorm`
+| `TEXT`
+| 
+| Additional name in normalized form used for searches.
+
+| `employeeNumber`
+| `TEXT`
+| 
+| Employee number assigned to the user.
+
+| `familyNameOrig`
+| `TEXT`
+| 
+| Family name in original form.
+
+| `familyNameNorm`
+| `TEXT`
+| 
+| Family name in normalized form used for searches.
+
+| `fullNameOrig`
+| `TEXT`
+| 
+| Full name in original form.
+
+| `fullNameNorm`
+| `TEXT`
+| 
+| Full name in normalized form used for searches.
+
+| `givenNameOrig`
+| `TEXT`
+| 
+| Given name in original form.
+
+| `givenNameNorm`
+| `TEXT`
+| 
+| Given name in normalized form used for searches.
+
+| `honorificPrefixOrig`
+| `TEXT`
+| 
+| Honorific prefix in original form.
+
+| `honorificPrefixNorm`
+| `TEXT`
+| 
+| Honorific prefix in normalized form used for searches.
+
+| `honorificSuffixOrig`
+| `TEXT`
+| 
+| Honorific suffix in original form.
+
+| `honorificSuffixNorm`
+| `TEXT`
+| 
+| Honorific suffix in normalized form used for searches.
+
+| `nickNameOrig`
+| `TEXT`
+| 
+| Nickname in original form.
+
+| `nickNameNorm`
+| `TEXT`
+| 
+| Nickname in normalized form used for searches.
+
+| `personalNumber`
+| `TEXT`
+| 
+| Personal number assigned to the user.
+
+| `titleOrig`
+| `TEXT`
+| 
+| Title in original form.
+
+| `titleNorm`
+| `TEXT`
+| 
+| Title in normalized form used for searches.
+
+| `organizations`
+| `JSONB`
+| 
+| Organization values stored as searchable poly-string JSON data.
+
+| `organizationUnits`
+| `JSONB`
+| 
+| Organizational unit values stored as searchable poly-string JSON data.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_user_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_user_nameNorm_key`
+| `nameNorm`
+| Enforces unique normalized object names and speeds up exact name lookup. Used for: normalized name lookup and uniqueness checks. unique
+
+| `m_user_policySituation_idx`
+| `USING gin (policysituations)`
+| Speeds up filtering by policy situation. Used for: policy situation filters
+
+| `m_user_ext_idx`
+| `USING gin (ext)`
+| Speeds up filtering by indexed extension values. Used for: extension item filters
+
+| `m_user_fullNameOrig_idx`
+| `fullNameOrig`
+| Speeds up lookup by original full name. Used for: full name searches
+
+| `m_user_familyNameOrig_idx`
+| `familyNameOrig`
+| Speeds up lookup by original family name. Used for: family name searches
+
+| `m_user_givenNameOrig_idx`
+| `givenNameOrig`
+| Speeds up lookup by original given name. Used for: given name searches
+
+| `m_user_employeeNumber_idx`
+| `employeeNumber`
+| Speeds up lookup by employee number. Used for: employee number searches
+
+| `m_user_subtypes_idx`
+| `USING gin (subtypes)`
+| Speeds up filtering by object subtype. Used for: subtype filters
+
+| `m_user_organizations_idx`
+| `USING gin (organizations)`
+| Speeds up filtering by organization values. Used for: organization filters
+
+| `m_user_organizationUnits_idx`
+| `USING gin (organizationUnits)`
+| Speeds up filtering by organizational unit values. Used for: organizational unit filters
+
+| `m_user_validFrom_idx`
+| `validFrom`
+| Speeds up filtering by activation validity start time. Used for: validity interval filters
+
+| `m_user_validTo_idx`
+| `validTo`
+| Speeds up filtering by activation validity end time. Used for: validity interval filters
+
+| `m_user_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_user_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_user_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+|===
+
+== Triggers
+
+Triggers run routines automatically when table rows are inserted, updated, or deleted.
+
+[cols="2,3,2,2", options="header"]
+|===
+| Trigger
+| Description
+| Table
+| Executes
+
+[[trigger_m_generic_object_oid_delete_tr]]
+| `m_generic_object_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_generic_object`.
+| xref:#m_generic_object[`m_generic_object`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_generic_object_oid_insert_tr]]
+| `m_generic_object_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_generic_object`.
+| xref:#m_generic_object[`m_generic_object`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_generic_object_update_tr]]
+| `m_generic_object_update_tr`
+| Maintains object update metadata before rows are updated in `m_generic_object`.
+| xref:#m_generic_object[`m_generic_object`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_user_oid_delete_tr]]
+| `m_user_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_user`.
+| xref:#m_user[`m_user`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_user_oid_insert_tr]]
+| `m_user_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_user`.
+| xref:#m_user[`m_user`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_user_update_tr]]
+| `m_user_update_tr`
+| Maintains object update metadata before rows are updated in `m_user`.
+| xref:#m_user[`m_user`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+|===
+

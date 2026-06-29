@@ -1,0 +1,761 @@
+= postgres-upgrade.sql - midPoint 4.9
+
+== Changes
+
+[cols="1,3", options="header"]
+|===
+| Change
+| Description
+
+| <<change-50,Change 50>>
+| Adds overall confidence column and index to role analysis outlier partitions.
+
+| <<change-49,Change 49>>
+| Adds role analysis detected pattern and outlier partition tables, columns, and indexes.
+
+| <<change-48,Change 48>>
+| Adds role analysis cluster detected pattern and outlier partition container type values.
+
+| <<change-47,Change 47>>
+| Adds last login timestamp column and index to shadows.
+
+| <<change-46,Change 46>>
+| Adds target object reference columns and indexes to role analysis outliers.
+
+| <<change-45,Change 45>>
+| Adds shadow enable/disable timestamp and disable reason columns.
+
+| <<change-44,Change 44>>
+| Renames shadow kind value from `ASSOCIATED` to `ASSOCIATION`.
+
+| <<change-43,Change 43>>
+| Adds shadow partition management functions, partition definition table, and triggers.
+
+| <<change-42,Change 42>>
+| Converts shadow storage to resource-partitioned shadow tables and recreates object view.
+
+| <<change-41,Change 41>>
+| Adds assignment effective mark reference table and target lookup index.
+
+| <<change-40,Change 40>>
+| Adds `ASSIGNMENT_EFFECTIVE_MARK` reference type value.
+
+| <<change-39,Change 39>>
+| Adds task affected object reference table, foreign key, and target lookup index.
+
+| <<change-38,Change 38>>
+| Adds `TASK_AFFECTED_OBJECT` reference type value.
+
+| <<change-37,Change 37>>
+| Adds shadow reference attribute table and owner OID index.
+
+| <<change-36,Change 36>>
+| Adds role analysis outlier table and triggers.
+
+| <<change-35,Change 35>>
+| Adds `ROLE_ANALYSIS_OUTLIER` object type value.
+
+| <<change-34,Change 34>>
+| Updates assignment metadata primary key and adds foreign key to assignments.
+
+| <<change-33,Change 33>>
+| Adds assignment metadata table and updates assignment approval reference keys.
+
+| <<change-32,Change 32>>
+| Adds `ASSIGNMENT_METADATA` container type value.
+
+| <<change-31,Change 31>>
+| Adds `ASSOCIATED` shadow kind value.
+
+| <<change-30,Change 30>>
+| Adds schema object table and triggers.
+
+| <<change-29,Change 29>>
+| Adds `SCHEMA` object type value.
+
+| <<change-28,Change 28>>
+| Adds policy object table, triggers, and indexes.
+
+| <<change-27,Change 27>>
+| Adds `POLICY` object type value.
+
+| <<change-26,Change 26>>
+| Adds separate full object storage to assignments, operation executions, and selected reference tables.
+
+|===
+
+[[change-50]]
+== Change 50
+
+Since version: 4.9
+
+Adds overall confidence column and index to role analysis outlier partitions.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_role_analysis_outlier_partition`
+| Modified table
+| Adds overall confidence column.
+
+| `m_role_analysis_outlier_partition_overallConfidence_idx`
+| New index
+| Supports filtering by overall confidence.
+
+|===
+
+[[change-49]]
+== Change 49
+
+Since version: 4.9
+
+Adds role analysis detected pattern and outlier partition tables, columns, and indexes.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_role_analysis_cluster_detected_pattern`
+| New table
+| Stores detected patterns for role analysis clusters.
+
+| `m_role_analysis_cluster_detected_pattern_reductionCount_idx`
+| New index
+| Supports filtering by reduction count.
+
+| `m_role_analysis_outlier_partition`
+| New table
+| Stores role analysis outlier partitions.
+
+| `m_role_analysis_outlier_partition_clusterRefOid_idx`
+| New index
+| Supports lookup by cluster reference OID.
+
+| `m_role_analysis_outlier`
+| Modified table
+| Adds overall confidence column.
+
+| `m_role_analysis_outlier_overallConfidence_idx`
+| New index
+| Supports filtering by overall confidence.
+
+|===
+
+[[change-48]]
+== Change 48
+
+Since version: 4.9
+
+Adds role analysis cluster detected pattern and outlier partition container type values.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ContainerType`
+| Modified enum type
+| Adds `CLUSTER_DETECTED_PATTERN` and `OUTLIER_PARTITION`.
+
+|===
+
+[[change-47]]
+== Change 47
+
+Since version: 4.9
+
+Adds last login timestamp column and index to shadows.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_shadow`
+| Modified table
+| Adds last login timestamp column.
+
+| `m_shadow_default_lastLoginTimestamp_idx`
+| New index
+| Supports filtering by last login timestamp.
+
+|===
+
+[[change-46]]
+== Change 46
+
+Since version: 4.9
+
+Adds target object reference columns and indexes to role analysis outliers.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_role_analysis_outlier`
+| Modified table
+| Adds target object reference columns.
+
+| `m_role_analysis_outlier_targetObjectRefTargetOid_idx`
+| New index
+| Supports lookup by target object OID.
+
+| `m_role_analysis_outlier_targetObjectRefTargetType_idx`
+| New index
+| Supports lookup by target object type.
+
+| `m_role_analysis_outlier_targetObjectRefRelationId_idx`
+| New index
+| Supports lookup by target object relation.
+
+|===
+
+[[change-45]]
+== Change 45
+
+Since version: 4.9
+
+Adds shadow enable/disable timestamp and disable reason columns.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_shadow`
+| Modified table
+| Adds disable reason, enable timestamp, and disable timestamp columns.
+
+|===
+
+[[change-44]]
+== Change 44
+
+Since version: 4.9
+
+Renames shadow kind value from `ASSOCIATED` to `ASSOCIATION`.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ShadowKindType`
+| Modified enum type
+| Renames `ASSOCIATED` to `ASSOCIATION`.
+
+|===
+
+[[change-43]]
+== Change 43
+
+Since version: 4.9
+
+Adds shadow partition management functions, partition definition table, and triggers.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_shadow_create_partition`
+| New function
+| Creates shadow partitions and moves existing shadow data.
+
+| `m_shadow_delete_partition`
+| New function
+| Drops shadow partitions when partition definitions are removed.
+
+| `m_shadow_update_partition`
+| New function
+| Attaches shadow partitions when partition definitions change.
+
+| `m_shadow_partition_def`
+| New table
+| Stores shadow partition definitions.
+
+| `m_shadow_partition_def_bi`
+| New trigger
+| Creates shadow partitions from inserted partition definitions.
+
+| `m_shadow_partition_def_bu`
+| New trigger
+| Updates shadow partition attachment state.
+
+| `m_shadow_partition_def_bd`
+| New trigger
+| Drops shadow partitions when definitions are deleted.
+
+|===
+
+[[change-42]]
+== Change 42
+
+Since version: 4.9
+
+Converts shadow storage to resource-partitioned shadow tables and recreates object view.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_shadow`
+| Recreated table
+| Converts shadow storage to resource-partitioned table.
+
+| `m_shadow_default`
+| Modified table
+| Becomes default partition of the new shadow table.
+
+| `m_object_view`
+| Recreated view
+| Combines object and shadow rows for object-wide queries.
+
+| `m_shadow_oid_insert_tr`
+| Recreated trigger
+| Reserves OID rows for inserted shadows.
+
+| `m_shadow_update_tr`
+| Recreated trigger
+| Maintains update metadata for shadows.
+
+| `m_shadow_oid_delete_tr`
+| Recreated trigger
+| Releases OID rows for deleted shadows.
+
+|===
+
+[[change-41]]
+== Change 41
+
+Since version: 4.9
+
+Adds assignment effective mark reference table and target lookup index.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_ref_assignment_effective_mark`
+| New table
+| Stores effective mark references for assignments.
+
+| `m_ref_assignment_effective_mark_targetOidRelationId_idx`
+| New index
+| Supports reverse lookup of assignment effective mark references.
+
+|===
+
+[[change-40]]
+== Change 40
+
+Since version: 4.9
+
+Adds `ASSIGNMENT_EFFECTIVE_MARK` reference type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ReferenceType`
+| Modified enum type
+| Adds `ASSIGNMENT_EFFECTIVE_MARK`.
+
+|===
+
+[[change-39]]
+== Change 39
+
+Since version: 4.9
+
+Adds task affected object reference table, foreign key, and target lookup index.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_ref_task_affected_object`
+| New table
+| Stores affected-object references for tasks.
+
+| `m_ref_task_affected_object_id_fk`
+| New foreign key
+| Links affected-object references to task affected object rows.
+
+| `m_ref_task_affected_object_targetOidRelationId_idx`
+| New index
+| Supports reverse lookup by target object and relation.
+
+|===
+
+[[change-38]]
+== Change 38
+
+Since version: 4.9
+
+Adds `TASK_AFFECTED_OBJECT` reference type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ReferenceType`
+| Modified enum type
+| Adds `TASK_AFFECTED_OBJECT`.
+
+|===
+
+[[change-37]]
+== Change 37
+
+Since version: 4.9
+
+Adds shadow reference attribute table and owner OID index.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_shadow_ref_attribute`
+| New table
+| Stores shadow reference attribute values.
+
+| `m_shadow_ref_attribute_ownerOid_idx`
+| New index
+| Supports lookup of shadow reference attributes by owner OID.
+
+|===
+
+[[change-36]]
+== Change 36
+
+Since version: 4.9
+
+Adds role analysis outlier table and triggers.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_role_analysis_outlier`
+| New table
+| Stores role analysis outlier objects.
+
+| `m_role_analysis_outlier_oid_insert_tr`
+| New trigger
+| Reserves OID rows for inserted role analysis outliers.
+
+| `m_role_analysis_outlier_update_tr`
+| New trigger
+| Maintains update metadata for role analysis outliers.
+
+| `m_role_analysis_outlier_oid_delete_tr`
+| New trigger
+| Releases OID rows for deleted role analysis outliers.
+
+|===
+
+[[change-35]]
+== Change 35
+
+Since version: 4.9
+
+Adds `ROLE_ANALYSIS_OUTLIER` object type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ObjectType`
+| Modified enum type
+| Adds `ROLE_ANALYSIS_OUTLIER`.
+
+|===
+
+[[change-34]]
+== Change 34
+
+Since version: 4.9
+
+Updates assignment metadata primary key and adds foreign key to assignments.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_assignment_metadata`
+| Modified table
+| Replaces primary key and adds foreign key to assignments.
+
+|===
+
+[[change-33]]
+== Change 33
+
+Since version: 4.9
+
+Adds assignment metadata table and updates assignment approval reference keys.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_assignment_metadata`
+| New table
+| Stores value metadata for assignments and inducements.
+
+| `m_assignment_metadata_createTimestamp_idx`
+| New index
+| Supports filtering or ordering assignment metadata by creation time.
+
+| `m_assignment_metadata_modifyTimestamp_idx`
+| New index
+| Supports filtering or ordering assignment metadata by modification time.
+
+| `m_assignment_ref_create_approver`
+| Modified table
+| Adds metadata container ID and updates uniqueness key.
+
+| `m_assignment_ref_modify_approver`
+| Modified table
+| Adds metadata container ID and updates uniqueness key.
+
+|===
+
+[[change-32]]
+== Change 32
+
+Since version: 4.9
+
+Adds `ASSIGNMENT_METADATA` container type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ContainerType`
+| Modified enum type
+| Adds `ASSIGNMENT_METADATA`.
+
+|===
+
+[[change-31]]
+== Change 31
+
+Since version: 4.9
+
+Adds `ASSOCIATED` shadow kind value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ShadowKindType`
+| Modified enum type
+| Adds temporary `ASSOCIATED` shadow kind value.
+
+|===
+
+[[change-30]]
+== Change 30
+
+Since version: 4.9
+
+Adds schema object table and triggers.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_schema`
+| New table
+| Stores schema objects.
+
+| `m_schema_oid_insert_tr`
+| New trigger
+| Reserves OID rows for inserted schema objects.
+
+| `m_schema_update_tr`
+| New trigger
+| Maintains update metadata for schema objects.
+
+| `m_schema_oid_delete_tr`
+| New trigger
+| Releases OID rows for deleted schema objects.
+
+|===
+
+[[change-29]]
+== Change 29
+
+Since version: 4.9
+
+Adds `SCHEMA` object type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ObjectType`
+| Modified enum type
+| Adds `SCHEMA`.
+
+|===
+
+[[change-28]]
+== Change 28
+
+Since version: 4.9
+
+Adds policy object table, triggers, and indexes.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_policy`
+| New table
+| Stores policy objects.
+
+| `m_policy_oid_insert_tr`
+| New trigger
+| Reserves OID rows for inserted policy objects.
+
+| `m_policy_update_tr`
+| New trigger
+| Maintains update metadata for policy objects.
+
+| `m_policy_oid_delete_tr`
+| New trigger
+| Releases OID rows for deleted policy objects.
+
+| `m_policy_nameOrig_idx`
+| New index
+| Supports lookup by original object name.
+
+| `m_policy_nameNorm_key`
+| New unique index
+| Enforces unique normalized object names.
+
+| `m_policy_subtypes_idx`
+| New index
+| Supports filtering by subtype.
+
+| `m_policy_identifier_idx`
+| New index
+| Supports lookup by identifier.
+
+| `m_policy_validFrom_idx`
+| New index
+| Supports filtering by validity start.
+
+| `m_policy_validTo_idx`
+| New index
+| Supports filtering by validity end.
+
+| `m_policy_fullTextInfo_idx`
+| New index
+| Supports full-text-like searches.
+
+| `m_policy_createTimestamp_idx`
+| New index
+| Supports filtering or ordering by creation time.
+
+| `m_policy_modifyTimestamp_idx`
+| New index
+| Supports filtering or ordering by modification time.
+
+|===
+
+[[change-27]]
+== Change 27
+
+Since version: 4.9
+
+Adds `POLICY` object type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ObjectType`
+| Modified enum type
+| Adds `POLICY`.
+
+|===
+
+[[change-26]]
+== Change 26
+
+Since version: 4.9
+
+Adds separate full object storage to assignments, operation executions, and selected reference tables.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_assignment`
+| Modified table
+| Adds separate full object storage.
+
+| `m_operation_execution`
+| Modified table
+| Adds separate full object storage.
+
+| `m_ref_projection`
+| Modified table
+| Adds separate full object storage.
+
+| `m_ref_role_membership`
+| Modified table
+| Adds separate full object storage.
+
+|===
+

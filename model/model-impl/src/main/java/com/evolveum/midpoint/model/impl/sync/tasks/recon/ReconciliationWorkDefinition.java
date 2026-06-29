@@ -12,13 +12,9 @@ import com.evolveum.midpoint.model.impl.sync.tasks.ResourceSetTaskWorkDefinition
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 public class ReconciliationWorkDefinition extends ResourceSetTaskWorkDefinition implements ResourceObjectSetSpecificationProvider {
 

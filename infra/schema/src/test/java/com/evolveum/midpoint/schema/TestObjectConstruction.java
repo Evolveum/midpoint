@@ -20,9 +20,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import javax.xml.namespace.QName;
-import java.util.List;
-
 /**
  * @author semancik
  */

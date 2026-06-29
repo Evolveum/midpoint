@@ -344,7 +344,8 @@ public abstract class SmartCorrelationTable
             }
         };
 
-        LabelWithBadgePanel labelWithBadgePanel = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel, status);
+        LabelWithBadgePanel labelWithBadgePanel = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel,
+                createStringResource("SmartIntegration.suggestion.text"), status);
         cellItem.add(labelWithBadgePanel);
     }
 

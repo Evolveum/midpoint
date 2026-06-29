@@ -31,6 +31,7 @@ public class AceEditor extends TextArea<String> {
         JSON(PrismContext.LANG_JSON, "ace/mode/json"),
         YAML(PrismContext.LANG_YAML, "ace/mode/yaml"),
         GROOVY(ExpressionUtil.Language.GROOVY.getLanguage(), "ace/mode/groovy"),
+        MEL(ExpressionUtil.Language.MEL.getLanguage(), "ace/mode/groovy"), //TBD cel not supported yet
         PYTHON(ExpressionUtil.Language.PYTHON.getLanguage(), "ace/mode/python"),
         VELOCITY(ExpressionUtil.Language.VELOCITY.getLanguage(), "ace/mode/velocity"),
         JAVASCRIPT(ExpressionUtil.Language.JAVASCRIPT.getLanguage(), "ace/mode/javascript");

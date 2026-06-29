@@ -16,7 +16,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.cases.api.AuditingConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 import java.util.List;
 import java.util.Map;

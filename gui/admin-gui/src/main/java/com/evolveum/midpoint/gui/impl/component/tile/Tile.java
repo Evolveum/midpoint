@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * Created by Viliam Repan (lazyman).

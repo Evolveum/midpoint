@@ -10,25 +10,29 @@ package com.evolveum.midpoint.web.component.input;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
+import com.evolveum.midpoint.web.component.dialog.steper.*;
+
+import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPanel;
 import com.evolveum.midpoint.web.component.util.Describable;
-import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 
 /**
  * A button that opens a confirmation-with-options dialog when clicked and delegates the outcome to a pair of
  * handlers ({@link ButtonHandlers}).
- *
+ * <p>
  * When the user confirms the dialog the {@link ButtonHandlers#confirmHandler()} is invoked directly inside the
  * dialog's Ajax callback.
- *
+ * <p>
  * This is the right choice when the action is *non-blocking*. For synchronous actions that need an activity
  * indication (e.g. a spinner shown while the action runs), use {@link BlockingActionButtonWithConfirmationOptionsDialog}
  * instead.
@@ -54,9 +58,12 @@ public class ButtonWithConfirmationOptionsDialog<T extends Describable> extends 
     public void onClick(AjaxRequestTarget target) {
         final ButtonConfig<T> cfg = this.config.getObject();
         final PageBase pageBase = cfg.pageBase().getObject();
-        final ConfirmationWithOptionsPanel<T> dialog = new ConfirmationWithOptionsPanel<>(
+
+        final ConfirmationWithOptionsPopupPanel<T> dialog = new ConfirmationWithOptionsPopupPanel<>(
                 pageBase.getMainPopupBodyId(),
-                cfg.confirmationDialogConfig()) {
+                // Capture a snapshot of the DTO to prevent changes after the dialog is shown.
+                // Note: Models inside the DTO (e.g., infoEntries) can still be evaluated lazily.
+                Model.of(cfg.confirmationDialogConfig().getObject())) {
 
             @Override
             public void confirmationPerformed(AjaxRequestTarget target,
@@ -73,12 +80,13 @@ public class ButtonWithConfirmationOptionsDialog<T extends Describable> extends 
             }
         };
         pageBase.showMainPopup(dialog, target);
+
     }
 
     /**
      * Called when the user confirms the dialog. The default implementation invokes
      * {@link ButtonHandlers#confirmHandler()}.
-     *
+     * <p>
      * NOTE: This method is intentionally package private, to prevent overriding from anonymous implementations
      * outside of this package.
      */

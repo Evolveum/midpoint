@@ -8,13 +8,10 @@ package com.evolveum.midpoint.web.component;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -25,8 +22,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import org.apache.wicket.model.StringResourceModel;
 
 public abstract class MultiCompositedButtonPanel extends BasePanel<List<CompositedIconButtonDto>> {
 

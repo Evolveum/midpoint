@@ -18,7 +18,9 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.smart.impl.mappings.MappingScriptTestBase;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class WellKnownSchemaTestBase extends MappingScriptTestBase {
 

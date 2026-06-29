@@ -17,6 +17,7 @@ import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.api.synchronization.SourceSynchronizationAnswers;
 import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
@@ -32,11 +33,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.
  */
 public interface SmartIntegrationService {
+
+    /**
+     * Returns AI provider and model info fetched from the microservice health endpoint.
+     * Returns empty Optional if the information is unavailable.
+     */
+    Optional<AiInfo> getAiInfo();
 
     /**
      * Creates a new resource with the given connector and the given connector configuration.
@@ -152,7 +160,10 @@ public interface SmartIntegrationService {
      * They are sorted by finished time, then by started time.
      */
     List<StatusInfo<ObjectTypesSuggestionType>> listSuggestObjectTypesOperationStatuses(
-            String resourceOid, Task task, OperationResult result)
+            String resourceOid,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
+            @Nullable QName objectClass,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Checks the status of the "suggest object types" request. */
@@ -244,7 +255,9 @@ public interface SmartIntegrationService {
      * They are sorted by finished time, then by started time.
      */
     List<StatusInfo<CorrelationSuggestionsType>> listSuggestCorrelationOperationStatuses(
-            String resourceOid, Task task, OperationResult result)
+            String resourceOid,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Checks the status of the "suggest correlation" request. */
@@ -396,9 +409,9 @@ public interface SmartIntegrationService {
      * Returns suggestion tasks related to the given resource object type, filtered by activity types.
      */
     @NotNull SearchResultList<PrismObject<TaskType>> listObjectTypeRelatedSuggestionTasks(
-            @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             @NotNull String resourceOid,
+            @Nullable QName objectClass,
             @NotNull List<ItemName> activityTypes,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws CommonException;
+            @NotNull OperationResult result) throws SchemaException;
 }

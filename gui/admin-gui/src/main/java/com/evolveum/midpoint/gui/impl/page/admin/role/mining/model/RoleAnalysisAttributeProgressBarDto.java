@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.UUID;
 
 public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBarDto implements Serializable {
 

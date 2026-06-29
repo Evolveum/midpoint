@@ -40,7 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -98,12 +98,21 @@ public class MidpointAuthFilter extends GenericFilterBean {
         doFilterInternal(request, response, chain);
     }
 
+    private MidpointAuthentication getMidpointAuthentication() {
+        return (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+    }
+
     private void doFilterInternal(ServletRequest request, ServletResponse response,
             FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        MidpointAuthentication mpAuthentication = getMidpointAuthentication();
 
-        validateAuthenticationCanContinue(mpAuthentication, httpRequest);
+        resetRetryableModuleIfNeeded(mpAuthentication);
+
+        if (shouldAbortAuthentication(mpAuthentication)) {
+            clearAuthentication(httpRequest);
+            mpAuthentication = getMidpointAuthentication();
+        }
 
         if (isPermitAllPage(httpRequest) && (mpAuthentication == null || !mpAuthentication.isAuthenticated())) {
             chain.doFilter(request, response);
@@ -138,7 +147,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
                 }
                 throw new AuthenticationServiceException("Couldn't find authentication module for sequence " + authWrapper.getSequenceIdentifier());
             }
-            resetRetryableModuleIfNeeded(mpAuthentication);
             resolveErrorWithMoreModules(mpAuthentication, httpRequest);
 
             if (!response.isCommitted()) {
@@ -282,13 +290,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return false;
     }
 
-    private void validateAuthenticationCanContinue(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
-        if (mpAuthentication == null) {
-            return;
-        }
-        if (mpAuthentication.authenticationShouldBeAborted()) {
-            clearAuthentication(httpRequest);
-        }
+    private boolean shouldAbortAuthentication(MidpointAuthentication mpAuthentication) {
+        return mpAuthentication == null || mpAuthentication.authenticationShouldBeAborted();
     }
 
     private void removingFiltersAfterProcessing(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {

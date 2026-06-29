@@ -11,9 +11,10 @@ import java.util.List;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.LocalItemDefinitionStore;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.google.common.annotations.VisibleForTesting;

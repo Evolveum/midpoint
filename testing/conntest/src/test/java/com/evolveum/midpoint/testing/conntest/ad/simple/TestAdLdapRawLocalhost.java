@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.testing.conntest.ad.simple;
 
-import com.evolveum.midpoint.testing.conntest.ad.simple.AbstractAdLdapRawTest;
-
 import java.io.File;
 
 /**

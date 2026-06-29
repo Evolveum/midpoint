@@ -1,0 +1,574 @@
+= Native PostgreSQL Schema Script: postgres-audit.sql
+
+xref:../schema.adoc[Back to native PostgreSQL schema overview]
+
+This page documents schema objects parsed from `config/sql/native/postgres-audit.sql`.
+
+== Tables
+
+[[m_global_metadata]]
+=== `m_global_metadata`
+
+Stores internal audit schema metadata, including audit schema change tracking.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `name`
+| `TEXT`
+| primary key, required
+| Metadata entry name.
+
+| `value`
+| `TEXT`
+| 
+| Metadata entry value.
+
+|===
+
+[[ma_audit_delta]]
+=== `ma_audit_delta`
+
+Stores serialized object deltas and related object information for audit events.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `recordId`
+| `BIGINT`
+| primary key, required
+| Identifier of the audit event this delta belongs to.
+
+| `timestamp`
+| `TIMESTAMPTZ`
+| primary key, required
+| Timestamp of the audit event this delta belongs to. Also used as partitioning key.
+
+| `checksum`
+| `TEXT`
+| primary key, required
+| Checksum identifying this delta within the audit event.
+
+| `delta`
+| `BYTEA`
+| 
+| Serialized delta data.
+
+| `deltaOid`
+| `UUID`
+| 
+| OID of the object affected by this delta.
+
+| `deltaType`
+| `ChangeType`
+| 
+| Type of change represented by this delta.
+
+| `fullResult`
+| `BYTEA`
+| 
+| Serialized full operation result related to this delta.
+
+| `objectNameNorm`
+| `TEXT`
+| 
+| Normalized name of the affected object.
+
+| `objectNameOrig`
+| `TEXT`
+| 
+| Original name of the affected object.
+
+| `resourceOid`
+| `UUID`
+| 
+| OID of the affected resource, if the delta is resource-related.
+
+| `resourceNameNorm`
+| `TEXT`
+| 
+| Normalized name of the affected resource.
+
+| `resourceNameOrig`
+| `TEXT`
+| 
+| Original name of the affected resource.
+
+| `shadowKind`
+| `ShadowKindType`
+| 
+| Kind of shadow affected by the delta, if applicable.
+
+| `shadowIntent`
+| `TEXT`
+| 
+| Shadow intent affected by the delta, if applicable.
+
+| `status`
+| `OperationResultStatusType`
+| 
+| Result status related to this delta.
+
+|===
+
+[[ma_audit_delta_default]]
+=== `ma_audit_delta_default`
+
+Default partition for audit deltas that do not match a monthly audit delta partition.
+
+No primary key is defined for this table.
+
+This table is a partition of xref:#ma_audit_delta[`ma_audit_delta`]. Columns are inherited from the partitioned table.
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `recordId`
+| xref:#ma_audit_event_default[`ma_audit_event_default.id`]
+| ON DELETE CASCADE
+
+| `timestamp`
+| xref:#ma_audit_event_default[`ma_audit_event_default.timestamp`]
+| ON DELETE CASCADE
+
+|===
+
+[[ma_audit_event]]
+=== `ma_audit_event`
+
+Stores top-level audit event records, such as object changes, task actions, sessions, and other audited operations.
+
+Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/audit-3#AuditEventRecordType`
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `id`
+| `BIGSERIAL`
+| primary key, required
+| Numeric identifier of the audit event. Together with timestamp it forms the primary key.
+
+| `timestamp`
+| `TIMESTAMPTZ`
+| primary key, required
+| Time when the audited event happened. This is also the partitioning key.
+
+| `eventIdentifier`
+| `TEXT`
+| 
+| External or logical identifier of the audit event.
+
+| `eventType`
+| `AuditEventTypeType`
+| 
+| Type of audited operation, for example object add, modify, delete, or session creation.
+
+| `eventStage`
+| `AuditEventStageType`
+| 
+| Stage of the audited operation, such as request, execution, or resource.
+
+| `sessionIdentifier`
+| `TEXT`
+| 
+| Session identifier associated with the audited operation.
+
+| `requestIdentifier`
+| `TEXT`
+| 
+| Request identifier associated with the audited operation.
+
+| `taskIdentifier`
+| `TEXT`
+| 
+| Task identifier associated with the audited operation.
+
+| `taskOid`
+| `UUID`
+| 
+| OID of the task associated with the audited operation.
+
+| `hostIdentifier`
+| `TEXT`
+| 
+| Host identifier where the audited operation was processed.
+
+| `nodeIdentifier`
+| `TEXT`
+| 
+| Cluster node identifier where the audited operation was processed.
+
+| `remoteHostAddress`
+| `TEXT`
+| 
+| Remote host address from which the operation originated, if known.
+
+| `initiatorOid`
+| `UUID`
+| 
+| OID of the principal that initiated the audited operation.
+
+| `initiatorType`
+| `ObjectType`
+| 
+| Object type of the initiator.
+
+| `initiatorName`
+| `TEXT`
+| 
+| Human-readable name of the initiator.
+
+| `attorneyOid`
+| `UUID`
+| 
+| OID of the attorney when the operation was executed under delegation or attorney context.
+
+| `attorneyName`
+| `TEXT`
+| 
+| Human-readable name of the attorney.
+
+| `effectivePrincipalOid`
+| `UUID`
+| 
+| OID of the effective principal used to evaluate permissions.
+
+| `effectivePrincipalType`
+| `ObjectType`
+| 
+| Object type of the effective principal.
+
+| `effectivePrincipalName`
+| `TEXT`
+| 
+| Human-readable name of the effective principal.
+
+| `effectivePrivilegesModification`
+| `EffectivePrivilegesModificationType`
+| 
+| Describes whether effective privileges were elevated, reduced, or otherwise changed.
+
+| `targetOid`
+| `UUID`
+| 
+| OID of the primary target object of the audited operation.
+
+| `targetType`
+| `ObjectType`
+| 
+| Object type of the primary target.
+
+| `targetName`
+| `TEXT`
+| 
+| Human-readable name of the primary target.
+
+| `targetOwnerOid`
+| `UUID`
+| 
+| OID of the owner of the primary target, if applicable.
+
+| `targetOwnerType`
+| `ObjectType`
+| 
+| Object type of the target owner, if applicable.
+
+| `targetOwnerName`
+| `TEXT`
+| 
+| Human-readable name of the target owner, if applicable.
+
+| `channel`
+| `TEXT`
+| 
+| Full channel URI describing where or how the operation was initiated.
+
+| `outcome`
+| `OperationResultStatusType`
+| 
+| Result status of the audited operation.
+
+| `parameter`
+| `TEXT`
+| 
+| Operation parameter summary stored with the audit event.
+
+| `result`
+| `TEXT`
+| 
+| Operation result summary stored with the audit event.
+
+| `message`
+| `TEXT`
+| 
+| User-friendly audit event message.
+
+| `changedItemPaths`
+| `TEXT[]`
+| 
+| Paths of changed items affected by the audited operation.
+
+| `resourceOids`
+| `TEXT[]`
+| 
+| OIDs of resources affected by the audited operation.
+
+| `properties`
+| `JSONB`
+| 
+| Additional audit event properties stored as structured JSON.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `ma_audit_event_timestamp_idx`
+| `timestamp`
+| Speeds up searching and ordering audit events by timestamp. Used for: audit searches filtered or ordered by event time
+
+| `ma_audit_event_eventIdentifier_idx`
+| `eventIdentifier`
+| Speeds up lookup of audit events by event identifier. Used for: audit searches using eventIdentifier
+
+| `ma_audit_event_sessionIdentifier_idx`
+| `sessionIdentifier`
+| Speeds up lookup of audit events by session identifier. Used for: audit searches grouped or filtered by user session
+
+| `ma_audit_event_requestIdentifier_idx`
+| `requestIdentifier`
+| Speeds up lookup of audit events by request identifier. Used for: audit searches following one logical request
+
+| `ma_audit_event_targetOid_idx`
+| `targetOid`
+| Speeds up lookup of audit events by target object OID. Used for: audit searches for events related to a specific object
+
+| `ma_audit_event_changedItemPaths_idx`
+| `USING gin (changeditempaths)`
+| Speeds up searches by changed item paths. Used for: audit searches filtering by changed item
+
+| `ma_audit_event_resourceOids_idx`
+| `USING gin (resourceOids)`
+| Speeds up searches by affected resource OIDs. Used for: audit searches filtering by resource
+
+| `ma_audit_event_properties_idx`
+| `USING gin (properties)`
+| Speeds up searches by structured audit event properties. Used for: audit searches filtering by JSON properties
+
+|===
+
+[[ma_audit_event_default]]
+=== `ma_audit_event_default`
+
+Default partition for audit events that do not match a monthly audit event partition.
+
+No primary key is defined for this table.
+
+This table is a partition of xref:#ma_audit_event[`ma_audit_event`]. Columns are inherited from the partitioned table.
+
+[[ma_audit_ref]]
+=== `ma_audit_ref`
+
+Stores references related to audit events.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `id`
+| `BIGSERIAL`
+| primary key, required
+| Technical identifier of this audit reference row.
+
+| `recordId`
+| `BIGINT`
+| required
+| Identifier of the audit event this reference belongs to.
+
+| `timestamp`
+| `TIMESTAMPTZ`
+| primary key, required
+| Timestamp of the audit event this reference belongs to. Also used as partitioning key.
+
+| `name`
+| `TEXT`
+| 
+| Reference name. Multiple references in one audit event can have the same name.
+
+| `targetOid`
+| `UUID`
+| 
+| OID of the referenced target object.
+
+| `targetType`
+| `ObjectType`
+| 
+| Type of the referenced target object.
+
+| `targetNameOrig`
+| `TEXT`
+| 
+| Original name of the referenced target object.
+
+| `targetNameNorm`
+| `TEXT`
+| 
+| Normalized name of the referenced target object.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `ma_audit_ref_recordId_timestamp_idx`
+| `recordId, timestamp`
+| Speeds up lookup of audit references by owning audit event. Used for: joining audit references to audit events
+
+|===
+
+[[ma_audit_ref_default]]
+=== `ma_audit_ref_default`
+
+Default partition for audit references that do not match a monthly audit reference partition.
+
+No primary key is defined for this table.
+
+This table is a partition of xref:#ma_audit_ref[`ma_audit_ref`]. Columns are inherited from the partitioned table.
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `recordId`
+| xref:#ma_audit_event_default[`ma_audit_event_default.id`]
+| ON DELETE CASCADE
+
+| `timestamp`
+| xref:#ma_audit_event_default[`ma_audit_event_default.timestamp`]
+| ON DELETE CASCADE
+
+|===
+
+== Enum types
+
+Enum types define allowed database values for selected columns.
+
+[cols="1,3,3", options="header"]
+|===
+| Enum type
+| Description
+| Values
+
+[[enum_AuditEventStageType]]
+| `AuditEventStageType`
+| Describes whether an audit event records the request, execution, or resource stage.
+| `REQUEST`, `EXECUTION`, `RESOURCE`
+
+[[enum_AuditEventTypeType]]
+| `AuditEventTypeType`
+| Describes the type of operation recorded in an audit event.
+| `GET_OBJECT`, `ADD_OBJECT`, `MODIFY_OBJECT`, `DELETE_OBJECT`, `EXECUTE_CHANGES_RAW`, `SYNCHRONIZATION`, `CREATE_SESSION`, `TERMINATE_SESSION`, `WORK_ITEM`, `WORKFLOW_PROCESS_INSTANCE`, `RECONCILIATION`, `SUSPEND_TASK`, `RESUME_TASK`, `RUN_TASK_IMMEDIATELY`, `DISCOVER_OBJECT`, `INFORMATION_DISCLOSURE`
+
+[[enum_ChangeType]]
+| `ChangeType`
+| Describes the type of object change stored in audit delta records.
+| `ADD`, `MODIFY`, `DELETE`
+
+[[enum_EffectivePrivilegesModificationType]]
+| `EffectivePrivilegesModificationType`
+| Describes how effective privileges changed during an audited operation.
+| `ELEVATION`, `FULL_ELEVATION`, `REDUCTION`, `OTHER`
+
+|===
+
+== Functions and procedures
+
+Functions and procedures implement repository-side database behavior.
+
+[[routine_apply_audit_change]]
+=== `apply_audit_change`
+
+Applies an audit schema or data change only once by tracking the latest executed audit change number.
+
+Kind: procedure
+
+[[routine_audit_create_monthly_partitions]]
+=== `audit_create_monthly_partitions`
+
+Creates monthly audit table partitions for audit events, deltas, and references.
+
+Kind: procedure
+
+== Procedural blocks
+
+Procedural blocks run repository-side setup logic that is documented as a whole.
+
+[[do-block-1]]
+=== `do-block-1`
+
+Creates shared audit enum types when they are not already present.
+
+Statement type: DO block
+
+Used for: audit schema initialization
+
+[[do-block-2]]
+=== `do-block-2`
+
+Creates the shadow kind enum type for standalone audit databases when it is not already present.
+
+Statement type: DO block
+
+Used for: audit schema initialization
+
+== Extensions and schemas
+
+Extensions and schemas are database infrastructure objects required by the repository schema.
+
+[[schema_CURRENT_USER]]
+=== Schema `CURRENT_USER`
+
+Creates the current user's schema used by the native audit repository.
+

@@ -6,7 +6,9 @@
 
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 

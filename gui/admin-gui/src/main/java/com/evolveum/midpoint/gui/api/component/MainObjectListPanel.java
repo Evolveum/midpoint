@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
@@ -21,7 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
