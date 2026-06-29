@@ -6,6 +6,25 @@
 
 package com.evolveum.midpoint.gui.api.component.button;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Session;
+import org.apache.wicket.ThreadContext;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -19,47 +38,24 @@ import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcess;
-import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-
 import com.evolveum.midpoint.web.security.MidPointApplication;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Session;
-import org.apache.wicket.ThreadContext;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
-import org.apache.wicket.markup.repeater.data.IDataProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.*;
-
-import org.apache.wicket.util.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 public abstract class ExportDownloadInlineMenuItem extends InlineMenuItem {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExportDownloadInlineMenuItem.class);
-    protected final ContainerableListPanel component;
-    private final String fileNamePrefix;
-    private AbstractAjaxDownloadBehavior ajaxDownloadBehavior;
-    private IModel<String> name;
-    protected List<Integer> exportableColumnsIndex = new ArrayList<>();
 
-    private static final ExecutorService EXPORT_EXECUTOR = Executors.newSingleThreadExecutor();
-    private Future<File> future;
+    protected final ContainerableListPanel component;
+
+    private final String fileNamePrefix;
+
+    private IModel<String> name;
+
+    protected List<Integer> exportableColumnsIndex = new ArrayList<>();
 
     @Serial
     private static final long serialVersionUID = 1L;
