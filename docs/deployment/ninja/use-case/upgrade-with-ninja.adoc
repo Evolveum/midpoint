@@ -6,7 +6,7 @@
 == Introduction
 
 This document describes how to upgrade midPoint installation using a tool called _ninja_.
-More overall information about ninja can be found xref:./index.adoc[here].
+More overall information about ninja can be found xref:././index.adoc[here].
 
 Ninja supports two different upgrade paths:
 
@@ -20,10 +20,6 @@ Also, make sure you read the xref:/midpoint/release/[Release Notes] for the vers
 
 Always use the version of ninja from the version of midPoint that you are upgrading to, not the version of midPoint that you are currently running.
 
-Ninja only supports upgrading deployments that use xref:/midpoint/reference/repository/native-postgresql/[native repository].
-
-For specific examples of upgrade scenarios, see <<Upgrade procedure examples>>.
-
 == Upgrade procedure overview
 
 Upgrade procedure consists of two main phases with several steps.
@@ -35,7 +31,6 @@ For concrete examples of upgrade scenarios, please see <<Upgrade procedure examp
 
 . *Preparation phase*
 .. Read release notes for the new midPoint version / for all intermediate midPoint versions between your current and the new midPoint version (this is especially important for LTS to LTS upgrade)
-.. <<Upgrade tasks to use activities>>
 .. <<Pre-upgrade check>>
 .. <<Verification & upgrade objects>>
 //.. Review verification results
@@ -207,21 +202,21 @@ See also xref:/midpoint/install/bare-installation/systemd/[Running midPoint with
 
 === Manual (sequential) upgrade
 
+This part describes the sequence of ninja commands used for upgrading midPoint.
 Manual upgrade allows for customization of each step done during upgrade procedure via custom options.
-Following example is almost equivalent to simple `upgrade-distribution` command described above, but split into multiple separate commands.
+Running the command manually is almost equivalent to `upgrade-distribution` command described bellow, but split into separate commands.
 
-. (<<Upgrade tasks to use activities,Update your tasks to use activities before continuing>>.)
+. Run pre-upgrade check
 
-. Run pre-upgrade check (refer to <<Pre-upgrade check>> for more details and options)
+The pre-upgrade check verifies that the current midPoint repository is at the expected source version for the upgrade.
+It also checks that all nodes in the midPoint cluster are running the same midPoint version.
+For more information refer to: xref:../command/pre-upgrade-check.adoc[] command documentation.
+
 +
 [source,bash]
 ----
-$MP_INSTALLATION/bin/ninja.sh -v pre-upgrade-check
+$MP_INSTALLATION/bin/ninja.sh pre-upgrade-check
 ----
-+
-NOTE: Currently, this step only informs that there are X critical and other errors,
-but doesn't return error code and fail whole script.
-User has to make sure there are no critical errors and only then continue with next step.
 
 +
 .Click here to display example output of the *pre-upgrade-check* command
@@ -237,12 +232,11 @@ User has to make sure there are no critical errors and only then continue with n
 [INFO]
 [INFO] Initializing using midpoint home (FULL_REPOSITORY)
 [INFO] Checking node versions in midPoint cluster
-[INFO] Nodes version in cluster: 4.4.6
-[WARNING] Skipping nodes version check
+[INFO] Found 1 nodes in cluster
+[INFO] Nodes version in cluster: 4.9.7
 [INFO] Checking database schema version
-[INFO] Database schema change number matches supported one (1) for label schemaChangeNumber.
-[INFO] Database schema change number matches supported one (1) for label schemaAuditChangeNumber.
-[WARNING] Skipping database schema version check
+[INFO] Database schema change number matches supported one (50) for label schemaChangeNumber.
+[INFO] Database schema change number matches supported one (9) for label schemaAuditChangeNumber.
 [INFO] Pre-upgrade checks finished successfully
 ----
 ====
@@ -620,19 +614,6 @@ Please review logs of midPoint containers to make sure there are no errors.
 
 
 == Upgrade procedure details
-
-=== Upgrade tasks to use activities
-
-Task objects in midPoint before 4.4 were using configuration mostly through handlerUri and arbitrary extension elements.
-With release 4.4 this has changed, better configuration schema was introduced with new task concept called activity.
-Most of the tasks without activities will not work in 4.8 (or newer) and have to be updated to use activities.
-Few internal types of tasks (e.g. related to certifications will still work with old configuration).
-Migration of tasks should be therefore done before upgrade procedure is started.
-
-Ninja currently doesn't support task migration out of the box.
-MidPoint Studio plugin with Intellij Idea will be able to help with migration of tasks.
-
-More information about task migration can be found in xref:/midpoint/reference/tasks/activities/migration/[Migration of Tasks from 4.0/4.3 to 4.4] section of midPoint documentation.
 
 === Pre-upgrade check
 
