@@ -149,6 +149,9 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed reference matches queries failing when the target filter is wrapped in parentheses. See bug:MID-10903[]
 * Updated spring boot to 4.0. See bug:MID-11002[]
 * Fixed serialization of focus preview changes page by avoiding retained live model context. See bug:MID-11082[]
+* Fixed bucketed task workers continuing after root task suspension. See bug:MID-11217[].
+* Improved debug logging for OIDC opaque-token issuer discovery failures. See bug:MID-11292[].
+* Fixed structured-copy handling of reference values in asynchronous script execution. See bug:MID-10587[].
 
 === Releases Of Other Components
 

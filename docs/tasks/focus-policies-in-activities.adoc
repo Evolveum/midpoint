@@ -1,0 +1,206 @@
+= Focus policies in activities
+:page-since: "4.11"
+:page-toc: top
+:page-upkeep-status: green
+:page-description: This page describes how focus-type policy rules can be applied to objects processed by a task activity, either directly, through a referenced policy object, or through virtual assignments.
+:page-keywords: activity policies, focus policies, policy rules, virtual assignments, thresholds
+
+This page describes how _focus-type_ policy rules can be applied to objects processed by a task activity.
+
+== Introduction
+
+xref:./activity-policies[Activity policies] react to conditions of the activity run as a whole (execution time, number of attempts, item processing errors, etc.).
+In contrast, _focus policies in activities_ react to the focal objects (users, roles, orgs, ...) that the activity processes, using the same xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rule] constraints, thresholds, and actions that are normally evaluated by the clockwork.
+
+Historically, focus-based policies were defined in roles assigned to the whole task, so they applied to the task as a whole rather than to a single activity.
+This page describes how the same focus-based policies can be configured and evaluated _per activity_.
+This is especially useful for composite tasks (such as reconciliation), where each activity can have its own focus-based thresholds.
+
+This makes it possible to use focus policy rule constraints (such as `modification`, `assignment`, or `objectState`) together with a `policyThreshold` and policy actions (such as `suspendTask`, `restartActivity`, or `skipActivity`) directly in the context of a task activity.
+A typical use case is limiting how many objects an import or reconciliation activity is allowed to add, modify, or delete before it is suspended for review.
+
+The evaluation of focus-based policies defined per activity works in the same way as the evaluation of focus-based policies defined for the whole task.
+
+[NOTE]
+====
+Before midPoint 4.11, focus policy rule constraints could not be used in activity policies.
+This is now supported through the mechanisms described below.
+====
+
+If you need to count clockwork-processed changes in order to suspend a task once a limit is reached, consider also the dedicated xref:./thresholds[thresholds] mechanism, which is built on top of the same policy rule constraints.
+
+== How it works
+
+A focus policy rule in an activity is an ordinary policy rule: it has policy constraints, an optional `policyThreshold`, and policy actions.
+
+When the activity processes an object, the rule is evaluated against that object as part of clockwork processing.
+If the rule's constraints are satisfied, its trigger is recorded; if a threshold is configured, the configured count must be reached before the policy actions are executed.
+This is the same evaluation that happens for focus policy rules assigned to objects in a regular way, except that here the rule is contributed by the activity itself.
+
+There are three ways to contribute a focus policy rule to an activity:
+
+* directly, as an inline policy in the activity definition,
+* by reference, using `policyRef` to point to a reusable policy object,
+* through virtual assignments, by virtually assigning a role or policy to every processed object.
+
+All three are described below.
+They can be combined within a single activity.
+
+== Defining focus policies
+
+=== Inline policy
+
+The simplest option is to put the policy rule directly into the activity's `policies` element.
+The policy rule uses focus constraints, just like a policy rule assigned to an object.
+
+.Inline focus policy: suspend the import task once it would add more than 10 objects
+[source,xml]
+----
+<activity>
+    <work>
+        <import>
+            <resourceObjects>
+                <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5"/>
+                <kind>account</kind>
+                <intent>default</intent>
+            </resourceObjects>
+        </import>
+    </work>
+    <policies>
+        <policy>
+            <name>Limit number of added objects</name>
+            <policyConstraints>
+                <modification>
+                    <operation>add</operation>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>10</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policy>
+    </policies>
+</activity>
+----
+
+=== Reusable policy via policyRef
+
+When the same policy rules are used by multiple activities or tasks, they can be defined once in a reusable policy object (an `AbstractRoleType`, preferably a `PolicyType`) and referenced from the activity using `policyRef`.
+The rules are taken from the referenced object's _inducements_ (`inducement/policyRule`).
+
+.Policy object holding the reusable rule
+[source,xml]
+----
+<policy oid="11111111-2222-3333-4444-555555555555"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>limit-added-objects</name>
+    <inducement>
+        <policyRule>
+            <name>Limit number of added objects</name>
+            <policyConstraints>
+                <modification>
+                    <operation>add</operation>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>10</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</policy>
+----
+
+.Activity referencing the reusable policy
+[source,xml]
+----
+<activity>
+    <work>
+        <import>
+            <resourceObjects>
+                <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5"/>
+                <kind>account</kind>
+                <intent>default</intent>
+            </resourceObjects>
+        </import>
+    </work>
+    <policies>
+        <policyRef oid="11111111-2222-3333-4444-555555555555" type="PolicyType"/>
+    </policies>
+</activity>
+----
+
+[IMPORTANT]
+====
+Inducements that carry policy rules used via `policyRef` must not define `order` or `condition`.
+If they do, a configuration exception is thrown during activity initialization.
+If the referenced object does not exist or is not an abstract role, the reference is skipped and a warning is logged.
+====
+
+=== Virtual assignments
+
+Virtual assignments are assignments that are applied on top of every focal object _while it is being processed_ by the activity.
+They are not persisted in the processed object; they exist only for the duration of the processing.
+Virtual assignments are collected from the current activity and all of its parent activities.
+
+By virtually assigning a role or policy that contains policy rules, those focus policy rules are evaluated against each processed object, exactly as if the object had the assignment in the repository.
+
+.Activity with a virtual assignment to a policy-bearing role
+[source,xml]
+----
+<activity>
+    <work>
+        <import>
+            <resourceObjects>
+                <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5"/>
+                <kind>account</kind>
+                <intent>default</intent>
+            </resourceObjects>
+        </import>
+    </work>
+    <virtualAssignments>
+        <assignment>
+            <targetRef oid="11111111-2222-3333-4444-555555555555" type="PolicyType"/>
+        </assignment>
+    </virtualAssignments>
+</activity>
+----
+
+[IMPORTANT]
+====
+Targets of virtual assignments should contain only policies.
+Otherwise, phantom `roleMembershipRef` values may be added to the processed objects, because the assignment is evaluated as a regular assignment during processing.
+====
+
+== When to use which form
+
+* Use an *inline policy* for a one-off rule specific to a single activity.
+* Use *policyRef* when the same rule set should be reused across multiple activities or tasks, and you want to manage it in one place.
+* Use *virtual assignments* when the rule should apply to each processed object as though the object held the assignment, for example to reuse a policy that is normally delivered through role assignment.
+
+== Limitations
+
+* Focus-based policies are only ever triggered within the clockwork context, i.e., when a focal object is being processed (added, modified, or deleted) by the activity.
+They are never triggered outside clockwork processing.
+* A single policy constraint cannot combine focus-based constraints with activity-based constraints (such as `executionTime`).
+The two kinds of policies are evaluated in different places, so combining them in one constraint is not possible.
+* Like other activity policies, focus policies are evaluated only for iterative (plain iterative or search based) activities.
+See xref:./activity-policies#_limitations[activity policy limitations] for the full list.
+* Virtual assignment targets should contain policies only, as noted above.
+* Focus-based policies in activities are configured in XML only.
+The GUI does not support configuring composite tasks or policies, and does not display configured policies.
+
+== See also
+
+* xref:./activity-policies[Activity policies]
+* xref:./thresholds[Thresholds]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
+* xref:/midpoint/architecture/concepts/task/[Task]
