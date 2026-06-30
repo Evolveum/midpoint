@@ -8,6 +8,9 @@ package com.evolveum.midpoint.testing.conntest.opendj;
 
 import java.io.File;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -29,6 +32,13 @@ public class TestOpenDj extends AbstractLdapConnTest {
     private static final String OPENDJ_TEMPLATE_NAME = "opendj-4000.template";
 
     private static final int INITIAL_SYNC_TOKEN = 24;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        CommonInitialObjects.addMarks(this, initTask, initResult);
+    }
 
     @Override
     protected String getResourceOid() {
