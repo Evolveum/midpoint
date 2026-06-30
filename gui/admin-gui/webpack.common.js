@@ -52,7 +52,7 @@ module.exports = {
                                 outputStyle: "expanded",
                                 quietDeps: true,
                                 loadPaths: ['node_modules'],
-                                silenceDeprecations: ["extend", "abs-percent", "color-4-api", "import", "legacy-js-api", "color-functions", "fs-importer-cwd", "css-function-mixin", "duplicate-var-flags", "feature-exists", "global-builtin", "mixed-decls"]
+                                 silenceDeprecations: ["import", "global-builtin", "color-functions", "if-function"]
                             }
                         },
                     },
