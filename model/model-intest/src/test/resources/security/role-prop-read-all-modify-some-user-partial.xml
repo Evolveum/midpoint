@@ -36,6 +36,7 @@
             </filter>
         </object>
         <item>fullName</item>
+        <item>displayName</item>
         <item>description</item>
     </authorization>
     <authorization>

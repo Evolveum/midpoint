@@ -354,7 +354,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
         String userOid = userObject.oid;
         PrismObject<UserType> user = getUser(userOid);
-        String userDisplayName = user.asObjectable().getFullName() + " (" + user.asObjectable().getName() + ")";
+        String userDisplayName = user.asObjectable().getDisplayName() + " (" + user.asObjectable().getName() + ")";
 
         TestObject<RoleType> roleObject = getRole(1);
 
