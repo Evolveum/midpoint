@@ -38,16 +38,42 @@ public class StreamingCsvDataExporter extends CSVDataExporter {
     private static final String DOT_CLASS = StreamingCsvDataExporter.class.getName() + ".";
     private static final String OPERATION_EXPORT_DATA = DOT_CLASS + "exportData";
 
+    private static final String UTF_8_BOM_ENCODING = "utf-8-bom";
+    private static final byte[] UTF8_BOM = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+
     private final PageBase pageBase;
+    private final String configuredEncoding;
+
+    public StreamingCsvDataExporter(PageBase pageBase, String encoding) {
+        this.pageBase = pageBase;
+        this.configuredEncoding = encoding;
+        setCharacterSet(resolveEffectiveCharset(encoding));
+    }
 
     public StreamingCsvDataExporter(PageBase pageBase) {
-        this.pageBase = pageBase;
+        this(pageBase, null);
+    }
+
+    private static String resolveEffectiveCharset(String encoding) {
+        if (encoding == null || UTF_8_BOM_ENCODING.equalsIgnoreCase(encoding)) {
+            return "utf-8";
+        }
+        return encoding;
+    }
+
+    private boolean isUtf8Bom() {
+        return UTF_8_BOM_ENCODING.equalsIgnoreCase(configuredEncoding);
     }
 
     @Override
     public <T> void exportData(IDataProvider<T> dataProvider,
             List<IExportableColumn<T, ?>> columns, OutputStream outputStream)
             throws IOException {
+
+        if (isUtf8Bom()) {
+            outputStream.write(UTF8_BOM);
+            outputStream.flush();
+        }
 
         if (!(dataProvider instanceof IterativeExportSupport)
                 || !((IterativeExportSupport<?>) dataProvider).supportsIterativeExport()) {
