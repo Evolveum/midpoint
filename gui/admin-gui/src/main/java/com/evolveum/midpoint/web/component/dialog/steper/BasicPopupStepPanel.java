@@ -123,4 +123,12 @@ public abstract class BasicPopupStepPanel<T> extends BasePanel<T> implements Pop
     public boolean onSubmitPerformed(AjaxRequestTarget target) {        return true;
     }
 
+    protected void refreshStepper(AjaxRequestTarget target) {
+        getStepperModel().refresh(target);
+    }
+
+    public Component getContentPanel() {
+        return get(ID_CONTENT);
+    }
+
 }
