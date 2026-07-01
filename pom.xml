@@ -217,7 +217,11 @@
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
-        <opensaml.version>4.1.1</opensaml.version>
+        <!--
+            opensaml version should be aligned with spring boot defined one
+            in org.springframework.security:spring-security-saml2-service-provider
+        -->
+        <opensaml.version>5.1.6</opensaml.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
         <testng.version>7.10.2</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -1093,7 +1097,12 @@
             </dependency>
             <dependency>
                 <groupId>org.opensaml</groupId>
-                <artifactId>opensaml-core</artifactId>
+                <artifactId>opensaml-core-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-core-impl</artifactId>
                 <version>${opensaml.version}</version>
             </dependency>
             <dependency>
@@ -1127,9 +1136,9 @@
                 <version>${opensaml.version}</version>
             </dependency>
             <dependency>
-                <groupId>net.shibboleth.utilities</groupId>
-                <artifactId>java-support</artifactId>
-                <version>8.0.0</version>
+                <groupId>net.shibboleth</groupId>
+                <artifactId>shib-support</artifactId>
+                <version>9.1.6</version>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>
