@@ -9,19 +9,25 @@ package com.evolveum.midpoint.web.component.dialog;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.smart.api.info.AiInfo;
+
+import com.evolveum.midpoint.smart.api.info.HealthStatus;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.web.component.util.Describable;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+
 /**
- * Configuration of the {@link ConfirmationWithOptionsPanel}, holding various messages and a list of confirmation
- * options.
+ * Configuration of the {@link ConfirmationWithOptionsContentPanel}, holding various messages and a list of confirmation
+ * confirmationOptions.
  */
 public class ConfirmationWithOptionsDto<T extends Describable> implements Serializable {
-
-    /** A labeled key-value pair rendered with a highlighted label inside the confirmation popup. */
-    public record InfoEntry(IModel<String> label, IModel<String> value) implements Serializable {}
 
     private final StringResourceModel confirmationTitle;
     private final String titleIconCssClass;
@@ -35,8 +41,10 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
     private final String cancelButtonCssClass;
     private final StringResourceModel confirmationOptionsTitle;
     private final List<ConfirmationOption<T>> confirmationOptions;
-    private final IModel<List<InfoEntry>> infoEntries;
     private final IModel<String> errorMessage;
+    private final IModel<String> warningMessage;
+    private final boolean requireAiService;
+    private final IModel<AiInfo> aiInfo;
 
     private ConfirmationWithOptionsDto(Builder<T> builder) {
         confirmationTitle = builder.confirmationTitle;
@@ -51,8 +59,10 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         cancelButtonLabel = builder.cancelButtonLabel;
         cancelButtonCssClass = builder.cancelButtonClass;
         confirmationOptions = builder.confirmationOptions;
-        infoEntries = builder.infoEntries;
         errorMessage = builder.errorMessage;
+        warningMessage = builder.warningMessage;
+        aiInfo = builder.aiInfo;
+        requireAiService = builder.requireAiService;
     }
 
     public IModel<String> getConfirmationTitle() {
@@ -79,12 +89,68 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         return confirmationOptions;
     }
 
-    public IModel<List<InfoEntry>> getInfoEntries() {
-        return infoEntries;
+    public IModel<AiInfo> getAiInfo() {
+        return aiInfo;
+    }
+
+    public boolean isAiServiceAvailable() {
+        return getAiInfo() != null
+                && getAiInfo().getObject() != null
+                && getAiInfo().getObject().status().equals(HealthStatus.OK);
     }
 
     public IModel<String> getErrorMessage() {
         return errorMessage;
+    }
+
+    public IModel<String> getWarningMessage() {
+        return warningMessage;
+    }
+
+    public boolean isRequireAiService() {
+        return requireAiService;
+    }
+
+    public boolean isOptionVisible() {
+        return !hasAiInfo() || isAiAvailable();
+    }
+
+    protected boolean isAiAvailable() {
+        AiInfo aiInfo = getAiInfo().getObject();
+        return aiInfo != null && HealthStatus.OK.equals(aiInfo.status());
+    }
+
+    protected String getAiStatusText() {
+        return isAiAvailable()
+                ? translate("ConfirmationWithOptionsPanel.confirmationOptions.ai.status.ok")
+                : translate("ConfirmationWithOptionsPanel.confirmationOptions.ai.status.error");
+    }
+
+    protected @Nullable AiInfo getAiInfoObject() {
+        IModel<AiInfo> model = getAiInfo();
+        return model != null ? model.getObject() : null;
+    }
+
+    protected boolean hasAiInfo() {
+        return getAiInfo() != null;
+    }
+
+    protected String getAiProviderText() {
+        AiInfo aiInfo = getAiInfoObject();
+        return aiInfo != null && aiInfo.provider() != null ? aiInfo.provider() : "";
+    }
+
+    protected String getAiModelText() {
+        AiInfo aiInfo = getAiInfoObject();
+        return aiInfo != null && aiInfo.model() != null ? aiInfo.model() : "";
+    }
+
+    protected @NotNull String getAiStatusCss() {
+        return isAiAvailable() ? " text-success" : " text-warning";
+    }
+
+    public boolean hasError() {
+        return errorMessage != null && errorMessage.getObject() != null && !errorMessage.getObject().isEmpty();
     }
 
     public StringResourceModel getExternalLinkButtonLabel() {
@@ -132,8 +198,10 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         private String cancelButtonClass = "btn btn-default";
         private StringResourceModel confirmationOptionsTitle;
         private List<ConfirmationOption<T>> confirmationOptions;
-        private IModel<List<InfoEntry>> infoEntries;
+        private IModel<AiInfo> aiInfo;
         private IModel<String> errorMessage;
+        private IModel<String> warningMessage;
+        private boolean requireAiService;
 
         /**
          * Used as a confirmation popup title.
@@ -157,7 +225,7 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         }
 
         /**
-         * Used as a title for the list of confirmation options, if they are present.
+         * Used as a title for the list of confirmation confirmationOptions, if they are present.
          */
         public Builder<T> confirmationOptionsTitle(StringResourceModel confirmationOptionsTitle) {
             this.confirmationOptionsTitle = confirmationOptionsTitle;
@@ -166,7 +234,7 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
 
         /**
          * Used as a message shown in the info panel.
-         *
+         * <p>
          * If it is set to null, the info panel will not be shown.
          */
         public Builder<T> confirmationInfoMessage(StringResourceModel confirmationInfoMessage) {
@@ -184,7 +252,7 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
 
         /**
          * Used as a url for the external link button.
-         *
+         * <p>
          * If it is set to null, the external link button will not be shown.
          */
         public Builder<T> externalLinkUrl(String externalLinkUrl) {
@@ -225,22 +293,32 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         }
 
         /**
-         * Used to show panel with the list of options, which user can select.
-         *
-         * Selected options are confirmed byt the confirmation button.
+         * Used to show panel with the list of confirmationOptions, which user can select.
+         * <p>
+         * Selected confirmationOptions are confirmed byt the confirmation button.
          */
         public Builder<T> confirmationOptions(List<ConfirmationOption<T>> confirmationOptions) {
             this.confirmationOptions = confirmationOptions;
             return this;
         }
 
-        public Builder<T> infoEntries(IModel<List<InfoEntry>> infoEntries) {
-            this.infoEntries = infoEntries;
+        public Builder<T> infoEntries(IModel<AiInfo> infoEntries) {
+            this.aiInfo = infoEntries;
+            return this;
+        }
+
+        public Builder<T> requireAiService(boolean requireAiService) {
+            this.requireAiService = requireAiService;
             return this;
         }
 
         public Builder<T> errorMessage(IModel<String> errorMessage) {
             this.errorMessage = errorMessage;
+            return this;
+        }
+
+        public Builder<T> warningMessage(IModel<String> warningMessage) {
+            this.warningMessage = warningMessage;
             return this;
         }
 

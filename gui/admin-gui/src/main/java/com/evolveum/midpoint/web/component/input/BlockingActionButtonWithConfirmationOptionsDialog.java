@@ -24,10 +24,10 @@ import com.evolveum.midpoint.web.component.util.Describable;
  * Ajax response is returned — the request is blocked until the action finishes. This class works around that by
  * splitting the work across two Ajax round-trips via {@link AjaxEventBasedInteractionsLinker}:
  * <p>
- * . *Confirmation phase*: the confirmed options are saved temporarily, {@link ComponentInteractionsPair#action} is
+ * . *Confirmation phase*: the confirmed confirmationOptions are saved temporarily, {@link ComponentInteractionsPair#action} is
  * called (e.g. shows a spinner on the button) and a JavaScript event is fired. The response is returned to the
  * browser immediately so the spinner is visible.
- * . *Activity phase*: The {@link ButtonHandlers#confirmHandler()} is invoked with the saved options, and
+ * . *Activity phase*: The {@link ButtonHandlers#confirmHandler()} is invoked with the saved confirmationOptions, and
  * {@link ComponentInteractionsPair#reaction} is called to restore the button's original appearance.</li>
  */
 public class BlockingActionButtonWithConfirmationOptionsDialog<T extends Describable>

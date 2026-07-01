@@ -22,18 +22,18 @@ import java.util.List;
 
 /**
  * Popup step that displays a confirmation message together with a set of
- * selectable options.
+ * selectable confirmationOptions.
  *
  * <p>The step is backed by a {@link ConfirmationWithOptionsDto} and provides
- * access to the selected options through
+ * access to the selected confirmationOptions through
  * {@link #getSelectedOptionsModel()}.</p>
  *
- * <p>When the user proceeds to the next step, the selected options are passed
+ * <p>When the user proceeds to the next step, the selected confirmationOptions are passed
  * to {@link #confirmationPerformed(AjaxRequestTarget, IModel)} allowing
  * subclasses to perform initialization, validation, or other actions before
  * the popup flow continues.</p>
  *
- * @param <T> type represented by the confirmation options
+ * @param <T> type represented by the confirmation confirmationOptions
  */
 public class ConfirmationWithOptionsStepPanel<T extends Describable> extends BasicPopupStepPanel<ConfirmationWithOptionsDto<T>> {
 
