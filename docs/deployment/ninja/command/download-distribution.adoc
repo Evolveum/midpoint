@@ -1,18 +1,23 @@
 = Download distribution
 
-Download distribution is simple step that helps you download specific version of distribution of midPoint.
-Midpoint distribution is downloaded from https://download.evolveum.com/midpoint/[download.evolveum.com].
+The `download-distribution` command downloads a target midPoint distribution from `download.evolveum.com` and extracts it into a directory specified by the `--distribution-directory` option.
 
-By default, next version of midPoint is downloaded based on current version.
-E.g. for feature release 4.7.1, next version is 4.8 and for LTS upgrade from 4.4.6 ninja will download 4.8 as well.
+By default, Ninja downloads the next supported target version based on the current midPoint version. For example:
 
-Version which should be downloaded can be specified using `--distribution-version` option.
-Use `latest` to specify latest build to be downloaded (at the time of writing it's `4.8-SNAPSHOT`).
+* 4.7.1 → 4.8
+* 4.4.6 (LTS) → 4.8
 
-User can also provide custom build downloaded or built separately (e.g. using maven overlay) using switch `--distribution-archive <PATH_TO_ZIP>`.
-This switch is useful mainly in compound command `upgrade-distribution` where user can use distribution located on filesystem without need to download it.
+To download a specific version, use the `--distribution-version` option.
+Specify `latest` to download the latest available development (snapshot) build, which may not be as stable as an official release.
 
-.Example of how to download distribution (default next version based on the current midPoint)
+Instead of downloading the distribution, you can provide an existing ZIP archive using the `--distribution-archive <PATH_TO_ZIP>` option.
+Ninja uses the provided archive instead of downloading it from `download.evolveum.com` and extracts it into the directory specified by `--distribution-directory`.
+This is useful if you already have the required distribution archive available locally, for example a previously downloaded release or a custom build created using a Maven overlay. It is especially useful when used together with the `upgrade-distribution` command.
+
+The `--temp-dir` option specifies the directory used for temporary files during the download and extraction process.
+If not specified, the default JVM temporary directory is used.
+
+.Download the default target distribution
 [source,bash]
 ----
 ./bin/ninja.sh download-distribution \
@@ -20,7 +25,7 @@ This switch is useful mainly in compound command `upgrade-distribution` where us
   --distribution-directory .upgrade/new-distribution
 ----
 
-.Example on how to download specific version of distribution (latest snapshot)
+.Download the latest available development build
 [source,bash]
 ----
 ./bin/ninja.sh download-distribution \
