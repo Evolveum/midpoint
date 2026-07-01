@@ -1,4 +1,5 @@
 = Native PostgreSQL Database Schema
+:page-toc: top
 
 This is generated reference documentation for the native PostgreSQL repository schema used by midPoint.
 
