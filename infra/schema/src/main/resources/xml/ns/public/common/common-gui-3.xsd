@@ -3816,6 +3816,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="encoding" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Character encoding for exported CSV files.
+                        Default is "utf-8". Use "utf-8-bom" to prepend a UTF-8 BOM
+                        (byte order mark) to the exported file, which helps applications
+                        like Microsoft Excel on non-UTF-8 locale systems correctly
+                        recognize the file as UTF-8.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GuiExportSettingsType.encoding</a:displayName>
+                        <a:since>4.10.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: later: default data language, sync/async, whether to show detail dialog or just run the export, etc. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
