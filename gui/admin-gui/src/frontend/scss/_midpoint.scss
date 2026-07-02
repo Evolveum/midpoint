@@ -489,21 +489,18 @@ body.custom-hold-transition {
   border-color: shade-color($light, 3%);
 }
 
-// Feedback messages
-@each $name, $color in $theme-colors {
-  .feedback-message.card.card-#{$name} > .card-body {
-    border-color: $color;
-  }
-}
-
 .feedback-message {
 
-  &.card {
+  &.alert {
     box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
 
     & > .card-header {
       border-bottom-right-radius: valid-radius($border-radius);
       border-bottom-left-radius: valid-radius($border-radius);
+    }
+
+    &:not(:has(> .card-body)) > .card-header {
+      border-bottom: 0;
     }
   }
 

@@ -549,24 +549,24 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             OpResult result = getModelObject();
 
             if (result == null || result.getStatus() == null) {
-                return "bg-warning";
+                return "alert-warning";
             }
 
             switch (result.getStatus()) {
                 case IN_PROGRESS:
                 case NOT_APPLICABLE:
-                    return "bg-info";
+                    return "alert-info";
                 case SUCCESS:
-                    return "bg-success";
+                    return "alert-success";
                 case HANDLED_ERROR:
-                    return "bg-secondary";
+                    return "alert-secondary";
                 case FATAL_ERROR:
-                    return "bg-danger";
+                    return "alert-danger";
                 case UNKNOWN:
                 case PARTIAL_ERROR:
                 case WARNING:
                 default:
-                    return "bg-warning";
+                    return "alert-warning";
             }
         };
     }

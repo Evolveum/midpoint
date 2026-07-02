@@ -8,7 +8,7 @@
 <body>
 <wicket:panel>
     <div wicket:id="detailBoxMessage" class="visually-hidden" aria-live="polite"></div>
-    <div class="feedback-message card shadow-sm mb-3" role="alert" wicket:id="detailsBox">
+    <div class="feedback-message alert shadow-sm mb-3 p-0" role="alert" wicket:id="detailsBox">
         <div class="card-header">
             <div class="card-title mw-100 h3" style="word-break: break-all" wicket:id="message">
                 <i class="me-2 fa" wicket:id="iconType"></i>
@@ -41,7 +41,7 @@
                 </a>
             </div>
         </div>
-        <div class="feedback-message card-body" wicket:id="detailsContainer">
+        <div class="feedback-message card-body bg-light" wicket:id="detailsContainer">
             <dl class="feedback-message row" wicket:id="details">
                 <wicket:container wicket:id="operation">
                     <b wicket:id="operationBody"/>
