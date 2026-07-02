@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.authentication.impl.MidpointAutowiredBeanFactoryObjectPostProcessor;
@@ -112,6 +113,14 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (shouldAbortAuthentication(mpAuthentication)) {
             clearAuthentication(httpRequest);
             mpAuthentication = getMidpointAuthentication();
+        }
+
+        // Use the default GUI entry point for unauthenticated root requests,
+        // it resolves the actual home page after successful authentication.
+        if (isRootPage(httpRequest) && (mpAuthentication == null || !mpAuthentication.isAuthenticated())) {
+            new DefaultRedirectStrategy().sendRedirect(
+                    httpRequest, (HttpServletResponse) response, AuthConstants.DEFAULT_PATH_AFTER_LOGIN);
+            return;
         }
 
         if (isPermitAllPage(httpRequest) && (mpAuthentication == null || !mpAuthentication.isAuthenticated())) {
@@ -402,6 +411,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private boolean isPermitAllPage(HttpServletRequest request) {
         return AuthSequenceUtil.isPermitAll(request) && !AuthSequenceUtil.isLoginPage(request);
+    }
+
+    private boolean isRootPage(HttpServletRequest request) {
+        String servletPath = request.getServletPath();
+        return "".equals(servletPath) || "/".equals(servletPath);
     }
 
     private boolean needRestartAuthFlow(int indexOfProcessingModule, MidpointAuthentication mpAuthentication) {

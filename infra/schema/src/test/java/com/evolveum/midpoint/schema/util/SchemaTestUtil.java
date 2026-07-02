@@ -47,6 +47,13 @@ public class SchemaTestUtil {
         PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FULL_NAME, SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
         PrismAsserts.assertItemDefinitionDisplayName(userDefinition, UserType.F_FULL_NAME, "UserType.fullName");
         PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, UserType.F_FULL_NAME, 100);
+        PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_PREFERRED_NAME, SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
+        PrismAsserts.assertItemDefinitionDisplayName(userDefinition, UserType.F_PREFERRED_NAME, "UserType.preferredName");
+        PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, UserType.F_PREFERRED_NAME, 105);
+        PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_DISPLAY_NAME, SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
+        PrismAsserts.assertItemDefinitionDisplayName(userDefinition, UserType.F_DISPLAY_NAME, "UserType.displayNameProperty");
+        PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, UserType.F_DISPLAY_NAME, 106);
+        assertFalse("displayName is modifiable", userDefinition.findPropertyDefinition(UserType.F_DISPLAY_NAME).canModify());
         PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_GIVEN_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
         PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
         PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);

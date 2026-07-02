@@ -104,9 +104,20 @@ class CorrelationSuggestionOperation {
                                     )
                                     .item(new CorrelationItemType()
                                             .ref(suggestion.focusItemPath().toBean()))));
-            SmartMetadataUtil.markAsAiProvided(correlationDefinition);
+            if (!suggestion.isAIProvided()) {
+                SmartMetadataUtil.markAsSystemProvided(correlationDefinition);
+            } else {
+                SmartMetadataUtil.markAsAiProvided(correlationDefinition);
+            }
             suggestionBean.setCorrelation(correlationDefinition);
             suggestionBean.setQuality(score);
+
+            SmartMetadataUtil.markContainerProvenance(
+                    suggestionBean.asPrismContainerValue(),
+                    suggestion.isAIProvided()
+                            ? SmartMetadataUtil.ProvenanceKind.AI
+                            : SmartMetadataUtil.ProvenanceKind.SYSTEM);
+
             suggestionsBean.getSuggestion().add(suggestionBean);
         }
         return suggestionsBean;
@@ -130,7 +141,8 @@ class CorrelationSuggestionOperation {
                         new CorrelatorSuggestion(
                                 correlator,
                                 existingInboundMapping.scoredAttributePath(),
-                                null));
+                                null,
+                                existingInboundMapping.isAIProvided()));
             } else {
                 for (var oneSchemaMatch : schemaMatch.getSchemaMatchResult()) {
                     var shadowItemPath = PrismContext.get().itemPathParser().asItemPath(oneSchemaMatch.getShadowAttributePath());
@@ -147,11 +159,15 @@ class CorrelationSuggestionOperation {
                         var attrDefBean = new ResourceAttributeDefinitionType()
                                 .ref(resourceAttrName.toBean())
                                 .inbound(inbound);
-                        SmartMetadataUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
-                        SmartMetadataUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
-                        // Use is not provided by AI, it is set to CORRELATION by default.
-                        response.add(
-                                new CorrelatorSuggestion(focusItemPath, shadowItemPath, attrDefBean));
+                        boolean isAIProvided = Boolean.FALSE.equals(oneSchemaMatch.isIsSystemProvided());
+                        if (!isAIProvided) {
+                            SmartMetadataUtil.markAsSystemProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
+                            SmartMetadataUtil.markAsSystemProvided(inbound, InboundMappingType.F_TARGET);
+                        } else {
+                            SmartMetadataUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
+                            SmartMetadataUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
+                        }
+                        response.add(new CorrelatorSuggestion(focusItemPath, shadowItemPath, attrDefBean, isAIProvided));
                     }
                 }
             }
@@ -176,7 +192,8 @@ class CorrelationSuggestionOperation {
                     ItemPath targetPath = mappingCI.getTargetPath();
                     if (targetPath != null && correlator.equivalent(targetPath)) {
                         // applicable mapping for this correlator found - return resourceAttrPath
-                        return new ExistingMapping(resourceAttrPath);
+                        boolean isAIProvided = SmartMetadataUtil.isMarkedAsAiProvided(inboundMappingBean.asPrismContainerValue());
+                        return new ExistingMapping(resourceAttrPath, isAIProvided);
                     }
                 }
             }

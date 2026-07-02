@@ -8,5 +8,5 @@ import org.jetbrains.annotations.Nullable;
  * Information about whether inbound mapping for given correlator exists. The scoredAttributePath is present if it
  * makes sense to evaluate the correlation score also by looking at values of that attribute.
  */
-public record ExistingMapping(@Nullable ItemPath scoredAttributePath) {
+public record ExistingMapping(@Nullable ItemPath scoredAttributePath, Boolean isAIProvided) {
 }
