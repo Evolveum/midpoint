@@ -1462,6 +1462,22 @@ CREATE INDEX m_connector_typeVersionHost_key
     WHERE connectorHostRefTargetOid IS NOT NULL;
 $aa$);
 
+-- @change: Adds display and preferred name columns and indexes to users.
+-- @since: 4.11
+-- @affects: table m_user | Modified table | Adds display and preferred name columns.
+-- @affects: index m_user_displayNameOrig_idx | New index | Supports lookup by original display name.
+-- @affects: index m_user_preferredNameOrig_idx | New index | Supports lookup by original preferred name.
+call apply_change(58, $aa$
+ALTER TABLE m_user
+    ADD COLUMN displayNameOrig TEXT,
+    ADD COLUMN displayNameNorm TEXT,
+    ADD COLUMN preferredNameOrig TEXT,
+    ADD COLUMN preferredNameNorm TEXT;
+
+CREATE INDEX m_user_displayNameOrig_idx ON m_user (displayNameOrig);
+CREATE INDEX m_user_preferredNameOrig_idx ON m_user (preferredNameOrig);
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
