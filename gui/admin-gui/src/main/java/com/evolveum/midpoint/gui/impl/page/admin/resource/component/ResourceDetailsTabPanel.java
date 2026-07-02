@@ -242,7 +242,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         return () -> {
 
             PrismObjectWrapper<ResourceType> resource = getObjectDetailsModels().getObjectWrapper();
-            String backgroundColor = "bg-cyan";
+            String backgroundColor = "bg-info text-light";
             SourceTarget sourceTarget = determineIfSourceOrTarget(resource);
 
             String numberKey;
@@ -258,7 +258,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                     break;
 
                 default:
-                    backgroundColor = "bg-gray";
+                    backgroundColor = "bg-secondary text-light";
                     numberKey = "PageResource.resource.noMappings";
                     break;
             }
@@ -281,7 +281,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
     private IModel<InfoBoxData> createAvailabilityStatusInfoBoxModel() {
         return () -> {
             String messageKey = "PageResource.resource.availabilityUnknown";
-            String backgroundColor = "bg-gray";
+            String backgroundColor = "bg-secondary text-light";
             String icon = "fa fa-question";
 
             ResourceType resource = getObjectDetailsModels().getObjectType();
@@ -293,7 +293,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
                 if (administrativeAvailabilityStatus == AdministrativeAvailabilityStatusType.MAINTENANCE) {
                     messageKey = "PageResource.resource.maintenance";
-                    backgroundColor = "bg-gray";
+                    backgroundColor = "bg-secondary text-light";
                     icon = "fa fa-wrench";
                     inMaintenance = true;
                 }
@@ -303,14 +303,14 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 if (lastAvailabilityStatus != null) {
                     if (lastAvailabilityStatus == AvailabilityStatusType.UP) {
                         messageKey = "PageResource.resource.up";
-                        backgroundColor = "bg-success";
+                        backgroundColor = "bg-success text-light";
                         icon = "fa fa-power-off";
                     } else if (lastAvailabilityStatus == AvailabilityStatusType.DOWN) {
-                        backgroundColor = "bg-danger";
+                        backgroundColor = "bg-danger text-light";
                         messageKey = "PageResource.resource.down";
                         icon = "fa fa-ban";
                     } else if (lastAvailabilityStatus == AvailabilityStatusType.BROKEN) {
-                        backgroundColor = "bg-warning";
+                        backgroundColor = "bg-warning text-light";
                         messageKey = "PageResource.resource.broken";
                         icon = "fa fa-warning";
                     }
@@ -359,7 +359,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
     private IModel<InfoBoxData> createSchemaStatusInfoBoxModel() {
         return () -> {
-            String backgroundColor = "bg-gray";
+            String backgroundColor = "bg-secondary text-light";
             String icon = "fa fa-times";
             String numberMessage;
             String description = null;
@@ -368,7 +368,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             try {
                 refinedSchema = getObjectDetailsModels().getRefinedSchema();
                 if (refinedSchema != null) {
-                    backgroundColor = "bg-purple";
+                    backgroundColor = "bg-purple text-light";
                     icon = "fa fa-cubes";
                     // This is a preliminary solution for MID-8391.
                     int numObjectTypes = refinedSchema.getObjectTypeDefinitions().size();
@@ -379,7 +379,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                     numberMessage = getString("PageResource.resource.noSchema");
                 }
             } catch (SchemaException | ConfigurationException e) {
-                backgroundColor = "bg-danger";
+                backgroundColor = "bg-danger text-light";
                 icon = "fa fa-warning";
                 numberMessage = getString("PageResource.resource.schemaError");
             }
