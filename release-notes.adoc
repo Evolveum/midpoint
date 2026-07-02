@@ -153,6 +153,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed bucketed task workers continuing after root task suspension. See bug:MID-11217[].
 * Improved debug logging for OIDC opaque-token issuer discovery failures. See bug:MID-11292[].
 * Fixed structured-copy handling of reference values in asynchronous script execution. See bug:MID-10587[].
+* Fixed default login redirect to home page. See bug:MID-10269[]
 
 === Releases Of Other Components
 
