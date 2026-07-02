@@ -14,6 +14,7 @@ import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -107,6 +108,15 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         };
         link.add(new AjaxEventBehavior("click") {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+
+                if (getModelObject().containsSubMenu()) {
+                    attributes.setPreventDefault(true);
+                }
+            }
 
             @Override
             protected void onEvent(AjaxRequestTarget target) {
