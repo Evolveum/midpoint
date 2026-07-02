@@ -230,7 +230,7 @@
         <!-- Groovy 4.0.x supports Java 25 class files (major version 69). -->
         <groovy.version>4.0.31</groovy.version>
 
-        <cel.version>0.13.0</cel.version>
+        <cel.version>0.13.1e-SNAPSHOT</cel.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>

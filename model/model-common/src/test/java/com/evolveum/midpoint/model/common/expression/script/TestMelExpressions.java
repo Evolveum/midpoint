@@ -118,7 +118,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 false);
     }
 
-    @Test(enabled = false) // WIP
+    @Test
     public void testUserNameSubstringStringTrue() throws Exception {
         PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
         evaluateAndAssertBooleanScalarExpression(
@@ -130,7 +130,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 true);
     }
 
-    @Test(enabled = false) // WIP
+    @Test
     public void testUserNameEndsWithStringTrue() throws Exception {
         PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
         evaluateAndAssertBooleanScalarExpression(
@@ -1438,7 +1438,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "jsparrow");
     }
 
-    @Test(enabled = false) // WIP
+    @Test
     public void testUsernameGeneratorFormatNull() throws Exception {
         usernameGenerator("expression-username-generator-format.xml",
         null, null, "",
@@ -1454,7 +1454,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "JSparrow");
     }
 
-    @Test(enabled = false) // WIP
+    @Test
     public void testUsernameGeneratorFormatPolystringNull() throws Exception {
         usernameGenerator("expression-username-generator-format-polystring.xml",
                 null, null, "",
