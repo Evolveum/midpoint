@@ -7,19 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.smart.api.info.HealthStatus;
+
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.NotNull;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ActivityIndicationInteractionsPair;
@@ -44,61 +42,71 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
     }
 
     private static ButtonConfig<DataAccessPermission> buildButtonConfig(
-            IModel<String> icon, IModel<String> title,
-            List<ConfirmationOption<DataAccessPermission>> options, PageBase pageBase) {
+            IModel<String> icon,
+            IModel<String> title,
+            SuggestionOption options,
+            PageBase pageBase) {
 
-        IModel<List<ConfirmationWithOptionsDto.InfoEntry>> infoEntriesModel = new LoadableDetachableModel<>() {
-            @Override
-            protected List<ConfirmationWithOptionsDto.InfoEntry> load() {
-                var service = pageBase.getSmartIntegrationService();
-                if (service == null) {
-                    return List.of();
-                }
-                try {
-                    return service.getAiInfo()
-                            .map(aiInfo -> buildAiInfoEntries(aiInfo, pageBase))
-                            .orElse(List.of());
-                } catch (SystemException e) {
-                    return List.of();
-                }
-            }
-        };
+        IModel<AiInfo> aiInfoModel = createAiInfoModel(pageBase);
 
-        IModel<ConfirmationWithOptionsDto<DataAccessPermission>> confirmationDialogConfig = () -> {
-            var service = pageBase.getSmartIntegrationService();
-            List<ConfirmationWithOptionsDto.InfoEntry> entries = infoEntriesModel.getObject();
-            boolean serviceInfoUnavailable = service != null && (entries == null || entries.isEmpty());
-
-            return ConfirmationWithOptionsDto.<DataAccessPermission>builder()
-                    .confirmationTitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.title"))
-                    .confirmationSubtitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.subtitle"))
-                    .confirmationOptionsTitle(pageBase.createStringResource(
-                            "SmartSuggestConfirmationPanel.request.component.title"))
-                    .infoEntries(infoEntriesModel)
-                    .errorMessage(serviceInfoUnavailable
-                            ? pageBase.createStringResource("SmartSuggestConfirmationPanel.serviceUnreachable")
-                            : null)
-                    .confirmationOptions(options)
-                    .build();
-        };
+        IModel<ConfirmationWithOptionsDto<DataAccessPermission>> confirmationDialogConfig =
+                () -> ConfirmationWithOptionsDto.<DataAccessPermission>builder()
+                        .confirmationTitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.title"))
+                        .confirmationSubtitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.subtitle"))
+                        .confirmationOptionsTitle(pageBase.createStringResource(
+                                "SmartSuggestConfirmationPanel.request.component.title"))
+                        .infoEntries(aiInfoModel)
+                        .errorMessage(() ->
+                                options.requiresAiService()
+                                        ? getUnavailableMessage(
+                                        pageBase,
+                                        aiInfoModel,
+                                        "SmartSuggestConfirmationPanel.serviceUnreachable.error")
+                                        : null)
+                        .warningMessage(() ->
+                                options.requiresAiService()
+                                        ? null
+                                        : getUnavailableMessage(
+                                        pageBase,
+                                        aiInfoModel,
+                                        "SmartSuggestConfirmationPanel.serviceUnreachable.warning"))
+                        .confirmationOptions(options.confirmationOptions())
+                        .requireAiService(options.requiresAiService())
+                        .build();
 
         return new ButtonConfig<>(icon, title, confirmationDialogConfig, () -> pageBase);
     }
 
-    private static @NotNull List<ConfirmationWithOptionsDto.InfoEntry> buildAiInfoEntries(
-            @NotNull AiInfo aiInfo, PageBase pageBase) {
-        var entries = new ArrayList<ConfirmationWithOptionsDto.InfoEntry>();
-        if (aiInfo.provider() != null && !aiInfo.provider().isBlank()) {
-            entries.add(new ConfirmationWithOptionsDto.InfoEntry(
-                    pageBase.createStringResource("SmartSuggestConfirmationPanel.aiProvider"),
-                    Model.of(aiInfo.provider())));
+    private static IModel<AiInfo> createAiInfoModel(PageBase pageBase) {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected AiInfo load() {
+                try {
+                    return pageBase.getSmartIntegrationService()
+                            .getAiInfo()
+                            .orElse(null);
+                } catch (SystemException e) {
+                    return null;
+                }
+            }
+        };
+    }
+
+    private static boolean isAiServiceUnavailable(IModel<AiInfo> aiInfoModel) {
+        AiInfo aiInfo = aiInfoModel.getObject();
+        return aiInfo == null || !HealthStatus.OK.equals(aiInfo.status());
+    }
+
+    private static String getUnavailableMessage(
+            PageBase pageBase,
+            IModel<AiInfo> aiInfoModel,
+            String resourceKey) {
+
+        if (!isAiServiceUnavailable(aiInfoModel)) {
+            return null;
         }
-        if (aiInfo.model() != null && !aiInfo.model().isBlank()) {
-            entries.add(new ConfirmationWithOptionsDto.InfoEntry(
-                    pageBase.createStringResource("SmartSuggestConfirmationPanel.aiModel"),
-                    Model.of(aiInfo.model())));
-        }
-        return entries;
+
+        return pageBase.createStringResource(resourceKey).getString();
     }
 
     /**
@@ -108,7 +116,7 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
      */
     public static SmartSuggestButtonWithConfirmation<DataAccessPermission> create(String id,
             IModel<String> title, IModel<String> icon,
-            List<ConfirmationOption<DataAccessPermission>> options,
+            SuggestionOption options,
             IModel<ButtonHandlers<DataAccessPermission>> clickHandlers, PageBase pageBase) {
 
         final ButtonConfig<DataAccessPermission> buttonConfig =
@@ -129,7 +137,7 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
     public static BlockingActionButtonWithConfirmationOptionsDialog<DataAccessPermission>
     forBlockingActionWithIndication(String id, IModel<String> title, IModel<String> icon,
             IModel<String> activityIndicationIcon, IModel<String> activityIndicationTitle,
-            List<ConfirmationOption<DataAccessPermission>> options,
+            SuggestionOption options,
             IModel<ButtonHandlers<DataAccessPermission>> clickHandlers, PageBase pageBase) {
 
         // We need to be sure, the models support the `setObject` operation for activity indication.

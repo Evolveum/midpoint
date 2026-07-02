@@ -7,12 +7,18 @@
 package com.evolveum.midpoint.web.component.dialog.steper.step;
 
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressContentPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.steper.BasicPopupStepPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
 
@@ -49,6 +55,11 @@ public abstract class SmartTaskProgressStepPanel extends BasicPopupStepPanel<Tas
         return new SmartTaskProgressContentPanel(id, titleModel, subtitleModel, getModel()) {
 
             @Override
+
+            protected void onProgressUpdated(AjaxRequestTarget target) {
+                refreshStepper(target);            }
+
+            @Override
             protected boolean showResultAfterCompletion() {
                 return SmartTaskProgressStepPanel.this.showResultAfterCompletion();
             }
@@ -69,6 +80,52 @@ public abstract class SmartTaskProgressStepPanel extends BasicPopupStepPanel<Tas
     @Override
     public IModel<String> getFinishLabel() {
         return createStringResource("SmartTaskProgressPanel.button.showResults");
+    }
+
+    public IModel<Boolean> isShowResultButtonEnabled() {
+        return () -> {
+            SmartTaskProgressContentPanel contentPanel = getSmartTaskProgressContentPanel();
+            return contentPanel != null && contentPanel.getTaskExecutionProgress().isComplete();
+        };
+    }
+
+    @Override
+    public boolean isFinishButtonEnabled() {
+        return isShowResultButtonEnabled().getObject();
+    }
+
+    protected SmartTaskProgressContentPanel getSmartTaskProgressContentPanel() {
+        return (SmartTaskProgressContentPanel) getContentPanel();
+    }
+
+    @Override
+    public void addCustomButtons(@NotNull RepeatingView buttons) {
+        buttons.add(buildViewTaskButton(buttons.newChildId()));
+    }
+
+    private @NotNull AjaxIconButton buildViewTaskButton(String id) {
+        AjaxIconButton button = new AjaxIconButton(
+                id,
+                Model.of(""),
+                createStringResource("SmartTaskProgressPanel.button.navigateToTask")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                TaskType task = SmartTaskProgressStepPanel.this.getModelObject();
+                DetailsPageUtil.dispatchToObjectDetailsPage(
+                        TaskType.class, task.getOid(), this, false);
+            }
+        };
+
+        button.showTitleAsLabel(true);
+        button.setOutputMarkupId(true);
+        button.add(AttributeModifier.append("class", "btn btn-outline-primary ml-auto"));
+        return button;
+    }
+
+    @Override
+    public boolean isBackButtonVisible() {
+        return false;
     }
 
     protected boolean showResultAfterCompletion() {

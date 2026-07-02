@@ -339,11 +339,6 @@ public class SimulationActionFlow<T> implements Serializable {
                         taskModel) {
 
                     @Override
-                    public IModel<String> getFinishLabel() {
-                        return createStringResource("SmartTaskProgressPanel.button.showResults");
-                    }
-
-                    @Override
                     protected void onShowResults(AjaxRequestTarget target) {
                         TaskType task = getModelObject();
 

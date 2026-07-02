@@ -1162,11 +1162,11 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     ImmutableList.of(NullableType.create(SimpleType.STRING), SimpleType.INT, SimpleType.INT))),
                     CelFunctionBinding.from(
-                            "mel_string_substring_int", Object.class, Long.class,
+                            "mel_string_substring_int", String.class, Long.class,
                             CelMelExtensions::substringObject),
                     CelFunctionBinding.from(
                             "mel_string_substring_int_int",
-                            ImmutableList.of(Object.class, Long.class, Long.class),
+                            ImmutableList.of(String.class, Long.class, Long.class),
                             CelMelExtensions::substringAny)),
 
             // polystring.substring(begin,end)
@@ -1187,14 +1187,14 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT, SimpleType.INT))),
                     CelFunctionBinding.from(
-                            "polystring_substring_int", Object.class, Long.class,
+                            "polystring_substring_int", PolyStringCelValue.class, Long.class,
                             CelMelExtensions::substringObject),
                     CelFunctionBinding.from(
                             "polystring_substring_int_int",
-                            ImmutableList.of(Object.class, Long.class, Long.class),
+                            ImmutableList.of(PolyStringCelValue.class, Long.class, Long.class),
                             CelMelExtensions::substringAny)),
 
-                // substring(any,begin,end)
+            // substring(any,begin,end)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "substring",

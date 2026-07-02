@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.web.component.dialog.steper;
 
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -28,6 +31,9 @@ public class PopupStepperModel implements Serializable {
 
     private final List<PopupStep> steps;
     private int activeStepIndex;
+
+    private transient SerializableConsumer<AjaxRequestTarget> refreshCallback;
+
 
     public PopupStepperModel(List<PopupStep> steps) {
         this.steps = steps;
@@ -114,5 +120,15 @@ public class PopupStepperModel implements Serializable {
         }
 
         return count;
+    }
+
+    public void setRefreshCallback(SerializableConsumer<AjaxRequestTarget> refreshCallback) {
+        this.refreshCallback = refreshCallback;
+    }
+
+    public void refresh(AjaxRequestTarget target) {
+        if (refreshCallback != null) {
+            refreshCallback.accept(target);
+        }
     }
 }

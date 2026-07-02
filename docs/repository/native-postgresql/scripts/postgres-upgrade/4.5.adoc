@@ -1,4 +1,5 @@
 = postgres-upgrade.sql - midPoint 4.5
+:page-toc: top
 
 == Changes
 

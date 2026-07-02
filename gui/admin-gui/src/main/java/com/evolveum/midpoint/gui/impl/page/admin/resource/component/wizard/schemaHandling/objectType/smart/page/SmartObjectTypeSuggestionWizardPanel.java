@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -105,7 +106,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                 AjaxIconButton generateButton = SmartSuggestButtonWithConfirmation.create(buttons.newChildId(),
                         createStringResource("ResourceObjectClassTableWizardPanel.saveButton"),
                         () -> GuiStyleConstants.CLASS_MAGIC_WAND,
-                        ConfirmationOption.delineationPermissionsOptions(),
+                        SuggestionOption.aiOnly(ConfirmationOption.delineationPermissionsOptions()),
                         () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
                         },
                                 (target, confirmedOptions) -> {

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskResultStatus;
 import com.evolveum.midpoint.web.page.admin.server.TaskExecutionProgress;
 import com.evolveum.midpoint.web.page.admin.server.dto.GuiTaskResultStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.AttributeModifier;
@@ -82,6 +83,11 @@ public abstract class SmartTaskProgressContentPanel extends BasePanel<TaskType> 
 
                 if (finished) {
                     taskOperationCompleted = true;
+                }
+
+                if (progress.getExecutionState().equals(TaskExecutionStateType.SUSPENDED)
+                        || progress.getExecutionState().equals(TaskExecutionStateType.CLOSED)) {
+                    stop(target);
                 }
 
                 target.add(SmartTaskProgressContentPanel.this);
@@ -164,7 +170,8 @@ public abstract class SmartTaskProgressContentPanel extends BasePanel<TaskType> 
         return createStringResource("SmartTaskProgressPanel.progressLabel", value).getString();
     }
 
-    protected @NotNull TaskExecutionProgress getTaskExecutionProgress() {
+    @NotNull
+    public TaskExecutionProgress getTaskExecutionProgress() {
         TaskInformation info = TaskInformation.createForTask(getModelObject(), null);
         return TaskExecutionProgress.fromTaskInformation(info, getPageBase());
     }

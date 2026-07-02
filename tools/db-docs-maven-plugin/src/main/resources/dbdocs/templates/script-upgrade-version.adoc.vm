@@ -1,4 +1,5 @@
 = $r.fileName($sourceFile.path()) - midPoint $versionChanges.midpointVersion()
+:page-toc: top
 
 == Changes
 

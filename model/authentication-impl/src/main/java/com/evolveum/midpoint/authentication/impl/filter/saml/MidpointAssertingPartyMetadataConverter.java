@@ -14,7 +14,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Saml2ProviderAuthenticationModuleType;
 
-import net.shibboleth.utilities.java.support.xml.ParserPool;
+import net.shibboleth.shared.xml.ParserPool;
 import org.apache.commons.lang3.StringUtils;
 import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.XMLObject;

@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -215,8 +217,8 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             }
 
             @Override
-            protected List<ConfirmationOption<DataAccessPermission>> suggestionConfirmationOptions() {
-                return ConfirmationOption.correlationPermissionsOptions();
+            protected SuggestionOption suggestionConfirmationOptions() {
+                return SuggestionOption.of(ConfirmationOption.correlationPermissionsOptions());
             }
 
             @Override

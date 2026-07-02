@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.dialog.steper;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -50,12 +51,28 @@ public interface PopupStep extends Serializable {
         return null;
     }
 
+    default boolean isBackButtonVisible() {
+        return true;
+    }
+
+    default boolean isExitButtonVisible() {
+        return true;
+    }
+
     default IModel<String> getNextLabel() {
         return null;
     }
 
     default IModel<String> getFinishLabel() {
         return null;
+    }
+
+    default boolean isFinishButtonVisible() {
+        return true;
+    }
+
+    default boolean isFinishButtonEnabled() {
+        return true;
     }
 
     default IModel<String> getBackIcon() {
@@ -76,5 +93,8 @@ public interface PopupStep extends Serializable {
 
     default String getFinishCssClass() {
         return null;
+    }
+
+    default void addCustomButtons(RepeatingView buttons) {
     }
 }

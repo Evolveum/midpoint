@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.util.List;
@@ -37,10 +38,9 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
     private static final String ID_INFO_MESSAGE = "infoMessage";
     private static final String ID_ERROR_MESSAGE = "errorMessage";
     private static final String ID_ERROR_TEXT = "errorText";
+    private static final String ID_WARNING_MESSAGE = "warningMessage";
+    private static final String ID_WARNING_TEXT = "warningText";
     private static final String ID_INFO_DETAILS = "infoDetails";
-    private static final String ID_INFO_ENTRY = "infoEntry";
-    private static final String ID_ENTRY_LABEL = "entryLabel";
-    private static final String ID_ENTRY_VALUE = "entryValue";
     private static final String ID_OPTIONS_CONTAINER = "requestContainer";
     private static final String ID_OPTION_LABEL = "requestLabel";
     private static final String ID_LIST_VIEW = "listView";
@@ -48,6 +48,11 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
     private static final String ID_OPTION_TITLE = "title";
     private static final String ID_OPTION_DESCRIPTION = "description";
     private static final String ID_OPTION_ACTION = "action";
+
+    private static final String ID_AI_PROVIDER = "aiProvider";
+    private static final String ID_AI_MODEL = "aiModel";
+    private static final String ID_AI_STATUS_CONTAINER = "aiStatusContainer";
+    private static final String ID_AI_STATUS = "aiStatus";
 
     public ConfirmationWithOptionsContentPanel(
             String id,
@@ -59,29 +64,27 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
     protected void onInitialize() {
         super.onInitialize();
 
-        Label subtitle = new Label(ID_SUBTITLE, getModelObject().getConfirmationSubtitle());
-        subtitle.setOutputMarkupPlaceholderTag(true);
-        add(subtitle);
+        addSubtitle();
 
         initInfoMessage();
         initErrorMessage();
-        initInfoDetails();
+        initWarningMessage();
+        initAiInfo();
         initOptions();
     }
 
-    public IModel<List<ConfirmationOption<T>>> getSelectedOptionsModel() {
-        return () -> getModelObject().getConfirmationOptions().stream()
-                .filter(ConfirmationOption::isSelected)
-                .toList();
+    private void addSubtitle() {
+        Label subtitle = new Label(ID_SUBTITLE, getDto().getConfirmationSubtitle());
+        subtitle.setOutputMarkupPlaceholderTag(true);
+        subtitle.add(new VisibleBehaviour(() -> getDto().isAiServiceAvailable()));
+        add(subtitle);
     }
 
     private void initInfoMessage() {
-        ConfirmationWithOptionsDto<T> config = getModelObject();
-
         MessagePanel<?> infoMessage = new MessagePanel<>(
                 ID_INFO_MESSAGE,
                 MessagePanel.MessagePanelType.INFO,
-                config.getConfirmationInfoMessage(),
+                getConfirmationInfoMessage(),
                 false) {
 
             @Override
@@ -96,40 +99,46 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
         };
 
         infoMessage.setOutputMarkupId(true);
-        infoMessage.add(new VisibleBehaviour(() -> config.getConfirmationInfoMessage() != null));
+        infoMessage.add(new VisibleBehaviour(() -> getConfirmationInfoMessage() != null));
         add(infoMessage);
     }
 
     private void initErrorMessage() {
-        final IModel<String> errorMessage = getModelObject().getErrorMessage();
         WebMarkupContainer errorContainer = new WebMarkupContainer(ID_ERROR_MESSAGE);
         errorContainer.setOutputMarkupId(true);
-        errorContainer.add(new VisibleBehaviour(() -> errorMessage != null && errorMessage.getObject() != null));
-        errorContainer.add(new Label(ID_ERROR_TEXT, errorMessage));
+        errorContainer.add(new VisibleBehaviour(() -> getErrorMessageText() != null));
+
+        errorContainer.add(new Label(ID_ERROR_TEXT, this::getErrorMessageText));
+
         add(errorContainer);
     }
 
-    private void initInfoDetails() {
-        final IModel<List<ConfirmationWithOptionsDto.InfoEntry>> entriesModel = getModelObject().getInfoEntries();
-        WebMarkupContainer infoDetails = new WebMarkupContainer(ID_INFO_DETAILS);
-        infoDetails.setOutputMarkupId(true);
-        infoDetails.add(new VisibleBehaviour(() -> {
-            if (entriesModel == null) {
-                return false;
-            }
-            List<ConfirmationWithOptionsDto.InfoEntry> entries = entriesModel.getObject();
-            return entries != null && !entries.isEmpty();
-        }));
-        ListView<ConfirmationWithOptionsDto.InfoEntry> listView = new ListView<>(ID_INFO_ENTRY,
-                entriesModel != null ? entriesModel : () -> List.of()) {
-            @Override
-            protected void populateItem(@NotNull ListItem<ConfirmationWithOptionsDto.InfoEntry> item) {
-                item.add(new Label(ID_ENTRY_LABEL, item.getModelObject().label()));
-                item.add(new Label(ID_ENTRY_VALUE, item.getModelObject().value()));
-            }
-        };
-        infoDetails.add(listView);
-        add(infoDetails);
+    private void initWarningMessage() {
+        WebMarkupContainer warningContainer = new WebMarkupContainer(ID_WARNING_MESSAGE);
+        warningContainer.setOutputMarkupId(true);
+        warningContainer.add(new VisibleBehaviour(() -> getDto().getWarningMessage() != null
+                && getDto().getWarningMessage().getObject() != null));
+        warningContainer.add(new Label(ID_WARNING_TEXT, getDto().getWarningMessage()));
+
+        add(warningContainer);
+    }
+
+    private void initAiInfo() {
+        WebMarkupContainer aiInfoContainer = new WebMarkupContainer(ID_INFO_DETAILS);
+        aiInfoContainer.setOutputMarkupId(true);
+        aiInfoContainer.add(new VisibleBehaviour(() -> getDto().hasAiInfo() && getDto().isAiAvailable()));
+
+        aiInfoContainer.add(new Label(ID_AI_PROVIDER, () -> getDto().getAiProviderText()));
+        aiInfoContainer.add(new Label(ID_AI_MODEL, () -> getDto().getAiModelText()));
+
+        WebMarkupContainer aiStatusContainer = new WebMarkupContainer(ID_AI_STATUS_CONTAINER);
+        aiStatusContainer.setOutputMarkupId(true);
+        aiStatusContainer.add(AttributeModifier.append("class", () -> getDto().getAiStatusCss()));
+        aiStatusContainer.add(new Label(ID_AI_STATUS, () -> getDto().getAiStatusText()));
+
+        aiInfoContainer.add(aiStatusContainer);
+
+        add(aiInfoContainer);
     }
 
     private void initOptions() {
@@ -139,39 +148,39 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
 
         WebMarkupContainer container = new WebMarkupContainer(ID_OPTIONS_CONTAINER);
         container.setOutputMarkupId(true);
-        container.add(new VisibleBehaviour(() -> numberOfOptions() > 0));
+        container.add(new VisibleBehaviour(() -> getDto().isOptionVisible() && numberOfOptions() > 0));
         form.add(container);
 
         container.add(new Label(ID_OPTION_LABEL, getModelObject().getConfirmationOptionsTitle()));
 
-        ListView<ConfirmationOption<T>> listView = new ListView<>(ID_LIST_VIEW,
-                () -> getModelObject().getConfirmationOptions()) {
+        ListView<ConfirmationOption<T>> listView =
+                new ListView<>(ID_LIST_VIEW, this::getConfirmationOptions) {
 
-            @Override
-            protected void populateItem(@NotNull ListItem<ConfirmationOption<T>> item) {
-                ConfirmationOption<T> option = item.getModelObject();
-
-                item.add(new AjaxCheckBox(ID_OPTION_CHECK, option.selected()) {
                     @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
+                    protected void populateItem(@NotNull ListItem<ConfirmationOption<T>> item) {
+                        ConfirmationOption<T> option = item.getModelObject();
+
+                        item.add(new AjaxCheckBox(ID_OPTION_CHECK, option.selected()) {
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget target) {
+                            }
+                        });
+
+                        item.add(new Label(ID_OPTION_TITLE, option.title()));
+                        item.add(new Label(ID_OPTION_DESCRIPTION, option.description()));
+                        item.add(buildAction(option));
+
+                        if (item.getIndex() < numberOfOptions() - 1) {
+                            item.add(AttributeModifier.append("class", "border-bottom"));
+                        }
                     }
-                });
-
-                item.add(new Label(ID_OPTION_TITLE, option.title()));
-                item.add(new Label(ID_OPTION_DESCRIPTION, option.description()));
-                item.add(buildAction(option));
-
-                if (item.getIndex() < numberOfOptions() - 1) {
-                    item.add(AttributeModifier.append("class", "border-bottom"));
-                }
-            }
-        };
+                };
 
         listView.setOutputMarkupId(true);
         container.add(listView);
     }
 
-    private AjaxIconButton buildAction(ConfirmationOption<T> option) {
+    private @NotNull AjaxIconButton buildAction(ConfirmationOption<T> option) {
         AjaxIconButton action = new AjaxIconButton(
                 ID_OPTION_ACTION,
                 Model.of("fa fa-info-circle"),
@@ -179,7 +188,9 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                option.onClick().accept(option, target);
+                if (option.onClick() != null) {
+                    option.onClick().accept(option, target);
+                }
             }
         };
 
@@ -188,8 +199,28 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
         return action;
     }
 
-    private int numberOfOptions() {
-        List<ConfirmationOption<T>> options = getModelObject().getConfirmationOptions();
-        return options != null ? options.size() : 0;
+    private ConfirmationWithOptionsDto<T> getDto() {
+        return getModelObject();
     }
+
+    private @NotNull List<ConfirmationOption<T>> getConfirmationOptions() {
+        ConfirmationWithOptionsDto<T> dto = getDto();
+        List<ConfirmationOption<T>> options = dto != null ? dto.getConfirmationOptions() : null;
+        return options != null ? options : List.of();
+    }
+
+    private int numberOfOptions() {
+        return getConfirmationOptions().size();
+    }
+
+    private @Nullable IModel<String> getConfirmationInfoMessage() {
+        ConfirmationWithOptionsDto<T> dto = getDto();
+        return dto != null ? dto.getConfirmationInfoMessage() : null;
+    }
+
+    private @Nullable String getErrorMessageText() {
+        IModel<String> errorModel = getDto().getErrorMessage();
+        return errorModel != null ? errorModel.getObject() : null;
+    }
+
 }
