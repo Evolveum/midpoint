@@ -1567,19 +1567,23 @@ td .prism-property-value {
 }
 
 fieldset.objectButtons {
-
+  border-top: 0;
+  border-bottom: 0;
+  border-left: 0;
   border-right: 1px solid $legend-border-color;
   padding: 0;
   padding-right: 2rem;
   width: max-content;
   min-width: revert;
   margin-right: 1rem;
+  margit-bottom: 0;
 
   > legend {
     font-size: 13px;
     border-bottom: none;
     margin-bottom: 0.25rem;
     width: auto;
+    padding: 0;
     //color: $legend-color;
   }
 

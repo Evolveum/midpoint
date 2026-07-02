@@ -8,18 +8,20 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <wicket:extend>
-        <fieldset class="objectButtons" wicket:id="resourceOperationsContainer">
+        <fieldset class="objectButtons d-flex flex-column align-items-start" wicket:id="resourceOperationsContainer">
             <legend>
                 <wicket:message key="ResourceOperationalButtonsPanel.buttons.resource"/>
             </legend>
-            <a class="me-2 btn btn-light border btn-sm" wicket:id="resourceButtons"/>
+            <div class="d-flex flex-wrap gap-1">
+                <a class="me-2 btn btn-light border btn-sm" wicket:id="resourceButtons"/>
+            </div>
         </fieldset>
         <wicket:enclosure child="lifecycleStatePanel">
-            <fieldset class="objectButtons">
+            <fieldset class="objectButtons d-flex flex-column align-items-start">
                 <legend>
                     <wicket:message key="ObjectType.lifecycleState"/>
                 </legend>
-                <div class="d-flex">
+                <div class="d-flex flex-wrap gap-1">
                     <div class="me-2" wicket:id="lifecycleStatePanel"/>
                     <a class="me-2 btn btn-light border btn-sm" wicket:id="detailedLifecycle"/>
                 </div>

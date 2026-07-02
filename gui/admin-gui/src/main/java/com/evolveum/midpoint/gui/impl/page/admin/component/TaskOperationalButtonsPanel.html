@@ -8,14 +8,22 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <wicket:extend>
-        <fieldset wicket:id="taskButtonsContainer" class="objectButtons">
-            <legend><wicket:message key="TaskOperationalButtonsPanel.buttons.task"/></legend>
-            <a class="me-2 btn btn-sm" wicket:id="taskButtons"/>
-            <div class="d-inline" wicket:id="activityPoliciesDropdown"/>
+        <fieldset wicket:id="taskButtonsContainer" class="objectButtons d-flex flex-column align-items-start">
+            <legend>
+                <wicket:message key="TaskOperationalButtonsPanel.buttons.task"/>
+            </legend>
+            <div class="d-flex flex-wrap gap-1">
+                <a class="me-2 btn btn-sm" wicket:id="taskButtons"/>
+                <div class="d-inline" wicket:id="activityPoliciesDropdown"/>
+            </div>
         </fieldset>
-        <fieldset wicket:id="refreshingButtonsContainer" class="objectButtons">
-            <legend><wicket:message key="TaskOperationalButtonsPanel.buttons.refresh"/></legend>
-            <a class="me-2 btn btn-sm btn-light border" wicket:id="refreshingButtons"/>
+        <fieldset wicket:id="refreshingButtonsContainer" class="objectButtons d-flex flex-column align-items-start">
+            <legend>
+                <wicket:message key="TaskOperationalButtonsPanel.buttons.refresh"/>
+            </legend>
+            <div class="d-flex flex-wrap gap-1">
+                <a class="me-2 btn btn-sm btn-light border" wicket:id="refreshingButtons"/>
+            </div>
         </fieldset>
     </wicket:extend>
 </wicket:panel>
