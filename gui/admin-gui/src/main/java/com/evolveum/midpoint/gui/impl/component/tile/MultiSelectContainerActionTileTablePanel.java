@@ -14,6 +14,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -553,7 +555,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     @NotNull
     protected List<AjaxIconButton> createSuggestObjectButton(String idButton) {
         AjaxIconButton generateButton;
-        if (suggestionConfirmationOptions().isEmpty()) {
+        if (suggestionConfirmationOptions().confirmationOptions().isEmpty()) {
             generateButton = new AjaxIconButton(idButton, Model.of("fa-solid fa-wand-magic-sparkles"),
                     createStringResource("Suggestion.button.suggest")) {
 
@@ -665,8 +667,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
     }
 
-    protected List<ConfirmationOption<DataAccessPermission>> suggestionConfirmationOptions() {
-        return Collections.emptyList();
+    protected SuggestionOption suggestionConfirmationOptions() {
+        return SuggestionOption.empty();
     }
 
     protected boolean isToggleSuggestionVisible() {

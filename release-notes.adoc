@@ -72,6 +72,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
 * Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
 * Implemented new configuration options for processing uploaded images.
+* bug:MID-8802[] Added displayName and preferredName to UserType.
 
 === Major Bugfixes
 
@@ -149,6 +150,10 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed reference matches queries failing when the target filter is wrapped in parentheses. See bug:MID-10903[]
 * Updated spring boot to 4.0. See bug:MID-11002[]
 * Fixed serialization of focus preview changes page by avoiding retained live model context. See bug:MID-11082[]
+* Fixed bucketed task workers continuing after root task suspension. See bug:MID-11217[].
+* Improved debug logging for OIDC opaque-token issuer discovery failures. See bug:MID-11292[].
+* Fixed structured-copy handling of reference values in asynchronous script execution. See bug:MID-10587[].
+* Fixed default login redirect to home page. See bug:MID-10269[]
 
 === Releases Of Other Components
 
@@ -441,7 +446,9 @@ Modified:
 * 200-lookup-languages.xml - Added Slovenian (sl) and Latvian (lv) languages.
 * 210-lookup-locales.xml - Added Slovenian (sl) and Latvian (lv) locales.
 * 250-mark-privileged-access.xml - Added archetype.
-* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction.
+* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName.
+* 110-report-user-list.xml - Added displayName column.
+* 050-user-administrator.xml - Added displayName.
 * 300-policy-require-classification.xml - Added archetype.
 * 300-policy-require-owner.xml - Added archetype.
 * 000-system-configuration.xml -  Poly-string translation keys added.
@@ -467,6 +474,11 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 Previously, the wizard showed warning on the Shopping cart panel about conflicting roles or other shopping cart items even in case when prune action resolves the situation automatically.
 In order to correspond to the definition of the prune action, which says that "The removal of the conflicting assignments is automatic and silent", it was decided to hide the warning from Shopping cart panel.
 See also bug:MID-11250[].
+
+* `displayName` was added to `UserType` and is populated by the default person object template from `preferredName`, falling back to `fullName`.
+
+Existing users may not have `displayName` populated immediately after upgrade. Most user-facing places use fallback display logic, but places that display the raw `displayName` value may remain empty until the value is materialized.
+To populate `displayName` for existing person users, set `preferredName` where needed and recompute the users so the person object-template mapping is applied. See also bug:MID-8802[].
 
 ++++
 {% include release-issues.html %}

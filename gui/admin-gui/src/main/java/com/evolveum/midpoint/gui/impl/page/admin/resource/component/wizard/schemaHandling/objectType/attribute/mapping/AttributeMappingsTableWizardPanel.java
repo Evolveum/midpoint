@@ -14,6 +14,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.table.SmartMappingTable;
 
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -296,7 +298,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                         AjaxIconButton generateButton = SmartSuggestButtonWithConfirmation.create(idButton,
                                 createStringResource("Suggestion.button.suggest"),
                                 () -> GuiStyleConstants.CLASS_MAGIC_WAND,
-                                ConfirmationOption.mappingPermissionsOptions(),
+                                SuggestionOption.of(ConfirmationOption.mappingPermissionsOptions()),
                                 () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
                                 },
                                         (target, confirmedOptions) -> {

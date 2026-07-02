@@ -104,3 +104,13 @@ td.rounded-icon-column div.img-circle {
   overflow-y: auto;
   overflow-x: hidden;
 }
+
+.table-word-break {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.table-word-break td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}

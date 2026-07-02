@@ -19,7 +19,8 @@ They are defined per activity, so different activities in the same task may have
 If a policy has to evaluate an object that is being processed by clockwork (like provisioning, reconciliation, etc.), then
 xref:./thresholds[thresholds] or xref:/midpoint/reference/roles-policies/policies/policy-rules/[global policy rules] with proper constraints should be used instead.
 
-Currently, focus policy rule constraints cannot be used in activity policies.
+Since midPoint 4.11, focus policy rule constraints can also be applied to objects processed by an activity.
+See xref:./focus-policies-in-activities[Focus policies in activities] for details.
 
 Policies are collected during activity initialization from the activity definition and its parent activity definitions (in case of composite activities).
 Policies are evaluated after each item in an iterative activity is processed.
@@ -114,6 +115,9 @@ See xref:#_limitations[Limitations] for more details.
 
 Logical constraints are implemented to help you combine multiple constraints into one.
 By default, `and` is used to combine constraints defined directly under the `policyConstraints` element.
+
+Activity-based constraints (such as `executionTime`) and focus-based constraints (see xref:./focus-policies-in-activities[Focus policies in activities]) cannot be combined within a single constraint.
+They are evaluated in different places, so each policy must use only one of the two kinds.
 
 == Policy actions
 
@@ -217,6 +221,25 @@ If a task is suspended and resumed later, the skipped activity is not executed a
 </policyActions>
 ----
 
+== Reusable policies via policyRef
+
+Instead of defining policies inline, an activity can reference a reusable policy object using `policyRef`.
+The referenced object must be an `AbstractRoleType` (preferably a `PolicyType`), and the policy rules are taken from its inducements (`inducement/policyRule`).
+
+This is useful when the same set of policies should be shared across multiple activities or tasks and managed in a single place.
+
+.Activity referencing a reusable policy object
+[source,xml]
+----
+<policies>
+    <policyRef oid="11111111-2222-3333-4444-555555555555" type="PolicyType"/>
+</policies>
+----
+
+Inducement-based policy rules used via `policyRef` must not define `order` or `condition`; otherwise a configuration exception is thrown.
+
+For applying focus policy rules to processed objects (including via `policyRef` and virtual assignments), see xref:./focus-policies-in-activities[Focus policies in activities].
+
 == User interface
 
 Activity policies are configured in the activity definition XML only.
@@ -240,7 +263,6 @@ Activity policies are not supported in:
     ** Repartition
     ** Cleanup
     ** Custom composite activities
-* Focus policy constraints currently cannot be used in activity policies.
 * User interface support is limited to XML configuration only.
 * Activity policies are not able to catch, evaluate, and process the following exceptions:
 ** Exceptions thrown _in the connector implementation_ during search operation when executing the search query, e.g., because the resource is unreachable or the query cannot be interpreted.
@@ -273,6 +295,7 @@ include::activity-policies/02-policy-network-error-restart.xml[]
 
 == See also
 
+* xref:./focus-policies-in-activities[Focus policies in activities]
 * xref:/midpoint/reference/tasks/thresholds[]
 * xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 * xref:/midpoint/architecture/concepts/task/[Task]

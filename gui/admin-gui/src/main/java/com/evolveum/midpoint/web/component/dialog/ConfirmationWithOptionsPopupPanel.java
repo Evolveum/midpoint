@@ -13,12 +13,10 @@ import com.evolveum.midpoint.web.component.util.Describable;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -35,9 +33,9 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
 
     private static final String ID_CONTENT = "content";
     private static final String ID_BUTTONS = "buttons";
-    private static final String ID_LEARN_MORE = "learnMore";
     private static final String ID_NO = "no";
     private static final String ID_YES = "yes";
+    private static final String ID_REFRESH = "refresh";
 
     private Fragment footer;
 
@@ -45,6 +43,7 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
             String id,
             IModel<ConfirmationWithOptionsDto<T>> model) {
         super(id, model);
+        setOutputMarkupId(true);
     }
 
     @Override
@@ -59,27 +58,19 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
 
     private void initFooter() {
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
+        footer.setOutputMarkupId(true);
 
-        initLearnMore(footer);
         initCancel(footer);
         createConfirmationButton(footer);
+        createRefreshButton(footer);
 
         add(footer);
     }
 
-    private void initLearnMore(WebMarkupContainer footer) {
-        String url = getModelObject().getExternalLinkUrl();
+    private void initCancel(@NotNull WebMarkupContainer footer) {
+        AjaxButton cancel = new AjaxButton(ID_NO, () ->
+                getPanelConfig().getCancelButtonLabel().getObject()) {
 
-        ExternalLink link = new ExternalLink(ID_LEARN_MORE, () -> url);
-        link.add(AttributeModifier.append("target", "_blank"));
-        link.setBody(getModelObject().getExternalLinkButtonLabel());
-        link.add(new VisibleBehaviour(() -> url != null && !url.isBlank()));
-
-        footer.add(link);
-    }
-
-    private void initCancel(WebMarkupContainer footer) {
-        AjaxButton cancel = new AjaxButton(ID_NO, getModelObject().getCancelButtonLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 getPageBase().hideMainPopup(target);
@@ -87,26 +78,55 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
             }
         };
 
-        cancel.add(AttributeAppender.append("class", getModelObject().getCancelButtonCssClass()));
+        cancel.add(AttributeAppender.append("class", () ->
+                getPanelConfig().getCancelButtonCssClass()));
+
         footer.add(cancel);
     }
 
+    private ConfirmationWithOptionsDto<T> getPanelConfig() {
+        return getModelObject();
+    }
+
     private void createConfirmationButton(@NotNull Fragment footer) {
-        final ConfirmationWithOptionsDto<T> panelConfig = getModelObject();
         final IModel<List<ConfirmationOption<T>>> confirmedOptions = () ->
-                panelConfig.getConfirmationOptions().stream()
+                getModelObject().getConfirmationOptions().stream()
                         .filter(ConfirmationOption::isSelected)
                         .toList();
-        AjaxButton confirmButton = new AjaxButton(ID_YES, panelConfig.getConfirmationButtonLabel()) {
+        AjaxButton confirmButton = new AjaxButton(ID_YES, getPanelConfig().getConfirmationButtonLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+
+                if (getPanelConfig().hasAiInfo() && !getPanelConfig().isAiServiceAvailable()) {
+                    // Clear any previously selected permissions so they are not submitted.
+                    confirmedOptions.getObject().forEach(option -> option.setSelected(false));
+                }
+
                 getPageBase().hideMainPopup(target);
                 confirmationPerformed(target, confirmedOptions);
             }
         };
-        confirmButton.add(AttributeAppender.append("class", panelConfig.getConfirmationButtonCssClass()));
-        confirmButton.add(new VisibleBehaviour(() -> panelConfig.getConfirmationButtonLabel() != null));
+
+        confirmButton.add(AttributeAppender.append("class", getPanelConfig().getConfirmationButtonCssClass()));
+        confirmButton.add(new VisibleBehaviour(() -> !getPanelConfig().hasError()));
         footer.add(confirmButton);
+    }
+
+    private void createRefreshButton(@NotNull Fragment footer) {
+        AjaxButton refreshButton = new AjaxButton(ID_REFRESH,
+                createStringResource("ConfirmationWithOptionsPopupPanel.refresh")) {
+            @Override
+            public void onClick(@NotNull AjaxRequestTarget target) {
+                getPanelConfig().getAiInfo().detach();
+                target.add(footer);
+                target.add(ConfirmationWithOptionsPopupPanel.this);
+                MainPopupDialog mainPopup = getPageBase().getMainPopup();
+                mainPopup.refreshHeader(target);
+            }
+        };
+
+        refreshButton.add(new VisibleBehaviour(() -> getPanelConfig().hasAiInfo() && !getPanelConfig().isAiServiceAvailable()));
+        footer.add(refreshButton);
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {
@@ -119,7 +139,16 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
 
     @Override
     public IModel<String> getTitle() {
-        return getModelObject().getConfirmationTitle();
+        return () -> {
+            ConfirmationWithOptionsDto<T> config = getPanelConfig();
+
+            if (config.hasAiInfo() && !config.isAiServiceAvailable()) {
+                return createStringResource("ConfirmationWithOptionsDto.aiServiceUnavailable").getString();
+            }
+
+            IModel<String> title = config.getConfirmationTitle();
+            return title != null ? title.getObject() : null;
+        };
     }
 
     @Override

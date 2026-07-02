@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 
 /**
- * A button that opens a confirmation-with-options dialog when clicked and delegates the outcome to a pair of
+ * A button that opens a confirmation-with-confirmationOptions dialog when clicked and delegates the outcome to a pair of
  * handlers ({@link ButtonHandlers}).
  * <p>
  * When the user confirms the dialog the {@link ButtonHandlers#confirmHandler()} is invoked directly inside the

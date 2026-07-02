@@ -778,6 +778,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
         UserType user = new UserType()
                 .name(userName)
                 .fullName("Jack Sparrow")
+                .preferredName("Jack Sparrow")
+                .displayName("Jack Sparrow")
                 .assignment(RESOURCE_DUMMY_OUTBOUND.assignmentWithConstructionOf(null, null))
                 .assignment(ARCHETYPE_BLUE.assignmentTo());
         addObject(user.asPrismObject(), task, result);

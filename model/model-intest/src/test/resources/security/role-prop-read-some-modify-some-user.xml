@@ -40,6 +40,7 @@
             </filter>
         </object>
         <item>fullName</item>
+        <item>displayName</item>
         <item>additionalName</item>
         <item>description</item>
         <item>activation/validFrom</item>

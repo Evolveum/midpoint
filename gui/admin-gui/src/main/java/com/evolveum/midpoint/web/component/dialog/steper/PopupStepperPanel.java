@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -67,6 +68,7 @@ public class PopupStepperPanel extends BasePanel<PopupStepperModel> implements P
     protected void onInitialize() {
         super.onInitialize();
 
+        getModelObject().setRefreshCallback(this::replaceStep);
         getModelObject().init();
 
         WebMarkupContainer stepContainer = new WebMarkupContainer(ID_STEP);
@@ -76,6 +78,7 @@ public class PopupStepperPanel extends BasePanel<PopupStepperModel> implements P
         initFooter();
         replaceStep(null);
     }
+
 
     private void replaceStep(AjaxRequestTarget target) {
         PopupStep activeStep = getModelObject().getActiveStep();
@@ -106,7 +109,7 @@ public class PopupStepperPanel extends BasePanel<PopupStepperModel> implements P
 
     private void initBackButton(WebMarkupContainer footer) {
         WebMarkupContainer backContainer = new WebMarkupContainer(ID_BACK_CONTAINER);
-        backContainer.add(new VisibleBehaviour(() -> getModelObject().hasPrevious()));
+        backContainer.add(new VisibleBehaviour(() -> getModelObject().hasPrevious() && getActiveStep().isBackButtonVisible()));
         footer.add(backContainer);
 
         AjaxIconButton back = new AjaxIconButton(
@@ -127,13 +130,13 @@ public class PopupStepperPanel extends BasePanel<PopupStepperModel> implements P
             }
         };
         back.showTitleAsLabel(true);
-        back.add(new VisibleBehaviour(() -> getModelObject().hasPrevious()));
+        back.add(new VisibleBehaviour(() -> getModelObject().hasPrevious() && getActiveStep().isBackButtonVisible()));
         backContainer.add(back);
     }
 
     private void initExitButton(@NotNull WebMarkupContainer footer) {
         WebMarkupContainer exitContainer = new WebMarkupContainer(ID_EXIT_CONTAINER);
-        exitContainer.add(new VisibleBehaviour(this::isExitButtonVisible));
+        exitContainer.add(new VisibleBehaviour(() -> getActiveStep().isExitButtonVisible()));
         footer.add(exitContainer);
 
         AjaxIconButton exit = new AjaxIconButton(
@@ -148,19 +151,30 @@ public class PopupStepperPanel extends BasePanel<PopupStepperModel> implements P
             }
         };
         exit.showTitleAsLabel(true);
-        exit.add(new VisibleBehaviour(this::isExitButtonVisible));
+        exit.add(new VisibleBehaviour(() -> getActiveStep().isExitButtonVisible()));
         exitContainer.add(exit);
     }
 
-    private void initCustomButtons(WebMarkupContainer footer) {
-        WebMarkupContainer customButtonsContainer = new WebMarkupContainer(ID_CUSTOM_BUTTONS_CONTAINER);
+    private void initCustomButtons(@NotNull WebMarkupContainer footer) {
+        WebMarkupContainer customButtonsContainer = new WebMarkupContainer(ID_CUSTOM_BUTTONS_CONTAINER) {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+
+                RepeatingView buttons = (RepeatingView) get(ID_BUTTONS_REPEATER);
+                buttons.removeAll();
+
+                addCustomButtons(buttons);
+                initNextOrFinishButton(buttons);
+            }
+        };
+
+        customButtonsContainer.setOutputMarkupId(true);
         footer.add(customButtonsContainer);
 
         RepeatingView buttons = new RepeatingView(ID_BUTTONS_REPEATER);
         customButtonsContainer.add(buttons);
-
-        addCustomButtons(buttons);
-        initNextOrFinishButton(buttons);
 
         customButtonsContainer.add(new VisibleBehaviour(() -> hasVisibleButtons(buttons)));
     }
@@ -201,14 +215,17 @@ public class PopupStepperPanel extends BasePanel<PopupStepperModel> implements P
         nextOrFinish.showTitleAsLabel(true);
         nextOrFinish.add(AttributeModifier.append("class", () ->
                 getModelObject().hasNext() ? getNextCssClass() : getFinishCssClass()));
+        nextOrFinish.add(new VisibleBehaviour(() -> getModelObject().hasNext() || getActiveStep().isFinishButtonVisible()));
+        nextOrFinish.add(new EnableBehaviour(() -> getModelObject().hasNext() || getActiveStep().isFinishButtonEnabled()));
         buttons.add(nextOrFinish);
     }
 
-    protected boolean isExitButtonVisible() {
-        return true;
-    }
-
     protected void addCustomButtons(RepeatingView buttons) {
+        PopupStep step = getModelObject().getActiveStep();
+
+        if (step instanceof BasicPopupStepPanel<?> panel) {
+            panel.addCustomButtons(buttons);
+        }
     }
 
     private boolean hasVisibleButtons(@NotNull RepeatingView repeater) {
@@ -360,7 +377,7 @@ public class PopupStepperPanel extends BasePanel<PopupStepperModel> implements P
     protected String getFinishCssClass() {
         return orDefault(
                 getActiveStep().getFinishCssClass(),
-                "btn-success");
+                "btn-primary");
     }
 
 }

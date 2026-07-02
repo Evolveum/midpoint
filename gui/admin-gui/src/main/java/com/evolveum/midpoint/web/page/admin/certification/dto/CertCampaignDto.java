@@ -64,8 +64,7 @@ public class CertCampaignDto extends Selectable {
         }
         ObjectType owner = ownerObject.asObjectable();
         if (owner instanceof UserType) {
-            UserType user = (UserType) owner;
-            return WebComponentUtil.getName(user) + " (" + WebComponentUtil.getOrigStringFromPoly(user.getFullName()) + ")";
+            return WebComponentUtil.getDisplayNameAndName(owner.asPrismObject());
         } else {
             return WebComponentUtil.getName(owner);
         }
