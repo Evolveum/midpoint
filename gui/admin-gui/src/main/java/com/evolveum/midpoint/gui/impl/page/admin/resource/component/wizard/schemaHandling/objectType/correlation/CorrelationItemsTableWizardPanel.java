@@ -118,8 +118,11 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     }
 
     private void initSwitchSuggestionModel() {
-        switchToggleModel = SmartIntegrationUtils.createSuggestionSwitchModel(getPageBase(),
-                SuggestionsStorage.SuggestionType.CORRELATION);
+        switchToggleModel = SmartIntegrationUtils.createSuggestionSwitchModel(
+                getPageBase(),
+                isAssociationView()
+                        ? SuggestionsStorage.SuggestionType.ASSOCIATION_CORRELATION
+                        : SuggestionsStorage.SuggestionType.DELINEATION_CORRELATION);
     }
 
     private void initLayout() {
@@ -375,7 +378,8 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             }
         };
 
-        aiPanel.add(new VisibleBehaviour(switchToggleModel::getObject));
+        aiPanel.add(new VisibleBehaviour(() ->
+                Boolean.TRUE.equals(switchToggleModel.getObject()) && !isAssociationView()));
         aiPanel.setOutputMarkupId(true);
         aiPanel.setOutputMarkupPlaceholderTag(true);
         return aiPanel;
