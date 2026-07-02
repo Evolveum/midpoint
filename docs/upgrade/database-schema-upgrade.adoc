@@ -68,7 +68,7 @@ The scripts do not contain any version number and are safe to run repeatedly - o
 
 [IMPORTANT]
 ====
-If you created the schema objects as non-superuser as described xref:/midpoint/reference/repository/native-postgresql/usage/#installing-as-non-superuser[here],
+If you xref:/midpoint/reference/repository/native-postgresql/usage/#installing-as-non-superuser[created the schema objects as non-superuser],
 be sure to run all the missing `CREATE EXTENSION` commands as a superuser first!
 This is also a good reason to use `-v ON_ERROR_STOP=1` flag with the `psql` - as shown below.
 This stops the upgrade when the first such problem occurs, but works fine if the extension already exists.
@@ -156,10 +156,11 @@ Please, do not use them to run upgrade scripts!
 Executing upgrade scripts using the `psql` command-line tool may not always be straightforward.
 In containerized deployments, the upgrade scripts are typically located in the midPoint container, while the PostgreSQL database runs in a separate database container.
 In addition, the `psql` client may not be available in the environment from which the upgrade is being executed.
-As an alternative, upgrade scripts can be executed using the Ninja tool.
+
+As an alternative, upgrade scripts can be executed using the xref:/midpoint/reference/deployment/ninja/[Ninja tool].
 Ninja reads the SQL script from a file and executes it against the configured repository database using the database connection settings from the midPoint configuration.
 
-To upgrade the database schema using Ninja, see xref:/midpoint/deployment/ninja/command/run-sql/[Run SQL].
+To upgrade the database schema using Ninja, see xref:/midpoint/reference/deployment/ninja/command/run-sql/[Run SQL].
 
 This approach avoids the need to install the PostgreSQL client or manually establish a connection to the database.
 
