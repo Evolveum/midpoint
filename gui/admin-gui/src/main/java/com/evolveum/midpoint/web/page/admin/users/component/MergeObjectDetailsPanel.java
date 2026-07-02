@@ -39,7 +39,7 @@ public class MergeObjectDetailsPanel<F extends FocusType> extends BasePanel<F> {
 
         Label fullNameLabel;
         if (UserType.class.equals(type)){
-            fullNameLabel = new Label(ID_OBJECT_FULLNAME, ((UserType) mergeObject).getFullName());
+            fullNameLabel = new Label(ID_OBJECT_FULLNAME, ((UserType) mergeObject).getDisplayName());
         } else {
             fullNameLabel = new Label(ID_OBJECT_FULLNAME, ((AbstractRoleType) mergeObject).getDisplayName());
         }

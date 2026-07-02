@@ -76,6 +76,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<?> USER_TEMPLATE_MID_6045 = TestObject.file(
             TEST_DIR, "user-template-mid-6045.xml", "f3dbd582-11dc-473f-8b51-a30be5cbd5ce");
 
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_PERSON = TestObject.file(
+            new File("../../repo/system-init/src/main/resources/initial-objects/object-templates"),
+            "380-object-template-person.xml",
+            "00000000-0000-0000-0000-000000000380");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
+            new File("../../repo/system-init/src/main/resources/initial-objects/archetype"),
+            "702-archetype-person.xml",
+            "00000000-0000-0000-0000-000000000702");
+
     private static final String ACCOUNT_STAN_USERNAME = "stan";
     private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
 
@@ -115,6 +124,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(USER_TEMPLATE_USELESS_FILE, initResult);
         repoAdd(USER_TEMPLATE_MID_5892, initResult);
         repoAdd(USER_TEMPLATE_MID_6045, initResult);
+        repoAdd(OBJECT_TEMPLATE_PERSON, initResult);
+        repoAdd(ARCHETYPE_PERSON, initResult);
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
@@ -164,6 +175,67 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_MID_6045, USER_TEMPLATE_MID_6045.oid);
 
         assertRoles(getNumberOfRoles());
+    }
+
+    /**
+     * MID-8802: Verifies that the person object template derives displayName from preferredName,
+     * falling back to fullName when no preferred name is provided.
+     *
+     * Also verifies that displayName is not maintained automatically for users
+     * without the person archetype.
+     */
+    @Test
+    public void test050PersonTemplateDisplayNameMapping() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        when("person user with preferred name is added");
+        String personOid = addObject(
+                new UserType()
+                        .name("test050-person")
+                        .givenName("Person")
+                        .familyName("Template")
+                        .fullName("Person Template")
+                        .preferredName("Preferred Person")
+                        .assignment(new AssignmentType()
+                                .targetRef(ARCHETYPE_PERSON.oid, ArchetypeType.COMPLEX_TYPE)),
+                task,
+                result);
+
+        then("displayName is generated from preferredName");
+        assertUserProperty(personOid, UserType.F_DISPLAY_NAME, PolyString.fromOrig("Preferred Person"));
+
+        when("fullName inputs change while preferredName is present");
+        modifyUserReplace(personOid, UserType.F_GIVEN_NAME, task, result, PolyString.fromOrig("Changed"));
+        modifyUserReplace(personOid, UserType.F_FAMILY_NAME, task, result, PolyString.fromOrig("Full Name"));
+
+        then("displayName still follows preferredName");
+        assertUserProperty(personOid, UserType.F_DISPLAY_NAME, PolyString.fromOrig("Preferred Person"));
+
+        when("preferredName is cleared");
+        modifyUserReplace(personOid, UserType.F_PREFERRED_NAME, task, result);
+
+        then("displayName falls back to fullName");
+        assertUserProperty(personOid, UserType.F_DISPLAY_NAME, PolyString.fromOrig("Changed Full Name"));
+
+        when("fullName inputs change without preferredName");
+        modifyUserReplace(personOid, UserType.F_GIVEN_NAME, task, result, PolyString.fromOrig("New"));
+        modifyUserReplace(personOid, UserType.F_FAMILY_NAME, task, result, PolyString.fromOrig("Full Name"));
+
+        then("displayName follows fullName");
+        assertUserProperty(personOid, UserType.F_DISPLAY_NAME, PolyString.fromOrig("New Full Name"));
+
+        when("plain user without person archetype is added");
+        String plainOid = addObject(
+                new UserType()
+                        .name("test050-plain")
+                        .fullName("Plain Full Name")
+                        .preferredName("Plain Preferred Name"),
+                task,
+                result);
+
+        then("displayName is not generated globally");
+        assertUserNoProperty(plainOid, UserType.F_DISPLAY_NAME);
     }
 
     @SuppressWarnings("SameParameterValue")

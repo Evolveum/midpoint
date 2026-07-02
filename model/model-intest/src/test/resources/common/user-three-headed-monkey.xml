@@ -14,5 +14,6 @@
         xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>monkey</name>
     <fullName>Three-Headed Monkey</fullName>
+    <displayName>Three-Headed Monkey</displayName>
     <familyName>Monkey</familyName>
 </user>
