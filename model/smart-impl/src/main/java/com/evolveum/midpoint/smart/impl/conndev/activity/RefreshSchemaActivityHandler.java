@@ -6,12 +6,11 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.impl.conndev.ScimBackend;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRefreshScimSchemaWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRefreshScimSchemaWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRefreshSchemaWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRefreshSchemaWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusTypeSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
@@ -19,35 +18,35 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RefreshScimSchemaActivityHandler
-        extends AbstractConnDevActivityHandler<RefreshScimSchemaActivityHandler.WorkDefinition, RefreshScimSchemaActivityHandler> {
+public class RefreshSchemaActivityHandler
+        extends AbstractConnDevActivityHandler<RefreshSchemaActivityHandler.WorkDefinition, RefreshSchemaActivityHandler> {
 
-    public RefreshScimSchemaActivityHandler() {
+    public RefreshSchemaActivityHandler() {
         super(
-                ConnDevRefreshScimSchemaWorkDefinitionType.COMPLEX_TYPE,
-                WorkDefinitionsType.F_REFRESH_SCIM_SCHEMA,
-                ConnDevRefreshScimSchemaWorkStateType.COMPLEX_TYPE,
-                RefreshScimSchemaActivityHandler.WorkDefinition.class,
-                RefreshScimSchemaActivityHandler.WorkDefinition::new);
+                ConnDevRefreshSchemaWorkDefinitionType.COMPLEX_TYPE,
+                WorkDefinitionsType.F_REFRESH_SCHEMA,
+                ConnDevRefreshSchemaWorkStateType.COMPLEX_TYPE,
+                RefreshSchemaActivityHandler.WorkDefinition.class,
+                RefreshSchemaActivityHandler.WorkDefinition::new);
     }
 
     @Override
-    public AbstractActivityRun<WorkDefinition, RefreshScimSchemaActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<WorkDefinition, RefreshScimSchemaActivityHandler> context,
+    public AbstractActivityRun<WorkDefinition, RefreshSchemaActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<WorkDefinition, RefreshSchemaActivityHandler> context,
             @NotNull OperationResult result) {
         return new MyActivityRun(context);
     }
 
-    public static class WorkDefinition extends AbstractWorkDefinition<ConnDevRefreshScimSchemaWorkDefinitionType> {
+    public static class WorkDefinition extends AbstractWorkDefinition<ConnDevRefreshSchemaWorkDefinitionType> {
         public WorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
         }
     }
 
     public static class MyActivityRun
-            extends LocalActivityRun<WorkDefinition, RefreshScimSchemaActivityHandler, FocusTypeSuggestionWorkStateType> {
+            extends LocalActivityRun<WorkDefinition, RefreshSchemaActivityHandler, FocusTypeSuggestionWorkStateType> {
 
-        MyActivityRun(ActivityRunInstantiationContext<WorkDefinition, RefreshScimSchemaActivityHandler> context) {
+        MyActivityRun(ActivityRunInstantiationContext<WorkDefinition, RefreshSchemaActivityHandler> context) {
             super(context);
             setInstanceReady();
         }
@@ -56,9 +55,7 @@ public class RefreshScimSchemaActivityHandler
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
             var task = getRunningTask();
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
-            if (backend instanceof ScimBackend scimBackend) {
-                scimBackend.refreshScimDocumentation();
-            }
+            backend.refreshConnDevDocumentation();
             return ActivityRunResult.success();
         }
     }
