@@ -10,27 +10,31 @@
 <wicket:panel>
     <div class="visually-hidden" wicket:id="panelStatus" aria-live="polite"/>
     <div class="property-stripe" wicket:id="localizedValueContainer">
-        <div class="col-3" wicket:id="localizedValueLabel" />
-        <div wicket:id="localizedValueWithButton" class="input-group">
-            <wicket:container wicket:id="localizedValue"/>
-            <a tabindex="0" role="button" aria-expanded="true" wicket:id="showHideLanguagesLocalized" wicket:message="title:PolyStringEditorPanel.editTranslation">
-                <div class="input-group-text">
-                    <i class="fa fa-language"/>
-                </div>
-            </a>
+        <div class="col-3" wicket:id="localizedValueLabel"/>
+        <div wicket:id="localizedValueWithButtonContainer">
+            <div wicket:id="localizedValueWithButton" class="input-group input-group-sm">
+                <wicket:container wicket:id="localizedValue"/>
+                <button class="btn btn-light border" tabindex="0" role="button" aria-expanded="true" wicket:id="showHideLanguagesLocalized" wicket:message="title:PolyStringEditorPanel.editTranslation">
+                    <div>
+                        <i class="fa fa-language"/>
+                    </div>
+                </button>
+            </div>
         </div>
     </div>
 
     <div wicket:id="originValueContainer">
-            <div class="col-3" wicket:id="originValueLabel" />
-            <div wicket:id="origValueWithButton" class="input-group">
+        <div class="col-3" wicket:id="originValueLabel"/>
+        <div wicket:id="origValueWithButtonContainer">
+            <div wicket:id="origValueWithButton" class="input-group input-group-sm">
                 <wicket:container wicket:id="origValue"/>
-                <a tabindex="0" role="button" aria-expanded="false" wicket:id="showHideLanguagesOrig" wicket:message="title:PolyStringEditorPanel.editTranslation">
-                    <div class="input-group-text">
+                <button class="btn btn-light border" tabindex="0" role="button" aria-expanded="false" wicket:id="showHideLanguagesOrig" wicket:message="title:PolyStringEditorPanel.editTranslation">
+                    <div>
                         <i class="fa fa-language"/>
                     </div>
-                </a>
+                </button>
             </div>
+        </div>
     </div>
     <wicket:container wicket:id="fullDataContainer">
         <div class="property-stripe">
@@ -62,9 +66,13 @@
         <div class="property-stripe" wicket:id="languagesRepeater">
             <div class="row g-0 prism-property">
                 <div class="col-12 d-flex align-items-center">
-                    <label wicket:id="languageNameLabel" class="col-3 ps-0 fw-normal mb-0"><wicket:message key="PolyStringEditorPanel.language"/></label>
+                    <label wicket:id="languageNameLabel" class="col-3 ps-0 fw-normal mb-0">
+                        <wicket:message key="PolyStringEditorPanel.language"/>
+                    </label>
                     <div class="col-3 px-0" wicket:id="languageName"/>
-                    <label wicket:id="translationLabel" class="ps-4 pe-2 fw-normal mb-0"><wicket:message key="PolyStringEditorPanel.languageKey"/></label>
+                    <label wicket:id="translationLabel" class="ps-4 pe-2 fw-normal mb-0">
+                        <wicket:message key="PolyStringEditorPanel.languageKey"/>
+                    </label>
                     <div class="flex-fill" wicket:id="translation"/>
                     <a class="btn btn-tool" wicket:id="removeLanguageButton" wicket:message="title:PolyStringEditorPanel.removeLanguageButton">
                         <i class="fa fa-minus-circle"/></a>
