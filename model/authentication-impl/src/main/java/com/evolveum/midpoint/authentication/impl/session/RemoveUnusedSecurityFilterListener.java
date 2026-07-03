@@ -21,11 +21,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
+ * Consumes {@link RemoveUnusedSecurityFilterEvent} and tells the custom
+ * {@link MidpointAutowiredBeanFactoryObjectPostProcessor} to destroy and drop the security
+ * filters of the event's auth modules. This is what actually frees the runtime-built filters,
+ * keeping the post-processor's {@code disposableBeans} list bounded.
+ *
  * @author skublik
  */
-
 @Component
-public class RemoveUnusedSecurityFilterListener  implements ApplicationListener<RemoveUnusedSecurityFilterEvent> {
+public class RemoveUnusedSecurityFilterListener implements ApplicationListener<RemoveUnusedSecurityFilterEvent> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RemoveUnusedSecurityFilterListener.class);
 
@@ -40,7 +44,7 @@ public class RemoveUnusedSecurityFilterListener  implements ApplicationListener<
             for (AuthModule module : event.getAuthModules()) {
                 if (module.getSecurityFilterChain() != null
                         && CollectionUtils.isNotEmpty(module.getSecurityFilterChain().getFilters())) {
-                    ((MidpointAutowiredBeanFactoryObjectPostProcessor)objectObjectPostProcessor).destroyAndRemoveFilters(
+                    ((MidpointAutowiredBeanFactoryObjectPostProcessor) objectObjectPostProcessor).destroyAndRemoveFilters(
                             module.getSecurityFilterChain().getFilters());
                 }
             }
