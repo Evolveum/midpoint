@@ -128,22 +128,26 @@ public class MidpointAuthFilter extends GenericFilterBean {
             return;
         }
 
+        // Once the wrapper is created the auth modules (and their filters) have been built and registered
+        // in the ObjectPostProcessor's disposableBeans list. From here on every exit path must run through
+        // removingFiltersAfterProcessing in the finally block, otherwise the filters built for this request
+        // leak (e.g. for ignored local paths such as /actuator/health on the sessionless actuator channel).
         AuthenticationWrapper authWrapper = initAuthenticationWrapper(mpAuthentication, httpRequest);
-        initPrincipalService(mpAuthentication, authWrapper);
-        if (authWrapper.isIgnoredLocalPath(httpRequest)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        if (authWrapper.getSequence() == null) {
-            IllegalArgumentException ex = new IllegalArgumentException(getMessageSequenceIsNull(httpRequest, authWrapper));
-            LOGGER.error(ex.getMessage(), ex);
-            ((HttpServletResponse) response).sendError(401, "web.security.provider.invalid");
-            return;
-        }
-        setLogoutPath(request, response);
-
         try {
+            initPrincipalService(mpAuthentication, authWrapper);
+            if (authWrapper.isIgnoredLocalPath(httpRequest)) {
+                chain.doFilter(request, response);
+                return;
+            }
+
+            if (authWrapper.getSequence() == null) {
+                IllegalArgumentException ex = new IllegalArgumentException(getMessageSequenceIsNull(httpRequest, authWrapper));
+                LOGGER.error(ex.getMessage(), ex);
+                ((HttpServletResponse) response).sendError(401, "web.security.provider.invalid");
+                return;
+            }
+            setLogoutPath(request, response);
+
             if (isRequestAuthenticated(mpAuthentication, authWrapper)) {
                 processingOfAuthenticatedRequest(mpAuthentication, httpRequest, response, chain);
                 return;
