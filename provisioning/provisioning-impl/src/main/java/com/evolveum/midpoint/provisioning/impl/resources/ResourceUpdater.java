@@ -133,6 +133,11 @@ class ResourceUpdater {
                             .item(ResourceType.F_SCHEMA)
                             .replace(createSchemaUpdateValue(schema))
                             .asItemDelta());
+            modifications.add(
+                    PrismContext.get().deltaFor(ResourceType.class)
+                            .item(ResourceType.F_CACHE_INVALIDATION_TIMESTAMP)
+                            .replace(beans.clock.currentTimeXMLGregorianCalendar())
+                            .asItemDelta());
         }
         if (updateInMemory) {
             resource.schema(createSchemaUpdateValue(schema));
