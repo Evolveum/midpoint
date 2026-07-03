@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.Connector
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -27,36 +26,37 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Waiting step panel that triggers SCIM schema refresh (object class discovery from shadows)
- * after resource test succeeds. Only visible for SCIM connectors.
+ * Waiting step panel that triggers connector-agnostic schema discovery (reading {@code conndev_ObjectClass}
+ * from shadows) after the resource test succeeds. Connectors that expose no such object class (e.g. plain
+ * REST) simply finish this step immediately with no documentation produced.
  */
-@PanelType(name = "cdw-connector-waiting-scim-schema")
-@PanelInstance(identifier = "cdw-connector-waiting-scim-schema",
+@PanelType(name = "cdw-connector-waiting-schema")
+@PanelInstance(identifier = "cdw-connector-waiting-schema",
         applicableForType = ConnectorDevelopmentType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingScimSchema", icon = "fa fa-database"),
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingSchema", icon = "fa fa-database"),
         containerPath = "empty")
-public class WaitingScimSchemaConnectorStepPanel extends WaitingConnectorStepPanel {
+public class WaitingSchemaConnectorStepPanel extends WaitingConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-connector-waiting-scim-schema";
+    private static final String PANEL_TYPE = "cdw-connector-waiting-schema";
 
-    public WaitingScimSchemaConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    public WaitingSchemaConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
 
     @Override
     protected ItemName getActivityType() {
-        return WorkDefinitionsType.F_REFRESH_SCIM_SCHEMA;
+        return WorkDefinitionsType.F_REFRESH_SCHEMA;
     }
 
     @Override
     protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getDetailsModel().getServiceLocator().getConnectorService().getRefreshScimSchemaStatus(token, task, result);
+        return getDetailsModel().getServiceLocator().getConnectorService().getRefreshSchemaStatus(token, task, result);
     }
 
     @Override
     protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
-        return getDetailsModel().getConnectorDevelopmentOperation().submitRefreshScimSchema(task, result);
+        return getDetailsModel().getConnectorDevelopmentOperation().submitRefreshSchema(task, result);
     }
 
     @Override
@@ -71,40 +71,21 @@ public class WaitingScimSchemaConnectorStepPanel extends WaitingConnectorStepPan
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingScimSchema");
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingSchema");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingScimSchema.text");
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingSchema.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingScimSchema.subText");
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingSchema.subText");
     }
 
     @Override
     protected @NotNull Model<String> getIconModel() {
         return Model.of("fa fa-database");
-    }
-
-    @Override
-    public IModel<Boolean> isStepVisible() {
-        if (!isScim()) {
-            return Model.of(false);
-        }
-        return super.isStepVisible();
-    }
-
-    private boolean isScim() {
-        try {
-            var integrationType = getDetailsModel().getObjectWrapper().findProperty(
-                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
-            return integrationType != null
-                    && ConnDevIntegrationType.SCIM.equals(integrationType.getValue().getRealValue());
-        } catch (SchemaException e) {
-            return false;
-        }
     }
 }
