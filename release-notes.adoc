@@ -65,6 +65,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
 * bug:MID-10997[] Added support for additional footer.
 * bug:MID-11036[] Implemented export to XLSX.
+* bug:MID-11229[] Implemented streaming export for XLSX format.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
 * bug:MID-9476[] Improved Search Box in Object Collection View.
 * bug:MID-10867[] Added support for java 25.
