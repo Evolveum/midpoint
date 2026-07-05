@@ -376,7 +376,10 @@ CREATE TABLE m_object (
     nameOrig TEXT NOT NULL,
     -- @description: Normalized object name used for exact case-insensitive lookup and uniqueness.
     nameNorm TEXT NOT NULL,
-    -- @description: Serialized full object representation, however some items are stored separately. See xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Splitted full object] for more information.
+    /*
+     * @description: Serialized full object representation, however some items are stored separately.
+     * See xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Splitted full object] for more information.
+     */
     fullObject BYTEA,
     -- @description: OID of the tenant reference target object.
     tenantRefTargetOid UUID,
@@ -558,7 +561,10 @@ end $$;
 
 -- @region: references
 -- @regionTitle: References
--- @regionDescription: Tables storing object and container references such as archetype, projection, role membership, and approver references.
+/*
+ * @regionDescription: Tables storing object and container references such as archetype,
+ * projection, role membership, and approver references.
+ */
 -- references related to ObjectType and AssignmentHolderType
 -- stores AssignmentHolderType/archetypeRef
 -- @description: Stores archetype references assigned to assignment-holder objects.

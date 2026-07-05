@@ -126,7 +126,10 @@ CREATE TABLE IF NOT EXISTS m_global_metadata (
 -- endregion
 
 -- region AUDIT
--- @description: Stores top-level audit event records, such as object changes, task actions, sessions, and other audited operations.
+/*
+ * @description: Stores top-level audit event records, such as object changes,
+ * task actions, sessions, and other audited operations.
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/audit-3#AuditEventRecordType
 CREATE TABLE ma_audit_event (
     -- ID is generated as unique, but if provided, it is checked for uniqueness
