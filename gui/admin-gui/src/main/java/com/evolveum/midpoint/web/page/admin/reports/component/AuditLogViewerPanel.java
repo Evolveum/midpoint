@@ -209,7 +209,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                 createReportPerformed(target);
             }
         };
-        createReport.add(AttributeAppender.append("class", "mx-2 btn btn-default btn-sm"));
+        createReport.add(AttributeAppender.append("class", "mx-2 btn btn-light border btn-sm"));
         createReport.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI)));
         buttonsList.add(createReport);
         return buttonsList;

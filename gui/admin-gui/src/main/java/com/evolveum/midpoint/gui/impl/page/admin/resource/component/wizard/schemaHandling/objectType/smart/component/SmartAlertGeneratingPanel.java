@@ -119,7 +119,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         buttonsView.add(suggestButton);
 
         AjaxIconButton showSuggestionsButton = new AjaxIconButton(buttonsView.newChildId(),
-                Model.of("ml-2 fa fa-mouse-pointer"),
+                Model.of("ms-2 fa fa-mouse-pointer"),
                 createStringResource("SmartGeneratingPanel.button.ai.suggestions.show")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -127,7 +127,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
             }
         };
         showSuggestionsButton.add(AttributeModifier.append(
-                "class", "ml-auto bg-purple d-flex flex-row-reverse"));
+                "class", "ms-auto bg-purple d-flex flex-row-reverse"));
         showSuggestionsButton.showTitleAsLabel(true);
         showSuggestionsButton.add(new VisibleBehaviour(() -> getModelObject().isShowSuggestionButtonVisible()));
         buttonsView.add(showSuggestionsButton);
@@ -274,7 +274,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         } else {
             suggestButton = buttonWithDialog(buttonId);
         }
-        suggestButton.add(AttributeModifier.append("class", "ml-auto"));
+        suggestButton.add(AttributeModifier.append("class", "ms-auto"));
         suggestButton.showTitleAsLabel(true);
         suggestButton.add(new VisibleBehaviour(() -> getModelObject().isSuggestionButtonVisible()
                 || getModelObject().isRefreshButtonVisible()));
@@ -284,7 +284,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     private AjaxIconButton buttonWithoutDialog(String buttonId) {
         return new AjaxIconButton(buttonId,
                 () -> getModelObject().isSuggestionButtonVisible()
-                        ? "mr-2 fa fa-wand-magic-sparkles"
+                        ? "me-2 fa fa-wand-magic-sparkles"
                         : "fa fa-arrows-rotate",
                 () -> getModelObject().isSuggestionButtonVisible()
                         ? translate("SmartGeneratingPanel.button.ai.suggestions.suggest")
@@ -306,7 +306,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                         ? translate("SmartGeneratingPanel.button.ai.suggestions.suggest")
                         : translate("SmartGeneratingPanel.button.ai.suggestions.refresh"),
                 () -> getModelObject().isSuggestionButtonVisible()
-                        ? "mr-2 fa fa-wand-magic-sparkles"
+                        ? "me-2 fa fa-wand-magic-sparkles"
                         : "fa fa-arrows-rotate",
                 SuggestionOption.of(getConfirmationOptions().getObject()),
                 () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {

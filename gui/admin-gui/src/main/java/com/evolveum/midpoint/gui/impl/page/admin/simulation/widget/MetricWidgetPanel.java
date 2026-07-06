@@ -315,8 +315,8 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         // todo implement properly and make visible
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {
             Badge badge = new Badge();
-            badge.setCssClass("badge badge-success trend trend-success");
-            badge.setIconCssClass("fa-solid fa-arrow-trend-up mr-1");
+            badge.setCssClass("badge bg-success trend trend-success");
+            badge.setIconCssClass("fa-solid fa-arrow-trend-up me-1");
             badge.setText("+3,14%");
             return badge;
         });
@@ -328,7 +328,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
             String v = valueModel.getObject();
             return v != null ? v : LocalizationUtil.translate("MetricWidgetPanel.noValue");
         });
-        value.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "text-bold"));
+        value.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "fw-bold"));
         add(value);
 
         IModel<String> descriptionModel = () -> {
@@ -376,7 +376,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     }
 
     protected IModel<String> getActionLinkIconModel() {
-        return () -> "ml-1 fa-solid fa-circle-arrow-right";
+        return () -> "ms-1 fa-solid fa-circle-arrow-right";
     }
 
     private boolean hasZeroValue(IModel<String> valueModel) {

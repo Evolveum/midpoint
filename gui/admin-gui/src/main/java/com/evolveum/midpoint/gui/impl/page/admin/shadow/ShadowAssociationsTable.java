@@ -237,7 +237,7 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
                         return false;
                     }
                 };
-        table.add(AttributeAppender.append("class", "card"));
+        table.add(AttributeAppender.append("class", "card shadow-sm mb-3"));
         table.add(AttributeAppender.append(
                 "style", "border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;"));
         return table;

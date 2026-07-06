@@ -4,31 +4,25 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-import '../../../node_modules/popper.js/dist/umd/popper';
-import '../../../node_modules/admin-lte/plugins/bootstrap/js/bootstrap';
-import '../../../node_modules/admin-lte/dist/js/adminlte';
+import '@popperjs/core'
+import 'bootstrap'
+import 'admin-lte'
 
-import '../../../node_modules/bootstrap-select';
-import '../../../node_modules/bootstrap-multiselect';
+import 'bootstrap-multiselect';
 
-import '../../../node_modules/moment/dist/moment'
+import 'select2/dist/js/select2';
 
-import '../../../node_modules/daterangepicker/daterangepicker';
+import 'sparklines';
 
-import '../../../node_modules/select2/dist/js/select2';
+import 'bootstrap5-toggle';
 
-import '../../../node_modules/sparklines';
+import 'ace-builds/src-noconflict/ace';
 
-import '../../../node_modules/admin-lte/plugins/bootstrap-switch/js/bootstrap-switch';
-
-import '../../../node_modules/ace-builds/src-noconflict/ace';
-
-import '../../../node_modules/@eonasdan/tempus-dominus';
-import '../../../node_modules/@popperjs/core';
+import '@eonasdan/tempus-dominus';
 
 ace.config.setModuleUrl('ace/theme/eclipse',
     require('../../../node_modules/ace-builds/src-noconflict/theme-eclipse.js'));
-ace.config.setModuleUrl('ace/theme/eclipse',
+ace.config.setModuleUrl('ace/theme/idle_fingers',
     require('../../../node_modules/ace-builds/src-noconflict/theme-idle_fingers.js'));
 ace.config.setModuleUrl('ace/mode/xml',
     require('../../../node_modules/ace-builds/src-noconflict/mode-xml.js'));
@@ -50,10 +44,6 @@ ace.config.setModuleUrl('ace/ext/language_tools',
     require('../../../node_modules/ace-builds/src-noconflict/ext-language_tools.js'));
 ace.config.setModuleUrl('ace/ext/searchbox',
     require('../../../node_modules/ace-builds/src-noconflict/ext-searchbox.js'));
-
-// ace.config.setModuleUrl('ace/mode/xml_worker', require('../../../node_modules/ace-builds/src-noconflict/worker-xml.js'));
-require('file-loader?publicPath=../../static/&name=[name].[ext]&esModule=false!../../../node_modules/ace-builds/src-noconflict/worker-xml.js')
-
 
 // xml worker module is always being loaded using some url, it's different that theme and ext modules, therefore we'll compute
 // <midpoint_context>/static/worker-xml.js from current script URL and use it to load correctly worker-xml.js script

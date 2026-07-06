@@ -142,7 +142,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
     }
 
     protected void initDefaultComponentCssClass() {
-        add(AttributeModifier.prepend("class", "card card-primary card-outline card-outline-tabs"));
+        add(AttributeModifier.prepend("class", "card shadow-sm mb-3 card-primary card-outline card-outline-tabs"));
     }
 
     protected void populateLoopItem(LoopItem item) {

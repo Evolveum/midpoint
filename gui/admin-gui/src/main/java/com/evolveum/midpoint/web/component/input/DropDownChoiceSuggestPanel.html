@@ -10,9 +10,9 @@
     <div class="input-group input-group-sm">
         <select class="form-control form-control-sm" wicket:id="input"></select>
 
-        <span class="input-group-append" wicket:id="suggestContainer">
-            <button type="button" class="btn btn-default" wicket:id="suggest"></button>
-        </span>
+        <wicket:container wicket:id="suggestContainer">
+            <button type="button" class="btn btn-light border" wicket:id="suggest"></button>
+        </wicket:container>
     </div>
 </wicket:panel>
 </html>

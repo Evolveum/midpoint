@@ -51,9 +51,9 @@ public class CorrelationUtil {
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationUtil.class);
 
     public enum CorrelationStatus {
-        CORRELATED("badge badge-success badge-opaque", "Correlation.simulation.state.correlated"),
-        UNCERTAIN("badge badge-warning badge-opaque", "Correlation.simulation.state.uncertain"),
-        NOT_CORRELATED("badge badge-secondary badge-opaque", "Correlation.simulation.state.notCorrelated");
+        CORRELATED("badge bg-success bg-opaque", "Correlation.simulation.state.correlated"),
+        UNCERTAIN("badge bg-warning bg-opaque", "Correlation.simulation.state.uncertain"),
+        NOT_CORRELATED("badge bg-secondary bg-opaque", "Correlation.simulation.state.notCorrelated");
         private final String cssClass;
         private final String translationKey;
 

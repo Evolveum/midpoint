@@ -103,7 +103,7 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
             @Override
             protected AjaxIconButton createUnassignButton(String buttonId) {
                 AjaxIconButton button = super.createUnassignButton(buttonId);
-                button.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-2"));
+                button.add(AttributeAppender.replace("class", "btn btn-outline-primary ms-2"));
                 button.showTitleAsLabel(true);
                 return button;
             }

@@ -39,7 +39,7 @@ public abstract class AttributeTypeWizardChoicePanel
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(AttributeAppender.append("class", "col-xxl-10 col-12 gap-3 m-auto"));
+        add(AttributeAppender.append("class", "col-3xl-10 col-12 gap-3 m-auto"));
     }
 
     public enum AttributeTypeConfigurationTileType implements TileEnum {

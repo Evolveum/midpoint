@@ -101,7 +101,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             @Override
             protected String getInlineMenuItemCssClass(IModel<SelectableBean<RoleType>> rowModel) {
-                return "btn btn-default btn-sm flex-nowrap text-nowrap";
+                return "btn btn-light border btn-sm flex-nowrap text-nowrap";
             }
 
             @Override
@@ -319,7 +319,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                 //onRefresh(target);
             }
         };
-        refreshIcon.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
+        refreshIcon.add(AttributeModifier.append("class", "btn btn-light border btn-sm"));
         return refreshIcon;
     }
 
@@ -517,6 +517,6 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
     }
 
     public String getAdditionalBoxCssClasses() {
-        return " m-0 elevation-0";
+        return " m-0 shadow-none";
     }
 }

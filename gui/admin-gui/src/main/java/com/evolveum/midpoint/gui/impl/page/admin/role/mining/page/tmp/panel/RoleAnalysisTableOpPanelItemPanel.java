@@ -131,7 +131,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                     @Contract(pure = true)
                     @Override
                     public @NotNull String appendIconPanelCssClass() {
-                        return " elevation-1";
+                        return " shadow-sm";
                     }
 
                     @Contract(pure = true)

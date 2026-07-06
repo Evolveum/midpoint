@@ -6,7 +6,7 @@
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div>
-        <div class="text-gray text-center">
+        <div class="text-secondary text-center">
             <wicket:message key="ChangeMappingNamePopup.message"/>
         </div>
         <div class="mt-2" wicket:id="input"/>
@@ -14,11 +14,11 @@
 
     <wicket:fragment wicket:id="buttons">
         <div class="d-flex flex-wrap gap-2 w-100">
-            <a class="mr-auto btn btn-outline-primary" wicket:id="close">
-                <i class="fa-solid fa-xmark mr-1"></i>
+            <a class="me-auto btn btn-outline-primary" wicket:id="close">
+                <i class="fa-solid fa-xmark me-1"></i>
                 <wicket:message key="Button.close"/>
             </a>
-            <button wicket:id="applyChanges" class="ml-auto btn btn-primary"/>
+            <button wicket:id="applyChanges" class="ms-auto btn btn-primary"/>
         </div>
     </wicket:fragment>
 </wicket:panel>

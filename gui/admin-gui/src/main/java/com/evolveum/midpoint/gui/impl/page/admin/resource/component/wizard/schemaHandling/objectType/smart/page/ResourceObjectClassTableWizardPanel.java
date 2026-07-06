@@ -216,7 +216,7 @@ public abstract class ResourceObjectClassTableWizardPanel<P extends Containerabl
     }
     @Override
     protected String getExitButtonCssClass() {
-        return "btn-link mr-auto";
+        return "btn-link me-auto";
     }
 
     @Override

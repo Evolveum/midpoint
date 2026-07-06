@@ -29,7 +29,7 @@ public class MyNodeBorder extends Behavior {
 
         for (int i = 0; i < branches.length; i++) {
             if (i > 0) {
-                response.write("<div class=\"ml-4\">");
+                response.write("<div class=\"ms-4\">");
             }
         }
     }

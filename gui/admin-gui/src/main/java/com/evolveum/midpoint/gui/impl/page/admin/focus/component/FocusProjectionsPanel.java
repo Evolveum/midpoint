@@ -548,7 +548,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             @Override
             public Component getHeader(String componentId) {
                 Component header = super.getHeader(componentId);
-                header.add(AttributeAppender.append("class", "sr-only"));
+                header.add(AttributeAppender.append("class", "visually-hidden"));
                 return header;
             }
         });

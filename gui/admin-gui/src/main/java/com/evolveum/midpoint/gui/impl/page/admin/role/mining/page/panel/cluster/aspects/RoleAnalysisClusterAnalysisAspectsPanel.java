@@ -405,7 +405,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalRolesCount);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -445,7 +445,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalUsersCount);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -778,7 +778,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalRolesCount);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -818,7 +818,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalUsersCount);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -991,7 +991,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected String initDefaultCssClass() {
-                return "col-12 pl-0 pr-0";
+                return "col-12 ps-0 pe-0";
             }
         };
         panel.setOutputMarkupId(true);

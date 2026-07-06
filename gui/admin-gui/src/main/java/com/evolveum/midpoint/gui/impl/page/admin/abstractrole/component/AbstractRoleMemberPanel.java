@@ -558,7 +558,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
         };
         assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)));
-        assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        assignButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         return assignButton;
     }
 
@@ -627,7 +627,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
         };
         assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)));
-        assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        assignButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         return assignButton;
     }
 
@@ -1681,7 +1681,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 refreshTable(target);
             }
         };
-        refreshIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ml-2"));
+        refreshIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ms-2"));
         refreshIcon.showTitleAsLabel(true);
         return refreshIcon;
     }
@@ -1698,7 +1698,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 refreshTable(target);
             }
         };
-        playPauseIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ml-2"));
+        playPauseIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ms-2"));
         playPauseIcon.showTitleAsLabel(true);
         return playPauseIcon;
     }

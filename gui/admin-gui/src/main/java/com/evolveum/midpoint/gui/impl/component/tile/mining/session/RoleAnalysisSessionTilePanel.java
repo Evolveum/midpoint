@@ -102,15 +102,15 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
         String badgeCss = "";
         if (procedureType == null) {
             badgeText = "N/A";
-            badgeCss = "badge badge-danger";
+            badgeCss = "badge bg-danger";
         } else if (procedureType.equals(RoleAnalysisProcedureType.ROLE_MINING)) {
             badgeText = "role mining";
             // temporary disable to many colors
-//            badgeCss = "badge badge-success";
-            badgeCss = "badge badge-primary";
+//            badgeCss = "badge bg-success";
+            badgeCss = "badge bg-primary";
         } else if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             badgeText = "outlier detection";
-            badgeCss = "badge badge-primary";
+            badgeCss = "badge bg-primary";
         }
 
         Badge badge = new Badge(badgeCss, badgeText);
@@ -133,7 +133,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
             @Contract(pure = true)
             @Override
             protected @NotNull String getLabelComponentCssClass() {
-                return "pl-1 text-sm " + TEXT_TRUNCATE;
+                return "ps-1 fs-7 " + TEXT_TRUNCATE;
             }
 
         };
@@ -153,7 +153,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
             @Contract(pure = true)
             @Override
             protected @NotNull String getLabelComponentCssClass() {
-                return "pl-1 text-sm " + TEXT_TRUNCATE;
+                return "ps-1 fs-7 " + TEXT_TRUNCATE;
             }
 
         };
@@ -177,7 +177,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
             @Contract(pure = true)
             @Override
             protected @NotNull String getLabelComponentCssClass() {
-                return "pl-1 text-sm text-truncate";
+                return "ps-1 fs-7 text-truncate";
             }
 
         };
@@ -209,7 +209,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
             @Contract(pure = true)
             @Override
             protected @NotNull String getLabelComponentCssClass() {
-                return "pl-2 text-truncate";
+                return "ps-2 text-truncate";
             }
 
             @Override
@@ -228,7 +228,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
 
     private void initToolBarPanel() {
         DropdownButtonPanel barMenu = new DropdownButtonPanel(ID_BUTTON_BAR, new DropdownButtonDto(
-                null, "fa-ellipsis-v ml-1", null, createMenuItems())) {
+                null, "fa-ellipsis-v ms-1", null, createMenuItems())) {
             @Override
             protected boolean hasToggleIcon() {
                 return false;

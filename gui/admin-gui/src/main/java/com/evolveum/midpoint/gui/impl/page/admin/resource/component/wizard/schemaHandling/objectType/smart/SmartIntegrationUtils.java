@@ -211,7 +211,7 @@ public class SmartIntegrationUtils {
 
     public static @NotNull IModel<Badge> getAiCustomTextBadgeModel(String text, String tooltip) {
         Badge aiBadge = new Badge(
-                "badge badge-light-purple d-flex align-items-center",
+                "badge bg-light-purple d-flex align-items-center",
                 "fa fa-wand-magic-sparkles text-purple",
                 text,
                 "text-purple",
@@ -231,7 +231,7 @@ public class SmartIntegrationUtils {
 
     public static @NotNull IModel<Badge> getAiEfficiencyBadgeModel(String text, String tooltip) {
         Badge aiBadge = new Badge(
-                "badge badge-purple d-flex align-items-center",
+                "badge bg-purple d-flex align-items-center",
                 "fa fa fas fa-bolt",
                 text,
                 "text-white",
@@ -248,9 +248,9 @@ public class SmartIntegrationUtils {
                 "SuggestionUiStyle.inProgress"),
         NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
-        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-ai left-border-2px",
+        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-ai border-start-2",
                 "SuggestionUiStyle.default"),
-        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system left-border-2px",
+        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system border-start-2",
                 "SuggestionUiStyle.default");
 
         public final String tileClass;

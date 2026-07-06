@@ -105,7 +105,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
         if (filteredMenuItems.isEmpty()) {
             Label label = new Label(componentId, pageBase.createStringResource("InlineMenuButtonColumn.header")); //this is hack, TODO: cleanup and refactor soif there aren't any inline (row) actions, nothing is displayed
-            label.add(AttributeAppender.append("class", "sr-only"));
+            label.add(AttributeAppender.append("class", "visually-hidden"));
             return label;
         }
 
@@ -317,7 +317,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     }
 
     protected String getInlineMenuItemCssClass(IModel<T> rowModel) {
-        return "btn btn-default btn-xs";
+        return "btn btn-light border btn-sm";
     }
 
     protected String getDropDownButtonIcon() {

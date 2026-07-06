@@ -23,12 +23,12 @@ public class TooltipBehavior extends Behavior {
     public void onConfigure(final Component component) {
         component.setOutputMarkupId(true);
 
-        component.add(AttributeModifier.replace("data-toggle", "tooltip"));
-        addTooltipAttribute(component, "data-placement", getDataPlacement());
+        component.add(AttributeModifier.replace("data-bs-toggle", "tooltip"));
+        addTooltipAttribute(component, "data-bs-placement", getDataPlacement());
 
         String dataBoundary = getDataBoundary();
         if (StringUtils.isNotEmpty(dataBoundary)) {
-            addTooltipAttribute(component, "data-boundary", dataBoundary);
+            addTooltipAttribute(component, "data-bs-boundary", dataBoundary);
         }
     }
 

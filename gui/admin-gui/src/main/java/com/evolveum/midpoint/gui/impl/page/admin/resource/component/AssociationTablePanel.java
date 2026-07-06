@@ -280,7 +280,7 @@ public abstract class AssociationTablePanel
 
                     @Override
                     public String getCssClass() {
-                        return "col-3 text-left";
+                        return "col-3 text-start";
                     }
                 });
 
@@ -341,7 +341,7 @@ public abstract class AssociationTablePanel
 
                     @Override
                     public String getCssClass() {
-                        return "col-2 text-right text-nowrap";
+                        return "col-2 text-end text-nowrap";
                     }
                 });
 
@@ -461,7 +461,7 @@ public abstract class AssociationTablePanel
 
         accept.setOutputMarkupId(true);
         accept.showTitleAsLabel(true);
-        accept.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary mr-2"));
+        accept.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary me-2"));
         return accept;
     }
 
@@ -506,7 +506,7 @@ public abstract class AssociationTablePanel
         };
 
         tag.setOutputMarkupId(true);
-        tag.add(AttributeModifier.replace("class", "badge badge-blue badge-opaque d-inline-flex flex-nowrap")); //system-badge
+        tag.add(AttributeModifier.replace("class", "badge bg-blue bg-opaque d-inline-flex flex-nowrap")); //system-badge
         return tag;
     }
 
@@ -560,7 +560,7 @@ public abstract class AssociationTablePanel
 
         button.setOutputMarkupId(true);
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.replace("class", "ml-2 px-2 btn " + cssClass));
+        button.add(AttributeModifier.replace("class", "ms-2 px-2 btn " + cssClass));
         button.add(new VisibleBehaviour(() -> getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel()
                 && getStatusAwareDataProvider().getPageSuggestionCount() > 1));
         return button;

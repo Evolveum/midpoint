@@ -74,7 +74,7 @@ public class ReviewersTileTablePanel extends TileTablePanel<Tile<UserType>, User
     protected Component createTile(String id, IModel<Tile<UserType>> model) {
         UserType user = model.getObject().getValue();
         ReviewerTilePanel tilePanel = new ReviewerTilePanel(id, model, getReviewerStatisticDto(user.getOid()));
-        tilePanel.add(AttributeAppender.append("class", "d-flex flex-column ml-3 mt-3"));
+        tilePanel.add(AttributeAppender.append("class", "d-flex flex-column ms-3 mt-3"));
         tilePanel.add(AttributeAppender.append("style", "height: 270px; width: 220px;"));
         tilePanel.setHorizontal(false);
         return tilePanel;

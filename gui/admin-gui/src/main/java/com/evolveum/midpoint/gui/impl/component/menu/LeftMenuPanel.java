@@ -199,7 +199,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         };
         logo.add(new VisibleEnableBehaviour(() -> !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
-        logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
+        logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getBackgroundCss()));
         add(logo);
 
         IModel<IconType> logoModel = new IModel<>() {
@@ -226,7 +226,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 setResponsePage(page);
             }
         };
-        customLogo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
+        customLogo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getBackgroundCss()));
         customLogo.add(AttributeAppender.append("class", () -> {
             IconType icon = logoModel.getObject();
             return StringUtils.isNotEmpty(icon.getImageUrl()) ? logoModel.getObject().getCssClass() : null;

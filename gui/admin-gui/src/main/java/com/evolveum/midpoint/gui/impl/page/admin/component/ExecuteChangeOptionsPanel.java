@@ -138,7 +138,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
             @Override
             protected String getSpecialButtonClass() {
-                return "mr-2 btn-sm btn-default";
+                return "me-2 btn-sm btn-light border";
             }
         };
         add(dropdownButtonPanel);
@@ -196,7 +196,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
             @Override
             protected String getSpecialButtonClass() {
-                return "mr-2 btn-sm btn-default";
+                return "me-2 btn-sm btn-light border";
             }
         };
         add(dropdownButtonPanel);

@@ -369,12 +369,13 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         super.renderHead(response);
         response.render(JavaScriptHeaderItem.forScript(
                 "document.documentElement.lang = '" + getSession().getLocale().getLanguage() + "';", "set-lang"));
+        response.render(JavaScriptHeaderItem.forScript(
+                "localStorage.setItem('lte-theme', '" + (isDarkMode() ? "dark" : "light") + "');", "set-lte-theme"));
+
     }
 
     private void initLayout() {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
-        body.add(AttributeAppender.append("class", () -> isDarkMode() ? "dark-mode" : null));
-        // body.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getAccentCss()));
 
         addDefaultBodyStyle(body);
         add(body);

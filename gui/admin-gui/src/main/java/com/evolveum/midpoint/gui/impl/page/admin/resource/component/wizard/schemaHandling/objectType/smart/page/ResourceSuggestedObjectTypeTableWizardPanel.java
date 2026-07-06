@@ -330,7 +330,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
 
     @Override
     protected String getExitButtonCssClass() {
-        return "btn-link mr-auto";
+        return "btn-link me-auto";
     }
 
     @Override

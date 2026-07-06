@@ -315,7 +315,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 return isNotRunning();
             }
         });
-        manageLivesyncToken.add(AttributeAppender.append("class", "btn-default"));
+        manageLivesyncToken.add(AttributeAppender.append("class", "btn-light border"));
         manageLivesyncToken.setOutputMarkupId(true);
         repeatingView.add(manageLivesyncToken);
     }
@@ -522,7 +522,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 getPageBase().showMainPopup(dialog, target);
             }
         };
-        cleanupPerformance.add(AttributeAppender.append("class", "btn-default"));
+        cleanupPerformance.add(AttributeAppender.append("class", "btn-light border"));
         cleanupPerformance.add(new VisibleBehaviour(this::isNotRunning));
         repeatingView.add(cleanupPerformance);
     }
@@ -655,7 +655,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn-sm btn-default";
+                return "btn-sm btn-light border";
             }
         };
         bp.setOutputMarkupId(true);
@@ -685,7 +685,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             }
         };
         cleanupResults.add(new VisibleBehaviour(this::isNotRunning));
-        cleanupResults.add(AttributeAppender.append("class", "btn-default"));
+        cleanupResults.add(AttributeAppender.append("class", "btn-light border"));
         repeatingView.add(cleanupResults);
     }
 

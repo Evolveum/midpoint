@@ -103,7 +103,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
 
             @Override
@@ -135,7 +135,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
         };
     }
@@ -149,7 +149,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
 
             @SuppressWarnings("rawtypes")
@@ -238,7 +238,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
 
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
         };
     }
@@ -261,7 +261,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
 
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
         };
     }

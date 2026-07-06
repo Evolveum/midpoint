@@ -243,7 +243,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             }
         };
         testResource.showTitleAsLabel(true);
-        testResource.add(AttributeAppender.append("class", "ml-auto"));
+        testResource.add(AttributeAppender.append("class", "ms-auto"));
         customButtons.add(testResource);
     }
 

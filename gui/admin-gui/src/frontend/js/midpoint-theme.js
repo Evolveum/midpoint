@@ -7,6 +7,8 @@
 import Sparkline from "sparklines";
 import { TempusDominus } from '@eonasdan/tempus-dominus';
 import { DateTime } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
+import { Modal } from 'bootstrap';
+import { createPopper } from '@popperjs/core';
 
 export default class MidPointTheme {
 
@@ -25,13 +27,13 @@ export default class MidPointTheme {
             });
 
             self.fixContentHeight();
-            $(window, ".wrapper").resize(function () {
+            $(window, ".app-wrapper").resize(function () {
                 self.fixContentHeight();
             });
         });
         // expand/collapse for sidebarMenuPanel
         jQuery(function ($) {
-            $('.nav-sidebar li.nav-header').on("click", function (e) {
+            $('.sidebar-menu li.nav-header').on("click", function (e) {
                 if ($(this).hasClass('closed')) {
                     // expand the panel
                     $(this).nextUntil('.nav-header').slideDown();
@@ -47,7 +49,7 @@ export default class MidPointTheme {
         });
 
         jQuery(function ($) {
-                    $('.nav-sidebar li.nav-item[aria-haspopup="true"]').on("click", function (e) {
+                    $('.sidebar-menu li.nav-item[aria-haspopup="true"]').on("click", function (e) {
                         if ($(this).hasClass('menu-open')) {
                             $(this).attr("aria-expanded", "false");
                         } else {
@@ -257,7 +259,7 @@ export default class MidPointTheme {
             let isEnterPressedOnTooltipIcon = false;
 
             $(function () {
-                $(document).on("focusin mouseenter", "[data-toggle='tooltip']", function () {
+                $(document).on("focusin mouseenter", "[data-bs-toggle='tooltip']", function () {
                     const $el = $(this);
                     const titleText = $el.attr("title");
                     if (!$el.attr("data-tooltip-content") && titleText) {
@@ -269,7 +271,7 @@ export default class MidPointTheme {
                 $(document).on("keydown", function (e) {
                     if ((e.key === "Enter" || e.key === " ") && document.activeElement) {
                         const $el = $(document.activeElement);
-                        if ($el.is("[data-toggle='tooltip']")) {
+                        if ($el.is("[data-bs-toggle='tooltip']")) {
                             e.preventDefault();
                             $el.tooltip("dispose");
                             $el.showTooltip(true);
@@ -277,7 +279,7 @@ export default class MidPointTheme {
                     }
 
                     if (e.key === "Escape") {
-                        $("[data-toggle='tooltip']").each(function () {
+                        $("[data-bs-toggle='tooltip']").each(function () {
                             const $tooltip = $("#" + $(this).attr("data-tooltip-id"));
                             $(this).tooltip('hide');
                         });
@@ -289,14 +291,14 @@ export default class MidPointTheme {
                     }
                 });
 
-                $(document).on("mouseenter", "[data-toggle='tooltip']", function () {
+                $(document).on("mouseenter", "[data-bs-toggle='tooltip']", function () {
                     const $el = $(this);
                     isHovered = true;
                     $el.tooltip("dispose");
                     $el.showTooltip(false);
                 });
 
-                $(document).on("mouseleave", "[data-toggle='tooltip']", function () {
+                $(document).on("mouseleave", "[data-bs-toggle='tooltip']", function () {
                     const $el = $(this);
                     var parentMorePopup = $el.closest('.popover');
                     if (parentMorePopup && parentMorePopup.length !== 0) {
@@ -310,22 +312,22 @@ export default class MidPointTheme {
                     }
                 });
 
-                $(document).on("focusin", "[data-toggle='tooltip']", function () {
+                $(document).on("focusin", "[data-bs-toggle='tooltip']", function () {
                     // Just track focus for possible hide
                 });
 
-                $(document).on("blur", "[data-toggle='tooltip']", function () {
+                $(document).on("blur", "[data-bs-toggle='tooltip']", function () {
                     isHovered = false;
                     checkHide($(this));
                 });
 
-                $(document).on("keydown", "[data-toggle='tooltip']", function () {
+                $(document).on("keydown", "[data-bs-toggle='tooltip']", function () {
                     if (event.key === 'Enter') {
                         isEnterPressedOnTooltipIcon = true;
                     }
                 });
 
-                $(document).on("click", "[data-toggle='tooltip']", function () {
+                $(document).on("click", "[data-bs-toggle='tooltip']", function () {
                     const $el = $(this);
                     const tooltipId = $el.attr("data-tooltip-id");
                     const isVisible = tooltipId && $("#" + tooltipId).is(":visible");
@@ -340,14 +342,14 @@ export default class MidPointTheme {
                 });
             });
 
-            $(document).on("focusout mouseleave", "[data-toggle='tooltip']", function () {
+            $(document).on("focusout mouseleave", "[data-bs-toggle='tooltip']", function () {
                 clearTimeout($(this).data("tooltipShowDelayTimer"));
             });
 
             $.fn.showTooltip = function (setFocus = false) {
                 const $el = $(this);
                 if (typeof $el.tooltip === "function") {
-                    var wl = $.extend(true, {}, $.fn.tooltip.Constructor.Default.whiteList);
+                    var wl = $.extend(true, {}, $.fn.tooltip.Constructor.Default.allowList);
                     wl['xsd:documentation'] = [];
 
                     var parent = $el.closest('.modal-dialog-content');
@@ -367,7 +369,7 @@ export default class MidPointTheme {
                     $el.tooltip({
                         html: true,
                         title: $el.attr('data-tooltip-content') || '',
-                        whiteList: wl,
+                        allowList: wl,
                         container: container,
                         trigger: 'manual'
                     });
@@ -499,7 +501,7 @@ export default class MidPointTheme {
         });
 
         jQuery(function ($) {
-            var sideBar = $(".nav-sidebar");
+            var sideBar = $(".sidebar-menu");
             self.keydownForMenuItems(sideBar, self);
 
             var detailsMenu = $(".details-panel-navigation");
@@ -514,7 +516,7 @@ export default class MidPointTheme {
 
     restrictMorePopoverFocusArea() {
         const popup = $(".search-popover.popover-body");
-        const closeButton = popup.find(".btn.btn-sm.btn-default");
+        const closeButton = popup.find(".btn.btn-sm.btn-light border");
         const focusableElements = popup.find('a, input');
         const firstFocusableElement = focusableElements.first();
         const lastFocusableElement = focusableElements.last();
@@ -1111,15 +1113,15 @@ export default class MidPointTheme {
 
     // I'm not sure why sidebar has 15px padding -> and why I had to use 10px constant here [lazyman]
     fixContentHeight() {
-        if ($(".main-footer").length > 0) {
+        if ($(".app-footer").length > 0) {
             return;
         }
 
         var window_height = $(window).height();
-        var sidebar_height = $(".sidebar").height() || 0;
+        var sidebar_height = $(".sidebar-wrapper").height() || 0;
 
         if (window_height < sidebar_height) {
-            $(".content-wrapper, .right-side").css('min-height', sidebar_height + 10); // footer size
+            $(".app-main, .right-side").css('min-height', sidebar_height + 10); // footer size
         }
     }
 
@@ -1224,9 +1226,9 @@ export default class MidPointTheme {
 
         var documentHeight = $(document).innerHeight();
         var elementHeight = $('#' + elementId).outerHeight(true);
-        var mainContainerHeight = $('section.content-header').outerHeight(true)
-            + $('section.content').outerHeight(true) + $('footer.main-footer').outerHeight(true)
-            + $('header.main-header').outerHeight(true);
+        var mainContainerHeight = $('nav.app-header').outerHeight(true)
+            + $('div.app-content').outerHeight(true) + $('footer.app-footer').outerHeight(true)
+            + $('header.app-header').outerHeight(true);
 
         console.log("Document height: " + documentHeight + ", mainContainer: " + mainContainerHeight);
 
@@ -1382,6 +1384,12 @@ export default class MidPointTheme {
         $('#' + compId).multiselect(options);
     }
 
+    /**
+     * used in Popover.java
+     *
+     * @param refId
+     * @param popupId
+     */
     togglePopover(refId, popupId) {
         var popup = $(popupId);
 
@@ -1391,11 +1399,11 @@ export default class MidPointTheme {
     showPopover(refId, popupId, show) {
         var ref = $(refId);
         var popup = $(popupId);
-        var arrow = popup.find('.arrow');
+        var arrow = popup.find('.popover-arrow');
 
         if (!show) {
             if (popup.is(':visible')) {
-                popup.find("[data-toggle='tooltip']").each(function () {
+                popup.find("[data-bs-toggle='tooltip']").each(function () {
                     $(this).tooltip('hide').tooltip('dispose').removeAttr('data-tooltip-id aria-describedby');
                 });
                 popup.fadeOut(200);
@@ -1405,23 +1413,25 @@ export default class MidPointTheme {
         } else {
             if (!popup.is(':visible')) {
                 ref.attr('aria-expanded', 'true');
-                var position = ref.position();
 
-                var left = position.left + (ref.outerWidth() - popup.outerWidth() - 9) / 2;// - paddingRight;
-                var top = position.top + ref.outerHeight();
+                createPopper(ref[0], popup[0], {
+                    placement: 'bottom',
+                    modifiers: [
+                        {
+                            name: 'offset',
+                            options: {
+                                offset: [0, 8]
+                            }
+                        },
+                        {
+                            name: 'arrow',
+                            options: {
+                                element: arrow[0]
+                            }
+                        }
+                    ]
+                });
 
-                var offsetLeft = ref.offset().left - position.left;
-
-                if ((left + popup.outerWidth() + offsetLeft) > window.innerWidth) {
-                    left = window.innerWidth - popup.outerWidth() - offsetLeft - 15;
-                } else if (left < 0) {
-                    left = 0;
-                }
-
-                popup.css('top', top);
-                popup.css('left', left);
-
-                arrow.css('left', (popup.innerWidth() - arrow.width()) / 2);
                 popup.fadeIn(200);
             }
         }
@@ -1473,10 +1483,10 @@ export default class MidPointTheme {
     }
 
     initPushMenuButton() {
-        $('a[data-widget="pushmenu"]').on("click", function (e) {
+        $('a[data-lte-toggle="sidebar"]').on("click", function (e) {
             setAriaExpandedForPushMenu($(this), false);
         });
-        setAriaExpandedForPushMenu($('a[data-widget="pushmenu"]'), true);
+        setAriaExpandedForPushMenu($('a[data-lte-toggle="sidebar"]'), true);
 
         function setAriaExpandedForPushMenu(menuButton, processAfterClick) {
             var valueExpand = "true";
@@ -1832,12 +1842,21 @@ export default class MidPointTheme {
 
     showModalWithRestoreFocus(modalId) {
         const dialog = document.getElementById(modalId);
-        if (dialog) {
-            $(dialog).off('hidden.bs.modal').on('hidden.bs.modal', () => {
+        let modal = Modal.getInstance(dialog);
+        if (!modal) {
+            modal = new Modal(dialog);
+            dialog.addEventListener('hidden.bs.modal', () => {
                 this.restoreFocus();
             });
-            $(dialog).modal('show');
         }
+        if (modal) {
+            modal.show();
+        }
+    }
+
+    hideModal(modalId) {
+        const dialog = document.getElementById(modalId);
+        Modal.getOrCreateInstance(dialog).hide();
     }
 
     updateStatusMessageForMenu(menuId, menuTimeout, messageId, messageTimeout) {

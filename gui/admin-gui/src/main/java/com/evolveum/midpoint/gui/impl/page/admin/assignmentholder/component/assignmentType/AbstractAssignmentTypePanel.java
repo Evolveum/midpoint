@@ -468,7 +468,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 newAssignmentClickPerformed(target);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         bar.add(newObjectButton);
 
         newObjectButton.add(new VisibleEnableBehaviour() {

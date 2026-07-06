@@ -362,7 +362,7 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         };
         migrationButton.titleAsLabel(true);
         migrationButton.setOutputMarkupId(true);
-        migrationButton.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
+        migrationButton.add(AttributeModifier.append("class", "btn btn-light border btn-sm"));
         migrationButton.add(new VisibleBehaviour(() -> !isActiveRole()));
         repeatingView.add(migrationButton);
     }

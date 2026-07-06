@@ -6,24 +6,15 @@
 
 const webpack = require('./node_modules/webpack');
 const MiniCssExtractPlugin = require('./node_modules/mini-css-extract-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const path = require('path');
 
 module.exports = {
     entry: {
-        vendors: [
-            './src/frontend/js/vendors.js',
-            './src/frontend/scss/vendors.scss',
-        ],
-        "vendors-passwords": [
-            './src/frontend/js/vendors-passwords.js',
-        ],
-        "vendors-fonts": [
-            './src/frontend/scss/vendors-fonts.scss',
-        ],
         midpoint: [
-            './src/frontend/js/midpoint.js',
-            './src/frontend/scss/midpoint.scss',
+            './src/frontend/js/app.js',
+            './src/frontend/scss/app.scss',
         ],
     },
     output: {
@@ -34,6 +25,13 @@ module.exports = {
     },
     module: {
         rules: [
+            {
+                test: require.resolve('jquery'),
+                loader: 'expose-loader',
+                options: {
+                    exposes: ['$', 'jQuery']
+                }
+            },
             {
                 test: /\.(sass|scss|css)$/,
                 use: [
@@ -53,11 +51,19 @@ module.exports = {
                             sassOptions: {
                                 outputStyle: "expanded",
                                 quietDeps: true,
-                                silenceDeprecations: ["abs-percent", "color-4-api", "import", "legacy-js-api", "color-functions", "fs-importer-cwd", "css-function-mixin", "duplicate-var-flags", "feature-exists", "global-builtin", "mixed-decls"]
+                                loadPaths: ['node_modules'],
+                                 silenceDeprecations: ["import", "global-builtin", "color-functions", "if-function"]
                             }
                         },
                     },
                 ],
+            },
+            {
+                test: /worker-xml\.js$/,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'worker-xml.js'
+                }
             },
             {
                 test: /\.js$/,
@@ -78,15 +84,22 @@ module.exports = {
             {
                 test: /\.(woff(2)?|eot|ttf|otf|svg|)$/,
                 type: 'asset/inline'
-            },
+            }
         ],
     },
     plugins: [
         new webpack.ProvidePlugin({
             $: 'jquery',
-            jQuery: 'jquery',
-            moment: 'moment',
+            jQuery: 'jquery'
         }),
+        new CopyPlugin({
+            patterns: [
+                {
+                    from: 'node_modules/ace-builds/src-noconflict/worker-xml.js',
+                    to: 'worker-xml.js'
+                }
+            ]
+        })
     ],
     externals: {
         // external (from webjar) not to collide with wicket headers.

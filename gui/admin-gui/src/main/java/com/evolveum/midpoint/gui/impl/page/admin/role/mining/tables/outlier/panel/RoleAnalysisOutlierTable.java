@@ -227,7 +227,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
                 };
                 viewDetailsButton.titleAsLabel(true);
                 viewDetailsButton.setOutputMarkupId(true);
-                viewDetailsButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm text-nowrap"));
+                viewDetailsButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border btn-sm text-nowrap"));
                 viewDetailsButton.setOutputMarkupId(true);
                 item.add(viewDetailsButton);
             }

@@ -163,7 +163,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
             }
         };
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm mr-2"));
+        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm me-2"));
         newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible() && displayNoValuePanel()));
         bar.add(newObjectButton);
     }
@@ -416,7 +416,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
 
     @Override
     public String getAdditionalBoxCssClasses() {
-        return "card table-td-middle";
+        return "card shadow-sm mb-3 table-td-middle";
     }
 
     @Override

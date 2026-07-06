@@ -302,7 +302,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
             @Override
             protected String getLinkAdditionalStyle() {
-                return "btn btn-link text-lightblue mt-1";
+                return "btn btn-link text-info mt-1";
             }
         };
         details.setOutputMarkupId(true);

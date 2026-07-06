@@ -195,7 +195,7 @@ public class OtpListPanel<F extends FocusType> extends MultivalueContainerListPa
 
                     return List.of(
                             new Badge(
-                                    "badge badge-success",
+                                    "badge bg-success",
                                     "fa fa-shield-halved",
                                     LocalizationUtil.translate("OtpCredentialType.verified")));
                 };

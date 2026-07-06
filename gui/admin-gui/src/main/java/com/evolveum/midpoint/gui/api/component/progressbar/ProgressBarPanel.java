@@ -187,7 +187,7 @@ public class ProgressBarPanel extends BasePanel<List<ProgressBar>> {
                     return "";
                 }
                 String bgCssClass = progressBar.getState().getCssClass();
-                return "text" + bgCssClass.substring(2);
+                return "text-" + bgCssClass.substring(2);
             }
         };
         legendItems.setOutputMarkupId(true);

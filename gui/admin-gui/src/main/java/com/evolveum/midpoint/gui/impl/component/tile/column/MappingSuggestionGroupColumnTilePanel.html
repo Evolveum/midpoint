@@ -18,8 +18,8 @@
             <div class="col-6 d-flex p-0" wicket:id="headerTitle"></div>
             <div class="px-0 tile-column-icon" wicket:id="separatorSecond"></div>
             <div class="col-2" wicket:id="targetRef"></div>
-            <div class="ml-auto" wicket:id="showSuggestionLink"></div>
-            <div class="ml-auto" wicket:id="acceptSelectedButton"></div>
+            <div class="ms-auto" wicket:id="showSuggestionLink"></div>
+            <div class="ms-auto" wicket:id="acceptSelectedButton"></div>
             <div wicket:id="actions"></div>
         </div>
 
@@ -36,7 +36,7 @@
                 </wicket:container>
             </div>
             <div wicket:id="note" class="d-flex align-items-center text-info px-2">
-                <i class="fa fa-info-circle mr-2"></i>
+                <i class="fa fa-info-circle me-2"></i>
                 <span wicket:id="noteLabel"></span>
             </div>
         </div>
@@ -47,9 +47,9 @@
 
     <wicket:fragment wicket:id="headerTitleFragment">
         <span wicket:id="text" class="align-self-center d-flex align-items-center"></span>
-        <span wicket:id="badge" class="align-self-center ml-2 badge badge-ai-gradient mr-1" style="height: fit-content;"></span>
+        <span wicket:id="badge" class="align-self-center ms-2 badge bg-ai-gradient me-1" style="height: fit-content;"></span>
         <wicket:message key="MappingSuggestionGroupColumnTilePanel.for"></wicket:message>
-        <span wicket:id="targetText" class="ml-1 align-self-center d-flex align-items-center font-weight-semibold"></span>
+        <span wicket:id="targetText" class="ms-1 align-self-center d-flex align-items-center fw-semibold"></span>
     </wicket:fragment>
 </wicket:panel>
 </html>

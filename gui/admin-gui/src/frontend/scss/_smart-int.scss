@@ -82,13 +82,13 @@
   color: var(--label-color);
   background-color: #{$danger-light};
 }
-.badge.badge-light-purple {
+.badge.bg-light-purple {
   --label-color: #{$purple-light};
   background-color: var(--label-color);
   color: white;
 }
 
-.badge.badge-purple {
+.badge.bg-purple {
   --label-color: #{$purple};
   background-color: var(--label-color);
   color: white;
@@ -100,11 +100,6 @@
 
 .border-primary {
   border-color: #{$primary} !important;
-}
-
-
-.border-3 {
-  border-width: 3px !important;
 }
 
 .bg-success-light {

@@ -325,7 +325,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
         };
 
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-link ml-auto"));
+        newObjectButton.add(AttributeAppender.replace("class", "btn btn-link ms-auto"));
         repeatingView.add(newObjectButton);
     }
 
@@ -394,7 +394,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
 
     @Override
     protected String getSubmitButtonCssClass() {
-        return "ml-auto btn-primary";
+        return "ms-auto btn-primary";
     }
 
     @Override

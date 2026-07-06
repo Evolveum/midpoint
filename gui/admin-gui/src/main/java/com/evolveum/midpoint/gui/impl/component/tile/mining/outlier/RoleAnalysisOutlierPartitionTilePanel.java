@@ -403,7 +403,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         setOutputMarkupId(true);
 
         add(AttributeModifier.append(CLASS_CSS,
-                "catalog-tile-panel d-flex flex-column align-items-center w-100 h-100 p-0 elevation-1"));
+                "catalog-tile-panel d-flex flex-column align-items-center w-100 h-100 p-0 shadow-sm"));
 
         add(AttributeModifier.append(STYLE_CSS, "width:25%"));
     }
@@ -438,7 +438,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         };
         examineButton.titleAsLabel(true);
         examineButton.setOutputMarkupId(true);
-        examineButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm p-2"));
+        examineButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border btn-sm p-2"));
 
         examineButton.setOutputMarkupId(true);
         add(examineButton);

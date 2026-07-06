@@ -136,14 +136,14 @@ public class RoleAnalysisPagingRows extends Fragment {
         CompositedIconBuilder refreshIconBuilder = new CompositedIconBuilder().setBasicIcon(
                 GuiStyleConstants.CLASS_REFRESH, LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton refreshIcon = buildRefreshTableButton(repeatingView, refreshIconBuilder);
-        refreshIcon.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
+        refreshIcon.add(AttributeAppender.replace("class", "btn btn-light border btn-sm"));
         repeatingView.add(refreshIcon);
 
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
                 "fa fa-cog", LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton tableSetting = buildTableSettingButton(repeatingView, iconBuilder,
                 displayValueOptionModel);
-        tableSetting.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
+        tableSetting.add(AttributeAppender.replace("class", "btn btn-light border btn-sm"));
         repeatingView.add(tableSetting);
 
         return repeatingView;

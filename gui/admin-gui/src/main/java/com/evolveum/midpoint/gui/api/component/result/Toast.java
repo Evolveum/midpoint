@@ -119,19 +119,19 @@ public class Toast implements Serializable {
     }
 
     public Toast info() {
-        return cssClass("mt-3 mr-3 bg-info");
+        return cssClass("mt-3 me-3 bg-info");
     }
 
     public Toast success() {
-        return cssClass("mt-3 mr-3 bg-success");
+        return cssClass("mt-3 me-3 bg-success");
     }
 
     public Toast error() {
-        return cssClass("mt-3 mr-3 bg-danger");
+        return cssClass("mt-3 me-3 bg-danger");
     }
 
     public Toast warning() {
-        return cssClass("mt-3 mr-3 bg-warning");
+        return cssClass("mt-3 me-3 bg-warning");
     }
 
     public void show(@NotNull AjaxRequestTarget target) {
@@ -149,7 +149,7 @@ public class Toast implements Serializable {
     public void configureAriaAttributesAndShow(@NotNull AjaxRequestTarget target) {
         show(target);
 
-        target.appendJavaScript("MidPointTheme.setToastAriaAttributes('toastsContainerTopRight');");
+        target.appendJavaScript("MidPointTheme.setToastAriaAttributes('toastsContainerTopEnd');");
     }
 
     public void show(@NotNull IHeaderResponse response) {
