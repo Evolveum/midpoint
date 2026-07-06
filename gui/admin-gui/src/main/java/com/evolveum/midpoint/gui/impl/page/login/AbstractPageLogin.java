@@ -317,6 +317,6 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
 
     @Override
     protected boolean reloadIfWindowParameterIsAdded() {
-        return getSession().getFeedbackMessages() == null || getSession().getFeedbackMessages().isEmpty();
+        return false;
     }
 }
