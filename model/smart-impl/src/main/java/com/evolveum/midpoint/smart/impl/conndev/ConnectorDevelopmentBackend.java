@@ -2,10 +2,15 @@ package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
@@ -15,18 +20,23 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 public abstract class ConnectorDevelopmentBackend {
@@ -35,6 +45,8 @@ public abstract class ConnectorDevelopmentBackend {
     private static final String CONNECTOR_MANIFEST = "connector.manifest.json";
     private static final String CONFIGURATION_OVERRIDE = "configurationOverride.properties";
     private static final int MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS = 5;
+    private static final String CONNDEV_OBJECT_CLASS = "conndev_ObjectClass";
+    private static final String CONNDEV_CONTENT_TYPE = "application/com.evolveum.conndev+json";
     protected final Task task;
     protected final OperationResult result;
 
@@ -587,7 +599,7 @@ public abstract class ConnectorDevelopmentBackend {
                                 var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
                                 return EntityBuilder.create()
                                         .setText(body)
-                                        .setContentType(ContentType.APPLICATION_JSON)
+                                        .setContentType(ContentType.create(documentation.contentType(), StandardCharsets.UTF_8))
                                         .build();
                             } catch (IOException e) {
                                 throw new SystemException("Couldn't build documentation upload body", e);
@@ -608,6 +620,146 @@ public abstract class ConnectorDevelopmentBackend {
         };
         */
         return documentation.uri();
+    }
+
+    /**
+     * Connector-agnostic dev-schema refresh: refreshes the testing resource, and if it exposes the
+     * shared {@code conndev_ObjectClass} (SCIM/SQL/... in development mode), reads the development
+     * object classes ({@link #devDocumentationObjectClasses()}) and turns their objects into
+     * {@link ProcessedDocumentation}. Classic REST has no schema standard, so it simply does not
+     * expose {@code conndev_ObjectClass} and is skipped — no connector-type branching needed.
+     */
+    public void refreshConnDevDocumentation() throws CommonException {
+        var testing = developmentObject().getTesting();
+        if (testing == null || testing.getTestingResource() == null) {
+            return;
+        }
+        var testingResourceOid = testing.getTestingResource().getOid();
+
+        ResourceUtils.deleteSchema(testingResourceOid, beans.modelService, task, result);
+        beans.provisioningService.testResource(testingResourceOid, task, result);
+
+        if (!exposesConnDevObjectClass(testingResourceOid)) {
+            return; // classic REST, or development mode off — nothing to discover
+        }
+
+        var objectClasses = devDocumentationObjectClasses();
+        var newDocs = objectClasses.stream()
+                .flatMap(objectClass -> loadShadowsAsDocumentation(testingResourceOid, objectClass).stream())
+                .map(ProcessedDocumentation::toBean)
+                .toList();
+
+        var mergedDocs = new ArrayList<>(
+                developmentObject().getProcessedDocumentation().stream()
+                        .filter(d -> objectClasses.stream().noneMatch(c -> d.getUri().startsWith(c)))
+                        .map(ProcessedDocumentationType::clone)
+                        .toList());
+        mergedDocs.addAll(newDocs);
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
+                .replaceRealValues(mergedDocs)
+                .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+    }
+
+    /**
+     * Development object classes whose objects are forwarded as documentation: the shared
+     * {@code conndev_ObjectClass} for every connector; backends may add their own raw exports
+     * (e.g. SCIM adds {@code conndev_ScimSchema}/{@code conndev_ScimResource}).
+     */
+    protected List<String> devDocumentationObjectClasses() {
+        return List.of(CONNDEV_OBJECT_CLASS);
+    }
+
+    private boolean exposesConnDevObjectClass(String resourceOid) {
+        try {
+            var resource = beans.modelService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
+            var schema = Resource.of(resource).getCompleteSchema();
+            return schema != null
+                    && schema.findObjectClassDefinition(new QName(SchemaConstants.NS_RI, CONNDEV_OBJECT_CLASS)) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Loads shadows of a given {@code conndev_*} object class from a testing resource and forwards each
+     * as a {@link ProcessedDocumentation}, faithfully: the shadow content is only structurally unwrapped
+     * from prism serialization ({@link ConnDevShadowUnwrapper}), never interpreted — the connector owns
+     * the schema-mapping content (single source), midPoint reads only the name (for uri/uuid).
+     * Connector-agnostic core: any connector exposing {@code conndev_ObjectClass} (SCIM, SQL, ...) works
+     * unchanged, including future fields.
+     */
+    protected List<ProcessedDocumentation> loadShadowsAsDocumentation(String resourceOid, String objectClassLocalName) {
+        try {
+            var objectClass = new QName(SchemaConstants.NS_RI, objectClassLocalName);
+            var query = PrismContext.get().queryFor(ShadowType.class)
+                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
+                    .build();
+
+            // Associations must not be fetched: the embedded reference values have no OID/identifiers,
+            // so the validity checker would fail them with "No effective operation policy".
+            var options = GetOperationOptionsBuilder.create()
+                    .item(ShadowType.F_ASSOCIATIONS).dontRetrieve()
+                    .build();
+            var shadows = beans.provisioningService.searchObjects(ShadowType.class, query, options, task, result);
+            if (shadows.isEmpty()) {
+                return List.of();
+            }
+
+            var serializer = PrismContext.get().jsonSerializer();
+            var mapper = new ObjectMapper();
+            var writer = mapper.writerWithDefaultPrettyPrinter();
+            var unwrapper = new ConnDevShadowUnwrapper();
+            var docs = new ArrayList<ProcessedDocumentation>();
+            for (var shadow : shadows) {
+                var attrs = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+                if (attrs == null || attrs.isEmpty()) {
+                    continue;
+                }
+
+                var json = serializer.serialize(attrs.getValue());
+                var attributesContainer = mapper.readTree(json).get("attributes");
+                if (attributesContainer == null) {
+                    continue;
+                }
+
+                var document = unwrapper.unwrap(attributesContainer);
+                var content = writer.writeValueAsString(document);
+
+                var name = resolveDocName(shadow, document);
+                var uri = objectClassLocalName + "_" + name + ".json";
+                var uuid = UUID.nameUUIDFromBytes(uri.getBytes(StandardCharsets.UTF_8)).toString();
+                var doc = new ProcessedDocumentation(uuid, uri).contentType(CONNDEV_CONTENT_TYPE);
+                doc.write(content);
+                docs.add(doc);
+            }
+            return docs;
+        } catch (Exception e) {
+            throw new SystemException("Could not load shadow documentation for " + objectClassLocalName, e);
+        }
+    }
+
+    /**
+     * Human-readable name for a dev shadow: the discovered object class name (the unwrapped
+     * {@code icfs:name}), then the shadow's own name (__NAME__), finally the OID. This is the only
+     * piece of the forwarded content midPoint reads — everything else is passed through untouched.
+     */
+    protected String resolveDocName(PrismObject<ShadowType> shadow, JsonNode document) {
+        var name = document.path("name");
+        if (name.isArray() && !name.isEmpty()) {
+            name = name.get(0);
+        }
+        if (name.isTextual() && !name.asText().isBlank()) {
+            return name.asText();
+        }
+        if (shadow.getName() != null && shadow.getName().getOrig() != null) {
+            return shadow.getName().getOrig();
+        }
+        return shadow.getOid();
     }
 
 }

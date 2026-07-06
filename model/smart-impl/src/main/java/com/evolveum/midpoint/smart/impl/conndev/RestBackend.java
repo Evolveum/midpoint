@@ -268,6 +268,17 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
     }
 
+    /**
+     * REST/SCIM backends additionally push the freshly saved documentation to the connector-generation
+     * service. The upload is idempotent (HEAD-guarded {@code putDocumentationIfMissing}), and with stable
+     * documentation UUIDs it uploads only genuinely new/changed docs.
+     */
+    @Override
+    public void refreshConnDevDocumentation() throws CommonException {
+        super.refreshConnDevDocumentation();
+        ensureDocumentationIsUploaded(client().synchronizationClient());
+    }
+
 
     @Override
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
