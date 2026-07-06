@@ -45,6 +45,10 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyInParentActivity"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestVirtualAssignmentInActivity"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTasks"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyContribution"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActions"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsComposite"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsMultiNode"/>
         </classes>
     </test>
     <!--
