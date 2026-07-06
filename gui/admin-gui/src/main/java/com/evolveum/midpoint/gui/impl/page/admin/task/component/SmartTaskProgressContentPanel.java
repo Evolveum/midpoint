@@ -112,9 +112,9 @@ public abstract class SmartTaskProgressContentPanel extends BasePanel<TaskType> 
             protected @NotNull String getIconCssClass() {
                 OperationResultStatus status = getTaskExecutionProgress().getTaskStatus();
                 return switch (status) {
-                    case SUCCESS -> "fa-solid fa-check-circle text-success me-2 mr-1";
-                    case FATAL_ERROR -> "fa-solid fa-xmark-circle text-danger me-2 mr-1";
-                    case WARNING, PARTIAL_ERROR -> "fa-solid fa-triangle-exclamation text-warning me-2 mr-1";
+                    case SUCCESS -> "fa-solid fa-check-circle text-success me-1";
+                    case FATAL_ERROR -> "fa-solid fa-xmark-circle text-danger me-1";
+                    case WARNING, PARTIAL_ERROR -> "fa-solid fa-triangle-exclamation text-warning me-1";
                     default -> "";
                 };
             }
