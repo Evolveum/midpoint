@@ -626,7 +626,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         } else {
             UserType delegationUser = getModelObject().getDelegationOwner();
             if (getModelObject().getDelegationOwner() != null) {
-                displayName = WebComponentUtil.getDisplayNameAndName(delegationUser.asPrismObject());
+                displayName = WebComponentUtil.getDisplayNameOrName(delegationUser.asPrismObject());
             }
         }
         return displayName;
