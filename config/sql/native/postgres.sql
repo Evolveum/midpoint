@@ -1167,8 +1167,11 @@ CREATE INDEX m_application_modifyTimestamp_idx ON m_application (modifyTimestamp
 
 
 
--- Represents ServiceType, see https://docs.evolveum.com/midpoint/reference/deployment/service-account-management/
--- @description: Stores service objects, including service accounts and application services.
+/*
+ * @description: Stores service objects, including service accounts and application services.
+ *
+ * Represents ServiceType, see https://docs.evolveum.com/midpoint/reference/deployment/service-account-management/
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ServiceType
 CREATE TABLE m_service (
     -- @description: Service object identifier.
@@ -1272,8 +1275,11 @@ CREATE INDEX m_archetype_modifyTimestamp_idx ON m_archetype (modifyTimestamp);
 -- @regionTitle: Organization
 -- @regionDescription: Organization objects, parent organization references, and organization hierarchy closure support.
 -- region Organization hierarchy support
--- Represents OrgType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/
--- @description: Stores organization objects and hierarchy-related organization attributes.
+/*
+ * @description: Stores organization objects and hierarchy-related organization attributes.
+ *
+ * Represents OrgType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#OrgType
 CREATE TABLE m_org (
     -- @description: Organization object identifier.
@@ -1348,14 +1354,15 @@ CREATE INDEX m_ref_object_parent_org_targetOidRelationId_idx
 
 -- region org-closure
 /*
-Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
-Closure contains also identity (org = org) entries because:
-* It's easier to do optimized matrix-multiplication based refresh with them later.
-* It actually makes some query easier and requires AND instead of OR conditions.
-* While the table shows that o => o (=> means "is parent of"), this is not the semantics
-of isParent/ChildOf searches and they never return parameter OID as a result.
-*/
--- @description: Materialized transitive closure of organization parent-child relationships.
+ * @description: Materialized transitive closure of organization parent-child relationships.
+ *
+ * Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
+ * Closure contains also identity (org = org) entries because:
+ * * It's easier to do optimized matrix-multiplication based refresh with them later.
+ * * It actually makes some query easier and requires AND instead of OR conditions.
+ * * While the table shows that o => o (=> means "is parent of"), this is not the semantics
+ * of isParent/ChildOf searches and they never return parameter OID as a result.
+ */
 CREATE MATERIALIZED VIEW m_org_closure AS
 WITH RECURSIVE org_h (
     ancestor_oid, -- ref.targetoid
@@ -1472,8 +1479,11 @@ $$;
 -- @regionTitle: Resources and shadows
 -- @regionDescription: Resources, shadows, shadow partitions, connectors, and resource object reference data.
 -- region OTHER object tables
--- Represents ResourceType, see https://docs.evolveum.com/midpoint/reference/resources/resource-configuration/
--- @description: Stores resource definitions and resource-specific searchable state.
+/*
+ * @description: Stores resource objects and resource-specific searchable state.
+ *
+ * Represents ResourceType, see https://docs.evolveum.com/midpoint/reference/resources/resource-configuration/
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType
 CREATE TABLE m_resource (
     -- @description: Resource object identifier.
@@ -1553,9 +1563,12 @@ CREATE TABLE m_ref_resource_business_configuration_approver (
 CREATE INDEX m_ref_resource_biz_config_approver_targetOidRelationId_idx
     ON m_ref_resource_business_configuration_approver (targetOid, relationId);
 
--- Represents ShadowType, see https://docs.evolveum.com/midpoint/reference/resources/shadow/
--- and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
--- @description: Stores resource object shadows and their searchable synchronization state.
+/*
+ * @description: Stores resource object shadows and their searchable synchronization state.
+ *
+ * Represents ShadowType, see https://docs.evolveum.com/midpoint/reference/resources/shadow/
+ * and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType
 CREATE TABLE m_shadow (
     -- @description: Shadow object identifier.
@@ -1611,11 +1624,18 @@ CREATE TABLE m_shadow (
     -- @description: Time when the shadow was last modified.
     modifyTimestamp TIMESTAMPTZ,
 
-    -- these are purely DB-managed metadata, not mapped to in midPoint
-    -- @description: Database timestamp when this row was created.
+    /*
+     * @description: Database timestamp when this row was created.
+     *
+     * Purely DB-managed metadata, not mapped to in midPoint. Updated in update trigger.
+     */
     db_created TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
-    -- @description: Database timestamp when this row was last modified.
-    db_modified TIMESTAMPTZ NOT NULL DEFAULT current_timestamp, -- updated in update trigger
+    /*
+     * @description: Database timestamp when this row was last modified.
+     *
+     * Purely DB-managed metadata, not mapped to in midPoint. Updated in update trigger.
+     */
+    db_modified TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
 
     -- @description: URI identifier of the shadow object class.
     objectClassId INTEGER REFERENCES m_uri(id),
@@ -2494,7 +2514,12 @@ CREATE INDEX m_lookup_table_createTimestamp_idx ON m_lookup_table (createTimesta
 CREATE INDEX m_lookup_table_modifyTimestamp_idx ON m_lookup_table (modifyTimestamp);
 
 -- Represents LookupTableRowType, see also m_lookup_table above
--- @description: Stores rows of lookup table key-value data. Lookup table row currently doesn't store whole polystring data for `label` property, only the original and normalized string values are stored.
+/*
+ * @description: Stores rows of lookup table key-value data.
+ *
+ * Lookup table row currently doesn't store whole polystring data for `label` property,
+ * only the original and normalized string values are stored.
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableRowType
 CREATE TABLE m_lookup_table_row (
     -- @description: OID of the lookup table that owns this row.
@@ -2552,10 +2577,6 @@ CREATE TABLE m_connector (
     available BOOLEAN
 )
     INHERITS (m_assignment_holder);
-
-
-
-
 
 -- @description: Maintains the object OID registry when rows are inserted into `m_connector`.
 CREATE TRIGGER m_connector_oid_insert_tr BEFORE INSERT ON m_connector
