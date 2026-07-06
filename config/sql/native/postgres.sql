@@ -327,12 +327,14 @@ CREATE TABLE m_global_metadata (
     value TEXT
 );
 
--- todo move this comment to description annotation once it supports multiline comments
--- Catalog of often used URIs, typically channels and relation Q-names.
--- Never update values of "uri" manually to change URI for some objects
--- (unless you really want to migrate old URI to a new one).
--- URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
--- @description: Stores frequently used URI values, such as channels and relation QNames, as compact numeric identifiers.
+/*
+ * @description: Stores frequently used URI values, such as channels and relation QNames, as compact numeric identifiers.
+ *
+ * Catalog of often used URIs, typically channels and relation Q-names.
+ * Never update values of "uri" manually to change URI for some objects
+ * (unless you really want to migrate old URI to a new one).
+ * URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
+ */
 CREATE TABLE m_uri (
     -- @description: Numeric URI identifier referenced by repository tables.
     id SERIAL NOT NULL PRIMARY KEY,
