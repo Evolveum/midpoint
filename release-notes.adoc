@@ -471,13 +471,13 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 === Behavior Changes Since 4.10
 
 * Request access wizard behaves differently in case when conflicting situation occurs and prune action will be used for resolving the conflict.
-
++
 Previously, the wizard showed warning on the Shopping cart panel about conflicting roles or other shopping cart items even in case when prune action resolves the situation automatically.
 In order to correspond to the definition of the prune action, which says that "The removal of the conflicting assignments is automatic and silent", it was decided to hide the warning from Shopping cart panel.
 See also bug:MID-11250[].
 
 * `displayName` was added to `UserType` and is populated by the default person object template from `preferredName`, falling back to `fullName`.
-
++
 Existing users may not have `displayName` populated immediately after upgrade. Most user-facing places use fallback display logic, but places that display the raw `displayName` value may remain empty until the value is materialized.
 To populate `displayName` for existing person users, set `preferredName` where needed and recompute the users so the person object-template mapping is applied. See also bug:MID-8802[].
 
