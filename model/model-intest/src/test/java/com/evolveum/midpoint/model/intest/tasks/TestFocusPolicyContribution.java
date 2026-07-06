@@ -20,6 +20,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Tests that a focus policy rule behaves identically whether it is contributed to an activity
@@ -64,15 +66,24 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
             TestObject.file(TEST_DIR, "task-fpc-import-composite.xml", "e1f00000-0000-0000-0000-000000000002");
     private static final TestObject<TaskType> TASK_FPC_RECONCILIATION =
             TestObject.file(TEST_DIR, "task-fpc-reconciliation.xml", "e1f00000-0000-0000-0000-000000000003");
+    private static final TestObject<TaskType> TASK_FPC_IMPORT_SIMULATE =
+            TestObject.file(TEST_DIR, "task-fpc-import-simulate.xml", "e1f00000-0000-0000-0000-000000000004");
+    private static final TestObject<TaskType> TASK_FPC_IMPORT_SIMULATE_EXECUTE =
+            TestObject.file(TEST_DIR, "task-fpc-import-simulate-execute.xml", "e1f00000-0000-0000-0000-000000000005");
 
     private static final int ACCOUNTS = 20;
     private static final String ACCOUNT_NAME_PATTERN = "a%02d";
 
     private static final int ADD_THRESHOLD = 5;
     private static final int DELETE_THRESHOLD = 5;
+    private static final int MODIFY_THRESHOLD = 5;
 
     private static final String RULE_ADD = "fpc-add";
     private static final String RULE_DELETE = "fpc-delete";
+    private static final String RULE_MODIFY = "fpc-modify";
+
+    private static final ActivityPath SIMULATE = ActivityPath.fromId("simulate");
+    private static final ActivityPath EXECUTE = ActivityPath.fromId("execute");
 
     private static final long TIMEOUT = 60_000;
 
@@ -206,6 +217,19 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
                         .suspendTask(new SuspendTaskPolicyActionType()));
     }
 
+    private PolicyRuleType buildModifyRule() {
+        return new PolicyRuleType()
+                .name(RULE_MODIFY)
+                .policyConstraints(new PolicyConstraintsType()
+                        .modification(new ModificationPolicyConstraintType()
+                                .operation(ChangeTypeType.MODIFY)
+                                .item(new ItemPathType(UserType.F_COST_CENTER))))
+                .policyThreshold(new PolicyThresholdType()
+                        .lowWaterMark(new WaterMarkType().count(MODIFY_THRESHOLD)))
+                .policyActions(new PolicyActionsType()
+                        .suspendTask(new SuspendTaskPolicyActionType()));
+    }
+
     private String createPolicyObject(PolicyRuleType rule, OperationResult result) throws CommonException {
         String oid = UUID.randomUUID().toString();
         PolicyType policy = new PolicyType()
@@ -331,6 +355,21 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
         for (int i = 0; i < count; i++) {
             RESOURCE_SOURCE.controller.deleteAccount(String.format(ACCOUNT_NAME_PATTERN, i));
         }
+    }
+
+    /** Changes the description attribute (inbound-mapped to costCenter) on the first {@code count} accounts. */
+    private void changeDescriptionOnResource(int count) throws Exception {
+        for (int i = 0; i < count; i++) {
+            RESOURCE_SOURCE.controller.getDummyResource()
+                    .getAccountByName(String.format(ACCOUNT_NAME_PATTERN, i))
+                    .replaceAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "changed");
+        }
+    }
+
+    private int countModifiedCostCenter() throws Exception {
+        return repositoryService.countObjects(UserType.class,
+                prismContext.queryFor(UserType.class).item(UserType.F_COST_CENTER).eq("changed").build(),
+                null, getTestOperationResult());
     }
 
     // region tests
@@ -479,6 +518,114 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
         // @formatter:on
         assertImportedUserCount(0);
         assertTaskResultContains(task.oid, "do not support order");
+    }
+
+    /**
+     * An add policy in `preview (simulate)` mode increments the preview-mode
+     * counters and suspends the simulate run without committing anything. Also covers repeated execution:
+     * on resume the persistent preview counter re-trips immediately.
+     */
+    @Test(dataProvider = "forms")
+    public void test500SimulateAdd(ContributionForm form) throws Exception {
+        OperationResult result = getTestOperationResult();
+        TestObject<TaskType> task = TASK_FPC_IMPORT_SIMULATE;
+        deleteIfPresent(task, result);
+
+        when("importing in preview mode with an " + form + " add policy");
+        Contribution c = contribute(form, buildAddRule(), ActivityPath.empty(), result);
+        addObject(task, getTestTask(), result, c.customizer());
+        waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, result, TIMEOUT);
+
+        then("suspended with preview-mode counter at the threshold; nothing committed");
+        String id = counterIdentifier(c, task, ActivityPath.empty(), result);
+        // @formatter:off
+        assertTaskTree(task.oid, "after")
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                    .previewModePolicyRulesCounters()
+                        .assertCounterMinMax(id, ADD_THRESHOLD, ADD_THRESHOLD);
+        // @formatter:on
+        assertImportedUserCount(0);
+
+        when("resuming the suspended task (repeated execution)");
+        taskManager.resumeTaskTree(task.oid, result);
+        waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, result, TIMEOUT);
+
+        then("persistent preview counter re-trips immediately; still nothing committed");
+        // @formatter:off
+        assertTaskTree(task.oid, "after repeated execution")
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                    .previewModePolicyRulesCounters()
+                        .assertCounterMinMax(id, ADD_THRESHOLD + 1, ADD_THRESHOLD + 1);
+        // @formatter:on
+        assertImportedUserCount(0);
+    }
+
+    /**
+     * In `simulate-then-execute` mode the policy trips in the simulate
+     * activity, so the execute activity never starts and nothing is committed.
+     */
+    @Test(dataProvider = "forms")
+    public void test510SimulateExecuteAdd(ContributionForm form) throws Exception {
+        OperationResult result = getTestOperationResult();
+        TestObject<TaskType> task = TASK_FPC_IMPORT_SIMULATE_EXECUTE;
+        deleteIfPresent(task, result);
+
+        when("importing simulate-then-execute with an " + form + " add policy on the simulate activity");
+        Contribution c = contribute(form, buildAddRule(), SIMULATE, result);
+        addObject(task, getTestTask(), result, c.customizer());
+        waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, result, TIMEOUT);
+
+        then("simulate activity suspended, execute activity never started; nothing committed");
+        String id = counterIdentifier(c, task, SIMULATE, result);
+        // @formatter:off
+        assertTaskTree(task.oid, "after")
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .activityState(SIMULATE)
+                    .assertFatalError()
+                    .previewModePolicyRulesCounters()
+                        .assertCounterMinMax(id, ADD_THRESHOLD, ADD_THRESHOLD)
+                        .end()
+                    .end()
+                .activityState(EXECUTE)
+                    .assertRealizationState(null);
+        // @formatter:on
+        assertImportedUserCount(0);
+    }
+
+    /**
+     * A {@code modification/costCenter} policy triggers on `modify` (not add).
+     * Accounts are imported, their description (inbound-mapped to costCenter) is changed, and
+     * a re-import trips the modify threshold.
+     */
+    @Test
+    public void test600ModifyCostCenter() throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("all accounts imported, then costCenter changed on more than the threshold");
+        importAllAccounts(result);
+        assertImportedUserCount(ACCOUNTS);
+        changeDescriptionOnResource(MODIFY_THRESHOLD + 2);
+
+        TestObject<TaskType> task = TASK_FPC_IMPORT;
+        deleteIfPresent(task, result);
+
+        when("re-importing with an inline modify-costCenter policy");
+        Contribution c = contribute(ContributionForm.INLINE, buildModifyRule(), ActivityPath.empty(), result);
+        addObject(task, getTestTask(), result, c.customizer());
+        waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, result, TIMEOUT);
+
+        then("suspended at the modify threshold; only the pre-threshold users were modified");
+        String id = counterIdentifier(c, task, ActivityPath.empty(), result);
+        assertPolicyOutcome(task, ActivityPath.empty(), id, MODIFY_THRESHOLD - 1, 1);
+        assertThat(countModifiedCostCenter()).as("users with changed costCenter").isEqualTo(MODIFY_THRESHOLD - 1);
     }
 
     // endregion
