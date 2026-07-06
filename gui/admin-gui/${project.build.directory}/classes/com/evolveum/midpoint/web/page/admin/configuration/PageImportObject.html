@@ -1,0 +1,54 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form class="form-horizontal" wicket:id="mainForm">
+        <div wicket:id="importOptions"/>
+
+        <div class="mb-3">
+            <label class="col-form-label"><wicket:message key="PageImportObject.getObjectsFrom"/></label>
+
+            <div wicket:id="importRadioGroup">
+                <div class="form-check">
+                    <input class="form-check-input" wicket:id="fileRadio" type="radio">
+                    <label class="form-check-label"><wicket:message key="PageImportObject.file"/></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" wicket:id="xmlRadio" type="radio">
+                    <label class="form-check-label"><wicket:message key="PageImportObject.embeddedEditor"/></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3" wicket:id="input">
+            <div wicket:id="inputAce">
+                <div wicket:id="languagePanel" class="mb-3"></div>
+                <textarea class="border rounded" wicket:id="aceEditor"></textarea>
+            </div>
+
+            <label class="col-form-label" wicket:id="inputFileLabel"></label>
+            <div wicket:id="inputFile">
+                <input wicket:id="fileInput" type="file"/>
+                <p class="fs-7 text-muted"><wicket:message key="PageImportObject.message.help"/></p>
+            </div>
+        </div>
+
+        <div class="main-button-bar mb-3" wicket:id="buttonBar">
+            <wicket:enclosure child="back">
+                <span class="button-group">
+                    <a class="btn btn-light border" wicket:id="back"/>
+                </span>
+            </wicket:enclosure>
+            <a class="btn btn-primary" wicket:id="importFileButton" about="importFileButton"/>
+            <a class="btn btn-primary" wicket:id="importXmlButton"/>
+        </div>
+    </form>
+</wicket:extend>
+</body>
+</html>

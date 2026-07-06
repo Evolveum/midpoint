@@ -327,11 +327,14 @@ CREATE TABLE m_global_metadata (
     value TEXT
 );
 
--- Catalog of often used URIs, typically channels and relation Q-names.
--- Never update values of "uri" manually to change URI for some objects
--- (unless you really want to migrate old URI to a new one).
--- URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
--- @description: Stores frequently used URI values, such as channels and relation QNames, as compact numeric identifiers.
+/*
+ * @description: Stores frequently used URI values, such as channels and relation QNames, as compact numeric identifiers.
+ *
+ * Catalog of often used URIs, typically channels and relation Q-names.
+ * Never update values of "uri" manually to change URI for some objects
+ * (unless you really want to migrate old URI to a new one).
+ * URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
+ */
 CREATE TABLE m_uri (
     -- @description: Numeric URI identifier referenced by repository tables.
     id SERIAL NOT NULL PRIMARY KEY,
@@ -376,7 +379,10 @@ CREATE TABLE m_object (
     nameOrig TEXT NOT NULL,
     -- @description: Normalized object name used for exact case-insensitive lookup and uniqueness.
     nameNorm TEXT NOT NULL,
-    -- @description: Serialized full object representation.
+    /*
+     * @description: Serialized full object representation, however some items are stored separately.
+     * See xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Splitted full object] for more information.
+     */
     fullObject BYTEA,
     -- @description: OID of the tenant reference target object.
     tenantRefTargetOid UUID,
@@ -397,6 +403,7 @@ CREATE TABLE m_object (
     subtypes TEXT[], -- only EQ filter
     -- @description: Text search helper content derived from selected object data.
     fullTextInfo TEXT,
+    -- TODO add this extension documentation to description annotation as soon as it supports multiline comments.
     /*
     Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
     and values are stored as follows (this is internal and has no effect on how query is written):
@@ -558,7 +565,10 @@ end $$;
 
 -- @region: references
 -- @regionTitle: References
--- @regionDescription: Tables storing object and container references such as archetype, projection, role membership, and approver references.
+/*
+ * @regionDescription: Tables storing object and container references such as archetype,
+ * projection, role membership, and approver references.
+ */
 -- references related to ObjectType and AssignmentHolderType
 -- stores AssignmentHolderType/archetypeRef
 -- @description: Stores archetype references assigned to assignment-holder objects.
@@ -849,6 +859,10 @@ CREATE TABLE m_user (
     additionalNameOrig TEXT,
     -- @description: Additional name in normalized form used for searches.
     additionalNameNorm TEXT,
+    -- @description: Display name in original form.
+    displayNameOrig TEXT,
+    -- @description: Display name in normalized form used for searches.
+    displayNameNorm TEXT,
     -- @description: Employee number assigned to the user.
     employeeNumber TEXT,
     -- @description: Family name in original form.
@@ -877,6 +891,10 @@ CREATE TABLE m_user (
     nickNameNorm TEXT,
     -- @description: Personal number assigned to the user.
     personalNumber TEXT,
+    -- @description: Preferred name in original form.
+    preferredNameOrig TEXT,
+    -- @description: Preferred name in normalized form used for searches.
+    preferredNameNorm TEXT,
     -- @description: Title in original form.
     titleOrig TEXT,
     -- @description: Title in normalized form used for searches.
@@ -910,6 +928,9 @@ CREATE INDEX m_user_policySituation_idx ON m_user USING gin(policysituations gin
 -- @description: Speeds up filtering by indexed extension values.
 -- @usedFor: extension item filters
 CREATE INDEX m_user_ext_idx ON m_user USING gin(ext);
+-- @description: Speeds up lookup by display name.
+-- @usedFor: display name searches
+CREATE INDEX m_user_displayNameOrig_idx ON m_user (displayNameOrig);
 -- @description: Speeds up lookup by original full name.
 -- @usedFor: full name searches
 CREATE INDEX m_user_fullNameOrig_idx ON m_user (fullNameOrig);
@@ -922,6 +943,9 @@ CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
 -- @description: Speeds up lookup by employee number.
 -- @usedFor: employee number searches
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
+-- @description: Speeds up lookup by preferred name.
+-- @usedFor: preferred name searches
+CREATE INDEX m_user_preferredNameOrig_idx ON m_user (preferredNameOrig);
 -- @description: Speeds up filtering by object subtype.
 -- @usedFor: subtype filters
 CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
@@ -2461,7 +2485,7 @@ CREATE INDEX m_lookup_table_createTimestamp_idx ON m_lookup_table (createTimesta
 CREATE INDEX m_lookup_table_modifyTimestamp_idx ON m_lookup_table (modifyTimestamp);
 
 -- Represents LookupTableRowType, see also m_lookup_table above
--- @description: Stores rows of lookup table key-value data.
+-- @description: Stores rows of lookup table key-value data. Lookup table row currently doesn't store whole polystring data for `label` property, only the original and normalized string values are stored.
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableRowType
 CREATE TABLE m_lookup_table_row (
     -- @description: OID of the lookup table that owns this row.
@@ -4155,4 +4179,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(57, $$ SELECT 1 $$, true);
+call apply_change(58, $$ SELECT 1 $$, true);

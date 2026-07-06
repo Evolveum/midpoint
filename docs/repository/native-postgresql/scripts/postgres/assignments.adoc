@@ -1,4 +1,5 @@
 = Native PostgreSQL Schema Script: postgres.sql - Assignments
+:page-toc: top
 
 xref:../../schema.adoc[Back to native PostgreSQL schema overview]
 

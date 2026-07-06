@@ -1,0 +1,46 @@
+<!--
+  ~ Copyright (c) 2014-2016 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role oid="00000000-0000-0000-0000-00000000ae08"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Prop Read Some Modify Some User</name>
+    <authorization>
+        <name>read some</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                   <q:path>subtype</q:path>
+                   <q:value>CAPTAIN</q:value>
+                </q:equal>
+            </filter>
+        </object>
+        <item>c:name</item>
+        <item>fullName</item>
+        <item>activation/administrativeStatus</item>
+        <item>assignment</item>
+    </authorization>
+    <authorization>
+        <name>modify some</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                   <q:path>subtype</q:path>
+                   <q:value>CAPTAIN</q:value>
+                </q:equal>
+            </filter>
+        </object>
+        <item>fullName</item>
+        <item>additionalName</item>
+        <item>description</item>
+    </authorization>
+</role>

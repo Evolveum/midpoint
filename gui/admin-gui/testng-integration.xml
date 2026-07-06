@@ -21,6 +21,7 @@
             <class name="com.evolveum.midpoint.gui.TestPageRole"/>
             <class name="com.evolveum.midpoint.gui.TestPageService"/>
             <class name="com.evolveum.midpoint.gui.TestPageResource"/>
+            <class name="com.evolveum.midpoint.gui.TestPageFocusPreviewChanges"/>
         </classes>
     </test>
     <test name="Wrapper Integration" preserve-order="true" parallel="none" verbose="10">

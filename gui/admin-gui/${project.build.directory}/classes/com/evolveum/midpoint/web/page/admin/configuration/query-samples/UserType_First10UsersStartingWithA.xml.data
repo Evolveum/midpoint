@@ -1,0 +1,10 @@
+<query>
+    <filter>
+        <text>name startsWith[polyStringNorm] 'a'</text> <!-- normalized (case insensitive) should start with a given string-->
+    </filter>
+    <paging>    <!-- note this is NOT to be used in Advanced search box in GUI -->
+        <orderBy>name</orderBy>
+        <orderDirection>ascending</orderDirection>  <!-- this is the default -->
+        <maxSize>10</maxSize>
+    </paging>
+</query>

@@ -1,0 +1,14 @@
+<mappingExecutionRequest>
+	<sourceContext>
+		<objectRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+		<delta>
+			<changeType>modify</changeType>
+			<objectType>UserType</objectType>
+			<itemDelta>
+				<modificationType>replace</modificationType>
+				<path>givenName</path>
+				<value>JACK</value>
+			</itemDelta>
+		</delta>
+	</sourceContext>
+</mappingExecutionRequest>

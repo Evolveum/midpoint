@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SearchFilterPanel.label.description" /></label>
+        </dt>
+        <dd>
+            <textarea wicket:id="description" class="form-control form-control-sm" rows="2"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SearchFilterPanel.label.filterClause" /></label>
+            <i wicket:id="filterClauseTooltip" wicket:message="title:SchemaHandlingStep.tooltip.filterClause"/>
+        </dt>
+        <dd>
+            <textarea wicket:id="filterClause" class="form-control form-control-sm" rows="10"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label></label>
+        </dt>
+        <dd>
+            <a wicket:id="update" class="btn btn-success">
+                <span><wicket:message key="SearchFilterPanel.button.update" /></span>
+            </a>
+        </dd>
+    </dl>
+
+</wicket:panel>
+</html>

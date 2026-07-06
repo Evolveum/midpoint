@@ -79,4 +79,12 @@ public class NonceAuthenticationEvaluatorImpl extends CredentialsAuthenticationE
     protected boolean supportsActivation() {
         return false;
     }
+
+    @Override
+    protected boolean supportsPrincipalReuse() {
+        // The nonce is generated and persisted to the focus after the principal is first loaded (during the
+        // preceding identification module), so a reused principal instance would be stale and miss the nonce.
+        // We must reload from the repository to see the freshly generated nonce credential.
+        return false;
+    }
 }

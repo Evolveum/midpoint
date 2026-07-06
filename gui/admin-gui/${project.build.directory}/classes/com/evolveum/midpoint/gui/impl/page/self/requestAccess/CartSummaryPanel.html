@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2022 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="col-md-12 col-xl-7 col-lg-8 col-3xl-9">
+        <div wicket:id="table"/>
+    </div>
+    <div class="col-md-12 col-xl-5 col-lg-4 col-3xl-3">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-cash-register me-1"></i>
+                    <wicket:message key="ShoppingCartPanel.checkout"/>
+                </h3>
+            </div>
+            <div class="card-body d-flex flex-column gap-3 pb-1">
+                <form wicket:id="form">
+                    <wicket:enclosure child="validity">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <wicket:message key="ShoppingCartPanel.validity"/>
+                                <i class="fas fa-info-circle fa-xs text-primary" wicket:id="validityInfo" tabindex="0" wicket:message="title:CartSummaryPanel.validityTitle,aria-label:CartSummaryPanel.validityTooltip"></i>
+                            </label>
+                            <select class="form-control" wicket:id="validity" wicket:message="aria-label:CartSummaryPanel.validityTitle"></select>
+                        </div>
+                    </wicket:enclosure>
+                    <div class="mb-3" wicket:id="customValidity"></div>
+                    <wicket:enclosure child="comment">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <wicket:message key="ShoppingCartPanel.comment"/>
+                                <i class="fas fa-info-circle fa-xs text-primary" wicket:id="commentInfo" tabindex="0" wicket:message="title:CartSummaryPanel.commentTitle,aria-label:CartSummaryPanel.commentTooltip"></i>
+                            </label>
+                            <textarea class="form-control" rows="4" wicket:id="comment" wicket:message="aria-label:CartSummaryPanel.commentTitle"></textarea>
+                        </div>
+                    </wicket:enclosure>
+                    <div class="mb-3 mb-1">
+                        <a class="btn btn-outline-danger w-100 mb-2" wicket:id="openConflict">
+                            <i class="fas fa-triangle-exclamation me-1"></i>
+                            <wicket:message key="ShoppingCartPanel.openConflict"/>
+                        </a>
+
+                        <div class="text-danger" wicket:id="messages"></div>
+
+                        <a class="btn btn-success w-100" wicket:id="submit">
+                            <i class="fas fa-credit-card me-1"></i>
+                            <wicket:message key="ShoppingCartPanel.submit"/>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+
+<wicket:fragment wicket:id="tableHeaderFragment">
+    <h3 class="card-title">
+        <i class="fa-solid fa-cart-shopping me-1"></i>
+        <wicket:message key="ShoppingCartPanel.tableHeader"/>
+    </h3>
+</wicket:fragment>
+
+<wicket:fragment wicket:id="tableFooterFragment">
+    <a class="btn btn-light border" wicket:id="clearCart">
+        <i class="fa-solid fa-recycle me-1"></i>
+        <wicket:message key="ShoppingCartPanel.clearCart"/>
+    </a>
+</wicket:fragment>
+
+<wicket:fragment wicket:id="tableButtonColumn">
+    <div class="btn-group btn-group-sm">
+        <button class="btn btn-light border" wicket:id="edit" wicket:message="title:ShoppingCartPanel.edit" >
+            <i class="fas fa-pen-to-square"></i>
+        </button>
+        <button class="btn btn-light border" wicket:id="remove" wicket:message="title:ShoppingCartPanel.remove" >
+            <i class="fas fa-trash-can"></i>
+        </button>
+    </div>
+</wicket:fragment>
+</html>

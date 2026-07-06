@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ListeningActivity;
-import com.evolveum.midpoint.provisioning.ucf.api.async.*;
+import com.evolveum.midpoint.provisioning.ucf.api.async.ActiveAsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.async.PassiveAsyncUpdateSource;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;

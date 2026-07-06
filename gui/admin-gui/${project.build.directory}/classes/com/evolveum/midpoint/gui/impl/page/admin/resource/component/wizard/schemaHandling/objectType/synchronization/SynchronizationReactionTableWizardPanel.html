@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <wicket:enclosure child="deprecatedContainerInfo">
+        <div class="ms-auto me-auto col-10 alert alert-info alert-dismissible">
+            <i class="me-2 fas fa-info"></i>
+            <span wicket:id="deprecatedContainerInfo"/>
+        </div>
+    </wicket:enclosure>
+    <div class="col-12 col-sm-10 mx-auto p-0">
+        <div class="card shadow-sm mb-3 p-0">
+            <div class="card-header">
+                    <span>
+                        <i class="fa fa-arrows-rotate"/>
+                        <span class="ps-1">
+                        <wicket:message key="SynchronizationReactionTableWizardPanel.headerLabel"/>
+                    </span>
+                    </span>
+            </div>
+            <div class="card-body p-0" wicket:id="table"/>
+        </div>
+    </div>
+</wicket:extend>
+</body>
+</html>

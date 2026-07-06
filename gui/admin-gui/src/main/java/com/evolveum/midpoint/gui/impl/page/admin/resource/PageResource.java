@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;
@@ -17,6 +20,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -59,6 +65,8 @@ import com.evolveum.midpoint.web.page.admin.resources.ResourceSummaryPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil.refreshResourceSchema;
+
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/resource")
@@ -72,6 +80,23 @@ import org.jetbrains.annotations.Nullable;
                         description = "PageResource.auth.resource.description")
         })
 public class PageResource extends PageAssignmentHolderDetails<ResourceType, ResourceDetailsModel> {
+
+    private static final String DOT_CLASS = PageResource.class.getName() + ".";
+    private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
+
+    /**
+     * Connector configuration properties whose changes require schema refresh.
+     */
+    private static final Set<ItemPath> SCHEMA_REFRESH_PATHS = Set.of(
+            ItemPath.create(
+                    ResourceType.F_CONNECTOR_CONFIGURATION,
+                    "configurationProperties",
+                    "operationalAttributes"),
+            ItemPath.create(
+                    ResourceType.F_CONNECTOR_CONFIGURATION,
+                    "configurationProperties",
+                    "managedAssociationPairs")
+    );
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
@@ -137,6 +162,12 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             @Override
             protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
                 return PageResource.this.hasUnsavedChanges(target);
+            }
+
+            @Override
+            protected void refreshLifecycleViews(AjaxRequestTarget target) {
+                super.refreshLifecycleViews(target);
+                target.add(PageResource.this.get(ID_DETAILS_VIEW));
             }
         };
     }
@@ -306,7 +337,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         addWizardBreadcrumbsForObjectType(wizardPanel, 1);
     }
 
-    public  <C extends Containerable> void addWizardBreadcrumbsForObjectType(
+    public <C extends Containerable> void addWizardBreadcrumbsForObjectType(
             @NotNull AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel,
             int index) {
         List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();
@@ -334,13 +365,48 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         breadcrumbs.add(0, new Breadcrumb(breadcrumbLabel));
     }
 
-    private void addWizardBreadcrumbsForAssociationType(
-            ShadowAssociationTypeDefinitionType association,
-            String mappingDirection) {
-        List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();
-        String displayName = GuiDisplayNameUtil.getDisplayName(association);
-        IModel<String> breadcrumbLabelModel = Model.of(displayName + " (" + mappingDirection + ")");
+    /**
+     * Refreshes the resource schema after saving connector configuration
+     * properties that affect schema interpretation.
+     */
+    @Override
+    protected void postProcessResult(
+            @NotNull OperationResult result,
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
+            AjaxRequestTarget target) {
 
-        breadcrumbs.add(0, new Breadcrumb(breadcrumbLabelModel));
+        if (!result.isError() && shouldRefreshSchema(executedDeltas)) {
+            PrismObject<ResourceType> resourcePrism = getPrismObject();
+            refreshResourceSchema(resourcePrism, OPERATION_REFRESH_SCHEMA, target, (PageBase) getPage());
+        }
+
+        super.postProcessResult(result, executedDeltas, target);
+    }
+
+    /**
+     * Returns true when saved deltas contain connector configuration changes
+     * that require resource schema refresh.
+     */
+    private boolean shouldRefreshSchema(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+
+        if (executedDeltas == null || executedDeltas.isEmpty()) {
+            return false;
+        }
+
+        return executedDeltas.stream()
+                .map(ObjectDeltaOperation::getObjectDelta)
+                .filter(Objects::nonNull)
+                .map(ObjectDelta::getModifiedItems)
+                .flatMap(Collection::stream)
+                .anyMatch(this::isSchemaRefreshPath);
+    }
+
+    /**
+     * Checks whether the changed item path belongs to connector configuration
+     * properties that influence generated resource schema.
+     */
+    private boolean isSchemaRefreshPath(ItemPath path) {
+        return path != null && SCHEMA_REFRESH_PATHS.stream()
+                .anyMatch(refreshPath -> refreshPath.equivalent(path));
     }
 }

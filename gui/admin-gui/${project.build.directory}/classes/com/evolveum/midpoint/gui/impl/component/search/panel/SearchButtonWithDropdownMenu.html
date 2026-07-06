@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="btn-group btn-group-sm">
+        <button wicket:id="searchButton" class="btn btn-primary">
+            <i class="fa fa-search me-1"/>&nbsp;
+            <span wicket:id="searchButtonLabel"/>
+        </button>
+        <button aria-expanded="false" type="button" class="btn btn-primary dropdown-toggle dropdown-icon" data-bs-toggle="dropdown"
+                wicket:id="dropdownButton" wicket:messages="aria-label:SearchButtonWithDropdownMenu.kindOfSearch">
+            <span class="visually-hidden"><wicket:message key="SplitButtonDropDown.toggle"/></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" role="menu">
+            <wicket:container wicket:id="menuItems">
+                <a class="dropdown-item" wicket:id="menuItem" role="menuitem"/>
+            </wicket:container>
+        </ul>
+    </div>
+</wicket:panel>

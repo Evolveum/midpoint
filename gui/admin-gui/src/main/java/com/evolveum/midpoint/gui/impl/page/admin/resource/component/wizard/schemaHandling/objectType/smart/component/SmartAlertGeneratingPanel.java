@@ -13,6 +13,8 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -306,7 +308,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                 () -> getModelObject().isSuggestionButtonVisible()
                         ? "me-2 fa fa-wand-magic-sparkles"
                         : "fa fa-arrows-rotate",
-                getConfirmationOptions().getObject(),
+                SuggestionOption.of(getConfirmationOptions().getObject()),
                 () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
                 },
                         getModelObject().isSuggestionButtonVisible()

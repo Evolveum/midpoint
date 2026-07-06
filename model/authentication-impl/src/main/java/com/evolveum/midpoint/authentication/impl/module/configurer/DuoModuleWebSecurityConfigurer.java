@@ -15,7 +15,6 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteMod
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.DuoRequestToken;
 import com.evolveum.midpoint.authentication.impl.module.configuration.DuoModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.provider.DuoProvider;
-import com.evolveum.midpoint.authentication.impl.provider.OidcClientProvider;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -24,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DuoAuthenticationMod
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;

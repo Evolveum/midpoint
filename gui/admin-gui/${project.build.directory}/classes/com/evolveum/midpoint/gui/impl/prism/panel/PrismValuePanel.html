@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="valueForm">
+        <div class="row">
+            <div wicket:id="valueContainer">
+                <div wicket:id="input"/>
+                <wicket:enclosure child="feedback">
+                    <div>
+                        <span wicket:id="feedback" class="text-danger"/>
+                    </div>
+                </wicket:enclosure>
+            </div>
+            <div class="col-2" wicket:id="header">
+                <span wicket:id="deleteStatusMessage" role="status" class="visually-hidden" aria-live="polite"></span>
+                <span class="btn-group" style="margin-top: .65rem;">
+                    <a class="btn btn-tool" wicket:id="removeButton">
+                        <i class="fa fa-minus-circle"></i>
+                    </a>
+                    <button class="btn btn-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.metadata">
+                        <i class="fa fa-tag"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <wicket:enclosure child="metadata">
+            <div class="row">
+                <div class="col-10 mt-1">
+                    <div wicket:id="metadata"/>
+                </div>
+            </div>
+        </wicket:enclosure>
+    </div>
+</wicket:panel>
+</html>

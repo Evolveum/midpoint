@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="row">
+        <div class="col-12 col-lg-6">
+            <h3><wicket:message key="PageInternals.title.internalsConfig"/></h3>
+            <form wicket:id="form" class="form-horizontal">
+                <div class="mb-3" wicket:id="consistencyChecks"/>
+                <div class="mb-3" wicket:id="encryptionChecks"/>
+                <div class="mb-3" wicket:id="readEncryptionChecks"/>
+                <div class="mb-3" wicket:id="modelProfiling"/>
+                <div class="mb-3" wicket:id="tolerateUndeclaredPrefixes"/>
+
+                <div class="main-button-bar">
+                    <a class="btn btn-primary" wicket:id="updateInternalsConfig"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

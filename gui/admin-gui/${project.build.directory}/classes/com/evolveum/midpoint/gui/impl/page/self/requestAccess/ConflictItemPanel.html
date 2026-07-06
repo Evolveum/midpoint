@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <wicket:message key="ConflictItemPanel.description">
+        <a class="fw-bold" href="#" wicket:id="link1"></a>
+        <a class="fw-bold" href="#" wicket:id="link2"></a>
+    </wicket:message>
+
+    <div class="mt-3">
+        <div class="fw-bold"><wicket:message key="ConflictItemPanel.reason"/></div>
+        <div wicket:id="message"/>
+    </div>
+
+    <div class="mt-3">
+        <div class="fw-bold"><wicket:message key="ConflictItemPanel.solution"/></div>
+        <div><wicket:message key="ConflictItemPanel.solveConflictViaRemove"/></div>
+    </div>
+
+    <form class="mt-3" wicket:id="form">
+        <div wicket:id="options">
+            <div wicket:id="option1"/>
+            <div wicket:id="option2"/>
+        </div>
+    </form>
+
+    <div class="main-button-bar mt-4">
+        <a class="btn btn-primary" wicket:id="fixConflict"><wicket:message key="ConflictItemPanel.fixConflict"/></a>
+    </div>
+
+    <wicket:fragment wicket:id="option">
+        <input class="form-check-input" type="radio" wicket:id="radio">
+        <label class="form-check-label">
+            <span wicket:id="action"/> <span class="fw-bold" wicket:id="label"/> <span wicket:id="state"/>
+        </label>
+    </wicket:fragment>
+</wicket:extend>
+</html>

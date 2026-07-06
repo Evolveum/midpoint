@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+    <wicket:extend>
+        <wicket:fragment wicket:id="expandCollapseFragment">
+            <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                    class="btn btn-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
+        </wicket:fragment>
+        <div class="row">
+            <div class="col-xs-2">
+                <span wicket:id="deleteStatusMessage" role="status" class="visually-hidden" aria-live="polite"></span>
+                <button wicket:id="showMetadata" class="btn btn-tool"><i class="fa fa-asterisk"></i></button>
+                <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties"
+                    class="btn btn-tool"><i class="fa fa-sort-alpha-down"></i></button>
+                    <!-- <button wicket:id="showEmptyFields" wicket:message="title:PrismObjectPanel.showEmpty"
+                    class="btn btn-tool" trigger="hover" about="showEmptyFields"><i class="fa fa-arrows-alt"></i>
+                </button> -->
+                <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer"
+                    class="btn btn-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
+                <button wicket:id="removeContainer" wicket:message="title:PrismObjectPanel.deleteContainer"
+                    class="btn btn-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
+            </div>
+            <div class="col-xs-3" wicket:id="childContainersSelectorPanel">
+                <div class="col-xs-10" wicket:id="childContainersList"/>
+                <div class="col-xs-2 btn btn-sm btn-success" wicket:id="addButton"/>
+            </div>
+        </div>
+    </wicket:extend>
+</html>

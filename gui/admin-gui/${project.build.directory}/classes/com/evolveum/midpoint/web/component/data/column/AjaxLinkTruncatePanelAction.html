@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org" lang="">
+<wicket:panel>
+
+    <div class="d-flex justify-content-between align-items-center" wicket:id="container"></div>
+
+    <wicket:fragment wicket:id="mode-second" id="">
+        <div class="p-3 gap-3 d-flex align-items-center text-truncate">
+            <a wicket:id="link_icon" class="role-mining-column-item-rotate">
+                <i wicket:id="image"></i>
+            </a>
+
+            <a wicket:id="link" class="text-truncate">
+                <span wicket:id="link_label"></span>
+            </a>
+        </div>
+
+        <div wicket:id="icon" class="p-2 d-flex align-items-center role-mining-column-item-rotate"></div>
+
+    </wicket:fragment>
+
+    <wicket:fragment id="" wicket:id="mode-first">
+        <div class="gap-1 text-truncate d-flex align-items-center ">
+            <div wicket:id="icon" class="p-3"></div>
+
+            <a wicket:id="link" class="text-truncate">
+                <span wicket:id="link_label"></span>
+            </a>
+        </div>
+
+        <a wicket:id="link_icon" class="p-2 d-flex align-items-center">
+            <i wicket:id="image"></i>
+        </a>
+    </wicket:fragment>
+
+</wicket:panel>
+</html>
+
+

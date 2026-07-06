@@ -23,13 +23,16 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisPartitionAnalysisType;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType.F_CLUSTER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType.F_PARTITION_ANALYSIS;
 
 public class QOutlierPartitionMapping extends QContainerMapping<RoleAnalysisOutlierPartitionType,
         QOutlierPartition, MOutlierPartition, MOutlier> {

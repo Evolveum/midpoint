@@ -11,11 +11,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Update context for nested containers stored in the same table used by the parent context.

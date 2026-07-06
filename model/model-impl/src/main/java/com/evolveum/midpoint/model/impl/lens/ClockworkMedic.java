@@ -10,7 +10,10 @@ import java.util.function.Supplier;
 
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.util.*;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethodRef;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProjectionAwareProcessorMethodRef;
+import com.evolveum.midpoint.model.impl.lens.projector.util.SimplifiedProcessorMethodRef;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;

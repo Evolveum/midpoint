@@ -6,11 +6,8 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;

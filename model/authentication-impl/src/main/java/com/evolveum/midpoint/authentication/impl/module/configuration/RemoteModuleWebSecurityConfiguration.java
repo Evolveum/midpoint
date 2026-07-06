@@ -9,7 +9,8 @@ package com.evolveum.midpoint.authentication.impl.module.configuration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractKeyStoreKeyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractSimpleKeyType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -30,7 +31,10 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.CharArrayReader;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;

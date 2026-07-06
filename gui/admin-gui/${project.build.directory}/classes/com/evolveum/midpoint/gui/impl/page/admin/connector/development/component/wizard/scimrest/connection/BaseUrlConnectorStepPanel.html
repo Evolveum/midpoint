@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div class="col-12">
+        <div class="d-flex flex-row flex-wrap alert alert-ai alert-opaque px-3" role="alert" wicket:id="aiAlert">
+            <span class="d-flex py-2 pe-2 align-items-start alert-icon">
+                <i class="fa fa-wand-magic-sparkles"></i>
+            </span>
+            <div class="d-flex flex-column justify-content-center align-items-start">
+                <div class="fw-bold">
+                    <wicket:message key="BaseUrlConnectorStepPanel.ai.found.title"/>
+                </div>
+                <div>
+                    <wicket:message key="BaseUrlConnectorStepPanel.ai.found.description"/>.
+                </div>
+            </div>
+        </div>
+    </div>
+</wicket:extend>
+</html>

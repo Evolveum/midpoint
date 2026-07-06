@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2022 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card-header" wicket:id="header"/>
+    <div class="card-body">
+        <div wicket:id="bodyHeader"/>
+
+        <wicket:child/>
+    </div>
+
+    <wicket:fragment wicket:id="header">
+        <h3 class="card-title" wicket:id="title"/>
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="bodyHeader">
+        <h3 class="card-title">
+            <i wicket:id="icon"/>
+            <span wicket:id="title"/>
+        </h3>
+        <span wicket:id="badge"/>
+    </wicket:fragment>
+</wicket:panel>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2020 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex align-items-start gap-1 flex-wrap">
+        <div class="d-flex flex-column flex-grow-1" wicket:id="container">
+            <div wicket:id="aceEditorField"/>
+            <div wicket:id="textField"/>
+        </div>
+        <a class="btn btn-sm btn-primary" wicket:id="fieldTypeButton">
+            <span wicket:id="fieldTypeButtonLabel"/>
+        </a>
+        <a class="btn btn-sm btn-primary" wicket:id="configureButton">
+            <i class="fa fa-cog"/>
+        </a>
+    </div>
+</wicket:panel>
+</html>

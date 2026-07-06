@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="d-flex flex-column gap-3 align-items-center mt-2">
+        <div>
+            <ol class="breadcrumb p-0 bg-transparent m-0">
+                <li class="breadcrumb-item" wicket:id="breadcrumb">
+                    <i wicket:id="bcIcon"></i>&nbsp;
+                    <span wicket:id="bcName"></span>
+                </li>
+            </ol>
+        </div>
+
+        <i class="text-center fw-bold fa-xl" wicket:id="titleIcon"></i>
+        <h2 class="text-center fw-bold mb-1" wicket:id="text"></h2>
+        <h5 class="text-center text-secondary col-3xl-8 col-10 lh-2 mb-4" wicket:id="subText"></h5>
+        <div class="col-12">
+            <div wicket:id="feedbackContainer" class="feedbackContainer mx-auto p-0">
+                <div wicket:id="feedback" class="messagePanel"></div>
+            </div>
+            <div class="table-td-middle" wicket:id="table"></div>
+        </div>
+
+        <div class="d-flex gap-3 justify-content-center" wicket:id="buttonsContainer"></div>
+    </div>
+
+    <wicket:fragment wicket:id="buttonFragment">
+        <div wicket:id="backContainer" class="wizard-actions-container">
+            <a class="btn btn-outline-primary" wicket:id="back"></a>
+        </div>
+
+        <div wicket:id="exitContainer" class="wizard-actions-container">
+            <a class="btn btn-link" wicket:id="exit"></a>
+        </div>
+
+        <div wicket:id="customButtonsContainer" class="wizard-actions-container gap-2">
+            <a class="btn" wicket:id="buttons"></a>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</body>
+</html>

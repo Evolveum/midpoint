@@ -81,7 +81,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider.SORT_OUTLIER_COUNT_PROPERTY;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider.SORT_REDUCTION_PROPERTY;
 import static com.evolveum.midpoint.web.component.data.table.CollapsableDataTable.CollapsableRowItem.COLLAPSIBLE_CONTENT_ID;
 
 public abstract class RoleAnalysisAbstractClusteringResultPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {

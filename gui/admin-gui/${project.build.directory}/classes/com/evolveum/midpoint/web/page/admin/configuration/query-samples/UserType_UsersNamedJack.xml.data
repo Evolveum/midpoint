@@ -1,0 +1,5 @@
+<query>
+    <filter>
+        <text>givenName matches (norm = 'jack')</text> <!-- normalized (case insensitive) -->
+    </filter>
+</query>

@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;

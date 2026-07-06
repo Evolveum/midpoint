@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemSelectorType;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -42,7 +42,9 @@ import org.apache.wicket.markup.html.basic.Label;
 import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -625,11 +627,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         } else {
             UserType delegationUser = getModelObject().getDelegationOwner();
             if (getModelObject().getDelegationOwner() != null) {
-                if (delegationUser.getFullName() != null && StringUtils.isNotEmpty(delegationUser.getFullName().getOrig())) {
-                    displayName = delegationUser.getFullName().getOrig() + " (" + delegationUser.getName().getOrig() + ")";
-                } else {
-                    displayName = delegationUser.getName() != null ? delegationUser.getName().getOrig() : "";
-                }
+                displayName = WebComponentUtil.getDisplayNameOrName(delegationUser.asPrismObject());
             }
         }
         return displayName;

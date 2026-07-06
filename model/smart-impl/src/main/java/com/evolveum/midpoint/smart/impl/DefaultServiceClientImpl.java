@@ -7,26 +7,25 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
-import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
-import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
+import com.evolveum.midpoint.smart.api.info.HealthStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -102,6 +101,32 @@ public class DefaultServiceClientImpl implements ServiceClient {
     @VisibleForTesting
     public static boolean hasServiceUrlOverride() {
         return getServiceUrlOverride() != null;
+    }
+
+    @Override
+    public Optional<AiInfo> getAiInfo() {
+        webClient.reset();
+        webClient.accept(MediaType.APPLICATION_JSON);
+        webClient.path("/health");
+        try (var response = webClient.get()) {
+            if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+                throw new SystemException("Health endpoint returned non-success status: %s".formatted(
+                        response.getStatus()));
+            }
+            var responseText = response.readEntity(String.class);
+            try {
+                var root = new ObjectMapper().readTree(responseText);
+                var statusString = root.path("status").asText(null);
+                var status = HealthStatus.fromString(statusString);
+                var ai = root.path("ai");
+                if (ai.isMissingNode()) {
+                    return Optional.empty();
+                }
+                return Optional.of(new AiInfo(ai.path("provider").asText(null), ai.path("model").asText(null), status));
+            } catch (Exception e) {
+                throw new SystemException("Failed to parse AI info from health endpoint: " + e.getMessage(), e);
+            }
+        }
     }
 
     /** A generic method that calls a remote service synchronously. Treats serialization/parsing of the exchanged data. */

@@ -1,0 +1,5 @@
+<query>
+    <filter>
+        <text>. isRoot</text>
+    </filter>
+</query>

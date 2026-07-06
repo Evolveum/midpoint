@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<head/>
+<body>
+<wicket:extend>
+    <div class="row" wicket:id="propertyConfigContainer">
+        <div class="col-md-4" wicket:id="propertyChoice"></div>
+        <div class="col-md-1">
+            <a wicket:id="addButton" class="btn btn-light border">
+                <span><wicket:message key="SearchPropertiesConfigPanel.addButton"/></span>
+            </a>
+        </div>
+    </div>
+    <div wicket:id="propertiesTable" />
+</wicket:extend>
+</body>
+</html>

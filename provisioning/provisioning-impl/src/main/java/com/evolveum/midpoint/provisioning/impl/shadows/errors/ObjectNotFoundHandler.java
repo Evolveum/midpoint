@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType.FORCED_EXCEPTION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.LIVE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.REAPING;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 

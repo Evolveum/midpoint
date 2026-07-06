@@ -22,10 +22,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationAttemptDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
-
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 

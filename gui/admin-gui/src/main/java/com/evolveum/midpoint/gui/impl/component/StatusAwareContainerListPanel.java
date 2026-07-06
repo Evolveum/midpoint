@@ -61,7 +61,6 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestionValue;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createSuggestionReviewInlineMenu;
 import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDividerNoHeader;
 
 /**
@@ -193,8 +192,10 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
                     C realValue = wrapper.getRealValue();
 
                     IModel<String> displayNameModel = () -> getDisplayNameFor(realValue, status);
+                    String badgeTooltip = createStringResource("SmartIntegration.badge.tooltip.ai").getObject();
                     LabelWithBadgePanel label = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel,
                             createStringResource("SmartIntegration.suggestion.text"),
+                            badgeTooltip,
                             status);
                     cellItem.add(label);
                     return;

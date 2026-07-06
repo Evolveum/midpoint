@@ -8,9 +8,7 @@ package com.evolveum.midpoint.model.impl.expr;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrimitiveType;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -143,6 +141,13 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
         VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
 
         assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate-name", true);
+    }
+
+    @Test
+    public void testShadowNameSubstring() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(),
+                ACCOUNT_GUYBRUSH_DUMMY_USERNAME.substring(1));
     }
 
     @Test

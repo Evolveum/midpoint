@@ -10,7 +10,10 @@ import com.evolveum.midpoint.smart.impl.conndev.ScimBackend;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRefreshScimSchemaWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRefreshScimSchemaWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusTypeSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;

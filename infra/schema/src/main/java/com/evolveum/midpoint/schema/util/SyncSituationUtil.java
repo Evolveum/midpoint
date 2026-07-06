@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationTransitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
 

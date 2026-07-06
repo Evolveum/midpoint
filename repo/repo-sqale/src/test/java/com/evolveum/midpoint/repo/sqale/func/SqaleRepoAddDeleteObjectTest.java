@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.*;
@@ -2003,6 +2002,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         UserType user = new UserType()
                 .name(objectName)
                 .additionalName("additional-name")
+                .displayName("display-name")
                 .employeeNumber("3")
                 .familyName("family-name")
                 .fullName("full-name")
@@ -2010,6 +2010,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .honorificPrefix("honorific-prefix")
                 .honorificSuffix("honorific-suffix")
                 .nickName("nick-name")
+                .preferredName("preferred-name")
                 .title("title")
                 .organization("org-1")
                 .organization("org-2")
@@ -2027,6 +2028,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         // all items from MUser
         assertThat(row.additionalNameOrig).isEqualTo("additional-name");
         assertThat(row.additionalNameNorm).isEqualTo("additionalname");
+        assertThat(row.displayNameOrig).isEqualTo("display-name");
+        assertThat(row.displayNameNorm).isEqualTo("displayname");
         assertThat(row.employeeNumber).isEqualTo("3");
         assertThat(row.familyNameOrig).isEqualTo("family-name");
         assertThat(row.familyNameNorm).isEqualTo("familyname");
@@ -2040,6 +2043,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.honorificSuffixNorm).isEqualTo("honorificsuffix");
         assertThat(row.nickNameOrig).isEqualTo("nick-name");
         assertThat(row.nickNameNorm).isEqualTo("nickname");
+        assertThat(row.preferredNameOrig).isEqualTo("preferred-name");
+        assertThat(row.preferredNameNorm).isEqualTo("preferredname");
         assertThat(row.titleOrig).isEqualTo("title");
         assertThat(row.titleNorm).isEqualTo("title");
         assertThat(row.organizations).isNotNull();

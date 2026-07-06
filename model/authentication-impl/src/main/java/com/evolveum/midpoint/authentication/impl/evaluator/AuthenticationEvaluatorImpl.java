@@ -52,7 +52,8 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
     protected <C extends AbstractAuthenticationContext> MidPointPrincipal getAndCheckPrincipal(
             ConnectionEnvironment connEnv, C authCtx, boolean supportActivationCheck) {
         Object existing = AuthUtil.getMidpointAuthentication().getPrincipal();
-        if (existing instanceof MidPointPrincipal mp && Objects.equals(mp.getUsername(), authCtx.getUsername())) {
+        if (supportsPrincipalReuse()
+                && existing instanceof MidPointPrincipal mp && Objects.equals(mp.getUsername(), authCtx.getUsername())) {
             // reuse, skip DB load, otherwise we'll end up with multiple principal instances around authentication code
             return mp;
         }
@@ -99,6 +100,17 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
             throw new DisabledException("web.security.provider.disabled");
         }
         return principal;
+    }
+
+    /**
+     * Whether the principal instance already present in {@link MidpointAuthentication} may be reused instead of
+     * loading a fresh copy from the repository. Reusing keeps in-memory mutations (failed attempts, lockout state)
+     * consistent across modules. Evaluators that check credentials generated during the very same authentication
+     * sequence (e.g. mail nonce) must override this to {@code false}, otherwise they would work with a stale focus
+     * that does not yet contain the freshly generated credential.
+     */
+    protected boolean supportsPrincipalReuse() {
+        return true;
     }
 
     private ProfileCompilerOptions createOptionForGettingPrincipal() {

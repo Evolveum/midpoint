@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2023 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div>
+        <a wicket:id="link"><span wicket:id="title"/></a>
+        <a wicket:id="iconLink">
+            <i wicket:id="icon"/>
+        </a>
+    </div>
+    <wicket:enclosure child="primaryMarks">
+        <div class="fs-7">
+            <i class="fa-solid fa-tag text-success me-1"/>
+            <span class="text-secondary text-truncate" wicket:id="primaryMarks"/>
+        </div>
+    </wicket:enclosure>
+    <wicket:enclosure child="secondaryMarks">
+        <div class="fs-7">
+            <i class="fa-solid fa-tag text-info me-1"/>
+            <span class="text-secondary text-truncate" wicket:id="secondaryMarks"/>
+        </div>
+    </wicket:enclosure>
+</wicket:panel>
+</html>

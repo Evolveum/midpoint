@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.authentication.impl.MidpointAutowiredBeanFactoryObjectPostProcessor;
@@ -40,7 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -114,27 +115,39 @@ public class MidpointAuthFilter extends GenericFilterBean {
             mpAuthentication = getMidpointAuthentication();
         }
 
+        // Use the default GUI entry point for unauthenticated root requests,
+        // it resolves the actual home page after successful authentication.
+        if (isRootPage(httpRequest) && (mpAuthentication == null || !mpAuthentication.isAuthenticated())) {
+            new DefaultRedirectStrategy().sendRedirect(
+                    httpRequest, (HttpServletResponse) response, AuthConstants.DEFAULT_PATH_AFTER_LOGIN);
+            return;
+        }
+
         if (isPermitAllPage(httpRequest) && (mpAuthentication == null || !mpAuthentication.isAuthenticated())) {
             chain.doFilter(request, response);
             return;
         }
 
+        // Once the wrapper is created the auth modules (and their filters) have been built and registered
+        // in the ObjectPostProcessor's disposableBeans list. From here on every exit path must run through
+        // removingFiltersAfterProcessing in the finally block, otherwise the filters built for this request
+        // leak (e.g. for ignored local paths such as /actuator/health on the sessionless actuator channel).
         AuthenticationWrapper authWrapper = initAuthenticationWrapper(mpAuthentication, httpRequest);
-        initPrincipalService(mpAuthentication, authWrapper);
-        if (authWrapper.isIgnoredLocalPath(httpRequest)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        if (authWrapper.getSequence() == null) {
-            IllegalArgumentException ex = new IllegalArgumentException(getMessageSequenceIsNull(httpRequest, authWrapper));
-            LOGGER.error(ex.getMessage(), ex);
-            ((HttpServletResponse) response).sendError(401, "web.security.provider.invalid");
-            return;
-        }
-        setLogoutPath(request, response);
-
         try {
+            initPrincipalService(mpAuthentication, authWrapper);
+            if (authWrapper.isIgnoredLocalPath(httpRequest)) {
+                chain.doFilter(request, response);
+                return;
+            }
+
+            if (authWrapper.getSequence() == null) {
+                IllegalArgumentException ex = new IllegalArgumentException(getMessageSequenceIsNull(httpRequest, authWrapper));
+                LOGGER.error(ex.getMessage(), ex);
+                ((HttpServletResponse) response).sendError(401, "web.security.provider.invalid");
+                return;
+            }
+            setLogoutPath(request, response);
+
             if (isRequestAuthenticated(mpAuthentication, authWrapper)) {
                 processingOfAuthenticatedRequest(mpAuthentication, httpRequest, response, chain);
                 return;
@@ -402,6 +415,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private boolean isPermitAllPage(HttpServletRequest request) {
         return AuthSequenceUtil.isPermitAll(request) && !AuthSequenceUtil.isLoginPage(request);
+    }
+
+    private boolean isRootPage(HttpServletRequest request) {
+        String servletPath = request.getServletPath();
+        return "".equals(servletPath) || "/".equals(servletPath);
     }
 
     private boolean needRestartAuthFlow(int indexOfProcessingModule, MidpointAuthentication mpAuthentication) {

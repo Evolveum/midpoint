@@ -105,6 +105,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private static final String MODIFY_JACK = "modify-jack";
     private static final String MODIFY_JACK_BACK = "modify-jack-back";
     private static final String MODIFY_BROTHERS = "modify-brothers";
+    private static final String MODIFY_MID_4812 = "modify-mid-4812";
     private static final String RECOMPUTE_JACK = "recompute-jack";
 
     // Tests 360-399
@@ -163,6 +164,11 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
     private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_TEST = TestObject.file(
             TEST_DIR, "function-library-test.xml", "724f2cce-c2d0-4a95-a67e-c922f9b806ab");
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_MID_4812 = TestObject.file(
+            TEST_DIR, "user-template-mid-4812.xml", "3c0a5c4a-5041-401f-9c46-000000004812");
+
+    private static final String SUBTYPE_MID_4812 = "mid-4812";
+    private static final String USER_MID_4812_NAME = "mid-4812";
 
     @Autowired BulkActionsExecutor executor;
 
@@ -176,6 +182,8 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION,
                 CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION,
                 FUNCTION_LIBRARY_TEST);
+        initTestObjects(initTask, initResult, USER_TEMPLATE_MID_4812);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_4812, USER_TEMPLATE_MID_4812.oid, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
@@ -637,6 +645,47 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         and("brothers are deleted"); // to not disturb tests that check # of users
         deleteObject(UserType.class, oid1);
         deleteObject(UserType.class, oid2);
+    }
+
+    /**
+     * MID-4812: ADD deltas for single-valued properties must not expose both old and new source values to mappings.
+     */
+    @Test
+    public void test346ModifySingleValuedSourcesUsingAddDeltas() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("there is a user with a subtype-specific template");
+        String userOid = addObject(
+                new UserType()
+                        .name(USER_MID_4812_NAME)
+                        .subtype(SUBTYPE_MID_4812)
+                        .givenName("John")
+                        .familyName("March")
+                        .asPrismObject(),
+                task,
+                result);
+        assertSuccess(result);
+
+        when("the user is modified by scripting ADD deltas for single-valued mapping sources");
+        ExecutionContext output =
+                evaluateExpression(
+                        parseScriptingExpression(MODIFY_MID_4812),
+                        task,
+                        result);
+
+        then("the mapping sees only effective new source values");
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
+        assertSuccess(result);
+
+        assertUserAfter(userOid)
+                .assertGivenName("Jack")
+                .assertFamilyName("April")
+                .assertDescription("This is Jack April.");
+
+        and("the user is deleted"); // to not disturb tests that check # of users
+        deleteObject(UserType.class, userOid);
     }
 
     @Test

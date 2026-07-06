@@ -113,7 +113,7 @@ public class StatusInfoTableUtil {
 
         StatusInfo<T> statusInfo = getStatusInfoFn.apply(value);
         if (statusInfo != null && statusInfo.getStatus() != null) {
-            String styleClass = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).tileClass;
+            String styleClass = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, value).tileClass;
             tile.add(AttributeModifier.replace("class", baseCss + " " + styleClass));
         }
     }
@@ -358,9 +358,10 @@ public class StatusInfoTableUtil {
             @NotNull StatusInfo<?> suggestionTypeStatusInfo,
             @NotNull IModel<String> displayNameModel,
             @NotNull IModel<String> suggestionBadgeModel,
+            @NotNull String badgeTooltip,
             @NotNull OperationResultStatusType status) {
         LabelWithBadgePanel labelWithBadgePanel = new LabelWithBadgePanel(
-                componentId, getAiCustomTextBadgeModel(suggestionBadgeModel.getObject()), displayNameModel) {
+                componentId, getAiCustomTextBadgeModel(suggestionBadgeModel.getObject(), badgeTooltip), displayNameModel) {
             @Override
             protected boolean isIconVisible() {
                 return suggestionTypeStatusInfo.isExecuting();

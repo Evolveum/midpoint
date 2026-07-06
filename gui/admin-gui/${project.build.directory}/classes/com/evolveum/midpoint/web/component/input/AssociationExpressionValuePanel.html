@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <span class="text-danger" wicket:id="feedback" />
+    <div wicket:id="shadowRefValueContainer">
+        <div class="prism-properties">
+            <div class="row prism-property">
+                <div class="col-md-3 prism-property-label" ><wicket:message key="AssociationExpressionValuePanel.shadowRefFilter" /></div>
+                <div class="col-md-9 prism-property-value" wicket:id="multiShadowRefPanel" />
+            </div>
+        </div>
+    </div>
+    <div wicket:id="associationTargetSearchContainer">
+        <div class="prism-properties">
+            <div class="row prism-property pb-2">
+                <div class="col-md-3 prism-property-label"><wicket:message key="ExpressionValuePanel.path" /></div>
+                <div class="col-md-8 prism-property-value" wicket:id="targetSearchPathInput" />
+            </div>
+            <div class="row prism-property">
+                <div class="col-md-3 prism-property-label"><wicket:message key="ExpressionValuePanel.value" /></div>
+                <div class="col-md-8 prism-property-value" wicket:id="targetSearchValueInput" />
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>
+

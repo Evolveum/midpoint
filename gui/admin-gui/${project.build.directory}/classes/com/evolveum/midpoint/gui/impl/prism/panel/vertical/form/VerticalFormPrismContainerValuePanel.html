@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="valueForm" class="card shadow-sm mb-3">
+        <div class="bg-white border-bottom-0 p-2 ps-3 pe-3 mb-0 btn w-100" wicket:id="header">
+
+            <span wicket:id="deleteStatusMessage" role="status" class="visually-hidden" aria-live="polite"></span>
+
+            <div class="row" wicket:message="title:PrismObjectPanel.expandCollapseContainer" trigger="hover">
+                <span>
+                    <i wicket:id="icon"></i>
+                    <span wicket:id="label"></span>
+                    <i wicket:id="expandCollapseButton" class="btn-tool text-body ms-auto"></i>
+                </span>
+            </div>
+
+            <div>
+                <small wicket:id="longHelp"/>
+            </div>
+        </div>
+        <div class="mb-3 ms-3" wicket:id="metadata"></div>
+
+        <wicket:container wicket:id="valueContainer">
+            <span wicket:id="input"></span>
+        </wicket:container>
+    </div>
+</wicket:panel>
+</html>

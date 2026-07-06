@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <div wicket:id="providers" class="col-md-12 pt-3">
+        <a wicket:id="provider" class="p-3 mb-2 card shadow-sm tile-panel selectable btn text-start"/>
+    </div>
+    <div class="pull-end">
+        <form method="post" wicket:id="logoutForm">
+
+            <div wicket:id="csrfField"/>
+
+            <button type="submit" class="m-auto btn btn-link nav-link" wicket:message="title:PageBase.logout">
+                <i class="fas fa-power-off"></i>
+                <span class="ps-2">
+                    <wicket:message key="PageBase.logout"/>
+                </span>
+            </button>
+        </form>
+    </div>
+</wicket:extend>
+
+</body>
+</html>

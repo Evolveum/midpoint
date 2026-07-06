@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <div wicket:id="successPanel">
+        <div class="d-flex justify-content-center">
+            <i class="fa fa-check-circle fa-2x text-success justify-content-center"></i>
+            <h2 class="login-box-msg" wicket:id="successLabel"></h2>
+        </div>
+        <p class="login-panel-description text-center">
+            <wicket:message key="PageRegistrationFinish.success.description"/>
+        </p>
+    </div>
+    <div wicket:id="errorPanel" class="d-flex">
+        <i class="fa fa-times-circle fa-2x text-error"></i>
+        <h3 class="center" wicket:id="errorLabel"/>
+    </div>
+</wicket:extend>
+</body>
+</html>

@@ -1,4 +1,5 @@
 = postgres-upgrade.sql - midPoint 4.11
+:page-toc: top
 
 == Changes
 
@@ -6,6 +7,9 @@
 |===
 | Change
 | Description
+
+| <<change-58,Change 58>>
+| Adds display and preferred name columns and indexes to users.
 
 | <<change-57,Change 57>>
 | Recreates connector type/version uniqueness indexes with connector-host specific predicates.
@@ -24,6 +28,33 @@
 
 | <<change-52,Change 52>>
 | Adds `APPLICATION` object type value.
+
+|===
+
+[[change-58]]
+== Change 58
+
+Since version: 4.11
+
+Adds display and preferred name columns and indexes to users.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_user`
+| Modified table
+| Adds display and preferred name columns.
+
+| `m_user_displayNameOrig_idx`
+| New index
+| Supports lookup by original display name.
+
+| `m_user_preferredNameOrig_idx`
+| New index
+| Supports lookup by original preferred name.
 
 |===
 

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2023 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:border>
+    <wicket:enclosure child="link">
+        <div class="simple-container-header">
+            <h3 class="simple-container-title">
+                <a wicket:id="link">
+                    <i class="me-1" wicket:id="icon"/>
+                    <span wicket:id="title"/>
+                </a>
+            </h3>
+        </div>
+    </wicket:enclosure>
+    <div wicket:id="content">
+        <wicket:body/>
+    </div>
+</wicket:border>
+</html>

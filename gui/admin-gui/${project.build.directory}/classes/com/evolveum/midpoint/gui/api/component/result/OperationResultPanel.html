@@ -1,0 +1,90 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div wicket:id="detailBoxMessage" class="visually-hidden" aria-live="polite"></div>
+    <div class="feedback-message alert shadow-sm mb-3 p-0" role="alert" wicket:id="detailsBox">
+        <div class="card-header">
+            <div class="card-title mw-100 h3" style="word-break: break-all" wicket:id="message">
+                <i class="me-2 fa" wicket:id="iconType"></i>
+                <span wicket:id="messageLabel"/>
+                <a class="fs-7" wicket:id="backgroundTaskLink">
+                    <wicket:message key="OperationResultPanel.showTask"/>
+                </a>
+                <span class="fs-7" wicket:id="backgroundTaskExists"></span>
+                <a class="fs-7" wicket:id="case">
+                    <wicket:message key="OperationResultPanel.showCase"/>
+                </a>
+                <a class="fs-7" wicket:id="processedObject">
+                    <wicket:message key="OperationResultPanel.showObject"/>
+                </a>
+            </div>
+
+            <div wicket:id="subResultsActiveStatus" class="visually-hidden" role="alert"></div>
+            <div class="card-tools">
+                <a wicket:id="showAll" class="btn btn-tool" aria-expanded="false" wicket:message="title:OperationResultPanel.button.showAll">
+                    <i class="fa fa-chevron-left"></i>
+                </a>
+                <a wicket:id="hideAll" class="btn btn-tool" aria-expanded="true" wicket:message="title:OperationResultPanel.button.hideAll">
+                    <i class="fa fa-chevron-down"></i>
+                </a>
+                <a wicket:id="downloadXml" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.downloadXml">
+                    <i class="fa fa-download"></i>
+                </a>
+                <a wicket:id="close" data-lte-toggle="remove" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.close">
+                    <i class="fa fa-times"></i>
+                </a>
+            </div>
+        </div>
+        <div class="feedback-message card-body bg-light" wicket:id="detailsContainer">
+            <dl class="feedback-message row" wicket:id="details">
+                <wicket:container wicket:id="operation">
+                    <b wicket:id="operationBody"/>
+                </wicket:container>
+                <wicket:container wicket:id="message">
+                    <span wicket:id="resultMessage"/>
+                </wicket:container>
+                <wicket:container wicket:id="paramsContainer">
+                    <div class="overflow-auto">
+                        <table class="paramtable">
+                            <tr class="paramtable-row" wicket:id="params">
+                                <th class="paramtable-name" wicket:id="paramName"/>
+                                <td class="paramtable-value" wicket:id="paramValue"/>
+                            </tr>
+                        </table>
+                    </div>
+                </wicket:container>
+                <wicket:container wicket:id="contextsContainer">
+                    <div class="overflow-auto">
+                        <table class="paramtable">
+                            <tr class="paramtable-row" wicket:id="contexts">
+                                <th class="paramtable-name" wicket:id="contextName"/>
+                                <td class="paramtable-value" wicket:id="contextValue"/>
+                            </tr>
+                        </table>
+                    </div>
+                </wicket:container>
+                <wicket:container wicket:id="countContainer">
+                    <span wicket:id="count"/>
+                </wicket:container>
+                <wicket:container wicket:id="errorContainer">
+                    <div class="d-flex flex-column gap-1">
+                        <span wicket:id="errorMessage"/>
+                        <a wicket:id="errorStackTraceLink"><span wicket:id="linkText"/></a>
+                        <span class="stacktrace" wicket:id="errorStackTrace"/>
+                    </div>
+                </wicket:container>
+            </dl>
+            <wicket:container wicket:id="subresults">
+                <div wicket:id="subresult"/>
+            </wicket:container>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

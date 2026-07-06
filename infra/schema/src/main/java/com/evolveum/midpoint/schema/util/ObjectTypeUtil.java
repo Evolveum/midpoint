@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.lazy.FlyweightClonedItem;
 import com.evolveum.midpoint.prism.lazy.LazyXNodeBasedPrismValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -689,14 +688,39 @@ public class ObjectTypeUtil {
         return object != null ? getDisplayName((ObjectType) object.asObjectable()) : null;
     }
 
+    /** Returns the normal presentation name without falling back to OID. */
     public static PolyStringType getDisplayName(ObjectType object) {
-        if (object instanceof AbstractRoleType) {
-            return ((AbstractRoleType) object).getDisplayName();
+        if (object == null) {
+            return null;
+        } else if (object instanceof AbstractRoleType) {
+            return firstNonEmpty(((AbstractRoleType) object).getDisplayName(), object.getName());
         } else if (object instanceof UserType) {
-            return ((UserType) object).getFullName();
+            return firstNonEmpty(((UserType) object).getDisplayName(), ((UserType) object).getFullName(), object.getName());
         } else {
+            return object.getName();
+        }
+    }
+
+    public static PolyStringType getDisplayNameOrFullName(UserType user) {
+        return user != null ? firstNonEmpty(user.getDisplayName(), user.getFullName()) : null;
+    }
+
+    private static PolyStringType firstNonEmpty(PolyStringType... values) {
+        for (PolyStringType value : values) {
+            if (StringUtils.isNotBlank(getOrig(value))) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /** Returns a stable non-blank identifier for notification/debug-like text where OID fallback is acceptable. */
+    public static String getDisplayNameOrOid(ObjectType object) {
+        if (object == null) {
             return null;
         }
+        String displayName = getOrig(getDisplayName(object));
+        return StringUtils.isNotBlank(displayName) ? displayName : object.getOid();
     }
 
     public static PolyStringType getDisplayName(Referencable ref) {
@@ -884,16 +908,16 @@ public class ObjectTypeUtil {
     }
 
     /**
-     * - User name is in the form of "full name (object name)".
+     * - User name is in the form of "display name (object name)".
      * - Names for other objects are either "detailed display name" ({@link #getDetailedDisplayName(Objectable)}) or plain name.
      */
     private static Object getDescriptiveName(Objectable object) {
         if (object instanceof UserType) {
-            PolyStringType fullName = ((UserType) object).getFullName();
-            if (fullName != null) {
+            PolyStringType displayName = getDisplayName((ObjectType) object);
+            if (displayName != null) {
                 return new LocalizableMessageBuilder()
                         .key(SchemaConstants.USER_DESCRIPTIVE_NAME)
-                        .arg(fullName)
+                        .arg(displayName)
                         .arg(object.getName())
                         .build();
             } else {
@@ -1112,7 +1136,7 @@ public class ObjectTypeUtil {
     }
 
     /**
-     * Returns display name for given object, e.g. fullName for a user, displayName for a role,
+     * Returns display name for given object, e.g. displayName for a user or role,
      * and more detailed description for a shadow. TODO where exactly does this method belong?
      */
     public static String getDetailedDisplayName(PrismObject<?> object) {
@@ -1122,7 +1146,7 @@ public class ObjectTypeUtil {
 
     public static String getDetailedDisplayName(Objectable objectable) {
         if (objectable instanceof UserType) {
-            return getOrig(((UserType) objectable).getFullName());
+            return getOrig(getDisplayName((ObjectType) objectable));
         } else if (objectable instanceof AbstractRoleType) {
             return getOrig(((AbstractRoleType) objectable).getDisplayName());
         } else if (objectable instanceof ShadowType) {

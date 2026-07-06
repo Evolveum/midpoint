@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -1069,7 +1070,7 @@ public class Visualizer {
         ObjectType objectType = object.asObjectable();
         name.setDescription(objectType.getDescription());
         if (objectType instanceof UserType) {
-            name.setDisplayName(getOrig(((UserType) objectType).getFullName()));
+            name.setDisplayName(getOrig(ObjectTypeUtil.getDisplayName(objectType)));
         } else if (objectType instanceof AbstractRoleType) {
             name.setDisplayName(getOrig(((AbstractRoleType) objectType).getDisplayName()));
         }

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2021 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+
+    <div class="col-lg-12 px-0 pb-3">
+        <div class="d-flex gap-2" wicket:id="buttonsContainer">
+            <fieldset class="border-0 d-flex align-self-center gap-2 button-group">
+                    <div class="btn" wicket:id="leftButtons"/>
+            </fieldset>
+            <h3 wicket:id="title" class="py-1 mb-0 flex-fill"/> <!-- ps-3 -->
+
+            <fieldset class="border-0 d-flex align-self-center gap-2 button-group" wicket:id="deleteButtonContainer">
+                <div wicket:id="deleteButton"></div>
+            </fieldset>
+            <fieldset class="border-0 d-flex align-self-center gap-2 button-group">
+                <div wicket:id="rightButtons"></div>
+            </fieldset>
+            <wicket:child/>
+        </div>
+    </div>
+
+
+</wicket:panel>
+</html>

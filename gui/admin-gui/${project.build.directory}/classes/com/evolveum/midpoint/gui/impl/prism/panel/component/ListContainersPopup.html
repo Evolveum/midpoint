@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+                <!-- <div wicket:id="containers">
+                    <div class="row">
+                        <div wicket:id="selected"/>
+                        <div wicket:id="definition"/>
+                    </div>
+                    </div> -->
+                    <div class="row" style="padding-left: 10px; padding-right: 5px;">
+                        <table class="col-md-12">
+                            <thead>
+                            <tr class="col-md-12">
+                                  <th class="col-md-2">
+                                      <wicket:message key="ListContainersPopup.selected"/>
+                                  </th>
+                                  <th class="col-md-10">
+                                      <wicket:message key="ListContainersPopup.name"/>
+                                  </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr class="col-md-12" wicket:id="containers">
+                                  <td class="col-md-2" wicket:id="selected"/>
+                                  <td class="col-md-10" wicket:id="definition"/>
+                            </tr>
+                          </tbody>
+                       </table>
+                   </div>
+    <p class="text-end">
+        <a class="btn btn-primary btn-sm" wicket:id="select"/>
+        <a class="btn btn-light border btn-sm" wicket:id="cancelButton"/>
+    </p>
+</wicket:panel>
+</html>

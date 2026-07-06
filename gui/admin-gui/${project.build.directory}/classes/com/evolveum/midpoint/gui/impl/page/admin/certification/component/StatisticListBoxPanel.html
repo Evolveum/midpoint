@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2024 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card shadow-sm mb-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="me-2 fa " wicket:id="titleIcon"></i>
+                <span class="card-title" wicket:id="titleLabel"/>
+            </h3>
+            <div class="card-tools ">
+                <div wicket:id="rightSideHeaderComponent" />
+            </div>
+        </div>
+        <div class="ms-2" wicket:id="statisticsPanel">
+            <div class="mb-2" wicket:id="statisticBox"/>
+        </div>
+        <div class="card-footer">
+            <a wicket:id="viewAllLink" class="d-flex justify-content-center" wicket:message="title:AjaxIconButton.viewAll" >
+                <i class="mt-1 fa fa-search"/>
+                <span class="ms-2 col-md-3" wicket:id="viewAllLabel"/>
+            </a>
+        </div>
+    </div>
+</wicket:panel>
+</html>

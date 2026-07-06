@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="p-3">
+        <div class="d-flex w-100">
+            <span class="text-truncate" wicket:id="title"/>
+        </div>
+        <div class="d-flex w-100 gap-2 mt-2">
+            <div class="d-flex flex-column flex-fill gap-1">
+                <div>
+                    <span wicket:id="trendBadge"/>
+                </div>
+                <h3 class="mb-0" wicket:id="value"/>
+                <small wicket:id="valueDescription" class="text-secondary"/>
+            </div>
+            <div class="d-flex justify-content-end flex-fill" wicket:id="displayContainer">
+                <div wicket:id="icon" class="rounded p-1"/>
+                <div wicket:id="chartContainer" class="d-flex align-items-end justify-content-end flex-fill"/>
+            </div>
+        </div>
+    </div>
+    <a class="rounded-bottom text-center p-1 border-top" wicket:id="moreInfo"></a>
+</wicket:panel>
+</body>
+</html>

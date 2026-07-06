@@ -10,10 +10,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -69,12 +65,7 @@ public class FocusCredentialsPanel<F extends FocusType, FDM extends FocusDetails
     protected void initLayout() {
         List<ITab> tabs = createTabs();
 
-        if (tabs.size() == 1) {
-            WebMarkupContainer panel = tabs.get(0).getPanel(ID_CONTENT);
-            add(panel);
-        } else {
-            add(new TabbedPanel<>(ID_CONTENT, tabs));
-        }
+        add(new TabbedPanel<>(ID_CONTENT, tabs));
     }
 
     private boolean isCredentialsTabAuthorized(String uri) {

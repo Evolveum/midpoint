@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body p-0">
+            <a class="btn btn-primary btn-sm" wicket:id="addNewStage" style="margin-left: 10px; margin-top: 10px; margin-bottom: 10px" />
+            <a class="btn btn-sm" wicket:id="moveStageLeft" style="margin-top: 10px; margin-bottom: 10px" />
+            <a class="btn btn-sm" wicket:id="moveStageRight" style="margin-top: 10px; margin-bottom: 10px" />
+            <a class="btn btn-danger btn-sm" wicket:id="deleteStage" style="margin-top: 10px; margin-bottom: 10px" />
+        </div>
+    </div>
+
+    <div wicket:id="tabPanel" class="nav-tabs-custom" />
+
+</wicket:panel>
+</html>

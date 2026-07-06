@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 
-import java.io.*;
+import java.io.PrintWriter;
+import java.io.Serial;
+import java.io.Serializable;
+import java.io.StringWriter;
 import java.net.URI;
 import java.text.Collator;
 import java.text.DateFormat;
@@ -342,14 +345,9 @@ public final class WebComponentUtil {
             return getReferencedObjectDisplayNamesAndNames(ref, false, true);
         }
         ObjectType object = prismObject.asObjectable();
-        String displayName = null;
-        if (object instanceof UserType) {
-            displayName = getTranslatedPolyString(((UserType) object).getFullName());
-        } else if (object instanceof AbstractRoleType) {
-            displayName = getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
-        }
+        String displayName = getTranslatedPolyString(ObjectTypeUtil.getDisplayName(object));
         String name = getTranslatedPolyString(object.getName());
-        return StringUtils.isNotEmpty(displayName) ? displayName + " (" + name + ")" : name;
+        return StringUtils.isNotEmpty(displayName) && !Objects.equals(displayName, name) ? displayName + " (" + name + ")" : name;
     }
 
     public static String getReferencedObjectDisplayNamesAndNames(List<ObjectReferenceType> refs, boolean showTypes) {

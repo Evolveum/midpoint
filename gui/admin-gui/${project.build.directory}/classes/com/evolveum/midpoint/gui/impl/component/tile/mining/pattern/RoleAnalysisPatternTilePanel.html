@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2024 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="d-flex w-100 border-bottom p-3" style="font-size:18px">
+        <a wicket:id="objectTitle"></a>
+        <div wicket:id="buttonBar" class="ms-auto"></div>
+    </div>
+
+    <div class="d-flex w-100 pt-3 ps-3 pe-3 pb-0">
+        <div wicket:id="reduction" class="col-6 p-0"></div>
+        <div wicket:id="attribute-confidence" class="ms-auto col-6"></div>
+    </div>
+
+    <div class="w-100 pt-0 ps-3 pe-3 pb-0">
+        <div wicket:id="progress-bar"></div>
+    </div>
+
+    <div class="d-flex w-100 p-3">
+        <div class="col">
+            <div class="row gap-3">
+                <div wicket:id="users-count"></div>
+                <div wicket:id="roles-count"></div>
+            </div>
+        </div>
+
+        <div class="col-auto ms-auto">
+            <div class="row gap-1">
+                <a wicket:id="location"></a>
+            </div>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

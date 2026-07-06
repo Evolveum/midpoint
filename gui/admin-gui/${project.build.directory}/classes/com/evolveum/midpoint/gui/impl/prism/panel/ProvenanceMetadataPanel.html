@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="yieldContainer">
+        <div wicket:id="provenanceDisplayName"/>
+        <div class="yield" wicket:id="yield">
+            <wicket:container wicket:id="provenance">
+                <div class="yield-heading">
+                    <button wicket:id="showMore" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                            class="btn btn-tool expand-collapse-button" trigger="hover">
+                        <i class="fa fa-caret-down"></i>
+                    </button>
+                    <ul class="acquisition">
+                        <li wicket:id="acquisitions">
+                            <div wicket:id="acquisition"/>
+                        </li>
+                    </ul>
+                </div>
+                <div class="ms-4">
+                    <span class="fs-7 text-muted" wicket:id="yieldHeader"/>
+                    <div wicket:id="defaultPanel"/>
+                    <div wicket:id="valueMetadataDetails"/>
+                </div>
+            </wicket:container>
+        </div>
+    </div>
+</wicket:panel>
+</html>

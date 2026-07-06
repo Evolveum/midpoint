@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="row">
+        <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                class="btn btn-tool expand-collapse-button" trigger="hover">
+        </button>
+        <a class="prism-title" wicket:id="label" wicket:message="aria-description:PrismObjectPanel.labelDescription"/>
+        <span wicket:id="required" class="text-danger" style="font-weight: bold;" wicket:message="title:prismPropertyPanel.required">*</span>
+        <wicket:enclosure child="help">
+            <span class="btn btn-tool">
+                <i wicket:id="help"/>
+            </span>
+        </wicket:enclosure>
+        <wicket:enclosure child="deprecated">
+            <span class="btn btn-tool">
+                <i wicket:id="deprecated"/>
+            </span>
+        </wicket:enclosure>
+        <wicket:enclosure child="experimental">
+            <span class="btn btn-tool">
+                <i wicket:id="experimental"/>
+            </span>
+        </wicket:enclosure>
+
+        <button wicket:id="add" wicket:message="title:ItemHeaderPanel.addValue" class="btn btn-tool" trigger="hover">
+            <i class="fa fa-plus-circle"></i>
+        </button>
+        <button wicket:id="remove" wicket:message="title:ItemHeaderPanel.removeAll" class="btn btn-tool" trigger="hover">
+            <i class="fa fa-minus-circle"></i>
+        </button>
+    </div>
+    <div class="row">
+        <small wicket:id="longHelp"/>
+    </div>
+</wicket:panel>
+</html>

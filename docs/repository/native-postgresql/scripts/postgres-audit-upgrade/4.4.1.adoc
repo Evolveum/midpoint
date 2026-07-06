@@ -1,4 +1,5 @@
 = postgres-audit-upgrade.sql - midPoint 4.4.1
+:page-toc: top
 
 == Changes
 

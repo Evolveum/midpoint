@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="mb-3">
+        <div class='input-group flex-nowrap' data-td-target-input="nearest" data-td-target-toggle="nearest" wicket:id="container">
+            <input type='text' class="form-control form-control-sm" wicket:id="input"/>
+            <div class="visually-hidden" wicket:id="pickerStatus" id="pickerStatus" role="status" aria-live="polite" aria-atomic="true"/>
+            <span wicket:id="iconContainer" class="clickable-by-enter input-group-text btn btn-light border"
+                    tabindex="0" data-td-toggle="datetimepicker"
+                    style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;">
+                <i class="fa fa-fw fa-calendar" role="button" wicket:message="aria-label:DateTimePickerPanel.openPicker"></i>
+            </span>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

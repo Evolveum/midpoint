@@ -1,0 +1,7 @@
+<query>
+    <filter>
+        <text>assignment/targetRef matches (oid = '00000000-0000-0000-0000-000000000004')</text>
+    </filter>
+</query>
+
+<!-- Note: only direct assignments are reported; active or not -->

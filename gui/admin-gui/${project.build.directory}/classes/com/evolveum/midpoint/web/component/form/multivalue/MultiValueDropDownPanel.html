@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <dd wicket:id="placeholderContainer" class="cap-dl-multivalue">
+        <a wicket:id="placeholderAdd" class="btn btn-sm btn-success" title="Add">
+            <i class="fa fa-plus"/>
+        </a>
+    </dd>
+
+    <wicket:container wicket:id="repeater">
+        <dd class="cap-dl-multivalue">
+            <div class="input-group">
+                <select wicket:id="input" class="form-control form-control-sm"></select>
+
+                <wicket:container wicket:id="buttonGroup">
+                    <a wicket:id="delete" class="btn btn-sm btn-danger" title="Remove">
+                        <i class="fa fa-minus"/>
+                    </a>
+                    <a wicket:id="add" class="btn btn-sm btn-success" title="Add">
+                        <i class="fa fa-plus"/>
+                    </a>
+                </wicket:container>
+            </div>
+        </dd>
+    </wicket:container>
+
+</wicket:panel>
+</html>

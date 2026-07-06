@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="bs-stepper-header flex-row overflow-auto justify-content-around" wicket:id="header">
+        <div wicket:id="stepStatus" class="visually-hidden" aria-live="polite"/>
+        <wicket:container wicket:id="steps">
+            <div class="flex flex-row no-wrap" wicket:id="step" />
+            <div class="line" wicket:id="line"/>
+        </wicket:container>
+    </div>
+    <div class="bs-stepper-content px-0">
+        <div wicket:id="contentHeader"/>
+        <div wicket:id="contentBody"/>
+    </div>
+</wicket:panel>
+</html>

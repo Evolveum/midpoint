@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="link"/>
+    <ul class="list-group-submenu" wicket:id="container">
+        <li class="list-group-submenu-item p-3">
+            <div class="input-group">
+                <div id="comboBoxLiveStatus" class="visually-hidden" wicket:message="data-live-status:RoleOfTeammateMenuPanel.results.displayed" aria-live="polite" aria-atomic="true"/>
+                <select tabindex="0" wicket:id="input" class="form-control flex-grow-1" wicket:message="aria-label:RoleOfTeammateMenuPanel.label"></select>
+                <a class="btn btn-light border" type="button" wicket:id="manual" wicket:message="title:RoleOfTeammateMenuPanel.manualSelect,aria-label:RoleOfTeammateMenuPanel.manualSelect">
+                    <i class="fa-solid fa-arrow-pointer"></i>
+                </a>
+            </div>
+        </li>
+    </ul>
+</wicket:panel>
+</html>

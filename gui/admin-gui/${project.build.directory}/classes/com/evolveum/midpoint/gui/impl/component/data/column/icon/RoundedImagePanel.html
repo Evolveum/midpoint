@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2022 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:remove>
+        <!-- for the future if we're able to "generate" icon from text & background definition -->
+        <div class="rounded-circle shadow d-flex align-items-center justify-content-center h-100">
+            <span class="fw-bold text-truncate">HQ:LI</span>
+        </div>
+    </wicket:remove>
+    <div class="rounded-circle d-flex align-items-center justify-content-center h-100" wicket:id="icon"> <!-- shadow-sm -->
+        <i wicket:id="cssIcon"/>
+    </div>
+    <img class="rounded-circle h-100" wicket:id="image"/> <!-- shadow-sm -->
+</wicket:panel>
+</html>

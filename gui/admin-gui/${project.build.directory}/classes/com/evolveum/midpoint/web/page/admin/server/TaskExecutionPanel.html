@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="d-flex gap-2 flex-wrap">
+        <div wicket:id="executionState"/>
+        <wicket:enclosure child="taskProblemLabel">
+            <div class="d-flex gap-2 align-items-center" style="max-width: 400px;">
+                <i wicket:id="taskProblemIcon"/>
+                <span class="text-truncate" wicket:id="taskProblemLabel"/>
+            </div>
+        </wicket:enclosure>
+    </div>
+</wicket:panel>
+</body>
+</html>

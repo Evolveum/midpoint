@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="valueForm">
+        <div class="prism-header mb-3" wicket:id="header">
+            <button type="button" data-bs-toggle="collapse" class="btn btn-tool" aria-live="polite" wicket:id="expandableLabelContainer">
+                <i wicket:id="expandCollapseButton" class="expand-collapse-button"/>
+                <span class="prism-title" wicket:id="label"/>
+            </button>
+            <wicket:enclosure child="help">
+                <span class="btn btn-tool">
+                    <i class="helpTextIcon" wicket:id="help"/>
+                </span>
+            </wicket:enclosure>
+            <wicket:enclosure child="sortProperties">
+                <button wicket:id="sortProperties" class="btn btn-tool tooltip-button"></button>
+            </wicket:enclosure>
+            <wicket:enclosure child="addChildContainer">
+                <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-tool" trigger="hover">
+                    <i class="fa fa-plus-circle"></i>
+                </button>
+            </wicket:enclosure>
+            <wicket:enclosure child="removeButton">
+                <button wicket:id="removeButton" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-tool" trigger="hover">
+                    <i class="fa fa-minus-circle"></i>
+                </button>
+            </wicket:enclosure>
+            <wicket:enclosure child="showMetadata">
+                <button class="btn btn-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.metadata">
+                    <i class="fa fa-tag"></i>
+                </button>
+            </wicket:enclosure>
+
+            <wicket:enclosure child="deleteStatusMessage">
+                <span wicket:id="deleteStatusMessage" role="status" class="visually-hidden" aria-live="polite"></span>
+            </wicket:enclosure>
+
+            <div class="ms-5">
+                <span wicket:id="longHelp"/>
+            </div>
+        </div>
+        <div class="mb-3 ms-3" wicket:id="metadata"/>
+
+        <wicket:container wicket:id="valueContainer">
+            <span wicket:id="input"></span>
+            <div class="row" style="margin-left: 15px;">
+                <span wicket:id="feedback" class="text-danger"/>
+            </div>
+        </wicket:container>
+    </div>
+</wicket:panel>
+</html>

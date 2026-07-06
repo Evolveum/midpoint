@@ -134,6 +134,10 @@
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-security</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-client</artifactId>
         </dependency>
@@ -153,7 +157,7 @@
         <!--opensaml-->
         <dependency>
             <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-core</artifactId>
+            <artifactId>opensaml-core-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.opensaml</groupId>
@@ -210,8 +214,8 @@
             <artifactId>guava</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.shibboleth.utilities</groupId>
-            <artifactId>java-support</artifactId>
+            <groupId>net.shibboleth</groupId>
+            <artifactId>shib-support</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.wicket</groupId>

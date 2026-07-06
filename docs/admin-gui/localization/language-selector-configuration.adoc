@@ -5,7 +5,7 @@
 
 This article explains how to customize the midPoint GUI language and locale selector.
 
-The default list of national flags and languages in the GUI locale selector can be overridden by a custom list.
+The https://github.com/Evolveum/midpoint-localization/blob/master/localization/locale.properties[default list of national flags and languages] in the GUI locale selector can be overridden by a custom list.
 The custom list of locales can be defined in the `xref:/midpoint/reference/deployment/midpoint-home-directory/[${midpoint.home}]/localization/locale.properties` file.
 This file does not exist by default.
 

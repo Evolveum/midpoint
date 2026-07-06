@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="me-1" wicket:id="icon"/>
+            <span wicket:id="title"/>
+        </h3>
+        <span class="info-box-description" wicket:id="description"/>
+    </div>
+    <div class="card-body p-0">
+        <table class="table">
+            <tr wicket:id="details">
+                <td wicket:id="label"/>
+                <td><span wicket:id="value"/></td>
+            </tr>
+        </table>
+    </div>
+</wicket:panel>
+</html>

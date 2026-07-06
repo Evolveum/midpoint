@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form wicket:id="mainForm">
+        <div wicket:id="table"/>
+    </form>
+
+    <wicket:fragment wicket:id="tableHeader">
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <label class="col-form-label me-3 py-0"><wicket:message key="pageCreatedReports.table.type"/></label>
+                <div class="me-3" wicket:id="reportType"/>
+            </div>
+
+            <div class="d-flex flex-grow-1 justify-content-end" wicket:id="search"/>
+        </div>
+    </wicket:fragment>
+</wicket:extend>
+</body>
+</html>

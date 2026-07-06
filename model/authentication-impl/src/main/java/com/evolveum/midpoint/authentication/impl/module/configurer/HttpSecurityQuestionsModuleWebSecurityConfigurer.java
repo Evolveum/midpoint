@@ -23,9 +23,9 @@ import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -72,14 +72,20 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
     }
 
     @Override
+    protected boolean useDefaultAuthorization() {
+        return false;
+    }
+
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
 
         super.configure(http);
         HttpAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationEntryPoint());
         http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
 
-        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(
-                securityEnforcer, securityContextManager, taskManager, model, applicationContext));
+        http.authorizeHttpRequests(registry -> registry.anyRequest().access(authorizationManager(
+                new MidpointHttpAuthorizationEvaluator(
+                        securityEnforcer, securityContextManager, taskManager, model, applicationContext))));
 
         HttpSecurityQuestionsAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationFilter(authenticationManager(), entryPoint));
         RememberMeServices rememberMeServices = http.getSharedObject(RememberMeServices.class);
@@ -88,14 +94,14 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
         }
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
 
-        http.formLogin().disable()
-                .csrf().disable();
+        http.formLogin(configurer -> configurer.disable())
+                .csrf(configurer -> configurer.disable());
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
 
         SequenceAuditFilter sequenceAuditFilter = new SequenceAuditFilter();
         sequenceAuditFilter.setRecordOnEndOfChain(false);
-        http.addFilterAfter(getObjectPostProcessor().postProcess(sequenceAuditFilter), FilterSecurityInterceptor.class);
+        http.addFilterAfter(getObjectPostProcessor().postProcess(sequenceAuditFilter), AuthorizationFilter.class);
     }
 }

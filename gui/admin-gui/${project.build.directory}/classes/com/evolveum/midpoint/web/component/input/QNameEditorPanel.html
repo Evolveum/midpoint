@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label wicket:id="localPartLabel"></label>
+            <span wicket:id="localPartRequired" style="color: #f00; font-weight: bold;"
+                  wicket:message="title:prismPropertyPanel.required">*</span>
+            <i wicket:id="localPartTooltip" />
+        </dt>
+        <dd>
+            <input wicket:id="localPart" type="text" class="form-control form-control-sm"/>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label wicket:id="namespaceLabel"></label>
+            <span wicket:id="namespaceRequired" style="color: #f00; font-weight: bold;"
+                  wicket:message="title:prismPropertyPanel.required">*</span>
+            <i wicket:id="namespaceTooltip" />
+        </dt>
+        <dd>
+            <select wicket:id="namespace" class="form-control form-control-sm"></select>
+        </dd>
+    </dl>
+
+</wicket:panel>
+</html>

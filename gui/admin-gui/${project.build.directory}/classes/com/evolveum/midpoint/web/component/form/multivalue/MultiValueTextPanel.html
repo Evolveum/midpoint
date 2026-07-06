@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+    <wicket:panel>
+
+        <dd wicket:id="placeholderContainer" class="cap-dl-multivalue">
+            <a wicket:id="placeholderAdd" class="btn btn-tool" title="Add">
+                <i class="fa fa-plus-circle"/>
+            </a>
+        </dd>
+
+        <wicket:container wicket:id="repeater">
+            <dd class="cap-dl-multivalue">
+                <div class="d-flex">
+                    <div wicket:id="input" class="flex-fill"/>
+                    <wicket:container wicket:id="buttonGroup">
+                        <a wicket:id="minus" class="btn btn-tool m-0" title="Remove">
+                            <i class="fa fa-minus-circle"/>
+                        </a>
+                        <a wicket:id="plus" class="btn btn-tool m-0" title="Add">
+                            <i class="fa fa-plus-circle"/>
+                        </a>
+                    </wicket:container>
+                </div>
+            </dd>
+        </wicket:container>
+    </wicket:panel>
+</html>

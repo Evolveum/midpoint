@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="feedbackContainer" class="col-8 feedbackContainer">
+        <div wicket:id="feedback" class="messagePanel"/>
+    </div>
+    <div class="col-lg-12 px-0 card shadow-sm mb-3">
+        <div class="bg-white card-header mb-0 d-flex flex-row px-3 py-2">
+            <span class="mt-2">
+                <i class="fa fa-table-cells"></i>
+                <span class="ps-1">
+                    <wicket:message key="PageResource.wizard.step.selectObjectClasses"/>
+                </span>
+            </span>
+            <form class="ms-auto input-group" style="width: 350px;" wicket:id="searchForm">
+                <input class="form-control" wicket:id="searchFiled"/>
+                <a class="btn btn-primary" wicket:id="searchButton" style="border-bottom-right-radius: 0.25rem; border-top-right-radius: 0.25rem;">
+                    <i class="fa fa-magnifying-glass me-2"></i>
+                    <wicket:message key="pageResources.button.search"/>
+                </a>
+            </form>
+        </div>
+        <div class="bg-white card-body mb-0 d-flex flex-column p-3" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
+            <span>
+                <wicket:message key="SelectObjectClassesStepPanel.selectedItem"/>
+            </span>
+            <div class="d-inline-flex gap-2 flex-wrap">
+                <wicket:container wicket:id="selectedItemContainer">
+                    <div class="btn-sm btn-primary d-flex" style="cursor: auto;">
+                        <div wicket:id="selectedItem"/>
+                        <a wicket:id="deselectButton">
+                            <i class="fa fa-xmark ms-2 text-white"></i>
+                        </a>
+                    </div>
+                </wicket:container>
+            </div>
+        </div>
+        <div class="bg-white card-body mb-0 border-top mb-0 p-0 rounded-bottom" wicket:id="table"/>
+    </div>
+</wicket:extend>
+</html>

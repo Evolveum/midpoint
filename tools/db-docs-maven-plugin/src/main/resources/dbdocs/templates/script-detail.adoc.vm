@@ -1,4 +1,5 @@
 = $pageTitle
+:page-toc: top
 
 xref:${backToOverviewPath}[Back to native PostgreSQL schema overview]
 

@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector.util;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;

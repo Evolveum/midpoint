@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.gui.impl.factory.duplicateresolver;
 
 import com.evolveum.midpoint.common.cleanup.ObjectCleaner;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.CloneStrategy;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 
 import org.jetbrains.annotations.NotNull;

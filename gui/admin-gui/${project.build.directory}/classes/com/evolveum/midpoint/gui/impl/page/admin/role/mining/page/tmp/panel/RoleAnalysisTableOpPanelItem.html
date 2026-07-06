@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+
+    <div class="d-flex ps-1" wicket:id="container" style="display: flex; align-items: center; justify-content: center;">
+
+        <div wicket:id="icon-panel" class="col rounded"
+                style="flex: 1; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;">
+<!--            <div wicket:id="icon" class="" style="width:32px;height:32px"></div>-->
+            <div wicket:id="icon" class="" style="font-size:25px; width:27px;height:27px"></div>
+
+        </div>
+
+        <div wicket:id="description-panel" class="col-auto operation-panel-item" style="margin: 0;">
+            <div class="d-flex align-items-center justify-content-between gap-4">
+                <div wicket:id="description-title"></div>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+                <div wicket:id="description-text">a</div>
+            </div>
+        </div>
+    </div>
+
+
+</wicket:panel>
+</html>

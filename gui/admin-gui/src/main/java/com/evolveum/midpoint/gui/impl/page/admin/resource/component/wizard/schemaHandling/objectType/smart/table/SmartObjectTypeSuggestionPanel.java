@@ -21,15 +21,16 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -362,8 +363,8 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
                         .confirmationOptions(options)
                         .build();
 
-        ConfirmationWithOptionsPanel<Describable> dialog =
-                new ConfirmationWithOptionsPanel<>(getPageBase().getMainPopupBodyId(),
+        ConfirmationWithOptionsPopupPanel<Describable> dialog =
+                new ConfirmationWithOptionsPopupPanel<>(getPageBase().getMainPopupBodyId(),
                         () -> confirmationPanelData) {
 
             @Override

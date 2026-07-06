@@ -6,10 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.provider;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -35,7 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class StreamingCsvDataExporter extends CSVDataExporter {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(StreamingCsvDataExporter.class);
     private static final String DOT_CLASS = StreamingCsvDataExporter.class.getName() + ".";

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<user oid="50053534-36dc-11e6-86f7-035182a6f678"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>empty</name>
+</user>

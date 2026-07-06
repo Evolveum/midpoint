@@ -29,7 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
 
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.*;
+import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.extractMessages;
+import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.MessageKind;
 
 /**
  * Implementation of the most generic features in {@link EvaluatedPolicyRule} interface.

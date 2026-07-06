@@ -25,6 +25,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.testng.annotations.Test;
@@ -683,6 +685,10 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         and("there is a definition of account/employee");
         ResourceObjectTypeDefinition employeeDef =
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, "employee");
+
+        and("defaultOperationPolicy for production mode points to Managed mark");
+        assertThat(employeeDef.getDefaultOperationPolicyOid(TaskExecutionMode.PRODUCTION))
+                .as("default operation policy is Managed").isEqualTo(SystemObjectsType.MARK_MANAGED.value());
 
         and("drink is updated");
         ShadowSimpleAttributeDefinition<?> employeeDrinkDef =

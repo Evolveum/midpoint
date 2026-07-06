@@ -588,7 +588,10 @@ $$;
 $aa$);
 
 -- Assignments have separate full object
--- @change: Adds separate full object storage to assignments, operation executions, and selected reference tables.
+/*
+ * @change: Adds separate full object storage to assignments,
+ * operation executions, and selected reference tables.
+ */
 -- @since: 4.9
 -- @affects: table m_assignment | Modified table | Adds separate full object storage.
 -- @affects: table m_operation_execution | Modified table | Adds separate full object storage.
@@ -1460,6 +1463,22 @@ CREATE INDEX m_connector_typeVersion_key
 CREATE INDEX m_connector_typeVersionHost_key
     ON m_connector (connectorType, connectorVersion, connectorHostRefTargetOid)
     WHERE connectorHostRefTargetOid IS NOT NULL;
+$aa$);
+
+-- @change: Adds display and preferred name columns and indexes to users.
+-- @since: 4.11
+-- @affects: table m_user | Modified table | Adds display and preferred name columns.
+-- @affects: index m_user_displayNameOrig_idx | New index | Supports lookup by original display name.
+-- @affects: index m_user_preferredNameOrig_idx | New index | Supports lookup by original preferred name.
+call apply_change(58, $aa$
+ALTER TABLE m_user
+    ADD COLUMN displayNameOrig TEXT,
+    ADD COLUMN displayNameNorm TEXT,
+    ADD COLUMN preferredNameOrig TEXT,
+    ADD COLUMN preferredNameNorm TEXT;
+
+CREATE INDEX m_user_displayNameOrig_idx ON m_user (displayNameOrig);
+CREATE INDEX m_user_preferredNameOrig_idx ON m_user (preferredNameOrig);
 $aa$);
 
 ---

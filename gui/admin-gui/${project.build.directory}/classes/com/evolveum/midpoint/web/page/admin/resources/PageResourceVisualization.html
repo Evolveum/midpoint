@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+    <wicket:extend>
+        <form wicket:id="form" class="form-horizontal">
+            <div wicket:id="dotContainer">
+                <wicket:message key="PageResourceVisualization.dotMessage"/>
+                <ul>
+                    <li><wicket:message key="PageResourceVisualization.dot1"/> (<a href="http://www.graphviz.org">www.graphviz.org</a>).</li>
+                    <li><wicket:message key="PageResourceVisualization.dot2"/></li>
+                </ul>
+                <wicket:message key="PageResourceVisualization.moreInformation"/>
+                <a href="https://docs.evolveum.com/midpoint/devel/design/dot-renderer-troubleshooting/"><wicket:message key="PageResourceVisualization.moreInformationLink"/></a>.
+                <p/>
+                <wicket:message key="PageResourceVisualization.errorMessage"/>
+                <b><div wicket:id="error" /></b>
+                <p/>
+                <wicket:message key="PageResourceVisualization.seeOnline"/>
+                <a href="http://webgraphviz.com"><wicket:message key="PageResourceVisualization.seeOnlineLink"/></a>.
+                <wicket:message key="PageResourceVisualization.copyInstruction"/>
+                <p/>
+                <textarea class="form-control form-control-sm" wicket:id="dot" rows="10"/>
+                <p/>
+            </div>
+            <div wicket:id="svg" style="overflow: auto" />
+            <span class="button-group">
+                <button class="btn btn-light border" wicket:id="back" type="submit" value="back">
+                    <wicket:message key="PageBase.button.back"/>
+                </button>
+            </span>
+        </form>
+    </wicket:extend>
+</body>
+</html>

@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.intest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 
 import java.io.File;

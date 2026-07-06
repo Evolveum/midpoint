@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.Duration;
@@ -54,6 +53,7 @@ import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.api.synchronization.SourceSynchronizationAnswers;
 import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
@@ -68,6 +68,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -145,6 +146,15 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         this.statisticsService = statisticsService;
         this.schemaMatchService = schemaMatchService;
         this.systemObjectCache = systemObjectCache;
+    }
+
+    @Override
+    public Optional<AiInfo> getAiInfo() {
+        try (var client = clientFactory.getServiceClient(new OperationResult("getAiInfo"))) {
+            return client.getAiInfo();
+        } catch (Exception e) {
+            throw new SystemException("Failed to retrieve AI info: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -304,13 +314,21 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
+    public String regenerateObjectClassStatistics(
+            String resourceOid,
+            QName objectClassName,
+            Task task,
+            OperationResult parentResult)
             throws CommonException {
         return statisticsService.regenerateObjectClassStatistics(resourceOid, objectClassName, task, parentResult);
     }
 
     @Override
-    public String regenerateObjectTypeStatistics(String resourceOid, ResourceObjectTypeIdentification resourceObjectTypeIdentification, Task task, OperationResult result) throws CommonException {
+    public String regenerateObjectTypeStatistics(
+            String resourceOid,
+            ResourceObjectTypeIdentification resourceObjectTypeIdentification,
+            Task task,
+            OperationResult result) throws CommonException {
         return statisticsService.regenerateObjectTypeStatistics(resourceOid, resourceObjectTypeIdentification, task, result);
     }
 
@@ -362,40 +380,56 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public String submitSuggestObjectTypesOperation(
-            String resourceOid, QName objectClassName, List<DataAccessPermissionType> permissions,
+            String resourceOid,
+            QName objectClassName,
+            List<DataAccessPermissionType> permissions,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
-            Task task, OperationResult parentResult)
+            Task task,
+            OperationResult parentResult)
             throws CommonException {
+
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
                 .build();
+
         try {
             var workDef = new ObjectTypesSuggestionWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectclass(objectClassName);
+
             workDef.getPermissions().addAll(permissions);
+
             if (regenerateMode != null) {
                 workDef.setRegenerateMode(regenerateMode.name());
             }
+
             if (previousObjectTypes != null && !previousObjectTypes.isEmpty()) {
                 for (var objectType : previousObjectTypes) {
                     workDef.getPreviousDelineation().add(
-                            (ResourceObjectTypeDefinitionType) objectType.asPrismContainerValue().clone().asContainerable());
+                            (ResourceObjectTypeDefinitionType) objectType.asPrismContainerValue()
+                                    .clone()
+                                    .asContainerable());
                 }
             }
+
+            ActivityDefinitionType activity = new ActivityDefinitionType()
+                    .work(new WorkDefinitionsType()
+                            .objectTypesSuggestion(workDef));
+
             var oid = modelInteractionService.submit(
-                    new ActivityDefinitionType()
-                            .work(new WorkDefinitionsType()
-                                    .objectTypesSuggestion(workDef)),
+                    activity,
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
                             .name("Suggest object types for " + objectClassName.getLocalPart() + " on " + resourceOid)
                             .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
-                    task, result);
+                    task,
+                    result);
+
             LOGGER.debug("Submitted suggest object types operation for resourceOid {}, objectClassName {}, "
                             + "permissions {}, regenerateMode {}: {}",
                     resourceOid, objectClassName, permissions, regenerateMode, oid);
+
             return oid;
         } catch (Throwable t) {
             result.recordException(t);

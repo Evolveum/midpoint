@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2022 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column align-items-center mt-5">
+        <h2 class="mb-4 fw-bold text-center" wicket:id="text"/>
+        <wicket:enclosure child="subTextContainer">
+            <div wicket:id="subTextContainer">
+                <span wicket:id="subText"/>
+                <a wicket:id="subTextMore"/>
+            </div>
+        </wicket:enclosure>
+
+        <wicket:child/>
+        <div class="d-flex align-items-center flex-nowrap flex-row mt-5 gap-2 wizard-actions-strip " wicket:id="buttonsStrip">
+            <div wicket:id="backContainer" class="wizard-actions-container">
+                <a class="btn btn-outline-primary" wicket:id="back">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    <span wicket:id="backLabel"></span>
+                </a>
+            </div>
+            <div wicket:id="exitContainer" class="wizard-actions-container">
+                <a class="btn btn-link" wicket:id="exit">
+                    <i class="fas fa-right-from-bracket me-1 fa-rotate-180"></i>
+                    <wicket:message key="WizardPanel.exit"/>
+                </a>
+            </div>
+            <div wicket:id="customButtonsContainer" class="wizard-actions-container gap-2">
+                <a class="btn btn-light border" wicket:id="customButtons" />
+                <a class="btn btn-success" wicket:id="submit">
+                    <i class="fas fa-check me-1"/>
+                    <span wicket:id="submitLabel"/>
+                </a>
+                <a class="btn btn-primary" wicket:id="next">
+                    <wicket:message key="NavigationPanel.onlyNext"/>
+                    <span wicket:id="nextLabel"/>
+                    <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>

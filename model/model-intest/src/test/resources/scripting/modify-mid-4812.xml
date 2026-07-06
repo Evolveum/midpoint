@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <s:type>c:UserType</s:type>
+    <s:searchFilter>
+        <q:equal>
+            <q:path>c:name</q:path>
+            <q:value>mid-4812</q:value>
+        </q:equal>
+    </s:searchFilter>
+    <s:modify>
+        <s:delta>
+            <t:itemDelta>
+                <t:modificationType>add</t:modificationType>
+                <t:path>c:givenName</t:path>
+                <t:value>Jack</t:value>
+            </t:itemDelta>
+            <t:itemDelta>
+                <t:modificationType>add</t:modificationType>
+                <t:path>c:familyName</t:path>
+                <t:value>April</t:value>
+            </t:itemDelta>
+        </s:delta>
+    </s:modify>
+</s:search>

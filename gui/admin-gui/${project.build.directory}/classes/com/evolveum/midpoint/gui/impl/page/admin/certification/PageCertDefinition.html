@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <div wicket:id="summaryPanel"/>
+
+    <form wicket:id="mainForm" class="clearfix form-horizontal">
+        <div wicket:id="operationsPanel">
+            <fieldset wicket:id="main">
+                <div class="d-flex flex-wrap gap-1">
+                    <a class="btn btn-sm btn-light border" wicket:id="backButton"/>
+                    <a class="btn btn-sm btn-primary" wicket:id="saveButton"/>
+                </div>
+            </fieldset>
+        </div>
+
+        <div wicket:id="tabPanel" class="nav-tabs-custom" />
+    </form>
+</wicket:extend>
+</body>
+</html>

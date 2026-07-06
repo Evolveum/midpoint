@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.web.component.util.SelectableBean;

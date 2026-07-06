@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="mb-3">
+        <label class="col-form-label"><wicket:message key="ImportOptionsPanel.options"/></label>
+        <div class="row mx-0">
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="protectedByEncryption"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="fetchResourceSchema"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="keepOid"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="overwriteExistingObject"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="referentialIntegrity"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="summarizeErrors"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="summarizeSuccesses"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="validateDynamicSchema"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="validateStaticSchema"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="fullProcessing"/>
+            <div class="col-sm-4 col-md-3 col-3xl-2" wicket:id="compatMode"/>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="col-form-label"><wicket:message key="importOptionsPanel.stopAfter"/></label>
+
+        <input wicket:id="errors" wicket:message="placeholder:ImportOptionsPanel.errorCount" type="text"
+               class="form-control form-control-sm w-auto">
+    </div>
+</wicket:panel>
+</html>

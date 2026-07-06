@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="row">
+        <div class="container-fluid prism-container">
+            <div class="info-box shadow-sm border info-box-ethereal">
+                <div class="info-box-icon info-box-icon-ethereal">
+                    <i wicket:id="typeImage"></i>
+                </div>
+                <div class="info-box-content">
+                    <span class="info-box-number">
+                        <span class="summary-panel-display-name" wicket:id="displayName"/>
+                        <span class="summary-panel-identifier" wicket:enclosure="identifier">(<span
+                                wicket:id="identifier"/>)</span>
+                        <a wicket:id="navigateToObject" wicket:message="title:DisplayNamePanel.viewObjectDetails" class="summary-panel-navigation-button">
+                            <i class="fa fa-share"/>
+                        </a>
+                    </span>
+                    <span class="label bg-warning relation-label" wicket:id="relation"/>
+                    <span class="info-box-description" wicket:id="kindIntent"/>
+                    <div wicket:id="descriptionLabels">
+                        <div class="info-box-description" wicket:id="description"/>
+                    </div>
+                    <div class="info-box-description" wicket:id="pendingOperationContainer">
+                        <div class="pull-start"><wicket:message key="DisplayNamePanel.pendingOperation" />:&nbsp;</div>
+                        <div class="pull-start" wicket:id="pendingOperation"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

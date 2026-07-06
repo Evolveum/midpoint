@@ -15,7 +15,6 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 
-import org.apache.catalina.User;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;

@@ -1,0 +1,13 @@
+
+                   _ _____              _
+             _    | |  _  \     _     _| |_
+   ___ ____ (_) __| | |_) |___ (_)___|_   _|
+  |  _ ` _ `| |/ _  |  __/  _ \| |  _` | |
+  | | | | | | | (_| | |  | (_) | | | | | |_
+  |_| |_| |_|_|\____|_|  \____/|_|_| |_|\__|  by Evolveum and partners
+
+  Licensed under the EUPL-1.2 or later.
+  Version: 4.11-SNAPSHOT
+  Sources: https://github.com/Evolveum/midpoint, branch: ${git.branch}, build: ${describe}
+  Bug reporting system: https://support.evolveum.com/
+  Product information: https://midpoint.evolveum.com

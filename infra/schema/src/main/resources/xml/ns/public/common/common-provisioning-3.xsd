@@ -1009,6 +1009,9 @@
                     <xsd:documentation>
                         Default operation policy for those operations that do not have their behavior specified explicitly
                         via object marks.
+
+                        Note: It is multivalued only because of the need to support various lifecycle states:
+                        like one policy in `proposed` state with a different one in `active` state.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
@@ -1175,6 +1178,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9</a:since>
+                <a:naturalKey>tns:lifecycleState</a:naturalKey> <!-- see the comment in the owning item -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

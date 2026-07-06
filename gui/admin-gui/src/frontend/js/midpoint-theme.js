@@ -537,7 +537,7 @@ export default class MidPointTheme {
         });
     }
 
-    initWindowId() {
+    initWindowId(shouldReloadOnFirstLoad) {
         let isFirstLoad = false;
         if (!sessionStorage.getItem('w')) {
             const windowId = encodeURIComponent(crypto.randomUUID().substring(0, 8));
@@ -554,8 +554,11 @@ export default class MidPointTheme {
 
         if (isFirstLoad) {
            url.searchParams.set('w', windowId);
-           window.history.replaceState({}, '', url);
-           // window.location.replace(url);
+           if (shouldReloadOnFirstLoad) {
+               window.location.replace(url);
+           } else {
+               window.history.replaceState({}, '', url);
+           }
            return;
         }
 
