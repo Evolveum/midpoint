@@ -1,5 +1,0 @@
-<query>
-    <filter>
-        <text>subtype = 'type1'</text>
-    </filter>
-</query>

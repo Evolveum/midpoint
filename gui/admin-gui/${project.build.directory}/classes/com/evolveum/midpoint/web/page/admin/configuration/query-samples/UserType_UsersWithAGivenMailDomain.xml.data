@@ -1,5 +1,0 @@
-<query>
-    <filter>
-        <text>emailAddress endsWith[stringIgnoreCase] '@example.com'</text> <!-- emailAddress is a plain string (not a PolyString), so we use this matching rule -->
-    </filter>
-</query>

@@ -1,5 +1,0 @@
-<query>
-    <filter>
-        <text>(costCenter &gt; '100000' and costCenter &lt; '999999') or (costCenter &gt;= 'X100' and costCenter &lt;= 'X999')</text>
-    </filter>
-</query>

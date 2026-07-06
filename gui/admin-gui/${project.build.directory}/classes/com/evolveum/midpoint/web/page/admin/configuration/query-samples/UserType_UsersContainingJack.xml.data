@@ -1,5 +1,0 @@
-<query>
-    <filter>
-        <text>name contains[polyStringNorm] 'jack'</text> <!-- don't distinguish JACK, jack, j.a.c.k. etc -->
-    </filter>
-</query>

@@ -1,5 +1,0 @@
-<query>
-    <filter>
-        <text>name startsWith[polyStringNorm] 'a'</text> <!-- normalized (case insensitive) and should start with a given string-->
-    </filter>
-</query>

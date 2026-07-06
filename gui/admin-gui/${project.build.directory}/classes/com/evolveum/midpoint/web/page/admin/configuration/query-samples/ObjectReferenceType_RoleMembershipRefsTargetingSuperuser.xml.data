@@ -1,5 +1,0 @@
-<query>
-  <filter>
-    <text>. ownedBy (@type = UserType and @path = roleMembershipRef ) and @/name = "Superuser"</text>
-  </filter>
-</query>
