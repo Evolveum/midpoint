@@ -101,7 +101,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>4.0.7</version>
+        <version>4.1.0</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
         -->
@@ -264,7 +264,9 @@
         <guava.version>32.1.2-jre</guava.version>
         <jcommander.version>1.82</jcommander.version>
         <qpid-broker.version>8.0.4</qpid-broker.version>
-        <artemis.version>2.33.0</artemis.version> <!-- name matches property from Boot parent -->
+        <!-- name matches property from Boot parent
+        <artemis.version>2.33.0</artemis.version>
+        -->
         <asm.version>9.5</asm.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <checkstyle.version>3.1.2</checkstyle.version>
@@ -1496,7 +1498,7 @@
                 <version>${qpid-broker.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-server</artifactId>
                 <version>${artemis.version}</version>
                 <exclusions>
@@ -1511,19 +1513,50 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-jms-client</artifactId>
                 <version>${artemis.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-core-client</artifactId>
                 <version>${artemis.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-commons</artifactId>
                 <version>${artemis.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.platform</groupId>
+                <artifactId>org.eclipse.core.runtime</artifactId>
+                <version>3.33.100</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.platform</groupId>
+                <artifactId>org.eclipse.equinox.common</artifactId>
+                <version>3.20.100</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.platform</groupId>
+                <artifactId>org.eclipse.equinox.registry</artifactId>
+                <version>3.12.400</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.platform</groupId>
+                <artifactId>org.eclipse.osgi</artifactId>
+                <version>3.23.100</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.platform</groupId>
+                <artifactId>org.eclipse.equinox.preferences</artifactId>
+                <version>3.11.400</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-reveng</artifactId>
+                <version>${hibernate.version}</version>
             </dependency>
 
             <dependency>

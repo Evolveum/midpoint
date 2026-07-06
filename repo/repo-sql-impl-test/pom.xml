@@ -127,6 +127,11 @@
             <artifactId>hibernate-ant</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-reveng</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>net.ttddyy</groupId>
