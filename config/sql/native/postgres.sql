@@ -327,11 +327,14 @@ CREATE TABLE m_global_metadata (
     value TEXT
 );
 
--- Catalog of often used URIs, typically channels and relation Q-names.
--- Never update values of "uri" manually to change URI for some objects
--- (unless you really want to migrate old URI to a new one).
--- URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
--- @description: Stores frequently used URI values, such as channels and relation QNames, as compact numeric identifiers.
+/*
+ * @description: Stores frequently used URI values, such as channels and relation QNames, as compact numeric identifiers.
+ *
+ * Catalog of often used URIs, typically channels and relation Q-names.
+ * Never update values of "uri" manually to change URI for some objects
+ * (unless you really want to migrate old URI to a new one).
+ * URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
+ */
 CREATE TABLE m_uri (
     -- @description: Numeric URI identifier referenced by repository tables.
     id SERIAL NOT NULL PRIMARY KEY,
@@ -376,7 +379,10 @@ CREATE TABLE m_object (
     nameOrig TEXT NOT NULL,
     -- @description: Normalized object name used for exact case-insensitive lookup and uniqueness.
     nameNorm TEXT NOT NULL,
-    -- @description: Serialized full object representation, however some items are stored separately. See xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Splitted full object] for more information.
+    /*
+     * @description: Serialized full object representation, however some items are stored separately.
+     * See xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Splitted full object] for more information.
+     */
     fullObject BYTEA,
     -- @description: OID of the tenant reference target object.
     tenantRefTargetOid UUID,
@@ -398,17 +404,18 @@ CREATE TABLE m_object (
     -- @description: Text search helper content derived from selected object data.
     fullTextInfo TEXT,
     /*
-    Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
-    and values are stored as follows (this is internal and has no effect on how query is written):
-    - string and boolean are stored as-is
-    - any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
-    - enum as toString() or name() of the Java enum instance
-    - date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits
-    - poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
-    - reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
-    - - where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
-    */
-    -- @description: Indexed extension and attribute values stored as JSON data.
+     * @description: Indexed extension and attribute values stored as JSON data.
+     *
+     * Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
+     * and values are stored as follows (this is internal and has no effect on how query is written):
+     * * string and boolean are stored as-is
+     * * any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
+     * * enum as toString() or name() of the Java enum instance
+     * * date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits
+     * * poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
+     * * reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
+     * ** where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
+     */
     ext JSONB,
     -- metadata
     -- @description: OID of the object that created this object.
@@ -467,14 +474,14 @@ SELECT 1 FROM "pg_settings" into pg16 WHERE "name" = 'server_version_num' AND "s
   end if;
 end $$;
 
-
-
-
--- No indexes here, always add indexes and referential constraints on concrete sub-tables.
-
--- Represents AssignmentHolderType (all objects except shadows)
--- extending m_object, but still abstract, hence the CHECK (false)
--- @description: Abstract base table for assignment-holding objects, excluding shadows.
+/*
+ * @description: Abstract base table for assignment-holding objects, excluding shadows.
+ *
+ * Represents AssignmentHolderType (all objects except shadows)
+ * extending m_object, but still abstract, hence the CHECK (false).
+ *
+ * No indexes here, always add indexes and referential constraints on concrete sub-tables.
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#AssignmentHolderType
 CREATE TABLE m_assignment_holder (
     -- objectType will be overridden with GENERATED value in concrete table
@@ -484,20 +491,29 @@ CREATE TABLE m_assignment_holder (
 )
     INHERITS (m_object);
 
--- Purely abstract table (no entries are allowed). Represents Containerable/PrismContainerValue.
--- Allows querying all separately persisted containers, but not necessary for the application.
--- @description: Abstract base table for separately persisted container values.
+/*
+ * @description: Abstract base table for separately persisted container values.
+ *
+ * Purely abstract table (no entries are allowed). Represents Containerable/PrismContainerValue.
+ * Allows querying all separately persisted containers, but not necessary for the application.
+ */
 CREATE TABLE m_container (
-    -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
-    -- Owner does not have to be the direct parent of the container.
-    -- @description: OID of the owning object row.
+    /*
+     * @description: OID of the owning object row.
+     *
+     * Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
+     * Owner does not have to be the direct parent of the container.
+     */
     ownerOid UUID NOT NULL,
     -- use like this on the concrete table:
     -- ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
 
-    -- Container ID, unique in the scope of the whole object (owner).
-    -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
-    -- @description: Container identifier unique within the owning object.
+    /*
+     * @description: Container identifier unique within the owning object.
+     *
+     * Container ID, unique in the scope of the whole object (owner).
+     * While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
+     */
     cid BIGINT NOT NULL,
     -- containerType will be overridden with GENERATED value in concrete table
     -- containerType will be added by ALTER because we need different definition between PG Versions
@@ -558,7 +574,10 @@ end $$;
 
 -- @region: references
 -- @regionTitle: References
--- @regionDescription: Tables storing object and container references such as archetype, projection, role membership, and approver references.
+/*
+ * @regionDescription: Tables storing object and container references such as archetype,
+ * projection, role membership, and approver references.
+ */
 -- references related to ObjectType and AssignmentHolderType
 -- stores AssignmentHolderType/archetypeRef
 -- @description: Stores archetype references assigned to assignment-holder objects.
@@ -2475,7 +2494,7 @@ CREATE INDEX m_lookup_table_createTimestamp_idx ON m_lookup_table (createTimesta
 CREATE INDEX m_lookup_table_modifyTimestamp_idx ON m_lookup_table (modifyTimestamp);
 
 -- Represents LookupTableRowType, see also m_lookup_table above
--- @description: Stores rows of lookup table key-value data.
+-- @description: Stores rows of lookup table key-value data. Lookup table row currently doesn't store whole polystring data for `label` property, only the original and normalized string values are stored.
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableRowType
 CREATE TABLE m_lookup_table_row (
     -- @description: OID of the lookup table that owns this row.
