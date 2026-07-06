@@ -67,6 +67,7 @@ public class PageTasks extends PageAdmin {
     private static final String ID_TABLE = "table";
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
+    private final ObjectQuery predefinedQuery;
 
     public PageTasks() {
         this(null);
@@ -78,7 +79,16 @@ public class PageTasks extends PageAdmin {
 
     public PageTasks(ObjectQuery predefinedQuery, PageParameters params) {
         super(params);
+        this.predefinedQuery = predefinedQuery;
+    }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    protected void initLayout() {
         TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE) {
 
             @Override
@@ -124,8 +134,11 @@ public class PageTasks extends PageAdmin {
                 if (objectRef != null) {
                     objectRef.asReferenceValue().clearParent();
                 }
-                return Model.ofList(Collections.singletonList(objectRef));
-
+                return Model.ofList(
+                        objectRef != null
+                                ? Collections.singletonList(objectRef)
+                                : Collections.emptyList()
+                );
             }
 
             @Override
