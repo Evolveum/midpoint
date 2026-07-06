@@ -403,19 +403,19 @@ CREATE TABLE m_object (
     subtypes TEXT[], -- only EQ filter
     -- @description: Text search helper content derived from selected object data.
     fullTextInfo TEXT,
-    -- TODO add this extension documentation to description annotation as soon as it supports multiline comments.
     /*
-    Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
-    and values are stored as follows (this is internal and has no effect on how query is written):
-    - string and boolean are stored as-is
-    - any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
-    - enum as toString() or name() of the Java enum instance
-    - date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits
-    - poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
-    - reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
-    - - where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
-    */
-    -- @description: Indexed extension and attribute values stored as JSON data.
+     * @description: Indexed extension and attribute values stored as JSON data.
+     *
+     * Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
+     * and values are stored as follows (this is internal and has no effect on how query is written):
+     * * string and boolean are stored as-is
+     * * any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
+     * * enum as toString() or name() of the Java enum instance
+     * * date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits
+     * * poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
+     * * reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
+     * ** where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
+     */
     ext JSONB,
     -- metadata
     -- @description: OID of the object that created this object.
@@ -474,14 +474,14 @@ SELECT 1 FROM "pg_settings" into pg16 WHERE "name" = 'server_version_num' AND "s
   end if;
 end $$;
 
-
-
-
--- No indexes here, always add indexes and referential constraints on concrete sub-tables.
-
--- Represents AssignmentHolderType (all objects except shadows)
--- extending m_object, but still abstract, hence the CHECK (false)
--- @description: Abstract base table for assignment-holding objects, excluding shadows.
+/*
+ * @description: Abstract base table for assignment-holding objects, excluding shadows.
+ *
+ * Represents AssignmentHolderType (all objects except shadows)
+ * extending m_object, but still abstract, hence the CHECK (false).
+ *
+ * No indexes here, always add indexes and referential constraints on concrete sub-tables.
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#AssignmentHolderType
 CREATE TABLE m_assignment_holder (
     -- objectType will be overridden with GENERATED value in concrete table
