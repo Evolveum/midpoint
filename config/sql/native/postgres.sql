@@ -491,20 +491,29 @@ CREATE TABLE m_assignment_holder (
 )
     INHERITS (m_object);
 
--- Purely abstract table (no entries are allowed). Represents Containerable/PrismContainerValue.
--- Allows querying all separately persisted containers, but not necessary for the application.
--- @description: Abstract base table for separately persisted container values.
+/*
+ * @description: Abstract base table for separately persisted container values.
+ *
+ * Purely abstract table (no entries are allowed). Represents Containerable/PrismContainerValue.
+ * Allows querying all separately persisted containers, but not necessary for the application.
+ */
 CREATE TABLE m_container (
-    -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
-    -- Owner does not have to be the direct parent of the container.
-    -- @description: OID of the owning object row.
+    /*
+     * @description: OID of the owning object row.
+     *
+     * Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
+     * Owner does not have to be the direct parent of the container.
+     */
     ownerOid UUID NOT NULL,
     -- use like this on the concrete table:
     -- ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
 
-    -- Container ID, unique in the scope of the whole object (owner).
-    -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
-    -- @description: Container identifier unique within the owning object.
+    /*
+     * @description: Container identifier unique within the owning object.
+     *
+     * Container ID, unique in the scope of the whole object (owner).
+     * While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
+     */
     cid BIGINT NOT NULL,
     -- containerType will be overridden with GENERATED value in concrete table
     -- containerType will be added by ALTER because we need different definition between PG Versions
