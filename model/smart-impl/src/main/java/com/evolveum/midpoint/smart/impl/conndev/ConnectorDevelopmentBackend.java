@@ -518,7 +518,11 @@ public abstract class ConnectorDevelopmentBackend {
             endpointEntry.set("type", JSON_FACTORY.textNode("constant"));
             var endpointsArray = JSON_FACTORY.arrayNode();
             endpointsArray.add(endpointEntry);
-            infoMetadata.set("baseApiEndpoint", endpointsArray);
+            var availability = JSON_FACTORY.objectNode();
+            availability.set("baseApiEndpoint", endpointsArray);
+            var availabilityKey = app.getIntegrationType() == ConnDevIntegrationType.SCIM
+                    ? "scimAvailability" : "restAvailability";
+            infoMetadata.set(availabilityKey, availability);
         }
 
         var body = JSON_FACTORY.objectNode();

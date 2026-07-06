@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -38,7 +39,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ConnDevApplicationInfoType();
 
-                var jsonInfo = o.get("infoMetadata");
+                var jsonInfo = o.path("infoMetadata");
                 if (jsonInfo.isEmpty()) {
                     // Should we re
                     return ret;
@@ -52,10 +53,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 if (jsonInfo.get("apiVersion") != null) {
                     ret.apiVersion(jsonInfo.get("apiVersion").asText());
                 }
-                // FIXME for proper detection
-                ret.integrationType(ConnDevIntegrationType.REST);
-                if (jsonInfo.get("baseApiEndpoint") != null && jsonInfo.get("baseApiEndpoint").get(0) != null) {
-                    ret.baseApiEndpoint(jsonInfo.get("baseApiEndpoint").get(0).get("uri").asText());
+                ret.integrationType(integrationTypeOf(jsonInfo));
+                var baseApiEndpoint = baseApiEndpointOf(jsonInfo);
+                if (baseApiEndpoint != null) {
+                    ret.baseApiEndpoint(baseApiEndpoint);
                 }
                 // FIXME: Add dynamic
                 return ret;
@@ -63,6 +64,44 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         } catch (Exception e) {
             throw new SystemException("Couldn't discover basic application information", e);
         }
+    }
+
+    /**
+     * The digester reports the supported API styles in {@code apiType} (e.g. {@code ["rest","scim"]}).
+     * When an application supports both, REST is preferred (the historical default); pure-SCIM
+     * applications get SCIM. Missing/unknown values keep the REST default.
+     */
+    private static ConnDevIntegrationType integrationTypeOf(JsonNode jsonInfo) {
+        var apiType = jsonInfo.path("apiType");
+        if (apiType.isArray()) {
+            for (var type : apiType) {
+                if ("rest".equalsIgnoreCase(type.asText())) {
+                    return ConnDevIntegrationType.REST;
+                }
+            }
+            for (var type : apiType) {
+                if ("scim".equalsIgnoreCase(type.asText())) {
+                    return ConnDevIntegrationType.SCIM;
+                }
+            }
+        }
+        return ConnDevIntegrationType.REST;
+    }
+
+    /**
+     * The base API endpoint moved from the top level of {@code infoMetadata} into the per-style
+     * availability blocks ({@code restAvailability}/{@code scimAvailability}); the old top-level
+     * location is still read as a fallback for older digesters.
+     */
+    private static String baseApiEndpointOf(JsonNode jsonInfo) {
+        for (var container : List.of(
+                jsonInfo.path("restAvailability"), jsonInfo.path("scimAvailability"), jsonInfo)) {
+            var uri = container.path("baseApiEndpoint").path(0).path("uri");
+            if (uri.isTextual() && !uri.asText().isBlank()) {
+                return uri.asText();
+            }
+        }
+        return null;
     }
 
     private ProcessedDocumentation selectBestDocumentation(List<ProcessedDocumentation> processedDocumentation) {
