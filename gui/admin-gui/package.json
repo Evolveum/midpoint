@@ -19,7 +19,7 @@
     "@popperjs/core": "^2.11.8",
     "@smushytaco/custompatch": "^1.0.19",
     "ace-builds": "^1.44.0",
-    "admin-lte": "^4.0.2",
+    "admin-lte": "^4.1.0",
     "babel-loader": "^10.1.1",
     "bootstrap-multiselect": "^2.0.0",
     "bootstrap5-toggle": "^5.4.0",
