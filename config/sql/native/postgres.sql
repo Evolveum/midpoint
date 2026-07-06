@@ -327,6 +327,7 @@ CREATE TABLE m_global_metadata (
     value TEXT
 );
 
+-- todo move this comment to description annotation once it supports multiline comments
 -- Catalog of often used URIs, typically channels and relation Q-names.
 -- Never update values of "uri" manually to change URI for some objects
 -- (unless you really want to migrate old URI to a new one).
@@ -397,6 +398,7 @@ CREATE TABLE m_object (
     subtypes TEXT[], -- only EQ filter
     -- @description: Text search helper content derived from selected object data.
     fullTextInfo TEXT,
+    -- TODO add this extension documentation to description annotation as soon as it supports multiline comments.
     /*
     Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
     and values are stored as follows (this is internal and has no effect on how query is written):
@@ -2475,7 +2477,7 @@ CREATE INDEX m_lookup_table_createTimestamp_idx ON m_lookup_table (createTimesta
 CREATE INDEX m_lookup_table_modifyTimestamp_idx ON m_lookup_table (modifyTimestamp);
 
 -- Represents LookupTableRowType, see also m_lookup_table above
--- @description: Stores rows of lookup table key-value data.
+-- @description: Stores rows of lookup table key-value data. Lookup table row currently doesn't store whole polystring data for `label` property, only the original and normalized string values are stored.
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableRowType
 CREATE TABLE m_lookup_table_row (
     -- @description: OID of the lookup table that owns this row.
