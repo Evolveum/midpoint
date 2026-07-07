@@ -268,9 +268,9 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public String submitRefreshScimSchema(Task task, OperationResult result) {
-            return submitTask("Refreshing SCIM schema for " + connectorNameForTasks(),
-                    new WorkDefinitionsType().refreshScimSchema(new ConnDevRefreshScimSchemaWorkDefinitionType()
+        public String submitRefreshSchema(Task task, OperationResult result) {
+            return submitTask("Refreshing schema for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().refreshSchema(new ConnDevRefreshSchemaWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
         }
@@ -385,11 +385,11 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     }
 
     @Override
-    public StatusInfo<ConnDevRefreshScimSchemaResultType> getRefreshScimSchemaStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevRefreshSchemaResultType> getRefreshSchemaStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return new StatusInfoImpl<>(
                 getTask(token, result),
-                ConnDevRefreshScimSchemaWorkStateType.F_RESULT,
-                ConnDevRefreshScimSchemaResultType.class
+                ConnDevRefreshSchemaWorkStateType.F_RESULT,
+                ConnDevRefreshSchemaResultType.class
         );
     }
 

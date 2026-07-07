@@ -559,8 +559,8 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassAttributesResult(connDevDiscoverObjectClassAttributesResultType);
         } else if (statusInfo.getResult() instanceof ConnDevDiscoverObjectClassEndpointsResultType connDevDiscoverObjectClassEndpointsResultType) {
             abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassEndpointsResult(connDevDiscoverObjectClassEndpointsResultType);
-        } else if (statusInfo.getResult() instanceof ConnDevRefreshScimSchemaResultType connDevRefreshScimSchemaResultType) {
-            abstractSmartIntegrationOperationResultType.setConnDevRefreshScimSchemaResult(connDevRefreshScimSchemaResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevRefreshSchemaResultType connDevRefreshSchemaResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevRefreshSchemaResult(connDevRefreshSchemaResultType);
         } else if (statusInfo.getResult() instanceof ConnDevDiscoverConnectivityEndpointResultType connDevDiscoverConnectivityEndpointResultType) {
             abstractSmartIntegrationOperationResultType.setConnDevDiscoverConnectivityEndpointResult(connDevDiscoverConnectivityEndpointResultType);
         }
