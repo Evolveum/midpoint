@@ -2638,8 +2638,11 @@ CREATE TRIGGER m_connector_development_oid_delete_tr AFTER DELETE ON m_connector
 
 
 
--- Represents ConnectorHostType, see https://docs.evolveum.com/connectors/connid/1.x/connector-server/
--- @description: Stores remote connector host definitions.
+/*
+ * @description: Stores remote connector host definitions.
+ *
+ * Represents ConnectorHostType, see https://docs.evolveum.com/connectors/connid/1.x/connector-server/
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorHostType
 CREATE TABLE m_connector_host (
     -- @description: Connector host object identifier.
@@ -2686,8 +2689,11 @@ CREATE INDEX m_connector_host_modifyTimestamp_idx ON m_connector_host (modifyTim
 -- @region: tasks
 -- @regionTitle: Tasks
 -- @regionDescription: Task objects, task containers, affected objects, triggers, and operation execution data.
--- Represents persistent TaskType, see https://docs.evolveum.com/midpoint/reference/tasks/task-manager/
--- @description: Stores persistent task objects managed by the task manager.
+/*
+ * @description: Stores persistent task objects managed by the task manager.
+ *
+ * Represents persistent TaskType, see https://docs.evolveum.com/midpoint/reference/tasks/task-manager/
+ */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#TaskType
 CREATE TABLE m_task (
     -- @description: Task object identifier.
