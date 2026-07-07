@@ -55,23 +55,24 @@
   line-height: 20px;
 }
 
-.gen-tile {
-  &::before {
-    content: "";
-    border: 1px solid $card-border-color;
-    position: absolute;
-    border-radius: 0.25rem;
-    inset:0 8px 0 8px;
-    z-index:0;
-  }
-
-  &:hover::before {
-    border: 1px solid transparent;
-  }
-}
-
-.tile-panel.gen-tile {
-  &::before {
-    inset:4px !important;
-  }
-}
+//TODO WHY?
+// .gen-tile {
+//   &::before {
+//     content: "";
+//     border: 1px solid $card-border-color;
+//     position: absolute;
+//     border-radius: 0.25rem;
+//     inset:0 8px 0 8px;
+//     z-index:0;
+//   }
+//
+//   &:hover::before {
+//     border: 1px solid transparent;
+//   }
+// }
+//
+// .tile-panel.gen-tile {
+//   &::before {
+//     inset:4px !important;
+//   }
+// }

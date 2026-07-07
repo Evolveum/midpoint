@@ -5,10 +5,11 @@
  */
 
 import Sparkline from "sparklines";
-import { TempusDominus } from '@eonasdan/tempus-dominus';
-import { DateTime } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
-import { Modal } from 'bootstrap';
-import { createPopper } from '@popperjs/core';
+import {TempusDominus} from '@eonasdan/tempus-dominus';
+import {DateTime} from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
+import {Modal} from 'bootstrap';
+import {Toast} from 'bootstrap';
+import {createPopper} from '@popperjs/core';
 
 export default class MidPointTheme {
 
@@ -49,14 +50,14 @@ export default class MidPointTheme {
         });
 
         jQuery(function ($) {
-                    $('.sidebar-menu li.nav-item[aria-haspopup="true"]').on("click", function (e) {
-                        if ($(this).hasClass('menu-open')) {
-                            $(this).attr("aria-expanded", "false");
-                        } else {
-                            $(this).attr("aria-expanded", "true");
-                        }
-                    });
-                });
+            $('.sidebar-menu li.nav-item[aria-haspopup="true"]').on("click", function (e) {
+                if ($(this).hasClass('menu-open')) {
+                    $(this).attr("aria-expanded", "false");
+                } else {
+                    $(this).attr("aria-expanded", "true");
+                }
+            });
+        });
 
         !function ($) {
             $.fn.passwordFieldValidatorPopover = function (inputId, popover) {
@@ -74,7 +75,7 @@ export default class MidPointTheme {
                         if (!$popover.is(':visible')) {
                             parent.find(inputId).each(function () {
                                 var itemH = $(this).innerHeight() + 27;
-                                $popover.css({ top: itemH, left: 0 }).fadeIn(300);
+                                $popover.css({top: itemH, left: 0}).fadeIn(300);
                             });
                         }
                     }
@@ -176,7 +177,7 @@ export default class MidPointTheme {
 
                     var showPopover = function () {
                         var itemH = icon.innerHeight() + 9;
-                        parent.find(popover).css({ top: itemH, left: 0 }).fadeIn(300);
+                        parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
                         var showMessage = liveRegion.data("status-show");
                         updateLiveRegion(showMessage);
                     }
@@ -198,9 +199,9 @@ export default class MidPointTheme {
                     });
 
                     parent.find(popover).on("mouseleave", function () {
-                       if (parent.find(inputId + ":hover").length === 0) {
-                           deletePopover();
-                       }
+                        if (parent.find(inputId + ":hover").length === 0) {
+                            deletePopover();
+                        }
                     });
 
                     icon.on("keydown", function (e) {
@@ -302,7 +303,7 @@ export default class MidPointTheme {
                     const $el = $(this);
                     var parentMorePopup = $el.closest('.popover');
                     if (parentMorePopup && parentMorePopup.length !== 0) {
-                        setTimeout(function() {
+                        setTimeout(function () {
                             isHovered = false;
                             checkHide($el);
                         }, 300);
@@ -395,11 +396,11 @@ export default class MidPointTheme {
                             .on('keydown', function (e) {
                                 const SCROLL_STEP = 30;
                                 if (e.key === "ArrowDown") {
-                                   e.preventDefault();
-                                   this.scrollTop += SCROLL_STEP;
+                                    e.preventDefault();
+                                    this.scrollTop += SCROLL_STEP;
                                 } else if (e.key === "ArrowUp") {
-                                   e.preventDefault();
-                                   this.scrollTop -= SCROLL_STEP;
+                                    e.preventDefault();
+                                    this.scrollTop -= SCROLL_STEP;
                                 } else if (e.key === "Tab") {
                                     const $tooltip = $(this).closest('.tooltip');
                                     const $trigger = $("[data-tooltip-id='" + $tooltip.attr('id') + "']");
@@ -459,9 +460,9 @@ export default class MidPointTheme {
         jQuery(function ($) {
             $(document).on("keydown", ".showPasswordButton", function (e, t) {
                 if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
-                        e.key == "Enter" || e.keyCode == 13) {
+                    e.key == "Enter" || e.keyCode == 13) {
                     $(this).showPassword();
-                  }
+                }
             });
         });
 
@@ -520,7 +521,7 @@ export default class MidPointTheme {
         const focusableElements = popup.find('a, input');
         const firstFocusableElement = focusableElements.first();
         const lastFocusableElement = focusableElements.last();
-        popup.on('keydown', function(event) {
+        popup.on('keydown', function (event) {
             if (event.key === "Tab") {
                 if (event.shiftKey) {
                     if (document.activeElement === firstFocusableElement[0]) {
@@ -553,26 +554,26 @@ export default class MidPointTheme {
         var wParam = url.searchParams.get('w');
         if (isFirstLoad) {
             console.log("inside isFirstLoad check");
-           url.searchParams.set('w', windowId);
-           if (shouldReloadOnFirstLoad) {
-               console.log("will be reloaded");
-               window.location.replace(url);
-           } else {
-               console.log("will be replaced state");
-               window.history.replaceState({}, '', url);
-           }
-           return;
+            url.searchParams.set('w', windowId);
+            if (shouldReloadOnFirstLoad) {
+                console.log("will be reloaded");
+                window.location.replace(url);
+            } else {
+                console.log("will be replaced state");
+                window.history.replaceState({}, '', url);
+            }
+            return;
         }
         console.log("after isFirstLoad check");
 
-        if (!url.searchParams.has('w')  || wParam !== windowId) {
+        if (!url.searchParams.has('w') || wParam !== windowId) {
             url.searchParams.set('w', windowId);
             window.history.replaceState({}, '', url);
         }
 
         if (window.Wicket && Wicket.Event) {
             // Subscribe to all Wicket Ajax calls before they are sent
-            Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attrs, jqXHR, settings) {
+            Wicket.Event.subscribe('/ajax/call/before', function (jqEvent, attrs, jqXHR, settings) {
                 if (!attrs) return;
                 attrs.ep = attrs.ep || {};
                 attrs.ep.w = windowId;
@@ -610,7 +611,7 @@ export default class MidPointTheme {
                     const focusableElement = self.findFirstFocusableElementOnMainPanel();
                     if (focusableElement) {
                         focusableElement.focus();
-                        focusableElement.scrollIntoView({ block: "center" });
+                        focusableElement.scrollIntoView({block: "center"});
                     }
                 }
                 e.preventDefault()
@@ -623,7 +624,7 @@ export default class MidPointTheme {
                     var link = parent.find("a");
                     link.get(0).click();
                     parent.get(0).focus();
-                    parent.get(0).scrollIntoView({ block: "center" });
+                    parent.get(0).scrollIntoView({block: "center"});
                 }
                 e.preventDefault()
                 return;
@@ -655,7 +656,7 @@ export default class MidPointTheme {
             var focusItem = list.get(focusIndex);
             if (focusItem) {
                 focusItem.focus();
-                focusItem.scrollIntoView({ block: "center" });
+                focusItem.scrollIntoView({block: "center"});
                 e.preventDefault()
             }
         });
@@ -715,7 +716,7 @@ export default class MidPointTheme {
             var subitems = menuItem.find("li[role='menuitem']");
             if (subitems.length) {
                 subitems.get(0).focus();
-                subitems.get(0).scrollIntoView({ block: "center" });
+                subitems.get(0).scrollIntoView({block: "center"});
                 e.preventDefault()
             }
         }
@@ -723,29 +724,29 @@ export default class MidPointTheme {
 
     focusByArrowKeys(elements, self) {
         if (!elements || elements.length === 0) {
-                return;
+            return;
         }
-        elements.each(function(index) {
-                $(this).on("keydown", function(e) {
-                    let currentElement = $(this);
-                    let currentIndex = elements.index(currentElement);  // Get the index of the current element
-                    let nextIndex, prevIndex;
+        elements.each(function (index) {
+            $(this).on("keydown", function (e) {
+                let currentElement = $(this);
+                let currentIndex = elements.index(currentElement);  // Get the index of the current element
+                let nextIndex, prevIndex;
 
-                    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-                        // Prevent the default behavior (moving out of the set)
-                        e.preventDefault();
-                        // Move focus to the next element within the set
-                        nextIndex = (currentIndex + 1) % elements.length;
-                        elements.eq(nextIndex).focus();
-                    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-                        // Prevent the default behavior (moving out of the set)
-                        e.preventDefault();
-                        // Move focus to the previous element within the set
-                        prevIndex = (currentIndex - 1 + elements.length) % elements.length;
-                        elements.eq(prevIndex).focus();
-                    }
-                });
+                if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+                    // Prevent the default behavior (moving out of the set)
+                    e.preventDefault();
+                    // Move focus to the next element within the set
+                    nextIndex = (currentIndex + 1) % elements.length;
+                    elements.eq(nextIndex).focus();
+                } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+                    // Prevent the default behavior (moving out of the set)
+                    e.preventDefault();
+                    // Move focus to the previous element within the set
+                    prevIndex = (currentIndex - 1 + elements.length) % elements.length;
+                    elements.eq(prevIndex).focus();
+                }
             });
+        });
     }
 
     initSelect2MultiChoice(containerHtmlElement) {
@@ -756,22 +757,22 @@ export default class MidPointTheme {
                 var attribute = select.attr("aria-label")
 
                 $('.select2-selection__clear').each(function () {
-                        const $clear = $(this);
-                        if (!$clear.attr('tabindex')) {
-                            $clear.attr({
-                                'tabindex': 0,
-                                'role': 'button',
-                                'aria-label': 'Clear selection'
-                            });
+                    const $clear = $(this);
+                    if (!$clear.attr('tabindex')) {
+                        $clear.attr({
+                            'tabindex': 0,
+                            'role': 'button',
+                            'aria-label': 'Clear selection'
+                        });
 
-                            $clear.on('keydown', function (e) {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    $(this).trigger('mousedown');
-                                }
-                            });
-                        }
-                    });
+                        $clear.on('keydown', function (e) {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                $(this).trigger('mousedown');
+                            }
+                        });
+                    }
+                });
 
                 var combobox = container.find("span[role='combobox']");
                 var selectContainer = container.find(".select2-container");
@@ -867,7 +868,7 @@ export default class MidPointTheme {
 
                 if (combobox.length) {
                     if (selectContainer.length) {
-                        var selectContainerId = "select2-" + select.attr("id") +"-container-custom";
+                        var selectContainerId = "select2-" + select.attr("id") + "-container-custom";
                         selectContainer.attr("id", selectContainerId)
                         combobox.attr("aria-controls", selectContainerId);
                     }
@@ -875,10 +876,10 @@ export default class MidPointTheme {
                     combobox.on("keydown", function (e, t) {
                         if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
                             e.key == "Enter" || e.keyCode == 13) {
-                                var input = $("input.select2-search__field[aria-controls='select2-" + select.attr("id") + "-results']");
-                                if (input.length){
-                                    input.get(0).focus();
-                                }
+                            var input = $("input.select2-search__field[aria-controls='select2-" + select.attr("id") + "-results']");
+                            if (input.length) {
+                                input.get(0).focus();
+                            }
                         }
                     });
 
@@ -997,9 +998,9 @@ export default class MidPointTheme {
             }
 
             var $actionElements = $('.date-container [data-action]').filter(function () {
-              return $(this).attr('data-action')?.trim() !== '';
+                return $(this).attr('data-action')?.trim() !== '';
             });
-            $actionElements.each(function() {
+            $actionElements.each(function () {
                 const $el = $(this);
                 $el.attr({
                     'tabindex': '0',
@@ -1064,7 +1065,7 @@ export default class MidPointTheme {
         const pickerSwitch = $('.calendar-header .picker-switch');
         pickerSwitch.attr('aria-live', 'assertive');
         // we'll watch for pickerSwitch div changes to update aria description on previous/next buttons
-        const observer = new MutationObserver(function(mutations) {
+        const observer = new MutationObserver(function (mutations) {
             window.MidPointTheme.updateAriaDescription(prevButton, messageCurrent);
             window.MidPointTheme.updateAriaDescription(nextButton, messageCurrent);
         });
@@ -1074,7 +1075,8 @@ export default class MidPointTheme {
                 attributes: true,
                 childList: true,
                 subtree: true,
-                characterData: true}
+                characterData: true
+            }
         );
 
         // initially set value for previous/next button
@@ -1524,10 +1526,10 @@ export default class MidPointTheme {
 //    }
 
     /**
-    * Used for scaling tables, images and charts (Role Mining)
-    *
-    * @param containerId
-    */
+     * Used for scaling tables, images and charts (Role Mining)
+     *
+     * @param containerId
+     */
     initScaleResize(containerId) {
         let div = document.querySelector(containerId);
         let scale = 0.5;
@@ -1560,40 +1562,40 @@ export default class MidPointTheme {
         let isDragging = false
 
         function startDrag(e) {
-                e.preventDefault();
-                isMouseDown = true
-                startX = e.clientX;
-                startY = e.clientY;
-                startScrollLeft = div.scrollLeft;
-                startScrollTop = div.scrollTop;
-                div.addEventListener('mousemove', drag);
-            }
+            e.preventDefault();
+            isMouseDown = true
+            startX = e.clientX;
+            startY = e.clientY;
+            startScrollLeft = div.scrollLeft;
+            startScrollTop = div.scrollTop;
+            div.addEventListener('mousemove', drag);
+        }
 
-            function drag(e) {
-                e.preventDefault();
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                const delta = Math.sqrt(dx * dx + dy * dy)
-                if (!isDragging && isMouseDown && delta > minDragDistance) {
-                  // mouse-down-move at least `minDragDistance` pixels from the origin to assume dragging
-                  isDragging = true
-                  // prevents other gesture handlers to interact
-                  component.style['pointer-events'] = 'none'
-                }
-                if (!isDragging) {
-                  return
-                }
-                div.scrollLeft = startScrollLeft - dx;
-                div.scrollTop = startScrollTop - dy;
+        function drag(e) {
+            e.preventDefault();
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            const delta = Math.sqrt(dx * dx + dy * dy)
+            if (!isDragging && isMouseDown && delta > minDragDistance) {
+                // mouse-down-move at least `minDragDistance` pixels from the origin to assume dragging
+                isDragging = true
+                // prevents other gesture handlers to interact
+                component.style['pointer-events'] = 'none'
             }
+            if (!isDragging) {
+                return
+            }
+            div.scrollLeft = startScrollLeft - dx;
+            div.scrollTop = startScrollTop - dy;
+        }
 
-            function stopDrag(e) {
-                isMouseDown = false
-                isDragging = false
-                e.preventDefault()
-                component.style['pointer-events'] = 'inherit'
-                div.removeEventListener('mousemove', drag);
-            }
+        function stopDrag(e) {
+            isMouseDown = false
+            isDragging = false
+            e.preventDefault()
+            component.style['pointer-events'] = 'inherit'
+            div.removeEventListener('mousemove', drag);
+        }
 
         function handleZoom(e) {
             e.preventDefault();
@@ -1609,8 +1611,8 @@ export default class MidPointTheme {
         function zoomIn(rectBefore, isChart) {
             console.log('Zooming in');
 
-            if(isChart && scale < 1.0){
-                 scale = 1.0;
+            if (isChart && scale < 1.0) {
+                scale = 1.0;
             }
             scale += 0.05;
 
@@ -1645,7 +1647,7 @@ export default class MidPointTheme {
             .attr('id', 'queryDslAutocomplete')
             .appendTo(queryDslInput.parent());
 
-        $(document).on("click", function(event) {
+        $(document).on("click", function (event) {
             if (!$(event.target).closest("#" + queryDslInputId, "#queryDslAutocomplete").length) {
                 autocomplete.hide()
                 autocomplete.empty()
@@ -1678,8 +1680,8 @@ export default class MidPointTheme {
             let hideAutocomplete = true;
 
             let renderSuggestions = (name, alias) => autocomplete.append('<div class="line suggestion">' +
-                    '<span class="name">' + name + '</span>' +
-                    '<span class="alias">' + alias + '</span>' +
+                '<span class="name">' + name + '</span>' +
+                '<span class="alias">' + alias + '</span>' +
                 '</div>'
             );
 
@@ -1695,7 +1697,7 @@ export default class MidPointTheme {
                 autocomplete.hide()
             }
 
-            autocomplete.on('click', '.suggestion', function() {
+            autocomplete.on('click', '.suggestion', function () {
                 commands[commands.length - 1] = $(this).find('.name').text()
                 queryDslInput.val(commands.join(" ") + query.substring(cursorPosition))
                 queryDslInput[0].focus()
@@ -1708,7 +1710,7 @@ export default class MidPointTheme {
 
             queryDslInput.on('input keydown click', function (e) {
                 // navigation in suggestions list
-                if (e.key === "ArrowDown" || e.key == "Arrow Down" || e.keyCode == 40)  {
+                if (e.key === "ArrowDown" || e.key == "Arrow Down" || e.keyCode == 40) {
                     e.preventDefault();
                     navigate(1)
                 } else if (e.key === "ArrowUp" || e.key == "Arrow Up" || e.keyCode == 38) {
@@ -1750,7 +1752,7 @@ export default class MidPointTheme {
                 currentIndex = (currentIndex + direction + suggestions.length) % suggestions.length;
                 suggestions.removeClass("active");
                 const activeItem = $(suggestions[currentIndex]).addClass("active");
-                activeItem[0].scrollIntoView({ block: "nearest", behavior: "smooth" });
+                activeItem[0].scrollIntoView({block: "nearest", behavior: "smooth"});
             }
         }
 
@@ -1777,7 +1779,7 @@ export default class MidPointTheme {
         $('body').append(span);
 
         const rect = span[0].getBoundingClientRect();
-        const coordinates = { top: rect.height, left: rect.width };
+        const coordinates = {top: rect.height, left: rect.width};
 
         span.remove();
         return coordinates;
@@ -1786,7 +1788,7 @@ export default class MidPointTheme {
     triggerAutocompleteShortcut(event, element) {
         if (event.ctrlKey && event.key === ' ') {
             event.preventDefault();
-            element.dispatchEvent(new Event('keyup', { bubbles: true }));
+            element.dispatchEvent(new Event('keyup', {bubbles: true}));
         }
     }
 
@@ -1799,8 +1801,7 @@ export default class MidPointTheme {
             const hasError = error.textContent.trim() !== '';
             if (hasError && !field.classList.contains(INVALID_CLASS)) {
                 field.classList.add(INVALID_CLASS);
-            }
-            else if (!hasError && field.classList.contains(INVALID_CLASS)) {
+            } else if (!hasError && field.classList.contains(INVALID_CLASS)) {
                 field.classList.remove(INVALID_CLASS);
             }
         }
@@ -1866,8 +1867,8 @@ export default class MidPointTheme {
             if (menuElement && messageElement) {
                 const isOpen = menuElement.classList.contains("menu-open");
                 const textValue = isOpen
-                                ? messageElement.getAttribute("data-menu-open")
-                                : messageElement.getAttribute("data-menu-close");
+                    ? messageElement.getAttribute("data-menu-open")
+                    : messageElement.getAttribute("data-menu-close");
                 messageElement.innerText = "";
                 setTimeout(() => {
                     messageElement.innerText = textValue;
@@ -1877,49 +1878,29 @@ export default class MidPointTheme {
     }
 
     updateStatusMessageForMenu(elementId, isSelected) {
-            var current = document.getElementById(elementId);
-            if (!current) return;
+        var current = document.getElementById(elementId);
+        if (!current) return;
 
-            // Find the radio group (parent container)
-            var group = current.closest('[role="radiogroup"]');
-            if (!group) return;
+        // Find the radio group (parent container)
+        var group = current.closest('[role="radiogroup"]');
+        if (!group) return;
 
-            // Deselect all radios in this group
-            var radios = group.querySelectorAll('[role="radio"]');
-            radios.forEach(function(radio) {
-                radio.setAttribute('aria-checked', 'false');
-                radio.classList.remove('active');
-            });
+        // Deselect all radios in this group
+        var radios = group.querySelectorAll('[role="radio"]');
+        radios.forEach(function (radio) {
+            radio.setAttribute('aria-checked', 'false');
+            radio.classList.remove('active');
+        });
 
-            // Select the clicked one
-            current.setAttribute('aria-checked', isSelected);
-            const isSelectedBool = isSelected === 'true';
-            if (isSelectedBool) {
-                current. classList.toggle('active', isSelected);
-            }
+        // Select the clicked one
+        current.setAttribute('aria-checked', isSelected);
+        const isSelectedBool = isSelected === 'true';
+        if (isSelectedBool) {
+            current.classList.toggle('active', isSelected);
+        }
 
-            // Set focus back to it
-            current.focus();
-    }
-
-
-
-    setToastAriaAttributes(toastId) {
-      const toastEl = document.getElementById(toastId);
-
-      if (!toastEl) {
-        console.warn(`Toast with ID "${toastId}" not found.`);
-        return;
-      }
-      const firstToast = toastEl.querySelector('.toast');
-      if (!firstToast) {
-        console.warn(`Toast not found.`);
-        return;
-      }
-      firstToast.setAttribute('tabindex', '0');
-      firstToast.setAttribute('role', 'alert');
-      firstToast.setAttribute('aria-live', 'assertive');
-      toastEl.show();
+        // Set focus back to it
+        current.focus();
     }
 
     focusSelectedNavigationLink(linkText) {
@@ -1979,5 +1960,55 @@ export default class MidPointTheme {
         } else {
             return true; // normal click → AJAX
         }
+    }
+
+    showToast({
+        icon = 'fa-solid fa-info',
+        title = '',
+        subtitle = '',
+        close = true,
+        body = '',
+        className = 'text-bg-info',
+        autohide = true,
+        delay = 5000
+    } = {}) {
+
+        let container = document.querySelector('.toast-container');
+
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${className}`;
+        toast.setAttribute('tabindex', '0');
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+
+        toast.innerHTML = `
+        <div class="toast-header">
+            ${icon ? `<i class="${icon} me-2"></i>` : ''}
+            <strong class="me-auto">${title}</strong>
+            ${subtitle ? `<small>${subtitle}</small>` : ''}
+            ${close ? `<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>` : ''}
+        </div>
+        <div class="toast-body">
+            ${body}
+        </div>
+    `;
+
+        container.appendChild(toast);
+
+        const instance = new Toast(toast, {
+            autohide,
+            delay
+        });
+
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+
+        instance.show();
     }
 }
