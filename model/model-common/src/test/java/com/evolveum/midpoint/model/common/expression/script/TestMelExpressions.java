@@ -119,15 +119,75 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
-    public void testUserNameSubstringStringTrue() throws Exception {
+    public void testUserNameContainsStringTrue() throws Exception {
         PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
         evaluateAndAssertBooleanScalarExpression(
-                "expression-user-name-substring.xml",
+                "expression-user-name-contains.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                true);
+    }
+
+    @Test
+    public void testUserNameContainsStringNull() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-name-contains.xml",
                 createVariables(
                         ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
                         "foo", "ack", PrimitiveType.STRING
                 ),
+                false);
+    }
+
+    @Test
+    public void testUserFullNameContainsStringTrue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-fullname-contains.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
                 true);
+    }
+
+    @Test
+    public void testUserFullNameContainsStringNull() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-fullname-contains.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                false);
+    }
+
+    @Test
+    public void testUserFullNameContainsStringMissing() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        userJack.asObjectable().setFullName(null);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-fullname-contains.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                false);
+    }
+
+    @Test
+    public void testUserNameSubstringString() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-name-substring.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition()
+                ),
+                null);
     }
 
     @Test
@@ -136,10 +196,22 @@ public class TestMelExpressions extends AbstractScriptTest {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-user-name-endswith.xml",
                 createVariables(
-                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition(),
                         "foo", "ack", PrimitiveType.STRING
                 ),
                 true);
+    }
+
+    @Test
+    public void testUserNameEndsWithStringNull() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-name-endswith.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                false);
     }
 
     @Test

@@ -34,10 +34,7 @@ import dev.cel.common.types.*;
 import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.common.Operator;
-import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationExceptionBuilder;
-import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.RuntimeHelpers;
+import dev.cel.runtime.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -324,8 +321,16 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.BOOL,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
-                            "polystring_contains", PolyStringCelValue.class, String.class,
-                            (polystring, s) -> polystring.getOrig().contains(s))),
+                            "polystring_contains",
+                            ImmutableList.of(PolyStringCelValue.class, String.class),
+                            CelMelExtensions::polystringContains,
+                            NullabilityProperties.NULLABLE_FALSE),
+                    CelFunctionBinding.from(
+                            "polystring_contains",
+                            ImmutableList.of(Optional.class, String.class),
+                            CelMelExtensions::polystringContains,
+                            NullabilityProperties.NULLABLE_FALSE)),
+
 
             // string.containsIgnoreCase(substring)
             new Function(
@@ -431,7 +436,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "polystring_endswith", PolyStringCelValue.class, String.class,
-                            (polystring, s) -> polystring.getOrig().endsWith(s))),
+                            (polystring, s) -> polystring.getOrig().endsWith(s),
+                            NullabilityProperties.NULLABLE_FALSE)),
 
 
             // string.equalsIgnoreCase(string)
@@ -1085,7 +1091,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "polystring_startswith", PolyStringCelValue.class, String.class,
-                            (polystring, s) -> polystring.getOrig().startsWith(s))),
+                            (polystring, s) -> polystring.getOrig().startsWith(s),
+                            NullabilityProperties.NULLABLE_FALSE)),
 
             // str(any)
             new Function(
@@ -1381,6 +1388,16 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             polystring -> Ascii.toUpperCase(polystring.getOrig())))
 
         );
+    }
+
+    private static boolean polystringContains(Object[] args) {
+        if (isCelNull(args[0])) {
+            return false;
+        }
+        if (args[0] instanceof Optional<?> opt) {
+            return ((PolyStringCelValue)opt.get()).getOrig().contains((String)args[1]);
+        }
+        return ((PolyStringCelValue)args[0]).getOrig().contains((String)args[1]);
     }
 
     private static boolean containsAny(Object o, String substring) {
