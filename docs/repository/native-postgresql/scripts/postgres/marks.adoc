@@ -20,7 +20,7 @@ Mark objects used to classify and annotate repository objects and events.
 
 Stores mark objects used to classify and annotate repository objects and events.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#MarkType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#MarkType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 

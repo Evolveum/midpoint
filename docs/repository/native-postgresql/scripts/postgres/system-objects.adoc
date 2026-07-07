@@ -20,7 +20,7 @@ Node, system configuration, security policy, and other system-level repository o
 
 Stores midPoint cluster node objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#NodeType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#NodeType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -90,7 +90,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores security policy objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#SecurityPolicyType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#SecurityPolicyType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -170,7 +170,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores the system configuration object.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#SystemConfigurationType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#SystemConfigurationType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 

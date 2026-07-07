@@ -20,7 +20,7 @@ Role analysis sessions, clusters, outliers, detected patterns, and related conta
 
 Stores role analysis cluster objects and their parent cluster references.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisClusterType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisClusterType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -102,7 +102,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores detected role analysis patterns inside a role analysis cluster.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#DetectedPatternType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#DetectedPatternType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
@@ -165,7 +165,7 @@ Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
 Stores role analysis outlier objects and references to analyzed target objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisOutlierType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisOutlierType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -256,7 +256,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores partition data for role analysis outliers.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisOutlierPartitionType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisOutlierPartitionType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
@@ -342,7 +342,7 @@ Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
 Stores role analysis session objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisSessionType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleAnalysisSessionType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 

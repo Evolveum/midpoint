@@ -20,7 +20,7 @@ Lookup table objects and their key-value row data.
 
 Stores connector definitions discovered or configured in midPoint.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -157,7 +157,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores connector development objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorDevelopmentType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorDevelopmentType`
 
 Inherits from: xref:infrastructure.adoc#m_object[`m_object`]
 
@@ -197,9 +197,10 @@ Inherits from: xref:infrastructure.adoc#m_object[`m_object`]
 [[m_connector_host]]
 === `m_connector_host`
 
-Stores remote connector host definitions.
+Stores remote connector host definitions. +
+Represents ConnectorHostType, see https://docs.evolveum.com/connectors/connid/1.x/connector-server/
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorHostType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorHostType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -285,7 +286,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores lookup table objects used for reusable key-value mappings.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -359,9 +360,11 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 [[m_lookup_table_row]]
 === `m_lookup_table_row`
 
-Stores rows of lookup table key-value data.
+Stores rows of lookup table key-value data. +
+Lookup table row currently doesn't store whole polystring data for `label` property, +
+only the original and normalized string values are stored.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableRowType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableRowType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 

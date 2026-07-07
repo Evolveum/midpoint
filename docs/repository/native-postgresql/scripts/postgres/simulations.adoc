@@ -100,7 +100,7 @@ This table is a partition of xref:#m_processed_object_event_mark[`m_processed_ob
 
 Stores simulation result objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#SimulationResultType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#SimulationResultType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -175,7 +175,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores objects processed by simulations and their before/after state.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ProcessedObjectType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ProcessedObjectType`
 
 ==== Columns
 

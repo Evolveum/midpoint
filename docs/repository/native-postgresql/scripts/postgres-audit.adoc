@@ -156,7 +156,7 @@ This table is a partition of xref:#ma_audit_delta[`ma_audit_delta`]. Columns are
 
 Stores top-level audit event records, such as object changes, task actions, sessions, and other audited operations.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/audit-3#AuditEventRecordType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/audit-3#AuditEventRecordType`
 
 ==== Columns
 

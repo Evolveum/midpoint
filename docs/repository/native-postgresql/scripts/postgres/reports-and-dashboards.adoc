@@ -20,7 +20,7 @@ Reports, report data, dashboards, object collections, forms, function libraries,
 
 Stores dashboard objects used by the administrative user interface.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#DashboardType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#DashboardType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -96,7 +96,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores object collection definitions used by views, dashboards, and searches.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ObjectCollectionType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ObjectCollectionType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -176,7 +176,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores report definitions.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ReportType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ReportType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -252,7 +252,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores report output data objects and their relation to report definitions.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ReportDataType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ReportDataType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -346,7 +346,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores value policy objects, such as password and value generation policies.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 

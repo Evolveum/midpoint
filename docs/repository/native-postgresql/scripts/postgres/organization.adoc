@@ -18,9 +18,10 @@ Organization objects, parent organization references, and organization hierarchy
 [[m_org]]
 === `m_org`
 
-Stores organization objects and hierarchy-related organization attributes.
+Stores organization objects and hierarchy-related organization attributes. +
+Represents OrgType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#OrgType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#OrgType`
 
 Inherits from: xref:roles-and-services.adoc#m_abstract_role[`m_abstract_role`]
 
@@ -180,7 +181,13 @@ Views present derived or queryable data from repository tables.
 [[view_m_org_closure]]
 === `m_org_closure`
 
-Materialized transitive closure of organization parent-child relationships.
+Materialized transitive closure of organization parent-child relationships. +
+Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row. +
+Closure contains also identity (org = org) entries because: +
+* It's easier to do optimized matrix-multiplication based refresh with them later. +
+* It actually makes some query easier and requires AND instead of OR conditions. +
+* While the table shows that o => o (=> means "is parent of"), this is not the semantics +
+of isParent/ChildOf searches and they never return parameter OID as a result.
 
 Kind: materialized view
 

@@ -20,7 +20,7 @@ Assignment and inducement containers, assignment metadata, and assignment refere
 
 Stores assignment and inducement containers for assignment-holding objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AssignmentType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#AssignmentType`
 
 ==== Columns
 
@@ -356,7 +356,7 @@ Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#Assignm
 
 Stores value metadata for assignments and inducements.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValueMetadataType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValueMetadataType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
