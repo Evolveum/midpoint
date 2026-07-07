@@ -60,4 +60,12 @@ final class SqlCommentSupport {
         }
         return stripped;
     }
+
+    static String appendContinuation(String value, String continuation) {
+        String normalizedContinuation = continuation.stripTrailing();
+        if (value == null || value.isBlank()) {
+            return normalizedContinuation;
+        }
+        return value.stripTrailing() + "\n" + normalizedContinuation;
+    }
 }

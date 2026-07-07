@@ -370,15 +370,7 @@ public class SqlAnnotationExtractor {
 
             annotations.set(
                     annotations.size() - 1,
-                    new SqlAnnotation(lastAnnotation.key(), appendValue(lastAnnotation.value(), continuation)));
-        }
-
-        private String appendValue(String value, String continuation) {
-            String strippedContinuation = continuation.strip();
-            if (value == null || value.isBlank()) {
-                return strippedContinuation;
-            }
-            return value.strip() + " " + strippedContinuation;
+                    new SqlAnnotation(lastAnnotation.key(), SqlCommentSupport.appendContinuation(lastAnnotation.value(), continuation)));
         }
 
         boolean isEmpty() {

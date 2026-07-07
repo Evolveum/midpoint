@@ -574,10 +574,7 @@ end $$;
 
 -- @region: references
 -- @regionTitle: References
-/*
- * @regionDescription: Tables storing object and container references such as archetype,
- * projection, role membership, and approver references.
- */
+-- @regionDescription: Tables storing object and container references such as archetype, projection, role membership, and approver references.
 -- references related to ObjectType and AssignmentHolderType
 -- stores AssignmentHolderType/archetypeRef
 -- @description: Stores archetype references assigned to assignment-holder objects.
