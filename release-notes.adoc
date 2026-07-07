@@ -31,6 +31,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 == Changes with Respect To Version 4.8.13
 
 * Updated Spring Boot to 4.0 and Hibernate to 7.1.8. See bug:MID-11002[]
+* Updated spring boot to 4.1 and Hibernate to 7.4.1. See bug:MID-11547[]
 
 == Changes with Respect To Version 4.8.12
 
