@@ -9,7 +9,7 @@ The detailed documentation is split into logical region pages because this schem
 == Region documentation
 
 #foreach ($region in $view.postgresRegions())
-* $r.pageXref($view.postgresRegionPagePath($region), $region.title(), $view) - $region.description()
+* $r.pageXref($view.postgresRegionPagePath($region), $region.title(), $view) - $r.metadataValue($region.description())
 #end
 
 == Overview

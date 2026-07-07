@@ -78,7 +78,7 @@ public class RegionTracker {
             }
 
             if (regionDescriptionContinues && blockComment && !commentText.isBlank()) {
-                description = appendValue(description, commentText);
+                description = SqlCommentSupport.appendContinuation(description, commentText);
             } else if (!blockComment) {
                 regionDescriptionContinues = false;
             }
@@ -96,14 +96,6 @@ public class RegionTracker {
     private String valueOrCurrent(String commentText, String annotationPrefix, String currentValue) {
         String value = annotationValue(commentText, annotationPrefix);
         return value != null ? value : currentValue;
-    }
-
-    private String appendValue(String value, String continuation) {
-        String strippedContinuation = continuation.strip();
-        if (value == null || value.isBlank()) {
-            return strippedContinuation;
-        }
-        return value.strip() + " " + strippedContinuation;
     }
 
 }
