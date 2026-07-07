@@ -25,7 +25,7 @@ $r.metadataValue($region.description())
 $r.description($table.metadata().description())
 
 #if ($table.metadata().type())
-Schema type: `$table.metadata().type()`
+XSD type: `\\$table.metadata().type()`
 
 #end
 #if ($table.metadata().since())
