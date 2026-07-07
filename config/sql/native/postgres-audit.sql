@@ -394,9 +394,43 @@ DO $$ BEGIN
 END; $$;
 
 -- region partition creation procedures
--- Use negative futureCount for creating partitions for the past months if needed.
--- See also the comment below the procedure for more details.
--- @description: Creates monthly audit table partitions for audit events, deltas, and references.
+/*
+ * @description: Creates monthly audit table partitions for audit events, deltas, and references.
+ *
+ * IMPORTANT: Only default partitions are created in this script!
+ * Consider, whether you need partitioning before doing anything, for more read the docs:
+ * https://docs.evolveum.com/midpoint/reference/repository/native-audit/#partitioning[Partitioning]
+ *
+ * Use something like this, if you desire monthly partitioning:
+ * ```
+ * call audit_create_monthly_partitions(120);
+ * ```
+ *
+ * This creates 120 monthly partitions into the future (10 years).
+ * It can be safely called multiple times, so you can run it again anytime in the future.
+ * If you forget to run, audit events will go to default partition so no data is lost,
+ * however it may be complicated to organize it into proper partitions after the fact.
+ *
+ * Create past partitions if needed, e.g. for migration. E.g., for last 12 months (including current):
+ * ```
+ * call audit_create_monthly_partitions(-12);
+ * ```
+ *
+ * Check the existing partitions with this SQL query:
+ * ```
+ * select inhrelid::regclass as partition
+ * from pg_inherits
+ * where inhparent = 'ma_audit_event'::regclass;
+ * ```
+ *
+ * Try this to see recent audit events with the real table where they are stored:
+ * ```
+ * select tableoid::regclass::text AS table_name, *
+ * from ma_audit_event
+ * order by id desc
+ * limit 50;
+ * ```
+ */
 CREATE OR REPLACE PROCEDURE audit_create_monthly_partitions(futureCount int)
     LANGUAGE plpgsql
 AS $$
@@ -457,34 +491,6 @@ In short, for our case PK and constraints are created automatically, but FK are 
     END loop;
 END $$;
 -- endregion
-
-/*
-IMPORTANT: Only default partitions are created in this script!
-Consider, whether you need partitioning before doing anything, for more read the docs:
-https://docs.evolveum.com/midpoint/reference/repository/native-audit/#partitioning
-
-Use something like this, if you desire monthly partitioning:
-call audit_create_monthly_partitions(120);
-
-This creates 120 monthly partitions into the future (10 years).
-It can be safely called multiple times, so you can run it again anytime in the future.
-If you forget to run, audit events will go to default partition so no data is lost,
-however it may be complicated to organize it into proper partitions after the fact.
-
-Create past partitions if needed, e.g. for migration. E.g., for last 12 months (including current):
-call audit_create_monthly_partitions(-12);
-
-Check the existing partitions with this SQL query:
-select inhrelid::regclass as partition
-from pg_inherits
-where inhparent = 'ma_audit_event'::regclass;
-
-Try this to see recent audit events with the real table where they are stored:
-select tableoid::regclass::text AS table_name, *
-from ma_audit_event
-order by id desc
-limit 50;
-*/
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
