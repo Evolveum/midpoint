@@ -33,6 +33,11 @@ public class ProcessedDocumentation {
         storage = new File(directory, uuid);
     }
 
+    ProcessedDocumentation contentType(String contentType) {
+        this.mimeType = contentType;
+        return this;
+    }
+
     public InputStream asInputStream() throws FileNotFoundException {
         return new FileInputStream(storage);
     }

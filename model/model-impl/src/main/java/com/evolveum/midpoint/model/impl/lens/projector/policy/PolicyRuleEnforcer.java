@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPoli
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.notifications.api.PolicyRuleNotificationPublisher;
@@ -198,12 +200,12 @@ class PolicyRuleEnforcer<O extends ObjectType> {
                     continue;
                 }
 
+                LocalizableMessage message = createViolationMessage(policyRule);
+                String defaultMessage = ModelCommonBeans.get().localizationService
+                        .translate(message, Locale.getDefault());
+
                 for (PolicyActionConfigItem<?> actionCI : policyRule.getEnabledActions()) {
                     PolicyActionType action = actionCI.value();
-
-                    String defaultMessage = "Policy rule violation: " + policyRule.getPolicyRuleBean();
-                    LocalizableMessage message =
-                            new SingleLocalizableMessage("PolicyRuleEnforces.policyViolationMessage", new Object[] { policyRule.getPolicyRuleBean() });
 
                     if (action instanceof SuspendTaskPolicyActionType) {
                         enforceNotificationAction(policyRule, "suspend task", task, result);
@@ -229,6 +231,33 @@ class PolicyRuleEnforcer<O extends ObjectType> {
                 }
             }
         }
+    }
+
+    /**
+     * Builds a human-readable, localizable violation message from the rule's triggers - the same way the
+     * non-threshold enforcement path does (see {@link #computeEnforcementForTriggeredRules}). This avoids
+     * dumping the whole {@link PolicyRuleType} bean into the operation execution. If, exceptionally, no
+     * trigger carries a message, we fall back to the rule name.
+     */
+    private LocalizableMessage createViolationMessage(DirectlyEvaluatedClockworkPolicyRule policyRule) {
+        List<LocalizableMessage> triggerMessages = extractMessages(policyRule.getTriggers(), NORMAL).stream()
+                .map(TreeNode::getUserObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        LocalizableMessage constraintMessage;
+        if (triggerMessages.isEmpty()) {
+            constraintMessage = LocalizableMessageBuilder.buildFallbackMessage(
+                    Objects.requireNonNullElse(policyRule.getName(), "policy rule"));
+        } else {
+            constraintMessage = new LocalizableMessageListBuilder()
+                    .messages(triggerMessages)
+                    .separator(LocalizableMessageList.SEMICOLON)
+                    .buildOptimized();
+        }
+
+        return new SingleLocalizableMessage(
+                "PolicyRuleEnforces.policyViolationMessage", new Object[] { constraintMessage });
     }
 
     private void enforceNotificationAction(

@@ -74,9 +74,10 @@ Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 [[m_resource]]
 === `m_resource`
 
-Stores resource definitions and resource-specific searchable state.
+Stores resource objects and resource-specific searchable state. +
+Represents ResourceType, see https://docs.evolveum.com/midpoint/reference/resources/resource-configuration/
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -211,9 +212,11 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 [[m_shadow]]
 === `m_shadow`
 
-Stores resource object shadows and their searchable synchronization state.
+Stores resource object shadows and their searchable synchronization state. +
+Represents ShadowType, see https://docs.evolveum.com/midpoint/reference/resources/shadow/ +
+and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType`
 
 No primary key is defined for this table.
 
@@ -354,12 +357,14 @@ No primary key is defined for this table.
 | `db_created`
 | `TIMESTAMPTZ`
 | required, default `current_timestamp`
-| Database timestamp when this row was created.
+| Database timestamp when this row was created. +
+Purely DB-managed metadata, not mapped to in midPoint. Updated in update trigger.
 
 | `db_modified`
 | `TIMESTAMPTZ`
 | required, default `current_timestamp`
-| Database timestamp when this row was last modified.
+| Database timestamp when this row was last modified. +
+Purely DB-managed metadata, not mapped to in midPoint. Updated in update trigger.
 
 | `objectClassId`
 | `INTEGER`

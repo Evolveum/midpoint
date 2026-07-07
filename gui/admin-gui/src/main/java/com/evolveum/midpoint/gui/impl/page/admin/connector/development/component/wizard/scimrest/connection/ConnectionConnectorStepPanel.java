@@ -183,7 +183,7 @@ public class ConnectionConnectorStepPanel extends AbstractFormWizardStepPanel<Co
                 new EndpointConnectorStepPanel(getHelper()),
                 new FixConnectionConnectorStepPanel(getHelper()),
                 new ResourceTestConnectorStepPanel(getHelper()),
-                new WaitingScimSchemaConnectorStepPanel(getHelper()));
+                new WaitingSchemaConnectorStepPanel(getHelper()));
     }
 
     @Override

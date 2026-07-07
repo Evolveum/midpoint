@@ -588,10 +588,7 @@ $$;
 $aa$);
 
 -- Assignments have separate full object
-/*
- * @change: Adds separate full object storage to assignments,
- * operation executions, and selected reference tables.
- */
+-- @change: Adds separate full object storage to assignments, operation executions, and selected reference tables.
 -- @since: 4.9
 -- @affects: table m_assignment | Modified table | Adds separate full object storage.
 -- @affects: table m_operation_execution | Modified table | Adds separate full object storage.

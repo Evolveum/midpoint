@@ -20,7 +20,7 @@ Task objects, task containers, affected objects, triggers, and operation executi
 
 Stores operation execution records attached to objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#OperationExecutionType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#OperationExecutionType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
@@ -213,9 +213,10 @@ No primary key is defined directly on this table. The table inherits from xref:i
 [[m_task]]
 === `m_task`
 
-Stores persistent task objects managed by the task manager.
+Stores persistent task objects managed by the task manager. +
+Represents persistent TaskType, see https://docs.evolveum.com/midpoint/reference/tasks/task-manager/
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#TaskType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#TaskType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -444,7 +445,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores affected object information for task activity reporting and indexing.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ActivityAffectedObjectsType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ActivityAffectedObjectsType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
@@ -569,7 +570,7 @@ Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
 Stores trigger containers attached to objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#TriggerType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#TriggerType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 

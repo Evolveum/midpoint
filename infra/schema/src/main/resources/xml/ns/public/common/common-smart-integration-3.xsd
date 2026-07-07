@@ -1663,7 +1663,7 @@
             <xsd:element name="connDevDiscoverObjectClassInformationResult" type="tns:ConnDevDiscoverObjectClassInformationResultType" minOccurs="0" />
             <xsd:element name="connDevDiscoverObjectClassAttributesResult" type="tns:ConnDevDiscoverObjectClassAttributesResultType" minOccurs="0" />
             <xsd:element name="connDevDiscoverObjectClassEndpointsResult" type="tns:ConnDevDiscoverObjectClassEndpointsResultType" minOccurs="0" />
-            <xsd:element name="connDevRefreshScimSchemaResult" type="tns:ConnDevRefreshScimSchemaResultType" minOccurs="0" />
+            <xsd:element name="connDevRefreshSchemaResult" type="tns:ConnDevRefreshSchemaResultType" minOccurs="0" />
             <xsd:element name="connDevDiscoverConnectivityEndpointResult" type="tns:ConnDevDiscoverConnectivityEndpointResultType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
