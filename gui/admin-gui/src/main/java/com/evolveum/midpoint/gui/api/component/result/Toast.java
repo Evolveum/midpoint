@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.api.component.result;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -43,7 +44,7 @@ public class Toast implements Serializable {
 
     private Integer delay;
 
-    @JsonProperty("class")
+    @JsonProperty("className")
     private String cssClass;
 
     public String icon() {
@@ -119,49 +120,42 @@ public class Toast implements Serializable {
     }
 
     public Toast info() {
-        return cssClass("mt-3 me-3 bg-info");
+        return cssClass("text-bg-info");
     }
 
     public Toast success() {
-        return cssClass("mt-3 me-3 bg-success");
+        return cssClass("text-bg-success");
     }
 
     public Toast error() {
-        return cssClass("mt-3 me-3 bg-danger");
+        return cssClass("text-bg-danger");
     }
 
     public Toast warning() {
-        return cssClass("mt-3 me-3 bg-warning");
+        return cssClass("text-bg-warning");
     }
 
     public void show(@NotNull AjaxRequestTarget target) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            String toast = mapper.writeValueAsString(this);
-
-            target.appendJavaScript("$(document).Toasts('create', " + toast + ");");
+            target.appendJavaScript("MidPointTheme.showToast(" + getVariables() + ");");
         } catch (Exception ex) {
             target.appendJavaScript("console.error('Couldn't create toast, reason: " + ex.getMessage() + "');");
             LOGGER.debug("Couldn't create toast", ex);
         }
     }
 
-    public void configureAriaAttributesAndShow(@NotNull AjaxRequestTarget target) {
-        show(target);
-
-        target.appendJavaScript("MidPointTheme.setToastAriaAttributes('toastsContainerTopEnd');");
-    }
-
     public void show(@NotNull IHeaderResponse response) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            String toast = mapper.writeValueAsString(this);
-
-            response.render(OnDomReadyHeaderItem.forScript("$(document).Toasts('create', " + toast + ");"));
+            response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.showToast(" + getVariables() + ");"));
         } catch (Exception ex) {
             response.render(OnDomReadyHeaderItem.forScript(
                     "console.error('Couldn't create toast, reason: " + ex.getMessage() + "');"));
             LOGGER.debug("Couldn't create toast", ex);
         }
+    }
+
+    private String getVariables() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(this);
     }
 }
