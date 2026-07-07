@@ -21,13 +21,14 @@ These scripts contain a set of SQL commands (usually `ALTER TABLE` commands) tha
 The scripts are designed to be non-desctructive, therefore they can safely be executed over a database that is populated with data.
 (Of course, the usual backup routine is strongly recommended.)
 
-IMPORTANT: Database schema upgrade usually introduces new columns which needs to be populated from full object.
+IMPORTANT: Database schema upgrades often introduce new database columns values of which can be derived from the existing object data.
+Although the required information is already present in the repository as part of the complete object representation, the newly introduced columns remain empty until the objects are reprocessed.
+Running the Reindex Repository Task recomputes these values and populates the new columns.
 It is highly recommended to run Reindex Repository Task (GUI -> About -> Reindex Repository Objects) after database schema upgrades.
 
 == Upgrading Native PostgreSQL Repository
 
 This section describes how to upgrade the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
-For future releases, the process should be similar to previous upgrades.
 
 === Upgrade Script Location
 
@@ -89,7 +90,7 @@ The following option is required when executing an upgrade script using the `psq
 | SQL script file to execute.
 |===
 
-These options are optional. If not specified, `psql` uses its default behavior and connection settings.
+These options are optional.
 
 [%autowidth,cols="1,3"]
 |===
@@ -104,12 +105,23 @@ These options are optional. If not specified, `psql` uses its default behavior a
 | `-U`
 | Database username.
 
+| `-d`
+| Database name.
+
 | `-W`
 | Prompts for the database password.
 
-| `-d`
-| Database name.
 |===
+
+[NOTE]
+====
+If connection options (`-h`, `-U`, and `-d`) are omitted, `psql` uses its built-in defaults.
+
+By default, the database username is the current operating system username, and the database name is the same as the selected database user.
+If no host is specified, `psql` connects to the local PostgreSQL server.
+
+Visit https://www.postgresql.org/docs/current/app-psql.html[the PostgreSQL documentation] to learn more about the default connection behavior.
+====
 
 === Examples
 
@@ -147,7 +159,7 @@ You can use other client than `psql`, but the client must send the commands to t
 E.g. IDEA Ultimate Edition or DataGrip from JetBrains work fine.
 
 Some clients, notably https://www.pgadmin.org/[pgAdmin], send the whole content in a single request.
-Please, do not use them to run upgrade scripts!
+Do not use them to run upgrade scripts!
 ====
 
 
