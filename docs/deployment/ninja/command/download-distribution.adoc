@@ -1,6 +1,7 @@
 = Download distribution
 
-The `download-distribution` command downloads a target midPoint distribution from `download.evolveum.com` and extracts it into a directory specified by the `--distribution-directory` option.
+The `download-distribution` command downloads a target midPoint distribution from https://download.evolveum.com/midpoint/[download.evolveum.com]
+and extracts it into a directory specified by the `--distribution-directory` option.
 
 By default, Ninja downloads the next supported target version based on the current midPoint version. For example:
 
@@ -12,7 +13,8 @@ Specify `latest` to download the latest available development (snapshot) build, 
 
 Instead of downloading the distribution, you can provide an existing ZIP archive using the `--distribution-archive <PATH_TO_ZIP>` option.
 Ninja uses the provided archive instead of downloading it from `download.evolveum.com` and extracts it into the directory specified by `--distribution-directory`.
-This is useful if you already have the required distribution archive available locally, for example a previously downloaded release or a custom build created using a Maven overlay. It is especially useful when used together with the `upgrade-distribution` command.
+This is useful if you already have the required distribution archive available locally, for example a previously downloaded release or a custom build created using a Maven overlay.
+It is especially useful when used together with the `upgrade-distribution` command.
 
 The `--temp-dir` option specifies the directory used for temporary files during the download and extraction process.
 If not specified, the default JVM temporary directory is used.
