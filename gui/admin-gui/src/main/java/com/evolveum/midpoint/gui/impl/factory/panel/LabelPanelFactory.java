@@ -39,20 +39,22 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
     @Override
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<T> panelCtx) {
         String lookupTableOid = panelCtx.getPredefinedValuesOid();
-        if (lookupTableOid != null) {
-            return new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel(), lookupTableOid);
-        }
-
+        Label labelPanel;
         T object = panelCtx.getRealValueModel().getObject();
-        if (object instanceof Enum<?>) {
-            return new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForEnum((Enum<?>) object, panelCtx.getPageBase()));
+        if (lookupTableOid != null) {
+            labelPanel = new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel(), lookupTableOid);
+        } else if (object instanceof Enum<?>) {
+            labelPanel = new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForEnum((Enum<?>) object, panelCtx.getPageBase()));
         } else if (object instanceof PolyString) {
-            return new Label(panelCtx.getComponentId(), LocalizationUtil.translatePolyString((PolyString) object));
+            labelPanel = new Label(panelCtx.getComponentId(), LocalizationUtil.translatePolyString((PolyString) object));
         } else if (object instanceof Boolean) {
-            return new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForBoolean((Boolean) object));
+            labelPanel = new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForBoolean((Boolean) object));
+        } else {
+            labelPanel = new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
         }
 
-        return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
+        labelPanel.add(AttributeModifier.append("class", "prism-property-value-label"));
+        return labelPanel;
     }
 
     @Override
