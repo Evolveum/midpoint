@@ -528,7 +528,6 @@
                         <addFocus/>
                     </actions>
                 </reaction>
-
             </synchronization>
 
         </objectType>

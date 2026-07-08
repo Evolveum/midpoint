@@ -58,6 +58,14 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <classificationCondition>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>!projection.attributes.name.startsWith('T')</code>
+                    </script>
+                </classificationCondition>
+            </delineation>
             <attribute>
                 <ref>icfs:name</ref>
                 <displayName>Username</displayName>
@@ -65,10 +73,11 @@
                     <name>name</name>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 name + iterationToken
                             </code>
@@ -79,7 +88,7 @@
                     <!-- This avoids "kickback" of a name from account to a user. -->
                     <strength>weak</strength>
                     <target>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </target>
                 </inbound>
             </attribute>
@@ -101,17 +110,17 @@
                     <expression>
                         <allowEmptyValues>true</allowEmptyValues>
                         <script>
+                            <description>
+                                This is somehow ugly. However, this kind of expression should not be common.
+                            </description>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                if (input?.contains('#')) {
-                                    return null
-                                } else {
-                                    return input
-                                }
+                                input.contains('#') ? nil : input
                             </code>
                         </script>
                     </expression>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -126,7 +135,7 @@
                     <name>locality</name>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/locality</path>
+                        <path>$focus/locality</path>
                     </source>
                 </outbound>
                 <inbound>
@@ -134,7 +143,8 @@
                     <expression>
                         <allowEmptyValues>false</allowEmptyValues>
                         <script>
-                            <code>'Came from ' + input</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>'Came from %s'.format(input)</code>
                         </script>
                     </expression>
                     <target>
@@ -149,7 +159,12 @@
                     <expression>
                         <allowEmptyValues>false</allowEmptyValues>
                         <script>
-                            <code>'The crew of ' + input</code>
+                            <documentation>
+                                We are not doing the "assert midpoint.isEvaluateNew()" here.
+                                MEL cannot really do that, leaving that to the Groovy version of the resource.
+                            </documentation>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>'The crew of %s'.format(input)</code>
                         </script>
                     </expression>
                     <target>
@@ -171,6 +186,7 @@
                     <channel>http://pirates.net/avast</channel>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>9999 + 1</code>
                         </script>
                     </expression>
@@ -185,7 +201,7 @@
                     <source>
                         <path>
                             declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-                            $user/extension/piracy:weapon
+                            $focus/extension/piracy:weapon
                         </path>
                     </source>
                 </outbound>
@@ -242,7 +258,7 @@
                         <value>very FISHY</value>
                     </expression>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -288,8 +304,10 @@
                     <inbound>
                         <strength>weak</strength>
                         <condition>
+                            <name>administrativeStatus-validFrom-validTo-c</name>
                             <script>
-                                <code>focus?.getActivation()?.getValidFrom() == null &amp;&amp; focus?.getActivation()?.getValidTo() == null</code>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                                <code>isNil(focus.activation.validFrom) &amp;&amp; isNil(focus.activation.validTo)</code>
                             </script>
                         </condition>
                     </inbound>
@@ -315,6 +333,43 @@
                 </password>
             </credentials>
 
+            <correlation>
+                <correlators>
+                    <items>
+                        <item>
+                            <ref>name</ref>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
+
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+
         </objectType>
 
         <objectType>
@@ -323,15 +378,24 @@
             <displayName>Testing Account</displayName>
             <default>false</default>
             <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <classificationCondition>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>projection.attributes.name.startsWith('T')</code>
+                    </script>
+                </classificationCondition>
+            </delineation>
             <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 'T' + name + iterationToken
                             </code>
@@ -343,13 +407,14 @@
                     <strength>weak</strength>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                input?.substring(1)
+                                input.substring(1)
                             </code>
                         </script>
                     </expression>
                     <target>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </target>
                 </inbound>
             </attribute>
@@ -357,10 +422,11 @@
                 <ref>ri:fullname</ref>
                 <outbound>
                     <source>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>fullName + ' (test)'</code>
                         </script>
                     </expression>
@@ -368,7 +434,7 @@
                 <inbound>
                     <strength>weak</strength>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -378,7 +444,7 @@
                     <strength>strong</strength>
                     <source>
                         <path>
-                            $user/locality
+                            $focus/locality
                         </path>
                     </source>
                 </outbound>
@@ -389,6 +455,7 @@
                 <inbound>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>'The crew of Titanicum ' + input + 'icum'</code>
                         </script>
                     </expression>
@@ -397,7 +464,8 @@
                     </target>
                     <condition>
                         <script>
-                            <code>input != null</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(input)</code>
                         </script>
                     </condition>
                 </inbound>
@@ -431,6 +499,43 @@
                     <outbound/>
                 </password>
             </credentials>
+
+            <correlation>
+                <correlators>
+                    <items>
+                        <item>
+                            <ref>name</ref>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
+
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
 
         </objectType>
 
@@ -592,7 +697,7 @@ end
             <host>resource</host>
             <language>Gibberish</language>
             <argument>
-                <path>$user/costCenter</path>
+                <path>$focus/costCenter</path>
                 <name>howMuch</name>
             </argument>
             <argument>
@@ -600,11 +705,11 @@ end
                 <name>howLong</name>
             </argument>
             <argument>
-                <path>$user/name</path>
+                <path>$focus/name</path>
                 <name>who</name>
             </argument>
             <argument>
-                <path>$user/fullName</path>
+                <path>$focus/fullName</path>
                 <name>whatchacallit</name>
             </argument>
             <code>Beware the Jabberwock, my son!</code>
@@ -636,7 +741,7 @@ end
             <host>resource</host>
             <language>Gibberish</language>
             <argument>
-                <path>$shadow/activation/administrativeStatus</path>
+                <path>$projection/activation/administrativeStatus</path>
                 <name>how</name>
             </argument>
             <code>He left it dead, and with its head</code>
@@ -659,97 +764,4 @@ end
         <defaultCacheUse>useCachedOrFresh</defaultCacheUse>
     </caching>
 
-    <synchronization>
-        <objectSynchronization>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <kind>account</kind>
-            <intent>default</intent>
-            <enabled>true</enabled>
-            <condition>
-                <script>
-                    <code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
-                </script>
-            </condition>
-            <correlation>
-                <q:equal>
-                    <q:path>name</q:path>
-                    <expression>
-                        <path>$account/attributes/icfs:name</path>
-                    </expression>
-                </q:equal>
-            </correlation>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-
-        <objectSynchronization>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <kind>account</kind>
-            <intent>test</intent>
-            <enabled>true</enabled>
-            <condition>
-                <script>
-                    <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
-                </script>
-            </condition>
-            <correlation>
-                <q:equal>
-                    <q:path>name</q:path>
-                    <expression>
-                        <script>
-                            <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
-                        </script>
-                    </expression>
-                </q:equal>
-            </correlation>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-    </synchronization>
 </resource>

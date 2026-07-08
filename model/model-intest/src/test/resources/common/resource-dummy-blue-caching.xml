@@ -64,6 +64,7 @@
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>name + iterationToken</code>
                         </script>
                     </expression>
@@ -88,9 +89,10 @@
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <!-- It is important to have script here, not just asIs.
                                  The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
-                            <code>fullName?.toString()</code>
+                            <code>fullName.orig</code>
                         </script>
                     </expression>
                 </outbound>
@@ -148,6 +150,7 @@
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <!-- It is important to have script here, not just asIs.
                                  The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
                             <code>description + ' -- ' + fullName</code>
@@ -223,9 +226,9 @@
                     <q:path>c:name</q:path>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                basic.getAttributeValue(account,
-                                    'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
+                                projection.attributes.name
                             </code>
                         </script>
                     </expression>
