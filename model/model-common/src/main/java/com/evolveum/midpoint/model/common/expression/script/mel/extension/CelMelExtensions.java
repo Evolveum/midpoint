@@ -72,7 +72,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     @Override
     protected ImmutableSet<Function> initializeFunctions() {
         final TypeParamType paramTypeV = TypeParamType.create("V");
-        final OptionalType optionalTypeV = OptionalType.create(paramTypeV);
 
         return ImmutableSet.of(
 
@@ -329,11 +328,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from(
                             "polystring_contains",
                             ImmutableList.of(PolyStringCelValue.class, String.class),
-                            CelMelExtensions::polystringContains,
-                            NullabilityProperties.NULLABLE_FALSE),
-                    CelFunctionBinding.from(
-                            "polystring_contains",
-                            ImmutableList.of(Optional.class, String.class),
                             CelMelExtensions::polystringContains,
                             NullabilityProperties.NULLABLE_FALSE)),
 
@@ -1182,7 +1176,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from(
                             "string-polystring", PolyStringCelValue.class,
                             CelMelExtensions::string,
-                            NullabilityProperties.NULLABLE)),
+                            NullabilityProperties.NOT_NULLABLE)),
 
             // stringify(any)
             new Function(

@@ -67,7 +67,6 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final CelOptions celOptions = CelOptions.current()
             .enableRegexPartialMatch(true)
-            .enableOptionalSyntax(true)
             .enableShortCircuiting(true)
             .enableEasyNull(true)
             .build();
