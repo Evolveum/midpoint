@@ -17,6 +17,7 @@
             <class name="com.evolveum.midpoint.authentication.TestOtpService"/>
             <class name="com.evolveum.midpoint.authentication.TestOtpAcceptEmptyAuthentication"/>
             <class name="com.evolveum.midpoint.authentication.TestRequisiteModuleAbort"/>
+            <class name="com.evolveum.midpoint.authentication.TestWicketLoginUrlAuthenticationEntryPoint"/>
         </classes>
     </test>
 </suite>
