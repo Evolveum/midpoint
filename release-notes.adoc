@@ -39,6 +39,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Updated spring boot to 4.0. See bug:MID-11002[]
 * Fixed bucketed task workers continuing after root task suspension. See bug:MID-11217[].
 * Updated spring boot to 4.1. See bug:MID-11547[]
+* Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
 
 == Changes With Respect To Version 4.10.3
 
