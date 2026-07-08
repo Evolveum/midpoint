@@ -12,8 +12,6 @@ import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createConf
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -59,6 +57,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class AssociationTablePanel
         extends MultiSelectContainerActionTileTablePanel<
@@ -506,7 +505,7 @@ public abstract class AssociationTablePanel
         };
 
         tag.setOutputMarkupId(true);
-        tag.add(AttributeModifier.replace("class", "badge bg-blue bg-opaque d-inline-flex flex-nowrap")); //system-badge
+        tag.add(AttributeModifier.replace("class", "badge text-bg-blue opaque d-inline-flex flex-nowrap")); //system-badge
         return tag;
     }
 

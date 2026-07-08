@@ -235,7 +235,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
         Label badge = new Label(ID_STEP_BADGE, createStringResource("WizardWithNavigationPanel.navigation.step.status." + keySuffix));
         badge.setOutputMarkupId(true);
-        badge.add(AttributeAppender.append("class", "badge " + badgeClass + " bg-opaque"));
+        badge.add(AttributeAppender.append("class", "badge " + badgeClass + " opaque"));
         listItem.add(badge);
     }
 

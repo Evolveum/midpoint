@@ -22,11 +22,11 @@ public enum ResourceGuideAssociationTypeTileState {
 
     NORMAL(null),
     CONFIGURED(new BadgeSpec(
-            "badge bg-success bg-opaque",
+            "badge text-bg-success opaque",
             "",
             "ResourceAssociationTypeWizardChoicePanel.ready")),
     RECOMMENDED(new BadgeSpec(
-            "badge bg-primary bg-opaque",
+            "badge text-bg-primary opaque",
             "",
             "ResourceAssociationTypeWizardChoicePanel.pending")),
     TEMPORARY_LOCKED(null);
