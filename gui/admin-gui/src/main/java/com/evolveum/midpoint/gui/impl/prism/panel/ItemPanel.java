@@ -124,7 +124,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
         if (isDisplayedInColumn()) {
             css.append("col-12");
         } else {
-            css.append("col-xl-10 col-md-8 col-xs-12");
+            css.append("col-4xl-10 col-xxl-9 col-xl-8 col-md-7 col-sm-12");
         }
 
         if (isMultiValueLayout()) {
