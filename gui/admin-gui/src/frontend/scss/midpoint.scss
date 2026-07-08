@@ -1993,3 +1993,8 @@ th.debug-list-buttons {
 .name-min-width {
   min-width: 300px;
 }
+
+.prism-property-value-label {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

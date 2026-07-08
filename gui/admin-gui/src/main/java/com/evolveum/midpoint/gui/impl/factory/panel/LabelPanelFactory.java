@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import jakarta.annotation.PostConstruct;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
