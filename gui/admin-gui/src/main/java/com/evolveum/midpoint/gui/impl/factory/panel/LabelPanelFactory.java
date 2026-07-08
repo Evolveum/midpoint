@@ -53,38 +53,34 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
     @Override
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<T> panelCtx) {
         String lookupTableOid = panelCtx.getPredefinedValuesOid();
-        if (lookupTableOid != null) {
-            return new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel(), lookupTableOid);
-        }
-
+        Label labelPanel;
         T object = panelCtx.getRealValueModel().getObject();
-        if (object instanceof Enum<?>) {
-            return new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForEnum((Enum<?>) object, panelCtx.getPageBase()));
+        if (lookupTableOid != null) {
+            labelPanel = new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel(), lookupTableOid);
+        } else if (object instanceof Enum<?>) {
+            labelPanel = new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForEnum((Enum<?>) object, panelCtx.getPageBase()));
         } else if (object instanceof PolyString) {
-            return new Label(panelCtx.getComponentId(), LocalizationUtil.translatePolyString((PolyString) object));
+            labelPanel = new Label(panelCtx.getComponentId(), LocalizationUtil.translatePolyString((PolyString) object));
         } else if (object instanceof Boolean) {
-            return new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForBoolean((Boolean) object));
+            labelPanel = new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForBoolean((Boolean) object));
         } else if (object instanceof ProtectedStringType) {
             if (StringUtils.isNotEmpty(((ProtectedStringType) object).getClearValue())
                     || ((ProtectedStringType) object).getEncryptedDataType() != null) {
-                return new Label(panelCtx.getComponentId(), panelCtx.getPageBase().createStringResource("passwordPanel.passwordSet"));
+                labelPanel = new Label(panelCtx.getComponentId(), panelCtx.getPageBase().createStringResource("passwordPanel.passwordSet"));
             } else {
-                return new Label(panelCtx.getComponentId(), Model.of());
+                labelPanel = new Label(panelCtx.getComponentId(), Model.of());
             }
         } else if (object instanceof VariableBindingDefinitionType variableBindingDefinition) {
             ItemPathType path = variableBindingDefinition.getPath();
-            return new Label(panelCtx.getComponentId(), Model.of(path != null ? path.toString() : ""));
-        }
-        if (panelCtx.getDefinitionName().equivalent(MappingType.F_EXPRESSION)) {
+            labelPanel = new Label(panelCtx.getComponentId(), Model.of(path != null ? path.toString() : ""));
+        } else if (panelCtx.getDefinitionName().equivalent(MappingType.F_EXPRESSION)) {
             return createExpressionReadOnlyPanel(panelCtx);
+        } else if (object instanceof SearchFilterType) {
+            labelPanel = new Label(panelCtx.getComponentId(), ((SearchFilterType) object).getText());
+        } else {
+            labelPanel = new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
         }
-
-        if (object instanceof SearchFilterType) {
-            return new Label(panelCtx.getComponentId(), ((SearchFilterType) object).getText());
-        }
-
-        Label labelPanel = new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
-        labelPanel.add(AttributeModifier.append("style", "white-space: pre-wrap;")); //needed to save the formatting of the multiline text
+        labelPanel.add(AttributeModifier.append("class", "prism-property-value-label"));
         return labelPanel;
     }
 
