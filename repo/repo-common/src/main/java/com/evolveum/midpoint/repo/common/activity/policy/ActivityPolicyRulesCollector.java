@@ -139,9 +139,9 @@ public class ActivityPolicyRulesCollector {
             OperationResult result) throws ConfigurationException {
 
         for (ObjectReferenceType policyRef : activityPoliciesBean.getPolicyRef()) {
-            ObjectType object = null;
+            AbstractRoleType role = null;
             try {
-                object = objectResolver.resolve(policyRef, AbstractRoleType.class, null, "resolving policyRef", task, result);
+                role = objectResolver.resolve(policyRef, AbstractRoleType.class, null, "resolving policyRef", task, result);
             } catch (ObjectNotFoundException ex) {
                 LOGGER.warn(
                         "Referenced object for policyRef {} not found, skipping. Activity path: {}",
@@ -152,14 +152,7 @@ public class ActivityPolicyRulesCollector {
                         policyRef, activityPath, ex.getMessage());
             }
 
-            if (object == null) {
-                continue;
-            }
-
-            if (!(object instanceof AbstractRoleType role)) {
-                LOGGER.debug(
-                        "Referenced object for policyRef {} is not a abstract role, skipping. Activity path: {}. Object type: {}",
-                        policyRef, activityPath, object.getClass().getName());
+            if (role == null) {
                 continue;
             }
 
@@ -184,9 +177,9 @@ public class ActivityPolicyRulesCollector {
                 }
 
                 ConfigurationItemOrigin origin = ConfigurationItemOrigin.inObject(
-                        object, ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, rule.getId()));
+                        role, ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, rule.getId()));
 
-                PolicyRuleIdentifier identifier = PlainPolicyRuleIdentifier.of(object.getOid(), inducement.getId());
+                PolicyRuleIdentifier identifier = PlainPolicyRuleIdentifier.of(role.getOid(), inducement.getId());
 
                 addActivityPolicyRule(rule, activityPath, origin, identifier, rules);
             }
