@@ -64,6 +64,7 @@
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>name + iterationToken</code>
                         </script>
                     </expression>
@@ -236,9 +237,9 @@
                     <q:path>c:name</q:path>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                basic.getAttributeValue(account,
-                                    'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
+                                projection.attributes.name
                             </code>
                         </script>
                     </expression>

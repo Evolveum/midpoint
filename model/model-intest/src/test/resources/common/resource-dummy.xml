@@ -104,13 +104,11 @@
                         <allowEmptyValues>true</allowEmptyValues>
                         <script>
                             <description>
-                                This is ugly. However, this kind of expression should not be common.
+                                This is somehow ugly. However, this kind of expression should not be common.
                             </description>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                input.contains('#')
-                                    ? nil
-                                    : input
+                                input.contains('#') ? nil : input
                             </code>
                         </script>
                     </expression>

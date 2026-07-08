@@ -1382,6 +1382,30 @@ public class TestMelExpressions extends AbstractScriptTest {
                 null);
     }
 
+    @Test
+    public void testExpressionContainsMemberReverseString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-contains-member-reverse.xml",
+                createVariables("input", "foobar", PrimitiveType.STRING),
+                "foobar");
+    }
+
+    @Test
+    public void testExpressionContainsMemberReverseStringHash() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-contains-member-reverse.xml",
+                createVariables("input", "foo#bar", PrimitiveType.STRING),
+                null);
+    }
+
+    @Test
+    public void testExpressionContainsMemberReverseStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-contains-member-reverse.xml",
+                createVariables("input", null, PrimitiveType.STRING),
+                null);
+    }
+
 
     @Test
     public void testUsernameJackSubstring() throws Exception {
