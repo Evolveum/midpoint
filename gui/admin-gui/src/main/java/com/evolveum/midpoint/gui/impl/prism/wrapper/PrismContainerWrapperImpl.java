@@ -276,8 +276,10 @@ public class PrismContainerWrapperImpl<C extends Containerable>
             switch (pVal.getStatus()) {
                 case ADDED:
 
-                    PrismContainerValue<C> valueToAdd = pVal.getNewValue().clone();
-                    if (valueToAdd.isEmpty() || valueToAdd.isIdOnly()) {
+                    PrismContainerValue<C> valueToAdd = prepareValueToAdd(pVal);
+
+                    if (valueToAdd == null || valueToAdd.isEmpty() || valueToAdd.isIdOnly()) {
+                        LOGGER.trace("Value is empty, skipping delta creation.");
                         break;
                     }
 
@@ -481,5 +483,9 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         }
 
         return virtualContainer;
+    }
+
+    protected PrismContainerValue<C> prepareValueToAdd(@NotNull PrismContainerValueWrapper<C> pVal) throws SchemaException {
+        return pVal.getNewValue().clone();
     }
 }
