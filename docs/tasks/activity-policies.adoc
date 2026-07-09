@@ -170,6 +170,10 @@ The _notification_ policy action uses the standard notification mechanism, so it
 The _suspend task_ policy action will immediately suspend the whole task or task tree that executes the activity.
 Task will be suspended with `FATAL_ERROR` result.
 
+Suspending preserves the activity state, including policy triggers and threshold counters.
+When the task is resumed, they continue from where they were.
+It might be suspended right away if policy threshold were hit previously.
+
 [[restartactivity]]
 === Restart activity
 
@@ -181,6 +185,8 @@ Restarting of the activity happens in two steps:
 
 . The current activity execution is stopped by suspending the task.
 . The task is resumed, which causes the activity to start from the beginning.
+
+When the activity is restarted, its policy triggers and threshold counters are reset along with the rest of the activity state, so counting starts fresh.
 
 Restarting of the task may be delayed by using the `delay` parameter, which is specified as an XML duration.
 The default delay parameter value is 5 seconds.
