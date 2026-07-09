@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegrationTest {
+public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/hr-scenario");
     private static final File COMMON_DIR = new File("src/test/resources/tasks/common");
@@ -62,18 +62,25 @@ public class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegrationTest
 
     private static final TestObject<TaskType> TASK_HR =
             TestObject.file(TEST_DIR, "hr-reconciliation.xml", "e4f00000-0000-0000-0000-000000000001");
+    private static final TestObject<TaskType> TASK_HR_IMPORT =
+            TestObject.file(TEST_DIR, "hr-import.xml", "e4f00000-0000-0000-0000-0000000000ff");
 
     private static final int ACCOUNTS = 20;
     private static final String PATTERN = "a%02d";
-    private static final int DELETE_THRESHOLD = 5;
+    protected static final int DELETE_THRESHOLD = 5;
 
     private static final long TIMEOUT = 90_000;
-    private static final long SLEEP = 1000;
 
-    private static final ActivityPath SIMULATE = ActivityPath.fromId("simulate");
-    private static final ActivityPath EXECUTE = ActivityPath.fromId("execute");
+    protected static final ActivityPath SIMULATE = ActivityPath.fromId("simulate");
+    protected static final ActivityPath EXECUTE = ActivityPath.fromId("execute");
 
     private static final String DUMMY_POLICY_NOTIFIER = "dummy:policyNotifier";
+
+    /**
+     * Topology customizer applied to every run of the HR task: worker threads and/or subtask distribution.
+     * The scenario and assertions are identical across flavors; only this changes.
+     */
+    protected abstract Consumer<PrismObject<TaskType>> topology();
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -130,27 +137,13 @@ public class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegrationTest
 
     // region helpers
 
-    /** Imports all accounts (no policy), linking users to shadows — the state reconciliation later prunes. */
+    /** Imports all accounts (plain import, no policy), linking users to shadows — the state the scenario prunes. */
     private void importAllAndLink(OperationResult result) throws Exception {
-        reconcileAllRaw(result);
-    }
-
-    /** A plain full reconciliation of the whole resource to create/link all users. */
-    private void reconcileAllRaw(OperationResult result) throws Exception {
-        TestObject<TaskType> bootstrap = TestObject.file(TEST_DIR, "hr-reconciliation.xml",
-                "e4f00000-0000-0000-0000-000000000001");
-        // reuse the fixture but strip policies + force full mode so it just links everyone
-        deleteIfPresent(bootstrap, result);
-        addObject(bootstrap, getTestTask(), result, (Consumer<PrismObject<TaskType>>) taskObj -> {
-            for (ActivityDefinitionType child : taskObj.asObjectable().getActivity().getComposition().getActivity()) {
-                child.setPolicies(null);
-                if (child.getExecution() != null) {
-                    child.getExecution().setMode(ExecutionModeType.FULL);
-                }
-            }
-        });
-        waitForRootClose(bootstrap.oid, 5 * TIMEOUT);
-        deleteIfPresent(bootstrap, result);
+        deleteIfPresent(TASK_HR_IMPORT, result);
+        addObject(TASK_HR_IMPORT, getTestTask(), result, (Consumer<PrismObject<TaskType>>) t -> { });
+        waitForTaskCloseOrSuspend(TASK_HR_IMPORT.oid, 5 * TIMEOUT);
+        assertTaskTree(TASK_HR_IMPORT.oid, "after import").assertClosed().assertSuccess();
+        deleteIfPresent(TASK_HR_IMPORT, result);
     }
 
     private void deleteAccounts(int from, int to) throws Exception {
@@ -244,28 +237,54 @@ public class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegrationTest
                 .findFirst().orElse(0);
     }
 
-    private void waitForRootTermination(String oid, long timeout) throws Exception {
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < timeout) {
-            Task t = taskManager.getTaskWithResult(oid, getTestOperationResult());
-            if (t.isClosed() || t.isSuspended()) {
-                return;
-            }
-            Thread.sleep(SLEEP);
-        }
-        throw new AssertionError("Root task " + oid + " did not terminate within " + timeout + " ms");
+    /**
+     * Asserts the initial suspension: the simulate (preview) reconciliation tripped the max-deleted threshold
+     * and suspended, execute never started, and the (preview) counter is at the threshold. Overridden by the
+     * subtask-distributed flavor, where the simulate activity runs in its own subtask.
+     */
+    protected void assertSimulateSuspended(String taskOid, String counterId) throws Exception {
+        // @formatter:off
+        assertTaskTree(taskOid, "after run")
+                .display()
+                .assertSuspended()
+                .activityState(SIMULATE)
+                    .assertFatalError()
+                    .previewModePolicyRulesCounters()
+                        .assertCounterMinMax(counterId, DELETE_THRESHOLD, DELETE_THRESHOLD + 3)
+                        .end()
+                    .end()
+                .activityState(EXECUTE)
+                    .assertRealizationState(null);
+        // @formatter:on
     }
 
-    private void waitForRootClose(String oid, long timeout) throws Exception {
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < timeout) {
-            Task t = taskManager.getTaskWithResult(oid, getTestOperationResult());
-            if (t.isClosed()) {
-                return;
-            }
-            Thread.sleep(SLEEP);
-        }
-        throw new AssertionError("Root task " + oid + " did not close within " + timeout + " ms");
+    /**
+     * Asserts a clean completion of the whole task tree: it closed successfully, both the simulate (preview)
+     * and execute (full) reconciliations succeeded, their delete counters stayed below the threshold, and no
+     * policy tripped. Overridden by the subtask-distributed flavor, where the activities run in their own
+     * subtasks.
+     */
+    protected void assertRunSucceeded(String taskOid) throws Exception {
+        String simulateId = ActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), SIMULATE, "max-deleted", true);
+        String executeId = ActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), EXECUTE, "max-deleted-execute", true);
+        // @formatter:off
+        assertTaskTree(taskOid, "after successful run")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .activityState(SIMULATE)
+                    .assertSuccess()
+                    .assertNoPolicies()
+                    .previewModePolicyRulesCounters()
+                        .assertCounterMinMax(simulateId, 1, DELETE_THRESHOLD - 1)
+                        .end()
+                    .end()
+                .activityState(EXECUTE)
+                    .assertSuccess()
+                    .assertNoPolicies()
+                    .fullExecutionModePolicyRulesCounters()
+                        .assertCounterMinMax(executeId, 1, DELETE_THRESHOLD - 1);
+        // @formatter:on
     }
 
     // endregion
@@ -289,24 +308,12 @@ public class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegrationTest
 
         when("running the HR reconciliation");
         deleteIfPresent(TASK_HR, result);
-        addObject(TASK_HR, getTestTask(), result, (Consumer<PrismObject<TaskType>>) t -> { });
-        waitForRootTermination(TASK_HR.oid, TIMEOUT);
+        addObject(TASK_HR, getTestTask(), result, topology());
+        waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
 
         then("the simulate activity suspends on the delete threshold; nothing is really deleted");
         String id = ActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_HR.oid), SIMULATE, "max-deleted", true);
-        // @formatter:off
-        assertTaskTree(TASK_HR.oid, "after run")
-                .display()
-                .assertSuspended()
-                .activityState(SIMULATE)
-                    .assertFatalError()
-                    .previewModePolicyRulesCounters()
-                        .assertCounterMinMax(id, DELETE_THRESHOLD, DELETE_THRESHOLD + 3)
-                        .end()
-                    .end()
-                .activityState(EXECUTE)
-                    .assertRealizationState(null);
-        // @formatter:on
+        assertSimulateSuspended(TASK_HR.oid, id);
         assertThat(countUsers()).as("preview did not delete").isEqualTo(ACCOUNTS);
         assertThat(policyNotifications()).as("notification fired before the suspend").isGreaterThanOrEqualTo(1);
 
@@ -314,25 +321,23 @@ public class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegrationTest
         addAccounts(0, 4);   // 4 of the 8 restored -> only 4 accounts still missing
         dropShadows(0, 4);   // drop stale shadows so the restored accounts re-correlate by name
         taskManager.resumeTaskTree(TASK_HR.oid, result);
-        waitForRootTermination(TASK_HR.oid, TIMEOUT);
+        waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
 
         then("resume re-suspends — the persisted delete counter trips again despite the fix");
         assertTaskTree(TASK_HR.oid, "after resume").display().assertSuspended();
         assertThat(countUsers()).as("still nothing deleted after resume").isEqualTo(ACCOUNTS);
 
         when("the task is run fresh (clean counters) with the fixed source");
+        int notificationsBeforeFreshRun = policyNotifications();
         deleteIfPresent(TASK_HR, result);
-        addObject(TASK_HR, getTestTask(), result, (Consumer<PrismObject<TaskType>>) t -> { });
-        waitForRootClose(TASK_HR.oid, TIMEOUT);
+        addObject(TASK_HR, getTestTask(), result, topology());
+        waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
 
         then("the fresh run completes and only the allowed (4 < 5) users are deleted");
-        // @formatter:off
-        assertTaskTree(TASK_HR.oid, "after fresh run")
-                .display()
-                .assertClosed()
-                .assertSuccess();
-        // @formatter:on
+        assertRunSucceeded(TASK_HR.oid);
         assertThat(countUsers()).as("users remaining after allowed deletions").isEqualTo(ACCOUNTS - 4);
+        assertThat(policyNotifications()).as("clean fresh run fires no new policy notification")
+                .isEqualTo(notificationsBeforeFreshRun);
     }
 
     /**
@@ -350,7 +355,7 @@ public class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegrationTest
 
         when("running with a restartActivity(delay) action on the max-deleted policy");
         deleteIfPresent(TASK_HR, result);
-        addObject(TASK_HR, getTestTask(), result, setSimulateDeleteRestart("PT10S"));
+        addObject(TASK_HR, getTestTask(), result, aggregateCustomizer(topology(), setSimulateDeleteRestart("PT10S")));
 
         and("once the restart cycle has begun, fixing the source (4 restored)");
         waitForRestartCycle(TASK_HR.oid, TIMEOUT);
@@ -358,13 +363,8 @@ public class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegrationTest
         dropShadows(0, 4);
 
         then("a following auto-restart re-runs with fixed data and the task completes on its own");
-        waitForRootClose(TASK_HR.oid, 4 * TIMEOUT);
-        // @formatter:off
-        assertTaskTree(TASK_HR.oid, "after auto-restart")
-                .display()
-                .assertClosed()
-                .assertSuccess();
-        // @formatter:on
+        waitForTaskCloseOrSuspend(TASK_HR.oid, 4 * TIMEOUT);
+        assertRunSucceeded(TASK_HR.oid);
         assertThat(countUsers()).as("only the allowed (4 < 5) users deleted").isEqualTo(ACCOUNTS - 4);
         assertThat(policyNotifications()).as("notification fired on each restart trip").isGreaterThanOrEqualTo(1);
     }

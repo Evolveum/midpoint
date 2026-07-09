@@ -269,7 +269,9 @@ public class TestFocusPolicyActions extends AbstractEmptyModelIntegrationTest {
         assertThat(healthMessages).as("technical health/operation-execution messages").hasSize(1);
         assertThat(healthMessages.get(0))
                 .as("technical policy violation message")
-                .contains("added")               // trigger-derived (ADD modification constraint) => "... was added"
+                .contains("'" + RULE_ADD + "'")   // {0} = quoted policy rule name => 'fpa-add'
+                .contains("violation")
+                .contains("added")                // {1} = trigger message (ADD modification constraint) => "... added"
                 .doesNotContain("PolicyRuleType") // no bean dump
                 .doesNotContain("policyThreshold")
                 .doesNotContain("policyConstraints");
