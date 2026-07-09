@@ -38,10 +38,7 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
-import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeBuilder;
-import dev.cel.runtime.CelRuntimeFactory;
-import dev.cel.runtime.CelUnknownSet;
+import dev.cel.runtime.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -254,6 +251,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
         builder.setOptions(celOptions);
         builder.addLibraries(midPointCelExtensionManager.getRuntimeLibraries(context.getExpressionProfile()));
+        builder.setRuntimeEquality(new MelRuntimeEquality(celOptions));
         addFunctionLibraryImplementations(builder, context);
         return builder.build();
     }

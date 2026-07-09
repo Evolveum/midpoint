@@ -666,6 +666,58 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionUserAdditionalNameEqualsStringTrue() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        userBarbossa.asObjectable().setAdditionalName(createPolyStringType("Cursed One"));
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-additionalname-equals.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userBarbossa, userBarbossa.getDefinition(),
+                        "foo", "Cursed One", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionUserAdditionalNameEqualsStringFalse() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        userBarbossa.asObjectable().setAdditionalName(createPolyStringType("Cursed One"));
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-additionalname-equals.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userBarbossa, userBarbossa.getDefinition(),
+                        "foo", "Foobar", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionUserAdditionalNameEqualsNullStringTrue() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-additionalname-equals.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userBarbossa, userBarbossa.getDefinition(),
+                        "foo", null, PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionUserAdditionalNameEqualsNullStringFalse() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-additionalname-equals.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userBarbossa, userBarbossa.getDefinition(),
+                        "foo", "Foobar", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    // TODO: testExpressionUserAdditionalNameEquals*PolyString*
+
+    @Test
     public void testExpressionEqualsIgnoreCaseGlobalPolyStringFalse() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-equalsignorecase-global.xml",
@@ -1832,14 +1884,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 Boolean.FALSE);
     }
 
-    // Does not work due to CEL limitation
-    // There is no easy way to set up custom equality function for objects.
-    // Setting up custom == overload for (qname,qname) clashes with default equals overload.
-    // Good chance would be to set up custom RuntimeEquality in CEL Runtime.
-    // However, CelRuntimeImpl hardcodes the RuntimeEquality to ProtoMessageRuntimeEquality
-    // (see CelRuntimeImpl.build() line 490)
-    // Disabling the tests until a good solution is found.
-    @Test(enabled = false)
+    @Test
     public void testExpressionQNameEqualsQNameNoNsTrue() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-foo-equals-bar.xml",
@@ -1850,7 +1895,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 Boolean.TRUE);
     }
 
-    @Test(enabled = false)
+    @Test
     public void testExpressionQNameEqualsQNameNoNsFalse() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-foo-equals-bar.xml",
@@ -1925,6 +1970,100 @@ public class TestMelExpressions extends AbstractScriptTest {
                         "foo", userJack, userJack.getDefinition()
                 ),
                 Boolean.FALSE);
+    }
+
+    @Test
+    public void testSizeString() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", "FooBar", String.class
+                ),
+                6
+        );
+    }
+
+    @Test
+    public void testSizeStringEmpty() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", "", String.class
+                ),
+                0
+        );
+    }
+
+    @Test
+    public void testSizeStringNull() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", null, String.class
+                ),
+                0
+        );
+    }
+
+    @Test
+    public void testSizePolystring() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", createPolyStringType("FooBar"), PolyStringType.COMPLEX_TYPE
+                ),
+                6
+        );
+    }
+
+    @Test
+    public void testSizePolystringEmpty() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", createPolyStringType(""), PolyStringType.COMPLEX_TYPE
+                ),
+                0
+        );
+    }
+
+    @Test
+    public void testSizePolystringNull() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", null, PolyStringType.COMPLEX_TYPE
+                ),
+                0
+        );
+    }
+
+    @Test
+    public void testSizeList() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        sizeTest(
+                createVariables(
+                        "foo", userBarbossa.asObjectable().getOrganizationalUnit(), List.class
+                ),
+                1
+        );
+    }
+
+    @Test
+    public void testSizeListNull() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", null, List.class
+                ),
+                0
+        );
+    }
+
+    public void sizeTest(VariablesMap variables, Integer expectedResult) throws Exception {
+        evaluateAndAssertIntegerScalarExpression("expression-size.xml", variables, expectedResult);
+    }
+
+    @Test
+    public void testSizeNil() throws Exception {
+        evaluateAndAssertIntegerScalarExpression(
+                "expression-size-nil.xml",
+                createVariables(),
+                0
+        );
     }
 
     @Test

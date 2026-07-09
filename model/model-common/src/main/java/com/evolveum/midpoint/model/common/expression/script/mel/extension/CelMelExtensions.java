@@ -75,82 +75,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
         return ImmutableSet.of(
 
-            // string == polystring
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            Operator.EQUALS.getFunction(),
-                            CelOverloadDecl.newGlobalOverload(
-                                    "string-equals-polystring",
-                                    "Equality operator string = polystring",
-                                    SimpleType.BOOL,
-                                    SimpleType.STRING,
-                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
-                    CelFunctionBinding.from("string-equals-polystring", String.class, PolyStringCelValue.class,
-                            CelMelExtensions::stringEqualsPolyString)
-            ),
-
-            // polystring == string
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            Operator.EQUALS.getFunction(),
-                            CelOverloadDecl.newGlobalOverload(
-                                    "polystring-equals-string",
-                                    "Equality operator polystring = string",
-                                    SimpleType.BOOL,
-                                    NullableType.create(PolyStringCelValue.CEL_TYPE),
-                                    SimpleType.STRING)),
-                    CelFunctionBinding.from("polystring-equals-string", PolyStringCelValue.class, String.class,
-                            (polystring, string) -> stringEqualsPolyString(string, polystring))
-            ),
-
-            // Does not work due to CEL limitation
-            // There is no easy way to set up custom equality function for objects.
-            // Setting up custom == overload for (qname,qname) clashes with default equals overload.
-            // Good chance would be to set up custom RuntimeEquality in CEL Runtime.
-            // However, CelRuntimeImpl hardcodes the RuntimeEquality to ProtoMessageRuntimeEquality
-            // (see CelRuntimeImpl.build() line 490)
-//            // qname == qname
-//            new Function(
-//                    CelFunctionDecl.newFunctionDeclaration(
-//                            Operator.EQUALS.getFunction(),
-//                            CelOverloadDecl.newGlobalOverload(
-//                                    "qname-equals-qname",
-//                                    "Equality operator qname = qname",
-//                                    SimpleType.BOOL,
-//                                    NullableType.create(QNameCelValue.CEL_TYPE),
-//                                    NullableType.create(QNameCelValue.CEL_TYPE))),
-//                    CelFunctionBinding.from("qname-equals-qname", QNameCelValue.class, QNameCelValue.class,
-//                            CelMelExtensions::qNameEqualsQName)
-//            ),
-
-            // string == qname
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            Operator.EQUALS.getFunction(),
-                            CelOverloadDecl.newGlobalOverload(
-                                    "string-equals-qname",
-                                    "Equality operator string = qname",
-                                    SimpleType.BOOL,
-                                    SimpleType.STRING,
-                                    NullableType.create(QNameCelValue.CEL_TYPE))),
-                    CelFunctionBinding.from("string-equals-qname", String.class, QNameCelValue.class,
-                            CelMelExtensions::stringEqualsQName)
-            ),
-
-            // qname == string
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            Operator.EQUALS.getFunction(),
-                            CelOverloadDecl.newGlobalOverload(
-                                    "qname-equals-string",
-                                    "Equality operator qname = string",
-                                    SimpleType.BOOL,
-                                    NullableType.create(QNameCelValue.CEL_TYPE),
-                                    SimpleType.STRING)),
-                    CelFunctionBinding.from("qname-equals-string", QNameCelValue.class, String.class,
-                            (qname, string) -> stringEqualsQName(string, qname))
-            ),
-
             // string + polystring
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -1852,16 +1776,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    public static boolean stringEqualsPolyString(String s1, PolyStringCelValue s2) {
-        if (CelTypeMapper.isCelNull(s1) && CelTypeMapper.isCelNull(s2)) {
-            return true;
-        }
-        if (CelTypeMapper.isCelNull(s1) || CelTypeMapper.isCelNull(s2)) {
-            return false;
-        }
-        return s1.equals(s2.getOrig());
-    }
-
     public static String stringAddPolyString(String s, PolyStringCelValue polystringValue) {
         if (s == null && polystringValue == null) {
             return null;
@@ -1917,26 +1831,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
             return true;
         }
         return celPolystring.getOrig().isEmpty();
-    }
-
-    private static Object qNameEqualsQName(QNameCelValue celQName1, QNameCelValue celQName2) {
-        if (CelTypeMapper.isCelNull(celQName1) && CelTypeMapper.isCelNull(celQName2)) {
-            return true;
-        }
-        if (CelTypeMapper.isCelNull(celQName1) || CelTypeMapper.isCelNull(celQName2)) {
-            return false;
-        }
-        return QNameUtil.match(celQName1.getQName(), celQName2.getQName());
-    }
-
-    private static Object stringEqualsQName(String s, QNameCelValue celQName) {
-        if (CelTypeMapper.isCelNull(s) && CelTypeMapper.isCelNull(celQName)) {
-            return true;
-        }
-        if (CelTypeMapper.isCelNull(s) || CelTypeMapper.isCelNull(celQName)) {
-            return false;
-        }
-        return s.equals(celQName.getQName().getLocalPart());
     }
 
     // Taken from CelStringExtensions, modified for Polystring
