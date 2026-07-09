@@ -8,20 +8,46 @@ doc-type: config
 :page-wiki-id: 41517151
 :page-toc: top
 :toclevels: 3
+:page-keywords: flexible authentication, configuration, security policy, authentication sequence, authentication module
+:page-description: This page describes how to configure flexible authentication in midPoint. It covers the configuration of authentication modules and sequences, as well as examples of default and emergency login sequences.
 
 
-Configuration of flexible authentication is complex. Please familiarize with xref:./concept.adoc[basic concepts] of flexible authentication prior configuration.
+This page describes how to configure flexible authentication in midPoint. It covers the configuration of authentication modules and sequences, as well as examples of default and emergency login sequences.
+
+== Introduction
+
+Configuration of flexible authentication is complex.
+Before reading this page, make sure you are familiar with xref:./concept.adoc[basic concepts].
+
+How users authenticate to midPoint is defined in the xref:/midpoint/reference/security/security-policy/[security policy].
+MidPoint comes with a predefined security policy (see `015-security-policy.xml` within the initial objects).
+In the system configuration, it is referred to in the `globalSecurityPolicyRef` attribute.
+
+If you want to configure flexible authentication, either update the default security policy (UID = `00000000-0000-0000-0000-000000000120`), or create a new security policy and change the reference in the system configuration.
+
+The security policy has the following main parts:
+
+* Name - Defines the policy name.
+* Credentials configuration - This defines the maximum number of attempts for login with password, references the password policy, defines password requirements, etc.
+* Authentication configuration - Defines the actual authentication in two distinct sections:
+** Modules - Defines a particular authentication method.
+Each module has an identifier that is referenced by a sequence in which it is used.
+** Sequences - Defines where the particular authentication method is used.
+
 
 .Test your configuration prior deploying.
-WARNING: In case of incorrect loginForm module configuration or in case of its absence, there will be no possibility to login via standard login form again. In that case the user should have another way to restore midPoint environment. +
+WARNING: In case of an incorrect `loginForm` module configuration or in case of its absence, there will be no possibility to login via the standard login form again. In that case, the user should have another way to restore the midPoint environment. +
 The emergency `urlSuffix` configuration can help in such case. See xref:#_example_of_sequence_for_administrator_login[example of sequence for administrator login].
 
 
 == Module configuration
 
-Individual authentication modules are defined in this configuration element. MidPoint supports multiple authentication modules - see xref:./concept[Concepts] page.
+Authentication modules identify the protocol used for the actual authentication.
+By default, midPoint uses the `httpBasic` module for authentication in the GUI through username and password.
 
-Each module has its own specific configuration, but following elements are common for all modules:
+MidPoint supports xref:./concept[multiple authentication modules].
+
+Each module has its own specific configuration, however, the following elements are common for all modules:
 
 [%autowidth]
 |===
@@ -50,6 +76,9 @@ E.g UserType, RoleType, OrgType, ...
 |
 | _UserType_
 |===
+
+
+See the configuration details for xref:/midpoint/reference/security/authentication/flexible-authentication/modules/[individual modules].
 
 
 == Authentication sequence
@@ -108,14 +137,20 @@ Sequence name must be unique.
 
 
 | `channel`
-| Specification of channel for authentication sequence.
+| Specifies the channel for the authentication sequence.
+This defines where a particular authentication method is used.
+You can define multiple sequences per channel, but only one sequence per channel can be the default sequence.
+The following channels are supported: +
+`user` - Handles how users authenticate in GUI. +
+`rest` -  Defines the authentication process for the midPoint REST API, and it is also used in midPoint Studio. +
+`actuator` - Used mainly as a health check for midPoint instances, particularly when midPoint runs in a container or a pod.
 | false
 | _AuthenticationSequenceChannelType_
 
 
 | `requireAssignmentTarget`
 | Required assignment target.
-This authentication sequence is applicable only to users that have active assignment with this target (and relation).
+This authentication sequence is applicable only to users that have an active assignment with this target (and relation).
 If the sequence is attempted on a user that does not have this assignment then the authentication will fail.
 | false
 | _ObjectReferenceType_
@@ -151,7 +186,10 @@ It specifies whether this sequence is usable for a specific channel (user/GUI, R
 | Name | Description | Required | Type
 
 | `channelId`
-| Name (URI) of the channel.
+| Name (URI) of the channel, i.e, one of the following: +
+`http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user` +
+`http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest` +
+`http://midpoint.evolveum.com/xml/ns/public/common/channels-3#actuator`
 | true
 | _String_
 
@@ -161,8 +199,9 @@ It specifies whether this sequence is usable for a specific channel (user/GUI, R
 | _String_
 
 | `default`
-| Specifies whether this sequence is the default sequence for a specified channel. +
-The default sequence will be chosen in case that specific sequence was not requested, e.g. by using URL suffix.
+| Specifies whether this sequence is the default sequence for a specified channel.
+As there can be multiple authentication sequences per channel, only one needs to be set as the default (`true`). +
+The default sequence will be chosen in case that a specific sequence was not requested, e.g., by using a URL suffix.
 If this element is not present and only a single sequence is defined for a channel, then such sequence is considered to be the default. +
 If more than one sequence is specified then none of them is considered to be default.
 In that case this element must be used explicitly.
@@ -170,7 +209,8 @@ In that case this element must be used explicitly.
 | _boolean_
 
 | `urlSuffix`
-| URL suffix that can be used to select this authentication sequence specifically.
+| URL suffix defines the ending of the URL where the module is accessible.
+For example, if `httpBasic` is used in the `user` channel, and the `urlSuffix` is set to `basic`, the full URL will be `<midPoint-base-URL>/midpoint/auth/basic`.
 | true
 | _String_
 |===
@@ -314,10 +354,10 @@ This configuration allows to configure label, description and external link for 
 === Midpoint GUI authentication form
 In order to utilize the Midpoint GUI, it is necessary to configure an authentication sequence for the `loginForm` module.
 
-If no authentication is configured in the security policy or if there is no sequence defined in the configured authentication, midPoint will default to using the standard (built-in) login form for user GUI authentication.
-However, if there is at least one sequence configured that is not related to loginForm in the authentication configuration, it is imperative to explicitly specify a sequence for the loginForm module in the authentication configuration. This is essential to ensure the proper functioning of the Midpoint GUI.
+If no authentication is configured in the security policy or if no sequence is defined in the configured authentication, midPoint will default to using the standard (built-in) login form for user GUI authentication.
+However, if there is at least one sequence configured that is not related to `loginForm` in the authentication configuration, it is imperative to explicitly specify a sequence for the `loginForm` module in the authentication configuration. This is essential to ensure the proper functioning of the Midpoint GUI.
 
-To view the default configuration for the loginForm sequence, please refer to the security policy found in the Midpoint initial objects (015-security-policy.xml).
+To view the default configuration for the `loginForm` sequence, please refer to the security policy found in the Midpoint initial objects (015-security-policy.xml).
 
 
 == Ignored path Configuration
