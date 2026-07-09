@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -308,7 +309,7 @@ public class WebPrismUtil {
         }
     }
 
-    private static <T> void cleanupEmptyValues(Item item) {
+    public static <T> void cleanupEmptyValues(Item item) {
         if (item instanceof PrismContainer) {
             cleanupEmptyContainers((PrismContainer) item);
         }
@@ -323,14 +324,23 @@ public class WebPrismUtil {
             Iterator<PrismPropertyValue<T>> iterator = pVals.iterator();
             while (iterator.hasNext()) {
                 PrismPropertyValue<T> pVal = iterator.next();
+
                 if (pVal == null) {
                     iterator.remove();
                     continue;
                 }
-                if (pVal.getRealValue() instanceof ExpressionType && ExpressionUtil.isEmpty((ExpressionType) pVal.getRealValue())) {
-                    iterator.remove();
-                    continue;
+
+                if (pVal.getRealValue() instanceof ExpressionType expression) {
+                    if (!ExpressionUtil.isEmpty(expression)) {
+                        cleanupEmptyExpressionEvaluatorContainers(expression);
+                    }
+
+                    if (ExpressionUtil.isEmpty(expression)) {
+                        iterator.remove();
+                        continue;
+                    }
                 }
+
                 if (pVal.isEmpty() || pVal.getRealValue() == null) {
                     iterator.remove();
                     continue;
@@ -357,6 +367,31 @@ public class WebPrismUtil {
 
                 cleanupValueMetadata(rVal);
             }
+        }
+    }
+
+    /**
+     * Cleans up empty expression evaluator containers in the given expression.
+     */
+    private static void cleanupEmptyExpressionEvaluatorContainers(@NotNull ExpressionType expression) {
+        List<JAXBElement<?>> expressionEvaluator = expression.getExpressionEvaluator();
+        if (expressionEvaluator == null || expressionEvaluator.isEmpty()) {
+            return;
+        }
+
+        Iterator<JAXBElement<?>> iterator = expressionEvaluator.iterator();
+        while (iterator.hasNext()) {
+            JAXBElement<?> evaluatorElement = iterator.next();
+            Object value = evaluatorElement.getValue();
+            if (value instanceof Containerable container) {
+                PrismContainerValue<?> prismContainerValue = container.asPrismContainerValue();
+                cleanupEmptyContainerValue(prismContainerValue);
+
+                if (prismContainerValue.isEmpty()) {
+                    iterator.remove();
+                }
+            }
+
         }
     }
 

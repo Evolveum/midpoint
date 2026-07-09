@@ -29,6 +29,15 @@ public class AssociationOutboundExpressionWrapperFactory extends AssociationMapp
     }
 
     @Override
+    protected void updateAssociationExpressionValue(ExpressionType expression, AssociationConstructionExpressionEvaluatorType evaluator) {
+        try {
+            ExpressionUtil.updateAssociationConstructionExpressionValue(expression, evaluator);
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Couldn't update expression value: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     protected AssociationConstructionExpressionEvaluatorType getEvaluator(ExpressionType expression) throws SchemaException {
         return ExpressionUtil.getAssociationConstructionExpressionValue(expression);
     }
