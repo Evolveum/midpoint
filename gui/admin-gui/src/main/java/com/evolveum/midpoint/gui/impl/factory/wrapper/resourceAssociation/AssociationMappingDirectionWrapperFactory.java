@@ -7,33 +7,30 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper.resourceAssociation;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismContainerWrapperFactoryImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.association.AssociationMappingDirectionWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
+
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.stereotype.Component;
 
-@Component
-public class AssociationProvisioningRuleMappingWrapperFactory<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C> {
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.prism.PrismContainer;
 
-    @Override
-    protected boolean shouldCreateEmptyValue(PrismContainer<C> item, WrapperContext context) {
-        return false; //TODO fix zero delta (something with expressions?)
-    }
+@Component
+public class AssociationMappingDirectionWrapperFactory extends PrismContainerWrapperFactoryImpl<MappingType> {
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
 
-        if (!ShadowAssociationDefinitionType.F_INBOUND.equivalent(def.getItemName())
-                && !ShadowAssociationDefinitionType.F_OUTBOUND.equivalent(def.getItemName())) {
+        if (!super.match(def, parent)) {
             return false;
         }
 
@@ -41,16 +38,32 @@ public class AssociationProvisioningRuleMappingWrapperFactory<C extends Containe
             return false;
         }
 
-        return ItemPath.create(
+        boolean equivalent = ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_ASSOCIATION_TYPE,
                 ShadowAssociationTypeDefinitionType.F_SUBJECT,
                 ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION).equivalent(parent.getPath().namedSegmentsOnly());
+
+        if (!equivalent) {
+            return false;
+        }
+
+        return ShadowAssociationDefinitionType.F_INBOUND.equivalent(def.getItemName())
+                || ShadowAssociationDefinitionType.F_OUTBOUND.equivalent(def.getItemName());
+    }
+
+    @Override
+    protected PrismContainerWrapper<MappingType> createWrapperInternal(
+            PrismContainerValueWrapper<?> parent,
+            PrismContainer<MappingType> childContainer,
+            ItemStatus status,
+            WrapperContext ctx) {
+
+        return new AssociationMappingDirectionWrapper(parent, childContainer, status);
     }
 
     @Override
     public int getOrder() {
         return 90;
     }
-
 }
