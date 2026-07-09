@@ -234,30 +234,32 @@ class PolicyRuleEnforcer<O extends ObjectType> {
     }
 
     /**
-     * Builds a human-readable, localizable violation message from the rule's triggers - the same way the
-     * non-threshold enforcement path does (see {@link #computeEnforcementForTriggeredRules}). This avoids
-     * dumping the whole {@link PolicyRuleType} bean into the operation execution. If, exceptionally, no
-     * trigger carries a message, we fall back to the rule name.
+     * Builds a human-readable, localizable violation message. The trigger messages are collected the same way the
+     * non-threshold enforcement path does (see {@link #computeEnforcementForTriggeredRules}), which avoids dumping
+     * the whole {@link PolicyRuleType} bean into the operation execution.
+     *
+     * The result is "Policy rule '{name}' violation: {triggers}", or - if no trigger carries a message - just
+     * "Policy rule '{name}' violation" (a separate localization key, as there is no trigger argument to render).
      */
     private LocalizableMessage createViolationMessage(DirectlyEvaluatedClockworkPolicyRule policyRule) {
+        String ruleName = Objects.requireNonNullElse(policyRule.getName(), "Unnamed policy rule");
         List<LocalizableMessage> triggerMessages = extractMessages(policyRule.getTriggers(), NORMAL).stream()
                 .map(TreeNode::getUserObject)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        LocalizableMessage constraintMessage;
         if (triggerMessages.isEmpty()) {
-            constraintMessage = LocalizableMessageBuilder.buildFallbackMessage(
-                    Objects.requireNonNullElse(policyRule.getName(), "policy rule"));
-        } else {
-            constraintMessage = new LocalizableMessageListBuilder()
-                    .messages(triggerMessages)
-                    .separator(LocalizableMessageList.SEMICOLON)
-                    .buildOptimized();
+            return new SingleLocalizableMessage(
+                    "PolicyRuleEnforces.policyViolationMessageWithoutTriggers", new Object[] { ruleName });
         }
 
+        LocalizableMessage triggers = new LocalizableMessageListBuilder()
+                .messages(triggerMessages)
+                .separator(LocalizableMessageList.SEMICOLON)
+                .buildOptimized();
+
         return new SingleLocalizableMessage(
-                "PolicyRuleEnforces.policyViolationMessage", new Object[] { constraintMessage });
+                "PolicyRuleEnforces.policyViolationMessage", new Object[] { ruleName, triggers });
     }
 
     private void enforceNotificationAction(
