@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -65,17 +65,15 @@
                 <inbound>
                     <strength>strong</strength>
                     <expression>
-                      <script>
-                        <code>
-                          if (input == null || input.contains('NULL')) {
-                            return null;
-                          }
-                          return input;
-                        </code>
-                      </script>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isNil(input) || input.contains('NULL') ? nil : input
+                            </code>
+                        </script>
                     </expression>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -84,14 +82,12 @@
                 <inbound>
                     <strength>strong</strength>
                     <expression>
-                      <script>
-                        <code>
-                          if (input == null || input.contains('NULL')) {
-                            return null;
-                          }
-                          return input;
-                        </code>
-                      </script>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isNil(input) || input.contains('NULL') ? nil : input
+                            </code>
+                        </script>
                     </expression>
                     <target>
                         <path>title</path>
@@ -114,7 +110,7 @@
                 <fetchStrategy>explicit</fetchStrategy>
                 <inbound>
                     <target>
-                        <path>$user/activation/validFrom</path>
+                        <path>$focus/activation/validFrom</path>
                     </target>
                 </inbound>
             </attribute>
@@ -123,7 +119,7 @@
                 <description>This will be interpreted as date and synced to validTo</description>
                 <inbound>
                     <target>
-                        <path>$user/activation/validTo</path>
+                        <path>$focus/activation/validTo</path>
                     </target>
                 </inbound>
             </attribute>
@@ -149,7 +145,7 @@
                 <q:equal>
                     <q:path>c:name</q:path>
                     <expression>
-                        <path>$account/attributes/icfs:name</path>
+                        <path>$projection/attributes/icfs:name</path>
                     </expression>
                 </q:equal>
             </correlation>
