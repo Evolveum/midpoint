@@ -13,7 +13,7 @@ This page documents schema objects parsed from `$r.displayPath($sourceFile.path(
 #if ($region)
 Region: $region.title()
 
-$r.metadataValue($region.description())
+$region.description()
 
 #end
 

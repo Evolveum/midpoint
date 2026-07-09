@@ -5,6 +5,10 @@ xref:../schema.adoc[Back to native PostgreSQL schema overview]
 
 This page documents schema changes applied to existing databases by `$r.displayPath($sourceFile.path())`.
 
+#if ($sourceFile.scriptDescription())
+$sourceFile.scriptDescription()
+
+#end
 == Version summary
 
 [cols="1,1", options="header"]
