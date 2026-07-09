@@ -1,29 +1,36 @@
 = Module oidc
 :page-nav-title: Module oidc
+:page-keywords: oidc, openid connect, authentication, flexible authentication
+:page-description: This page describes how to configure the OIDC authentication module in midPoint for integrating with an OpenID Connect identity provider.
 
 ++++
 {% include since.html since="4.5" %}
 ++++
 
-OIDC authentication module supports authentication via Identity provider that supports OpenID connect.
+This page describes how to configure the OIDC authentication module in midPoint for integrating with an OpenID Connect identity provider.
 
-OIDC Authentication module contains two different types of configuration:
+The OIDC Authentication module contains two different types of configuration:
 
-. *GUI* with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user_, that was defined by attribute _client_,
-. *REST* with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest_, that was defined by attribute _resourceServer_.
+. *GUI* with the _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user_ channel defined by the _client_ attribute,
+. *REST* with _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest_ channel defined by the _resourceServer_ attribute.
+
+The OIDC module (Open ID Connect) relies considerably on HTTPS.
+Therefore, in production environments, you need to add the relevant protocols to the midPoint trust store, i.e., to the `<midpoint-home>/keystore.jceks` file.
+This may not be needed in local testing and experimental deployments.
 
 == Configuration for GUI
 
-Configuration for GUI is provided via attribute _client_, that is type _OidcClientAuthenticationModuleType_. Client supports only grand type *Authorization code*. We need to configure client properties for client authentication and configuration of OpenID provider for provide identity for identification of midpoint focus.
+Configuration for GUI is provided via the _client_ attribute that is of the _OidcClientAuthenticationModuleType_ type. Client supports only the grand type *Authorization code*. You need to configure client properties for client authentication and configuration of the OpenID provider so that midPoint can obtain user identity and map it to a focus.
 
-Client contains following attributes:
+Client contains the following attributes:
 
 [%autowidth]
 |===
 | Name | Description | Required | Type
 
 | `registrationId`
-| Unique identifier of the client. RegistrationId is used in url path, so it has to contain only correct symbols.
+| Unique identifier of the client.
+`RegistrationId` is used in the URL path, so it has to contain only correct symbols.
 | true
 | _String_
 
@@ -41,53 +48,67 @@ Client contains following attributes:
 
 
 | `clientAuthenticationMethod`
-| Define client authentication method. Possible values is clientSecretBasic, clientSecretPost, clientSecretJwt and privateKeyJwt.
+| Defines the client authentication method.
+Valid values are `clientSecretBasic`, `clientSecretPost`, `clientSecretJwt`, `privateKeyJwt` and `none`.
+Note that the values used for midPoint configuration follow the camel case convention, not the snake case convention typically used by OIDC providers.
 | false
 | _OidcClientAuthenticationMethodType_
 
 
 | `clientSigningAlgorithm`
 | Required node group.
-Identifier of algorithm for digitally sign or create a MAC of the content. (RFC7518 section-3.1)
+Defines the algorithm used for signatures in JWT tokens, etc.
+MidPoint uses this to authenticate to the OIDC provider.
+(See https://datatracker.ietf.org/doc/html/rfc7518#section-3.1[RFC7518 section-3.1].)
 | false
 | _String_
 
 
 | `scope`
-| OpenID Connect Clients use scope values as defined in 3.3 of OAuth 2.0 [RFC6749] to specify what access privileges are being requested for Access Tokens. Scope contains 'openid', so we don't need set it. Scope is multivalue attribute, so please set every value of scope to separate tags.
+| OpenID Connect Clients use scope values as defined in https://datatracker.ietf.org/doc/html/rfc6749#section-3.3[3.3 of OAuth 2.0 RFC6749] that specify what access privileges are being requested for Access Tokens.
+Scope is a multivalue attribute and every value needs to be set in a separate tag.
+The 'openid' value is included by default.
+Other frequently used values are `profile`, `openid`, `email`, `hr`, etc.
+These are typically used to request additional claims about the user, such as their name, email address, or other profile information that may be necessary to identify the user in midPoint when username is not available.
 | false
 | _String_
 
 
 | `clientName`
-| Human friendly name of client.
+| Human friendly name of the client.
 | false
 | _String_
 
 | `nameOfUsernameAttribute`
-| Name of attribute in response, which value define name of user in Midpoint. Default value is 'sub'.
+| Definition of the attribute by which the OIDC provider refers to the subject of the authentication process.
+If it is supposed to be the name of the user in midPoint, it should be set to `preferred_username`.
+Note that the values of `preferred_username` should correspond to the values of the `name` attribute in midPoint.
+Default value is 'sub'.
 | false
 | _String_
 
 | `openIdProvider`
-| OpenID Provider.
+| Definition of URIs and endpoints of the OIDC provider.
+See <<OidcOpenIdProviderType,`OidcOpenIdProviderType`>> for more details.
 | false
 | _OidcOpenIdProviderType_
 
 | `simpleProofKey`
-| Key used for sign with privateKeyJwt. Choice _simpleProofKey_ or _keyStoreProofKey_.
+| Key used for signing with `privateKeyJwt`.
+Choose between `simpleProofKey` and `keyStoreProofKey`.
 | false
 | _AbstractSimpleKeyType_
 
 | `keyStoreProofKey`
-| Key from key store used for sign with privateKeyJwt. Choice _simpleProofKey_ or _keyStoreProofKey_.
+| Key from key store used for signing with `privateKeyJwt`.
+Choose between `simpleProofKey` and `keyStoreProofKey`.
 | false
 | _AbstractKeyStoreKeyType_
 
 |===
 
 === AbstractSimpleKeyType
-AbstractSimpleKeyType contains following attributes:
+`AbstractSimpleKeyType` contains the following attributes:
 
 [%autowidth]
 |===
@@ -113,7 +134,7 @@ AbstractSimpleKeyType contains following attributes:
 |===
 
 === AbstractKeyStoreKeyType
-AbstractKeyStoreKeyType contains following attributes:
+`AbstractKeyStoreKeyType` contains the following attributes:
 
 [%autowidth]
 |===
@@ -144,44 +165,58 @@ AbstractKeyStoreKeyType contains following attributes:
 
 |===
 
+[[OidcOpenIdProviderType]]
 === OidcOpenIdProviderType
 
-Definition for OpenID Provider. Possible attributes are:
+To configure the provider correctly, ensure all of the OIDC provider endpoints share the same base URL (`issuerURI`) and comply with the OIDC protocol.
+You can verify this by inspecting the JSON file at `<issuerURI>/.well-known/openid-configuration/`.
+If all of the exposed URIs are compliant, i.e., they share the same base URL and use the default URL suffixes, you will only need to explicitly configure the `issuerURI`.
+Otherwise, you will need to explicitly specify all the attributes listed below.
+
+
+The available OpenID provider attributes are:
 
 [%autowidth]
 |===
 | Name | Description | Required | Type
 
 | `issuerUri`
-| Issuer identifier uri for the OpenID Connect provider.
+| Issuer identifier URI for the OpenID Connect provider, i.e., `issuer`.
+This URI is accessed via the user's browser.
 | true
 | _String_
 
 | `authorizationUri`
-| Uri for the authorization endpoint.
+| URI for the authorization endpoint, i.e.,  `authorization_endpoint`.
+This URI is accessed via the user's browser.
 | false
 | _String_
 
 
 | `tokenUri`
-| Uri for the token endpoint.
+| URI for the token endpoint, i.e., `token_endpoint`.
+This URI is accessed internally by midPoint.
 | false
 | _String_
 
 
 | `userInfoUri`
-| Uri for user info endpoint.
+| URI for the user info endpoint, i.e., `clientinfo_endpoint`.
+This URI is accessed internally by midPoint.
 | false
 | _String_
 
 
 | `endSessionUri`
-| Uri for logout endpoint.
+| URI for the logout endpoint, i.e., `end_session_endpoint`.
+This URI is accessed via the user's browser.
 | false
 | _String_
 
 | `jwkSetUri`
-| Uri for JSON web key set endpoint. Available from midPoint 4.8.
+| URI for the JSON web key set endpoint, i.e., `jwks_uri`.
+Available since midPoint 4.8.
+This URI is accessed internally by midPoint.
 | false
 | _String_
 
