@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014-2024 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- User template with iteration starting at 5 and ending at 6. `end` takes precedence over `maxIterations`. -->
+
+<objectTemplate oid="10000000-0000-0000-0000-0000000d0021"
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>user-template-iteration-start-end</name>
+    <iterationSpecification>
+        <start>5</start>
+        <end>6</end>
+        <maxIterations>100</maxIterations>
+    </iterationSpecification>
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    basic.concatName(givenName, familyName) + iterationToken
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+    </mapping>
+</objectTemplate>

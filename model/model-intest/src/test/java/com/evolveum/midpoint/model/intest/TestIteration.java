@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.intest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH;
@@ -172,6 +173,14 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_BUT_CONSTANT_NAME = TestObject.file(
             TEST_DIR, "user-template-iteration-but-constant-name.xml", "2ebfbbf4-e680-455d-a64f-a49d779a4a53");
 
+    // start=5, no end, maxIterations=2 -> effective range is 5..7
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_START = TestObject.file(
+            TEST_DIR, "user-template-iteration-start.xml", "10000000-0000-0000-0000-0000000d0020");
+
+    // start=5, end=6 (end takes precedence over maxIterations=100) -> effective range is 5..6
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_START_END = TestObject.file(
+            TEST_DIR, "user-template-iteration-start-end.xml", "10000000-0000-0000-0000-0000000d0021");
+
     private String jupiterUserOid;
 
     private String iterationTokenDiplomatico;
@@ -215,6 +224,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         ROLE_CS_101.init(this, initTask, initResult);
 
         USER_TEMPLATE_ITERATION_BUT_CONSTANT_NAME.init(this, initTask, initResult);
+
+        USER_TEMPLATE_ITERATION_START.init(this, initTask, initResult);
+        USER_TEMPLATE_ITERATION_START_END.init(this, initTask, initResult);
     }
 
     /**
@@ -2316,6 +2328,88 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
             then("user is there");
             assertUserAfterByUsername(name);
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Tests the `start` property of the iteration specification, combined with `maxIterations` (no `end` defined).
+     * With `start=5` and `maxIterations=2`, the effective (inclusive) range of the iteration variable is 5..7.
+     */
+    @Test
+    public void test930IterationStart() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_ITERATION_START.oid);
+        try {
+            given("no user named 'Anne Bonny' exists yet");
+
+            when("first user 'Anne Bonny' is added");
+            addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result);
+
+            then("iteration starts at 5, so the token is empty");
+            assertUserAfterByUsername("Anne Bonny")
+                    .assertName("Anne Bonny");
+
+            when("second conflicting 'Anne Bonny' is added");
+            addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result);
+
+            then("iteration is 6");
+            assertUserAfterByUsername("Anne Bonny6")
+                    .assertName("Anne Bonny6");
+
+            when("third conflicting 'Anne Bonny' is added");
+            addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result);
+
+            then("iteration is 7 (start + maxIterations)");
+            assertUserAfterByUsername("Anne Bonny7")
+                    .assertName("Anne Bonny7");
+
+            when("fourth conflicting 'Anne Bonny' is added");
+            then("the iteration limit (7) is exceeded and the operation fails");
+            assertThatThrownBy(() ->
+                    addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result))
+                    .isInstanceOf(ObjectAlreadyExistsException.class);
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Tests the `start` and `end` properties of the iteration specification. `end` must take precedence
+     * over `maxIterations` when both are defined. With `start=5` and `end=6`, the effective (inclusive)
+     * range of the iteration variable is 5..6, regardless of the (much higher) `maxIterations=100`.
+     */
+    @Test
+    public void test940IterationStartEnd() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_ITERATION_START_END.oid);
+        try {
+            given("no user named 'Jack Rackham' exists yet");
+
+            when("first user 'Jack Rackham' is added");
+            addObject(new UserType().givenName("Jack").familyName("Rackham").asPrismObject(), task, result);
+
+            then("iteration starts at 5, so the token is empty");
+            assertUserAfterByUsername("Jack Rackham")
+                    .assertName("Jack Rackham");
+
+            when("second conflicting 'Jack Rackham' is added");
+            addObject(new UserType().givenName("Jack").familyName("Rackham").asPrismObject(), task, result);
+
+            then("iteration is 6 (end)");
+            assertUserAfterByUsername("Jack Rackham6")
+                    .assertName("Jack Rackham6");
+
+            when("third conflicting 'Jack Rackham' is added");
+            then("the iteration limit (end=6) is exceeded, even though maxIterations=100, and the operation fails");
+            assertThatThrownBy(() ->
+                    addObject(new UserType().givenName("Jack").familyName("Rackham").asPrismObject(), task, result))
+                    .isInstanceOf(ObjectAlreadyExistsException.class);
         } finally {
             setDefaultUserTemplate(null);
         }

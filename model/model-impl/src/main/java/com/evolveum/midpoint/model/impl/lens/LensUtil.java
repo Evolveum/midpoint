@@ -217,8 +217,28 @@ public class LensUtil {
         return objectTemplate != null ? objectTemplate.getIterationSpecification() : null;
     }
 
+    /**
+     * Determines the start value for iteration.
+     * @return the start value (defaults to 0 if not specified)
+     */
+    public static int determineIterationStart(IterationSpecificationType iterationSpecType) {
+        return iterationSpecType != null ? or0(iterationSpecType.getStart()) : 0;
+    }
+
+    /**
+     * Determines the maximum iteration value.
+     * If end is specified, it takes precedence over maxIterations.
+     * @return the maximum iteration value
+     */
     public static int determineMaxIterations(IterationSpecificationType iterationSpecType) {
-        return iterationSpecType != null ? or0(iterationSpecType.getMaxIterations()) : 0;
+        if (iterationSpecType == null) {
+            return 0;
+        }
+        Integer end = iterationSpecType.getEnd();
+        if (end != null) {
+            return end;
+        }
+        return determineIterationStart(iterationSpecType) + or0(iterationSpecType.getMaxIterations());
     }
 
     public static String formatIterationToken(
@@ -232,11 +252,12 @@ public class LensUtil {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (iterationSpec == null) {
-            return formatIterationTokenDefault(iteration);
+            return formatIterationTokenDefault(iteration, 0);
         }
         ExpressionType tokenExpressionType = iterationSpec.getTokenExpression();
         if (tokenExpressionType == null) {
-            return formatIterationTokenDefault(iteration);
+            int start = determineIterationStart(iterationSpec);
+            return formatIterationTokenDefault(iteration, start);
         }
         PrismContext prismContext = PrismContext.get();
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
@@ -281,8 +302,16 @@ public class LensUtil {
         return realValue;
     }
 
-    public static String formatIterationTokenDefault(int iteration) {
-        if (iteration == 0) {
+    /**
+     * Formats the iteration token with default logic.
+     * If iteration equals start, returns empty string, otherwise returns iteration as string.
+     *
+     * @param iteration current iteration value
+     * @param start the start value for iteration
+     * @return formatted iteration token
+     */
+    public static String formatIterationTokenDefault(int iteration, int start) {
+        if (iteration == start) {
             return "";
         }
         return Integer.toString(iteration);

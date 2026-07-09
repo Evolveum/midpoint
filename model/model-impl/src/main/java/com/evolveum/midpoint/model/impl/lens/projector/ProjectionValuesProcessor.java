@@ -116,8 +116,9 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             }
         }
 
+        int iterationStart = determineIterationStart(projContext);
         int maxIterations = determineMaxIterations(projContext);
-        int iteration = 0;
+        int iteration = iterationStart;
         String iterationToken = null;
         boolean wasResetIterationCounter = false;
 
@@ -185,9 +186,9 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                     // we cannot do that before because the mappings are not yet evaluated and the triples and not
                     // consolidated to deltas. We can do it only now. It means that we will waste the first run
                     // but I don't see any easier way to do it now.
-                    if (iteration != 0 && !wasResetIterationCounter && willResetIterationCounter(projContext)) {
+                    if (iteration != iterationStart && !wasResetIterationCounter && willResetIterationCounter(projContext)) {
                         wasResetIterationCounter = true;
-                        iteration = 0;
+                        iteration = iterationStart;
                         iterationToken = null;
                         cleanupContext(projContext, null, rememberedProjectionState);
                         LOGGER.trace("Resetting iteration counter and token because we have rename");
@@ -502,6 +503,11 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         return def != null ? def.getDefinitionBean().getIteration() : null;
     }
 
+    private int determineIterationStart(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
+        return LensUtil.determineIterationStart(
+                getIterationSpecification(projCtx));
+    }
+
     private int determineMaxIterations(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
         return LensUtil.determineMaxIterations(
                 getIterationSpecification(projCtx));
@@ -517,7 +523,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             CommunicationException, ConfigurationException, SecurityViolationException {
         IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
         if (iterationSpec == null) {
-            return LensUtil.formatIterationTokenDefault(iteration);
+            return LensUtil.formatIterationTokenDefault(iteration, 0);
         }
         VariablesMap variables = createVariablesMap(context, projCtx);
         return LensUtil.formatIterationToken(

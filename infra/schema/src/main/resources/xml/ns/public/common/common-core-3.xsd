@@ -5209,6 +5209,31 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="start" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number at which the iteration will start. This is inclusive, i.e. if set to 1,
+                        then the lowest number in the iteration variable will be 1.
+                        If not specified, the default value is 0.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.start</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="end" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number at which the iteration will stop. This is inclusive, i.e. if set to 10,
+                        then the largest number in the iteration variable will be 10.
+                        If not specified, the maxIterations property must be defined.
+                        If both maxIterations and end are defined, then end takes precedence.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.end</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="maxIterations" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
