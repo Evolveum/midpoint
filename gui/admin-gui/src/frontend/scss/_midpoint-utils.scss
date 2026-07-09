@@ -195,13 +195,13 @@ div[role="button"].btn, .btn {
 
 //Bootstrap badge extension for transparent variant
 .badge {
-font-weight: 600;
-  &.bg-opaque {
+--bs-badge-font-weight: 600;
+  &.opaque {
     @each $color, $value in $theme-colors {
-      &.bg-#{$color} {
-        color: var(--bs-#{$color}-text-emphasis);
-        background-color: var(--bs-#{$color}-bg-subtle);
-        border: 1px solid var(--bs-#{$color}-border-subtle);
+      &.text-bg-#{$color} {
+        color: var(--bs-#{$color}-text-emphasis) !important;
+        background-color: var(--bs-#{$color}-bg-subtle) !important;
+        border: 1px solid var(--bs-#{$color}-border-subtle) !important;
       }
     }
   }
@@ -302,11 +302,11 @@ font-weight: 600;
   }*/
 
   .badge {
-    &.bg-ai-gradient {
+    &.text-bg-ai-gradient {
       color: white;
       background: var(--mp-ai-gradient) padding-box, var(--mp-ai-gradient) border-box;
 
-      &.bg-opaque {
+      &.opaque {
         background: var(--mp-ai-gradient-text-emphasis) text, var(--mp-ai-gradient-bg-subtle) padding-box, var(--mp-ai-gradient-border-subtle) border-box;
         border: 1px solid transparent;
         color: transparent;

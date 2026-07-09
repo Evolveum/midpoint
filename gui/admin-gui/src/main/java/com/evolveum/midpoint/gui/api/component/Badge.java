@@ -14,14 +14,14 @@ import java.io.Serializable;
 public class Badge implements Serializable {
 
     public enum State {
-        PRIMARY("badge bg-primary"),
-        SECONDARY("badge bg-secondary"),
-        SUCCESS("badge bg-success"),
-        DANGER("badge bg-danger"),
-        WARNING("badge bg-warning"),
-        INFO("badge bg-info"),
-        LIGHT("badge bg-light"),
-        DARK("badge bg-dark");
+        PRIMARY("badge text-bg-primary"),
+        SECONDARY("badge text-bg-secondary"),
+        SUCCESS("badge text-bg-success"),
+        DANGER("badge text-bg-danger"),
+        WARNING("badge text-bg-warning"),
+        INFO("badge text-bg-info"),
+        LIGHT("badge text-bg-light"),
+        DARK("badge text-bg-dark");
 
         String css;
 

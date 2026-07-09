@@ -6,6 +6,35 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.clusters;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider.SORT_OUTLIER_COUNT_PROPERTY;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider.SORT_REDUCTION_PROPERTY;
+import static com.evolveum.midpoint.web.component.data.table.CollapsableDataTable.CollapsableRowItem.COLLAPSIBLE_CONTENT_ID;
+
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
@@ -55,35 +84,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider.SORT_OUTLIER_COUNT_PROPERTY;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider.SORT_REDUCTION_PROPERTY;
-import static com.evolveum.midpoint.web.component.data.table.CollapsableDataTable.CollapsableRowItem.COLLAPSIBLE_CONTENT_ID;
 
 public abstract class RoleAnalysisAbstractClusteringResultPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
@@ -364,13 +364,13 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                             String labelClass;
                             if (resolvedPatternExist) {
                                 status = "Rebuild recommended";
-                                labelClass = "badge bg-warning text-center";
+                                labelClass = "badge text-bg-warning text-center";
                             } else if (candidateExist) {
                                 status = "In progress";
-                                labelClass = "badge bg-info text-center";
+                                labelClass = "badge text-bg-info text-center";
                             } else {
                                 status = "New";
-                                labelClass = "badge bg-primary text-center";
+                                labelClass = "badge text-bg-primary text-center";
                             }
 
                             Label label = new Label(componentId, status);
@@ -632,9 +632,9 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                             int outlierCount = outliers.size();
                             Label badgeLabel = new Label(componentId, String.valueOf(outlierCount));
                             if (outlierCount > 0) {
-                                badgeLabel.add(AttributeModifier.append(CLASS_CSS, "badge bg-danger"));
+                                badgeLabel.add(AttributeModifier.append(CLASS_CSS, "badge text-bg-danger"));
                             } else {
-                                badgeLabel.add(AttributeModifier.append(CLASS_CSS, "badge bg-info"));
+                                badgeLabel.add(AttributeModifier.append(CLASS_CSS, "badge text-bg-info"));
                             }
                             badgeLabel.add(AttributeModifier.append(TITLE_CSS, "Outliers count"));
                             badgeLabel.add(new TooltipBehavior());

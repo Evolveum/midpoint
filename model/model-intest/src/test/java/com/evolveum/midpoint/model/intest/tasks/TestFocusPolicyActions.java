@@ -24,12 +24,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyObjectsCreator;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -227,6 +229,52 @@ public class TestFocusPolicyActions extends AbstractEmptyModelIntegrationTest {
         // @formatter:on
         assertThat(countImportedUsers()).as("imported users").isEqualTo(ADD_THRESHOLD - 1);
         assertThat(notificationCount(DUMMY_POLICY_NOTIFIER)).as("clockwork policy notifications").isGreaterThanOrEqualTo(1);
+    }
+
+    /**
+     * The message recorded for a threshold policy violation must be the human-readable, trigger-derived
+     * message — not a debug dump of the policy rule bean.
+     *
+     * Same scenario as {@link #test100Suspend()} (modification/ADD threshold + suspendTask + notification),
+     * but asserts the content of the message surfaced on the task health / operation execution:
+     *
+     * . the technical message (what ends up as the operation execution's plain {@code message}) must read
+     *   as the trigger message ("... was added"), not as a {@code PolicyRuleType} dump, and
+     * . a localizable user-friendly message must be present as well.
+     */
+    @Test
+    public void test105SuspendMessageIsUserFriendly() throws Exception {
+        OperationResult result = getTestOperationResult();
+        TestObject<TaskType> task = TASK_IMPORT;
+        deleteIfPresent(task, result);
+
+        when("import trips an add-threshold rule with suspendTask + notification");
+        addObject(task, getTestTask(), result,
+                contributeInline(
+                        addRule(ADD_THRESHOLD, new PolicyActionsType()
+                                .suspendTask(new SuspendTaskPolicyActionType())
+                                .notification(new NotificationPolicyActionType())),
+                        ActivityPath.empty()));
+        waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, result, TIMEOUT);
+
+        then("the recorded violation message is the trigger message, not a dump of the policy rule bean");
+        TaskType taskAfter = getTask(task.oid).asObjectable();
+        TaskInformation info = TaskInformation.createForTask(taskAfter, taskAfter);
+
+        List<String> healthMessages = info.getTaskHealthMessages();
+        List<LocalizableMessage> userFriendly = info.getTaskHealthUserFriendlyMessages();
+        displayValue("health messages (technical)", healthMessages);
+        displayValue("health messages (user-friendly)", userFriendly);
+
+        assertThat(healthMessages).as("technical health/operation-execution messages").hasSize(1);
+        assertThat(healthMessages.get(0))
+                .as("technical policy violation message")
+                .contains("added")               // trigger-derived (ADD modification constraint) => "... was added"
+                .doesNotContain("PolicyRuleType") // no bean dump
+                .doesNotContain("policyThreshold")
+                .doesNotContain("policyConstraints");
+
+        assertThat(userFriendly).as("user-friendly health messages").hasSize(1);
     }
 
     /** notification only (no halting): activity completes; trigger recorded; notifications emitted. */

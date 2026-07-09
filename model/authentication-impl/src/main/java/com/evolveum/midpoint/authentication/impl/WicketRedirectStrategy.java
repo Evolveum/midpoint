@@ -22,11 +22,13 @@ public class WicketRedirectStrategy extends DefaultRedirectStrategy {
 
     @Override
     public void sendRedirect(HttpServletRequest request, HttpServletResponse response, String url) throws IOException {
+        String redirectUrl = calculateRedirectUrl(request, url);
+
         response.setStatus(HttpServletResponse.SC_OK);
 
         response.setContentType("text/xml");
 
-        response.setHeader("Ajax-Location", url);
+        response.setHeader("Ajax-Location", redirectUrl);
         // disabled caching
         response.setHeader("Date", Long.toString(java.time.Instant.now().toEpochMilli()));
         response.setHeader("Expires", Long.toString(Instant.EPOCH.toEpochMilli()));
@@ -34,7 +36,28 @@ public class WicketRedirectStrategy extends DefaultRedirectStrategy {
         response.setHeader("Cache-Control", "no-cache, no-store");
 
         Writer writer = response.getWriter();
-        writer.write("<ajax-response><redirect><![CDATA[" + url + "]]></redirect></ajax-response>");
+        writer.write("<ajax-response><redirect><![CDATA[" + redirectUrl + "]]></redirect></ajax-response>");
+    }
+
+    /**
+     * Calculates a Wicket Ajax redirect URL without losing the servlet context path.
+     *
+     * Prefixes application-local paths like {@code /login}, but leaves already
+     * context-prefixed, relative, protocol-relative, and {@code null} URLs unchanged.
+     */
+    private String calculateRedirectUrl(HttpServletRequest request, String url) {
+        if (url == null || !url.startsWith("/") || url.startsWith("//")) {
+            return url;
+        }
+
+        String contextPath = request.getContextPath();
+        if (contextPath != null
+                && !contextPath.isEmpty()
+                && (url.equals(contextPath) || url.startsWith(contextPath + "/"))) {
+            return url;
+        }
+
+        return calculateRedirectUrl(contextPath, url);
     }
 
     public static boolean isWicketAjaxRequest(HttpServletRequest request) {

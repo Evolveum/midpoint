@@ -14,14 +14,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
-
-import com.evolveum.midpoint.gui.api.component.BadgePanel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -33,9 +25,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -102,15 +98,15 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
         String badgeCss = "";
         if (procedureType == null) {
             badgeText = "N/A";
-            badgeCss = "badge bg-danger";
+            badgeCss = "badge text-bg-danger";
         } else if (procedureType.equals(RoleAnalysisProcedureType.ROLE_MINING)) {
             badgeText = "role mining";
             // temporary disable to many colors
 //            badgeCss = "badge bg-success";
-            badgeCss = "badge bg-primary";
+            badgeCss = "badge text-bg-primary";
         } else if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             badgeText = "outlier detection";
-            badgeCss = "badge bg-primary";
+            badgeCss = "badge text-bg-primary";
         }
 
         Badge badge = new Badge(badgeCss, badgeText);

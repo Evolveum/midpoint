@@ -8,30 +8,38 @@
 -- https://docs.evolveum.com/midpoint/devel/guides/sql-script-annotations/
 
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
--- Naming conventions:
--- M_ prefix is used for tables in main part of the repo, MA_ for audit tables (can be separate)
--- Constraints/indexes use table_column(s)_suffix convention, with PK for primary key,
--- FK foreign key, IDX for index, KEY for unique index.
--- TR is suffix for triggers.
--- Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
--- Column names are Java style and match attribute names from M-classes (e.g. MObject).
---
--- Other notes:
--- TEXT is used instead of VARCHAR, see: https://dba.stackexchange.com/a/21496/157622
--- We prefer "CREATE UNIQUE INDEX" to "ALTER TABLE ... ADD CONSTRAINT", unless the column
--- is marked as UNIQUE directly - then the index is implied, don't create it explicitly.
---
--- For Audit tables see 'postgres-new-audit.sql' right next to this file.
--- For Quartz tables see 'postgres-new-quartz.sql'.
 
--- noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
+/*
+@script-description:
 
--- public schema is not used as of now, everything is in the current user schema
--- https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS
--- see secure schema usage pattern
+Naming conventions:
+M_ prefix is used for tables in main part of the repo, MA_ for audit tables (can be separate)
+Constraints/indexes use table_column(s)_suffix convention, with PK for primary key,
+FK foreign key, IDX for index, KEY for unique index.
+TR is suffix for triggers.
+Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
+Column names are Java style and match attribute names from M-classes (e.g. MObject).
 
--- just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
--- drop schema current_user cascade;
+Other notes:
+`TEXT` is used instead of `VARCHAR`, see: https://dba.stackexchange.com/a/21496/157622[dba.stackexchange]
+We prefer `CREATE UNIQUE INDEX` to `ALTER TABLE ... ADD CONSTRAINT`, unless the column
+is marked as UNIQUE directly - then the index is implied, don't create it explicitly.
+
+For Audit tables see 'postgres-audit.sql' right next to this file.
+For Quartz tables see 'postgres-quartz.sql'.
+
+noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
+
+public schema is not used as of now, everything is in the current user schema
+https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS[ddl-schemas-patterns]
+see secure schema usage pattern
+
+just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
+```
+drop schema current_user cascade;
+```
+*/
+
 -- @region: infrastructure
 -- @regionTitle: Infrastructure
 -- @regionDescription: Schema, extensions, enum types, shared identifiers, repository metadata, and support routines.
@@ -328,12 +336,12 @@ CREATE TABLE m_global_metadata (
 );
 
 /*
- * @description: Stores frequently used URI values, such as channels and relation QNames, as compact numeric identifiers.
- *
- * Catalog of often used URIs, typically channels and relation Q-names.
- * Never update values of "uri" manually to change URI for some objects
- * (unless you really want to migrate old URI to a new one).
- * URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
+@description: Stores frequently used URI values, such as channels and relation QNames, as compact numeric identifiers.
+
+Catalog of often used URIs, typically channels and relation Q-names.
+Never update values of "uri" manually to change URI for some objects
+(unless you really want to migrate old URI to a new one).
+URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
  */
 CREATE TABLE m_uri (
     -- @description: Numeric URI identifier referenced by repository tables.
@@ -475,12 +483,12 @@ SELECT 1 FROM "pg_settings" into pg16 WHERE "name" = 'server_version_num' AND "s
 end $$;
 
 /*
- * @description: Abstract base table for assignment-holding objects, excluding shadows.
- *
- * Represents AssignmentHolderType (all objects except shadows)
- * extending m_object, but still abstract, hence the CHECK (false).
- *
- * No indexes here, always add indexes and referential constraints on concrete sub-tables.
+@description: Abstract base table for assignment-holding objects, excluding shadows.
+
+Represents AssignmentHolderType (all objects except shadows)
+extending m_object, but still abstract, hence the CHECK (false).
+
+No indexes here, always add indexes and referential constraints on concrete sub-tables.
  */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#AssignmentHolderType
 CREATE TABLE m_assignment_holder (
@@ -492,10 +500,10 @@ CREATE TABLE m_assignment_holder (
     INHERITS (m_object);
 
 /*
- * @description: Abstract base table for separately persisted container values.
- *
- * Purely abstract table (no entries are allowed). Represents Containerable/PrismContainerValue.
- * Allows querying all separately persisted containers, but not necessary for the application.
+@description: Abstract base table for separately persisted container values.
+
+Purely abstract table (no entries are allowed). Represents Containerable/PrismContainerValue.
+Allows querying all separately persisted containers, but not necessary for the application.
  */
 CREATE TABLE m_container (
     /*
@@ -1165,9 +1173,9 @@ CREATE INDEX m_application_modifyTimestamp_idx ON m_application (modifyTimestamp
 
 
 /*
- * @description: Stores service objects, including service accounts and application services.
- *
- * Represents ServiceType, see https://docs.evolveum.com/midpoint/reference/deployment/service-account-management/
+@description: Stores service objects, including service accounts and application services.
+
+Represents ServiceType, see https://docs.evolveum.com/midpoint/reference/deployment/service-account-management/
  */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ServiceType
 CREATE TABLE m_service (
@@ -1273,9 +1281,9 @@ CREATE INDEX m_archetype_modifyTimestamp_idx ON m_archetype (modifyTimestamp);
 -- @regionDescription: Organization objects, parent organization references, and organization hierarchy closure support.
 -- region Organization hierarchy support
 /*
- * @description: Stores organization objects and hierarchy-related organization attributes.
- *
- * Represents OrgType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/
+@description: Stores organization objects and hierarchy-related organization attributes.
+
+Represents OrgType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/
  */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#OrgType
 CREATE TABLE m_org (
@@ -1351,14 +1359,14 @@ CREATE INDEX m_ref_object_parent_org_targetOidRelationId_idx
 
 -- region org-closure
 /*
- * @description: Materialized transitive closure of organization parent-child relationships.
- *
- * Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
- * Closure contains also identity (org = org) entries because:
- * * It's easier to do optimized matrix-multiplication based refresh with them later.
- * * It actually makes some query easier and requires AND instead of OR conditions.
- * * While the table shows that o => o (=> means "is parent of"), this is not the semantics
- * of isParent/ChildOf searches and they never return parameter OID as a result.
+@description: Materialized transitive closure of organization parent-child relationships.
+
+Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
+Closure contains also identity (org = org) entries because:
+* It's easier to do optimized matrix-multiplication based refresh with them later.
+* It actually makes some query easier and requires AND instead of OR conditions.
+* While the table shows that o => o (=> means "is parent of"), this is not the semantics
+of isParent/ChildOf searches and they never return parameter OID as a result.
  */
 CREATE MATERIALIZED VIEW m_org_closure AS
 WITH RECURSIVE org_h (
@@ -1477,9 +1485,9 @@ $$;
 -- @regionDescription: Resources, shadows, shadow partitions, connectors, and resource object reference data.
 -- region OTHER object tables
 /*
- * @description: Stores resource objects and resource-specific searchable state.
- *
- * Represents ResourceType, see https://docs.evolveum.com/midpoint/reference/resources/resource-configuration/
+@description: Stores resource objects and resource-specific searchable state.
+
+Represents ResourceType, see https://docs.evolveum.com/midpoint/reference/resources/resource-configuration/
  */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType
 CREATE TABLE m_resource (
@@ -1561,10 +1569,10 @@ CREATE INDEX m_ref_resource_biz_config_approver_targetOidRelationId_idx
     ON m_ref_resource_business_configuration_approver (targetOid, relationId);
 
 /*
- * @description: Stores resource object shadows and their searchable synchronization state.
- *
- * Represents ShadowType, see https://docs.evolveum.com/midpoint/reference/resources/shadow/
- * and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
+@description: Stores resource object shadows and their searchable synchronization state.
+
+Represents ShadowType, see https://docs.evolveum.com/midpoint/reference/resources/shadow/
+and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
  */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType
 CREATE TABLE m_shadow (
@@ -2512,10 +2520,10 @@ CREATE INDEX m_lookup_table_modifyTimestamp_idx ON m_lookup_table (modifyTimesta
 
 -- Represents LookupTableRowType, see also m_lookup_table above
 /*
- * @description: Stores rows of lookup table key-value data.
- *
- * Lookup table row currently doesn't store whole polystring data for `label` property,
- * only the original and normalized string values are stored.
+@description: Stores rows of lookup table key-value data.
+
+Lookup table row currently doesn't store whole polystring data for `label` property,
+only the original and normalized string values are stored.
  */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableRowType
 CREATE TABLE m_lookup_table_row (
@@ -2639,9 +2647,9 @@ CREATE TRIGGER m_connector_development_oid_delete_tr AFTER DELETE ON m_connector
 
 
 /*
- * @description: Stores remote connector host definitions.
- *
- * Represents ConnectorHostType, see https://docs.evolveum.com/connectors/connid/1.x/connector-server/
+@description: Stores remote connector host definitions.
+
+Represents ConnectorHostType, see https://docs.evolveum.com/connectors/connid/1.x/connector-server/
  */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorHostType
 CREATE TABLE m_connector_host (
@@ -2690,9 +2698,9 @@ CREATE INDEX m_connector_host_modifyTimestamp_idx ON m_connector_host (modifyTim
 -- @regionTitle: Tasks
 -- @regionDescription: Task objects, task containers, affected objects, triggers, and operation execution data.
 /*
- * @description: Stores persistent task objects managed by the task manager.
- *
- * Represents persistent TaskType, see https://docs.evolveum.com/midpoint/reference/tasks/task-manager/
+@description: Stores persistent task objects managed by the task manager.
+
+Represents persistent TaskType, see https://docs.evolveum.com/midpoint/reference/tasks/task-manager/
  */
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#TaskType
 CREATE TABLE m_task (
