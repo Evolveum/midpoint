@@ -11,7 +11,7 @@
 :page-toc: top
 
 This document describes the steps required to upgrade a xref:/midpoint/install/bare-installation/distribution/[midPoint installation].
-It describes the usual steps, risks and consideration for upgrade, therefore it is quite comprehensive.
+It not only lists the usual steps but explains risks and consideration for upgrade, therefore it is quite comprehensive.
 
 The document focuses on upgrades of _production_ environments.
 Upgrades of _evaluation_, _demo_, _development_, and similar environments can often be simplified to just a handful of commands.
@@ -25,7 +25,7 @@ While the upgrade principles remain the same, deployment-specific aspects such a
 Therefore, this guide should not be considered the sole source of upgrade instructions for containerized deployments.
 
 For a more practical, command-oriented approach, see xref:/midpoint/reference/deployment/ninja/use-case/upgrade-with-ninja/[Upgrade with Ninja].
-MidPoint distributions include the Ninja tool, which provides commands for verifying upgrade readiness, executing database upgrades, and performing other upgrade-related tasks.
+MidPoint distributions include the ninja tool, which provides commands for verifying upgrade readiness, executing database upgrades, and performing other upgrade-related tasks.
 
 WARNING: Please read the *entire* guide *before* starting the upgrade.
 MidPoint is a highly flexible platform that is often deployed in a wide variety of environments.
@@ -35,10 +35,10 @@ Otherwise you may end up with an unusable and inconsistent system.
 
 == Quick Upgrade Checklist
 
-. <<Create Backup>>
 . <<Check the Upgrade Path>>
 . <<Run the Pre-upgrade Checks>>
 . <<Stop the System>>
+. <<Create Backup>>
 . <<Upgrade Binaries>>
 . <<Upgrade Database Schema (repository and audit)>>
 . Start midPoint
@@ -52,28 +52,6 @@ Otherwise you may end up with an unusable and inconsistent system.
 The crucial part comes even before the upgrade itself.
 Measure twice, upgrade once.
 Proper preparation and backups are essential for a smooth upgrade.
-
-=== Create Backup
-
-The very first step is to make sure that you have a *fresh backup* that can be restored.
-Regular backups and restore procedure testing should be part of your usual operational procedures.
-However, an upgrade process may pose a risk of mistakes that can damage your data.
-Therefore, it is worth double-checking that a fresh backup exists and is ready to be used if necessary.
-
-A *backup of the repository database* is especially important.
-Database schema upgrades are generally not reversible,
-and the repository contains not only configuration, but also internal midPoint state and metadata that cannot be reconstructed directly from source systems.
-This includes, for example, shadow objects and their links to identities, synchronization state, tokens, and audit history.
-
-A backup of the midPoint home directory is also strongly recommended.
-The home directory contains deployment-specific files that are not stored in the repository database, such as keystores, non-bundled connectors, and other custom configuration.
-Losing these files may prevent the upgraded deployment from starting correctly or from operating as expected.
-In midPoint versions up to 4.10, the home directory may also contain custom extension schema definitions.
-
-Read the xref:/midpoint/release/[release notes] very carefully.
-You should read the release notes for the version that you are upgrading to.
-Pay special attention to the *Changes* and *Upgrade* sections.
-All important upgrade-specific details are described there.
 
 === Check the Upgrade Path
 
@@ -173,7 +151,8 @@ Plan for that.
 The technical upgrade itself usually takes only a few minutes, but post-upgrade verification and testing may take considerably longer.
 Use upgrades of test environments to estimate the expected downtime.
 
-Before shutting down the system, consider disabling scheduled reconciliation and synchronization tasks. This is recommended because:
+Before shutting down the system, consider disabling scheduled reconciliation and synchronization tasks.
+This is recommended because:
 
 * bundled connector versions may change during the upgrade, causing tasks to fail until resource configuration is updated,
 * automatic task execution can make troubleshooting more difficult by generating additional log noise,
@@ -192,6 +171,33 @@ In clustered deployments, all midPoint nodes must be shut down before starting t
 Do not upgrade cluster nodes one by one while other nodes are still running an older version.
 Running different midPoint versions against the same repository is not supported during the upgrade process and may lead to inconsistent behavior or repository corruption.
 ====
+
+== Create Backup
+
+A crucial step is to make sure that you have a *fresh backup* that can be restored.
+Regular backups and restore procedure testing should be part of your usual operational procedures.
+However, an upgrade process may pose a risk of mistakes that can damage your data.
+Therefore, it is worth double-checking that a fresh backup exists and is ready to be used if necessary.
+
+Backing up the database *after* shutting down the server ensures that all recent changes have been written to the database and that no data is lost.
+Although the final backup should be created after stopping the midPoint server, creating an additional backup before running the upgrade checks is recommended.
+This provides a safe recovery point before any upgrade preparation begins.
+
+A *backup of the repository database* is especially important.
+Database schema upgrades are generally not reversible,
+and the repository contains not only configuration, but also internal midPoint state and metadata that cannot be reconstructed directly from source systems.
+This includes, for example, shadow objects and their links to identities, synchronization state, tokens, and audit history.
+
+A backup of the midPoint home directory is also strongly recommended.
+The home directory contains deployment-specific files that are not stored in the repository database, such as keystores, non-bundled connectors, and other custom configuration.
+Losing these files may prevent the upgraded deployment from starting correctly or from operating as expected.
+In midPoint versions up to 4.10, the home directory may also contain custom extension schema definitions.
+
+Read the xref:/midpoint/release/[release notes] very carefully.
+You should read the release notes for the version that you are upgrading to.
+Pay special attention to the *Changes* and *Upgrade* sections.
+All important upgrade-specific details are described there.
+
 
 == Upgrade Binaries
 
@@ -213,7 +219,7 @@ This directory should be backed up before the upgrade and should not be replaced
 
 Each midPoint release usually extends database schema with new tables, columns, indexes and similar database configuration.
 
-MidPoint is distributed with convenient SQL scripts that alters the database schema as necessary.
+MidPoint is distributed with SQL scripts that alter the database schema as necessary.
 The scripts are located in the `doc/config/sql/native` subdirectory of the distribution package.
 See xref:/midpoint/reference/repository/native-postgresql/[Native repository] for more information about upgrade scripts.
 
@@ -221,7 +227,6 @@ To run those scripts, you can use:
 
 * the `ninja` command `run-sql`. For more information see xref:/midpoint/reference/deployment/ninja/command/run-sql/[The detailed `run-sql` documentation].
 * the `psql` command-line tool.
-
 
 Database upgrade is thoroughly described in xref:/midpoint/reference/upgrade/database-schema-upgrade[this document].
 There are also deployment specific details to consider, e.g. is the audit in the same database?
@@ -251,14 +256,18 @@ The users should be ideally still kept out, e.g. keeping the path through load b
 Consider doing the following steps:
 
 === Reindex Repository Objects
+
 After the database schema upgrade, it is recommended to run the *Reindex Repository Objects* task (GUI → About → Reindex Repository Objects).
 Reindexing recomputes repository-specific indexed and derived data for existing objects, ensuring that all objects are fully populated according to the repository schema used by the upgraded version.
 
 === Review Connector Versions
-Most midPoint releases bring new versions of bundled connectors. This means that new connector versions appear in midPoint after the first post-upgrade startup, and the old connector versions will no longer work.
+
+Most midPoint releases bring new versions of bundled connectors.
+This means that new connector versions appear in midPoint after the first post-upgrade startup, and the old connector versions will no longer work.
 Connector references (`connectorRef`) in affected resources need to be updated to point to the new connector versions.
 
 === Review Initial Objects
+
 Many midPoint releases bring new and updated xref:/midpoint/reference/deployment/initial-objects/[initial objects].
 Initial objects are automatically imported into the midPoint repository during the first post-upgrade startup.
 However, if the repository already contains an object with the same OID, midPoint does not overwrite it and leaves it unchanged.
@@ -300,8 +309,8 @@ Additional monitoring and manual review are often useful during the first days a
 
 == Follow-Up
 
-Now that the release was successful, we know that we will not need to rollback the release.
-There is a couple of recommended steps to cleanup the installation.
+Now that the release was successful, we know that we will not need to roll back the release.
+There is a couple of recommended steps to clean up the installation.
 These steps do not need to happen immediately after upgrade.
 However, do not procrastinate for too long, as these minor issues may turn into big problems in a long run.
 
