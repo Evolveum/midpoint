@@ -19,6 +19,7 @@
             <set>
                 <condition>
                     <script>
+                        <!-- TODO: MELize -->
                         <code>
                             x != null &amp;&amp; x.targetRef?.type?.localPart == 'RoleType'
                         </code>
@@ -32,6 +33,7 @@
             <set>
                 <condition>
                     <script>
+                        <!-- TODO: MELize -->
                         <code>
                             y != null &amp;&amp; y.targetRef?.type?.localPart == 'OrgType' &amp;&amp; !y.subtype.contains('combined')
                         </code>
@@ -43,6 +45,7 @@
             <assignmentTargetSearch>
                 <condition>
                     <script>
+                        <!-- TODO: MELize -->
                         <code>
                             log.info('condition: x={}, y={}', x?.targetRef?.oid, y?.targetRef?.oid)
                             x != null &amp;&amp; y != null
@@ -55,6 +58,7 @@
                         <q:path>name</q:path>
                         <expression>
                             <script>
+                                <!-- TODO: MELize -->
                                 <code>
                                     midpoint.resolveReference(x?.targetRef)?.name + '-' + midpoint.resolveReference(y?.targetRef)?.name
                                 </code>

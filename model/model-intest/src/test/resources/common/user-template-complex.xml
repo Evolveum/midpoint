@@ -60,7 +60,7 @@
             </expression>
             <condition>
                 <script>
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>subtype == 'BUCCANEER'</code>
                 </script>
             </condition>
@@ -415,7 +415,8 @@
         </target>
         <condition>
             <script>
-                <code>telephoneNumber == null || telephoneNumber.isEmpty()</code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                <code>isEmpty(telephoneNumber)</code>
             </script>
         </condition>
     </mapping>
@@ -456,7 +457,8 @@
         </target>
         <condition>
             <script>
-                <code>midpoint.hasLinkedAccount('10000000-0000-0000-0000-000000000004')</code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                <code>midpoint.hasLinkedObjectOnResource('10000000-0000-0000-0000-000000000004', 'account', null)</code>
             </script>
         </condition>
         <evaluationPhase>afterProjections</evaluationPhase>
@@ -571,7 +573,8 @@
         </expression>
         <condition>
             <script>
-                <code>givenName?.norm == 'lootjack'</code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                <code>givenName.norm == 'lootjack'</code>
             </script>
         </condition>
         <target>
