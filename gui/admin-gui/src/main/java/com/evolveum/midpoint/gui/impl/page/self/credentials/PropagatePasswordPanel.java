@@ -607,20 +607,19 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         showResultInTable = true;
         if (shouldLoadAccounts()) {
             showFeedback = false;
-            String msg;
-            String cssClass;
+            Toast toast = new Toast();
             if (result.isError()) {
-                msg = createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString();
-                cssClass = "bg-danger m-3";
+                toast.title(createStringResource("PageAbstractSelfCredentials.message.resultInTable.error")
+                        .getString())
+                        .error();
             } else {
-                msg = createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString();
-                cssClass = "bg-success m-3";
+                toast.title(createStringResource("PageAbstractSelfCredentials.message.resultInTable")
+                        .getString())
+                        .success();
             }
-            new Toast()
-                    .cssClass(cssClass)
+            toast
                     .autohide(true)
                     .delay(10_000)
-                    .title(msg)
                     .show(target);
         }
         super.finishChangePassword(result, target, showFeedback);

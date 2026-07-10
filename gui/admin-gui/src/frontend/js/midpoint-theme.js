@@ -1968,7 +1968,7 @@ export default class MidPointTheme {
         subtitle = '',
         close = true,
         body = '',
-        className = 'text-bg-info',
+        className = 'info',
         autohide = true,
         delay = 5000
     } = {}) {
@@ -1982,22 +1982,24 @@ export default class MidPointTheme {
         }
 
         const toast = document.createElement('div');
-        toast.className = `toast ${className}`;
+        toast.className = `toast border-${className}`;
         toast.setAttribute('tabindex', '0');
         toast.setAttribute('role', 'alert');
         toast.setAttribute('aria-live', 'assertive');
         toast.setAttribute('aria-atomic', 'true');
 
         toast.innerHTML = `
-        <div class="toast-header">
+        <div class="toast-header text-bg-${className}">
             ${icon ? `<i class="${icon} me-2"></i>` : ''}
             <strong class="me-auto">${title}</strong>
             ${subtitle ? `<small>${subtitle}</small>` : ''}
-            ${close ? `<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>` : ''}
+            ${close ? `<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>` : ''}
         </div>
-        <div class="toast-body">
-            ${body}
-        </div>
+        ${body && body.trim() ?
+            `<div class="toast-body text-${className}">
+                ${body}
+            </div>` : ''}
+
     `;
 
         container.appendChild(toast);
