@@ -7,6 +7,10 @@ doc-type: config
 :page-upkeep-status: green
 :page-toc: top
 
+// TODO: conditional and matching types. E.g. problem with cond ? string : polystring -> use default() instead
+
+// TODO: nested conditionals -> use parentheses
+
 xref:../introduction/[MidPoint Expression Language (MEL)] is an expression language, designed to support customization of midPoint functionality in an easy-to-use and secure way.
 This page lists miscellaneous tips and recommendations for writing MEL expressions.
 
