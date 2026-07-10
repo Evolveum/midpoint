@@ -46,7 +46,7 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
     @AfterMethod
     public void deleteTasks() {
         try {
-            suspendAndDeleteTasks(TASK_10496.oid, TASK_NOOP_RECURRENT.oid);
+            suspendAndDeleteTasks(TASK_10496.oid);
         } catch (Exception e) {
             logger.warn("Task cleanup failed", e);
         }
