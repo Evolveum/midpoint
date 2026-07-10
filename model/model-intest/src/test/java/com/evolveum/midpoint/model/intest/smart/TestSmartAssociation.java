@@ -27,7 +27,6 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -134,9 +133,8 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void testSmartAssociation_shouldSuggestCorrectInboundAssociationStructure() throws Exception {
-        var isInbound = true;
-        var suggestions = prepareAndSuggestAssociations(isInbound);
+    public void testSmartAssociation_shouldSuggestCorrectAssociationStructure() throws Exception {
+        var suggestions = prepareAndSuggestAssociations();
 
         var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/app-group"));
 
@@ -160,14 +158,34 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 <association>
                     <ref>group-app-group</ref>
                     <sourceAttributeRef>ri:group</sourceAttributeRef>
+                    <outbound>
+                        <name>ACCOUNT-default-ref-ENTITLEMENT-app-group-outbound</name>
+                        <strength>strong</strength>
+                        <expression>
+                            <associationConstruction xsi:type="c:AssociationConstructionExpressionEvaluatorType">
+                                <objectRef>
+                                    <ref>ri:group</ref>
+                                    <mapping>
+                                        <name>associationFromLink</name>
+                                        <strength>strong</strength>
+                                        <expression>
+                                            <associationFromLink/>
+                                        </expression>
+                                    </mapping>
+                                </objectRef>
+                            </associationConstruction>
+                        </expression>
+                    </outbound>
                     <inbound>
                         <name>ACCOUNT-default-ref-ENTITLEMENT-app-group-inbound</name>
+                        <strength>strong</strength>
                         <expression>
                             <associationSynchronization xsi:type="c:AssociationSynchronizationExpressionEvaluatorType">
                                 <objectRef>
-                                    <correlator/>
+                                    <ref>ri:group</ref>
                                     <mapping>
                                         <name>shadowOwner-into-targetRef</name>
+                                        <strength>strong</strength>
                                         <expression>
                                             <shadowOwnerReferenceSearch/>
                                         </expression>
@@ -176,6 +194,19 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                                         </target>
                                     </mapping>
                                 </objectRef>
+                                <correlation>
+                                    <correlators>
+                                        <items>
+                                            <name>membership-correlation</name>
+                                            <description>Correlate group membership using existing assignments</description>
+                                            <enabled>true</enabled>
+                                            <item>
+                                                <name>shadowOwner-into-targetRef</name>
+                                                <ref>targetRef</ref>
+                                            </item>
+                                        </items>
+                                    </correlators>
+                                </correlation>
                                 <synchronization>
                                     <reaction>
                                         <name>unmatched-add</name>
@@ -209,63 +240,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             </object>
         </definition>
         """);
-        assertEqualsMultiline("body of association should be equal (inbound)", expectedValue, actualValue);
-    }
-
-    @Test
-    public void testSmartAssociation_shouldSuggestCorrectOutboundAssociationStructure() throws Exception {
-        var isOutbound = false;
-        var suggestions = prepareAndSuggestAssociations(isOutbound);
-
-        var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/app-group"));
-
-        assertThat(suggestion.getDefinition().getDescription())
-                .as("association has non empty description")
-                .isNotEmpty();
-
-        // exclude attributes not important to the full assertion
-        suggestion.getDefinition().setDescription(null); // don't need to diff
-
-        var actualValue = prettySerialize(suggestion);
-        var expectedValue = dedent("""
-        <definition>
-            <name>ACCOUNT-default-ref-ENTITLEMENT-app-group</name>
-            <displayName>Default Accounts reference to ENTITLEMENT-app-group</displayName>
-            <subject>
-                <objectType>
-                    <kind>account</kind>
-                    <intent>default</intent>
-                </objectType>
-                <association>
-                    <ref>group-app-group</ref>
-                    <sourceAttributeRef>ri:group</sourceAttributeRef>
-                    <outbound>
-                        <name>ACCOUNT-default-ref-ENTITLEMENT-app-group-outbound</name>
-                        <strength>strong</strength>
-                        <expression>
-                            <associationConstruction xsi:type="c:AssociationConstructionExpressionEvaluatorType">
-                                <objectRef>
-                                    <mapping>
-                                        <name>associationFromLink</name>
-                                        <expression>
-                                            <associationFromLink/>
-                                        </expression>
-                                    </mapping>
-                                </objectRef>
-                            </associationConstruction>
-                        </expression>
-                    </outbound>
-                </association>
-            </subject>
-            <object>
-                <objectType>
-                    <kind>entitlement</kind>
-                    <intent>app-group</intent>
-                </objectType>
-            </object>
-        </definition>
-        """);
-        assertEqualsMultiline("body of association should be equal (outbound)", expectedValue, actualValue);
+        assertEqualsMultiline("body of association should be equal", expectedValue, actualValue);
     }
 
     @Test
@@ -341,18 +316,13 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     }
 
     private List<AssociationSuggestionType> prepareAndSuggestAssociations() throws Exception {
-        var isInbound = true;
-        return prepareAndSuggestAssociations(isInbound);
-    }
-
-    private List<AssociationSuggestionType> prepareAndSuggestAssociations(boolean isInbound) throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
         var resource = provisioningService.getObject(ResourceType.class, RESOURCE_OID, null, task, result);
         //displayValueAsXml("Resource: ad-smart-association-types", resource.getValue());
 
-        AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(RESOURCE_OID, isInbound, task, result);
+        AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(RESOURCE_OID, task, result);
 
         displayValueAsXml("Suggested Associations", associationsSuggestion);
 
