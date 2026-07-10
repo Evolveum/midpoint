@@ -741,6 +741,28 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionStringPlusStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", null, PrimitiveType.STRING
+                ),
+                "FOO");
+    }
+
+    @Test
+    public void testExpressionStringNullPlusStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", null, PrimitiveType.STRING,
+                        "bar", null, PrimitiveType.STRING
+                ),
+                null);
+    }
+
+    @Test
     public void testExpressionPolyStringPlusString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-foo-plus-bar.xml",
@@ -771,6 +793,28 @@ public class TestMelExpressions extends AbstractScriptTest {
                         "bar", createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
                 ),
                 "FOOBAR");
+    }
+
+    @Test
+    public void testExpressionPolyStringPlusPolyStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", null, PolyStringType.COMPLEX_TYPE
+                ),
+                "FOO");
+    }
+
+    @Test
+    public void testExpressionPolyStringNullPlusPolyStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", null, PolyStringType.COMPLEX_TYPE,
+                        "bar", null, PolyStringType.COMPLEX_TYPE
+                ),
+                null);
     }
 
     @Test
@@ -2799,6 +2843,41 @@ public class TestMelExpressions extends AbstractScriptTest {
                         "input", "foobar", PrimitiveType.STRING
                 ),
                 "We have foobar");
+    }
+
+    @Test
+    public void testHasAdministrativeStatusHas() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-has-administrativestatus.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition()
+                ),
+                true);
+    }
+
+    @Test
+    public void testHasAdministrativeStatusNullStatus() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        userJack.asObjectable().getActivation().setDisableReason("foo"); // To keep the activation container
+        userJack.asObjectable().getActivation().setAdministrativeStatus(null);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-has-administrativestatus.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition()
+                ),
+                false);
+    }
+
+    @Test
+    public void testHasAdministrativeStatusNullFocus() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-has-administrativestatus.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition()
+                ),
+                false);
     }
 
     @Test
