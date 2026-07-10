@@ -12,6 +12,12 @@ const path = require('path');
 
 module.exports = {
     entry: {
+        "vendors-passwords": [
+            './src/frontend/js/vendors-passwords.js',
+        ],
+        "vendors-fonts": [
+            './src/frontend/scss/vendors-fonts.scss',
+        ],
         midpoint: [
             './src/frontend/js/app.js',
             './src/frontend/scss/app.scss',

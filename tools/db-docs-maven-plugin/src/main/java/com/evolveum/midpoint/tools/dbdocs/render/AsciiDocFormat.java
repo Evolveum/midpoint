@@ -110,7 +110,7 @@ public class AsciiDocFormat {
 
     public String changeText(UpgradeChangeDoc change) {
         if (change.metadata().change() != null) {
-            return metadataValue(change.metadata().change());
+            return change.metadata().change();
         }
 
         return metadataValue(change.metadata().description());
@@ -265,13 +265,7 @@ public class AsciiDocFormat {
     }
 
     private String metadataValue(String value, String fallback) {
-        return value != null ? hardLineBreaks(value) : fallback;
-    }
-
-    private String hardLineBreaks(String value) {
-        return value.replace("\r\n", "\n")
-                .replace("\r", "\n")
-                .replace("\n", " +\n");
+        return value != null ? value : fallback;
     }
 
     private String localXref(String anchor, String label) {

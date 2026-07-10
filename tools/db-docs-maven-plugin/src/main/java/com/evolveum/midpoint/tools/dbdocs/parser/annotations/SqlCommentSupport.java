@@ -66,6 +66,6 @@ final class SqlCommentSupport {
         if (value == null || value.isBlank()) {
             return normalizedContinuation;
         }
-        return value.stripTrailing() + "\n" + normalizedContinuation;
+        return value + "\n" + normalizedContinuation;
     }
 }

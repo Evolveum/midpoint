@@ -8,5 +8,4 @@ import $ from 'jquery'
 window.$ = window.jQuery = $
 
 import './vendors.js'
-import './vendors-passwords.js'
 import './midpoint.js'
