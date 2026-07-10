@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import java.io.File;
 import java.util.List;
 
@@ -18,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRunRecordType;
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
@@ -43,6 +46,22 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
             TestTask.file(TEST_DIR, "task-noop-recurrent.xml", "b1701de1-6e3f-441a-accf-c853b1e41fe0");
 
     /**
+     * These tests add tasks with fixed OIDs against a shared repository. We remove them (together
+     * with their worker subtasks) after every method - including on failure - so repeated runs
+     * start from a clean state. Otherwise, a worker that is slow to die leaks into the next run and
+     * collides with a freshly created one, producing two worker instances for a single bucket and
+     * a stuck coordinator (see MID-10496).
+     */
+    @AfterMethod
+    public void deleteTasks() {
+        try {
+            suspendAndDeleteTasks(TASK_10496.oid, TASK_NOOP_RECURRENT.oid);
+        } catch (Exception e) {
+            logger.warn("Task cleanup failed", e);
+        }
+    }
+
+    /**
      * MID-10496 task not starting after suspend/resume based on cron schedule. Only start once (executed immediately).
      */
     @Test
@@ -64,7 +83,7 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
                 .assertExecutionState(TaskExecutionStateType.RUNNING)
                 .assertInProgress();
 
-        long lastRun = currentTask.getLastRunStartTimestamp();
+        long startBeforeSuspend = currentTask.getLastRunStartTimestamp();
 
         logger.info("Suspending task");
         // suspend the task
@@ -76,38 +95,34 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
         TaskAsserter.forTask(currentTask.getUpdatedTaskObject())
                 .assertSuspended();
 
+        // Baseline for detecting runs that complete after resume. We assert on run *finish*
+        // timestamps rather than momentary execution state: this task is recurring (cron every
+        // ~10s) and loosely bound, so once resumed it keeps running back-to-back and is almost
+        // never observably idle. Waiting for a single "not in progress" sample (waitForTaskFinish)
+        // is therefore inherently racy against the restored schedule - see MID-10496 / MID-10687.
+        long finishBeforeResume = or0(currentTask.getLastRunFinishTimestamp());
+
         logger.info("Resuming task");
         // resume task
         taskManager.resumeTaskTree(currentTask.getOid(), result);
 
-        currentTask = taskManager.getTask(task.getOid(), GetOperationOptionsBuilder.create().build(), result);
-        TaskAsserter.forTask(currentTask.getUpdatedTaskObject())
-                .assertExecutionState(TaskExecutionStateType.RUNNING)
-                .assertInProgress();
-
-        logger.info("Waiting for task to finish");
-        // task should resume immediately
-        waitForTaskFinish(currentTask, 20000, 500L);
-
-        // task should be finished with success, 9 items processed
-        currentTask = taskManager.getTask(task.getOid(), GetOperationOptionsBuilder.create().build(), result);
-        Assertions.assertThat(currentTask).isNotNull();
-        TaskAsserter.forTask(currentTask.getUpdatedTaskObject())
-                .assertSuccess()
-                .rootActivityState()
-                .assertComplete();
-
-        Assertions.assertThat(currentTask.getLastRunStartTimestamp()).isGreaterThan(lastRun);
-
-        lastRun = currentTask.getLastRunStartTimestamp();
-
-        // once more wait - whether next scheduled run is executed (about every 10 seconds)
-        Thread.sleep(15000L);
+        logger.info("Waiting for a run to complete after resume");
+        // the resumed run should finish within ~10s (8 steps * 1s delay + scheduling overhead)
+        waitForTaskRunFinish(task.getOid(), result, 25000L, 500L, finishBeforeResume);
 
         currentTask = taskManager.getTask(task.getOid(), GetOperationOptionsBuilder.create().build(), result);
         Assertions.assertThat(currentTask).isNotNull();
+        // a new run actually started after resume (not merely the pre-suspend one)
+        Assertions.assertThat(currentTask.getLastRunStartTimestamp())
+                .as("a new run started after resume")
+                .isGreaterThan(startBeforeSuspend);
 
-        Assertions.assertThat(currentTask.getLastRunStartTimestamp()).isGreaterThan(lastRun);
+        long finishAfterResume = or0(currentTask.getLastRunFinishTimestamp());
+
+        // MID-10496: the task must continue at its next scheduled time, not run only once.
+        // Wait for a *further* run to complete (next scheduled run is about every 10 seconds).
+        logger.info("Waiting for the next scheduled run to complete");
+        waitForTaskRunFinish(task.getOid(), result, 20000L, 500L, finishAfterResume);
     }
 
     @Test
