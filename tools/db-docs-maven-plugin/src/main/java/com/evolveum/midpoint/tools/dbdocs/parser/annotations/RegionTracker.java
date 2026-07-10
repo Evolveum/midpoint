@@ -14,7 +14,6 @@ import com.evolveum.midpoint.tools.dbdocs.model.DocRegion;
  */
 public class RegionTracker {
 
-    private static final String LINE_COMMENT_PREFIX = "--";
     private static final String REGION = "@region:";
     private static final String REGION_TITLE = "@regionTitle:";
     private static final String REGION_DESCRIPTION = "@regionDescription:";
@@ -47,46 +46,57 @@ public class RegionTracker {
         String slug = null;
         String title = null;
         String description = null;
+        boolean regionDescriptionContinues = false;
+        boolean inBlockComment = false;
 
         /*
          * Region annotations are section-level directives, not object annotations.
          * They may be followed by normal developer comments before the SQL statement starts.
          */
         for (String line : statement.lines().toList()) {
-            String commentText = leadingCommentText(line);
+            String strippedLine = line.stripLeading();
+            boolean blockComment = inBlockComment || SqlCommentSupport.startsBlockComment(strippedLine);
+            String commentText = blockComment
+                    ? SqlCommentSupport.fromBlockComment(line)
+                    : SqlCommentSupport.fromLineComment(line);
+            if (commentText == null && strippedLine.isEmpty()) {
+                commentText = "";
+            }
+
             if (commentText == null) {
                 break;
             }
+            boolean blockContinues = blockComment && SqlCommentSupport.continuesBlockComment(strippedLine);
+            inBlockComment = blockContinues;
 
             slug = valueOrCurrent(commentText, REGION, slug);
             title = valueOrCurrent(commentText, REGION_TITLE, title);
-            description = valueOrCurrent(commentText, REGION_DESCRIPTION, description);
+            String newDescription = annotationValue(commentText, REGION_DESCRIPTION);
+            if (newDescription != null) {
+                description = newDescription;
+                regionDescriptionContinues = blockComment;
+                continue;
+            }
+
+            if (regionDescriptionContinues && blockComment && (!commentText.isBlank() || blockContinues)) {
+                description = SqlCommentSupport.appendContinuation(description, commentText);
+            } else if (!blockComment) {
+                regionDescriptionContinues = false;
+            }
         }
 
         return slug != null ? new DocRegion(slug, title, description, order) : null;
-    }
-
-    private String leadingCommentText(String line) {
-        String trimmed = line.stripLeading();
-
-        if (trimmed.isEmpty()) {
-            return "";
-        }
-
-        return trimmed.startsWith(LINE_COMMENT_PREFIX)
-                ? trimmed.substring(LINE_COMMENT_PREFIX.length()).stripLeading()
-                : null;
-    }
-
-    private String valueOrCurrent(String commentText, String annotationPrefix, String currentValue) {
-        String value = annotationValue(commentText, annotationPrefix);
-        return value != null ? value : currentValue;
     }
 
     private String annotationValue(String commentText, String annotationPrefix) {
         return commentText.regionMatches(true, 0, annotationPrefix, 0, annotationPrefix.length())
                 ? commentText.substring(annotationPrefix.length()).trim()
                 : null;
+    }
+
+    private String valueOrCurrent(String commentText, String annotationPrefix, String currentValue) {
+        String value = annotationValue(commentText, annotationPrefix);
+        return value != null ? value : currentValue;
     }
 
 }

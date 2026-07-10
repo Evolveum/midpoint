@@ -21,9 +21,7 @@ import com.evolveum.midpoint.tools.dbdocs.model.UpgradeAffectedObjectDoc;
  */
 public class SqlAnnotationExtractor {
 
-    private static final String LINE_COMMENT_PREFIX = "--";
-    private static final String BLOCK_COMMENT_START = "/*";
-    private static final String BLOCK_COMMENT_END = "*/";
+    private static final String SCRIPT_DESCRIPTION = "@script-description:";
     private static final String ANNOTATION_PREFIX = "@";
     private static final char ANNOTATION_SEPARATOR = ':';
     private static final char AFFECTS_SEPARATOR = '|';
@@ -31,6 +29,8 @@ public class SqlAnnotationExtractor {
 
     private static final Set<String> TABLE_CONSTRAINT_STARTS = Set.of(
             "CHECK", "CONSTRAINT", "PRIMARY", "FOREIGN", "UNIQUE");
+    private static final Set<AnnotationKey> MULTI_LINE_KEYS = Set.of(
+            AnnotationKey.DESCRIPTION, AnnotationKey.CHANGE, AnnotationKey.REGION_DESCRIPTION);
 
     /**
      * Extracts annotation metadata placed immediately before a SQL statement.
@@ -41,6 +41,41 @@ public class SqlAnnotationExtractor {
             builder.add(annotation);
         }
         return builder.isEmpty() ? DocMetadata.EMPTY : builder.toMetadata();
+    }
+
+    /**
+     * Extracts the file-level script description from a leading SQL block comment.
+     */
+    public String extractScriptDescription(String statement) {
+        String description = null;
+        boolean inScriptDescription = false;
+        boolean inBlockComment = false;
+
+        for (String line : statement.lines().toList()) {
+            String strippedLine = line.stripLeading();
+            if (!inBlockComment && !SqlCommentSupport.startsBlockComment(strippedLine)) {
+                if (strippedLine.isBlank() || SqlCommentSupport.isLineComment(strippedLine)) {
+                    continue;
+                }
+                break;
+            }
+
+            String commentText = SqlCommentSupport.fromBlockComment(line);
+            boolean blockContinues = SqlCommentSupport.continuesBlockComment(strippedLine);
+            inBlockComment = blockContinues;
+            if (startsScriptDescription(commentText)) {
+                description = commentText.substring(SCRIPT_DESCRIPTION.length()).strip();
+                inScriptDescription = true;
+            } else if (inScriptDescription && (!commentText.isBlank() || blockContinues)) {
+                description = SqlCommentSupport.appendContinuation(description, commentText);
+            }
+
+            if (!inBlockComment && inScriptDescription) {
+                break;
+            }
+        }
+
+        return description;
     }
 
     /**
@@ -70,13 +105,19 @@ public class SqlAnnotationExtractor {
     public Map<String, DocMetadata> extractColumnMetadata(String statement) {
         Map<String, DocMetadata> metadataByColumn = new LinkedHashMap<>();
         AnnotationMetadataBuilder pendingMetadata = new AnnotationMetadataBuilder();
+        AnnotationMetadataBuilder blockMetadata = null;
         boolean inBlockComment = false;
 
         for (String line : statement.lines().toList()) {
             String strippedLine = line.stripLeading();
 
             if (inBlockComment) {
-                inBlockComment = !strippedLine.contains(BLOCK_COMMENT_END);
+                collectBlockAnnotation(blockMetadata, line);
+                inBlockComment = SqlCommentSupport.continuesBlockComment(strippedLine);
+                if (!inBlockComment) {
+                    pendingMetadata = blockMetadata.isEmpty() ? new AnnotationMetadataBuilder() : blockMetadata;
+                    blockMetadata = null;
+                }
                 continue;
             }
 
@@ -90,14 +131,19 @@ public class SqlAnnotationExtractor {
                 continue;
             }
 
-            if (strippedLine.startsWith(LINE_COMMENT_PREFIX)) {
+            if (SqlCommentSupport.isLineComment(strippedLine)) {
                 pendingMetadata = new AnnotationMetadataBuilder();
                 continue;
             }
 
-            if (strippedLine.startsWith(BLOCK_COMMENT_START)) {
-                pendingMetadata = new AnnotationMetadataBuilder();
-                inBlockComment = !strippedLine.contains(BLOCK_COMMENT_END);
+            if (SqlCommentSupport.startsBlockComment(strippedLine)) {
+                blockMetadata = new AnnotationMetadataBuilder();
+                collectBlockAnnotation(blockMetadata, line);
+                inBlockComment = SqlCommentSupport.continuesBlockComment(strippedLine);
+                if (!inBlockComment) {
+                    pendingMetadata = blockMetadata.isEmpty() ? new AnnotationMetadataBuilder() : blockMetadata;
+                    blockMetadata = null;
+                }
                 continue;
             }
 
@@ -184,11 +230,29 @@ public class SqlAnnotationExtractor {
         return -1;
     }
 
+    private boolean startsScriptDescription(String commentText) {
+        return commentText.regionMatches(true, 0, SCRIPT_DESCRIPTION, 0, SCRIPT_DESCRIPTION.length());
+    }
+
+    private void collectBlockAnnotation(AnnotationMetadataBuilder builder, String line) {
+        String commentText = SqlCommentSupport.fromBlockComment(line);
+        if (commentText.isBlank() && !SqlCommentSupport.continuesBlockComment(line.stripLeading())) {
+            return;
+        }
+
+        SqlAnnotation annotation = annotationFromCommentText(commentText);
+        if (annotation != null) {
+            builder.add(annotation);
+        } else {
+            builder.appendToLast(commentText);
+        }
+    }
+
     /**
      * Parses one SQL line comment in the form {@code -- @key: value}.
      */
     private SqlAnnotation annotationFromLine(String line) {
-        String commentText = lineCommentText(line);
+        String commentText = SqlCommentSupport.fromLineComment(line);
         if (commentText == null || !commentText.startsWith(ANNOTATION_PREFIX)) {
             return null;
         }
@@ -206,13 +270,8 @@ public class SqlAnnotationExtractor {
         return new SqlAnnotation(key, commentText.substring(separator + 1).strip());
     }
 
-    private String lineCommentText(String line) {
-        String strippedLine = line.stripLeading();
-        if (!strippedLine.startsWith(LINE_COMMENT_PREFIX)) {
-            return null;
-        }
-
-        return strippedLine.substring(LINE_COMMENT_PREFIX.length()).stripLeading();
+    private SqlAnnotation annotationFromCommentText(String commentText) {
+        return annotationFromLine(SqlCommentSupport.asLineComment(commentText));
     }
 
     /**
@@ -259,6 +318,7 @@ public class SqlAnnotationExtractor {
     private final class LeadingAnnotationCollector {
 
         private AnnotationMetadataBuilder builder = new AnnotationMetadataBuilder();
+        private AnnotationMetadataBuilder blockBuilder;
         private boolean inAnnotationBlock;
         private boolean inBlockComment;
 
@@ -266,7 +326,11 @@ public class SqlAnnotationExtractor {
             String strippedLine = line.stripLeading();
 
             if (inBlockComment) {
-                inBlockComment = !strippedLine.contains(BLOCK_COMMENT_END);
+                collectBlockAnnotation(blockBuilder, line);
+                inBlockComment = SqlCommentSupport.continuesBlockComment(strippedLine);
+                if (!inBlockComment) {
+                    finishBlockComment();
+                }
                 return LineResult.CONTINUE;
             }
 
@@ -281,18 +345,32 @@ public class SqlAnnotationExtractor {
                 return inAnnotationBlock ? LineResult.STOP : LineResult.CONTINUE;
             }
 
-            if (strippedLine.startsWith(LINE_COMMENT_PREFIX)) {
+            if (SqlCommentSupport.isLineComment(strippedLine)) {
                 resetAnnotationBlock();
                 return LineResult.CONTINUE;
             }
 
-            if (strippedLine.startsWith(BLOCK_COMMENT_START)) {
-                resetAnnotationBlock();
-                inBlockComment = !strippedLine.contains(BLOCK_COMMENT_END);
+            if (SqlCommentSupport.startsBlockComment(strippedLine)) {
+                blockBuilder = new AnnotationMetadataBuilder();
+                collectBlockAnnotation(blockBuilder, line);
+                inBlockComment = SqlCommentSupport.continuesBlockComment(strippedLine);
+                if (!inBlockComment) {
+                    finishBlockComment();
+                }
                 return LineResult.CONTINUE;
             }
 
             return LineResult.STOP;
+        }
+
+        private void finishBlockComment() {
+            if (blockBuilder.isEmpty()) {
+                resetAnnotationBlock();
+            } else {
+                builder = blockBuilder;
+                inAnnotationBlock = true;
+            }
+            blockBuilder = null;
         }
 
         private void resetAnnotationBlock() {
@@ -318,6 +396,21 @@ public class SqlAnnotationExtractor {
 
         void add(SqlAnnotation annotation) {
             annotations.add(annotation);
+        }
+
+        void appendToLast(String continuation) {
+            if (annotations.isEmpty()) {
+                return;
+            }
+
+            SqlAnnotation lastAnnotation = annotations.get(annotations.size() - 1);
+            if (!MULTI_LINE_KEYS.contains(lastAnnotation.key())) {
+                return;
+            }
+
+            annotations.set(
+                    annotations.size() - 1,
+                    new SqlAnnotation(lastAnnotation.key(), SqlCommentSupport.appendContinuation(lastAnnotation.value(), continuation)));
         }
 
         boolean isEmpty() {

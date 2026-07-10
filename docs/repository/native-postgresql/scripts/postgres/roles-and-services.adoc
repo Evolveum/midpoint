@@ -20,7 +20,7 @@ Abstract roles, roles, services, archetypes, policies, applications, and related
 
 Abstract base table for role-like focus objects that can be assigned or requested.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AbstractRoleType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#AbstractRoleType`
 
 Inherits from: xref:focus-and-users.adoc#m_focus[`m_focus`]
 
@@ -77,7 +77,7 @@ No primary key is defined directly on this table. The table inherits from xref:f
 
 Stores application objects used to model applications and application access.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ApplicationType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ApplicationType`
 
 Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
@@ -165,7 +165,7 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
 Stores archetype objects used to classify and constrain other objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ArchetypeType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ArchetypeType`
 
 Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
@@ -253,7 +253,7 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
 Stores policy objects that define reusable policy behavior.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#PolicyType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#PolicyType`
 
 Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
@@ -341,7 +341,7 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
 Stores role objects used to model access, business roles, and technical roles.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleType`
 
 Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
@@ -429,7 +429,9 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 
 Stores service objects, including service accounts and application services.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#ServiceType`
+Represents ServiceType, see https://docs.evolveum.com/midpoint/reference/deployment/service-account-management/
+
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ServiceType`
 
 Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 

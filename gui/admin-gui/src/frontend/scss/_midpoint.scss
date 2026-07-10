@@ -5,19 +5,6 @@
  */
 
 @import "midpoint-variables";
-
-// AdminLTE and Bootstrap
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/functions";
-@import "../../../node_modules/admin-lte/build/scss/bootstrap-variables";
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables";
-@import "../../../node_modules/admin-lte/build/scss/variables";
-@import "../../../node_modules/admin-lte/build/scss/variables-alt";
-@import "../../../node_modules/admin-lte/build/scss/mixins/_miscellaneous";
-@import "../../../node_modules/admin-lte/build/scss/mixins/dark-mode";
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins";
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/utilities";
-// AdminLTE and Bootstrap end
-
 @import "admin-lte-overrides";
 @import "icon-style";
 @import "prism-forms";
@@ -42,13 +29,13 @@
 @import "con-gen";
 
 body.custom-hold-transition {
-  .content-wrapper,
+  .app-main,
   .right-side,
-  .main-footer,
-  .main-sidebar,
+  .app-footer,
+  .app-sidebar,
   .left-side,
-  .main-header .navbar,
-  .main-header .logo {
+  .app-header .navbar,
+  .app-header .logo {
     -webkit-transition: none !important;
     -moz-transition: none !important;
     -ms-transition: none !important;
@@ -56,139 +43,7 @@ body.custom-hold-transition {
   }
 }
 
-//Fix when hovering collapsed sidemenu to use bigger default logo
-.sidebar-mini-xs.sidebar-collapse .main-sidebar:not(.sidebar-no-expand):hover > a.logo > span {
-  &:before {
-    opacity: 1;
-  }
 
-  &:after {
-    opacity: 0;
-  }
-}
-
-//Change default midPoint logo when sidemenu is collapsed
-body.sidebar-collapse .main-sidebar > a.logo > span {
-
-  &:before {
-    opacity: 0;
-  }
-
-  &:after {
-    opacity: 1;
-  }
-}
-
-.main-sidebar {
-  & > a.logo {
-    padding: 0;
-    max-height: 3.5rem;
-    height: 100%;
-
-    & > span:before, & > span:after {
-      height: 100%;
-      width: 100%;
-      display: inline-block;
-      content: '';
-      transition: opacity 0.3s;
-    }
-
-    & > span:before {
-      background: url("../img/midpoint_logo_white_250x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
-      z-index: -101;
-      background-size: contain;
-      background-position: 50%;
-    }
-
-    & > span:after {
-      background: url("../img/midpoint_logo_white_56x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
-      z-index: -100;
-      opacity: 0;
-      background-size: contain;
-      background-position: 50%;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-  }
-
-  & > a.custom-logo {
-    height: 3.5rem;
-    max-height: 3.5rem;
-
-    & > img {
-      vertical-align: middle;
-      max-height: 3.5rem;
-      object-fit: contain;
-      max-width: 100%;
-      width: 100%;
-      height: 100%;
-    }
-  }
-
-  & > .sidebar > nav > ul.nav-sidebar > li.nav-item > a.active {
-    box-shadow: none;
-  }
-}
-
-div.navbar-custom-menu {
-  margin-right: 14px;
-}
-
-//Used in top right locale combo selection
-div.btn-group.bootstrap-select.select-picker-sm {
-  margin-top: 10px;
-}
-
-// for just to use fake form.form-inline (as div) in form.form-horizontal. Used in button bars.
-div.form-inline > div.form-group {
-  margin-left: 0;
-  margin-right: 0;
-}
-
-li.dropdown.user.user-menu {
-  & > ul.dropdown-menu {
-    border-color: #367fa9;
-    right: 0;
-    left: auto;
-
-    & > li.user-footer {
-      border-color: #367fa9;
-      border-bottom-right-radius: 4px;
-      border-bottom-left-radius: 4px;
-    }
-  }
-}
-
-// sidebar styles extension
-.sidebar-menu .treeview-menu > li > span > .fe {
-  width: 20px;
-}
-
-.sidebar-menu > li > a > .fe {
-  width: 20px;
-}
-
-.nav-sidebar {
-  & li.nav-header {
-    cursor: pointer;
-
-    & span > i.fa-chevron-down {
-      width: auto;
-      height: auto;
-      padding: 0;
-      @include transition(transform $transition-fn $transition-speed);
-    }
-
-    &.closed {
-      & span > i.fa-chevron-down {
-        @include rotate(90deg);
-      }
-    }
-  }
-}
-
-// end sidebar styles extension
 
 .user-thumbnail-helper {
   display: inline-block;
@@ -400,7 +255,7 @@ li.dropdown.user.user-menu {
 
 // Colored boxes for each object type
 
-@mixin box-object($color) {
+@mixin card-object($color) {
   &.card.card-outline {
     border-top: 3px solid $color !important;
   }
@@ -417,76 +272,76 @@ li.dropdown.user.user-menu {
   }
 }
 
-.object-user-box {
-  @include box-object($object-user-color);
+.card-user {
+  @include card-object($object-user-color);
 }
 
-.object-role-box {
-  @include box-object($object-role-color);
+.card-role {
+  @include card-object($object-role-color);
 }
 
-.object-org-box {
-  @include box-object($object-org-color);
+.card-org {
+  @include card-object($object-org-color);
 }
 
-.object-service-box {
-  @include box-object($object-service-color);
+.card-service {
+  @include card-object($object-service-color);
 }
 
-.object-policy-box {
-  @include box-object($object-policy-color);
+.card-policy {
+  @include card-object($object-policy-color);
 }
 
-.object-task-box {
-  @include box-object($object-task-color);
+.card-task {
+  @include card-object($object-task-color);
 }
 
-.object-resource-box {
-  @include box-object($object-resource-color);
+.card-resource {
+  @include card-object($object-resource-color);
 }
 
-.object-shadow-box {
-  @include box-object($object-shadow-color);
+.card-object-shadow {
+  @include card-object($object-shadow-color);
 }
 
-@mixin box-thin-object($color) {
+@mixin card-thin-object($color) {
   border: 1px solid $color;
 
-  .box-header {
+  .card-header {
     border-bottom: 1px solid $color;
   }
 }
 
-.object-user-box-thin {
-  @include box-thin-object($object-user-color);
+.card-user-thin {
+  @include card-thin-object($object-user-color);
 }
 
-.object-role-box-thin {
-  @include box-thin-object($object-role-color);
+.card-role-thin {
+  @include card-thin-object($object-role-color);
 }
 
-.object-org-box-thin {
-  @include box-thin-object($object-org-color);
+.card-org-thin {
+  @include card-thin-object($object-org-color);
 }
 
-.object-service-box-thin {
-  @include box-thin-object($object-service-color);
+.card-service-thin {
+  @include card-thin-object($object-service-color);
 }
 
-.object-policy-box-thin {
-  @include box-thin-object($object-policy-color);
+.card-policy-thin {
+  @include card-thin-object($object-policy-color);
 }
 
-.object-resource-box-thin {
-  @include box-thin-object($object-resource-color);
+.card-resource-thin {
+  @include card-thin-object($object-resource-color);
 }
 
-.object-shadow-box-thin {
-  @include box-thin-object($object-shadow-color);
+.card-object-shadow-thin {
+  @include card-thin-object($object-shadow-color);
 }
 
-.object-task-box-thin {
-  @include box-thin-object($object-task-color);
+.card-task-thin {
+  @include card-thin-object($object-task-color);
 }
 
 // Summary panel (panel above the edit user/role/org forms)
@@ -631,24 +486,21 @@ li.dropdown.user.user-menu {
 
 .btn-resource-capability:hover {
   background: $light;
-  border-color: darken($light, 3%);
-}
-
-// Feedback messages
-@each $name, $color in $theme-colors {
-  .feedback-message.card.card-#{$name} > .card-body {
-    border-color: $color;
-  }
+  border-color: shade-color($light, 3%);
 }
 
 .feedback-message {
 
-  &.card {
+  &.alert {
     box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
 
     & > .card-header {
       border-bottom-right-radius: valid-radius($border-radius);
       border-bottom-left-radius: valid-radius($border-radius);
+    }
+
+    &:not(:has(> .card-body)) > .card-header {
+      border-bottom: 0;
     }
   }
 
@@ -738,7 +590,7 @@ li.dropdown.user.user-menu {
   max-width: fit-content;
 }
 
-.navbar-right {
+.navbar-end {
   margin-left: auto !important;
   display: flex !important;
 
@@ -748,7 +600,7 @@ li.dropdown.user.user-menu {
 }
 
 @media (min-width: 1200px) {
-  .navbar-right {
+  .navbar-end {
     width: 100%;
     max-width: 100%;
     min-width: 0;
@@ -782,7 +634,7 @@ li.dropdown.user.user-menu {
       text-decoration: none;
       display: inline-block;
 
-      > .fa, > .fas, > .far, > .glyphicon, > .ion, > .fe {
+      > .fa, > .fas, > .far, > .glyphicon, > .fe {
         margin-right: 3px;
       }
     }
@@ -863,11 +715,11 @@ li.dropdown.user.user-menu {
   }
 }
 
-.box-header.add {
+.card-header.add {
   background-color: #caffca;
 }
 
-.box-header.delete {
+.card-header.delete {
   background-color: #ffcaca;
 }
 
@@ -918,11 +770,11 @@ li.dropdown.user.user-menu {
 
 .projection {
   margin-bottom: 10px;
-  @include box-thin-object($object-shadow-color);
+  @include card-thin-object($object-shadow-color);
 
-  .box-header {
+  .card-header {
 
-    .box-tools {
+    .card-tools {
       margin-top: 5px;
     }
   }
@@ -941,9 +793,9 @@ li.dropdown.user.user-menu {
 .assignment {
   margin-bottom: 10px;
 
-  .box-header {
+  .card-header {
 
-    .box-tools {
+    .card-tools {
       margin-top: 5px;
     }
   }
@@ -1019,13 +871,7 @@ span.tree-content > table tr td:first-child {
   text-align: center;
 }
 
-.box-solid > .box-header > .box-tools > .cog > ul > li > a > i {
-  color: #fff;
-}
-
-
 // Request role page
-
 .request-role-col-available {
   padding-right: 0px;
 }
@@ -1039,7 +885,7 @@ span.tree-content > table tr td:first-child {
 }
 
 .request-role-box {
-  .box-body {
+  .card-body {
     padding-bottom: 0px;
   }
 }
@@ -1065,7 +911,7 @@ span.tree-content > table tr td:first-child {
 }
 
 .multiple-assignment-selector-section-table {
-  .box {
+  .card {
     border-width: 0px;
   }
 }
@@ -1320,12 +1166,12 @@ span.tree-content > table tr td:first-child {
   margin-left: -10px !important;
 }
 
-.role-catalog > .object-org-box > .org-tree-container {
+.role-catalog > .card-org > .org-tree-container {
   max-height: 50vh;
 }
 
-.skin-red > .wrapper > .main-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge,
-.skin-red-light > .wrapper > .main-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge {
+.skin-red > .app-wrapper > .app-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge,
+.skin-red-light > .app-wrapper > .app-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge {
   border-style: solid;
   padding: 2px 5px;
   border-color: #f4f4f4;
@@ -1411,7 +1257,7 @@ td .prism-property-value {
 }
 
 .card.card-outline,
-.card.card-outline-left,
+.card.card-outline-start,
 .card.card-outline-tabs {
   & > .card-header > .card-tools > a.btn.btn-tool {
     border-top: 0 !important;
@@ -1428,27 +1274,26 @@ td .prism-property-value {
 
 // handling dark mode, would be automatically fixed when we get rid of .search-item and .search-item-label and
 // replace them with vendor css utility classes
-.dark-mode .search-item {
+[data-bs-theme=dark] .search-item {
   background-color: $gray-800 !important;
   color: $white !important;
 }
 
-@include bg-variant(".search-item", $gray-300, true);
-
-// deprecated, uses should be replaced by "d-flex gap-1 px-2 bg-light rounded-sm align-items-center"
+// deprecated, uses should be replaced by "d-flex gap-1 px-2 bg-light rounded-1 align-items-center"
 .search-item {
+  background-color: $gray-300;
   display: flex;
   gap: 0.25em;
   border-radius: $border-radius-sm;
   padding-left: 0.5rem;
   align-items: center;
 
-  // deprecated, uses should be replaced by "col-form-label-sm font-weight-normal mb-0"
+  // deprecated, uses should be replaced by "col-form-label-sm fw-normal mb-0"
   .search-item-label {
     padding-top: add($input-padding-y-sm, $input-border-width);
     padding-bottom: add($input-padding-y-sm, $input-border-width);
     @include font-size($input-font-size-sm);
-    line-height: $input-line-height-sm;
+    line-height: $line-height-base;
   }
 }
 
@@ -1620,8 +1465,7 @@ td .prism-property-value {
 
 .btn-archetyped-new-object > div > .fa,
 .btn-archetyped-new-object > div > .glyphicon,
-.btn-archetyped-new-object > div > .fe,
-.btn-archetyped-new-object > div > .ion {
+.btn-archetyped-new-object > div > .fe {
   font-size: 30px;
   display: block;
 }
@@ -1720,19 +1564,23 @@ td .prism-property-value {
 }
 
 fieldset.objectButtons {
-
+  border-top: 0;
+  border-bottom: 0;
+  border-left: 0;
   border-right: 1px solid $legend-border-color;
   padding: 0;
   padding-right: 2rem;
   width: max-content;
   min-width: revert;
   margin-right: 1rem;
+  margit-bottom: 0;
 
   > legend {
     font-size: 13px;
     border-bottom: none;
     margin-bottom: 0.25rem;
     width: auto;
+    padding: 0;
     //color: $legend-color;
   }
 
@@ -1816,7 +1664,7 @@ th, td {
   }
 }
 
-.nav-sidebar .nav-header span {
+.sidebar-menu .nav-header span {
   text-transform: uppercase;
 }
 
@@ -2021,9 +1869,9 @@ button.tooltip-button[data-tooltip]:hover::after {
   }
 }
 
-.card-outline-left {
+.card-outline-start {
   @each $name, $color in $theme-colors {
-    &.card-outline-left-#{$name} {
+    &.card-outline-start-#{$name} {
       border-left: 5px solid $color;
     }
   }
@@ -2121,14 +1969,14 @@ button.tooltip-button[data-tooltip]:hover::after {
   background-color: $white;
 }
 
-@include dark-mode() {
+[data-bs-theme="dark"] {
   .metric-widget {
     background-color: $dark;
   }
 }
 
 @each $color, $value in $theme-colors {
-  $backgroundValue: color-yiq($value);
+  $backgroundValue: color-contrast($value);
 
   .colored-form-#{$color}, .colored-form-#{$color}:hover, .colored-form-#{$color}:active, .colored-form-#{$color}:focus {
     color: mix($black, $value, 5%);
@@ -2146,11 +1994,11 @@ button.tooltip-button[data-tooltip]:hover::after {
   }
 }
 
-#toastsContainerTopRight.toasts-top-right {
+#toastsContainerTopEnd.toasts-top-end {
   top: 3.5rem;
 }
 
-#toastsContainerTopRight .toast {
+#toastsContainerTopEnd .toast {
   min-width: 400px;
 }
 
@@ -2163,8 +2011,8 @@ button.tooltip-button[data-tooltip]:hover::after {
 }
 
 //When sidebar link is active make icon white to match contrast
-.sidebar-dark-lightblue .nav-sidebar > .nav-item > .nav-link.active .nav-icon,
-.sidebar-light-lightblue .nav-sidebar > .nav-item > .nav-link.active .nav-icon {
+.sidebar-dark-lightblue .sidebar-menu > .nav-item > .nav-link.active .nav-icon,
+.sidebar-light-lightblue .sidebar-menu > .nav-item > .nav-link.active .nav-icon {
   color: white;
 }
 
@@ -2172,8 +2020,8 @@ button.tooltip-button[data-tooltip]:hover::after {
 //Grouped classes with smooth-transition function
 .details-menu a,
 .details-menu a:hover,
-.nav-sidebar .nav-item > .nav-link,
-.nav-sidebar .nav-item > .nav-link:hover,
+.sidebar-menu .nav-item > .nav-link,
+.sidebar-menu .nav-item > .nav-link:hover,
 div > a > div > i.fas {
   @include smooth-transition(0.08s);
 }
@@ -2249,13 +2097,6 @@ select:focus-visible {
     -webkit-transition: all ease 0.08s !important;
   }
 }
-
-//:focus pseudo attribute fix for accessibility intentions
-.btn-default:focus {
-  background-color: #e9ecef;
-  color: #2b2b2b;
-}
-
 //End of accessibility classes and overrides
 
 div.show > a > div > i.fas {
@@ -2264,7 +2105,7 @@ div.show > a > div > i.fas {
 }
 
 @each $color, $value in $theme-colors {
-  $backgroundValue: color-yiq($value);
+  $backgroundValue: color-contrast($value);
 
   .btn-#{$color}-hover:hover {
     color: $value;
@@ -2341,16 +2182,6 @@ div.show > a > div > i.fas {
       color: $danger;
     }
   }
-}
-
-.input-group-prepend .form-control, .input-group-prepend .select2-selection {
-  border-bottom-right-radius: 0;
-  border-top-right-radius: 0;
-}
-
-.input-group-append .form-control, .input-group-append .select2-selection {
-  border-bottom-left-radius: 0;
-  border-top-left-radius: 0;
 }
 
 .midpoint-input-suffix {
@@ -2449,7 +2280,7 @@ div.show > a > div > i.fas {
   margin-top: 56px;
 }
 
-footer.main-footer a {
+footer.app-footer a {
   text-decoration: underline;
 }
 
@@ -2480,6 +2311,13 @@ footer.main-footer a {
   min-width: 300px;
 }
 
+//start .select2 overrides
+.select2-prepend .select2-selection {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  min-height: 38px;
+}
+
 .select2-selection__choice:focus {
   outline: 2px solid #2684FF;
   outline-offset: 2px;
@@ -2495,6 +2333,27 @@ footer.main-footer a {
 .select2-selection__clear:focus {
   outline: none;
   box-shadow: 0 0 0 2px #ffa836;
+}
+
+.select2-container--bootstrap-5 .select2-selection--multiple {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding-bottom: 0px;
+}
+
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-search--inline {
+  width: auto !important;
+  flex: 1 1 auto;
+  min-width: 60px;
+  margin-bottom: 0.375rem;
+}
+//end .select2 overrides
+
+//.bootstrap-multiselect overrides
+.multiselect-native-select .dropdown .dropdown-menu {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
 }
 
 .help-icon-after-label {
@@ -2539,7 +2398,7 @@ footer.main-footer a {
     }
 
     .collapsed-menu {
-      @extend .border-left;
+      @extend .border-start;
       width: 50px;
 
       .collapsed-menu-icon {
@@ -2574,7 +2433,7 @@ footer.main-footer a {
     }
 
     .collapsed-details-panel {
-      @extend .border-left;
+      @extend .border-start;
       @extend .p-2;
       width: 350px;
       height: 100%;
@@ -2582,7 +2441,7 @@ footer.main-footer a {
   }
 }
 
-.font-weight-semibold {
+.fw-semibold {
   font-weight: 600 !important;
 }
 
@@ -2592,7 +2451,7 @@ footer.main-footer a {
 
 .right-sidebar-help {
   @extend .bg-white;
-  @extend .border-left;
+  @extend .border-start;
   width: 350px;
 
   > .header {
@@ -2629,10 +2488,15 @@ footer.main-footer a {
       justify-content: center;
     }
   }
-  &.only-child-left .wizard-actions-container {
+  &.only-child-start .wizard-actions-container {
       &:only-child {
         display: flex;
         justify-content: left;
       }
     }
+}
+
+.prism-property-value-label {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

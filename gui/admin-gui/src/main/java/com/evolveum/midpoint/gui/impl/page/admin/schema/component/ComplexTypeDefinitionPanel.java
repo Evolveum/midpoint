@@ -279,7 +279,7 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
             protected WebMarkupContainer newLink(String linkId, int index) {
                 WebMarkupContainer link = super.newLink(linkId, index);
                 if (index == 0) {
-                    link.add(AttributeAppender.append("style", "border-top-left-radius: 0 !important;"));
+                    link.add(AttributeAppender.append("style", "border-top-start-radius: 0 !important;"));
                 }
                 return link;
             }

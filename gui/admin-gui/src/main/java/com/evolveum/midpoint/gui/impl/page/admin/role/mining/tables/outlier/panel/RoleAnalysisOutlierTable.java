@@ -16,20 +16,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-
-import com.evolveum.midpoint.web.component.data.table.CollapsibleBoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.table.CollapsableDataTable;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -52,11 +38,21 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.table.CollapsableDataTable;
+import com.evolveum.midpoint.web.component.data.table.CollapsibleBoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
@@ -175,7 +171,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
 
                 Label statusBar = new Label(componentId, Model.of(category));
                 statusBar.add(AttributeModifier.append(CLASS_CSS,
-                        "badge bg-transparent-blue border border-primary text-primary text-uppercase"));
+                        "badge text-bg-transparent-blue border border-primary text-primary text-uppercase"));
                 statusBar.setOutputMarkupId(true);
                 item.add(statusBar);
             }
@@ -227,7 +223,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
                 };
                 viewDetailsButton.titleAsLabel(true);
                 viewDetailsButton.setOutputMarkupId(true);
-                viewDetailsButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm text-nowrap"));
+                viewDetailsButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border btn-sm text-nowrap"));
                 viewDetailsButton.setOutputMarkupId(true);
                 item.add(viewDetailsButton);
             }

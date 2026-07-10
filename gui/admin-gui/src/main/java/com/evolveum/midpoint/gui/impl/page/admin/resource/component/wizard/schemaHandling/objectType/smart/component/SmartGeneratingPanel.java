@@ -435,7 +435,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
         runInBackgroundButton.setOutputMarkupId(true);
         runInBackgroundButton.showTitleAsLabel(true);
-        runInBackgroundButton.add(AttributeModifier.append("class", "btn btn-default"));
+        runInBackgroundButton.add(AttributeModifier.append("class", "btn btn-light border"));
         buttonsView.add(runInBackgroundButton);
     }
 

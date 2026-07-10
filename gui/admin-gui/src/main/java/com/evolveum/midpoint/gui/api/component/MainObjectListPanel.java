@@ -313,7 +313,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
-        createNewObjectButton.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
+        createNewObjectButton.add(AttributeAppender.append("class", "me-2 btn btn-light border btn-sm"));
         return createNewObjectButton;
     }
 
@@ -403,7 +403,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 ((PageBase) getPage()).navigateToNext(PageImportObject.class);
             }
         };
-        importObject.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        importObject.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         importObject.add(new VisibleBehaviour(this::isImportObjectButtonVisible));
         return importObject;
     }
@@ -448,7 +448,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 createReportPerformed(target);
             }
         };
-        createReport.add(AttributeAppender.append("class", "mx-2 btn btn-default btn-sm"));
+        createReport.add(AttributeAppender.append("class", "mx-2 btn btn-light border btn-sm"));
         createReport.add(new VisibleBehaviour(this::isReportObjectButtonVisible));
         return createReport;
     }
@@ -467,7 +467,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 target.add(getTableComponent());
             }
         };
-        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        refreshIcon.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         return refreshIcon;
     }
 
@@ -482,7 +482,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 onClickPlayPauseButton(target, !isRefreshEnabled());
             }
         };
-        playPauseIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        playPauseIcon.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         return playPauseIcon;
     }
 

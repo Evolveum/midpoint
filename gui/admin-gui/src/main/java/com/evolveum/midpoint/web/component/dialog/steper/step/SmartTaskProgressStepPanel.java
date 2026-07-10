@@ -119,7 +119,7 @@ public abstract class SmartTaskProgressStepPanel extends BasicPopupStepPanel<Tas
 
         button.showTitleAsLabel(true);
         button.setOutputMarkupId(true);
-        button.add(AttributeModifier.append("class", "btn btn-outline-primary ml-auto"));
+        button.add(AttributeModifier.append("class", "btn btn-outline-primary ms-auto"));
         return button;
     }
 

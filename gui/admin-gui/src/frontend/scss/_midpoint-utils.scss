@@ -132,7 +132,7 @@ div[role="button"].btn,
       }
   }
   &.btn.link-default {
-    color:lighten($text-color, 35%);
+    color:tint-color($text-color, 35%);
     &:hover {
       color:$text-color;
     }
@@ -148,28 +148,28 @@ div[role="button"].btn,
 div[role="button"].btn, .btn {
   //Custom links styles (tertiary style)
   &.btn-pill {
-    border: 1px solid $button-default-border-color;
+    border: 1px solid var(--bs-border-color);
     border-radius: 50rem !important;
-    color: $text-toned-color;
-    background-color: $white;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
 
     & > .pill-label {
-      color:$text-color;
+      color: var(--bs-body-color);
     }
 
     &:hover {
-      background-color: darken($button-default-background-color, 5%);
+      background-color: var(--bs-secondary-bg);
 
       & > * {
-        color:$text-color;
+        color: var(--bs-body-color);
       }
     }
     &.active {
-      border: 1px solid $primary;
-      background-color: mix($primary, $white, 10%);
+      border-color: var(--bs-primary);
+      background-color: rgba(var(--bs-primary-rgb), .10);
 
       & > * {
-        color:$primary;
+        color: var(--bs-primary);
       }
     }
   }
@@ -184,7 +184,7 @@ div[role="button"].btn, .btn {
 }
 
 @each $color, $value in $theme-colors {
-  $backgroundValue: color-yiq($value);
+  $backgroundValue: color-contrast($value);
   .bg-toned-#{$color} {
       background-color: mix(#ffffff, $value, 90%);
   }
@@ -195,13 +195,13 @@ div[role="button"].btn, .btn {
 
 //Bootstrap badge extension for transparent variant
 .badge {
-font-weight: 600;
-  &.badge-opaque {
+--bs-badge-font-weight: 600;
+  &.opaque {
     @each $color, $value in $theme-colors {
-      &.badge-#{$color} {
-        color: var(--bs-#{$color}-text-emphasis);
-        background-color: var(--bs-#{$color}-bg-subtle);
-        border: 1px solid var(--bs-#{$color}-border-subtle);
+      &.text-bg-#{$color} {
+        color: var(--bs-#{$color}-text-emphasis) !important;
+        background-color: var(--bs-#{$color}-bg-subtle) !important;
+        border: 1px solid var(--bs-#{$color}-border-subtle) !important;
       }
     }
   }
@@ -302,11 +302,11 @@ font-weight: 600;
   }*/
 
   .badge {
-    &.badge-ai-gradient {
+    &.text-bg-ai-gradient {
       color: white;
       background: var(--mp-ai-gradient) padding-box, var(--mp-ai-gradient) border-box;
 
-      &.badge-opaque {
+      &.opaque {
         background: var(--mp-ai-gradient-text-emphasis) text, var(--mp-ai-gradient-bg-subtle) padding-box, var(--mp-ai-gradient-border-subtle) border-box;
         border: 1px solid transparent;
         color: transparent;

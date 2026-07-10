@@ -6,6 +6,10 @@ xref:../schema.adoc[Back to native PostgreSQL schema overview]
 This page documents schema objects parsed from `$r.displayPath($sourceFile.path())`.
 The detailed documentation is split into logical region pages because this schema script is large.
 
+#if ($sourceFile.scriptDescription())
+$sourceFile.scriptDescription()
+
+#end
 == Region documentation
 
 #foreach ($region in $view.postgresRegions())

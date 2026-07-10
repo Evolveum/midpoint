@@ -144,7 +144,7 @@ public class ContainerWithLifecyclePanel<C extends Containerable> extends BasePa
             }
         };
         valueName.setOutputMarkupId(true);
-        valueName.add(AttributeAppender.append("class", getWrapperModelObject().containers.isEmpty() ? "": "text-bold"));
+        valueName.add(AttributeAppender.append("class", getWrapperModelObject().containers.isEmpty() ? "": "fw-bold"));
         valueName.add(AttributeAppender.append("title", nameModel));
         valueName.add(new TooltipBehavior());
         add(valueName);

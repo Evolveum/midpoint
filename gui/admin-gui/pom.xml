@@ -881,8 +881,8 @@
                 <configuration>
                     <nodeDownloadRoot>https://nexus.evolveum.com/nexus/repository/nodejs-dist/</nodeDownloadRoot>
                     <npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npmjs-dist/</npmDownloadRoot>
-                    <nodeVersion>v24.17.0</nodeVersion>
-                    <npmVersion>11.1.0</npmVersion>
+                    <nodeVersion>v24.18.0</nodeVersion>
+                    <npmVersion>11.18.0</npmVersion>
                     <installDirectory>target</installDirectory>
                 </configuration>
             </plugin>

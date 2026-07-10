@@ -146,7 +146,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         }
         ViewToggle value = item.getObject().getValue();
         if (value.equals(ViewToggle.TABLE)) {
-            add(AttributeModifier.replace("class", "card"));
+            add(AttributeModifier.replace("class", "card shadow-sm mb-3"));
         } else {
             add(AttributeModifier.replace("class", ""));
         }
@@ -557,7 +557,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     protected String getTileContainerCssClass() {
-        return "h-100 justify-content-left pt-2 ";
+        return "h-100 justify-content-start pt-2 ";
     }
 
     @Override

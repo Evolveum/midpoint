@@ -8,31 +8,29 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <li wicket:id="item" class="nav-item" role="menuitem" tabindex="0">
-        <span wicket:id="itemStatus" aria-live="polite" role="status" wicket:message="data-menu-open:MainMenuPanel.opened,data-menu-close:MainMenuPanel.closed" class="sr-only"/>
-        <a wicket:id="link" tabindex="-1" class="d-flex nav-link" data-bs-toggle="tooltip" data-bs-placement="right">
-            <span class="flex-shrink-1">
-                <i wicket:id="icon" class="nav-icon"/>
-            </span>
+        <span wicket:id="itemStatus" aria-live="polite" role="status" wicket:message="data-menu-open:MainMenuPanel.opened,data-menu-close:MainMenuPanel.closed" class="visually-hidden"/>
+        <a wicket:id="link" tabindex="-1" class="d-flex nav-link align-items-center" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i wicket:id="icon" class="nav-icon"/>
             <div class="d-flex flex-grow-1 text-truncate">
-                <div class="text-truncate">
-                    <span class="sr-only" wicket:id="srCurrentMessage"/>
+                <div class="ps-1 text-truncate">
+                    <span class="visually-hidden" wicket:id="srCurrentMessage"/>
                     <span wicket:id="label"/>
                 </div>
                 <wicket:enclosure child="arrow">
-                    <span class="ml-auto flex-shrink-1">
-                        <i wicket:id="arrow" class="mr-1 fas fa-angle-left right"/>
+                    <span class="ms-auto flex-shrink-1">
+                        <i wicket:id="arrow" class="nav-arrow me-1 fas fa-angle-right"/>
                     </span>
                 </wicket:enclosure>
-                <span class="my-1 ml-auto flex-shrink-1 badge badge-primary right" wicket:id="bubble"/>
+                <span class="nav-badge my-1 ms-auto flex-shrink-1 badge text-bg-primary text-end" wicket:id="bubble"/>
             </div>
         </a>
         <ul wicket:id="submenu" class="nav nav-treeview" role="menu">
             <li wicket:id="subItem" class="nav-item" role="menuitem" tabindex="0">
-                <a tabindex="-1" wicket:id="subLink" class="d-flex nav-link" href="#" data-bs-toggle="tooltip" data-bs-placement="right">
+                <a tabindex="-1" wicket:id="subLink" class="d-flex nav-link align-items-center" href="#" data-bs-toggle="tooltip" data-bs-placement="right">
                     <span>
                         <i class="nav-icon" style="min-width: 20px;" wicket:id="subLinkIcon"/>
                     </span>
-                    <span class="sr-only" wicket:id="srCurrentMessageSubItem"/>
+                    <span class="visually-hidden" wicket:id="srCurrentMessageSubItem"/>
                     &nbsp;
                     <div class="text-truncate" wicket:id="subLabel"/>
                 </a>

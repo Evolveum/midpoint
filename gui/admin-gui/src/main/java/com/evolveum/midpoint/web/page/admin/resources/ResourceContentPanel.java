@@ -451,7 +451,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 new DropdownButtonDto(String.valueOf(simulatedTasks.size()), icon, getString(label), items)) {
             @Override
             protected String getSpecialDropdownMenuClass() {
-                return "dropdown-menu-left";
+                return "dropdown-menu-start";
             }
         };
         taskButtonsContainer.add(button);
@@ -533,7 +533,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 new DropdownButtonDto(String.valueOf(tasksList.size()), icon, getString(label), items)) {
             @Override
             protected String getSpecialDropdownMenuClass() {
-                return "dropdown-menu-left";
+                return "dropdown-menu-start";
             }
         };
         taskButtonsContainer.add(button);

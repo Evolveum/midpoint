@@ -1125,7 +1125,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public AssociationsSuggestionType suggestAssociations(
             String resourceOid,
-            boolean isInbound,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -1138,7 +1137,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             LOGGER.trace("Suggesting associations for resourceOid {}", resourceOid);
 
-            return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable(), isInbound);
+            return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable());
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

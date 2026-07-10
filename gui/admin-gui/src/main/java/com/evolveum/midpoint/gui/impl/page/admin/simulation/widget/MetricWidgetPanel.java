@@ -15,12 +15,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObjects;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -36,9 +30,11 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -50,6 +46,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -57,12 +55,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -315,8 +313,8 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         // todo implement properly and make visible
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {
             Badge badge = new Badge();
-            badge.setCssClass("badge badge-success trend trend-success");
-            badge.setIconCssClass("fa-solid fa-arrow-trend-up mr-1");
+            badge.setCssClass("badge text-bg-success trend trend-success");
+            badge.setIconCssClass("fa-solid fa-arrow-trend-up me-1");
             badge.setText("+3,14%");
             return badge;
         });
@@ -328,7 +326,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
             String v = valueModel.getObject();
             return v != null ? v : LocalizationUtil.translate("MetricWidgetPanel.noValue");
         });
-        value.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "text-bold"));
+        value.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "fw-bold"));
         add(value);
 
         IModel<String> descriptionModel = () -> {
@@ -376,7 +374,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     }
 
     protected IModel<String> getActionLinkIconModel() {
-        return () -> "ml-1 fa-solid fa-circle-arrow-right";
+        return () -> "ms-1 fa-solid fa-circle-arrow-right";
     }
 
     private boolean hasZeroValue(IModel<String> valueModel) {

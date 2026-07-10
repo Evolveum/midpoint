@@ -19,6 +19,12 @@ public class ConnectorGeneratorConstants {
     public static final String RPC_GENERATE_ARTIFACT_SUBMIT_OPERATION = "/rpc/generateArtifactSubmitOperation";
     public static final String RPC_GENERATE_ARTIFACT_STATUS_INFO = "/rpc/generateArtifactStatusInfo";
 
+    public static final String RPC_DISCOVER_CONNECTIVITY_ENDPOINT_SUBMIT_OPERATION = "/rpc/discoverConnectivityEndpointSubmitOperation";
+    public static final String RPC_DISCOVER_CONNECTIVITY_ENDPOINT_STATUS_INFO = "/rpc/discoverConnectivityEndpointStatusInfo";
+
+    public static final String RPC_DISCOVER_OBJECT_CLASSES_SUBMIT_OPERATION = "/rpc/discoverObjectClassSubmitOperation";
+    public static final String RPC_DISCOVER_OBJECT_CLASSES_STATUS_INFO = "/rpc/discoverObjectClassStatusInfo";
+
     public static final String RPC_DISCOVER_OBJECT_CLASS_INFORMATION_SUBMIT_OPERATION = "/rpc/discoverObjectClassInformationSubmitOperation";
     public static final String RPC_DISCOVER_OBJECT_CLASS_INFORMATION_STATUS_INFO = "/rpc/discoverObjectClassInformationStatusInfo";
 
@@ -28,11 +34,8 @@ public class ConnectorGeneratorConstants {
     public static final String RPC_DISCOVER_OBJECT_CLASS_ENDPOINTS_SUBMIT_OPERATION = "/rpc/discoverObjectClassEndpointsSubmitOperation";
     public static final String RPC_DISCOVER_OBJECT_CLASS_ENDPOINTS_STATUS_INFO = "/rpc/discoverObjectClassEndpointsStatusInfo";
 
-    public static final String RPC_REFRESH_SCIM_SCHEMA_SUBMIT_OPERATION = "/rpc/refreshScimSchemaSubmitOperation";
-    public static final String RPC_REFRESH_SCIM_SCHEMA_STATUS_INFO = "/rpc/refreshScimSchemaStatusInfo";
-
-    public static final String RPC_DISCOVER_CONNECTIVITY_ENDPOINT_SUBMIT_OPERATION = "/rpc/discoverConnectivityEndpointSubmitOperation";
-    public static final String RPC_DISCOVER_CONNECTIVITY_ENDPOINT_STATUS_INFO = "/rpc/discoverConnectivityEndpointStatusInfo";
+    public static final String RPC_REFRESH_SCHEMA_SUBMIT_OPERATION = "/rpc/refreshSchemaSubmitOperation";
+    public static final String RPC_REFRESH_SCHEMA_STATUS_INFO = "/rpc/refreshSchemaStatusInfo";
 
     public static final String RPC_GENERATE_NATIVE_SCHEMA_SUBMIT_OPERATION = "/rpc/generateNativeSchemaSubmitOperation";
     public static final String RPC_GENERATE_CONN_ID_SCHEMA_SUBMIT_OPERATION = "/rpc/generateConnIdSchemaSubmitOperation";

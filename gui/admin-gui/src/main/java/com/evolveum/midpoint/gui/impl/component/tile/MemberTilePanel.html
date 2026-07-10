@@ -8,35 +8,35 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="w-100 d-flex">
-        <div class="mr-auto">
+        <div class="me-auto">
             <input class="btn p-0" wicket:id="check" type="checkbox"/>
         </div>
-        <div class="ml-auto" wicket:id="menu"/>
+        <div class="ms-auto" wicket:id="menu"/>
     </div>
     <div class="btn p-0 logo mt-3" wicket:id="logo"/>
 
     <div class="mt-4 gap-1 d-flex align-items-center justify-content-center w-100">
         <i wicket:id="icon"/>
-        <div class="font-weight-bold text-truncate" wicket:id="title"/>
+        <div class="fw-bold text-truncate" wicket:id="title"/>
     </div>
 
     <div class="mt-2 d-flex align-items-center justify-content-center w-100">
         <div wicket:id="tags">
             <div class="mx-1 d-flex badge" wicket:id="tag">
                 <i wicket:id="tagIcon"/>
-                <div class="ml-1" wicket:id="tagLabel"/>
+                <div class="ms-1" wicket:id="tagLabel"/>
             </div>
         </div>
     </div>
 
     <div class="tile-description mt-2 text-center text-secondary flex-grow-1" style="display: -webkit-box; text-overflow: ellipsis;" wicket:id="description"/>
     <div class="w-100 d-flex">
-        <a class="btn btn-outline-primary text-lightblue mt-3 mr-auto" wicket:id="details">
-            <i class="fa fa-pen-to-square mr-2"/>
+        <a class="btn btn-outline-primary text-info mt-3 me-auto" wicket:id="details">
+            <i class="fa fa-pen-to-square me-2"/>
             <wicket:message key="MemberTilePanel.details"/>
         </a>
         <a wicket:id="unassign">
-            <i class="fa fa-link-slash mr-2"/>
+            <i class="fa fa-link-slash me-2"/>
             <wicket:message key="MemberTilePanel.unassign"/>
         </a>
     </div>

@@ -418,7 +418,7 @@ public abstract class CorrelationProcessedObjectPanel
                 Badge badge = createStatusBadge(eventMarkRef, getPageBase());
                 BadgeListPanel statusPanel =
                         new BadgeListPanel(componentId, () -> Collections.singletonList(badge));
-                statusPanel.add(AttributeModifier.append("class", "font-weight-semibold"));
+                statusPanel.add(AttributeModifier.append("class", "fw-semibold"));
                 cellItem.add(statusPanel);
             }
 

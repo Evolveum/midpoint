@@ -20,7 +20,7 @@ Schema repository objects.
 
 Stores schema objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#SchemaType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#SchemaType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 

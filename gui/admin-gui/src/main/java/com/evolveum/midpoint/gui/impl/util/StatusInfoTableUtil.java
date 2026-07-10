@@ -416,12 +416,12 @@ public class StatusInfoTableUtil {
                 return new IconWithLabel(id, titleModel) {
                     @Override
                     protected String getIconCssClass() {
-                        return GuiStyleConstants.CLASS_MAGIC_WAND + " text-purple ml-2";
+                        return GuiStyleConstants.CLASS_MAGIC_WAND + " text-purple ms-2";
                     }
 
                     @Override
                     protected String getComponentCssClass() {
-                        return "d-flex m-0 font-weight-normal text-body";
+                        return "d-flex m-0 fw-normal text-body";
                     }
                 };
             }

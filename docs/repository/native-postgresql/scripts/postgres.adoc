@@ -6,6 +6,33 @@ xref:../schema.adoc[Back to native PostgreSQL schema overview]
 This page documents schema objects parsed from `config/sql/native/postgres.sql`.
 The detailed documentation is split into logical region pages because this schema script is large.
 
+Naming conventions:
+M_ prefix is used for tables in main part of the repo, MA_ for audit tables (can be separate)
+Constraints/indexes use table_column(s)_suffix convention, with PK for primary key,
+FK foreign key, IDX for index, KEY for unique index.
+TR is suffix for triggers.
+Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
+Column names are Java style and match attribute names from M-classes (e.g. MObject).
+
+Other notes:
+`TEXT` is used instead of `VARCHAR`, see: https://dba.stackexchange.com/a/21496/157622[dba.stackexchange]
+We prefer `CREATE UNIQUE INDEX` to `ALTER TABLE ... ADD CONSTRAINT`, unless the column
+is marked as UNIQUE directly - then the index is implied, don't create it explicitly.
+
+For Audit tables see 'postgres-audit.sql' right next to this file.
+For Quartz tables see 'postgres-quartz.sql'.
+
+noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
+
+public schema is not used as of now, everything is in the current user schema
+https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS[ddl-schemas-patterns]
+see secure schema usage pattern
+
+just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
+```
+drop schema current_user cascade;
+```
+
 == Region documentation
 
 * xref:postgres/infrastructure.adoc[Infrastructure] - Schema, extensions, enum types, shared identifiers, repository metadata, and support routines.
@@ -82,6 +109,11 @@ The detailed documentation is split into logical region pages because this schem
 | xref:postgres/infrastructure.adoc[Infrastructure]
 | Abstract base table for assignment-holding objects, excluding shadows.
 
+Represents AssignmentHolderType (all objects except shadows)
+extending m_object, but still abstract, hence the CHECK (false).
+
+No indexes here, always add indexes and referential constraints on concrete sub-tables.
+
 | xref:postgres/assignments.adoc#m_assignment_metadata[`m_assignment_metadata`]
 | xref:postgres/assignments.adoc[Assignments]
 | Stores value metadata for assignments and inducements.
@@ -122,9 +154,14 @@ The detailed documentation is split into logical region pages because this schem
 | xref:postgres/lookup-tables.adoc[Lookup tables]
 | Stores remote connector host definitions.
 
+Represents ConnectorHostType, see https://docs.evolveum.com/connectors/connid/1.x/connector-server/
+
 | xref:postgres/infrastructure.adoc#m_container[`m_container`]
 | xref:postgres/infrastructure.adoc[Infrastructure]
 | Abstract base table for separately persisted container values.
+
+Purely abstract table (no entries are allowed). Represents Containerable/PrismContainerValue.
+Allows querying all separately persisted containers, but not necessary for the application.
 
 | xref:postgres/reports-and-dashboards.adoc#m_dashboard[`m_dashboard`]
 | xref:postgres/reports-and-dashboards.adoc[Reports and dashboards]
@@ -162,6 +199,9 @@ The detailed documentation is split into logical region pages because this schem
 | xref:postgres/lookup-tables.adoc[Lookup tables]
 | Stores rows of lookup table key-value data.
 
+Lookup table row currently doesn't store whole polystring data for `label` property,
+only the original and normalized string values are stored.
+
 | xref:postgres/marks.adoc#m_mark[`m_mark`]
 | xref:postgres/marks.adoc[Marks]
 | Stores mark objects used to classify and annotate repository objects and events.
@@ -197,6 +237,8 @@ The detailed documentation is split into logical region pages because this schem
 | xref:postgres/organization.adoc#m_org[`m_org`]
 | xref:postgres/organization.adoc[Organization]
 | Stores organization objects and hierarchy-related organization attributes.
+
+Represents OrgType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/
 
 | xref:postgres/roles-and-services.adoc#m_policy[`m_policy`]
 | xref:postgres/roles-and-services.adoc[Roles and services]
@@ -276,7 +318,9 @@ The detailed documentation is split into logical region pages because this schem
 
 | xref:postgres/resources-and-shadows.adoc#m_resource[`m_resource`]
 | xref:postgres/resources-and-shadows.adoc[Resources and shadows]
-| Stores resource definitions and resource-specific searchable state.
+| Stores resource objects and resource-specific searchable state.
+
+Represents ResourceType, see https://docs.evolveum.com/midpoint/reference/resources/resource-configuration/
 
 | xref:postgres/roles-and-services.adoc#m_role[`m_role`]
 | xref:postgres/roles-and-services.adoc[Roles and services]
@@ -318,9 +362,14 @@ The detailed documentation is split into logical region pages because this schem
 | xref:postgres/roles-and-services.adoc[Roles and services]
 | Stores service objects, including service accounts and application services.
 
+Represents ServiceType, see https://docs.evolveum.com/midpoint/reference/deployment/service-account-management/
+
 | xref:postgres/resources-and-shadows.adoc#m_shadow[`m_shadow`]
 | xref:postgres/resources-and-shadows.adoc[Resources and shadows]
 | Stores resource object shadows and their searchable synchronization state.
+
+Represents ShadowType, see https://docs.evolveum.com/midpoint/reference/resources/shadow/
+and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
 
 | xref:postgres/resources-and-shadows.adoc#m_shadow_default[`m_shadow_default`]
 | xref:postgres/resources-and-shadows.adoc[Resources and shadows]
@@ -354,6 +403,8 @@ The detailed documentation is split into logical region pages because this schem
 | xref:postgres/tasks.adoc[Tasks]
 | Stores persistent task objects managed by the task manager.
 
+Represents persistent TaskType, see https://docs.evolveum.com/midpoint/reference/tasks/task-manager/
+
 | xref:postgres/tasks.adoc#m_task_affected_objects[`m_task_affected_objects`]
 | xref:postgres/tasks.adoc[Tasks]
 | Stores affected object information for task activity reporting and indexing.
@@ -365,6 +416,11 @@ The detailed documentation is split into logical region pages because this schem
 | xref:postgres/infrastructure.adoc#m_uri[`m_uri`]
 | xref:postgres/infrastructure.adoc[Infrastructure]
 | Stores frequently used URI values, such as channels and relation QNames, as compact numeric identifiers.
+
+Catalog of often used URIs, typically channels and relation Q-names.
+Never update values of "uri" manually to change URI for some objects
+(unless you really want to migrate old URI to a new one).
+URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
 
 | xref:postgres/focus-and-users.adoc#m_user[`m_user`]
 | xref:postgres/focus-and-users.adoc[Focus and users]
@@ -393,6 +449,13 @@ The detailed documentation is split into logical region pages because this schem
 | xref:postgres/organization.adoc#view_m_org_closure[`m_org_closure`]
 | xref:postgres/organization.adoc[Organization]
 | Materialized transitive closure of organization parent-child relationships.
+
+Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
+Closure contains also identity (org = org) entries because:
+It's easier to do optimized matrix-multiplication based refresh with them later.
+It actually makes some query easier and requires AND instead of OR conditions.
+While the table shows that o => o (=> means "is parent of"), this is not the semantics
+of isParent/ChildOf searches and they never return parameter OID as a result.
 | materialized view
 
 |===

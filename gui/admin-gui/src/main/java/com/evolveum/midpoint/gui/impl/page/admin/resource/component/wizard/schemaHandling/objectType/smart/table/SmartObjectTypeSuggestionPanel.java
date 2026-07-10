@@ -251,7 +251,7 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
 
     private void initMoreActionsPanel() {
         DropdownButtonPanel buttonPanel = new DropdownButtonPanel(ID_MORE_ACTIONS, new DropdownButtonDto(
-                null, "fa-ellipsis-h ml-1", null, buildMoreActionsMenuItems())) {
+                null, "fa-ellipsis-h ms-1", null, buildMoreActionsMenuItems())) {
             @Override
             protected boolean hasToggleIcon() {
                 return false;

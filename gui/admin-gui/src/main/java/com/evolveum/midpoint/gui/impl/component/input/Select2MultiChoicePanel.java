@@ -55,7 +55,8 @@ public class Select2MultiChoicePanel<T> extends InputPanel {
         setOutputMarkupId(true);
         Select2MultiChoice<T> multiselect = new Select2MultiChoice<>(ID_SELECT, model, provider);
         multiselect.getSettings()
-                .setMinimumInputLength(minimumInputLength);
+                .setMinimumInputLength(minimumInputLength)
+                .setTheme("bootstrap-5");
         multiselect.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
 

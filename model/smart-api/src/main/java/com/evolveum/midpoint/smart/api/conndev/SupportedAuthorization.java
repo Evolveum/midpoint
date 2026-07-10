@@ -29,7 +29,7 @@ public enum SupportedAuthorization {
             "JwtSecret",
             "JwtSecretBase64Encoded",
             "JwtPayload",
-            "JwtLocalization"),
+            "JwtLocation"),
     HTTP_APIKEY(ConnDevHttpAuthTypeType.API_KEY, new ConnDevAuthInfoType()
             .name("HTTP API Key Authorization")
             .description("Authorization using preshared API key"),

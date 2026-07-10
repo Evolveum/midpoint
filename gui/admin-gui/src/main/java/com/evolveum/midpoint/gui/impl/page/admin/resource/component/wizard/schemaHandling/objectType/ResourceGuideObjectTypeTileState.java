@@ -38,11 +38,11 @@ public enum ResourceGuideObjectTypeTileState {
 
     NORMAL(null),
     CONFIGURED(new BadgeSpec(
-            "badge badge-success badge-opaque",
+            "badge text-bg-success opaque",
             "",
             "ResourceObjectTypeWizardChoicePanel.configured")),
     RECOMMENDED(new BadgeSpec(
-            "badge badge-primary badge-opaque",
+            "badge text-bg-primary opaque",
             "",
             "ResourceObjectTypeWizardChoicePanel.recommended")),
     TEMPORARY_LOCKED(null);

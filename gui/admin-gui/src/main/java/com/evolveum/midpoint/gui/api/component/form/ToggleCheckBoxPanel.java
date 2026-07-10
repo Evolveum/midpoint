@@ -136,77 +136,75 @@ public class ToggleCheckBoxPanel extends InputPanel {
         super.renderHead(response);
 
         boolean state = getState();
+        String stateString = state ? "on" : "off";
         String checkboxId = getPanelComponent().getMarkupId();
 
-        Map<String, Object> options = createSwitchOptions();
-        options.putIfAbsent("onSwitchChange",
-                String.format("function(e, s) { $('#%s').trigger('change'); }", checkboxId));
-
-        StringBuilder optionsJs = buildOptionsJs(options);
+//        Map<String, Object> options = createSwitchOptions();
+//        StringBuilder optionsJs = buildOptionsJs(options);
         String js = String.format(
-                "$('#%s')" +
-                        "    .bootstrapSwitch(%s)" +
-                        "    .bootstrapSwitch('state', %s, true);",
-                checkboxId, optionsJs, state
+                "document.getElementById('%s')" +
+                        "    .bootstrapToggle()" +
+                        "    .%s();",
+                checkboxId, stateString
         );
 
         response.render(OnDomReadyHeaderItem.forScript(js));
     }
 
-    private static @NotNull StringBuilder buildOptionsJs(@NotNull Map<String, Object> options) {
-        StringBuilder optionsJs = new StringBuilder("{");
-        boolean first = true;
-        for (Map.Entry<String, Object> entry : options.entrySet()) {
-            if (!first) {optionsJs.append(",");}
-            first = false;
-
-            String key = entry.getKey();
-            Object value = entry.getValue();
-
-            if (value instanceof String && ((String) value).trim().startsWith("function")) {
-                optionsJs.append(key).append(": ").append(value);
-            } else if (value instanceof String) {
-                optionsJs.append(key).append(": '").append(value).append("'");
-            } else {
-                optionsJs.append(key).append(": ").append(value);
-            }
-        }
-        optionsJs.append("}");
-        return optionsJs;
-    }
+//    private static @NotNull StringBuilder buildOptionsJs(@NotNull Map<String, Object> options) {
+//        StringBuilder optionsJs = new StringBuilder("{");
+//        boolean first = true;
+//        for (Map.Entry<String, Object> entry : options.entrySet()) {
+//            if (!first) {optionsJs.append(",");}
+//            first = false;
+//
+//            String key = entry.getKey();
+//            Object value = entry.getValue();
+//
+//            if (value instanceof String && ((String) value).trim().startsWith("function")) {
+//                optionsJs.append(key).append(": ").append(value);
+//            } else if (value instanceof String) {
+//                optionsJs.append(key).append(": '").append(value).append("'");
+//            } else {
+//                optionsJs.append(key).append(": ").append(value);
+//            }
+//        }
+//        optionsJs.append("}");
+//        return optionsJs;
+//    }
 
     private boolean getState() {
         return Boolean.TRUE.equals(getPanelComponent().getModelObject());
     }
 
     /**
-     * ToggleCheckBoxPanel integrates a Bootstrap Switch control with Wicket.
+     * ToggleCheckBoxPanel integrates a Bootstrap 5 Toggle with Wicket.
      *
-     * <p><b>Supported Bootstrap Switch options:</b></p>
+     * <p><b>Supported Bootstrap 5 Toggle options:</b></p>
      * <ul>
-     *   <li>{@code state}</li> ignore it, handled by the panel
+     *   <li>{@code onlabel}</li>
+     *   <li>{@code offlabel}</li>
+     *   <li>{@code onstyle}</li>
+     *   <li>{@code offstyle}</li>
+     *   <li>{@code onvalue}</li>
+     *   <li>{@code offvalue}</li>
      *   <li>{@code size}</li>
-     *   <li>{@code animate}</li>
-     *   <li>{@code disabled}</li>
-     *   <li>{@code readonly}</li>
-     *   <li>{@code indeterminate}</li>
-     *   <li>{@code inverse}</li>
-     *   <li>{@code radioAllOff}</li>
-     *   <li>{@code onColor}</li>
-     *   <li>{@code offColor}</li>
-     *   <li>{@code onText}</li>
-     *   <li>{@code offText}</li>
-     *   <li>{@code labelText}</li>
-     *   <li>{@code handleWidth}</li>
-     *   <li>{@code labelWidth}</li>
-     *   <li>{@code baseClass}</li>
-     *   <li>{@code wrapperClass}</li>
-     *   <li>{@code onInit}</li>
-     *   <li>{@code onSwitchChange}</li>
+     *   <li>{@code style}</li>
+     *   <li>{@code width}</li>
+     *   <li>{@code height}</li>
+     *   <li>{@code tabindex}</li>
+     *   <li>{@code tristate}</li>
+     *   <li>{@code tooltip}
+     *      <ul>
+     *          <li>{@code placement}
+     *          <li>{@code title.on}
+     *          <li>{@code title.off}
+     *          <li>{@code title.mixed}
+     *      </ul>
+     *   </li>
      * </ul>
      *
-     * Each of these corresponds to a Bootstrap Switch configuration parameter.
-     * See <a href="https://bttstrp.github.io/bootstrap-switch/options.html">official documentation</a>
+     * See <a href="https://palcarazm.github.io/bootstrap5-toggle/">official documentation</a>
      * for details and valid values.
      */
     protected @NotNull Map<String, Object> createSwitchOptions() {

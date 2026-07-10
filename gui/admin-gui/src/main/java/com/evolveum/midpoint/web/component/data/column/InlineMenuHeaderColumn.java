@@ -39,7 +39,7 @@ public class InlineMenuHeaderColumn<T> extends AbstractColumn<T, String> {
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn-xs btn-default";
+                return "btn-sm btn-light border";
             }
         };
         inlineMenu.setOutputMarkupPlaceholderTag(true);

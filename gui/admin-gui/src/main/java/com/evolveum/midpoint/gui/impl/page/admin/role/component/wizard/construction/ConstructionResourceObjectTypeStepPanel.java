@@ -213,7 +213,7 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
                                 active = "active ";
                             }
                             return active +
-                                    "catalog-tile-panel card mb-0 simple-tile selectable tile-panel "
+                                    "catalog-tile-panel card shadow-sm mb-0 simple-tile selectable tile-panel "
                                     + "d-flex flex-column justify-content-center align-items-center rounded p-3";
                         }));
             }

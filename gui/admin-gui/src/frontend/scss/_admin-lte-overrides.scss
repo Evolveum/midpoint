@@ -4,7 +4,7 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-.main-sidebar .sidebar > .user-panel {
+.app-sidebar .sidebar-wrapper > .user-panel {
   padding-left: 0.55rem;
 
   & > .image {
@@ -36,14 +36,6 @@
   }
   &.info-box > div > div:first-child {
     min-height:54px;
-  }
-}
-
-.btn-default {
-
-  &.active {
-    background-color: darken($button-default-background-color, 5%);
-    color: darken($button-default-color, 10%);
   }
 }
 
@@ -79,8 +71,8 @@
 
   &:hover, &:focus, &:focus-visible, &:active {
     color: $button-default-color;
-    background-color: lighten($info, 10%);
-    border-color: lighten($info, 10%);
+    background-color: tint-color($info, 10%);
+    border-color: tint-color($info, 10%);
   }
 }*/
 
@@ -88,13 +80,13 @@
   color: $white;
 }
 
-.main-footer {
+.app-footer {
   color: #737373;
 }
 
-.layout-navbar-fixed.sidebar-mini.sidebar-collapse .wrapper .brand-link,
-.layout-navbar-fixed.sidebar-mini-md.sidebar-collapse .wrapper .brand-link,
-.layout-navbar-fixed.sidebar-mini-xs.sidebar-collapse .wrapper .brand-link {
+.fixed-header.sidebar-mini.sidebar-collapse .app-wrapper .brand-link,
+.fixed-header.sidebar-mini-md.sidebar-collapse .app-wrapper .brand-link,
+.fixed-header.sidebar-mini-xs.sidebar-collapse .app-wrapper .brand-link {
   height: 3.5rem;
 }
 
@@ -160,21 +152,6 @@
     color: #555555;
     font-size: 10.5px;
     transition: transform 0.1s ease;
-  }
-}
-
-//TODO: Bootstrap override for toasts to fulfill contrast errors #Remove when bs5 implemented
-@each $key, $color in $theme-colors {
-  .toast.bg-#{$key} {
-    background-color: mix($white, $color, 88%) !important;
-    border:1px solid $color;
-
-    & > .toast-header {
-      background: $color;
-    }
-    & > .toast-body {
-      color: $text-color;
-    }
   }
 }
 

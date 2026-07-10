@@ -20,7 +20,7 @@ Case management, access certification campaigns, certification cases, work items
 
 Stores access certification campaign objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationCampaignType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationCampaignType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -173,7 +173,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores access certification cases inside certification campaigns.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationCaseType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationCaseType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
@@ -409,7 +409,7 @@ Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
 Stores access certification definition objects.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationDefinitionType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationDefinitionType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -529,7 +529,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores work items for access certification cases.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationWorkItemType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#AccessCertificationWorkItemType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
@@ -798,7 +798,7 @@ Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 
 Stores case objects used for approvals, manual actions, and other case-management workflows.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#CaseType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#CaseType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -980,7 +980,7 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 
 Stores case work items assigned to users or groups.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#CaseWorkItemType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#CaseWorkItemType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 

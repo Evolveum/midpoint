@@ -4,8 +4,6 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-@import "midpoint-variables";
-
 #wicketDebugLink {
   bottom: 55px !important;
 }
@@ -68,7 +66,7 @@ div.wicket-aa-container {
         margin: 0;
 
         &.selected {
-          background-color: lighten($input-focus-border-color, 10%);
+          background-color: tint-color($input-focus-border-color, 10%);
         }
       }
     }

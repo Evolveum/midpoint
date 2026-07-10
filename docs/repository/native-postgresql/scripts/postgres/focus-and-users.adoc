@@ -20,7 +20,7 @@ Focus base data, users, generic objects, focus identities, and focus-related ref
 
 Abstract base table for focus objects such as users, roles, services, and organizations.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusType`
 
 Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
 
@@ -162,7 +162,7 @@ No primary key is defined directly on this table. The table inherits from xref:i
 
 Stores focus identity values used by correlation and identity matching.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusIdentityType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusIdentityType`
 
 Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
@@ -230,7 +230,7 @@ Inherits from: xref:infrastructure.adoc#m_container[`m_container`]
 
 Stores generic objects that do not have a dedicated concrete repository table.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#GenericObjectType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#GenericObjectType`
 
 Inherits from: xref:#m_focus[`m_focus`]
 
@@ -431,7 +431,7 @@ Inherits from: xref:infrastructure.adoc#m_reference[`m_reference`]
 
 Stores user objects and user-specific searchable attributes.
 
-Schema type: `http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType`
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType`
 
 Inherits from: xref:#m_focus[`m_focus`]
 

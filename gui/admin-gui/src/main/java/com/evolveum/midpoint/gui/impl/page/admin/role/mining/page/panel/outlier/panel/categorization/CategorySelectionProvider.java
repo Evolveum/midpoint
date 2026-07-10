@@ -159,7 +159,7 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE,
                 "noise_exclusive", itemContainer == null ? 0 : safeCount(itemContainer.getNoiseExclusiveCount()),
-                ProgressBar.State.OLIVE, isRoleSelected, "text-olive");
+                ProgressBar.State.ORANGE, isRoleSelected, "text-orange");
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.OUTLIER,
                 "outlier", itemContainer == null ? 0 : safeCount(itemContainer.getOutlierCount()),
@@ -175,7 +175,7 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY,
                 "overall.anomaly", itemContainer == null ? 0 : safeCount(itemContainer.getOverallAnomalyCount()),
-                ProgressBar.State.LIME, isRoleSelected, "text-lime");
+                ProgressBar.State.TEAL, isRoleSelected, "text-teal");
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.ANOMALY,
                 "anomaly", itemContainer == null ? 0 : safeCount(itemContainer.getAnomalyCount()),

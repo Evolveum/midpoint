@@ -56,7 +56,7 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
     private void initLayout() {
         add(AttributeAppender.append(
                 "class",
-                "d-flex flex-column vertical align-items-center rounded justify-content-left p-2 h-100"));
+                "d-flex flex-column vertical align-items-center rounded justify-content-start p-2 h-100"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         setOutputMarkupId(true);
 

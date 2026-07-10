@@ -126,7 +126,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
             }
         };
         summaryButton.setOutputMarkupId(true);
-        summaryButton.add(AttributeAppender.append("class", () -> getController().isShowedSummary() ? "btn-primary" : "btn-default"));
+        summaryButton.add(AttributeAppender.append("class", () -> getController().isShowedSummary() ? "btn-primary" : "btn-light border"));
         navigation.add(summaryButton);
 
         IModel<List<WizardParentStep>> modelParentsView = () -> {
@@ -215,17 +215,17 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         listItem.add(new Label(ID_STEP_LABEL, listItem.getModelObject().getTitle()));
 
         String keySuffix = "complete";
-        String badgeClass = "badge-success";
+        String badgeClass = "bg-success";
         if (listItem.getIndex() == lastShowedIndex) {
             keySuffix = "inProgress";
-            badgeClass = "badge-info";
+            badgeClass = "bg-info";
         } else if (setSelectedItem && listItem.getIndex() == activeIndex) {
             if (getController().isStepWithError(listItem.getModelObject().getStepId())) {
                 keySuffix = "fixing";
-                badgeClass = "badge-danger";
+                badgeClass = "bg-danger";
             } else {
                 keySuffix = "edited";
-                badgeClass = "badge-primary";
+                badgeClass = "bg-primary";
             }
         }
 
@@ -235,7 +235,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
         Label badge = new Label(ID_STEP_BADGE, createStringResource("WizardWithNavigationPanel.navigation.step.status." + keySuffix));
         badge.setOutputMarkupId(true);
-        badge.add(AttributeAppender.append("class", "badge " + badgeClass + " badge-opaque"));
+        badge.add(AttributeAppender.append("class", "badge " + badgeClass + " opaque"));
         listItem.add(badge);
     }
 

@@ -28,9 +28,6 @@ $warning: $yellow;
 $danger: $red;
 $body-color: $gray-700;
 
-// override (remove after bs5)
-$sidebar-light-submenu-color: #717171 !default;
-
 //custom colors
 $purple-light: #f0e7fe;
 $purple-dark: #290661;
@@ -40,3 +37,6 @@ $warning-light: #fff6da;
 $info-light: #cff4fc;
 $secondary-light: #e9eaec;
 $primary-light: #cfe2ff;
+
+//override padding in dropdown popovers
+$dropdown-padding-y: 0;

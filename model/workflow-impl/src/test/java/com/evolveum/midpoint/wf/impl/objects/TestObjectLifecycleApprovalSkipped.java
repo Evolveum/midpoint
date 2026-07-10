@@ -8,25 +8,33 @@ package com.evolveum.midpoint.wf.impl.objects;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 
+import static java.util.Collections.singletonList;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
+import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -98,5 +106,53 @@ public class TestObjectLifecycleApprovalSkipped extends AbstractWfTestPolicy {
         assertEquals("Wrong inducements count", 1, roleAfter.asObjectable().getInducement().size());
         assertNull("Unexpected approval case", result.findCaseOid());
         assertEquals("Unexpected open work items", 0, getWorkItems(task, result).size());
+    }
+
+    /**
+     * Manual deltaFrom inducement approval followed by skipped whole ADD approval:
+     * the skipped ADD approval must not consume the ADD remainder needed for delayed execution.
+     */
+    @Test
+    public void test300CreateRoleWithManualInducementApprovalAndSkippedAddApproval() throws Exception {
+        login(userAdministrator);
+
+        RoleType role = new RoleType(prismContext)
+                .name("mid-11101-add-inducement-manual-after-skipped")
+                .inducement(createAssignmentTo(INDUCED_ROLE_OID, ObjectTypes.ROLE));
+        ObjectDelta<RoleType> addDelta = DeltaFactory.Object.createAddDelta(role.asPrismObject());
+
+        executeTest(new TestDetails() {
+            @Override
+            protected LensContext<RoleType> createModelContext(OperationResult result) throws Exception {
+                LensContext<RoleType> lensContext = createLensContext(RoleType.class);
+                addFocusDeltaToContext(lensContext, addDelta);
+                return lensContext;
+            }
+
+            @Override
+            protected void afterFirstClockworkRun(CaseType rootCase, CaseType case0, List<CaseType> subcases,
+                    List<CaseWorkItemType> workItems, Task opTask, OperationResult result) throws Exception {
+                assertNoObject(role);
+                assertNotNull("Missing case0 with ADD remainder", case0);
+                assertEquals("Wrong approval subcases count", 1, subcases.size());
+                assertEquals("Wrong open work items count", 1, workItems.size());
+            }
+
+            @Override
+            protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+                PrismObject<RoleType> roleAfter =
+                        searchObjectByName(RoleType.class, "mid-11101-add-inducement-manual-after-skipped");
+                assertNotNull("Role was not created", roleAfter);
+                assertEquals("Wrong inducements count", 1, roleAfter.asObjectable().getInducement().size());
+                assertEquals("Wrong induced role OID", INDUCED_ROLE_OID,
+                        roleAfter.asObjectable().getInducement().get(0).getTargetRef().getOid());
+            }
+
+            @Override
+            public List<ApprovalInstruction> getApprovalSequence() {
+                return singletonList(new ApprovalInstruction(null, true, USER_ADMINISTRATOR_OID, "approved"));
+            }
+        }, 1);
     }
 }

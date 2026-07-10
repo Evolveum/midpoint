@@ -22,10 +22,16 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
+import com.evolveum.midpoint.smart.api.info.HealthStatus;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.SplitButtonWithDropdownMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -254,7 +260,6 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         buttons.add(refreshButton);
     }
 
-    //TODO fix me (do not use ConfirmationOption::delineationPermissionsOptions) it's override real selection...
     private SplitButtonWithDropdownMenu createRefreshSplitButton(String id) {
         List<InlineMenuItem> dropdownItems = List.of(
                 createRefreshMenuItem(
@@ -275,7 +280,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         return new SplitButtonWithDropdownMenu(id, () -> dropdownModel) {
             @Override
             protected void performPrimaryButtonAction(AjaxRequestTarget target) {
-                refreshSuggestionPerform(target, ConfirmationOption::delineationPermissionsOptions, null);
+                showRegenerateConfirmationDialog(target, null);
             }
         };
     }
@@ -287,7 +292,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                 return new InlineMenuItemAction() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        refreshSuggestionPerform(target, ConfirmationOption::delineationPermissionsOptions, mode);
+                        showRegenerateConfirmationDialog(target, mode);
                     }
                 };
             }
@@ -297,6 +302,73 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                 return help;
             }
         };
+    }
+
+    /**
+     * Shows the confirmation dialog for regenerate action with data access permissions,
+     * then calls refreshSuggestionPerform with the user-selected permissions.
+     */
+    private void showRegenerateConfirmationDialog(AjaxRequestTarget target, @Nullable RegenerateMode regenerateMode) {
+        SuggestionOption suggestionOption = SuggestionOption.aiOnly(ConfirmationOption.delineationPermissionsOptions());
+
+        ConfirmationWithOptionsDto<DataAccessPermission> confirmationDto =
+                ConfirmationWithOptionsDto.<DataAccessPermission>builder()
+                        .confirmationTitle(createStringResource("SmartSuggestConfirmationPanel.title"))
+                        .confirmationSubtitle(createStringResource("SmartSuggestConfirmationPanel.subtitle"))
+                        .confirmationOptionsTitle(createStringResource(
+                                "SmartSuggestConfirmationPanel.request.component.title"))
+                        .infoEntries(createAiInfoModel())
+                        .errorMessage(() ->
+                                suggestionOption.requiresAiService()
+                                        ? getAiUnavailableMessage(
+                                        createAiInfoModel(),
+                                        "SmartSuggestConfirmationPanel.serviceUnreachable.error")
+                                        : null)
+                        .warningMessage(() ->
+                                suggestionOption.requiresAiService()
+                                        ? null
+                                        : getAiUnavailableMessage(
+                                        createAiInfoModel(),
+                                        "SmartSuggestConfirmationPanel.serviceUnreachable.warning"))
+                        .confirmationOptions(suggestionOption.confirmationOptions())
+                        .requireAiService(suggestionOption.requiresAiService())
+                        .build();
+
+        ConfirmationWithOptionsPopupPanel<DataAccessPermission> dialog =
+                new ConfirmationWithOptionsPopupPanel<>(getPageBase().getMainPopupBodyId(), Model.of(confirmationDto)) {
+            @Override
+            public void confirmationPerformed(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                refreshSuggestionPerform(target, confirmedOptions, regenerateMode);
+            }
+        };
+
+        getPageBase().showMainPopup(dialog, target);
+    }
+
+    private IModel<AiInfo> createAiInfoModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected AiInfo load() {
+                try {
+                    return getPageBase().getSmartIntegrationService()
+                            .getAiInfo()
+                            .orElse(null);
+                } catch (SystemException e) {
+                    return null;
+                }
+            }
+        };
+    }
+
+    private String getAiUnavailableMessage(
+            IModel<AiInfo> aiInfoModel,
+            String resourceKey) {
+        AiInfo aiInfo = aiInfoModel.getObject();
+        if (aiInfo != null && HealthStatus.OK.equals(aiInfo.status())) {
+            return null;
+        }
+        return createStringResource(resourceKey).getString();
     }
 
     public abstract void refreshSuggestionPerform(AjaxRequestTarget target,
@@ -330,7 +402,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
 
     @Override
     protected String getExitButtonCssClass() {
-        return "btn-link mr-auto";
+        return "btn-link me-auto";
     }
 
     @Override

@@ -344,7 +344,6 @@ public interface SmartIntegrationService {
      */
     AssociationsSuggestionType suggestAssociations(
             String resourceOid,
-            boolean isInbound,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,

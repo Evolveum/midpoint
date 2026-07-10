@@ -466,7 +466,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 evaluatorPanel.setOutputMarkupId(true);
                 evaluatorPanel.add(new VisibleBehaviour(() -> isInPopup || isEvaluatorPanelExpanded()));
                 if (!isInTable()) {
-                    evaluatorPanel.add(AttributeAppender.append("class", "pl-3"));
+                    evaluatorPanel.add(AttributeAppender.append("class", "ps-3"));
                 }
                 return evaluatorPanel;
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {

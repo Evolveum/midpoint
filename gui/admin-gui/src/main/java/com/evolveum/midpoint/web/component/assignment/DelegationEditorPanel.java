@@ -300,7 +300,8 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
         TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
                 new PropertyModel<>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
-        description.add(AttributeAppender.append("readonly", () -> getModel().getObject().isEditable() ? null : "readonly"));
+        description.add(AttributeAppender.append("readonly", () -> getModel().getObject().isEditable() ? null : ""));
+        description.add(AttributeAppender.append("disabled", () -> getModel().getObject().isEditable() ? null : ""));
         body.add(description);
 
         WebMarkupContainer assignmentPrivilegesContainer = new WebMarkupContainer(ID_ASSIGNMENT_PRIVILEGES_CONTAINER);
@@ -626,7 +627,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         } else {
             UserType delegationUser = getModelObject().getDelegationOwner();
             if (getModelObject().getDelegationOwner() != null) {
-                displayName = WebComponentUtil.getDisplayNameAndName(delegationUser.asPrismObject());
+                displayName = WebComponentUtil.getDisplayNameOrName(delegationUser.asPrismObject());
             }
         }
         return displayName;

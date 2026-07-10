@@ -100,7 +100,7 @@ public class OutlierResultPanel extends BasePanel<String> implements Popupable {
     }
 
     public String getCardCssClass() {
-        return "card m-0 p-0";
+        return "card shadow-sm m-0 p-0";
     }
 
     public String getBodyTitle() {

@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- Plain import of the HR source (no policy), used only to link all users before the scenario. -->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="e4f00000-0000-0000-0000-0000000000ff">
+    <name>hr-import</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="c1a70000-0000-0000-0000-000000000001"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
+</task>

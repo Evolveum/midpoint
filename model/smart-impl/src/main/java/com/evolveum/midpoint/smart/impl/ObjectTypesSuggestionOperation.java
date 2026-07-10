@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.smart.impl.scoring.FilterValidationException;
 import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -141,6 +143,11 @@ class ObjectTypesSuggestionOperation {
                 }
             }
 
+            if (isDuplicateOfExistingObjectType(delineation)) {
+                LOGGER.debug("Suggested object type (objectClass={}) is already present in schema handling, ignoring the suggestion.", typeName);
+                continue;
+            }
+
             var typeId = ResourceObjectTypeIdentification.of(
                     ShadowKindType.fromValue(siObjectType.getKind()),
                     SchemaConstants.INTENT_UNKNOWN.equals(siObjectType.getIntent()) // temporary hack
@@ -223,6 +230,77 @@ class ObjectTypesSuggestionOperation {
             throw new SuggestObjectTypesValidationException(objectTypesWithFilters);
         }
         return objectTypesWithFilters;
+    }
+
+    /**
+     * Checks whether the suggested object type (identified by objectClass and filters, including base
+     * context) is already present in the resource's schema handling, either as a manually created object type
+     * or as a previously accepted suggestion.
+     */
+    private boolean isDuplicateOfExistingObjectType(ResourceObjectTypeDelineationType suggestedDelineation) {
+        var schemaHandling = ctx.resource.getSchemaHandling();
+        if (schemaHandling == null) {
+            return false;
+        }
+        for (var existing : schemaHandling.getObjectType()) {
+            if (isSameObjectType(existing, suggestedDelineation)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSameObjectType(ResourceObjectTypeDefinitionType existing, ResourceObjectTypeDelineationType suggestedDelineation) {
+        var existingDelineation = existing.getDelineation();
+        QName existingObjectClass = existingDelineation != null ? existingDelineation.getObjectClass() : null;
+        if (!QNameUtil.match(existingObjectClass, typeName)) {
+            return false;
+        }
+        List<SearchFilterType> existingFilters = existingDelineation != null
+                ? existingDelineation.getFilter() : List.of();
+        if (!sameFilters(existingFilters, suggestedDelineation.getFilter())) {
+            return false;
+        }
+        var existingBaseCtx = existingDelineation != null ? existingDelineation.getBaseContext() : null;
+        return sameBaseContext(existingBaseCtx, suggestedDelineation.getBaseContext());
+    }
+
+    private static boolean sameFilters(List<SearchFilterType> a, List<SearchFilterType> b) {
+        if (a.size() != b.size()) {
+            return false;
+        }
+        List<SearchFilterType> remaining = new ArrayList<>(b);
+        for (var filter : a) {
+            var it = remaining.iterator();
+            boolean found = false;
+            while (it.hasNext()) {
+                if (Objects.equals(filter.getText(), it.next().getText())) {
+                    it.remove();
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean sameBaseContext(
+            @Nullable ResourceObjectReferenceType existing, @Nullable ResourceObjectReferenceType suggested) {
+        if (existing == null || suggested == null) {
+            return existing == suggested;
+        }
+        if (!QNameUtil.match(existing.getObjectClass(), suggested.getObjectClass())) {
+            return false;
+        }
+        var existingFilter = existing.getFilter();
+        var suggestedFilter = suggested.getFilter();
+        if (existingFilter == null || suggestedFilter == null) {
+            return existingFilter == suggestedFilter;
+        }
+        return Objects.equals(existingFilter.getText(), suggestedFilter.getText());
     }
 
     private ParsedBaseContext parseBaseContext(

@@ -11,18 +11,18 @@
     <form class="col-lg-12" wicket:id="mainForm">
         <div class="d-flex flex-column">
             <div wicket:id="header"></div>
-            <div class="d-flex flex-row card w-100 h-100" style="min-height: 78vh;">
+            <div class="d-flex flex-row card shadow-sm mb-3 w-100 h-100" style="min-height: 78vh;">
                 <div class="wizard-navigation-menu py-3" wicket:id="navigation">
                     <div class="border-bottom mb-2">
                         <a class="btn py-2 px-4 mx-3 mb-2 d-flex flex-row " wicket:id="summary">
                             <span>
-                                <i class="fa fa-list-check pr-1"></i>
+                                <i class="fa fa-list-check pe-1"></i>
                             </span>
                             <wicket:message key="WizardWithNavigationPanel.summary"/>
                         </a>
                     </div>
                     <div class="d-flex flex-column px-3">
-                        <div wicket:id="card" class="d-flex flex-column card gen-menu-card">
+                        <div wicket:id="card" class="d-flex flex-column card shadow-sm mb-3 gen-menu-card">
                             <div class="pb-1" wicket:id="stepLabel"></div>
                             <div>
                                 <span wicket:id="stepBadge"></span>
@@ -32,14 +32,14 @@
                     <div wicket:id="stepInProgress" class="d-flex flex-column px-3 pt-3 gen-menu-group">
                         <div class="d-flex flex-row align-items-center">
                             <div>
-                        <span class="rounded-circle bg-info text-center mr-2 d-block align-items-center gen-menu-icon">
+                        <span class="rounded-circle bg-info text-center me-2 d-block align-items-center gen-menu-icon">
                             <i class="fa-xs fa fa-spinner"></i>
                         </span>
                             </div>
                             <div wicket:id="parentStepLabel"></div>
                         </div>
-                        <div class="d-flex flex-column pl-3 border-left" style="margin-left: 10px;">
-                            <div wicket:id="card" class="d-flex flex-column card gen-menu-card">
+                        <div class="d-flex flex-column ps-3 border-start" style="margin-left: 10px;">
+                            <div wicket:id="card" class="d-flex flex-column card shadow-sm mb-3 gen-menu-card">
                                 <div class="pb-1" wicket:id="stepLabel"></div>
                                 <div>
                                     <span wicket:id="stepBadge"></span>
@@ -48,7 +48,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="border-left p-4 w-100">
+                <div class="border-start p-4 w-100">
                     <div wicket:id="contentBody"></div>
                 </div>
                 <div wicket:id="collapsedInfoPanel"></div>
@@ -57,7 +57,7 @@
     </form>
 
     <!--    <div class="bs-stepper-header flex-column overflow-auto justify-content-around" role="tablist" wicket:id="header">-->
-    <!--        <div wicket:id="stepStatus" class="sr-only" aria-live="polite"/>-->
+    <!--        <div wicket:id="stepStatus" class="visually-hidden" aria-live="polite"/>-->
     <!--        <wicket:container wicket:id="steps">-->
     <!--            <div class="flex flex-column no-wrap" wicket:id="step" role="tab"/>-->
     <!--            <div class="line" wicket:id="line"/>-->

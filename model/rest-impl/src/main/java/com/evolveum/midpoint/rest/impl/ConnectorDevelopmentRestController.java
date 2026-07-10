@@ -51,9 +51,11 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     public static final String OPERATION_GENERATE_NATIVE_SCHEMA = CLASS_DOT + "GenerateNativeSchema";
     public static final String OPERATION_GENERATE_CONN_ID_SCHEMA = CLASS_DOT + "GenerateConnIdSchema";
     public static final String OPERATION_GENERATE_AUTHENTICATION_SCRIPT = CLASS_DOT + "GenerateAuthenticationScript";
+    public static final String OPERATION_DISCOVER_OBJECT_CLASSES = CLASS_DOT + "DiscoverObjectClasses";
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_INFORMATION = CLASS_DOT + "DiscoverObjectClassInformation";
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_ATTRIBUTES = CLASS_DOT + "DiscoverObjectClassAttribute";
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_ENDPOINTS = CLASS_DOT + "DiscoverObjectClassEndpoints";
+    public static final String OPERATION_DISCOVER_CONNECTIVITY_ENDPOINTS = CLASS_DOT + "DiscoverConnectivityEndpoints";
 
     @Autowired private ConnectorDevelopmentService connectorDevelopmentService;
     @Autowired private MidpointConfiguration configuration;
@@ -69,7 +71,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         try {
             return createResponse(
                     HttpStatus.OK,
-                    getConnectorDevelopmentOperation(oid, task, result),
+                    getConnectorDevelopmentOperation(oid, task, result).getObject(),
                     result
             );
         } catch (Exception e) {
@@ -248,6 +250,35 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         );
     }
 
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_CONNECTIVITY_ENDPOINT_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitDiscoverConnectivityEndpoint(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_CONNECTIVITY_ENDPOINTS);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitDiscoverConnectivityEndpoint(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_CONNECTIVITY_ENDPOINT_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverConnectivityEndpointStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_CONNECTIVITY_ENDPOINTS);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverConnectivityEndpointStatus(token, task, result)
+        );
+    }
+
     @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_ARTIFACT_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationGenerateArtifact(
             @RequestParam("oid") @NotNull String oid,
@@ -277,6 +308,98 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
                 task,
                 result,
                 (service) -> service.getGenerateArtifactStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASSES_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationDiscoverObjectClasses(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASSES);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitDiscoverObjectClasses(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASSES_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverObjectClassInformationStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASSES);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverObjectClassInformationStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASS_ATTRIBUTES_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitDiscoverObjectClassAttributes(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("objectClass") String objectClass
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASSES);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitDiscoverObjectClassAttributes(objectClass, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASS_ATTRIBUTES_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverObjectClassAttributesStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASS_ATTRIBUTES);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverObjectClassAttributesStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASS_ENDPOINTS_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitDiscoverObjectClassEndpoints(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("objectClass") String objectClass
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASS_ENDPOINTS);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitDiscoverObjectClassEndpoints(objectClass, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASS_ENDPOINTS_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverObjectClassEndpointsStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASS_ENDPOINTS);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverObjectClassEndpointsStatus(token, task, result)
         );
     }
 
@@ -436,8 +559,8 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassAttributesResult(connDevDiscoverObjectClassAttributesResultType);
         } else if (statusInfo.getResult() instanceof ConnDevDiscoverObjectClassEndpointsResultType connDevDiscoverObjectClassEndpointsResultType) {
             abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassEndpointsResult(connDevDiscoverObjectClassEndpointsResultType);
-        } else if (statusInfo.getResult() instanceof ConnDevRefreshScimSchemaResultType connDevRefreshScimSchemaResultType) {
-            abstractSmartIntegrationOperationResultType.setConnDevRefreshScimSchemaResult(connDevRefreshScimSchemaResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevRefreshSchemaResultType connDevRefreshSchemaResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevRefreshSchemaResult(connDevRefreshSchemaResultType);
         } else if (statusInfo.getResult() instanceof ConnDevDiscoverConnectivityEndpointResultType connDevDiscoverConnectivityEndpointResultType) {
             abstractSmartIntegrationOperationResultType.setConnDevDiscoverConnectivityEndpointResult(connDevDiscoverConnectivityEndpointResultType);
         }

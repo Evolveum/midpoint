@@ -187,5 +187,5 @@ public interface ConnectorDevelopmentOperation {
 
     void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
 
-    String submitRefreshScimSchema(Task task, OperationResult result);
+    String submitRefreshSchema(Task task, OperationResult result);
 }

@@ -130,7 +130,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             @Contract(pure = true)
             @Override
             protected @NotNull String getProgressBarContainerCssClass() {
-                return "col-12 pl-0 pr-0";
+                return "col-12 ps-0 pe-0";
             }
 
         };
@@ -410,7 +410,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         setOutputMarkupId(true);
 
         add(AttributeModifier.append(CLASS_CSS,
-                "bg-white d-flex flex-column align-items-center elevation-1 rounded w-100 h-100 p-0"));
+                "bg-white d-flex flex-column align-items-center shadow-sm rounded w-100 h-100 p-0"));
     }
 
     private void explorePatternPerform(@NotNull DetectedPattern pattern) {

@@ -42,7 +42,7 @@ public class LocalesDropDownMenu extends BasePanel<List<AvailableLocale.LocaleDe
     }
 
     private void initLayout() {
-        add(AttributeAppender.prepend("class", "dropdown-menu dropdown-menu-right"));
+        add(AttributeAppender.prepend("class", "dropdown-menu dropdown-menu-end"));
 
         ListView<AvailableLocale.LocaleDescriptor> locales = new ListView<>(ID_LOCALES, Model.ofList(AvailableLocale.AVAILABLE_LOCALES)) {
 

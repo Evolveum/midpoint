@@ -200,7 +200,7 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
 
     @Override
     protected String getTileCssClasses() {
-        return "col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-5i col-xxl-2 p-2";
+        return "col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-5i col-3xl-2 p-2";
     }
 
     @Override

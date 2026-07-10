@@ -65,6 +65,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
 * bug:MID-10997[] Added support for additional footer.
 * bug:MID-11036[] Implemented export to XLSX.
+* bug:MID-11229[] Implemented streaming export for XLSX format.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
 * bug:MID-9476[] Improved Search Box in Object Collection View.
 * bug:MID-10867[] Added support for java 25.
@@ -154,6 +155,8 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Improved debug logging for OIDC opaque-token issuer discovery failures. See bug:MID-11292[].
 * Fixed structured-copy handling of reference values in asynchronous script execution. See bug:MID-10587[].
 * Fixed default login redirect to home page. See bug:MID-10269[]
+* Updated spring boot to 4.1. See bug:MID-11547[]
+* Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
 
 === Releases Of Other Components
 
@@ -285,7 +288,7 @@ Database and/or SQL proxies, database load balancers or any other devices (e.g. 
 
 Following database engines are supported:
 
-* PostgreSQL 17, 16, 15, 14
+* PostgreSQL 18, 17, 16, 15, 14
 
 PostgreSQL 17 is recommended.
 
@@ -470,13 +473,13 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 === Behavior Changes Since 4.10
 
 * Request access wizard behaves differently in case when conflicting situation occurs and prune action will be used for resolving the conflict.
-
++
 Previously, the wizard showed warning on the Shopping cart panel about conflicting roles or other shopping cart items even in case when prune action resolves the situation automatically.
 In order to correspond to the definition of the prune action, which says that "The removal of the conflicting assignments is automatic and silent", it was decided to hide the warning from Shopping cart panel.
 See also bug:MID-11250[].
 
 * `displayName` was added to `UserType` and is populated by the default person object template from `preferredName`, falling back to `fullName`.
-
++
 Existing users may not have `displayName` populated immediately after upgrade. Most user-facing places use fallback display logic, but places that display the raw `displayName` value may remain empty until the value is materialized.
 To populate `displayName` for existing person users, set `preferredName` where needed and recompute the users so the person object-template mapping is applied. See also bug:MID-8802[].
 

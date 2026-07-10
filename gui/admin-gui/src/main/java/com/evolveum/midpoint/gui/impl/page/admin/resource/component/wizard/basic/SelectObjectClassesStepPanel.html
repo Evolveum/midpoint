@@ -10,23 +10,20 @@
     <div wicket:id="feedbackContainer" class="col-8 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
-    <div class="col-lg-12 px-0 card">
+    <div class="col-lg-12 px-0 card shadow-sm mb-3">
         <div class="bg-white card-header mb-0 d-flex flex-row px-3 py-2">
             <span class="mt-2">
                 <i class="fa fa-table-cells"></i>
-                <span class="pl-1">
+                <span class="ps-1">
                     <wicket:message key="PageResource.wizard.step.selectObjectClasses"/>
                 </span>
             </span>
-            <form class="ml-auto input-group" style="width: 350px;" wicket:id="searchForm">
+            <form class="ms-auto input-group" style="width: 350px;" wicket:id="searchForm">
                 <input class="form-control" wicket:id="searchFiled"/>
-                <div class="input-group-append">
-                    <a class="btn btn-primary" wicket:id="searchButton"
-                            style="border-bottom-right-radius: 0.25rem; border-top-right-radius: 0.25rem;">
-                        <i class="fa fa-magnifying-glass mr-2"></i>
-                        <wicket:message key="pageResources.button.search"/>
-                    </a>
-                </div>
+                <a class="btn btn-primary" wicket:id="searchButton" style="border-bottom-right-radius: 0.25rem; border-top-right-radius: 0.25rem;">
+                    <i class="fa fa-magnifying-glass me-2"></i>
+                    <wicket:message key="pageResources.button.search"/>
+                </a>
             </form>
         </div>
         <div class="bg-white card-body mb-0 d-flex flex-column p-3" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
@@ -38,7 +35,7 @@
                     <div class="btn-sm btn-primary d-flex" style="cursor: auto;">
                         <div wicket:id="selectedItem"/>
                         <a wicket:id="deselectButton">
-                            <i class="fa fa-xmark ml-2 text-white"></i>
+                            <i class="fa fa-xmark ms-2 text-white"></i>
                         </a>
                     </div>
                 </wicket:container>

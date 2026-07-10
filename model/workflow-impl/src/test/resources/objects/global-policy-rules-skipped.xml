@@ -5,7 +5,45 @@
   ~ Licensed under the EUPL-1.2 or later.
   -->
 
-<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <globalPolicyRule>
+        <name>role-inducement-add-manual</name>
+        <policyConstraints>
+            <presentation>
+                <shortMessage>
+                    <fallbackMessage>Changing inducement</fallbackMessage>
+                </shortMessage>
+            </presentation>
+            <modification>
+                <operation>add</operation>
+                <item>inducement</item>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <processSpecification>
+                    <deltaFrom>
+                        <itemValue>inducement</itemValue>
+                    </deltaFrom>
+                </processSpecification>
+                <compositionStrategy>
+                    <order>10</order>
+                </compositionStrategy>
+                <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>mid-11101-add-inducement-manual-after-skipped</q:value>
+                </q:equal>
+            </filter>
+        </focusSelector>
+    </globalPolicyRule>
 
     <globalPolicyRule>
         <name>role-add-skipped</name>
@@ -21,14 +59,7 @@
                 </compositionStrategy>
                 <approvalSchema>
                     <stage>
-                        <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-                        <automaticallyCompleted>
-                            <script>
-                                <code>
-                                    return com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP
-                                </code>
-                            </script>
-                        </automaticallyCompleted>
+                        <outcomeIfNoApprovers>skip</outcomeIfNoApprovers>
                     </stage>
                 </approvalSchema>
             </approval>
@@ -58,14 +89,7 @@
                 </compositionStrategy>
                 <approvalSchema>
                     <stage>
-                        <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-                        <automaticallyCompleted>
-                            <script>
-                                <code>
-                                    return com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP
-                                </code>
-                            </script>
-                        </automaticallyCompleted>
+                        <outcomeIfNoApprovers>skip</outcomeIfNoApprovers>
                     </stage>
                 </approvalSchema>
             </approval>

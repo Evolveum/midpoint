@@ -73,6 +73,11 @@ public class ExpressionUtil {
         public String getLanguage() {
             return language;
         }
+
+        public String getShortForm() {
+            int hashIndex = language.indexOf('#');
+            return hashIndex >= 0 ? language.substring(hashIndex + 1) : language;
+        }
     }
 
     public static final QName SHADOW_REF_KEY = new QName(SchemaConstants.NS_C, "shadowRef");
@@ -117,7 +122,7 @@ public class ExpressionUtil {
     public static String getExpressionString(ExpressionEvaluatorType type, Language lang) {
         if (ExpressionEvaluatorType.SCRIPT.equals(type) && !Language.GROOVY.equals(lang)) {
             return "<script>\n"
-                    + "    <language>" + lang.getLanguage() + "</language>\n"
+                    + "    <language>" + lang.getShortForm() + "</language>\n"
                     + "    <code>\n"
                     + "        Insert your script here\n"
                     + "    </code>\n"
@@ -198,7 +203,9 @@ public class ExpressionUtil {
         }
 
         for (Language language : Language.values()) {
-            if (languageValue.equals(language.getLanguage()) || languageValue.equalsIgnoreCase(language.name())) {
+            if (languageValue.equals(language.getLanguage())
+                    || languageValue.equalsIgnoreCase(language.name())
+                    || languageValue.equalsIgnoreCase(language.getShortForm())) {
                 return language;
             }
         }

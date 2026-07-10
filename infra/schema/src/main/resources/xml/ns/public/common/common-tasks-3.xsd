@@ -2586,7 +2586,7 @@
                     </xsd:annotation>
                 </xsd:element>
 
-                <xsd:element name="refreshScimSchema" type="tns:ConnDevRefreshScimSchemaWorkDefinitionType">
+                <xsd:element name="refreshSchema" type="tns:ConnDevRefreshSchemaWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
                             <a:since>4.11</a:since>
@@ -11453,25 +11453,25 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!-- Refresh SCIM Schema -->
+    <!-- Refresh Schema -->
 
-    <xsd:complexType name="ConnDevRefreshScimSchemaWorkDefinitionType">
+    <xsd:complexType name="ConnDevRefreshSchemaWorkDefinitionType">
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ConnDevRefreshScimSchemaWorkStateType">
+    <xsd:complexType name="ConnDevRefreshSchemaWorkStateType">
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevRefreshScimSchemaResultType"/>
+                    <xsd:element name="result" type="tns:ConnDevRefreshSchemaResultType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ConnDevRefreshScimSchemaResultType">
+    <xsd:complexType name="ConnDevRefreshSchemaResultType">
         <xsd:sequence/>
     </xsd:complexType>
 

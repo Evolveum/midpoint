@@ -65,20 +65,25 @@ public class DbSchemaParser {
 
     private SchemaDoc parseSourceFiles(List<SqlFileDoc> sourceFiles) throws IOException {
         ParsedSchemaAccumulator accumulator = new ParsedSchemaAccumulator();
+        List<SqlFileDoc> parsedSourceFiles = new ArrayList<>();
 
         for (SqlFileDoc sourceFile : sourceFiles) {
-            parseSourceFile(sourceFile, accumulator);
+            parsedSourceFiles.add(parseSourceFile(sourceFile, accumulator));
         }
 
-        return accumulator.toSchemaDoc(sourceFiles);
+        return accumulator.toSchemaDoc(parsedSourceFiles);
     }
 
-    private void parseSourceFile(SqlFileDoc sourceFile, ParsedSchemaAccumulator accumulator) throws IOException {
+    private SqlFileDoc parseSourceFile(SqlFileDoc sourceFile, ParsedSchemaAccumulator accumulator) throws IOException {
         RegionTracker regionTracker = new RegionTracker();
         int doBlockNumber = 1;
         int alterTableNumber = 1;
+        List<String> statements = statementExtractor.extract(sourceFile.path());
+        if (!statements.isEmpty()) {
+            sourceFile = sourceFile.withScriptDescription(annotationExtractor.extractScriptDescription(statements.get(0)));
+        }
 
-        for (String statement : statementExtractor.extract(sourceFile.path())) {
+        for (String statement : statements) {
             String strippedStatement = statementExtractor.stripLeadingComments(statement);
             DocMetadata metadata = annotationExtractor.extractLeadingMetadata(statement);
             DocRegion currentRegion = regionTracker.regionFor(statement, metadata);
@@ -108,6 +113,8 @@ public class DbSchemaParser {
 
             parseStandaloneObject(sourceFile, strippedStatement, metadata, currentRegion, accumulator);
         }
+
+        return sourceFile;
     }
 
     /**

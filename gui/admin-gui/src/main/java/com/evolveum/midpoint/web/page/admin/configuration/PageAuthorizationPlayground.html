@@ -9,7 +9,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm" class="form-inline" role="form">
+    <form wicket:id="mainForm" class="d-flex align-items-center gap-2" role="form">
 
         <div>
         <h3>Introduction</h3>
@@ -33,9 +33,9 @@
                     <p>You can define any additional authorizations here.</p>
                     <textarea wicket:id="additionalAuthorizations" style="margin-bottom: 20px"></textarea>
                 </div>
-                <div class="form-group" style="margin-top: 10px; width: 100%;" >
-                    <label for="sample" style="margin-right: 10px;">There are some samples prepared. Just select any of them:</label>
-                    <select id="sample" class="input-sm form-control" wicket:id="sample"/>
+                <div class="mb-3" style="margin-top: 10px; width: 100%;" >
+                    <label class="form-label" for="sample" style="margin-right: 10px;">There are some samples prepared. Just select any of them:</label>
+                    <select id="sample" class="form-control form-control-sm form-control" wicket:id="sample"/>
                 </div>
             </div>
             <div class="row">

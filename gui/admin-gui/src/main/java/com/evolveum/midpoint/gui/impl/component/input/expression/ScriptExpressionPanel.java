@@ -282,7 +282,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
             if (StringUtils.isEmpty(code)) {
                 return null;
             }
-            return new ScriptExpressionEvaluatorType().code(code).language(language == null ? null : language.getLanguage());
+            return new ScriptExpressionEvaluatorType().code(code).language(language == null ? null : language.getShortForm());
         }
 
         public ScriptExpressionWrapper code(String code) {
