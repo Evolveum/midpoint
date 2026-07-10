@@ -415,13 +415,13 @@ CREATE TABLE m_object (
      * @description: Indexed extension and attribute values stored as JSON data.
      *
      * Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
-     * and values are stored as follows (this is internal and has no effect on how query is written):
-     * * string and boolean are stored as-is
-     * * any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
-     * * enum as toString() or name() of the Java enum instance
-     * * date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits
-     * * poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
-     * * reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
+     * and values are stored as follows (this is internal and has no effect on how query is written): +
+     * * string and boolean are stored as-is +
+     * * any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that) +
+     * * enum as toString() or name() of the Java enum instance +
+     * * date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits +
+     * * poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"} +
+     * * reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"} +
      * ** where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
      */
     ext JSONB,

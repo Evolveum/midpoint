@@ -197,7 +197,8 @@ Inherits from: xref:infrastructure.adoc#m_object[`m_object`]
 [[m_connector_host]]
 === `m_connector_host`
 
-Stores remote connector host definitions. +
+Stores remote connector host definitions.
+
 Represents ConnectorHostType, see https://docs.evolveum.com/connectors/connid/1.x/connector-server/
 
 XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorHostType`
@@ -360,8 +361,9 @@ Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder
 [[m_lookup_table_row]]
 === `m_lookup_table_row`
 
-Stores rows of lookup table key-value data. +
-Lookup table row currently doesn't store whole polystring data for `label` property, +
+Stores rows of lookup table key-value data.
+
+Lookup table row currently doesn't store whole polystring data for `label` property,
 only the original and normalized string values are stored.
 
 XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#LookupTableRowType`

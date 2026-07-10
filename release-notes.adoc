@@ -288,7 +288,7 @@ Database and/or SQL proxies, database load balancers or any other devices (e.g. 
 
 Following database engines are supported:
 
-* PostgreSQL 17, 16, 15, 14
+* PostgreSQL 18, 17, 16, 15, 14
 
 PostgreSQL 17 is recommended.
 

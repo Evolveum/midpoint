@@ -21,6 +21,7 @@ import com.evolveum.midpoint.tools.dbdocs.model.UpgradeAffectedObjectDoc;
  */
 public class SqlAnnotationExtractor {
 
+    private static final String SCRIPT_DESCRIPTION = "@script-description:";
     private static final String ANNOTATION_PREFIX = "@";
     private static final char ANNOTATION_SEPARATOR = ':';
     private static final char AFFECTS_SEPARATOR = '|';
@@ -40,6 +41,41 @@ public class SqlAnnotationExtractor {
             builder.add(annotation);
         }
         return builder.isEmpty() ? DocMetadata.EMPTY : builder.toMetadata();
+    }
+
+    /**
+     * Extracts the file-level script description from a leading SQL block comment.
+     */
+    public String extractScriptDescription(String statement) {
+        String description = null;
+        boolean inScriptDescription = false;
+        boolean inBlockComment = false;
+
+        for (String line : statement.lines().toList()) {
+            String strippedLine = line.stripLeading();
+            if (!inBlockComment && !SqlCommentSupport.startsBlockComment(strippedLine)) {
+                if (strippedLine.isBlank() || SqlCommentSupport.isLineComment(strippedLine)) {
+                    continue;
+                }
+                break;
+            }
+
+            String commentText = SqlCommentSupport.fromBlockComment(line);
+            boolean blockContinues = SqlCommentSupport.continuesBlockComment(strippedLine);
+            inBlockComment = blockContinues;
+            if (startsScriptDescription(commentText)) {
+                description = commentText.substring(SCRIPT_DESCRIPTION.length()).strip();
+                inScriptDescription = true;
+            } else if (inScriptDescription && (!commentText.isBlank() || blockContinues)) {
+                description = SqlCommentSupport.appendContinuation(description, commentText);
+            }
+
+            if (!inBlockComment && inScriptDescription) {
+                break;
+            }
+        }
+
+        return description;
     }
 
     /**
@@ -194,9 +230,13 @@ public class SqlAnnotationExtractor {
         return -1;
     }
 
+    private boolean startsScriptDescription(String commentText) {
+        return commentText.regionMatches(true, 0, SCRIPT_DESCRIPTION, 0, SCRIPT_DESCRIPTION.length());
+    }
+
     private void collectBlockAnnotation(AnnotationMetadataBuilder builder, String line) {
         String commentText = SqlCommentSupport.fromBlockComment(line);
-        if (commentText.isBlank()) {
+        if (commentText.isBlank() && !SqlCommentSupport.continuesBlockComment(line.stripLeading())) {
             return;
         }
 
@@ -359,7 +399,7 @@ public class SqlAnnotationExtractor {
         }
 
         void appendToLast(String continuation) {
-            if (annotations.isEmpty() || continuation.isBlank()) {
+            if (annotations.isEmpty()) {
                 return;
             }
 
