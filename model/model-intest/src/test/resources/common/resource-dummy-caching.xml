@@ -307,7 +307,7 @@
                             <name>administrativeStatus-validFrom-validTo-c</name>
                             <script>
                                 <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                                <code>isNil(focus.activation.validFrom) &amp;&amp; isNil(focus.activation.validTo)</code>
+                                <code>focus.activation.validFrom == null &amp;&amp; focus.activation.validTo == null</code>
                             </script>
                         </condition>
                     </inbound>

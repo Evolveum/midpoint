@@ -68,7 +68,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isNil(input) || input.contains('NULL') ? nil : input
+                                input == null || input.contains('NULL') ? nil : input
                             </code>
                         </script>
                     </expression>
@@ -85,7 +85,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isNil(input) || input.contains('NULL') ? nil : input
+                                input == null || input.contains('NULL') ? nil : input
                             </code>
                         </script>
                     </expression>
