@@ -1044,7 +1044,10 @@ public interface MidpointFunctions {
 
     LensContextType wrapModelContext(ModelContext<?> lensContext) throws SchemaException;
 
+    @Deprecated // use hasLinkedObjectOnResource() instead
     <F extends ObjectType> boolean hasLinkedAccount(String resourceOid);
+
+    <F extends ObjectType> boolean hasLinkedObjectOnResource(String resourceOid, ShadowKindType kind, String intent);
 
     /**
      * Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to

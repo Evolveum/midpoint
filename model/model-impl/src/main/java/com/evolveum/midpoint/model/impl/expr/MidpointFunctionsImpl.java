@@ -306,8 +306,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
     }
 
+    @Deprecated // use hasLinkedObjectOnResource() instead
     @Override
     public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
+        return hasLinkedObjectOnResource(resourceOid, ShadowKindType.ACCOUNT, null);
+    }
+
+    @Override
+    public <F extends ObjectType> boolean hasLinkedObjectOnResource(String resourceOid, ShadowKindType kind, String intent) {
         ModelContext<?> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
         ProjectionContextFilter filter =
                 new ProjectionContextFilter(resourceOid, ShadowKindType.ACCOUNT, null);

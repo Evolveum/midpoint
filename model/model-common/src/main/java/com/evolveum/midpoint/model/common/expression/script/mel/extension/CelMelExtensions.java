@@ -2271,6 +2271,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
+    // TODO: clean up the mess with various substring(...) functions
+
     /**
      * @param args Object array with indices of [0: string], [1: beginIndex], [2: endIndex]
      */
