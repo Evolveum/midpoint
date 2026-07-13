@@ -186,9 +186,10 @@ Materialized transitive closure of organization parent-child relationships.
 
 Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
 Closure contains also identity (org = org) entries because:
-It's easier to do optimized matrix-multiplication based refresh with them later.
-It actually makes some query easier and requires AND instead of OR conditions.
-While the table shows that o => o (=> means "is parent of"), this is not the semantics
+
+* It's easier to do optimized matrix-multiplication based refresh with them later.
+* It actually makes some query easier and requires AND instead of OR conditions.
+* While the table shows that o => o (=> means "is parent of"), this is not the semantics
 of isParent/ChildOf searches and they never return parameter OID as a result.
 
 Kind: materialized view

@@ -29,8 +29,8 @@ Other notes:
 We prefer `CREATE UNIQUE INDEX` to `ALTER TABLE ... ADD CONSTRAINT`, unless the column
 is marked as UNIQUE directly - then the index is implied, don't create it explicitly.
 
-* For Audit tables see 'postgres-audit.sql' right next to this file.
-For Quartz tables see 'postgres-quartz.sql'.
+* For Audit tables see `postgres-audit.sql` right next to this file.
+For Quartz tables see `postgres-quartz.sql`.
 
 * Public schema is not used as of now, everything is in the current user schema.
 See secure schema usage pattern in https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS[PostgreSQL documentation].
@@ -390,8 +390,9 @@ CREATE TABLE m_object (
     -- @description: Normalized object name used for exact case-insensitive lookup and uniqueness.
     nameNorm TEXT NOT NULL,
     /*
-     * @description: Serialized full object representation, however some items are stored separately.
-     * See xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Splitted full object] for more information.
+     @description: Serialized full object representation, however some items are stored separately.
+
+     See xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Splitted full object] for more information.
      */
     fullObject BYTEA,
     -- @description: OID of the tenant reference target object.
@@ -414,17 +415,17 @@ CREATE TABLE m_object (
     -- @description: Text search helper content derived from selected object data.
     fullTextInfo TEXT,
     /*
-     * @description: Indexed extension and attribute values stored as JSON data.
-     *
-     * Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
-     * and values are stored as follows (this is internal and has no effect on how query is written): +
-     * * string and boolean are stored as-is +
-     * * any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that) +
-     * * enum as toString() or name() of the Java enum instance +
-     * * date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits +
-     * * poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"} +
-     * * reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"} +
-     * ** where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
+     @description: Indexed extension and attribute values stored as JSON data.
+
+     Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
+     and values are stored as follows (this is internal and has no effect on how query is written): +
+     * string and boolean are stored as-is +
+     * any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that) +
+     * enum as toString() or name() of the Java enum instance +
+     * date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits +
+     * poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"} +
+     * reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"} +
+     ** where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
      */
     ext JSONB,
     -- metadata
@@ -509,20 +510,20 @@ Allows querying all separately persisted containers, but not necessary for the a
  */
 CREATE TABLE m_container (
     /*
-     * @description: OID of the owning object row.
-     *
-     * Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
-     * Owner does not have to be the direct parent of the container.
+     @description: OID of the owning object row.
+
+     Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
+     Owner does not have to be the direct parent of the container.
      */
     ownerOid UUID NOT NULL,
     -- use like this on the concrete table:
     -- ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
 
     /*
-     * @description: Container identifier unique within the owning object.
-     *
-     * Container ID, unique in the scope of the whole object (owner).
-     * While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
+     @description: Container identifier unique within the owning object.
+
+     Container ID, unique in the scope of the whole object (owner).
+     While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
      */
     cid BIGINT NOT NULL,
     -- containerType will be overridden with GENERATED value in concrete table
@@ -1365,6 +1366,7 @@ CREATE INDEX m_ref_object_parent_org_targetOidRelationId_idx
 
 Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
 Closure contains also identity (org = org) entries because:
+
 * It's easier to do optimized matrix-multiplication based refresh with them later.
 * It actually makes some query easier and requires AND instead of OR conditions.
 * While the table shows that o => o (=> means "is parent of"), this is not the semantics
@@ -1632,15 +1634,15 @@ CREATE TABLE m_shadow (
     modifyTimestamp TIMESTAMPTZ,
 
     /*
-     * @description: Database timestamp when this row was created.
-     *
-     * Purely DB-managed metadata, not mapped to in midPoint. Updated in update trigger.
+     @description: Database timestamp when this row was created.
+
+     Purely DB-managed metadata, not mapped to in midPoint. Updated in update trigger.
      */
     db_created TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
     /*
-     * @description: Database timestamp when this row was last modified.
-     *
-     * Purely DB-managed metadata, not mapped to in midPoint. Updated in update trigger.
+     @description: Database timestamp when this row was last modified.
+
+     Purely DB-managed metadata, not mapped to in midPoint. Updated in update trigger.
      */
     db_modified TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
 

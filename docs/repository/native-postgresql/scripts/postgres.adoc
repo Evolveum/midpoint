@@ -7,28 +7,30 @@ This page documents schema objects parsed from `config/sql/native/postgres.sql`.
 The detailed documentation is split into logical region pages because this schema script is large.
 
 Naming conventions:
-M_ prefix is used for tables in main part of the repo, MA_ for audit tables (can be separate)
-Constraints/indexes use table_column(s)_suffix convention, with PK for primary key,
-FK foreign key, IDX for index, KEY for unique index.
-TR is suffix for triggers.
-Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
-Column names are Java style and match attribute names from M-classes (e.g. MObject).
+
+* `M_` prefix is used for tables in main part of the repo, `MA_` for audit tables (can be separate)
+Constraints/indexes use table_column(s)_suffix convention, with `PK` for primary key,
+`FK` foreign key, `IDX` for index, `KEY` for unique index.
+`TR` is suffix for triggers.
+
+* Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
+
+* Column names are Java style and match attribute names from M-classes (e.g. MObject).
 
 Other notes:
-`TEXT` is used instead of `VARCHAR`, see: https://dba.stackexchange.com/a/21496/157622[dba.stackexchange]
+
+* `TEXT` is used instead of `VARCHAR`, see: https://dba.stackexchange.com/a/21496/157622[DBA stackexchange]
 We prefer `CREATE UNIQUE INDEX` to `ALTER TABLE ... ADD CONSTRAINT`, unless the column
 is marked as UNIQUE directly - then the index is implied, don't create it explicitly.
 
-For Audit tables see 'postgres-audit.sql' right next to this file.
-For Quartz tables see 'postgres-quartz.sql'.
+* For Audit tables see `postgres-audit.sql` right next to this file.
+For Quartz tables see `postgres-quartz.sql`.
 
-noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
+* Public schema is not used as of now, everything is in the current user schema.
+See secure schema usage pattern in https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS[PostgreSQL documentation].
 
-public schema is not used as of now, everything is in the current user schema
-https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS[ddl-schemas-patterns]
-see secure schema usage pattern
-
-just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
+* Just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
++
 ```
 drop schema current_user cascade;
 ```
@@ -452,9 +454,10 @@ URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#lo
 
 Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
 Closure contains also identity (org = org) entries because:
-It's easier to do optimized matrix-multiplication based refresh with them later.
-It actually makes some query easier and requires AND instead of OR conditions.
-While the table shows that o => o (=> means "is parent of"), this is not the semantics
+
+* It's easier to do optimized matrix-multiplication based refresh with them later.
+* It actually makes some query easier and requires AND instead of OR conditions.
+* While the table shows that o => o (=> means "is parent of"), this is not the semantics
 of isParent/ChildOf searches and they never return parameter OID as a result.
 | materialized view
 
