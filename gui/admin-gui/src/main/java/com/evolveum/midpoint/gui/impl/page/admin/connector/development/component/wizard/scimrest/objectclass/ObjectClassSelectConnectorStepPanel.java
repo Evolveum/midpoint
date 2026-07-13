@@ -7,13 +7,16 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
 import java.io.Serial;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
@@ -38,6 +41,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -61,6 +65,7 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_MORE_OBJECT_CLASSES_BUTTON = "moreObjectClassesButton";
+    private static final String ID_MORE_CLASSES_HINT = "moreClassesHint";
 
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
     private boolean showAllClasses;
@@ -84,28 +89,82 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
         valuesModel = new LoadableModel<>() {
             @Override
             protected List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> load() {
-                PrismContainerWrapper<ConnDevObjectClassInfoType> container;
-                try {
-                    container = getDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
-                                    ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
-                                    ConnDevSchemaType.F_OBJECT_CLASS));
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e);
+                List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> candidates = getObjectClassCandidates();
+                if (showAllClasses) {
+                    return candidates;
                 }
-
-                return container.getValues().stream()
-                        .filter(value ->
-                                getDetailsModel().getObjectType().getConnector().getObjectClass().stream()
-                                        .noneMatch(savedObjectClass -> StringUtils.equals(savedObjectClass.getName(), value.getRealValue().getName())))
-                        .filter(value ->
-                                showAllClasses // show all classes options
-                                        || value.getRealValue().getRelevancy() == null // backwards compatibility
-                                        || ConnDevRelevancyLevelType.HIGH.equals(value.getRealValue().getRelevancy()) // high relevancy
-                        )
+                // By default show only the classes with the highest confidence present in the list.
+                // "More classes" reveals the ones with lower confidence.
+                ConnDevRelevancyLevelType highest = highestRelevancy(candidates);
+                return candidates.stream()
+                        .filter(value -> {
+                            ConnDevRelevancyLevelType relevancy = value.getRealValue().getRelevancy();
+                            return relevancy == null // backwards compatibility (no confidence detected)
+                                    || highest == null // nothing ranked at all
+                                    || relevancy == highest; // top confidence level present
+                        })
                         .toList();
             }
         };
+    }
+
+    /**
+     * Detected object classes that are not yet saved into the connector's object class list.
+     */
+    private List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> getObjectClassCandidates() {
+        PrismContainerWrapper<ConnDevObjectClassInfoType> container;
+        try {
+            container = getDetailsModel().getObjectWrapper().findContainer(
+                    ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
+                            ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
+                            ConnDevSchemaType.F_OBJECT_CLASS));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+
+        return container.getValues().stream()
+                .filter(value ->
+                        getDetailsModel().getObjectType().getConnector().getObjectClass().stream()
+                                .noneMatch(savedObjectClass -> StringUtils.equals(savedObjectClass.getName(), value.getRealValue().getName())))
+                .toList();
+    }
+
+    /**
+     * Highest confidence level present among the candidates, or {@code null} when none of them
+     * carries a relevancy (older detected schemas without confidence).
+     */
+    private static ConnDevRelevancyLevelType highestRelevancy(
+            List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> candidates) {
+        // ConnDevRelevancyLevelType is declared low, medium, high, so the enum's natural order
+        // (ordinal) already ranks confidence from lowest to highest.
+        return candidates.stream()
+                .map(value -> value.getRealValue().getRelevancy())
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+    }
+
+    /**
+     * True when there are candidates with a confidence lower than the highest present, i.e. there is
+     * something to reveal via "More classes".
+     */
+    private boolean hasLowerRelevancyClasses() {
+        List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> candidates = getObjectClassCandidates();
+        ConnDevRelevancyLevelType highest = highestRelevancy(candidates);
+        if (highest == null) {
+            return false;
+        }
+        return candidates.stream()
+                .map(value -> value.getRealValue().getRelevancy())
+                .anyMatch(relevancy -> relevancy != null && relevancy.compareTo(highest) < 0);
+    }
+
+    /**
+     * Whether the "More classes" affordance (button and hint banner) should be shown, i.e. we are
+     * not already showing everything and there are lower-confidence classes to reveal.
+     */
+    private boolean isMoreClassesAvailable() {
+        return !showAllClasses && hasLowerRelevancyClasses();
     }
 
     private void initLayout() {
@@ -113,6 +172,12 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
         getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+
+        WebMarkupContainer moreClassesHint = new WebMarkupContainer(ID_MORE_CLASSES_HINT);
+        moreClassesHint.setOutputMarkupId(true);
+        moreClassesHint.setOutputMarkupPlaceholderTag(true);
+        moreClassesHint.add(new VisibleBehaviour(this::isMoreClassesAvailable));
+        add(moreClassesHint);
 
         IModel<String> radioGroupModel = new IModel<>() {
             @Override
@@ -147,11 +212,16 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
             public void onClick(AjaxRequestTarget target) {
                 showAllClasses = true;
                 valuesModel.reset();
-                target.add(ObjectClassSelectConnectorStepPanel.this);
+                target.add(radioGroup);
+                target.add(this);
+                target.add(moreClassesHint);
             }
         };
 
         moreClasses.showTitleAsLabel(true);
+        moreClasses.setOutputMarkupId(true);
+        moreClasses.setOutputMarkupPlaceholderTag(true);
+        moreClasses.add(new VisibleBehaviour(this::isMoreClassesAvailable));
         add(moreClasses);
 
         String cssClass;
