@@ -457,14 +457,15 @@ export default class MidPointTheme {
             });
         });
 
-        jQuery(function ($) {
-            $(document).on("keydown", ".showPasswordButton", function (e, t) {
-                if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
-                    e.key == "Enter" || e.keyCode == 13) {
-                    $(this).showPassword();
-                }
-            });
-        });
+        // jQuery(function ($) {
+        //     $(document).on("keydown", ".showPasswordButton", function (e, t) {
+        //         if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+        //             e.key == "Enter" || e.keyCode == 13) {
+        //                 e.preventDefault();
+        //                 $(this).trigger("click");
+        //         }
+        //     });
+        // });
 
         (function ($) {
             $.fn.showPassword = function () {
